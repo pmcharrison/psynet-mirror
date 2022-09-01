@@ -7,6 +7,7 @@
 import logging
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -20,7 +21,7 @@ logger = logging.getLogger()
 def animal_page(animal, time_estimate, bot_response):
     return ModularPage(
         "animal",
-        f"How much do you like {animal}?",
+        f"How much do you like the following animal: {animal}?",
         PushButtonControl(
             ["Not at all", "A little", "Very much"],
         ),
@@ -97,7 +98,8 @@ part_1_logic = PageMaker(
 
 
 def part_1_check(participant):
-    assert participant.answer == {"animal": "Very much", "color": "A little"}
+    if isinstance(participant, Bot):
+        assert participant.answer == {"animal": "Very much", "color": "A little"}
 
 
 part_1 = join(
@@ -107,11 +109,12 @@ part_1 = join(
 
 
 def part_2_check(participant):
-    assert len(participant.trials) == 3
-    trial = participant.trials[0]
-    assert trial.answer == {"kindness": "Very much", "bravery": "A little"}
-    assert trial.__json__["answer__kindness"] == "Very much"
-    assert trial.__json__["answer__bravery"] == "Very much"
+    if isinstance(participant, Bot):
+        assert len(participant.trials) == 3
+        trial = participant.trials[0]
+        assert trial.answer == {"kindness": "Very much", "bravery": "A little"}
+        assert trial.to_dict()["answer__kindness"] == "Very much"
+        assert trial.to_dict()["answer__bravery"] == "A little"
 
 
 part_2 = join(
@@ -134,11 +137,12 @@ part_3_logic = PageMaker(
 
 
 def part_3_check(participant):
-    assert participant.answer == {
-        "dog": "Very much",
-        "dog_1": "Very much",
-        "dog_2": "Very much",
-    }
+    if isinstance(participant, Bot):
+        assert participant.answer == {
+            "dog": "Very much",
+            "dog_1": "Very much",
+            "dog_2": "Very much",
+        }
 
 
 part_3 = join(

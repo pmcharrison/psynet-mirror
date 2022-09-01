@@ -429,8 +429,8 @@ class Trial(SQLMixinDallinger, Info):
 
             self._finalize_assets()
 
-    def __json__(self):
-        x = super().__json__()
+    def to_dict(self):
+        x = super().to_dict()
         field.json_unpack_answer(x)
         return x
 

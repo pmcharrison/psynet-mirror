@@ -91,8 +91,8 @@ class TestAssetExport:
         bot = Bot()
         bot.take_experiment()
 
-        json_full = bot.__json__()
-        json_anon = bot.scrub_pii(bot.__json__())
+        json_full = bot.to_dict()
+        json_anon = bot.scrub_pii(bot.to_dict())
 
         assert "worker_id" in json_full
         assert "worker_id" not in json_anon

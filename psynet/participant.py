@@ -270,12 +270,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def locals(self):
         return self.module_state.var
 
-    def __json__(self):
-        x = SQLMixinDallinger.__json__(self)
-        x.update(self.locals_to_json())
+    def to_dict(self):
+        x = SQLMixinDallinger.to_dict(self)
+        x.update(self.locals_to_dict())
         return x
 
-    def locals_to_json(self):
+    def locals_to_dict(self):
         output = {}
         for module_id, module_states in self.module_states.items():
             module_states.sort(key=lambda x: x.time_started)

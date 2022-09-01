@@ -470,10 +470,11 @@ def json_add_extra_vars(x, obj):
     return x
 
 
-def json_format_vars(x):
-    def is_basic_type(value):
-        return value is None or isinstance(value, (int, float, str, bool))
+def is_basic_type(value):
+    return value is None or isinstance(value, (int, float, str, bool))
 
+
+def json_format_vars(x):
     for key, value in x.items():
         # TODO - revisit this? Will need some concurrent edits in Dallinger,
         # e.g. the logic for sending __json__() outputs to the dashboard.
@@ -484,8 +485,8 @@ def json_format_vars(x):
         elif isinstance(value, MutableDict):
             value = dict(value)
 
-        if not is_basic_type(value):
-            value = serialize(value)
+        # if not is_basic_type(value):
+        #     value = serialize(value)
 
         x[key] = value
 

@@ -20,7 +20,7 @@ def check_module_b(participant):
     assert participant.locals.color == "blue"
     assert participant.module_states["module_a"][0].var.animal == "cat"
 
-    export = participant.__json__()
+    export = participant.to_dict()
     assert export["module_a__animal"] == "cat"
     assert export["module_a__1__animal"] == "dog"
 

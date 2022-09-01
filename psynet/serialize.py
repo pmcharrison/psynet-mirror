@@ -4,6 +4,7 @@ from functools import cached_property
 
 import flask
 import jsonpickle
+from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
 
 from .data import SQLBase
@@ -98,6 +99,13 @@ class PsyNetUnpickler(Unpickler):
 
 def serialize(x):
     return jsonpickle.encode(x)
+
+
+pickler = Pickler()
+
+
+def to_dict(x):
+    return pickler.flatten(x)
 
 
 def unserialize(x):
