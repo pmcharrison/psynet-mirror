@@ -26,13 +26,7 @@ from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.process import WorkerAsyncProcess
 from psynet.timeline import Timeline
-from psynet.trial.gibbs import (
-    GibbsNetwork,
-    GibbsNode,
-    GibbsSource,
-    GibbsTrial,
-    GibbsTrialMaker,
-)
+from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -93,11 +87,6 @@ class ColorSliderPage(ModularPage):
 
 
 class CustomNetwork(GibbsNetwork):
-    vector_length = 3
-
-    def random_sample(self, i):
-        return random.randint(0, 255)
-
     def make_definition(self):
         return {"target": self.balance_across_networks(TARGETS)}
 
@@ -183,11 +172,10 @@ class CustomTrial(GibbsTrial):
 
 
 class CustomNode(GibbsNode):
-    pass
+    vector_length = 3
 
-
-class CustomSource(GibbsSource):
-    pass
+    def random_sample(self, i):
+        return random.randint(0, 255)
 
 
 class CustomTrialMaker(GibbsTrialMaker):
@@ -203,7 +191,6 @@ trial_maker = CustomTrialMaker(
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    source_class=CustomSource,
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=4,
     num_iterations_per_chain=5,  # note that the final node receives no trials
