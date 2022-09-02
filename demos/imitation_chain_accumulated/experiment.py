@@ -17,7 +17,6 @@ from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNetwork,
     ImitationChainNode,
-    ImitationChainSource,
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
@@ -96,17 +95,15 @@ class CustomNetwork(ImitationChainNetwork):
 
 
 class CustomNode(ImitationChainNode):
+    def create_initial_seed(self, experiment, participant):
+        return random.randint(0, 9999999)
+
     def summarize_trials(self, trials: list, experiment, participant):
         def get_answer(trial):
             # Slices the list to get the answers from the second and third pages, then take the mean
             return mean(trial.answer[1:])
 
         return round(mean([get_answer(trial) for trial in trials]))
-
-
-class CustomSource(ImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        return random.randint(0, 9999999)
 
 
 class CustomTrialMaker(ImitationChainTrialMaker):
@@ -138,7 +135,6 @@ class Exp(psynet.experiment.Experiment):
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
             chain_type="within",
             num_iterations_per_chain=5,
             num_trials_per_participant=5,
