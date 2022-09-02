@@ -357,7 +357,8 @@ class GibbsNode(ChainNode):
         """
         if self.vector_length is None:
             raise ValueError(
-                "node.vector_length must not be None. Did you forget to set it?"
+                "node.vector_length must not be None. Did you forget to set it? "
+                "Please provide this as a class attribute of your Node class."
             )
         return {
             "vector": [self.random_sample(i) for i in range(self.vector_length)],
@@ -372,3 +373,21 @@ class GibbsTrialMaker(ChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    def check_initialization(self):
+        super().check_initialization()
+        if self.node_class.random_sample == GibbsNode.random_sample:
+            raise NotImplementedError(
+                "The GibbsNode class is missing a random_sample method, "
+                "which tells the Gibbs process how to resample free parameters. "
+                "If you are migrating from a previous version of PsyNet (< 10.0.0), "
+                "you probably need to copy this method over from your custom network class "
+                "to your custom node class."
+            )
+        if self.node_class.vector_length is None:
+            raise NotImplementedError(
+                "The GibbsNode class is missing a vector_length attribute. "
+                "If you are migrating from a previous version of PsyNet (< 10.0.0), "
+                "you probably need to copy this method over from your custom network class "
+                "to your custom node class."
+            )

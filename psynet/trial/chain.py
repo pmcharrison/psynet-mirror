@@ -1143,6 +1143,11 @@ class ChainTrialMaker(NetworkTrialMaker):
             wait_for_networks=wait_for_networks,
         )
 
+        self.check_initialization()
+
+    def check_initialization(self):
+        pass
+
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
         participant.module_state.participated_networks = []
@@ -1301,7 +1306,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             nodes = [None for _ in range(self.num_chains_per_experiment)]
         for node in nodes:  # type: ChainNode
             self.create_network(experiment, start_node=node)
-            node.stage_assets(experiment)
+            if node is not None:
+                node.stage_assets(experiment)
 
     def create_network(
         self, experiment, participant=None, id_within_participant=None, start_node=None
