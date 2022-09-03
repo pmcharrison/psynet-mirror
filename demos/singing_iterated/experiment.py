@@ -18,7 +18,6 @@ from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, joi
 from psynet.trial.audio import (
     AudioImitationChainNetwork,
     AudioImitationChainNode,
-    AudioImitationChainSource,
     AudioImitationChainTrial,
     AudioImitationChainTrialMaker,
 )
@@ -256,43 +255,36 @@ class IteratedSingingTrialExperiment(IteratedSingingTrial):
         )
 
 
-class CustomNetwork(AudioImitationChainNetwork):
-    run_async_post_grow_network = False
-
-
 class CustomNode(AudioImitationChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
         sung_intervals = [trial.analysis["sung_intervals"] for trial in trials]
         return dict(intervals=[mean(x) for x in zip(*sung_intervals)])
 
 
-class CustomSource(AudioImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        if self.network.phase == "experiment":
-            intervals = utils.sample_interval_sequence(
-                n_int=params.singing_2intervals["num_int"],
-                max_interval_size=params.singing_2intervals["max_interval_size"],
-                max_melody_pitch_range=params.singing_2intervals[
-                    "max_melody_pitch_range"
-                ],
-                discrete=params.singing_2intervals["discrete"],
-                reference_mode=params.singing_2intervals["reference_mode"],
-            )
-            return dict(intervals=intervals)
-        else:
-            intervals = utils.sample_interval_sequence(
-                n_int=params.singing_2intervals["num_int"],
-                max_interval_size=3,
-                max_melody_pitch_range=params.singing_2intervals[
-                    "max_melody_pitch_range"
-                ],
-                discrete=params.singing_2intervals["discrete"],
-                reference_mode=params.singing_2intervals["reference_mode"],
-            )
-            return dict(intervals=intervals)
+class CustomNodePractice(CustomNode):
+    def create_initial_seed(self, experiment, participant):
+        intervals = utils.sample_interval_sequence(
+            n_int=params.singing_2intervals["num_int"],
+            max_interval_size=3,
+            max_melody_pitch_range=params.singing_2intervals["max_melody_pitch_range"],
+            discrete=params.singing_2intervals["discrete"],
+            reference_mode=params.singing_2intervals["reference_mode"],
+        )
+        return dict(intervals=intervals)
 
 
-# Experiment
+class CustomNodeExperiment(CustomNode):
+    def create_initial_seed(self, experiment, participant):
+        intervals = utils.sample_interval_sequence(
+            n_int=params.singing_2intervals["num_int"],
+            max_interval_size=params.singing_2intervals["max_interval_size"],
+            max_melody_pitch_range=params.singing_2intervals["max_melody_pitch_range"],
+            discrete=params.singing_2intervals["discrete"],
+            reference_mode=params.singing_2intervals["reference_mode"],
+        )
+        return dict(intervals=intervals)
+
+
 Welcome = InfoPage(
     Markup(
         """
@@ -333,10 +325,8 @@ SingingFeedback = join(
     ),
     SingingImitationTrialMakerPractice(
         id_="singing_iterated_practice",
-        network_class=CustomNetwork,
         trial_class=CustomTrialPractice,
-        node_class=CustomNode,
-        source_class=CustomSource,
+        node_class=CustomNodePractice,
         chain_type="within",
         num_iterations_per_chain=1,
         num_trials_per_participant=DESIGN_PARAMS["num_trials_practice"],
@@ -383,10 +373,8 @@ SingingMainTask1 = join(
     ),
     AudioImitationChainTrialMaker(
         id_="first_trial_maker",
-        network_class=CustomNetwork,
         trial_class=IteratedSingingTrialExperiment,
-        node_class=CustomNode,
-        source_class=CustomSource,
+        node_class=CustomNodeExperiment,
         phase="experiment",
         chain_type=DESIGN_PARAMS["chain_type"],
         num_trials_per_participant=DESIGN_PARAMS["max_trials_per_participant"],
