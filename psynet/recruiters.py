@@ -366,12 +366,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return lucid_recruitment_config.get("termination_time_in_s")
 
     @property
-    def ad_page_inactivity_timeout_in_s(self):
+    def inactivity_timeout_in_s(self):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
         )
 
-        return lucid_recruitment_config.get("ad_page_inactivity_timeout_in_s")
+        return lucid_recruitment_config.get("inactivity_timeout_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

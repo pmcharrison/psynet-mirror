@@ -11,6 +11,6 @@
         "UniqueIPAddress": true,
         "UniquePID": true
     },
-    "termination_time_in_s": 300,
-    "ad_page_inactivity_timeout_in_s": 240
+    "termination_time_in_s": 60,
+    "inactivity_timeout_in_s": 15
 }
