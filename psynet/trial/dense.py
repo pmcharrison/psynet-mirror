@@ -93,11 +93,6 @@ class DenseTrialMaker(StaticTrialMaker):
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.
 
-    max_unique_conditions_per_block
-        Determines the maximum number of unique conditions that a participant will be allowed to experience
-        in each block. Once this quota is reached, the participant will be forced to repeat
-        previously experienced stimuli.
-
     active_balancing_within_participants
         If ``True`` (default), active balancing within participants is enabled, meaning that
         stimulus selection always favours the stimuli that have been presented fewest times
@@ -196,7 +191,6 @@ class DenseTrialMaker(StaticTrialMaker):
         target_num_participants: Optional[int] = None,
         target_num_trials_per_condition: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
-        max_unique_conditions_per_block: Optional[int] = None,
         active_balancing_within_participants: bool = True,
         active_balancing_across_participants: bool = True,
         check_performance_at_end: bool = False,
@@ -208,13 +202,12 @@ class DenseTrialMaker(StaticTrialMaker):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
-            stimuli=conditions,
+            nodes=conditions,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            target_num_trials_per_stimulus=target_num_trials_per_condition,
+            target_num_trials_per_node=target_num_trials_per_condition,
             max_trials_per_block=max_trials_per_block,
-            max_unique_stimuli_per_block=max_unique_conditions_per_block,
-            allow_repeated_stimuli=True,
+            allow_repeated_nodes=True,
             active_balancing_within_participants=active_balancing_within_participants,
             active_balancing_across_participants=active_balancing_across_participants,
             check_performance_at_end=check_performance_at_end,
