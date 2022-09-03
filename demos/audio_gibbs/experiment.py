@@ -14,17 +14,17 @@ import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
 from psynet.bot import Bot
-from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
+from psynet.consent import CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
-    AudioGibbsNetwork,
     AudioGibbsNode,
-    AudioGibbsSource,
     AudioGibbsTrial,
     AudioGibbsTrialMaker,
 )
 from psynet.utils import get_logger
+
+from . import custom_synth
 
 logger = get_logger()
 
@@ -44,23 +44,6 @@ NUM_CHAINS_PER_PARTICIPANT = len(TARGETS)
 NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * NUM_CHAINS_PER_PARTICIPANT
 
 
-class CustomNetwork(AudioGibbsNetwork):
-    synth_function_location = {
-        "module_name": "custom_synth",
-        "function_name": "synth_stimulus",
-    }
-
-    s3_bucket = "audio-gibbs-demo"
-    vector_length = DIMENSIONS
-    vector_ranges = [RANGE for _ in range(DIMENSIONS)]
-    granularity = GRANULARITY
-
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
-
-    def make_definition(self):
-        return {"target": self.balance_across_networks(TARGETS)}
-
-
 class CustomTrial(AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
@@ -71,17 +54,19 @@ class CustomTrial(AudioGibbsTrial):
     def get_prompt(self, experiment, participant):
         return Markup(
             "Adjust the slider so that the word sounds as "
-            f"<strong>{self.network.definition['target']}</strong> "
+            f"<strong>{self.context['target']}</strong> "
             "as possible."
         )
 
 
 class CustomNode(AudioGibbsNode):
-    pass
+    vector_length = DIMENSIONS
+    vector_ranges = [RANGE for _ in range(DIMENSIONS)]
+    granularity = GRANULARITY
+    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-
-class CustomSource(AudioGibbsSource):
-    pass
+    def synth_function(self, vector, output_path):
+        custom_synth.synth_stimulus(vector, output_path)
 
 
 class CustomTrialMaker(AudioGibbsTrialMaker):
@@ -101,14 +86,12 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="audio_gibbs_demo",
-    network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    source_class=CustomSource,
     chain_type="within",  # can be "within" or "across"
     num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
+    start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
     num_chains_per_experiment=None,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
@@ -135,7 +118,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
-        CAPRecruiterAudiovisualConsent(),
         trial_maker,
         SuccessfulEndPage(),
     )

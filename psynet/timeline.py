@@ -2220,6 +2220,9 @@ class Module:
             if node.network is None:
                 node.add_default_network()
         db.session.commit()
+        for node in self.nodes:
+            node.ensure_on_create_called()
+        db.session.commit()
 
     def nodes_stage_assets(self, experiment):
         for node in self.nodes:

@@ -403,6 +403,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
             db.session.add(node)
             network.add_node(node)
             db.session.commit()
+            node.ensure_on_create_called()
+            db.session.commit()
             return True
         return False
 

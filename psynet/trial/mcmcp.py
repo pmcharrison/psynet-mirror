@@ -195,3 +195,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
 
     performance_check_type = "consistency"
     consistency_check_type = "percent_agreement"
+
+    @property
+    def default_network_class(self):
+        return MCMCPNetwork

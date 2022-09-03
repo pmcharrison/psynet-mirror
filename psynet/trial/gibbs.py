@@ -391,3 +391,7 @@ class GibbsTrialMaker(ChainTrialMaker):
                 "you probably need to copy this method over from your custom network class "
                 "to your custom node class."
             )
+
+    @property
+    def default_network_class(self):
+        return GibbsNetwork

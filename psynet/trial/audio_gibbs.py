@@ -5,12 +5,14 @@ import random
 import tempfile
 from uuid import uuid4
 
+from sqlalchemy import Column
+
 from ..asset import ExperimentAsset
-from ..field import claim_var
+from ..field import PythonObject
 from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
 from ..timeline import MediaSpec
-from ..utils import get_logger, get_object_from_module, linspace
+from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 
 logger = get_logger()
@@ -81,106 +83,14 @@ class AudioGibbsNetwork(GibbsNetwork):
         stimuli is instead determined by the audio generation function.
     """
 
-    synth_function_location = {"module_name": "", "function_name": ""}
-    s3_bucket = ""
-    vector_length = 0
-    vector_ranges = []
-    granularity = 100
-    n_jobs = 1
-
-    @property
-    def synth_function(self):
-        return get_object_from_module(
-            module_name=self.synth_function_location["module_name"],
-            object_name=self.synth_function_location["function_name"],
-        )
-
-    def validate(self):
-        if not (
-            isinstance(self.synth_function_location, dict)
-            and "module_name" in self.synth_function_location
-            and "function_name" in self.synth_function_location
-            and len(self.synth_function_location["module_name"]) > 0
-            and len(self.synth_function_location["function_name"]) > 0
-        ):
-            raise ValueError(
-                f"Invalid <synth_function_location> ({self.synth_function_location})."
-            )
-
-        if not (isinstance(self.s3_bucket, str) and len(self.s3_bucket) > 0):
-            raise ValueError(f"Invalid <s3_bucket> ({self.s3_bucket}).")
-
-        if not (isinstance(self.vector_length, int) and self.vector_length > 0):
-            raise TypeError("<vector_length> must be a positive integer.")
-
-        if not (
-            isinstance(self.vector_ranges, list)
-            and len(self.vector_ranges) == self.vector_length
-        ):
-            raise TypeError(
-                "<vector_ranges> must be a list with length equal to <vector_length>."
-            )
-
-        for r in self.vector_ranges:
-            if not (len(r) == 2 and r[0] < r[1]):
-                raise ValueError(
-                    "Each element of <vector_ranges> must be a list of two numbers in increasing order "
-                    "identifying the legal range of the corresponding parameter in the vector."
-                )
-
-        if not (
-            (isinstance(self.granularity, int) and self.granularity > 0)
-            or (isinstance(self.granularity, str) and self.granularity == "custom")
-        ):
-            raise ValueError(
-                "<granularity> must be either a positive integer or the string 'custom'."
-            )
-
-    def random_sample(self, i):
-        return random.uniform(self.vector_ranges[i][0], self.vector_ranges[i][1])
-
-    run_async_post_grow_network = True
-
-    def async_post_grow_network(self):
-        logger.info("Synthesising audio for network %i...", self.id)
-
-        node = self.head
-
-        granularity = self.granularity
-        vector = node.definition["vector"]
-        active_index = node.definition["active_index"]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
-            os.mkdir(individual_stimuli_dir)
-
-            batch_file = f"{uuid4()}.batch"
-            batch_path = os.path.join(temp_dir, batch_file)
-
-            args = {
-                "vector": vector,
-                "active_index": active_index,
-                "range_to_sample": self.vector_ranges[active_index],
-                "chain_definition": self.definition,
-                "output_dir": individual_stimuli_dir,
-                "synth_function": self.synth_function,
-                "n_jobs": self.n_jobs,
-            }
-
-            if granularity == "custom":
-                stimuli = make_audio_custom_intervals(**args)
-            else:
-                stimuli = make_audio_regular_intervals(granularity=granularity, **args)
-
-            make_audio_batch_file(stimuli, batch_path)
-            asset = ExperimentAsset(
-                label="slider_stimulus",
-                input_path=batch_path,
-                parent=node,
-            )
-            asset.deposit()
-
-            node.slider_stimuli = {"url": asset.url, "all": stimuli}
+    pass
+    # run_async_post_grow_network = True
+    #
+    # def async_post_grow_network(self):
+    #     logger.info("Synthesising audio for network %i...", self.id)
+    #
+    #     node = self.head
+    #     node.make_stimuli()
 
 
 class AudioGibbsTrial(GibbsTrial):
@@ -327,7 +237,7 @@ class AudioGibbsTrial(GibbsTrial):
 
     @property
     def vector_ranges(self):
-        return self.network.vector_ranges
+        return self.node.vector_ranges
 
 
 class AudioGibbsNode(GibbsNode):
@@ -336,63 +246,126 @@ class AudioGibbsNode(GibbsNode):
     The user should not have to modify this.
     """
 
-    __extra_vars__ = GibbsNode.__extra_vars__.copy()
+    slider_stimuli = Column(PythonObject)
 
-    slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
+    vector_length = 0
+    vector_ranges = []
+    granularity = 100
+    n_jobs = 1
+
+    def validate(self):
+        if not (isinstance(self.vector_length, int) and self.vector_length > 0):
+            raise TypeError("<vector_length> must be a positive integer.")
+
+        if not (
+            isinstance(self.vector_ranges, list)
+            and len(self.vector_ranges) == self.vector_length
+        ):
+            raise TypeError(
+                "<vector_ranges> must be a list with length equal to <vector_length>."
+            )
+
+        for r in self.vector_ranges:
+            if not (len(r) == 2 and r[0] < r[1]):
+                raise ValueError(
+                    "Each element of <vector_ranges> must be a list of two numbers in increasing order "
+                    "identifying the legal range of the corresponding parameter in the vector."
+                )
+
+        if not (
+            (isinstance(self.granularity, int) and self.granularity > 0)
+            or (isinstance(self.granularity, str) and self.granularity == "custom")
+        ):
+            raise ValueError(
+                "<granularity> must be either a positive integer or the string 'custom'."
+            )
+
+    def random_sample(self, i):
+        return random.uniform(self.vector_ranges[i][0], self.vector_ranges[i][1])
+
+    def on_create(self):
+        self.make_stimuli()
+
+    def make_stimuli(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
+            os.mkdir(individual_stimuli_dir)
+
+            batch_file = f"{uuid4()}.batch"
+            batch_path = os.path.join(temp_dir, batch_file)
+
+            if self.granularity == "custom":
+                stimuli = self.make_audio_custom_intervals(individual_stimuli_dir)
+            else:
+                stimuli = self.make_audio_regular_intervals(individual_stimuli_dir)
+
+            self.make_audio_batch_file(stimuli, batch_path)
+            asset = ExperimentAsset(
+                label="slider_stimulus",
+                input_path=batch_path,
+                parent=self,
+            )
+            asset.deposit()
+
+            self.slider_stimuli = {"url": asset.url, "all": stimuli}
+
+    def make_audio_regular_intervals(self, output_dir):
+        granularity = self.granularity
+        vector = self.definition["vector"]
+        active_index = self.definition["active_index"]
+        range_to_sample = self.vector_ranges[active_index]
+
+        values = linspace(range_to_sample[0], range_to_sample[1], granularity)
+
+        ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
+        files = [f"{_id}.wav" for _id in ids]
+        paths = [os.path.join(output_dir, _file) for _file in files]
+
+        def _synth(value, path):
+            _vector = vector.copy()
+            _vector[active_index] = value
+            self.synth_function(vector=_vector, output_path=path)
+
+        parallelize = self.n_jobs > 1
+        if parallelize:
+            from joblib import Parallel, delayed
+
+            logger.info("Using %d processes in parallel" % self.n_jobs)
+
+            Parallel(n_jobs=self.n_jobs, backend="threading")(
+                delayed(_synth)(_value, _path) for _value, _path in zip(values, paths)
+            )
+        else:
+            for _value, _path in zip(values, paths):
+                _synth(_value, _path)
+
+        return [
+            {"id": _id, "value": _value, "path": _path}
+            for _id, _value, _path in zip(ids, values, paths)
+        ]
+
+    def make_audio_custom_intervals(
+        self,
+        vector,
+        active_index,
+        range_to_sample,
+        chain_definition,
+        output_dir,
+        synth_function,
+    ):
+        # We haven't implemented this yet
+        raise NotImplementedError
+
+    @staticmethod
+    def make_audio_batch_file(stimuli, output_path):
+        paths = [x["path"] for x in stimuli]
+        make_batch_file(paths, output_path)
+
+    def synth_function(self, vector, output_path):
+        raise NotImplementedError
 
 
 class AudioGibbsTrialMaker(GibbsTrialMaker):
-    pass
-
-
-def make_audio_batch_file(stimuli, output_path):
-    paths = [x["path"] for x in stimuli]
-    make_batch_file(paths, output_path)
-
-
-def make_audio_regular_intervals(
-    granularity,
-    vector,
-    active_index,
-    range_to_sample,
-    chain_definition,
-    output_dir,
-    synth_function,
-    n_jobs,
-):
-    values = linspace(range_to_sample[0], range_to_sample[1], granularity)
-
-    ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-    files = [f"{_id}.wav" for _id in ids]
-    paths = [os.path.join(output_dir, _file) for _file in files]
-
-    def _synth(value, path):
-        _vector = vector.copy()
-        _vector[active_index] = value
-        synth_function(
-            vector=_vector, output_path=path, chain_definition=chain_definition
-        )
-
-    parallelize = n_jobs > 1
-    if parallelize:
-        from joblib import Parallel, delayed
-
-        logger.info("Using %d processes in parallel" % n_jobs)
-        n_jobs = 1  # todo -fix
-        Parallel(
-            n_jobs=n_jobs,
-        )(delayed(_synth)(_value, _path) for _value, _path in zip(values, paths))
-    else:
-        for _value, _path in zip(values, paths):
-            _synth(_value, _path)
-
-    return [
-        {"id": _id, "value": _value, "path": _path}
-        for _id, _value, _path in zip(ids, values, paths)
-    ]
-
-
-def make_audio_custom_intervals(
-    vector, active_index, range_to_sample, chain_definition, output_dir, synth_function
-):
-    raise NotImplementedError
+    @property
+    def default_network_class(self):
+        return AudioGibbsNetwork

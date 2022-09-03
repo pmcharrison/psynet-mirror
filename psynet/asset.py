@@ -791,14 +791,14 @@ class ManagedAsset(Asset):
         if self.participant:
             ids.append(f"participants/participant_{self.participant.id}")
         elif self.node:
-            ids.append(f"nodes/node_{self.node.id}")
+            ids.append("nodes")
         return "/".join(ids)
 
     def generate_local_key_child(self):
         ancestors = self.get_ancestors()
         ids = [
-            f"{id_type}_{ancestors[id_type].id}"
-            for id_type in ["network", "node", "trial"]
+            f"{id_type}_{ancestors[id_type]}"
+            for id_type in ["network", "degree", "node", "trial"]
             if ancestors[id_type] is not None
         ]
         if self.label:
@@ -865,10 +865,11 @@ class ManagedAsset(Asset):
 
     def get_ancestors(self):
         return {
-            "network": self.network,
-            "node": self.node,
-            "trial": self.trial,
-            "participant": self.participant,
+            "network": self.network.id if self.network else None,
+            "node": self.node.id if self.node else None,
+            "degree": self.node.degree if hasattr(self.node, "degree") else None,
+            "trial": self.trial.id if self.trial else None,
+            "participant": self.participant.id if self.participant else None,
         }
 
     def generate_host_path(self, deployment_id: str):

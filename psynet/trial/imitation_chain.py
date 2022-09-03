@@ -124,3 +124,7 @@ class ImitationChainTrialMaker(ChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return ImitationChainNetwork

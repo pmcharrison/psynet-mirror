@@ -455,6 +455,19 @@ class SQLMixinDallinger(SharedMixin):
         return json
 
 
+#
+# @event.listens_for(SQLMixinDallinger, "after_insert", propagate=True)
+# def after_insert(mapper, connection, target):
+#     # obj = unserialize(serialize(target))
+#     old_session = db.session
+#     db.session = db.scoped_session(db.session_factory)  # db.create_scoped_session()
+#     obj = unserialize(serialize(target))
+#     obj.on_creation()
+#     # target.on_creation()
+#     db.session.commit()
+#     db.session = old_session
+
+
 class SQLMixin(SQLMixinDallinger):
     """
     We apply this mixin when creating our own SQL-backed

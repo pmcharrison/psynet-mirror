@@ -770,6 +770,7 @@ class Trial(SQLMixinDallinger, Info):
             node = GenericTrialNode(module_id, experiment)
             db.session.add(node)
             db.session.commit()
+            node.ensure_on_create_called()
             return node
 
     @classmethod
@@ -2457,6 +2458,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     trial_maker_id = Column(String)
     module_id = Column(String)
+    _on_create_called = Column(Boolean, default=False)
 
     async_processes = relationship("AsyncProcess")
 
@@ -2508,6 +2510,15 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         if participant is not None:
             self.participant = participant
             self.participant_id = participant.id
+
+    def ensure_on_create_called(self):
+        if not self._on_create_called:
+            self.on_create()
+            self._on_create_called = True
+
+    def on_create(self):
+        "To be called when the instance is added to the database"
+        pass
 
     def set_network(self, network):
         self.network = network
