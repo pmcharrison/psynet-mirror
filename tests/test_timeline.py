@@ -10,13 +10,7 @@ from psynet.timeline import (
     switch,
     while_loop,
 )
-from psynet.trial.chain import (
-    ChainNetwork,
-    ChainNode,
-    ChainSource,
-    ChainTrial,
-    ChainTrialMaker,
-)
+from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
 from psynet.utils import DuplicateKeyError
 
 
@@ -66,9 +60,7 @@ class CustomTrial(ChainTrial):
 def new_trial_maker(**kwarg):
     args = dict(
         id_="test_trial_maker",
-        network_class=ChainNetwork,
         node_class=ChainNode,
-        source_class=ChainSource,
         trial_class=CustomTrial,
         chain_type="across",
         num_iterations_per_chain=10,

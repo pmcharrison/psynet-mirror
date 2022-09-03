@@ -1,12 +1,6 @@
 import pytest
 
-from psynet.trial.chain import (
-    ChainNetwork,
-    ChainNode,
-    ChainSource,
-    ChainTrial,
-    ChainTrialMaker,
-)
+from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
 
 
 class CustomTrial(ChainTrial):
@@ -16,9 +10,7 @@ class CustomTrial(ChainTrial):
 def new_trial_maker(**kwarg):
     args = dict(
         id_="test_trial_maker",
-        network_class=ChainNetwork,
         node_class=ChainNode,
-        source_class=ChainSource,
         trial_class=CustomTrial,
         phase="test",
         chain_type="across",
