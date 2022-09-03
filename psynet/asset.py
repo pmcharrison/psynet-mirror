@@ -242,13 +242,50 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     errors = relationship("ErrorRecord")
 
-    # foreign_keyed_columns = [
-    #     "participant_id",
-    #     "network_id",
-    #     "node_id",
-    #     "trial_id",
-    #     "response_id",
-    # ]
+    @property
+    def trial(self):
+        from .trial.main import Trial
+
+        if isinstance(self.parent, Trial):
+            return self.parent
+
+    @property
+    def node(self):
+        from .trial.main import Trial, TrialNode
+
+        if isinstance(self.parent, Trial):
+            return self.parent.node
+        elif isinstance(self.parent, TrialNode):
+            return self.parent
+
+    @property
+    def network(self):
+        from .trial.main import Trial, TrialNetwork, TrialNode
+
+        if isinstance(self.parent, (Trial, TrialNode)):
+            return self.parent.network
+        elif isinstance(self.parent, TrialNetwork):
+            return self.parent
+
+    @property
+    def participant(self):
+        from .participant import Participant
+
+        if self.parent is None:
+            return None
+        elif isinstance(self.parent, Participant):
+            return self.parent
+        else:
+            return self.parent.participant
+
+    def get_ancestors(self):
+        return {
+            "network": self.network.id if self.network else None,
+            "node": self.node.id if self.node else None,
+            "degree": self.node.degree if hasattr(self.node, "degree") else None,
+            "trial": self.trial.id if self.trial else None,
+            "participant": self.participant.id if self.participant else None,
+        }
 
     def __init__(
         self,
@@ -312,6 +349,55 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         elif key == "module_id":
             if self.key and self.local_key:
                 self.set_key(os.path.join(value, self.local_key))
+
+    def generate_key(self):
+        self.local_key = self.generate_local_key()
+
+        if self.module_id:
+            key = os.path.join(self.module_id, self.local_key)
+        else:
+            key = self.local_key
+
+        self.set_key(key)
+
+    def generate_local_key(self):
+        return os.path.join(
+            self.generate_local_key_parents(), self.generate_local_key_child()
+        )
+
+    def generate_local_key_parents(self):
+        ids = []
+        if self.participant:
+            ids.append(f"participants/participant_{self.participant.id}")
+        elif self.node:
+            ids.append("nodes")
+        return "/".join(ids)
+
+    def generate_local_key_child(self):
+        ids = self.generate_local_key_child_ids()
+
+        if self.label:
+            ids.append(f"{self.label}")
+
+        return "__".join(
+            ids
+        )  # keys don't contain extensions by default  #  + self.extension
+
+    def generate_local_key_child_ids(self):
+        from psynet.trial.static import StaticNetwork
+
+        ancestors = self.get_ancestors()
+
+        if self.network and isinstance(self.network, StaticNetwork):
+            id_types = ["node", "trial"]
+        else:
+            id_types = ["network", "degree", "node", "trial"]
+
+        return [
+            f"{id_type}_{ancestors[id_type]}"
+            for id_type in id_types
+            if ancestors[id_type] is not None
+        ]
 
     def consume(self, experiment, participant):
         if not self.has_key:
@@ -570,7 +656,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             raise
 
     def receive_node_definition(self, definition):
-        self.var.source_definition = definition
+        self.var.node_definition = definition
 
     def read_text(self):
         assert not self.is_folder
@@ -769,107 +855,6 @@ class ManagedAsset(Asset):
             return get_folder_size_mb(self.input_path)
         else:
             return get_file_size_mb(self.input_path)
-
-    def generate_key(self):
-        self.local_key = self.generate_local_key()
-
-        if self.module_id:
-            key = os.path.join(self.module_id, self.local_key)
-        else:
-            key = self.local_key
-
-        self.set_key(key)
-
-    def generate_local_key(self):
-        return os.path.join(
-            self.generate_local_key_parents(), self.generate_local_key_child()
-        )
-
-    def generate_local_key_parents(self):
-        ids = []
-        if self.participant:
-            ids.append(f"participants/participant_{self.participant.id}")
-        elif self.node:
-            ids.append("nodes")
-        return "/".join(ids)
-
-    def generate_local_key_child(self):
-        ancestors = self.get_ancestors()
-        ids = [
-            f"{id_type}_{ancestors[id_type]}"
-            for id_type in ["network", "degree", "node", "trial"]
-            if ancestors[id_type] is not None
-        ]
-        if self.label:
-            ids.append(f"{self.label}")
-
-        return "__".join(
-            ids
-        )  # keys don't contain extensions by default  #  + self.extension
-
-    # def get_original_parent(self):
-    #     candidates = self.trials + self.nodes + self.networks + self.participants
-    #     # if len(candidates) == 0:
-    #     #     candidates = self.participants
-    #     if len(candidates) == 0:
-    #         return None
-    #     else:
-    #         candidates.sort(key=lambda x: x.creation_time)
-    #         return candidates[0]
-
-    # @property
-    # def trial_maker_id(self):
-    #     from .participant import Participant
-    #
-    #     if self.parent is None or isinstance(self.parent, Participant):
-    #         return None
-    #     else:
-    #         return self.parent.trial_maker_id
-
-    @property
-    def trial(self):
-        from .trial.main import Trial
-
-        if isinstance(self.parent, Trial):
-            return self.parent
-
-    @property
-    def node(self):
-        from .trial.main import Trial, TrialNode
-
-        if isinstance(self.parent, Trial):
-            return self.parent.node
-        elif isinstance(self.parent, TrialNode):
-            return self.parent
-
-    @property
-    def network(self):
-        from .trial.main import Trial, TrialNetwork, TrialNode
-
-        if isinstance(self.parent, (Trial, TrialNode)):
-            return self.parent.network
-        elif isinstance(self.parent, TrialNetwork):
-            return self.parent
-
-    @property
-    def participant(self):
-        from .participant import Participant
-
-        if self.parent is None:
-            return None
-        elif isinstance(self.parent, Participant):
-            return self.parent
-        else:
-            return self.parent.participant
-
-    def get_ancestors(self):
-        return {
-            "network": self.network.id if self.network else None,
-            "node": self.node.id if self.node else None,
-            "degree": self.node.degree if hasattr(self.node, "degree") else None,
-            "trial": self.trial.id if self.trial else None,
-            "participant": self.participant.id if self.participant else None,
-        }
 
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
@@ -1168,8 +1153,8 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 class ExternalAsset(Asset):
     def __init__(
         self,
-        local_key,
         url,
+        local_key=None,
         is_folder=False,
         description=None,
         data_type=None,

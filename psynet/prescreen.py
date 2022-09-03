@@ -751,7 +751,7 @@ class REPPMarkersTest(StaticTrialMaker):
     def audio_assets(self):
         return [
             ExternalAsset(
-                key=f"repp_markers_test_audio_{i + 1}",
+                local_key=f"markers_test_audio_{i + 1}",
                 url=f"{self.materials_url}/audio{i + 1}.wav",
                 label=f"audio{i + 1}.wav",
             )
@@ -761,25 +761,27 @@ class REPPMarkersTest(StaticTrialMaker):
     @property
     def image_asset(self):
         return ExternalAsset(
-            key="repp_rules_image.png",
+            local_key="rules_image.png",
             url=f"{self.materials_url}/REPP-image_rules.png",
         )
 
     @property
     def instruction_page(self):
-        return InfoPage(
-            Markup(
-                f"""
+        return PageMaker(
+            lambda assets: InfoPage(
+                Markup(
+                    f"""
             <h3>Recording test</h3>
             <hr>
             Now we will test the recording quality of your laptop. In {self.num_trials} trials, you will be
             asked to remain silent while we play and record a sound.
             <br><br>
-            <img style="width:50%" src="{self.image_asset.url}"  alt="image_rules">
+            <img style="width:50%" src="{assets['rules_image'].url}"  alt="rules_image">
             <br><br>
             When ready, click <b>next</b> for the recording test and please wait in silence.
             <hr>
             """
+                ),
             ),
             time_estimate=5,
         )
@@ -814,35 +816,27 @@ class REPPMarkersTest(StaticTrialMaker):
 class LanguageVocabularyTrial(StaticTrial):
     time_estimate = None
 
-    def show_trial(self, experiment, participant):
-        path_correct = self.definition["url_image_folder"] + "/correct"
-        path_wrong1 = self.definition["url_image_folder"] + "/wrong1"
-        path_wrong2 = self.definition["url_image_folder"] + "/wrong2"
-        path_wrong3 = self.definition["url_image_folder"] + "/wrong3"
-        order_list = [0, 1, 2, 3]
+    def finalize_definition(self, definition, experiment, participant):
+        indices = range(4)
+        definition["order"] = random.sample(indices, len(indices))
+        return definition
 
-        # Todo - update this. It is not good practice to call random functions
-        # within show_trial, as they will produce different values on page refresh.
-        rand_order_list = random.sample(order_list, len(order_list))
-        list_path_to_rand = [
-            path_correct,
-            path_wrong1,
-            path_wrong2,
-            path_wrong3,
-        ]
-        list_choices_to_rand = ["correct", "wrong1", "wrong2", "wrong3"]
+    def show_trial(self, experiment, participant):
+        order = self.definition["order"]
+        choices = ["correct", "wrong1", "wrong2", "wrong3"]
+        image_urls = [self.assets[f"image_{choice}"].url for choice in choices]
 
         return ModularPage(
             "language_vocabulary_trial",
             AudioPrompt(
-                self.definition["url_audio"],
+                self.assets["audio"],
                 "Select the picture that matches the word that you heard.",
             ),
             PushButtonControl(
-                choices=[list_choices_to_rand[x] for x in rand_order_list],
+                choices=[choices[i] for i in order],
                 labels=[
-                    f'<img src="{list_path_to_rand[x]}.png" alt="notworking" height="65px" width="65px"/>'
-                    for x in rand_order_list
+                    f'<img src="{image_urls[i]}" alt="notworking" height="65px" width="65px"/>'
+                    for i in order
                 ],
                 style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
                 arrange_vertically=False,
@@ -907,7 +901,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(media_url, language_code, self.words),
-            max_trials_per_block=num_trials,
+            num_trials_per_participant=num_trials,
             check_performance_at_end=True,
         )
 
@@ -931,11 +925,6 @@ class LanguageVocabularyTest(StaticTrialMaker):
     @property
     def introduction(self):
         return join(
-            ExternalAsset(
-                "language_test_materials",
-                self.media_url,
-                is_folder=True,
-            ),
             InfoPage(
                 Markup(
                     """
@@ -955,13 +944,19 @@ class LanguageVocabularyTest(StaticTrialMaker):
         return [
             Node(
                 definition={
-                    "name": name,
-                    "url_audio": f"{media_url}/recordings/{language_code}/{name}.wav",
-                    "url_image_folder": f"{media_url}/images/{name}",
-                    "media_url": f"{media_url}",
+                    "word": word,
+                },
+                assets={
+                    "audio": ExternalAsset(
+                        f"{media_url}/recordings/{language_code}/{word}.wav"
+                    ),
+                    "image_correct": ExternalAsset(f"{media_url}/images/correct.png"),
+                    "image_wrong1": ExternalAsset(f"{media_url}/images/wrong1.png"),
+                    "image_wrong2": ExternalAsset(f"{media_url}/images/wrong2.png"),
+                    "image_wrong3": ExternalAsset(f"{media_url}/images/wrong3.png"),
                 },
             )
-            for name in words
+            for word in words
         ]
 
 
@@ -973,7 +968,7 @@ class LextaleTrial(StaticTrial):
         return ModularPage(
             "lextale_trial",
             ImagePrompt(
-                self.source.assets["word"].url,
+                self.assets["word"].url,
                 "Does this word exist?",
                 width="auto",
                 height="100px",
@@ -1050,7 +1045,7 @@ class LexTaleTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(media_url),
-            max_trials_per_block=num_trials,
+            num_trials_per_participant=num_trials,
             check_performance_at_end=True,
         )
 
@@ -1080,8 +1075,8 @@ class LexTaleTest(StaticTrialMaker):
                 },
                 assets={
                     "word": ExternalAsset(
-                        f"lextale_{label}_image",
-                        url=f"{media_url}/lextale-{label}.png",
+                        f"{media_url}/lextale-{label}.png"
+                        # f"lextale_{label}_image",
                     )
                 },
             )

@@ -286,11 +286,6 @@ class StaticTrialMaker(ChainTrialMaker):
             num_repeat_trials=num_repeat_trials,
         )
 
-    # @property
-    # def nodes(self):
-    #     return [node for network in self.networks for node in network.nodes]
-    #     return reduce(operator.add, [n.nodes for n in self.networks])
-
 
 class StaticNetwork(ChainNetwork):
     pass

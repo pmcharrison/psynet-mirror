@@ -541,12 +541,7 @@ class ChainNode(TrialNode):
             if not asset.has_key:
                 asset.generate_key()
 
-            # import pydevd_pycharm
-            # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-
             asset.receive_node_definition(self.definition)
-
-            # asset.deposit()  # defer this so it can be done in parallel later on
 
             experiment.assets.stage(asset)
             self.assets[label] = asset
