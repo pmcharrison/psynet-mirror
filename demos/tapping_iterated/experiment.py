@@ -27,9 +27,7 @@ from psynet.prescreen import (
 )
 from psynet.timeline import ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
-    AudioImitationChainNetwork,
     AudioImitationChainNode,
-    AudioImitationChainSource,
     AudioImitationChainTrial,
     AudioImitationChainTrialMaker,
 )
@@ -162,10 +160,6 @@ class CustomTrial(CustomTrialAnalysis):
         )
 
 
-class CustomNetwork(AudioImitationChainNetwork):
-    pass
-
-
 class CustomNode(AudioImitationChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["ioi_new_seed"] for trial in trials]
@@ -192,9 +186,7 @@ class CustomNode(AudioImitationChainNode):
         self.var.info_stimulus = info_stimulus
         save_samples_to_file(stim, output_file, config.FS)
 
-
-class CustomSource(AudioImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
+    def create_initial_seed(self, experiment, participant):
         ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
         random_seed = [as_native_type(value) for value in ioi_seed]
         return random_seed
@@ -237,10 +229,8 @@ class Exp(psynet.experiment.Experiment):
         ),
         AudioImitationChainTrialMaker(
             id_="trial_maker_iterated_tapping",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
             num_iterations_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
