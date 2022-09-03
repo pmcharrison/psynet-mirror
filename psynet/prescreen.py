@@ -1669,15 +1669,17 @@ class AudioForcedChoiceTest(StaticTrialMaker):
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
+        nodes = self.get_nodes(label, stimuli, specific_stimuli)
+
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            nodes=self.get_nodes(label, stimuli, specific_stimuli),
+            nodes=nodes,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
             num_trials_per_participant=n_stimuli_to_use
             if n_stimuli_to_use
-            else len(stimuli),
+            else len(nodes),
         )
 
     def load_stimuli(self, csv_path, question):
