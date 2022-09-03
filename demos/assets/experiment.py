@@ -31,20 +31,19 @@ headphone_assets = [
     ExternalS3Asset(
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_ISO.wav",
-        label="stimulus-1",
+        local_key="stimulus-1",
         description="A stimulus for the headphone check",
     ),
     ExternalS3Asset(
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_IOS.wav",
-        label="stimulus-2",
+        local_key="stimulus-2",
         description="A stimulus for the headphone check",
     ),
     ExternalS3Asset(
-        local_key="stimulus-3.wav",
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_SOI.wav",
-        label="stimulus-3",
+        local_key="stimulus-3",
         description="A stimulus for the headphone check",
     ),
 ]
