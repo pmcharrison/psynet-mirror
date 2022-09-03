@@ -258,6 +258,9 @@ class StaticTrialMaker(ChainTrialMaker):
         if active_balancing_across_participants:
             balance_strategy.add("across")
 
+        if num_trials_per_participant is None:
+            num_trials_per_participant = len(nodes)
+
         super().__init__(
             id_=id_,
             start_nodes=lambda: nodes,
