@@ -59,3 +59,7 @@ class AudioImitationChainTrialMaker(MediaImitationChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return AudioImitationChainNetwork

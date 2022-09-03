@@ -25,7 +25,6 @@ from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
 from .media import get_aws_credentials
 from .process import AsyncProcess, LocalAsyncProcess
-from .timeline import NullElt
 from .utils import (
     cache,
     cached_class_property,
@@ -55,7 +54,7 @@ def _get_experiment_if_available():
         return None
 
 
-class AssetSpecification(NullElt):
+class AssetSpecification:
     export_path = None
     key = None
 
@@ -275,8 +274,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 else:
                     key = local_key
 
-        super().__init__(key, label, description)
-
         from . import __version__ as psynet_version
 
         self.psynet_version = psynet_version
@@ -304,6 +301,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.set_variables(variables)
         self.personal = personal
+
+        super().__init__(key, label, description)
 
     def __setattr__(self, key, value):
         super().__setattr__(key, value)

@@ -49,26 +49,24 @@ class REPPVolumeCalibration(Module):
         super().__init__(
             label,
             join(
-                self.asset_calibration_audio(materials_url),
-                self.asset_rules(materials_url),
                 self.introduction,
                 self.volume_calibration(
                     min_time_on_calibration_page,
                     time_estimate_for_calibration_page,
                 ),
             ),
+            assets=[
+                self.asset_calibration_audio(materials_url),
+                self.asset_rules(materials_url),
+            ],
         )
-
-    asset_calibration_audio_id = "repp_volume_calibration_audio"
 
     def asset_calibration_audio(self, materials_url):
         raise NotImplementedError
 
-    asset_rules_id = "repp_image_rules"
-
     def asset_rules(self, materials_url):
         return ExternalAsset(
-            self.asset_rules_id, materials_url + "/REPP-image_rules.png"
+            local_key="rules_image", url=materials_url + "/REPP-image_rules.png"
         )
 
     @property
@@ -83,7 +81,7 @@ class REPPVolumeCalibration(Module):
                       <br><br>
                       <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
                       <hr>
-                      <img style="width:70%" src="{assets.get('repp_image_rules').url}"  alt="image_rules">
+                      <img style="width:70%" src="{assets['rules_image']} alt="image_rules">
                       """
                 ),
             ),
@@ -99,7 +97,7 @@ class REPPVolumeCalibration(Module):
             lambda assets: ModularPage(
                 "volume_test",
                 AudioPrompt(
-                    assets.get(self.asset_calibration_audio_id),
+                    assets["volume_calibration_audio"],
                     self.calibration_instructions,
                     loop=True,
                 ),
@@ -169,11 +167,9 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
             time_estimate_for_calibration_page,
         )
 
-    asset_calibration_audio_id = "repp_volume_calibration_music_audio"
-
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
-            self.asset_calibration_audio_id, materials_url + "/calibrate.prepared.wav"
+            "volume_calibration_audio", materials_url + "/calibrate.prepared.wav"
         )
 
     class AudioMeter(AudioMeterControl):
@@ -222,11 +218,9 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
             time_estimate_for_calibration_page,
         )
 
-    asset_calibration_audio_id = "repp_volume_calibration_markers_audio"
-
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
-            self.asset_calibration_audio_id, materials_url + "/only_markers.wav"
+            "volume_calibration_audio", materials_url + "/only_markers.wav"
         )
 
     class AudioMeter(AudioMeterControl):
@@ -271,7 +265,6 @@ class REPPTappingCalibration(Module):
         super().__init__(
             label,
             join(
-                self.instructions_asset(materials_url),
                 PageMaker(
                     lambda assets: ModularPage(
                         label,
@@ -283,11 +276,14 @@ class REPPTappingCalibration(Module):
                     time_estimate=time_estimate_per_trial,
                 ),
             ),
+            assets=[
+                self.instructions_asset(materials_url),
+            ],
         )
 
     def instructions_asset(self, materials_url):
         return ExternalAsset(
-            key="repp_tapping_instructions",
+            "tapping_instructions_image",
             url=materials_url + "/tapping_instructions.jpg",
         )
 
@@ -301,7 +297,7 @@ class REPPTappingCalibration(Module):
                 <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
                 <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
             </ul>
-            <img style="width:70%" src="{assets.get('repp_tapping_instructions').url}"  alt="image_rules">
+            <img style="width:70%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
             """
         )
 

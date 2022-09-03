@@ -220,28 +220,7 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
     A Network class for media imitation chains.
     """
 
-    media_extension = None
-
-    run_async_post_grow_network = True
-
-    def async_post_grow_network(self):
-        logger.info("Synthesizing media for network %i...", self.id)
-
-        node = self.head
-
-        with tempfile.NamedTemporaryFile() as temp_file:
-            from ..asset import ExperimentAsset
-
-            node.synthesize_target(temp_file.name)
-            asset = ExperimentAsset(
-                label="stimulus",
-                input_path=temp_file.name,
-                extension=self.media_extension,
-                parent=node,
-            )
-            asset.deposit()
-            node.target_url = asset.url
-            db.session.commit()
+    pass
 
 
 class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
@@ -266,13 +245,29 @@ class MediaImitationChainNode(ImitationChainNode):
 
     __extra_vars__ = ImitationChainNode.__extra_vars__.copy()
 
-    target_url = claim_var("target_url", __extra_vars__)
+    media_extension = None
 
     def synthesize_target(self, output_file):
         """
         Generates the target stimulus (i.e. the stimulus to be imitated by the participant).
         """
         raise NotImplementedError
+
+    def on_create(self):
+        logger.info("Synthesizing media for node %i...", self.id)
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            from ..asset import ExperimentAsset
+
+            self.synthesize_target(temp_file.name)
+            asset = ExperimentAsset(
+                label="stimulus",
+                input_path=temp_file.name,
+                extension=self.media_extension,
+                parent=self,
+            )
+            asset.deposit()
+            db.session.commit()
 
 
 class MediaImitationChainTrialMaker(ImitationChainTrialMaker):
@@ -282,3 +277,7 @@ class MediaImitationChainTrialMaker(ImitationChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return MediaImitationChainNetwork

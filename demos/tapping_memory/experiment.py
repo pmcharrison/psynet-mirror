@@ -21,9 +21,7 @@ from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import NumpySerializer, REPPTappingCalibration
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
-    AudioImitationChainNetwork,
     AudioImitationChainNode,
-    AudioImitationChainSource,
     AudioImitationChainTrial,
     AudioImitationChainTrialMaker,
 )
@@ -114,14 +112,14 @@ class CustomTrial(CustomTrialAnalysis):
     time_estimate = TIME_ESTIMATE_PER_TRIAL
 
     def show_trial(self, experiment, participant):
-        info_stimulus = self.origin.var.info_stimulus
+        info_stimulus = self.node.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec_sec"]
         trial_number = self.position + 1
         num_trials = self.trial_maker.num_trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(
-                self.origin.target_url,
+                self.assets["stimulus"],
                 Markup(
                     f"""
                     <h3>Imitate the rhythm</h3>
@@ -173,10 +171,6 @@ class CustomTrial(CustomTrialAnalysis):
         )
 
 
-class CustomNetwork(AudioImitationChainNetwork):
-    pass
-
-
 class CustomNode(AudioImitationChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["ioi_new_seed"] for trial in trials]
@@ -191,9 +185,7 @@ class CustomNode(AudioImitationChainNode):
         }
         save_samples_to_file(stim, output_file, config.FS)
 
-
-class CustomSource(AudioImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
+    def create_initial_seed(self, experiment, participant):
         config.DURATION_RANGE = self.duration_range
         ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
         random_seed = [as_native_type(value) for value in ioi_seed]
@@ -204,13 +196,13 @@ class CustomSource(AudioImitationChainSource):
         raise NotImplementedError
 
 
-class PracticeSource(AudioImitationChainSource):
+class PracticeNode(CustomNode):
     @property
     def duration_range(self):
         return [500, 2000]
 
 
-class ExperimentSource(AudioImitationChainSource):
+class ExperimentNode(CustomNode):
     @property
     def duration_range(self):
         return [250, 2000]
@@ -245,11 +237,8 @@ class Exp(psynet.experiment.Experiment):
         ),
         AudioImitationChainTrialMaker(
             id_="trial_maker_iterated_tapping",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
-            node_class=CustomNode,
-            source_class=ExperimentSource,
-            phase="experiment",
+            node_class=ExperimentNode,
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
             num_iterations_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
