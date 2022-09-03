@@ -1577,7 +1577,7 @@ class AudioForcedChoiceTrial(StaticTrial):
         return ModularPage(
             "audio_forced_choice_trial",
             AudioPrompt(
-                self.source.assets["stimulus"],
+                self.assets["stimulus"],
                 self.definition["question"],
             ),
             PushButtonControl(self.definition["answer_options"]),
