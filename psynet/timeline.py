@@ -2119,11 +2119,9 @@ class ModuleState(SQLBase, SQLMixin):
         primary_key=True,
         back_populates="_module_states",
     )
-    current_trial = Column(PythonObject)
-    # current_trial_id = Column(Integer, ForeignKey("info.id"))
-    # current_trial = relationship(
-    #     "psynet.trial.main.Trial", foreign_keys=[current_trial_id]
-    # )
+    current_trial = Column(
+        PythonObject
+    )  # Note: this can sometimes be a trial object or alternatively a string
 
     @property
     def var(self):
