@@ -11,7 +11,7 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 from .custom_synth import synth_prosody
 
@@ -26,8 +26,8 @@ def synth_stimulus(path, frequencies):
 
 # Here we define the stimulus set in an analogous way to the static_audio demo,
 # except we randomise the start_frequency from a continuous range.
-stimuli = [
-    Stimulus(
+nodes = [
+    StaticNode(
         definition={
             "frequency_gradient": frequency_gradient,
         },
@@ -51,7 +51,7 @@ class CustomTrial(StaticTrial):
         ]
         self.add_assets(
             {
-                "audio": FastFunctionAsset(
+                "stimulus": FastFunctionAsset(
                     function=synth_stimulus,
                     extension=".wav",
                 )
@@ -63,7 +63,7 @@ class CustomTrial(StaticTrial):
         return ModularPage(
             "imitation",
             AudioPrompt(
-                self.assets["audio"],
+                self.assets["stimulus"],
                 "Please imitate the spoken word as closely as possible.",
             ),
             AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav"),
@@ -113,7 +113,7 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="static_audio",
             trial_class=CustomTrial,
-            stimuli=stimuli,
+            nodes=nodes,
             target_num_participants=3,
             recruit_mode="num_participants",
         ),
