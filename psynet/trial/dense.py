@@ -30,8 +30,8 @@ class DenseTrialMaker(StaticTrialMaker):
 
     The user must also specify a
     :class:`~psynet.trial.dense.ConditionList`, which contains a list of
-    :class:`~psynet.trial.dense.Condition` objects.
-    These different :class:`~psynet.trial.dense.Condition` objects are used for specifying the different
+    :class:`~psynet.trial.dense.DenseNode` objects.
+    These different :class:`~psynet.trial.dense.DenseNode` objects are used for specifying the different
     classes of stimuli seen by the participant.
     A given participant will typically receive trials from a variety of Conditions over the course of the trial maker.
     By default, the different Conditions will be randomly interspersed with one another;
@@ -191,7 +191,7 @@ class DenseTrialMaker(StaticTrialMaker):
         *,
         id_: str,
         trial_class,
-        conditions: "List[Condition]",
+        conditions: "List[DenseNode]",
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_condition: Optional[int] = None,
@@ -225,12 +225,12 @@ class DenseTrialMaker(StaticTrialMaker):
         )
 
 
-class Condition(StaticNode):
+class DenseNode(StaticNode):
     """
-    Defines a Condition within the dense experiment paradigm.
+    Defines a DenseNode within the dense experiment paradigm.
 
     definition
-        A dictionary defining the key attributes of the Condition.
+        A dictionary defining the key attributes of the DenseNode.
         The values in this dictionary will be propagated to the dictionary attribute
         of the resulting :class:`~psynet.trial.dense.DenseTrial` objects,
         and can be used to customize the display of these items
@@ -310,7 +310,7 @@ class DenseTrial(StaticTrial):
     ----------
 
     condition
-        The :class:`~psynet.trial.dense.Condition` object to which the trial belongs.
+        The :class:`~psynet.trial.dense.DenseNode` object to which the trial belongs.
 
     n_dimensions
         The number of dimensions of the stimulus space.
@@ -360,7 +360,7 @@ class DenseTrial(StaticTrial):
             if key == "dimensions":
                 raise e
             raise KeyError(
-                f"{self.__class__.__name__} requires '{key}' to be specified in each Condition object."
+                f"{self.__class__.__name__} requires '{key}' to be specified in each DenseNode object."
             )
 
 
@@ -399,7 +399,7 @@ class SliderCopyTrial(SingleStimulusTrial):
     the original stimulus.
 
     This paradigm requires the user to specify several special parameters within each
-    :class:`~psynet.trial.dense.Condition` object:
+    :class:`~psynet.trial.dense.DenseNode` object:
 
     * ``slider_width``, a number determining the width of the region of the stimulus space that the slider covers;
     * ``slider_jitter``, a number determining the amount of jitter applied to the slider's location;
@@ -525,7 +525,7 @@ class PairedStimulusTrial(DenseTrial):
     We also considered a slight modification of the above, not implemented here, where the 'original' stimulus
     is constrained such that no dimension is less than delta units away from a boundary value.
 
-    The ``delta`` parameter must be provided as one of the items within the :class:`~psynet.trial.dense.Condition`
+    The ``delta`` parameter must be provided as one of the items within the :class:`~psynet.trial.dense.DenseNode`
     object's definition attribute.
     One can achieve different perturbation sizes for different Dimensions by manipulating the ``scale`` attribute
     of the Dimension objects.
@@ -581,7 +581,7 @@ class SameDifferentTrial(PairedStimulusTrial):
     Each trial comprises a pair of stimuli located in a random region of the stimulus space.
     These two stimuli may either be "same" or "different".
     In the latter case, the two stimuli are separated by a distance of ``delta`` in the stimulus space,
-    where ``delta`` is defined within the :class:`~psynet.trial.dense.Condition` object's definition dictionary.
+    where ``delta`` is defined within the :class:`~psynet.trial.dense.DenseNode` object's definition dictionary.
 
     The user is responsible for implementing an appropriate :meth:`~psynet.trial.main.Trial.show_trial` method,
     which should make use of the following automatically generated entries within the Trial's
@@ -634,7 +634,7 @@ class AXBTrial(PairedStimulusTrial):
     Each trial is built from a pair of stimuli located in a random region of the stimulus space.
     These stimuli are designated "original" and "altered" respectively,
     and are always separated by a distance of ``delta`` in the stimulus space,
-    where ``delta`` is defined within the :class:`~psynet.trial.dense.Condition` object's definition dictionary.
+    where ``delta`` is defined within the :class:`~psynet.trial.dense.DenseNode` object's definition dictionary.
 
     Each trial in an AXB paradigm takes one of two forms, "AAB" or "ABB",
     where the forms dictate the order of presentation of the stimuli,

@@ -11,7 +11,7 @@ from psynet.modular_page import ColorPrompt, PushButtonControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.dense import (
-    Condition,
+    DenseNode,
     DenseTrialMaker,
     Dimension,
     SingleStimulusTrial,
@@ -29,13 +29,13 @@ PARAMS = {
 }
 
 CONDITIONS = [
-    Condition(
+    DenseNode(
         {
             **PARAMS,
             "adjective": "angry",
         }
     ),
-    Condition(
+    DenseNode(
         {
             **PARAMS,
             "adjective": "happy",
