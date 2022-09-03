@@ -75,13 +75,13 @@ class CustomTrial(ImitationChainTrial):
             time_estimate=5,
         )
         page_2 = FixedDigitInputPage(
-            "number",
+            "number_1",
             "What was the number?",
             time_estimate=3,
             bot_response=lambda: self.definition,
         )
         page_3 = FixedDigitInputPage(
-            "number",
+            "number_2",
             "Type the number one more time.",
             time_estimate=3,
             bot_response=lambda: self.definition,
@@ -100,8 +100,12 @@ class CustomNode(ImitationChainNode):
 
     def summarize_trials(self, trials: list, experiment, participant):
         def get_answer(trial):
-            # Slices the list to get the answers from the second and third pages, then take the mean
-            return mean(trial.answer[1:])
+            return mean(
+                [
+                    trial.answer["number_1"],
+                    trial.answer["number_2"],
+                ]
+            )
 
         return round(mean([get_answer(trial) for trial in trials]))
 

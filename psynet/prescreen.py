@@ -574,8 +574,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 },
                 assets={
                     "stimulus": ExternalAsset(
-                        "repp_silence_1s",
                         "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                        "1s_silence",
                     ),
                 },
             )
