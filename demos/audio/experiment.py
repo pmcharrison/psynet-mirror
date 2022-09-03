@@ -30,20 +30,20 @@ logger = get_logger()
 
 all_assets = join(
     CachedAsset(
-        key="bier.wav",
         input_path="assets/bier.wav",
+        label="bier",
     ),
     CachedAsset(
-        key="file-concatenated.mp3",
         input_path="assets/file_concatenated.mp3",
+        label="file-concatenated",
     ),
     CachedAsset(
-        key="funk-game-loop.mp3",
         input_path="assets/funk-game-loop.mp3",
+        label="funk-game-loop",
     ),
     CachedAsset(
-        key="train-1.wav",
         input_path="assets/train1.wav",
+        label="train-1",
     ),
 )
 
@@ -160,9 +160,9 @@ example_preloading = PageMaker(
         ),
         media=MediaSpec(
             audio={
-                "bier": assets.get("bier.wav"),
+                "bier": assets["bier"],
                 "batch": {
-                    "url": assets.get("file-concatenated.mp3"),
+                    "url": assets["file-concatenated"],
                     "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
                     "type": "batch",
                 },
@@ -199,7 +199,7 @@ example_audio_meter_calibrate_with_audio = PageMaker(
     lambda assets: ModularPage(
         "audio_meter",
         AudioPrompt(
-            assets.get("train-1.wav"),
+            assets["train"],
             "The default meter parameters are designed to work well for music playback.",
             loop=True,
         ),
@@ -212,7 +212,7 @@ example_audio_meter_with_audio = PageMaker(
     lambda assets: ModularPage(
         "audio_meter",
         AudioPrompt(
-            assets.get("train-1.wav"),
+            assets["train-1"],
             "This page shows an audio meter alongside an audio stimulus.",
             loop=True,
         ),
@@ -239,7 +239,7 @@ example_audio_page = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
         AudioPrompt(
-            assets.get("bier.wav"),
+            assets["bier"],
             "This page illustrates a simple audio page with one stimulus.",
             loop=False,
             controls=False,
@@ -252,7 +252,7 @@ example_audio_page_1 = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
         AudioPrompt(
-            assets.get("bier.wav"),
+            assets["bier"],
             "This page loops the same stimulus.",
             loop=True,
             controls=False,
@@ -265,7 +265,7 @@ example_audio_page_2 = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
         AudioPrompt(
-            assets.get("bier.wav"),
+            assets["bier"],
             """
         This page adds audio playback controls.
         We've also set start_trial_automatically=False, meaning that the
@@ -283,7 +283,7 @@ example_audio_page_3 = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
         AudioPrompt(
-            assets.get("train-1.wav"),
+            assets["train-1"],
             """
         This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
         """,
@@ -337,7 +337,7 @@ example_listen_then_record_page = PageMaker(
     lambda assets: ModularPage(
         "audio_record_page_2",
         AudioPrompt(
-            assets.get("funk-game-loop.mp3"),
+            assets["funk-game-loop"],
             text="""
             Here we play audio then activate the recorder 3 seconds afterwards.
             """,
@@ -370,7 +370,7 @@ example_record_audio_video = join(
         lambda assets: ModularPage(
             "video_record_page",
             AudioPrompt(
-                assets.get("funk-game-loop.mp3"),
+                assets["funk-game-loop"],
                 text="""
                 This page plays audio and records video after a couple of seconds.
                 It'll work best if you wear headphones.
