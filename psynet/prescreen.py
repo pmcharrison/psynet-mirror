@@ -283,8 +283,8 @@ class REPPTappingCalibration(Module):
 
     def instructions_asset(self, materials_url):
         return ExternalAsset(
+            materials_url + "/tapping_instructions.jpg",
             "tapping_instructions_image",
-            url=materials_url + "/tapping_instructions.jpg",
         )
 
     def instructions_text(self, assets):
@@ -761,8 +761,8 @@ class REPPMarkersTest(StaticTrialMaker):
     @property
     def image_asset(self):
         return ExternalAsset(
-            local_key="rules_image.png",
             url=f"{self.materials_url}/REPP-image_rules.png",
+            local_key="rules_image.png",
         )
 
     @property
@@ -1073,12 +1073,7 @@ class LexTaleTest(StaticTrialMaker):
                     "correct_answer": correct_answer,
                     "url": f"{media_url}/lextale-{label}.png",  # Redundant but kept for back-compatibility
                 },
-                assets={
-                    "word": ExternalAsset(
-                        f"{media_url}/lextale-{label}.png"
-                        # f"lextale_{label}_image",
-                    )
-                },
+                assets={"word": ExternalAsset(f"{media_url}/lextale-{label}.png")},
             )
             for label, correct_answer in [
                 ("1", "yes"),

@@ -24,7 +24,7 @@ from psynet.prescreen import (
 )
 from psynet.timeline import ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.audio import AudioRecordTrial
-from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus, StimulusSet
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 # Global parameters
 NUM_PARTICIPANTS = 20
@@ -71,8 +71,8 @@ def generate_basic_stimulus(path, stim_name, list_iois):
     save_json_to_file(info, path + "/info.json")
 
 
-stimulus_iso = [
-    Stimulus(
+nodes_iso = [
+    StaticNode(
         definition={
             "stim_name": name,
             "list_iois": iois,
@@ -84,7 +84,6 @@ stimulus_iso = [
     for name, iois in zip(iso_stimulus_names, iso_stimulus_onsets)
 ]
 
-stimulus_ISO_set = StimulusSet("ISO_tapping", stimulus_iso)
 
 # Music stimuli
 music_stimulus_name = ["track1", "track2"]
@@ -103,8 +102,8 @@ def generate_music_stimulus(path, stim_name, audio_filename, onset_filename):
     save_json_to_file(info, path + "/info.json")
 
 
-stimulus_music = [
-    Stimulus(
+nodes_music = [
+    StaticNode(
         definition={
             "stim_name": name,
             "audio_filename": os.path.join("music", audio_file),
@@ -119,14 +118,12 @@ stimulus_music = [
     )
 ]
 
-stimulus_music_set = StimulusSet("music_tapping", stimulus_music)
-
 
 # Experiment parts
 class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
     def get_info(self):
         with tempfile.NamedTemporaryFile() as f:
-            self.source.assets["stimulus"].export_subfile("info.json", f.name)
+            self.assets["stimulus"].export_subfile("info.json", f.name)
             with open(f.name, "r") as reader:
                 return json.loads(
                     json.load(reader)
@@ -159,7 +156,7 @@ class TapTrial(TapTrialAnalysis):
         return ModularPage(
             "trial_main_page",
             AudioPrompt(
-                self.source.assets["stimulus"].url + "/audio.wav",
+                self.assets["stimulus"].url + "/audio.wav",
                 Markup(
                     f"""
                     <br><h3>Tap in time with the metronome.</h3>
@@ -252,8 +249,7 @@ ISO_tapping = join(
     StaticTrialMaker(
         id_="ISO_tapping",
         trial_class=TapTrialISO,
-        phase="ISO_tapping",
-        stimuli=stimulus_ISO_set,
+        nodes=nodes_iso,
         target_num_participants=NUM_PARTICIPANTS,
         recruit_mode="num_participants",
         check_performance_at_end=False,
@@ -282,8 +278,7 @@ music_tapping = join(
     StaticTrialMaker(
         id_="music_tapping",
         trial_class=TapTrialMusic,
-        phase="music_tapping",
-        stimuli=stimulus_music_set,
+        stimuli=nodes_music,
         target_num_participants=NUM_PARTICIPANTS,
         recruit_mode="num_participants",
         check_performance_at_end=False,
