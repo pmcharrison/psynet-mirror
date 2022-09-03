@@ -519,6 +519,8 @@ def drop_all_db_tables(bind=db.engine):
 
     (https://github.com/pallets-eco/flask-sqlalchemy/issues/722)
     """
+    from sqlalchemy.exc import ProgrammingError
+
     engine = bind
 
     db.session.commit()
@@ -529,10 +531,22 @@ def drop_all_db_tables(bind=db.engine):
     all_fkeys, tables = list_fkeys()
 
     for fkey in all_fkeys:
-        con.execute(DropConstraint(fkey))
+        try:
+            con.execute(DropConstraint(fkey))
+        except ProgrammingError as err:
+            if "UndefinedTable" in str(err):
+                pass
+            else:
+                raise
 
     for table in tables:
-        con.execute(DropTable(table))
+        try:
+            con.execute(DropTable(table))
+        except ProgrammingError as err:
+            if "UndefinedTable" in str(err):
+                pass
+            else:
+                raise
 
     trans.commit()
 
