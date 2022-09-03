@@ -1109,21 +1109,35 @@ class Experiment(dallinger.experiment.Experiment):
         db.session.commit()
         return success_response()
 
-    @experiment_route("/terminate_participant", methods=["POST"])
+    @experiment_route("/terminate_participant", methods=["GET"])
     @classmethod
     def terminate_participant(cls):
-        rid = request.values.get("rid")
+        participant_id = request.values.get("participant_id")
+        if participant_id is None:
+            logger.error("Error getting participant ID.")
+
+        participant = get_participant(participant_id)
+        rid = participant.entry_information["RID"]
+
         exp = cls.new(db.session)
 
         try:
             exp = dallinger.experiment.load().new(db.session)
             recruiter = exp.recruiter
+            external_submit_url = None
+            if hasattr(recruiter, "external_submit_url"):
+                external_submit_url = recruiter.external_submit_url(
+                    assignment_id=participant_id
+                )
             if hasattr(recruiter, "terminate_participant"):
                 recruiter.terminate_participant(rid)
         except Exception as e:
             logger.error(f"Error terminating respondent with RID '{rid}': {e}")
 
-        return success_response()
+        return render_template(
+            "exit_recruiter_lucid.html",
+            external_submit_url=external_submit_url,
+        )
 
     @experiment_route("/check_participant_termination", methods=["POST"])
     @classmethod
@@ -1131,11 +1145,12 @@ class Experiment(dallinger.experiment.Experiment):
         # auth_token = request.values["auth_token"]
         # Experiment.validate_auth_token(participant, auth_token)
 
-        rid = request.values.get("rid")
         participant_id = request.values.get("participant_id")
-        if participant_id is not None:
-            participant = get_participant(participant_id)
-            rid = participant.entry_information["RID"]
+        if participant_id is None:
+            logger.error("Error getting participant ID.")
+
+        participant = get_participant(participant_id)
+        rid = participant.entry_information["RID"]
 
         try:
             exp = dallinger.experiment.load().new(db.session)

@@ -1596,29 +1596,26 @@
 
     {% if experiment.with_lucid_recruitment() %}
     <script>
-      // Terminate on no interaction
-      setInterval(terminate, 1000);
-      function terminate() {
-        const urlParams = new URLSearchParams(window.location.search);
+      // Terminate on overall timeout
+      var setIntervalHandle = setInterval(check_participant_termination, 1000);
+      function check_participant_termination() {
         postData = {};
         postData["auth_token"] = "{{ auth_token }}";
-        postData["rid"] = urlParams.get('RID');
-        $.post("/check_participant_termination", postData, function(data) {
-          console.log(data);
-          if (parseInt(data) >= 0) {
-            $("#termination-counter-text").show();
-            $("#termination-counter-seconds").text(data);
-            if (parseInt(data) == 0) {
-              document.getElementById("begin-button").disabled = true;
-              $("#termination-counter-text").text("Failed to begin experiment in time");
+        postData["participant_id"] = parseInt("{{ participant.id }}");
+        $.post("/check_participant_termination", postData, function(seconds) {
+            console.log("Seconds left before termination: " + seconds);
+            if (parseInt(seconds) < 0) {
+              clearInterval(setIntervalHandle);
+              window.removeEventListener("beforeunload", beforeunloadFunction);
+              console.log("Sending to termination route >>>>>>>>>>>");
+              return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
             }
-          }
         });
       }
 
       // Terminate on interaction (page reload, window/tab close, no focus)
-      const INACTIVE_THRESHOLD = {{experiment.recruiter.ad_page_inactivity_timeout_in_s}} * 1000;
-      const POLLING_FREQUENCY = 200;
+      const INACTIVITY_TIMEOUT = {{experiment.recruiter.inactivity_timeout_in_s}} * 1000;
+      const POLLING_FREQUENCY = 1000;
       const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
       const cancelParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
       var triedToLeave = false;
@@ -1626,7 +1623,6 @@
       var assignment_id = "{{worker_id}}";
       var url = "{{experiment.recruiter.external_submit_url(assignment_id=worker_id)|safe}}";
 
-      dallinger.allowExit = false
       beforeunloadHandle = window.addEventListener("beforeunload", beforeunloadFunction);
 
       // Proceed to next page
@@ -1641,10 +1637,21 @@
       let consent = document.getElementById("consent");
       if (consent != null) {
         consent.onclick = function(event) {
-        window.removeEventListener("beforeunload", beforeunloadFunction);
+          window.removeEventListener("beforeunload", beforeunloadFunction);
           psynet.nextPage(true);
         }
       }
+
+      /*let buttons = document.getElementsByClassName("btn");
+      console.log(buttons)
+      if (buttons != null) {
+        for (let i = 0; i < buttons.length; i++) {
+          buttons[i].addEventListener("click", function() {
+            window.removeEventListener("beforeunload", beforeunloadFunction);
+            psynet.nextPage(true);
+          });
+        }
+      }*/
 
       function beforeunloadFunction(event){
         event.returnValue = `Are you sure you want to leave?`;
@@ -1672,7 +1679,7 @@
           console.log("The document has the focus.");
         } else {
           noFocusSince += POLLING_FREQUENCY;
-          if (noFocusSince > INACTIVE_THRESHOLD) {
+          if (noFocusSince > INACTIVITY_TIMEOUT) {
             terminateParticipant();
           } else {
             console.log("The document doesn't have the focus since " + noFocusSince + "ms.");
