@@ -241,7 +241,7 @@ class Trial(SQLMixinDallinger, Info):
     # module_id = Column(String)
     module_id = association_proxy("node", "module_id")
     trial_maker_id = Column(String)
-    definition = Column(PythonDict)
+    definition = Column(PythonObject)
     complete = Column(Boolean)
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)

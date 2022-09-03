@@ -16,9 +16,7 @@ from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
-    ImitationChainNetwork,
     ImitationChainNode,
-    ImitationChainSource,
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
@@ -86,18 +84,12 @@ class CustomTrial(ImitationChainTrial):
         return [page_1, page_2]
 
 
-class CustomNetwork(ImitationChainNetwork):
-    pass
-
-
 class CustomNode(ImitationChainNode):
+    def create_initial_seed(self, experiment, participant):
+        return random.randint(0, 9999999)
+
     def summarize_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
-
-
-class CustomSource(ImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        return random.randint(0, 9999999)
 
 
 class CustomTrialMaker(ImitationChainTrialMaker):
@@ -120,10 +112,8 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         CustomTrialMaker(
             id_="imitation_demo",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
             chain_type="within",
             num_iterations_per_chain=5,
             num_trials_per_participant=5,
