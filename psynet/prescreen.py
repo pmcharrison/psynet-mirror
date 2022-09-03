@@ -1336,12 +1336,10 @@ class ColorBlindnessTest(StaticTrialMaker):
                 definition={
                     "label": label,
                     "correct_answer": answer,
-                    "url": f"{media_url}/ishihara-{label}.jpg",  # Redundant but kept for back-compatibility
                 },
                 assets={
                     "image": ExternalAsset(
-                        f"ishihara-{label}",
-                        url=f"{media_url}/ishihara-{label}.jpg",
+                        f"{media_url}/ishihara-{label}.jpg",
                     )
                 },
             )
@@ -1561,12 +1559,10 @@ class HeadphoneTest(StaticTrialMaker):
                 definition={
                     "label": label,
                     "correct_answer": answer,
-                    "url": f"{media_url}/antiphase_HC_{label}.wav",  # Redundant but kept for back-compatibility
                 },
                 assets={
                     "stimulus": ExternalAsset(
-                        f"headphone_test_{label}",
-                        url=f"{media_url}/antiphase_HC_{label}.wav",
+                        f"{media_url}/antiphase_HC_{label}.wav",
                     )
                 },
             )
@@ -1746,7 +1742,6 @@ class AudioForcedChoiceTest(StaticTrialMaker):
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(
-                        f"{label}_{i}",
                         stimulus["url"],
                     )
                 },
