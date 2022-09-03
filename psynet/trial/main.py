@@ -920,7 +920,6 @@ class TrialMakerState(ModuleState):
     performance_check = Column(PythonDict)
     trials_to_repeat = Column(PythonObject)
     repeat_trial_index = Column(Integer)
-    current_trial = Column(PythonObject)
     num_completed_trials = Column(Integer, default=0, server_default="0")
 
 
