@@ -2199,6 +2199,12 @@ class Module:
         self.assets = assets if assets else []
         self.state_class = state_class if state_class else self.__class__.state_class
 
+        from psynet.asset import Asset
+
+        for elt in self.elts:
+            if isinstance(elt, Asset):
+                self.assets.append(elt)
+
     def prepare_for_deployment(self, experiment):
         self.prepare_nodes_for_deployment(experiment)
         self.prepare_assets_for_deployment(experiment)

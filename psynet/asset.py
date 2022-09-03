@@ -21,6 +21,8 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, relationship
 
+from psynet.timeline import NullElt
+
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
 from .media import get_aws_credentials
@@ -54,7 +56,7 @@ def _get_experiment_if_available():
         return None
 
 
-class AssetSpecification:
+class AssetSpecification(NullElt):
     export_path = None
     key = None
 

@@ -17,7 +17,7 @@ from psynet.asset import (
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
-from psynet.timeline import CodeBlock, PageMaker, Timeline
+from psynet.timeline import CodeBlock, Module, PageMaker, Timeline
 
 
 def slow_computation(path, n, k):
@@ -29,21 +29,22 @@ def slow_computation(path, n, k):
 
 headphone_assets = [
     ExternalS3Asset(
-        key="headphone_check/stimulus-1.wav",
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_ISO.wav",
+        label="stimulus-1",
         description="A stimulus for the headphone check",
     ),
     ExternalS3Asset(
-        key="headphone_check/stimulus-2.wav",
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_IOS.wav",
+        label="stimulus-2",
         description="A stimulus for the headphone check",
     ),
     ExternalS3Asset(
-        key="headphone_check/stimulus-3.wav",
+        local_key="stimulus-3.wav",
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_SOI.wav",
+        label="stimulus-3",
         description="A stimulus for the headphone check",
     ),
 ]
@@ -112,38 +113,44 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        headphone_assets,
-        misc_assets,
-        PageMaker(
-            lambda assets: InfoPage(
-                Markup(
-                    (
-                        "<strong>The following information is pulled from config.txt:</strong>\n\n"
-                        + assets.get("config_variables.txt").read_text()
-                    ).replace("\n", "<br>")
-                )
-            ),
-            time_estimate=5,
-        ),
-        ModularPage(
-            "text_input",
-            "Please enter some text. It will be saved to a text file and stored as an experiment asset.",
-            TextControl(),
-            time_estimate=5,
-        ),
-        CodeBlock(save_text),
-        [
-            PageMaker(
-                lambda assets, i=i: ModularPage(
-                    f"headphone_check_{i}",
-                    AudioPrompt(
-                        assets.get(f"headphone_check/stimulus-{i}.wav"),
-                        text=f"This is headphone check stimulus number {i}.",
+        Module(
+            "headphone_check",
+            [
+                PageMaker(
+                    lambda assets, i=i: ModularPage(
+                        f"headphone_check_{i}",
+                        AudioPrompt(
+                            assets.get(f"headphone_check/stimulus-{i}.wav"),
+                            text=f"This is headphone check stimulus number {i}.",
+                        ),
                     ),
+                    time_estimate=5,
+                )
+                for i in range(1, 4)
+            ],
+            assets=headphone_assets,
+        ),
+        Module(
+            "misc",
+            PageMaker(
+                lambda assets: InfoPage(
+                    Markup(
+                        (
+                            "<strong>The following information is pulled from config.txt:</strong>\n\n"
+                            + assets.get("config_variables.txt").read_text()
+                        ).replace("\n", "<br>")
+                    )
                 ),
                 time_estimate=5,
-            )
-            for i in range(1, 4)
-        ],
+            ),
+            ModularPage(
+                "text_input",
+                "Please enter some text. It will be saved to a text file and stored as an experiment asset.",
+                TextControl(),
+                time_estimate=5,
+            ),
+            CodeBlock(save_text),
+            assets=misc_assets,
+        ),
         SuccessfulEndPage(),
     )
