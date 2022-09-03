@@ -18,13 +18,13 @@ from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardC
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
-    AudioGibbsNetwork,
     AudioGibbsNode,
-    AudioGibbsSource,
     AudioGibbsTrial,
     AudioGibbsTrialMaker,
 )
 from psynet.utils import get_logger
+
+from . import custom_synth
 
 logger = get_logger()
 
@@ -78,26 +78,6 @@ NUM_CHAINS_PER_EXPERIMENT = (
 NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3  # every participant does 9 trials
 
 
-class CustomNetwork(AudioGibbsNetwork):
-    synth_function_location = {
-        "module_name": "custom_synth",
-        "function_name": "synth_stimulus",
-    }
-
-    s3_bucket = "audio-gibbs-demo"
-    vector_length = DIMENSIONS
-    vector_ranges = RANGES
-    granularity = GRANULARITY
-
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
-
-    def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS),
-            "file": random.sample(SENTENCE_RECORDINGS, 1)[0],  # Get random sample
-        }
-
-
 class CustomTrial(AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
@@ -108,24 +88,25 @@ class CustomTrial(AudioGibbsTrial):
     def get_prompt(self, experiment, participant):
         return Markup(
             "Adjust the slider to make the speaker sound like she is "
-            f"<strong>{self.network.definition['target']}</strong>."
+            f"<strong>{self.context['target']}</strong>."
         )
 
 
 class CustomNode(AudioGibbsNode):
-    pass
+    vector_length = DIMENSIONS
+    vector_ranges = RANGES
+    granularity = GRANULARITY
 
+    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-class CustomSource(AudioGibbsSource):
-    def generate_seed(self, network, experiment, participant):
-        if network.vector_length is None:
-            raise ValueError(
-                "network.vector_length must not be None. Did you forget to set it?"
-            )
+    def create_initial_seed(self, experiment, participant):
         return {
             "vector": INITIAL_VALUES,  # Start at predefined zero points, i.e. not at a random point in space
-            "active_index": random.randint(0, network.vector_length),  #
+            "active_index": random.randint(0, self.vector_length),  #
         }
+
+    def synth_function(self, vector, output_path):
+        custom_synth.synth_stimulus(vector, output_path, self.context.input_file)
 
 
 class CustomTrialMaker(AudioGibbsTrialMaker):
@@ -134,10 +115,17 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="audio_gibbs_demo",
-    network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    source_class=CustomSource,
+    start_nodes=lambda: [
+        CustomNode(
+            context={
+                "target": target,
+                "input_file": random.sample(SENTENCE_RECORDINGS, 1)[0],
+            }
+        )
+        for target in TARGETS
+    ],
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,
@@ -176,6 +164,6 @@ class Exp(psynet.experiment.Experiment):
 
     test_num_bots = 2
 
-    def test_check_bot(self, bot: Bot):
+    def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
         assert len(bot.trials) == NUM_TRIALS_PER_PARTICIPANT
