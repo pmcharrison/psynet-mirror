@@ -123,24 +123,24 @@ class InheritedAssets(AssetCollection):
             )
 
 
-def get_asset(key):
-    from .experiment import is_experiment_launched
-
-    if not is_experiment_launched():
-        raise RuntimeError(
-            "You can't call get_asset before the experiment is launched. "
-            "The usual solution is to wrap this code in a PageMaker or a CodeBlock."
-        )
-
-    matches = Asset.query.filter_by(key=key).all()
-    if len(matches) == 0:
-        raise KeyError
-    elif len(matches) == 1:
-        return matches[0]
-    else:
-        raise ValueError(
-            f"Unexpected number of assets found with key = {key} ({len(matches)})"
-        )
+# def get_asset(key):
+#     from .experiment import is_experiment_launched
+#
+#     if not is_experiment_launched():
+#         raise RuntimeError(
+#             "You can't call get_asset before the experiment is launched. "
+#             "The usual solution is to wrap this code in a PageMaker or a CodeBlock."
+#         )
+#
+#     matches = Asset.query.filter_by(key=key).all()
+#     if len(matches) == 0:
+#         raise KeyError
+#     elif len(matches) == 1:
+#         return matches[0]
+#     else:
+#         raise ValueError(
+#             f"Unexpected number of assets found with key = {key} ({len(matches)})"
+#         )
 
 
 @register_table
@@ -263,6 +263,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     def __init__(
         self,
+        *,
         local_key=None,
         label=None,
         description=None,
@@ -376,10 +377,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def consume(self, experiment, participant):
         if not self.has_key:
             self.generate_key()
-        try:
-            experiment.assets.get(self.key)
-        except KeyError:
-            self.deposit()
+        self.deposit()
 
     def infer_data_type(self):
         if self.extension in ["wav", "mp3"]:
@@ -719,6 +717,7 @@ class ManagedAsset(Asset):
 
     def __init__(
         self,
+        *,
         input_path,
         label=None,
         is_folder=None,
@@ -931,6 +930,7 @@ class FunctionAssetMixin:
 
     def __init__(
         self,
+        *,
         function,
         local_key: Optional[str] = None,
         arguments: Optional[dict] = None,
@@ -1048,6 +1048,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     def __init__(
         self,
+        *,
         function,
         local_key: Optional[str] = None,
         arguments: Optional[dict] = None,
@@ -1127,6 +1128,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 class ExternalAsset(Asset):
     def __init__(
         self,
+        *,
         url,
         local_key=None,
         is_folder=False,
@@ -1190,6 +1192,7 @@ class ExternalS3Asset(ExternalAsset):
 
     def __init__(
         self,
+        *,
         local_key,
         s3_bucket: str,
         s3_key: str,
@@ -1848,8 +1851,8 @@ class AssetRegistry:
     ):
         return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
-    def get(self, key):
-        return get_asset(key)
+    # def get(self, key):
+    #     return get_asset(key)
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()

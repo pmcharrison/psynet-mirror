@@ -12,7 +12,6 @@ from psynet.asset import (
     ExperimentAsset,
     ExternalAsset,
     ExternalS3Asset,
-    InheritedAssets,
 )
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
@@ -68,9 +67,8 @@ misc_assets = [
         description="A folder of stimuli for the headphone check",
     ),
     ExperimentAsset(
-        label="config",
+        local_key="config",
         input_path="config.txt",
-        key="config_variables.txt",
         description="A file containing configuration variables",
     ),
     CachedAsset(
@@ -78,13 +76,7 @@ misc_assets = [
         input_path="bier.wav",
         description="A recording of someone saying 'bier'",
     ),
-    InheritedAssets("inherited_assets.csv", key="previous_experiment"),
 ]
-
-
-def get_config_variables(experiment):
-    with open(experiment.assets.get("config_variables.txt").url, "r") as f:
-        return f.read()
 
 
 def save_text(participant):
@@ -119,7 +111,7 @@ class Exp(psynet.experiment.Experiment):
                     lambda assets, i=i: ModularPage(
                         f"headphone_check_{i}",
                         AudioPrompt(
-                            assets.get(f"headphone_check/stimulus-{i}.wav"),
+                            assets[f"stimulus-{i}"],
                             text=f"This is headphone check stimulus number {i}.",
                         ),
                     ),
@@ -136,7 +128,7 @@ class Exp(psynet.experiment.Experiment):
                     Markup(
                         (
                             "<strong>The following information is pulled from config.txt:</strong>\n\n"
-                            + assets.get("config_variables.txt").read_text()
+                            + assets["config"].read_text()
                         ).replace("\n", "<br>")
                     )
                 ),
