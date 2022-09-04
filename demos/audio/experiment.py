@@ -200,7 +200,7 @@ example_audio_meter_calibrate_with_audio = PageMaker(
     lambda assets: ModularPage(
         "audio_meter",
         AudioPrompt(
-            assets["train"],
+            assets["train-1"],
             "The default meter parameters are designed to work well for music playback.",
             loop=True,
         ),
