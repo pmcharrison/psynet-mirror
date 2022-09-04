@@ -183,10 +183,12 @@ class DenseTrialMaker(StaticTrialMaker):
         id_: str,
         trial_class,
         conditions: "List[DenseNode]",
+        expected_trials_per_participant: int,
+        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_block: Optional[int] = None,
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
         target_trials_per_condition: Optional[int] = None,
-        max_trials_per_block: Optional[int] = None,
         active_balancing_within_participants: bool = True,
         active_balancing_across_participants: bool = True,
         check_performance_at_end: bool = False,
@@ -200,6 +202,8 @@ class DenseTrialMaker(StaticTrialMaker):
             trial_class=trial_class,
             nodes=conditions,
             recruit_mode=recruit_mode,
+            expected_trials_per_participant=expected_trials_per_participant,
+            max_trials_per_participant=max_trials_per_participant,
             target_n_participants=target_n_participants,
             target_trials_per_node=target_trials_per_condition,
             max_trials_per_block=max_trials_per_block,
@@ -209,6 +213,8 @@ class DenseTrialMaker(StaticTrialMaker):
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             n_repeat_trials=n_repeat_trials,
+            active_balancing_across_participants=active_balancing_across_participants,
+            active_balancing_within_participants=active_balancing_within_participants,
         )
 
 

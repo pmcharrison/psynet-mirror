@@ -118,20 +118,14 @@ trial_maker = CustomTrialMaker(
     trial_class=CustomTrial,
     node_class=CustomNode,
     start_nodes=lambda: [
-        CustomNode(
-            context={
-                "target": target,
-                "input_file": random.sample(SENTENCE_RECORDINGS, 1)[0],
-            }
-        )
+        CustomNode(context={"target": target, "input_file": sentence})
         for target in TARGETS
+        for sentence in SENTENCE_RECORDINGS
     ],
     chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    chains_per_participant=None,  # set to None if chain_type="across"
-    chains_per_experiment=CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=False,
