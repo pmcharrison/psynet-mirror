@@ -283,13 +283,12 @@ class StaticTrialMaker(ChainTrialMaker):
             chain_type="across",
             chains_per_participant=None,
             chains_per_experiment=len(nodes),
+            max_nodes_per_chain=1,
             trials_per_node=target_num_trials_per_node
             if target_num_trials_per_node
             else 1e6,
             balance_across_chains=balance_across_chains,
             balance_strategy=balance_strategy,
-            max_nodes_per_chain=1,
-            max_nodes_per_chain=target_num_trials_per_node,
             allow_revisiting_networks_in_across_chains=allow_repeated_nodes,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,

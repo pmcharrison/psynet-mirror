@@ -38,7 +38,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             target_n_participants=0,
             recruit_mode="n_participants",
-            n_trials_per_participant=2,
+            trials_per_participant=2,
         ),
         InfoPage("We continue with the experiment trials.", time_estimate=5),
         StaticTrialMaker(
@@ -49,7 +49,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             target_n_participants=10,
             recruit_mode="n_participants",
-            n_trials_per_participant=7,
+            trials_per_participant=7,
         ),
         SuccessfulEndPage(),
     )

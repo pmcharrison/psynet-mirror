@@ -1,5 +1,4 @@
 import random
-import warnings
 from typing import Optional, Set, Type
 
 from dallinger import db
@@ -886,7 +885,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
 
-    n_trials_per_participant
+    max_trials_per_participant
         Maximum number of trials that each participant may complete;
         once this number is reached, the participant will move on
         to the next stage in the timeline.
@@ -1021,33 +1020,33 @@ class ChainTrialMaker(NetworkTrialMaker):
     state_class = ChainTrialMakerState
 
     def __init__(
-            self,
-            *,
-            id_,
-            trial_class: Type[ChainTrial],
-            node_class: Type[ChainNode],
-            network_class: Type[ChainNetwork] = None,
-            chain_type: str,
-            expected_trials_per_participant: int,
-            max_trials_per_participant: Optional[int] = None,
-            max_trials_per_block: Optional[int] = None,
-            max_nodes_per_chain: Optional[int] = None,
-            chains_per_participant: Optional[int] = None,
-            chains_per_experiment: Optional[int] = None,
-            trials_per_node: int = 1,
-            n_repeat_trials: int = 0,
-            target_n_participants: Optional[int] = None,
-            balance_across_chains: bool = False,
-            start_nodes=None,
-            balance_strategy: Set[str] = {"within", "across"},
-            check_performance_at_end: bool = False,
-            check_performance_every_trial: bool = False,
-            recruit_mode: str = "n_participants",
-            fail_trials_on_premature_exit: bool = False,
-            fail_trials_on_participant_performance_check: bool = False,
-            propagate_failure: bool = True,
-            wait_for_networks: bool = False,
-            allow_revisiting_networks_in_across_chains: bool = False,
+        self,
+        *,
+        id_,
+        trial_class: Type[ChainTrial],
+        node_class: Type[ChainNode],
+        network_class: Type[ChainNetwork] = None,
+        chain_type: str,
+        expected_trials_per_participant: int,
+        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_block: Optional[int] = None,
+        max_nodes_per_chain: Optional[int] = None,
+        chains_per_participant: Optional[int] = None,
+        chains_per_experiment: Optional[int] = None,
+        trials_per_node: int = 1,
+        n_repeat_trials: int = 0,
+        target_n_participants: Optional[int] = None,
+        balance_across_chains: bool = False,
+        start_nodes=None,
+        balance_strategy: Set[str] = {"within", "across"},
+        check_performance_at_end: bool = False,
+        check_performance_every_trial: bool = False,
+        recruit_mode: str = "n_participants",
+        fail_trials_on_premature_exit: bool = False,
+        fail_trials_on_participant_performance_check: bool = False,
+        propagate_failure: bool = True,
+        wait_for_networks: bool = False,
+        allow_revisiting_networks_in_across_chains: bool = False,
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1215,9 +1214,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.max_trials_per_block is not None
             and len(participant_trials_in_block) >= self.max_trials_per_block
         ) or (
-            self.n_trials_per_participant is not None
+            self.max_trials_per_participant is not None
             and len(participant_trials_in_trial_maker)
-            >= self.n_trials_per_participant
+            >= self.max_trials_per_participant
         )
 
     @property
@@ -1339,7 +1338,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             participant.id,
         )
         n_completed_trials = participant.module_state.n_completed_trials
-        if n_completed_trials >= self.n_trials_per_participant:
+        if n_completed_trials >= self.max_trials_per_participant:
             logger.info(
                 "N completed trials (%i) >= N trials per participant (%i), skipping forward",
                 n_completed_trials,

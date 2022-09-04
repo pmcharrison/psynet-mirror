@@ -116,7 +116,7 @@ class CustomTrial(CustomTrialAnalysis):
         info_stimulus = self.origin.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec"]
         trial_number = self.position + 1
-        n_trials = self.trial_maker.n_trials_per_participant
+        n_trials = self.trial_maker.trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(
@@ -232,7 +232,7 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             chain_type="within",
-            n_trials_per_participant=NUM_TRIALS_PARTICIPANT,
+            trials_per_participant=NUM_TRIALS_PARTICIPANT,
             max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
             chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
             chains_per_experiment=None,  # set to None if chain_type="within"

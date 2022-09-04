@@ -1,5 +1,3 @@
-import pytest
-
 from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
 
 
@@ -14,7 +12,7 @@ def new_trial_maker(**kwarg):
         trial_class=CustomTrial,
         phase="test",
         chain_type="across",
-        n_trials_per_participant=5,
+        trials_per_participant=5,
         chains_per_participant=None,
         chains_per_experiment=5,
         trials_per_node=1,
@@ -26,16 +24,3 @@ def new_trial_maker(**kwarg):
     )
     all_args = {**args, **kwarg}
     return ChainTrialMaker(**all_args)
-
-
-def test_n_iterations():
-    with pytest.deprecated_call():
-        tm1 = new_trial_maker(max_nodes_per_chain=10)
-        assert tm1.max_nodes_per_chain == 10
-        assert tm1.max_nodes_per_chain == 9
-
-    tm2 = new_trial_maker(max_nodes_per_chain=10)
-    assert tm2.max_nodes_per_chain == 11
-
-    with pytest.raises(ValueError):
-        new_trial_maker(max_nodes_per_chain=10, max_nodes_per_chain=5)

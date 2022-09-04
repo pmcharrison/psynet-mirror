@@ -160,7 +160,7 @@ class Exp(psynet.experiment.Experiment):
             source_class=CustomSource,
             phase="experiment",
             chain_type="within",
-            n_trials_per_participant=4,
+            trials_per_participant=4,
             max_nodes_per_chain=4,
             chains_per_experiment=None,
             chains_per_participant=2,
