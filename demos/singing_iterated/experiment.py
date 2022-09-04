@@ -249,7 +249,7 @@ class IteratedSingingTrialExperiment(IteratedSingingTrial):
 
         return Markup(
             f"""
-            <i>Trial number {trial_number} out of {DESIGN_PARAMS["num_trials_per_participant"]} required trials.
+            <i>Trial number {trial_number} out of {DESIGN_PARAMS["trials_per_participant"]} required trials.
             The maximum number of possible trials is {DESIGN_PARAMS["max_trials_per_participant"]}.</i>
             """
         )
@@ -329,14 +329,15 @@ SingingFeedback = join(
         node_class=CustomNodePractice,
         chain_type="within",
         max_nodes_per_chain=1,
-        n_trials_per_participant=DESIGN_PARAMS["n_trials_practice"],
-        chains_per_participant=DESIGN_PARAMS["n_trials_practice"],
+        expected_trials_per_participant=DESIGN_PARAMS["num_trials_practice"],
+        max_trials_per_participant=DESIGN_PARAMS["num_trials_practice"],
+        chains_per_participant=DESIGN_PARAMS["num_trials_practice"],
         chains_per_experiment=None,
         trials_per_node=1,
         balance_across_chains=True,
         check_performance_at_end=False,
         check_performance_every_trial=False,
-        recruit_mode="n_participants",
+        recruit_mode="num_participants",
         target_n_participants=0,
         wait_for_networks=True,
     ),
@@ -357,7 +358,7 @@ SingingMainTask1 = join(
             f"""
             <h3>Main singing task</h3>
             <hr>
-            You will take {DESIGN_PARAMS["n_trials_per_participant"]} singing trials. If you fail, we will repeat
+            You will take {DESIGN_PARAMS["trials_per_participant"]} singing trials. If you fail, we will repeat
             the trials up to a maximum of {DESIGN_PARAMS["max_trials_per_participant"]} trials.
             <br><br>
             <b><b>Attention:</b></b>
@@ -377,7 +378,8 @@ SingingMainTask1 = join(
         node_class=CustomNodeExperiment,
         phase="experiment",
         chain_type=DESIGN_PARAMS["chain_type"],
-        num_trials_per_participant=DESIGN_PARAMS["max_trials_per_participant"],
+        expected_trials_per_participant=DESIGN_PARAMS["trials_per_participant"],
+        max_trials_per_participant=DESIGN_PARAMS["trials_per_participant"],
         max_nodes_per_chain=DESIGN_PARAMS["max_nodes_per_chain"],
         chains_per_participant=DESIGN_PARAMS[
             "chains_per_participant"
