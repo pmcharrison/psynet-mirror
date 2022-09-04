@@ -79,7 +79,7 @@ class DenseTrialMaker(StaticTrialMaker):
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
@@ -131,7 +131,7 @@ class DenseTrialMaker(StaticTrialMaker):
         if the participant fails a performance check.
         Defaults to ``True``.
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses. Repeat trials are presented at the end of the trial maker,
@@ -188,7 +188,7 @@ class DenseTrialMaker(StaticTrialMaker):
         trial_class,
         conditions: "List[DenseNode]",
         recruit_mode: Optional[str] = None,
-        target_num_participants: Optional[int] = None,
+        target_n_participants: Optional[int] = None,
         target_num_trials_per_condition: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         active_balancing_within_participants: bool = True,
@@ -197,14 +197,14 @@ class DenseTrialMaker(StaticTrialMaker):
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
-        num_repeat_trials: int = 0,
+        n_repeat_trials: int = 0,
     ):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
             nodes=conditions,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
+            target_n_participants=target_n_participants,
             target_num_trials_per_node=target_num_trials_per_condition,
             max_trials_per_block=max_trials_per_block,
             allow_repeated_nodes=True,
@@ -214,7 +214,7 @@ class DenseTrialMaker(StaticTrialMaker):
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            num_repeat_trials=num_repeat_trials,
+            n_repeat_trials=n_repeat_trials,
         )
 
 

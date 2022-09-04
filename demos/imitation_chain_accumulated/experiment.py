@@ -149,7 +149,7 @@ class Exp(psynet.experiment.Experiment):
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_participants",
-            target_num_participants=10,
+            target_n_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),

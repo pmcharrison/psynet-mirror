@@ -80,7 +80,7 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             conditions=CONDITIONS,
             recruit_mode="num_participants",
-            target_num_participants=1,
+            target_n_participants=1,
             target_num_trials_per_condition=None,
             max_trials_per_block=num_trials_per_participant,
         ),

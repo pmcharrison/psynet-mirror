@@ -39,7 +39,7 @@ DESIGN_PARAMS = {
     "chains_per_participant": 2,
     "num_chains_per_exp": None,
     "recruit_mode": "num_participants",
-    "target_num_participants": 25,
+    "target_n_participants": 25,
 }
 
 
@@ -337,7 +337,7 @@ SingingFeedback = join(
         check_performance_at_end=False,
         check_performance_every_trial=False,
         recruit_mode="num_participants",
-        target_num_participants=0,
+        target_n_participants=0,
         wait_for_networks=True,
     ),
 )
@@ -391,7 +391,7 @@ SingingMainTask1 = join(
         check_performance_every_trial=False,
         propagate_failure=False,
         recruit_mode=DESIGN_PARAMS["recruit_mode"],
-        target_num_participants=DESIGN_PARAMS["target_num_participants"],
+        target_n_participants=DESIGN_PARAMS["target_n_participants"],
     ),
 )
 

@@ -82,7 +82,7 @@ trial_maker_1 = StaticTrialMaker(
     nodes=nodes_1,
     num_trials_per_participant=3,
     max_trials_per_block=1,
-    target_num_participants=1,
+    target_n_participants=1,
     target_num_trials_per_node=None,
     recruit_mode="num_participants",
 )

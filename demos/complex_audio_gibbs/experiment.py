@@ -137,7 +137,7 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_trials",
-    target_num_participants=None,
+    target_n_participants=None,
     wait_for_networks=True,
 )
 

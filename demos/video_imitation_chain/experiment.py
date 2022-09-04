@@ -169,7 +169,7 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="num_participants",
             check_performance_at_end=True,
             check_performance_every_trial=False,
-            target_num_participants=25,
+            target_n_participants=25,
             wait_for_networks=True,
         ),
         SuccessfulEndPage(),

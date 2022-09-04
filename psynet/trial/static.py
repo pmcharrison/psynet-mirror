@@ -120,7 +120,7 @@ class StaticTrialMaker(ChainTrialMaker):
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
@@ -180,7 +180,7 @@ class StaticTrialMaker(ChainTrialMaker):
         if the participant fails a performance check.
         Defaults to ``True``.
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses. Repeat trials are presented at the end of the trial maker,
@@ -238,7 +238,7 @@ class StaticTrialMaker(ChainTrialMaker):
         expected_trials_per_participant: int,
         max_trials_per_participant: int = None,
         recruit_mode: Optional[str] = None,
-        target_num_participants: Optional[int] = None,
+        target_n_participants: Optional[int] = None,
         target_num_trials_per_node: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         allow_repeated_nodes: bool = False,
@@ -248,7 +248,7 @@ class StaticTrialMaker(ChainTrialMaker):
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
-        num_repeat_trials: int = 0,
+        n_repeat_trials: int = 0,
     ):
         balance_across_chains = (
             active_balancing_across_participants or active_balancing_within_participants
@@ -276,7 +276,7 @@ class StaticTrialMaker(ChainTrialMaker):
             network_class=StaticNetwork,
             node_class=StaticNode,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
+            target_n_participants=target_n_participants,
             expected_trials_per_participant=expected_trials_per_participant,
             max_trials_per_participant=max_trials_per_participant,
             max_trials_per_block=max_trials_per_block,
@@ -295,7 +295,7 @@ class StaticTrialMaker(ChainTrialMaker):
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            num_repeat_trials=num_repeat_trials,
+            n_repeat_trials=n_repeat_trials,
         )
 
 

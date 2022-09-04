@@ -52,7 +52,7 @@ class AnimalTrial(StaticTrial):
         if self.is_repeat_trial:
             header = (
                 header
-                + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+                + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.n_repeat_trials}</h3>"
             )
         else:
             header = header + f"<h4>Block {block}</h3>"
@@ -131,10 +131,10 @@ trial_maker = AnimalTrialMaker(
     active_balancing_across_participants=True,
     check_performance_at_end=True,
     check_performance_every_trial=True,
-    target_num_participants=1,
+    target_n_participants=1,
     target_num_trials_per_node=None,
     recruit_mode="num_participants",
-    num_repeat_trials=3,
+    n_repeat_trials=3,
 )
 
 ##########################################################################################

@@ -79,10 +79,10 @@ trial_maker_1 = StaticTrialMaker(
     active_balancing_across_participants=True,
     check_performance_at_end=True,
     check_performance_every_trial=True,
-    target_num_participants=1,
+    target_n_participants=1,
     target_num_trials_per_node=None,
     recruit_mode="num_participants",
-    num_repeat_trials=3,
+    n_repeat_trials=3,
 )
 
 trial_maker_2 = StaticTrialMaker(
@@ -96,10 +96,10 @@ trial_maker_2 = StaticTrialMaker(
     active_balancing_across_participants=True,
     check_performance_at_end=True,
     check_performance_every_trial=True,
-    target_num_participants=1,
+    target_n_participants=1,
     target_num_trials_per_node=None,
     recruit_mode="num_participants",
-    num_repeat_trials=3,
+    n_repeat_trials=3,
 )
 
 

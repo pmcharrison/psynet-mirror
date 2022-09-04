@@ -108,7 +108,7 @@ class Exp(psynet.experiment.Experiment):
             check_performance_every_trial=False,
             fail_trials_on_participant_performance_check=True,
             recruit_mode="num_participants",
-            target_num_participants=1,
+            target_n_participants=1,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         # CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment

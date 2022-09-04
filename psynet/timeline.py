@@ -2416,15 +2416,15 @@ class Module:
         return span.render()
 
     def get_progress_info(self):
-        target_num_participants = (
-            self.target_num_participants
-            if hasattr(self, "target_num_participants")
+        target_n_participants = (
+            self.target_n_participants
+            if hasattr(self, "target_n_participants")
             else None
         )
         # TODO a more sophisticated calculation of progress
         progress = (
-            len(self.finished_participants) / target_num_participants
-            if target_num_participants is not None and target_num_participants > 0
+            len(self.finished_participants) / target_n_participants
+            if target_n_participants is not None and target_n_participants > 0
             else 1
         )
 
@@ -2433,7 +2433,7 @@ class Module:
                 "started_num_participants": len(self.started_participants),
                 "finished_num_participants": len(self.finished_participants),
                 "aborted_num_participants": len(self.aborted_participants),
-                "target_num_participants": target_num_participants,
+                "target_n_participants": target_n_participants,
                 "progress": progress,
             }
         }

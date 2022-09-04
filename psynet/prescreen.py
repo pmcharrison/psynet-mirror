@@ -446,7 +446,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
     min_num_detected_taps : float
         Mininum number of detected taps to pass the test, default: 1.
 
-    num_repeat_trials : float
+    n_repeat_trials : float
         Number of trials to repeat in the trial maker, default: 0.
 
     time_estimate_per_trial : float
@@ -462,7 +462,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
         performance_threshold: int = 0.5,
         duration_rec_sec: int = 8,
         min_num_detected_taps: int = 3,
-        num_repeat_trials: int = 1,
+        n_repeat_trials: int = 1,
         time_estimate_per_trial: float = 10.0,
         trial_class=FreeTappingRecordTrial,
     ):
@@ -475,7 +475,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(duration_rec_sec, min_num_detected_taps),
-            num_repeat_trials=num_repeat_trials,
+            n_repeat_trials=n_repeat_trials,
             fail_trials_on_premature_exit=False,
             fail_trials_on_participant_performance_check=False,
             check_performance_at_end=True,

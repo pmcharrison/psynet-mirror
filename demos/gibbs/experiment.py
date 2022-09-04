@@ -204,8 +204,8 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_trials",
-    target_num_participants=None,
-    num_repeat_trials=3,
+    target_n_participants=None,
+    n_repeat_trials=3,
     wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
 )
 

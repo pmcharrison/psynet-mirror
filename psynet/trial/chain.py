@@ -939,7 +939,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         and ``"num_trials"``, though the latter requires overriding of
         :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
@@ -962,7 +962,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
@@ -1035,7 +1035,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             chains_per_participant: Optional[int] = None,
             chains_per_experiment: Optional[int] = None,
             trials_per_node: int = 1,
-            target_num_participants: Optional[int] = None,
+            n_repeat_trials: int = 0,
+            target_n_participants: Optional[int] = None,
             balance_across_chains: bool = False,
             start_nodes=None,
             balance_strategy: Set[str] = {"within", "across"},
@@ -1045,7 +1046,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             fail_trials_on_premature_exit: bool = False,
             fail_trials_on_participant_performance_check: bool = False,
             propagate_failure: bool = True,
-            num_repeat_trials: int = 0,
             wait_for_networks: bool = False,
             allow_revisiting_networks_in_across_chains: bool = False,
     ):
@@ -1111,15 +1111,15 @@ class ChainTrialMaker(NetworkTrialMaker):
             trial_class=trial_class,
             network_class=network_class,
             expected_trials_per_participant=expected_trials_per_participant
-            + num_repeat_trials,
+            + n_repeat_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials,
+            target_n_participants=target_n_participants,
+            n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
         )
 

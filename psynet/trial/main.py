@@ -252,7 +252,7 @@ class Trial(SQLMixinDallinger, Info):
     propagate_failure = Column(Boolean)
     response_id = Column(Integer, ForeignKey("response.id"))
     repeat_trial_index = Column(Integer)
-    num_repeat_trials = Column(Integer)
+    n_repeat_trials = Column(Integer)
     time_taken = Column(Float)
     _initial_assets = Column(PythonDict)
     time_credit_before_trial = Column(Float)
@@ -380,7 +380,7 @@ class Trial(SQLMixinDallinger, Info):
         is_repeat_trial,  # Is the trial a repeat trial?
         parent_trial=None,  # If the trial is a repeat trial, what is its parent?
         repeat_trial_index=None,  # Only relevant if the trial is a repeat trial
-        num_repeat_trials=None,  # Only relevant if the trial is a repeat trial
+        n_repeat_trials=None,  # Only relevant if the trial is a repeat trial
         assets=None,
         definition=NoArgumentProvided,  # If provided, overrides make definition
     ):
@@ -394,7 +394,7 @@ class Trial(SQLMixinDallinger, Info):
         self.is_repeat_trial = is_repeat_trial
         self.parent_trial_id = None if parent_trial is None else parent_trial.id
         self.repeat_trial_index = repeat_trial_index
-        self.num_repeat_trials = num_repeat_trials
+        self.n_repeat_trials = n_repeat_trials
         self.score = None
         self.response_id = None
         self.time_taken = None
@@ -663,7 +663,7 @@ class Trial(SQLMixinDallinger, Info):
         super().fail_async_processes(reason)
         self.fail(reason="fail_async_processes")
 
-    def new_repeat_trial(self, experiment, repeat_trial_index, num_repeat_trials):
+    def new_repeat_trial(self, experiment, repeat_trial_index, n_repeat_trials):
         repeat_trial = self.__class__(
             experiment=experiment,
             node=self.origin,
@@ -672,7 +672,7 @@ class Trial(SQLMixinDallinger, Info):
             is_repeat_trial=True,
             parent_trial=self,
             repeat_trial_index=repeat_trial_index,
-            num_repeat_trials=num_repeat_trials,
+            n_repeat_trials=n_repeat_trials,
         )
         return repeat_trial
 
@@ -1028,13 +1028,13 @@ class TrialMaker(Module):
         and ``"num_trials"``, though the latter requires overriding of
         :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
@@ -1093,17 +1093,17 @@ class TrialMaker(Module):
         fail_trials_on_participant_performance_check: bool,
         propagate_failure: bool,
         recruit_mode: str,
-        target_num_participants: Optional[int],
-        num_repeat_trials: int,
+        target_n_participants: Optional[int],
+        n_repeat_trials: int,
     ):
-        if recruit_mode == "num_participants" and target_num_participants is None:
+        if recruit_mode == "num_participants" and target_n_participants is None:
             raise ValueError(
-                "If <recruit_mode> == 'num_participants', then <target_num_participants> must be provided."
+                "If <recruit_mode> == 'num_participants', then <target_n_participants> must be provided."
             )
 
-        if recruit_mode == "num_trials" and target_num_participants is not None:
+        if recruit_mode == "num_trials" and target_n_participants is not None:
             raise ValueError(
-                "If <recruit_mode> == 'num_trials', then <target_num_participants> must be None."
+                "If <recruit_mode> == 'num_trials', then <target_n_participants> must be None."
             )
 
         self.trial_class = trial_class
@@ -1117,8 +1117,8 @@ class TrialMaker(Module):
         )
         self.propagate_failure = propagate_failure
         self.recruit_mode = recruit_mode
-        self.target_num_participants = target_num_participants
-        self.num_repeat_trials = num_repeat_trials
+        self.target_n_participants = target_n_participants
+        self.n_repeat_trials = n_repeat_trials
 
         elts = self.compile_elts()
 
@@ -1278,13 +1278,13 @@ class TrialMaker(Module):
     def num_participants_criterion(self, experiment):
         logger.info(
             "Target number of participants = %i, number of completed participants = %i, number of working participants = %i.",
-            self.target_num_participants,
+            self.target_n_participants,
             self.num_complete_participants,
             self.num_working_participants,
         )
         return (
             self.num_complete_participants + self.num_working_participants
-        ) < self.target_num_participants
+        ) < self.target_n_participants
 
     def num_trials_criterion(self, experiment):
         num_trials_still_required = self.num_trials_still_required
@@ -1356,11 +1356,11 @@ class TrialMaker(Module):
                         f"Expected number of trials: {self.expected_trials_per_participant}"
                     )
                 if (
-                    hasattr(self, "target_num_participants")
-                    and self.target_num_participants is not None
+                    hasattr(self, "target_n_participants")
+                    and self.target_n_participants is not None
                 ):
                     tags.li(
-                        f"Target number of participants: {self.target_num_participants}"
+                        f"Target number of participants: {self.target_n_participants}"
                     )
                 if hasattr(self, "recruit_mode") and self.recruit_mode is not None:
                     tags.li(f"Recruitment mode: {self.recruit_mode}")
@@ -1656,7 +1656,7 @@ class TrialMaker(Module):
     def _prepare_trial(self, experiment, participant):
         if not participant.module_state.in_repeat_phase:
             trial = self.prepare_trial(experiment=experiment, participant=participant)
-            if trial == "exit" and self.num_repeat_trials > 0:
+            if trial == "exit" and self.n_repeat_trials > 0:
                 participant.module_state.in_repeat_phase = True
 
         if participant.module_state.in_repeat_phase:
@@ -1692,9 +1692,9 @@ class TrialMaker(Module):
 
     def _init_trials_to_repeat(self, participant):
         completed_trial_ids = [t.id for t in self.get_participant_trials(participant)]
-        actual_num_repeat_trials = min(len(completed_trial_ids), self.num_repeat_trials)
+        actual_n_repeat_trials = min(len(completed_trial_ids), self.n_repeat_trials)
         participant.module_state.trials_to_repeat = random.sample(
-            completed_trial_ids, actual_num_repeat_trials
+            completed_trial_ids, actual_n_repeat_trials
         )
         participant.module_state.repeat_trial_index = 0
 
@@ -1887,13 +1887,13 @@ class NetworkTrialMaker(TrialMaker):
         and ``"num_trials"``, though the latter requires overriding of
         :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
@@ -1965,8 +1965,8 @@ class NetworkTrialMaker(TrialMaker):
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
         recruit_mode,
-        target_num_participants,
-        num_repeat_trials: int,
+        target_n_participants,
+        n_repeat_trials: int,
         wait_for_networks: bool,
     ):
         super().__init__(
@@ -1979,8 +1979,8 @@ class NetworkTrialMaker(TrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials,
+            target_n_participants=target_n_participants,
+            n_repeat_trials=n_repeat_trials,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
@@ -2576,8 +2576,8 @@ class TrialSource(TrialNode):
 #             fail_trials_on_participant_performance_check=False,
 #             propagate_failure=False,
 #             recruit_mode=None,
-#             target_num_participants=None,
-#             num_repeat_trials=0,
+#             target_n_participants=None,
+#             n_repeat_trials=0,
 #             wait_for_networks=False,
 #         )
 #

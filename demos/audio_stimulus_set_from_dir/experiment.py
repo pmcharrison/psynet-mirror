@@ -36,7 +36,7 @@ class Exp(psynet.experiment.Experiment):
             nodes=compile_nodes_from_directory(
                 input_dir="input/practice", media_ext=".wav", node_class=StaticNode
             ),
-            target_num_participants=0,
+            target_n_participants=0,
             recruit_mode="num_participants",
             num_trials_per_participant=2,
         ),
@@ -47,7 +47,7 @@ class Exp(psynet.experiment.Experiment):
             nodes=compile_nodes_from_directory(
                 input_dir="input/experiment", media_ext=".wav", node_class=StaticNode
             ),
-            target_num_participants=10,
+            target_n_participants=10,
             recruit_mode="num_participants",
             num_trials_per_participant=7,
         ),

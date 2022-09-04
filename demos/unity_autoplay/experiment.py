@@ -128,9 +128,9 @@ trial_maker = GameTrialMaker(
     active_balancing_across_participants=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
-    target_num_participants=3,
+    target_n_participants=3,
     recruit_mode="num_participants",
-    num_repeat_trials=0,
+    n_repeat_trials=0,
 )
 
 
