@@ -17,12 +17,12 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         for_loop(
-            "Looping over letters A-C",
-            lambda: ["A", "B", "C"],
-            lambda letter: for_loop(
-                "Looping over numbers 1-3",
-                [1, 2, 3],
-                lambda number: InfoPage(f"{letter}{number}"),
+            label="Looping over letters A-C",
+            iterate_over=lambda: ["A", "B", "C"],
+            logic=lambda letter: for_loop(
+                label="Looping over numbers 1-3",
+                iterate_over=[1, 2, 3],
+                logic=lambda number: InfoPage(f"{letter}{number}"),
                 time_estimate_per_iteration=5,
             ),
             time_estimate_per_iteration=15,
