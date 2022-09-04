@@ -375,6 +375,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         ]
 
     def consume(self, experiment, participant):
+        if not self.module_id:
+            self.module_id = participant.module_id
         if not self.has_key:
             self.generate_key()
         self.deposit()

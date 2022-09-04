@@ -4,7 +4,7 @@ Video Imitation Chain Demo
 import random
 
 import psynet.experiment
-from psynet.asset import CachedAsset, DebugStorage, S3Storage, get_asset  # noqa
+from psynet.asset import Asset, CachedAsset, DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -16,25 +16,13 @@ from psynet.modular_page import (
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.video import (
-    CameraImitationChainNetwork,
     CameraImitationChainNode,
-    CameraImitationChainSource,
     CameraImitationChainTrial,
     CameraImitationChainTrialMaker,
 )
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-
-class CustomNetwork(CameraImitationChainNetwork):
-    pass
-
-
-class CustomSource(CameraImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
-        return random.choice(possibilities)
 
 
 class CustomVideoRecordControl(VideoRecordControl):
@@ -68,7 +56,7 @@ class CustomTrial(CameraImitationChainTrial):
     time_estimate = 15
 
     def show_trial(self, experiment, participant):
-        if self.origin.degree == 1:
+        if self.degree == 0:
             instruction = f"Please trace out a {self.origin.seed} in the air \
                             for the camera using your hands or fingers."
             return ModularPage(
@@ -97,7 +85,9 @@ class CustomTrial(CameraImitationChainTrial):
                     ModularPage(
                         "webcam_recording",
                         prompt="",
-                        control=CustomVideoRecordControl(),
+                        control=CustomVideoRecordControl(
+                            bot_response_media="assets/example_recording.webm",
+                        ),
                         time_estimate=5,
                         progress_display=custom_progress_display(),
                     ),
@@ -108,11 +98,11 @@ class CustomTrial(CameraImitationChainTrial):
         return {"failed": False}
 
 
-class CustomCameraImitationTrialMaker(CameraImitationChainTrialMaker):
-    pass
-
-
 class CustomNode(CameraImitationChainNode):
+    def create_initial_seed(self, experiment, participant):
+        possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
+        return random.choice(possibilities)
+
     def summarize_trials(self, trials, experiment, participant):
         assert len(trials) == 1
         trial = trials[0]
@@ -122,12 +112,10 @@ class CustomNode(CameraImitationChainNode):
         """
         This code can be modified to introduce custom video editing before reuploading the video.
         """
-        if self.degree == 1:
-            get_asset("5s_silence.wav").export(output_file)
-            return output_file
+        if self.degree == 0:
+            self.trial_maker.assets["5s_silence"].export(output_file)
         else:
-            input_recording = self.parent.trials[0].assets["webcam_recording"]
-            input_recording.export(output_file)
+            self.parent.alive_trials[0].assets["webcam_recording"].export(output_file)
 
 
 ####################################################################################################
@@ -141,7 +129,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        CachedAsset(key="5s_silence.wav", input_path="assets/5s_silence.wav"),
         ModularPage(
             "record_calibrate",
             """
@@ -152,15 +139,12 @@ class Exp(psynet.experiment.Experiment):
             AudioMeterControl(),
             time_estimate=5,
         ),
-        CustomCameraImitationTrialMaker(
+        CameraImitationChainTrialMaker(
             id_="video-chain",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
-            phase="experiment",
             chain_type="within",
-            trials_per_participant=4,
+            expected_trials_per_participant=8,
             max_nodes_per_chain=4,
             chains_per_experiment=None,
             chains_per_participant=2,
@@ -171,6 +155,9 @@ class Exp(psynet.experiment.Experiment):
             check_performance_every_trial=False,
             target_n_participants=25,
             wait_for_networks=True,
+            assets=[
+                CachedAsset(local_key="5s_silence", input_path="assets/5s_silence.wav"),
+            ],
         ),
         SuccessfulEndPage(),
     )

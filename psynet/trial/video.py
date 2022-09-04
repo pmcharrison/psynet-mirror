@@ -26,7 +26,6 @@ class ScreenRecordTrial(RecordTrial):
     recording_key_name = "screen_key"
 
 
-# Video
 class CameraImitationChainNetwork(MediaImitationChainNetwork):
     """
     A Network class for camera imitation chains.
@@ -53,7 +52,7 @@ class CameraImitationChainNode(MediaImitationChainNode):
     :meth:`~psynet.trial.audio.VideoImitationChainNode.synthesize_target` method.
     """
 
-    pass
+    media_extension = ".webm"
 
 
 class CameraImitationChainTrialMaker(MediaImitationChainTrialMaker):
@@ -63,3 +62,7 @@ class CameraImitationChainTrialMaker(MediaImitationChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return CameraImitationChainNetwork

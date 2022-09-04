@@ -1047,6 +1047,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         propagate_failure: bool = True,
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
+        assets=None,
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1120,6 +1121,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             target_n_participants=target_n_participants,
             n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
+            assets=assets,
         )
 
         self.check_initialization()
@@ -1338,7 +1340,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             participant.id,
         )
         n_completed_trials = participant.module_state.n_completed_trials
-        if n_completed_trials >= self.max_trials_per_participant:
+        if (
+            self.max_trials_per_participant is not None
+            and n_completed_trials >= self.max_trials_per_participant
+        ):
             logger.info(
                 "N completed trials (%i) >= N trials per participant (%i), skipping forward",
                 n_completed_trials,

@@ -1159,7 +1159,7 @@
 
             if ({{ config.record_audio | lower }}) {
                 audioSettings = {
-                    channelCount: {{ config.audio_num_channels }}
+                    channelCount: {{ config.audio_n_channels }}
                 };
             }
             else { audioSettings = false; }

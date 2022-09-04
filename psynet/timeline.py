@@ -2181,6 +2181,16 @@ class ModuleState(SQLBase, SQLMixin):
         return self.participant.get_module_state(module_id)
 
 
+class ModuleAssets:
+    def __init__(self, module_id):
+        self.module_id = module_id
+
+    def __getitem__(self, item):
+        from psynet.asset import Asset
+
+        return Asset.query.filter_by(local_key=item).one()
+
+
 class Module:
     default_id = None
     default_elts = None
@@ -2199,14 +2209,16 @@ class Module:
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
         self.nodes = nodes if nodes else []
-        self.assets = assets if assets else []
+        self._staged_assets = assets if assets else []
         self.state_class = state_class if state_class else self.__class__.state_class
 
         from psynet.asset import Asset
 
         for elt in self.elts:
             if isinstance(elt, Asset):
-                self.assets.append(elt)
+                self._staged_assets.append(elt)
+
+        self.assets = ModuleAssets(id_)
 
     def prepare_for_deployment(self, experiment):
         self.prepare_nodes_for_deployment(experiment)
@@ -2217,7 +2229,7 @@ class Module:
         self.nodes_stage_assets(experiment)
 
     def prepare_assets_for_deployment(self, experiment):
-        for asset in self.assets:
+        for asset in self._staged_assets:
             asset.module_id = self.id
             experiment.assets.stage(asset)
         db.session.commit()

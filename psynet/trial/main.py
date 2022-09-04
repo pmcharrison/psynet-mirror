@@ -3,7 +3,7 @@
 import datetime
 import random
 from math import isnan
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -1097,6 +1097,7 @@ class TrialMaker(Module):
         recruit_mode: str,
         target_n_participants: Optional[int],
         n_repeat_trials: int,
+        assets: List,
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1126,7 +1127,7 @@ class TrialMaker(Module):
 
         self.check_time_estimates()
 
-        super().__init__(id_, elts)
+        super().__init__(id_, elts, assets=assets)
 
     participant_progress_threshold = 0.1
 
@@ -1970,6 +1971,7 @@ class NetworkTrialMaker(TrialMaker):
         target_n_participants,
         n_repeat_trials: int,
         wait_for_networks: bool,
+        assets=None,
     ):
         super().__init__(
             id_=id_,
@@ -1983,6 +1985,7 @@ class NetworkTrialMaker(TrialMaker):
             recruit_mode=recruit_mode,
             target_n_participants=target_n_participants,
             n_repeat_trials=n_repeat_trials,
+            assets=assets,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
