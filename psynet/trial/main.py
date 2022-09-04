@@ -259,11 +259,13 @@ class Trial(SQLMixinDallinger, Info):
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
 
-    node = relationship("TrialNode", foreign_keys=[node_id], back_populates="trials")
+    node = relationship(
+        "TrialNode", foreign_keys=[node_id], back_populates="all_trials"
+    )
     participant = relationship(
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
-        back_populates="trials",
+        back_populates="all_trials",
     )
     parent_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
