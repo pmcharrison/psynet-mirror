@@ -109,7 +109,8 @@ class InheritedAssets(AssetCollection):
         self.ingest_specification_to_db()
 
     def ingest_specification_to_db(self):
-        clear_columns = Asset.foreign_keyed_columns + ["parent"]
+        clear_columns = ["parent"]
+        # clear_columns = Asset.foreign_keyed_columns + ["parent"]
         with open(self.path, "r") as file:
             ingest_to_model(
                 file,
@@ -180,35 +181,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     extension = Column(String)
     storage = Column(PythonObject)
     replace_existing = Column(Boolean)
-
-    # participant_id = Column(Integer, ForeignKey("participant.id"))
-    # participant = relationship(
-    #     "psynet.participant.Participant", back_populates="assets"
-    # )
-    #
-    # trial_maker_id = Column(String)
-    #
-    # network_id = Column(Integer, ForeignKey("network.id"))
-    # network = relationship("TrialNetwork")
-    #
-    # node_id = Column(Integer, ForeignKey("node.id"))
-    # node = relationship(
-    #     "TrialNode"
-    # )
-    #
-    # trial_id = Column(Integer, ForeignKey("info.id"))
-    # trial = relationship(
-    #     "Trial"
-    # )  # We don't use automatic back_populates functionality, but write our own
-    #
-    # response_id = Column(Integer, ForeignKey("response.id"))
-    # response = relationship("psynet.timeline.Response", back_populates="assets")
-
-    # @property
-    # def label_or_key(self):
-    #     if self.label is not None:
-    #         return self.label
-    #     return self.key
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
