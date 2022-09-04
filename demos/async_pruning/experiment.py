@@ -97,7 +97,7 @@ class CustomNetwork(GibbsNetwork):
         logger.info(
             "Running custom async_post_grow_network function (network id = %i)", self.id
         )
-        if self.num_nodes > 1:
+        if self.n_nodes > 1:
             if self.head.id % 3 == 0:
                 assert False
             elif self.head.id % 4 == 0:
@@ -192,7 +192,7 @@ trial_maker = CustomTrialMaker(
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"
-    num_trials_per_participant=4,
+    n_trials_per_participant=4,
     max_nodes_per_chain=5,  # note that the final node receives no trials
     chains_per_participant=None,  # set to None if chain_type="across"
     chains_per_experiment=4,  # set to None if chain_type="within"
@@ -201,7 +201,7 @@ trial_maker = CustomTrialMaker(
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_participants",
+    recruit_mode="n_participants",
     target_n_participants=10,
 )
 

@@ -1283,23 +1283,23 @@ class TrialMaker(Module):
             self.n_working_participants,
         )
         return (
-            self.num_complete_participants + self.num_working_participants
+            self.n_complete_participants + self.n_working_participants
         ) < self.target_n_participants
 
-    def num_trials_criterion(self, experiment):
-        num_trials_still_required = self.num_trials_still_required
-        num_trials_pending = self.num_trials_pending
+    def n_trials_criterion(self, experiment):
+        n_trials_still_required = self.n_trials_still_required
+        n_trials_pending = self.n_trials_pending
         logger.info(
             "Number of trials still required = %i, number of pending trials = %i.",
-            num_trials_still_required,
-            num_trials_pending,
+            n_trials_still_required,
+            n_trials_pending,
         )
-        return num_trials_still_required > num_trials_pending
+        return n_trials_still_required > n_trials_pending
 
     recruit_criteria = {
         None: null_criterion,
-        "num_participants": num_participants_criterion,
-        "num_trials": num_trials_criterion,
+        "n_participants": n_participants_criterion,
+        "n_trials": n_trials_criterion,
     }
 
     give_end_feedback_passed = False
@@ -1374,22 +1374,22 @@ class TrialMaker(Module):
         return super().visualize_tooltip()
 
     @property
-    def num_trials_pending(self):
+    def n_trials_pending(self):
         return sum(
             [
-                self.estimate_num_pending_trials(p)
+                self.estimate_n_pending_trials(p)
                 for p in self.established_working_participants
             ]
         )
 
     @property
-    def num_trials_still_required(self):
+    def n_trials_still_required(self):
         raise NotImplementedError
 
-    def estimate_num_pending_trials(self, participant):
+    def estimate_n_pending_trials(self, participant):
         return (
             self.expected_trials_per_participant
-            - participant.module_state.num_completed_trials
+            - participant.module_state.n_completed_trials
         )
 
     @property
@@ -1437,7 +1437,7 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
         participant.select_module(self.id)
-        participant.module_state.num_completed_trials = 0
+        participant.module_state.n_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
 
@@ -1514,7 +1514,7 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
-        participant.module_state.num_completed_trials += 1
+        participant.module_state.n_completed_trials += 1
 
     def performance_check(self, experiment, participant, participant_trials):
         # pylint: disable=unused-argument
@@ -1883,15 +1883,15 @@ class NetworkTrialMaker(TrialMaker):
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of
-        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``, though the latter requires overriding of
+        :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`.
 
     target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
+        ``recruit_mode="n_participants"``.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials
@@ -1930,7 +1930,7 @@ class NetworkTrialMaker(TrialMaker):
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
-    num_networks : int
+    n_networks : int
         Returns the number of networks owned by the trial maker.
 
     networks : list
@@ -2116,7 +2116,7 @@ class NetworkTrialMaker(TrialMaker):
         return self.network_class.query.filter_by(trial_maker_id=self.id)
 
     @property
-    def num_networks(self):
+    def n_networks(self):
         return self.network_query.count()
 
     @property
@@ -2150,13 +2150,13 @@ class NetworkTrialMaker(TrialMaker):
             raise NotImplementedError
 
     def performance_check_accuracy(self, experiment, participant, participant_trials):
-        num_trials = len(participant_trials)
-        if num_trials == 0:
+        n_trials = len(participant_trials)
+        if n_trials == 0:
             p = None
             passed = True
         else:
-            num_failed_trials = len([t for t in participant_trials if t.failed])
-            p = 1 - num_failed_trials / num_trials
+            n_failed_trials = len([t for t in participant_trials if t.failed])
+            p = 1 - n_failed_trials / n_trials
             passed = p >= self.performance_check_threshold
         return {"score": p, "passed": passed}
 
@@ -2218,9 +2218,9 @@ class NetworkTrialMaker(TrialMaker):
         elif self.consistency_check_type == "spearman_correlation":
             return corr(x, y, method="spearman")
         elif self.consistency_check_type == "percent_agreement":
-            num_cases = len(x)
-            num_agreements = sum([a == b for a, b in zip(x, y)])
-            return num_agreements / num_cases
+            n_cases = len(x)
+            n_agreements = sum([a == b for a, b in zip(x, y)])
+            return n_agreements / n_cases
         else:
             raise NotImplementedError
 
@@ -2253,7 +2253,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
     Attributes
     ----------
 
-    target_num_trials : int or None
+    target_n_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
         Stored as the field ``property2`` in the database.
@@ -2274,10 +2274,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
         If the network has no such :class:`~psynet.trial.main.TrialSource`
         then an error is thrown.
 
-    num_nodes : int
+    n_nodes : int
         Returns the number of non-failed nodes in the network.
 
-    num_completed_trials : int
+    n_completed_trials : int
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes, but excluding repeat trials).
 
@@ -2300,20 +2300,58 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     trial_maker_id = Column(String)
     module_id = Column(String)
-    target_num_trials = Column(Integer)
+    target_n_trials = Column(Integer)
     participant_group = Column(String)
 
     source = relationship("TrialSource", uselist=False)
-    nodes = relationship("TrialNode")
-    trials = relationship("psynet.trial.main.Trial")
+    all_nodes = relationship("TrialNode")
+    all_trials = relationship("psynet.trial.main.Trial")
 
     @property
-    def num_nodes(self):
-        return len(self.active_nodes)
+    @extra_var(__extra_vars__)
+    def n_all_nodes(self):
+        return len(self.all_nodes)
 
     @property
-    def active_nodes(self):
-        return [node for node in self.nodes if not self.failed]
+    @extra_var(__extra_vars__)
+    def n_alive_nodes(self):
+        return len(self.alive_nodes)
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_failed_nodes(self):
+        return len(self.failed_nodes)
+
+    @property
+    def alive_nodes(self):
+        return [node for node in self.all_nodes if not self.failed]
+
+    @property
+    def failed_nodes(self):
+        return [node for node in self.all_nodes if self.failed]
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_all_trials(self):
+        return len(self.all_trials)
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_alive_trials(self):
+        return len(self.alive_trials)
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_failed_trials(self):
+        return len(self.failed_trials)
+
+    @property
+    def alive_trials(self):
+        return [t for t in self.all_trials if not t.failed]
+
+    @property
+    def failed_trials(self):
+        return [t for t in self.all_trials if t.failed]
 
     async_processes = relationship("AsyncProcess")
 
@@ -2341,7 +2379,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
-        self.full = len(self.active_nodes) >= (self.max_size or 0)
+        self.full = len(self.alive_nodes) >= (self.max_size or 0)
 
     def add_node(self, node):
         """
@@ -2393,7 +2431,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             return source.participant
 
     @property
-    def num_completed_trials(self):
+    def n_completed_trials(self):
         return len(
             [
                 t
@@ -2415,44 +2453,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
         # Currently this function is redundant, but it's there in case we want to
         # add wrapping logic one day.
         self.async_post_grow_network()
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_nodes(self):
-        return len([node for node in self.all_nodes])
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_active_nodes(self):
-        return len([node for node in self.all_nodes if not node.failed])
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_failed_nodes(self):
-        return len([node for node in self.all_nodes if node.failed])
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_trials(self):
-        return len([info for info in self.all_infos if isinstance(info, Trial)])
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_active_trials(self):
-        return len(
-            [
-                info
-                for info in self.all_infos
-                if isinstance(info, Trial) and not info.failed
-            ]
-        )
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_failed_trials(self):
-        return len(
-            [info for info in self.all_infos if isinstance(info, Trial) and info.failed]
-        )
 
 
 class TrialNode(SQLMixinDallinger, dallinger.models.Node):

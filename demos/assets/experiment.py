@@ -99,7 +99,7 @@ def save_text(participant):
             description="Some text that the participant filled out",
             parent=participant,
             variables=dict(
-                num_characters=len(participant.answer),
+                n_characters=len(participant.answer),
                 writing_time=participant.last_response.metadata["time_taken"],
             ),
         )

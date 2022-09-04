@@ -98,7 +98,7 @@ trial_maker = CustomTrialMaker(
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_participants",
+    recruit_mode="n_participants",
     target_n_participants=10,
     wait_for_networks=True,
 )
@@ -122,7 +122,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_num_bots = 2
+    test_n_bots = 2
 
     def test_bots_ran_successfully(self, bots: List[Bot], **kwargs):
         super().test_bots_ran_successfully(bots, **kwargs)

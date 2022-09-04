@@ -117,18 +117,18 @@ class StaticTrialMaker(ChainTrialMaker):
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``.
 
     target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
+        ``recruit_mode="n_participants"``.
 
-    target_num_trials_per_node
+    target_trials_per_node
         Target number of trials to recruit for each node in the experiment. This target is only relevant if
-        ``recruit_mode="num_trials"``.
+        ``recruit_mode="n_trials"``.
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
@@ -213,7 +213,7 @@ class StaticTrialMaker(ChainTrialMaker):
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
-    num_networks : int
+    n_networks : int
         Returns the number of networks owned by the trial maker.
 
     networks : list
@@ -239,7 +239,7 @@ class StaticTrialMaker(ChainTrialMaker):
         max_trials_per_participant: int = None,
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
-        target_num_trials_per_node: Optional[int] = None,
+        target_trials_per_node: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         allow_repeated_nodes: bool = False,
         active_balancing_within_participants: bool = True,
@@ -284,9 +284,7 @@ class StaticTrialMaker(ChainTrialMaker):
             chains_per_participant=None,
             chains_per_experiment=len(nodes),
             max_nodes_per_chain=1,
-            trials_per_node=target_num_trials_per_node
-            if target_num_trials_per_node
-            else 1e6,
+            trials_per_node=target_trials_per_node if target_trials_per_node else 1e6,
             balance_across_chains=balance_across_chains,
             balance_strategy=balance_strategy,
             allow_revisiting_networks_in_across_chains=allow_repeated_nodes,

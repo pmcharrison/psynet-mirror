@@ -115,7 +115,7 @@ class CustomTrial(CustomTrialAnalysis):
         info_stimulus = self.node.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec_sec"]
         trial_number = self.position + 1
-        num_trials = self.trial_maker.num_trials_per_participant
+        n_trials = self.trial_maker.max_trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(
@@ -125,7 +125,7 @@ class CustomTrial(CustomTrialAnalysis):
                     <h3>Imitate the rhythm</h3>
                     Listen to the rhythm and imitate it as best as you can by tapping with your finger.
                     <br><br>
-                    <i>Trial number {trial_number} out of {num_trials} trials.</i>
+                    <i>Trial number {trial_number} out of {n_trials} trials.</i>
                     """
                 ),
             ),

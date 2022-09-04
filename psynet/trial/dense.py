@@ -76,18 +76,14 @@ class DenseTrialMaker(StaticTrialMaker):
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``.
 
     target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
-
-    target_num_trials_per_condition
-        Target number of trials to recruit for each condition in the experiment.
-        This target is only relevant if ``recruit_mode="num_trials"``.
+        ``recruit_mode="n_participants"``.
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
@@ -164,7 +160,7 @@ class DenseTrialMaker(StaticTrialMaker):
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
-    num_networks : int
+    n_networks : int
         Returns the number of networks owned by the trial maker.
 
     networks : list
@@ -189,7 +185,7 @@ class DenseTrialMaker(StaticTrialMaker):
         conditions: "List[DenseNode]",
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
-        target_num_trials_per_condition: Optional[int] = None,
+        target_trials_per_condition: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         active_balancing_within_participants: bool = True,
         active_balancing_across_participants: bool = True,
@@ -205,11 +201,9 @@ class DenseTrialMaker(StaticTrialMaker):
             nodes=conditions,
             recruit_mode=recruit_mode,
             target_n_participants=target_n_participants,
-            target_num_trials_per_node=target_num_trials_per_condition,
+            target_trials_per_node=target_trials_per_condition,
             max_trials_per_block=max_trials_per_block,
             allow_repeated_nodes=True,
-            active_balancing_within_participants=active_balancing_within_participants,
-            active_balancing_across_participants=active_balancing_across_participants,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,

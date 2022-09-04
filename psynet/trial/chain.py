@@ -283,14 +283,14 @@ class ChainNetwork(TrialNetwork):
     def degree(self):
         if self.n_nodes == 0:
             return 0
-        return max([node.degree for node in self.active_nodes])
+        return max([node.degree for node in self.alive_nodes])
 
     @property
     def head(self):
         return self.get_node_with_degree(self.degree)
 
     def get_node_with_degree(self, degree):
-        nodes = [n for n in self.active_nodes if n.degree == degree]
+        nodes = [n for n in self.alive_nodes if n.degree == degree]
         nodes.sort(key=lambda n: n.id)
 
         first_node = nodes[0]
@@ -1342,7 +1342,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             logger.info(
                 "N completed trials (%i) >= N trials per participant (%i), skipping forward",
                 n_completed_trials,
-                self.num_trials_per_participant,
+                self.max_trials_per_participant,
             )
             return "exit"
 
@@ -1439,7 +1439,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self.balance_across_chains:
             if "across" in self.balance_strategy:
-                networks.sort(key=lambda network: network.num_completed_trials)
+                networks.sort(key=lambda network: network.n_completed_trials)
             if "within" in self.balance_strategy:
                 networks.sort(
                     key=lambda network: len(
