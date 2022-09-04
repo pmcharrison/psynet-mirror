@@ -1664,7 +1664,7 @@ class SliderControl(Control):
     max_value:
         Maximum value of the slider.
 
-    num_steps:
+    n_steps:
         Determines the number of steps that the slider can be dragged through. Default: `10000`.
 
     snap_values:
@@ -1716,7 +1716,7 @@ class SliderControl(Control):
         start_value: float,
         min_value: float,
         max_value: float,
-        num_steps: int = 10000,
+        n_steps: int = 10000,
         reverse_scale: Optional[bool] = False,
         directional: Optional[bool] = True,
         slider_id: Optional[str] = "sliderpage_slider",
@@ -1744,8 +1744,8 @@ class SliderControl(Control):
         self.start_value = start_value
         self.min_value = min_value
         self.max_value = max_value
-        self.num_steps = num_steps
-        self.step_size = (max_value - min_value) / (num_steps - 1)
+        self.n_steps = n_steps
+        self.step_size = (max_value - min_value) / (n_steps - 1)
         self.reverse_scale = reverse_scale
         self.directional = directional
         self.slider_id = slider_id
@@ -1756,7 +1756,7 @@ class SliderControl(Control):
         self.minimal_time = minimal_time
 
         self.snap_values = self.format_snap_values(
-            snap_values, min_value, max_value, num_steps
+            snap_values, min_value, max_value, n_steps
         )
 
         js_vars = {}
@@ -1767,10 +1767,10 @@ class SliderControl(Control):
 
     macro = "slider"
 
-    def format_snap_values(self, snap_values, min_value, max_value, num_steps):
+    def format_snap_values(self, snap_values, min_value, max_value, n_steps):
         if snap_values is None:
             return snap_values
-            # return linspace(min_value, max_value, num_steps)
+            # return linspace(min_value, max_value, n_steps)
         elif isinstance(snap_values, int):
             return linspace(min_value, max_value, snap_values)
         else:
@@ -1799,7 +1799,7 @@ class SliderControl(Control):
             "start_value": self.start_value,
             "min_value": self.min_value,
             "max_value": self.max_value,
-            "num_steps": self.num_steps,
+            "n_steps": self.n_steps,
             "step_size": self.step_size,
             "reverse_scale": self.reverse_scale,
             "directional": self.directional,
@@ -1827,7 +1827,7 @@ class SliderControl(Control):
             if self.snap_values:
                 n_candidates = self.snap_values
             else:
-                n_candidates = self.num_steps
+                n_candidates = self.n_steps
             candidates = list(
                 np.linspace(self.min_value, self.max_value, num=n_candidates)
             )
@@ -1882,7 +1882,7 @@ class AudioSliderControl(SliderControl):
     disable_while_playing:
         If `True`, the slider is disabled while the audio is playing. Default: `False`.
 
-    num_steps:
+    n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
@@ -1939,7 +1939,7 @@ class AudioSliderControl(SliderControl):
         sound_locations: dict,
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
-        num_steps: Optional[int] = 10000,
+        n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
         random_wrap: Optional[bool] = False,
@@ -1949,11 +1949,11 @@ class AudioSliderControl(SliderControl):
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
     ):
-        if isinstance(num_steps, str):
-            if num_steps == "num_sounds":
-                num_steps = len(sound_locations)
+        if isinstance(n_steps, str):
+            if n_steps == "num_sounds":
+                n_steps = len(sound_locations)
             else:
-                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+                raise ValueError(f"Invalid value of n_steps: {n_steps}")
 
         if isinstance(snap_values, str):
             if snap_values == "sound_locations":
@@ -1985,7 +1985,7 @@ class AudioSliderControl(SliderControl):
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
-            num_steps=num_steps,
+            n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
             random_wrap=random_wrap,

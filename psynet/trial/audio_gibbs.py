@@ -176,7 +176,7 @@ class AudioGibbsTrial(GibbsTrial):
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
-                num_steps="num_sounds" if self.snap_slider_before_release else 10000,
+                n_steps="num_sounds" if self.snap_slider_before_release else 10000,
                 snap_values="sound_locations" if self.snap_slider else None,
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,

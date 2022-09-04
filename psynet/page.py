@@ -608,7 +608,7 @@ class SliderPage(ModularPage):
         self.input_type = input_type
         self.minimal_interactions = minimal_interactions
         self.minimal_time = minimal_time
-        self.n_steps = num_steps
+        self.n_steps = n_steps
         self.reverse_scale = reverse_scale
         self.directional = directional
         self.continuous_updates = continuous_updates
@@ -618,7 +618,7 @@ class SliderPage(ModularPage):
         self._validate()
 
         self.snap_values = self._format_snap_values(
-            snap_values, min_value, max_value, num_steps
+            snap_values, min_value, max_value, n_steps
         )
         self.template_filename = template_filename
 
@@ -635,7 +635,7 @@ class SliderPage(ModularPage):
                 start_value=self.start_value,
                 min_value=self.min_value,
                 max_value=self.max_value,
-                num_steps=self.num_steps,
+                n_steps=self.n_steps,
                 reverse_scale=self.reverse_scale,
                 directional=self.directional,
                 slider_id=self.slider_id,
@@ -667,9 +667,9 @@ class SliderPage(ModularPage):
         if self.minimal_interactions < 0:
             raise ValueError("`minimal_interactions` cannot be negative!")
 
-    def _format_snap_values(self, snap_values, min_value, max_value, num_steps):
+    def _format_snap_values(self, snap_values, min_value, max_value, n_steps):
         if snap_values is None:
-            return linspace(min_value, max_value, num_steps)
+            return linspace(min_value, max_value, n_steps)
         elif isinstance(snap_values, int):
             return linspace(min_value, max_value, snap_values)
         else:
@@ -684,7 +684,7 @@ class SliderPage(ModularPage):
             **super().metadata(),
             "prompt": self.prompt.metadata,
             "control": self.control.metadata,
-            "num_steps": self.num_steps,
+            "n_steps": self.n_steps,
             "snap_values": self.snap_values,
             "min_value": self.min_value,
             "max_value": self.max_value,
@@ -728,7 +728,7 @@ class AudioSliderPage(ModularPage):
     max_value:
         Maximum value of the slider.
 
-    num_steps:
+    n_steps:
         - <int> (default = 10000): number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
@@ -763,7 +763,7 @@ class AudioSliderPage(ModularPage):
         start_value: float,
         min_value: float,
         max_value: float,
-        num_steps: Union[str, int] = 10000,
+        n_steps: Union[str, int] = 10000,
         snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
         slider_id: Optional[str] = "sliderpage_slider",
@@ -782,11 +782,11 @@ class AudioSliderPage(ModularPage):
                 "You must specify sounds in `media` you later want to play with the slider"
             )
 
-        if isinstance(num_steps, str):
-            if num_steps == "num_sounds":
-                num_steps = len(sound_locations)
+        if isinstance(n_steps, str):
+            if n_steps == "num_sounds":
+                n_steps = len(sound_locations)
             else:
-                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+                raise ValueError(f"Invalid value of n_steps: {n_steps}")
 
         if isinstance(snap_values, str):
             if snap_values == "sound_locations":
@@ -834,7 +834,7 @@ class AudioSliderPage(ModularPage):
                 audio=audio,
                 sound_locations=self.sound_locations,
                 autoplay=autoplay,
-                num_steps=num_steps,
+                n_steps=n_steps,
                 slider_id=slider_id,
                 reverse_scale=kwargs.get("reverse_scale"),
                 directional=kwargs.get("directional"),

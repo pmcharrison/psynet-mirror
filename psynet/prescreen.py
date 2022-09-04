@@ -473,10 +473,13 @@ class FreeTappingRecordTest(StaticTrialMaker):
         self.give_end_feedback_passed = False
         self.time_estimate_per_trial = time_estimate_per_trial
 
+        nodes = self.get_nodes(duration_rec_sec, min_num_detected_taps)
+
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            nodes=self.get_nodes(duration_rec_sec, min_num_detected_taps),
+            nodes=nodes,
+            expected_trials_per_participant=len(nodes),
             n_repeat_trials=n_repeat_trials,
             fail_trials_on_premature_exit=False,
             fail_trials_on_participant_performance_check=False,

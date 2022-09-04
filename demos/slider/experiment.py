@@ -90,7 +90,7 @@ example_5 = {
     "start_value": 0.5,
     "min_value": 0.1,
     "max_value": 0.9,
-    "num_steps": 48,
+    "n_steps": 48,
     "snap_values": None,
     "minimal_interactions": 5,
     "input_type": "circular_slider",
@@ -101,7 +101,7 @@ example_6 = {
     "start_value": 15,
     "min_value": 10,
     "max_value": 20,
-    "num_steps": 1000,
+    "n_steps": 1000,
     "snap_values": [10, 11, 12, 13, 14, 15, 20],
     "minimal_interactions": 0,
 }
