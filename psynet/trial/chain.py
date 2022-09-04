@@ -1181,7 +1181,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             A list of blocks in order of presentation,
             where each block is identified by a string label.
         """
-        return random.sample(blocks, len(blocks))
+        return random.sample(list(blocks), len(blocks))
 
     def _should_finish_block(self, participant):
         current_block = participant.module_state.current_block
