@@ -89,7 +89,8 @@ trial_maker = CustomTrialMaker(
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="within",  # can be "within" or "across"
-    num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
     chains_per_experiment=None,  # set to None if chain_type="within"

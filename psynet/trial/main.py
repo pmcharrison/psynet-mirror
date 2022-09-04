@@ -2304,7 +2304,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     participant_group = Column(String)
 
     source = relationship("TrialSource", uselist=False)
-    all_nodes = relationship("TrialNode")
     all_trials = relationship("psynet.trial.main.Trial")
 
     @property

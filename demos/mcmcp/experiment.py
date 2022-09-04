@@ -98,7 +98,8 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             chain_type="within",  # can be "within" or "across"
-            num_trials_per_participant=9,
+            expected_trials_per_participant=9,
+            max_trials_per_participant=9,
             chains_per_participant=3,  # set to None if chain_type="across"
             chains_per_experiment=None,  # set to None if chain_type="within"
             max_nodes_per_chain=3,
