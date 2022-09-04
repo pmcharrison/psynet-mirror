@@ -132,7 +132,7 @@ trial_maker = AnimalTrialMaker(
     check_performance_at_end=True,
     check_performance_every_trial=True,
     target_n_participants=1,
-    target_num_trials_per_node=None,
+    target_trials_per_node=None,
     recruit_mode="num_participants",
     n_repeat_trials=3,
 )

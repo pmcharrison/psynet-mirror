@@ -175,7 +175,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         return Response.query.filter_by(id=self.last_response_id).one()
 
-    trials = relationship("psynet.trial.main.Trial")
+    all_trials = relationship("psynet.trial.main.Trial")
+
+    @property
+    def alive_trials(self):
+        return [t for t in self.all_trials if not t.failed]
+
+    @property
+    def failed_trials(self):
+        return [t for t in self.all_trials if t.failed]
 
     # This would be better, but we end up with a circular import problem
     # if we try and read csv files using this foreign key...

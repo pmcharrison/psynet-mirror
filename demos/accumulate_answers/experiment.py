@@ -111,8 +111,8 @@ part_1 = join(
 
 def part_2_check(participant):
     if isinstance(participant, Bot):
-        assert len(participant.trials) == 3
-        trial = participant.trials[0]
+        assert len(participant.alive_trials) == 3
+        trial = participant.alive_trials[0]
         assert trial.answer == {"kindness": "Very much", "bravery": "A little"}
         assert trial.to_dict()["answer__kindness"] == "Very much"
         assert trial.to_dict()["answer__bravery"] == "A little"

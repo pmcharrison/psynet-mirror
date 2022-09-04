@@ -2274,7 +2274,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         If the network has no such :class:`~psynet.trial.main.TrialSource`
         then an error is thrown.
 
-    n_nodes : int
+    n_alive_nodes : int
         Returns the number of non-failed nodes in the network.
 
     n_completed_trials : int
@@ -2378,7 +2378,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
-        self.full = len(self.alive_nodes) >= (self.max_size or 0)
+        self.full = len(self.alive_nodes) > (self.max_size or 0)
 
     def add_node(self, node):
         """
@@ -2432,11 +2432,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
     @property
     def n_completed_trials(self):
         return len(
-            [
-                t
-                for t in self.trials
-                if (not t.failed and t.complete and not t.is_repeat_trial)
-            ]
+            [t for t in self.alive_trials if (t.complete and not t.is_repeat_trial)]
         )
 
     run_async_post_grow_network = False
@@ -2484,7 +2480,15 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     errors = relationship("ErrorRecord")
 
-    trials = relationship("psynet.trial.main.Trial", foreign_keys=[Trial.node_id])
+    all_trials = relationship("psynet.trial.main.Trial", foreign_keys=[Trial.node_id])
+
+    @property
+    def alive_trials(self):
+        return [t for t in self.all_trials if not t.failed]
+
+    @property
+    def failed_trials(self):
+        return [t for t in self.all_trials if t.failed]
 
     # assets = Column(PythonDict)
 

@@ -36,4 +36,4 @@ class Exp(psynet.experiment.Experiment):
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert len(bot.trials) == 6
+        assert len(bot.alive_trials) == 6

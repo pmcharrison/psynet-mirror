@@ -131,8 +131,8 @@ class Exp(psynet.experiment.Experiment):
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert len(bot.trials) == 6
-        trials = sorted(bot.trials, key=lambda t: t.id)
+        assert len(bot.alive_trials) == 6
+        trials = sorted(bot.alive_trials, key=lambda t: t.id)
         for i in [0, 2, 4]:
             assert isinstance(trials[i], AnimalTrial)
         for i in [1, 3, 5]:

@@ -75,7 +75,7 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
-        trials = bot.trials
+        trials = bot.all_trials
         assert len(trials) == 3
         assert len(set([t.definition["word"] for t in trials])) == 3
         assert all([t.definition["word"] in WORDS for t in trials])

@@ -85,7 +85,7 @@ class ChainNetwork(TrialNetwork):
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
-    n_nodes : int
+    n_alive_nodes : int
         Returns the number of non-failed nodes in the network.
 
     n_completed_trials : int
@@ -281,7 +281,7 @@ class ChainNetwork(TrialNetwork):
 
     @property
     def degree(self):
-        if self.n_nodes == 0:
+        if self.n_alive_nodes == 0:
             return 0
         return max([node.degree for node in self.alive_nodes])
 
@@ -306,7 +306,7 @@ class ChainNetwork(TrialNetwork):
             previous_head.connect(whom=node)
             previous_head.child = node
             node.parent = previous_head
-        if self.n_nodes >= self.target_n_nodes:
+        if self.n_alive_nodes >= self.target_n_nodes:
             self.full = True
 
     @property
@@ -626,13 +626,13 @@ class ChainNode(TrialNode):
     def completed_and_processed_trials(self):
         return [
             t
-            for t in self.trials
-            if (not t.failed and t.complete and t.finalized and not t.is_repeat_trial)
+            for t in self.alive_trials
+            if (t.complete and t.finalized and not t.is_repeat_trial)
         ]
 
     @property
     def viable_trials(self):
-        return [t for t in self.trials if (not t.failed and not t.is_repeat_trial)]
+        return [t for t in self.alive_trials if not t.is_repeat_trial]
 
     def reached_target_n_trials(self):
         return len(self.completed_and_processed_trials) >= self.target_n_trials
@@ -1186,7 +1186,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         assert current_block_position is not None
 
         trials_in_trial_maker = [
-            trial for trial in participant.trials if trial.trial_maker_id == self.id
+            trial for trial in participant.all_trials if trial.trial_maker_id == self.id
         ]
         trials_in_block = [
             trial
@@ -1445,7 +1445,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                     key=lambda network: len(
                         [
                             t
-                            for t in network.trials
+                            for t in network.alive_trials
                             if t.participant_id == participant.id
                         ]
                     )

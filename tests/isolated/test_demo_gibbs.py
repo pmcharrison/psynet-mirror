@@ -63,8 +63,8 @@ class TestExp:
             # This variable is set in a code block within the trial
             assert pt.var.test_variable == 123
 
-            trials = pt.trials
-            assert len(trials) == 7  # .trials now includes repeat trials
+            trials = pt.alive_trials
+            assert len(trials) == 7  # includes repeat trials
 
             with pytest.raises(UndefinedVariableError):
                 pt.var.get("uninitialized_variable")

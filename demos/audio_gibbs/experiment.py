@@ -129,4 +129,4 @@ class Exp(psynet.experiment.Experiment):
         super().test_bots_ran_successfully(bots, **kwargs)
 
         for b in bots:
-            assert len(b.trials) == NUM_TRIALS_PER_PARTICIPANT
+            assert len(b.alive_trials) == NUM_TRIALS_PER_PARTICIPANT
