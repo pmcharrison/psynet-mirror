@@ -15,8 +15,8 @@ def new_trial_maker(**kwarg):
         phase="test",
         chain_type="across",
         num_trials_per_participant=5,
-        num_chains_per_participant=None,
-        num_chains_per_experiment=5,
+        chains_per_participant=None,
+        chains_per_experiment=5,
         trials_per_node=1,
         balance_across_chains=True,
         check_performance_at_end=True,
@@ -30,12 +30,12 @@ def new_trial_maker(**kwarg):
 
 def test_num_iterations():
     with pytest.deprecated_call():
-        tm1 = new_trial_maker(num_nodes_per_chain=10)
-        assert tm1.num_nodes_per_chain == 10
-        assert tm1.num_nodes_per_chain == 9
+        tm1 = new_trial_maker(max_nodes_per_chain=10)
+        assert tm1.max_nodes_per_chain == 10
+        assert tm1.max_nodes_per_chain == 9
 
-    tm2 = new_trial_maker(num_nodes_per_chain=10)
-    assert tm2.num_nodes_per_chain == 11
+    tm2 = new_trial_maker(max_nodes_per_chain=10)
+    assert tm2.max_nodes_per_chain == 11
 
     with pytest.raises(ValueError):
-        new_trial_maker(num_nodes_per_chain=10, num_nodes_per_chain=5)
+        new_trial_maker(max_nodes_per_chain=10, max_nodes_per_chain=5)

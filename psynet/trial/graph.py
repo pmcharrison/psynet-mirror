@@ -276,16 +276,16 @@ class GraphChainTrialMaker(ChainTrialMaker):
         network_structure: str,
         chain_type: str,
         num_trials_per_participant: int,
-        num_chains_per_participant: Optional[int],
-        # num_chains_per_experiment: Optional[int],
+        chains_per_participant: Optional[int],
+        # chains_per_experiment: Optional[int],
         trials_per_node: int,
         balance_across_chains: bool,
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         recruit_mode: str,
         target_num_participants=Optional[int],
-        num_nodes_per_chain: Optional[int] = None,
-        num_nodes_per_chain: Optional[int] = None,
+        max_nodes_per_chain: Optional[int] = None,
+        max_nodes_per_chain: Optional[int] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
@@ -295,7 +295,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
     ):
         if chain_type == "within":
             raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN CHAINS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
-        num_chains_per_experiment = len(network_structure["vertices"])
+        chains_per_experiment = len(network_structure["vertices"])
         self.network_structure = network_structure
         super().__init__(
             id_=id_,
@@ -305,16 +305,16 @@ class GraphChainTrialMaker(ChainTrialMaker):
             trial_class=trial_class,
             chain_type=chain_type,
             num_trials_per_participant=num_trials_per_participant,
-            num_chains_per_participant=num_chains_per_participant,
-            num_chains_per_experiment=num_chains_per_experiment,
+            chains_per_participant=chains_per_participant,
+            chains_per_experiment=chains_per_experiment,
             trials_per_node=trials_per_node,
             balance_across_chains=balance_across_chains,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            num_nodes_per_chain=num_nodes_per_chain,
-            num_nodes_per_chain=num_nodes_per_chain,
+            max_nodes_per_chain=max_nodes_per_chain,
+            max_nodes_per_chain=max_nodes_per_chain,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
@@ -335,7 +335,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         network_structure = self.network_structure
         vertices = network_structure["vertices"]
         source_seeds = self.generate_source_seed_bundles()
-        for i in range(self.num_chains_per_experiment):
+        for i in range(self.chains_per_experiment):
             vertex_id = vertices[i]
             source_seed = [
                 seed["bundle"]
@@ -366,7 +366,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             vertex_id=vertex_id,
             dependent_vertex_ids=dependent_vertex_ids,
             trials_per_node=self.trials_per_node,
-            target_num_nodes=self.num_nodes_per_chain,
+            target_num_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
             source_seed=source_seed,

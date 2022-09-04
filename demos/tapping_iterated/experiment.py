@@ -62,7 +62,7 @@ PERCENT_BAD_TAPS = 50
 MIN_RAW_TAPS = 50
 MAX_RAW_TAPS = 200
 # within chains
-NUM_CHAINS_PER_PARTICIPANT = 2  # set to 4 for real experiments
+CHAINS_PER_PARTICIPANT = 2  # set to 4 for real experiments
 NUM_ITERATION_CHAIN = 5
 NUM_TRIALS_PARTICIPANT = 4
 TOTAL_NUM_PARTICIPANTS = 50
@@ -233,9 +233,9 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
-            num_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
-            num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
-            num_chains_per_experiment=None,  # set to None if chain_type="within"
+            max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
+            chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
+            chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,
             balance_across_chains=False,
             check_performance_at_end=False,

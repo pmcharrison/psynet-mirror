@@ -34,9 +34,9 @@ DESIGN_PARAMS = {
     "num_trials_per_participant": 10,
     "max_trials_per_participant": 15,
     "num_trials_practice": 3,
-    "num_nodes_per_chain": 5,
+    "max_nodes_per_chain": 5,
     "chain_type": "within",
-    "num_chains_per_participant": 2,
+    "chains_per_participant": 2,
     "num_chains_per_exp": None,
     "recruit_mode": "num_participants",
     "target_num_participants": 25,
@@ -328,10 +328,10 @@ SingingFeedback = join(
         trial_class=CustomTrialPractice,
         node_class=CustomNodePractice,
         chain_type="within",
-        num_nodes_per_chain=1,
+        max_nodes_per_chain=1,
         num_trials_per_participant=DESIGN_PARAMS["num_trials_practice"],
-        num_chains_per_participant=DESIGN_PARAMS["num_trials_practice"],
-        num_chains_per_experiment=None,
+        chains_per_participant=DESIGN_PARAMS["num_trials_practice"],
+        chains_per_experiment=None,
         trials_per_node=1,
         balance_across_chains=True,
         check_performance_at_end=False,
@@ -378,11 +378,11 @@ SingingMainTask1 = join(
         phase="experiment",
         chain_type=DESIGN_PARAMS["chain_type"],
         num_trials_per_participant=DESIGN_PARAMS["max_trials_per_participant"],
-        num_nodes_per_chain=DESIGN_PARAMS["num_nodes_per_chain"],
-        num_chains_per_participant=DESIGN_PARAMS[
-            "num_chains_per_participant"
+        max_nodes_per_chain=DESIGN_PARAMS["max_nodes_per_chain"],
+        chains_per_participant=DESIGN_PARAMS[
+            "chains_per_participant"
         ],  # set to None if chain_type="across"
-        num_chains_per_experiment=DESIGN_PARAMS[
+        chains_per_experiment=DESIGN_PARAMS[
             "num_chains_per_exp"
         ],  # set to None if chain_type="within"
         trials_per_node=1,

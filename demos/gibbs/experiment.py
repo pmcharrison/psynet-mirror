@@ -195,9 +195,9 @@ trial_maker = CustomTrialMaker(
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=4,
-    num_nodes_per_chain=2,
-    num_chains_per_participant=None,  # set to None if chain_type="across"
-    num_chains_per_experiment=8,  # set to None if chain_type="within"
+    max_nodes_per_chain=2,
+    chains_per_participant=None,  # set to None if chain_type="across"
+    chains_per_experiment=8,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=True,

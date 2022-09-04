@@ -65,7 +65,7 @@ TIME_ESTIMATE_PER_TRIAL = config.REPEATS * 3
 # failing criteria
 MIN_RESPONSES_PLAYED = config.MIN_TAPS_PLAYED
 # within chains
-NUM_CHAINS_PER_PARTICIPANT = 2  # set to 4 for a real experiment
+CHAINS_PER_PARTICIPANT = 2  # set to 4 for a real experiment
 NUM_ITERATION_CHAIN = 2  # set to 5 for a real experiment
 NUM_TRIALS_PARTICIPANT = 4  # set to 20 for a real experiment
 TOTAL_NUM_PARTICIPANTS = 50
@@ -241,9 +241,9 @@ class Exp(psynet.experiment.Experiment):
             node_class=ExperimentNode,
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
-            num_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
-            num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
-            num_chains_per_experiment=None,  # set to None if chain_type="within"
+            max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
+            chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
+            chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,
             balance_across_chains=False,
             check_performance_at_end=False,

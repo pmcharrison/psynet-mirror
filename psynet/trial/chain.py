@@ -891,26 +891,22 @@ class ChainTrialMaker(NetworkTrialMaker):
         once this number is reached, the participant will move on
         to the next stage in the timeline.
 
-    num_chains_per_participant
+    chains_per_participant
         Number of chains to be created for each participant;
         only relevant if ``chain_type="within"``.
 
-    num_chains_per_experiment
+    chains_per_experiment
         Number of chains to be created for the entire experiment;
         only relevant if ``chain_type="across"``.
 
-    num_nodes_per_chain
+    max_nodes_per_chain
         Specifies chain length in terms of the
         number of data-collection iterations that are required to complete a chain.
         The number of successful participant trials required to complete the chain then
-        corresponds to ``trials_per_node * num_nodes_per_chain``.
-        Previously chain length was specified using the now-deprecated argument ``num_nodes_per_chain``.
+        corresponds to ``trials_per_node * max_nodes_per_chain``.
 
-    num_nodes_per_chain
-        [DEPRECATED; new code should use ``num_nodes_per_chain`` and leave this argument empty.]
+    max_nodes_per_chain
         Maximum number of nodes in the chain before the chain is marked as full and no more nodes will be added.
-        The final node receives no participant trials, but instead summarizes the state of the network.
-        So, ``num_nodes_per_chain`` is equal to ``1 + num_nodes_per_chain``.
 
     trials_per_node
         Number of satisfactory trials to be received by the last node
@@ -1025,33 +1021,33 @@ class ChainTrialMaker(NetworkTrialMaker):
     state_class = ChainTrialMakerState
 
     def __init__(
-        self,
-        *,
-        id_,
-        network_class: Type[ChainNetwork] = None,
-        node_class: Type[ChainNode],
-        trial_class: Type[ChainTrial],
-        chain_type: str,
-        expected_trials_per_participant: int,
-        max_trials_per_participant: Optional[int] = None,
-        max_trials_per_block: Optional[int] = None,
-        num_chains_per_participant: Optional[int] = None,
-        num_chains_per_experiment: Optional[int] = None,
-        trials_per_node: int = 1,
-        balance_across_chains: bool = False,
-        start_nodes=None,
-        balance_strategy: Set[str] = {"within", "across"},
-        check_performance_at_end: bool = False,
-        check_performance_every_trial: bool = False,
-        recruit_mode: str = "num_participants",
-        target_num_participants: Optional[int] = None,
-        num_nodes_per_chain: Optional[int] = None,
-        fail_trials_on_premature_exit: bool = False,
-        fail_trials_on_participant_performance_check: bool = False,
-        propagate_failure: bool = True,
-        num_repeat_trials: int = 0,
-        wait_for_networks: bool = False,
-        allow_revisiting_networks_in_across_chains: bool = False,
+            self,
+            *,
+            id_,
+            trial_class: Type[ChainTrial],
+            node_class: Type[ChainNode],
+            network_class: Type[ChainNetwork] = None,
+            chain_type: str,
+            expected_trials_per_participant: int,
+            max_trials_per_participant: Optional[int] = None,
+            max_trials_per_block: Optional[int] = None,
+            max_nodes_per_chain: Optional[int] = None,
+            chains_per_participant: Optional[int] = None,
+            chains_per_experiment: Optional[int] = None,
+            trials_per_node: int = 1,
+            target_num_participants: Optional[int] = None,
+            balance_across_chains: bool = False,
+            start_nodes=None,
+            balance_strategy: Set[str] = {"within", "across"},
+            check_performance_at_end: bool = False,
+            check_performance_every_trial: bool = False,
+            recruit_mode: str = "num_participants",
+            fail_trials_on_premature_exit: bool = False,
+            fail_trials_on_participant_performance_check: bool = False,
+            propagate_failure: bool = True,
+            num_repeat_trials: int = 0,
+            wait_for_networks: bool = False,
+            allow_revisiting_networks_in_across_chains: bool = False,
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1061,12 +1057,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         if (
             chain_type == "across"
             and expected_trials_per_participant
-            and expected_trials_per_participant > num_chains_per_experiment
+            and expected_trials_per_participant > chains_per_experiment
             and not allow_revisiting_networks_in_across_chains
         ):
             raise ValueError(
                 "In across-participant chain experiments, <expected_trials_per_participant> "
-                "cannot exceed <num_chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
+                "cannot exceed <chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
                 "is ``True``."
             )
 
@@ -1077,7 +1073,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if chain_type == "within":
             assert start_nodes is None or callable(start_nodes)
-            assert not (start_nodes is None and num_chains_per_participant is None)
+            assert not (start_nodes is None and chains_per_participant is None)
         elif chain_type == "across":
             assert (
                 start_nodes is None
@@ -1097,9 +1093,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.chain_type = chain_type
         self.max_trials_per_participant = max_trials_per_participant
         self.max_trials_per_block = max_trials_per_block
-        self.num_chains_per_participant = num_chains_per_participant
-        self.num_chains_per_experiment = num_chains_per_experiment
-        self.num_nodes_per_chain = num_nodes_per_chain
+        self.chains_per_participant = chains_per_participant
+        self.chains_per_experiment = chains_per_experiment
+        self.max_nodes_per_chain = max_nodes_per_chain
         self.trials_per_node = trials_per_node
         self.balance_across_chains = balance_across_chains
         self.balance_strategy = balance_strategy
@@ -1258,14 +1254,14 @@ class ChainTrialMaker(NetworkTrialMaker):
             nodes = call_function_with_context(
                 self.start_nodes, experiment=experiment, participant=participant
             )
-            if self.num_chains_per_participant is not None:
-                assert len(nodes) == self.num_chains_per_participant, (
+            if self.chains_per_participant is not None:
+                assert len(nodes) == self.chains_per_participant, (
                     f"Problem with trial maker {self.id}: "
                     f"The number of nodes generated by start_nodes ({len(nodes)} did not equal "
-                    f"num_chains_per_participant ({self.num_chains_per_participant})."
+                    f"chains_per_participant ({self.chains_per_participant})."
                 )
         else:
-            nodes = [None for _ in range(self.num_chains_per_participant)]
+            nodes = [None for _ in range(self.chains_per_participant)]
 
         networks = []
         for i, node in enumerate(nodes):
@@ -1286,13 +1282,13 @@ class ChainTrialMaker(NetworkTrialMaker):
             else:
                 nodes = self.start_nodes
                 assert isinstance(nodes, list)
-            assert len(nodes) == self.num_chains_per_experiment, (
+            assert len(nodes) == self.chains_per_experiment, (
                 f"Problem with trial maker {self.id}: "
                 f"The number of nodes provided by start_nodes ({len(nodes)}) did not equal 0 or "
-                f"num_chains_per_experiment ({self.num_chains_per_experiment})."
+                f"chains_per_experiment ({self.chains_per_experiment})."
             )
         else:
-            nodes = [None for _ in range(self.num_chains_per_experiment)]
+            nodes = [None for _ in range(self.chains_per_experiment)]
         for node in nodes:  # type: ChainNode
             self.create_network(experiment, start_node=node)
             if node is not None:
@@ -1312,7 +1308,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             experiment=experiment,
             chain_type=self.chain_type,
             trials_per_node=self.trials_per_node,
-            target_num_nodes=self.num_nodes_per_chain,
+            target_num_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
         )
