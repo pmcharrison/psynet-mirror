@@ -2665,7 +2665,7 @@ def randomize(*, label, logic):
     n = len(logic)
     total_time = sum(elt.time_estimate for elt in logic)
     return for_loop(
-        label,
+        label=label,
         iterate_over=lambda: random.sample(range(n), n),
         logic=lambda i: logic[i],
         time_estimate_per_iteration=total_time / n,
