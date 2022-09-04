@@ -2263,18 +2263,9 @@ class TrialNetwork(SQLMixinDallinger, Network):
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
 
-    source : Optional[TrialSource]
-        Returns the network's :class:`~psynet.trial.main.TrialSource`,
-        or ``None`` if none can be found.
-
     participant : Optional[Participant]
         Returns the network's :class:`~psynet.participant.Participant`,
         or ``None`` if none can be found.
-        Implementation note:
-        The network's participant corresponds to the participant
-        listed in the network's :class:`~psynet.trial.main.TrialSource`.
-        If the network has no such :class:`~psynet.trial.main.TrialSource`
-        then an error is thrown.
 
     n_alive_nodes : int
         Returns the number of non-failed nodes in the network.
@@ -2305,7 +2296,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     target_n_trials = Column(Integer)
     participant_group = Column(String)
 
-    source = relationship("TrialSource", uselist=False)
     all_trials = relationship("psynet.trial.main.Trial")
 
     @property
@@ -2559,46 +2549,6 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         db.session.commit()
 
 
-class TrialSource(TrialNode):
-    pass
-
-
-# class NullTrialMaker(NetworkTrialMaker):
-#     """
-#     A 'null' trial  maker used for trials that are administered
-#     independently (i.e. with ``.cue()``) rather than with a
-#     fully fledged trial maker.
-#     """
-#     def __init__(self):
-#         super().__init__(
-#             id_="null",
-#             trial_class=Trial,
-#             network_class=GenericTrialNetwork,
-#             expected_trials_per_participant=None,
-#             check_performance_at_end=False,
-#             check_performance_every_trial=False,
-#             fail_trials_on_premature_exit=False,
-#             fail_trials_on_participant_performance_check=False,
-#             propagate_failure=False,
-#             recruit_mode=None,
-#             target_n_participants=None,
-#             n_repeat_trials=0,
-#             wait_for_networks=False,
-#         )
-#
-#     def check_time_estimates(self):
-#         pass
-#
-#     def pre_deploy_routine(self, experiment):
-#         network = GenericTrialNetwork(
-#             trial_maker_id="null", phase="default", experiment=experiment
-#         )
-#         source = GenericTrialNode(network)
-#         db.session.add(network)
-#         db.session.add(source)
-#         db.session.commit()
-
-
 class GenericTrialNetwork(TrialNetwork):
     def __init__(self, module_id, experiment):
         super().__init__(
@@ -2622,14 +2572,3 @@ class GenericTrialNode(TrialNode):
         network = GenericTrialNetwork(module_id, experiment)
         db.session.add(network)
         return network
-
-
-# class GenericNetwork(TrialNetwork):
-#     def __init__(self, experiment):
-#         super().__init__(
-#             trial_maker_id=None,
-#             phase="experiment",
-#             participant_group="default",
-#             block="default",
-#             experiment=experiment,
-#         )

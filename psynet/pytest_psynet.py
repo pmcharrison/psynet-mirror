@@ -31,7 +31,7 @@ from .command_line import (
 from .data import init_db
 from .experiment import Experiment, get_experiment, import_local_experiment
 from .redis import redis_vars
-from .trial.main import TrialNetwork, TrialSource
+from .trial.main import TrialNetwork
 from .utils import clear_all_caches, disable_logger, wait_until
 
 logger = logging.getLogger(__file__)
@@ -372,9 +372,7 @@ def participant(launched_experiment):
 @pytest.fixture(scope="class")
 def node(launched_experiment):
     nodes = Node.query.all()
-    return [
-        n for n in nodes if not isinstance(n, TrialSource) and n.definition is not None
-    ][0]
+    return [n for n in nodes if n.definition is not None][0]
 
 
 @pytest.fixture(scope="class")
