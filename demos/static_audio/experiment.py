@@ -102,7 +102,7 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             nodes=nodes,
             target_n_participants=3,
-            recruit_mode="num_participants",
+            recruit_mode="n_participants",
         ),
         SuccessfulEndPage(),
     )

@@ -127,7 +127,7 @@ trial_maker = CustomTrialMaker(
         for target in TARGETS
     ],
     chain_type="across",  # can be "within" or "across"
-    num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    n_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     chains_per_participant=None,  # set to None if chain_type="across"
     chains_per_experiment=CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
@@ -136,7 +136,7 @@ trial_maker = CustomTrialMaker(
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_trials",
+    recruit_mode="n_trials",
     target_n_participants=None,
     wait_for_networks=True,
 )
@@ -162,7 +162,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_num_bots = 2
+    test_n_bots = 2
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed

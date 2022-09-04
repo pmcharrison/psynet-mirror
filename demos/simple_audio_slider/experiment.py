@@ -157,7 +157,7 @@ class CustomExp(psynet.experiment.Experiment):
         new_example(
             "Same example but where the slider can only be dragged through deciles.",
             sound_locations=dict(zip(ids, [i for i in range(472)])),
-            num_steps=11,
+            n_steps=11,
             snap_values=11,
             start_value=200,
             min_value=0,
@@ -170,7 +170,7 @@ class CustomExp(psynet.experiment.Experiment):
             "Same example but where the slider can only be dragged through sound locations.",
             sound_locations=dict(zip(ids, [i for i in range(472)])),
             snap_values=None,
-            num_steps="num_sounds",
+            n_steps="n_sounds",
             start_value=200,
             min_value=0,
             max_value=471,

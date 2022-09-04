@@ -45,7 +45,7 @@ class GraphChainNetwork(ChainNetwork):
         vertex_id: int,
         dependent_vertex_ids: List[int],
         trials_per_node: int,
-        target_num_nodes: int,
+        target_n_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
         source_seed: Optional = None,
@@ -61,7 +61,7 @@ class GraphChainNetwork(ChainNetwork):
             experiment=experiment,
             chain_type=chain_type,
             trials_per_node=trials_per_node,
-            target_num_nodes=target_num_nodes,
+            target_n_nodes=target_n_nodes,
             participant=participant,
             id_within_participant=id_within_participant,
         )
@@ -213,8 +213,8 @@ class GraphChainNode(ChainNode):
         if len(parents) == len(
             self.dependent_vertex_ids
         ):  # Make sure all parents exist
-            all_parents_ready = all([p.reached_target_num_trials() for p in parents])
-            current_vertex_ready = self.reached_target_num_trials()
+            all_parents_ready = all([p.reached_target_n_trials() for p in parents])
+            current_vertex_ready = self.reached_target_n_trials()
             return all_parents_ready and current_vertex_ready
         elif len(parents) < len(self.dependent_vertex_ids):
             return False
@@ -275,7 +275,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         trial_class,
         network_structure: str,
         chain_type: str,
-        num_trials_per_participant: int,
+        n_trials_per_participant: int,
         chains_per_participant: Optional[int],
         # chains_per_experiment: Optional[int],
         trials_per_node: int,
@@ -304,7 +304,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             source_class=source_class,
             trial_class=trial_class,
             chain_type=chain_type,
-            num_trials_per_participant=num_trials_per_participant,
+            n_trials_per_participant=n_trials_per_participant,
             chains_per_participant=chains_per_participant,
             chains_per_experiment=chains_per_experiment,
             trials_per_node=trials_per_node,
@@ -366,7 +366,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             vertex_id=vertex_id,
             dependent_vertex_ids=dependent_vertex_ids,
             trials_per_node=self.trials_per_node,
-            target_num_nodes=self.max_nodes_per_chain,
+            target_n_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
             source_seed=source_seed,

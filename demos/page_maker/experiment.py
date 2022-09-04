@@ -26,13 +26,13 @@ class Exp(psynet.experiment.Experiment):
         ),
         CodeBlock(
             lambda participant: participant.var.set(
-                "num_pages", int(participant.answer)
+                "n_pages", int(participant.answer)
             )
         ),
         PageMaker(
             lambda participant: [
-                InfoPage(f"Page {i + 1}/{participant.var.num_pages}", time_estimate=1)
-                for i in range(participant.var.num_pages)
+                InfoPage(f"Page {i + 1}/{participant.var.n_pages}", time_estimate=1)
+                for i in range(participant.var.n_pages)
             ],
             time_estimate=3,
         ),

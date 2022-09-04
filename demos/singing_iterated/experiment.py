@@ -31,14 +31,14 @@ assert False, "This demo needs the melody package to be updated for the latest P
 INITIAL_RECRUITMENT_SIZE = 1
 TIME_ESTIMATE_TRIAL = params.singing_2intervals["sing_duration"] * 2
 DESIGN_PARAMS = {
-    "num_trials_per_participant": 10,
+    "n_trials_per_participant": 10,
     "max_trials_per_participant": 15,
-    "num_trials_practice": 3,
+    "n_trials_practice": 3,
     "max_nodes_per_chain": 5,
     "chain_type": "within",
     "chains_per_participant": 2,
-    "num_chains_per_exp": None,
-    "recruit_mode": "num_participants",
+    "n_chains_per_exp": None,
+    "recruit_mode": "n_participants",
     "target_n_participants": 25,
 }
 

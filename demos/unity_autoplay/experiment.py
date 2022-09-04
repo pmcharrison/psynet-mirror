@@ -129,7 +129,7 @@ trial_maker = GameTrialMaker(
     check_performance_at_end=True,
     check_performance_every_trial=False,
     target_n_participants=3,
-    recruit_mode="num_participants",
+    recruit_mode="n_participants",
     n_repeat_trials=0,
 )
 

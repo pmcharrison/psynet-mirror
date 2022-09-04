@@ -52,10 +52,10 @@ class TestExp:
             assert trial.answer == "Very much"
             assert_text(driver, "trial-position", "Trial 3")
 
-            num_remaining_trials = 4
+            n_remaining_trials = 4
             n_repeat_trials = 3
 
-            for _ in range(num_remaining_trials + n_repeat_trials):
+            for _ in range(n_remaining_trials + n_repeat_trials):
                 next_page(driver, "Very much")
 
             assert_text(
@@ -142,10 +142,10 @@ class TestExp:
                 == "How much do you like ponies?"
             )
 
-            num_remaining_trials = 4
+            n_remaining_trials = 4
             n_repeat_trials = 3
 
-            for _ in range(num_remaining_trials + n_repeat_trials):
+            for _ in range(n_remaining_trials + n_repeat_trials):
                 next_page(driver, "Very much")
 
             next_page(driver, "next-button")

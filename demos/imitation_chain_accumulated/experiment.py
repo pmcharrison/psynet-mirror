@@ -38,7 +38,7 @@ class FixedDigitInputPage(ModularPage):
         time_estimate: float,
         bot_response,
     ):
-        self.num_digits = 7
+        self.n_digits = 7
 
         super().__init__(
             label,
@@ -53,7 +53,7 @@ class FixedDigitInputPage(ModularPage):
     def format_answer(self, raw_answer, **kwargs):
         try:
             pattern = re.compile("^[0-9]*$")
-            assert len(raw_answer) == self.num_digits
+            assert len(raw_answer) == self.n_digits
             assert pattern.match(raw_answer)
             return int(raw_answer)
         except (ValueError, AssertionError):
@@ -141,14 +141,14 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             chain_type="within",
             max_nodes_per_chain=5,
-            num_trials_per_participant=5,
+            n_trials_per_participant=5,
             chains_per_participant=1,
             chains_per_experiment=None,
             trials_per_node=1,
             balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
-            recruit_mode="num_participants",
+            recruit_mode="n_participants",
             target_n_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),

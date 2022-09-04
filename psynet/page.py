@@ -532,7 +532,7 @@ class SliderPage(ModularPage):
     max_value:
         Maximum value of the slider.
 
-    num_steps: default: 10000
+    n_steps: default: 10000
         Determines the number of steps that the slider can be dragged through.
 
     snap_values: default: None
@@ -583,7 +583,7 @@ class SliderPage(ModularPage):
         start_value: float,
         min_value: float,
         max_value: float,
-        num_steps: int = 10000,
+        n_steps: int = 10000,
         snap_values: Optional[Union[int, list]] = None,
         input_type: Optional[str] = "HTML5_range_slider",
         minimal_interactions: Optional[int] = 0,
@@ -608,7 +608,7 @@ class SliderPage(ModularPage):
         self.input_type = input_type
         self.minimal_interactions = minimal_interactions
         self.minimal_time = minimal_time
-        self.num_steps = num_steps
+        self.n_steps = num_steps
         self.reverse_scale = reverse_scale
         self.directional = directional
         self.continuous_updates = continuous_updates

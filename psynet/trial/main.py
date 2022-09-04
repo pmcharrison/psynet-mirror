@@ -920,7 +920,7 @@ class TrialMakerState(ModuleState):
     performance_check = Column(PythonDict)
     trials_to_repeat = Column(PythonObject)
     repeat_trial_index = Column(Integer)
-    num_completed_trials = Column(Integer, default=0, server_default="0")
+    n_completed_trials = Column(Integer, default=0, server_default="0")
 
 
 class TrialMaker(Module):
@@ -957,9 +957,9 @@ class TrialMaker(Module):
     * :meth:`~psynet.trial.main.TrialMaker.compute_bonus`;
       computes the final performance bonus to assign to the participant.
 
-    * :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`
+    * :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`
       (optional), which is used to estimate how many more participants are
-      still required in the case that ``recruit_mode="num_trials"``.
+      still required in the case that ``recruit_mode="n_trials"``.
 
     * :attr:`~psynet.trial.main.TrialMaker.give_end_feedback_passed`
       (default = ``False``); if ``True``, then participants who pass the
@@ -1024,15 +1024,15 @@ class TrialMaker(Module):
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of
-        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``, though the latter requires overriding of
+        :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`.
 
     target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
+        ``recruit_mode="n_participants"``.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials
@@ -1096,14 +1096,14 @@ class TrialMaker(Module):
         target_n_participants: Optional[int],
         n_repeat_trials: int,
     ):
-        if recruit_mode == "num_participants" and target_n_participants is None:
+        if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
-                "If <recruit_mode> == 'num_participants', then <target_n_participants> must be provided."
+                "If <recruit_mode> == 'n_participants', then <target_n_participants> must be provided."
             )
 
-        if recruit_mode == "num_trials" and target_n_participants is not None:
+        if recruit_mode == "n_trials" and target_n_participants is not None:
             raise ValueError(
-                "If <recruit_mode> == 'num_trials', then <target_n_participants> must be None."
+                "If <recruit_mode> == 'n_trials', then <target_n_participants> must be None."
             )
 
         self.trial_class = trial_class
@@ -1187,15 +1187,15 @@ class TrialMaker(Module):
         )
 
     @property
-    def num_complete_participants(self):
+    def n_complete_participants(self):
         return Participant.query.filter_by(complete=True).count()
 
     @property
-    def num_working_participants(self):
+    def n_working_participants(self):
         return Participant.query.filter_by(status="working", failed=False).count()
 
     @property
-    def num_viable_participants(self):
+    def n_viable_participants(self):
         return
 
     def prepare_trial(self, experiment, participant):
@@ -1275,12 +1275,12 @@ class TrialMaker(Module):
         logger.info("Recruitment is disabled for this module.")
         return False
 
-    def num_participants_criterion(self, experiment):
+    def n_participants_criterion(self, experiment):
         logger.info(
             "Target number of participants = %i, number of completed participants = %i, number of working participants = %i.",
             self.target_n_participants,
-            self.num_complete_participants,
-            self.num_working_participants,
+            self.n_complete_participants,
+            self.n_working_participants,
         )
         return (
             self.num_complete_participants + self.num_working_participants

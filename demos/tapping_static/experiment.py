@@ -251,7 +251,7 @@ ISO_tapping = join(
         trial_class=TapTrialISO,
         nodes=nodes_iso,
         target_n_participants=NUM_PARTICIPANTS,
-        recruit_mode="num_participants",
+        recruit_mode="n_participants",
         check_performance_at_end=False,
     ),
 )
@@ -280,7 +280,7 @@ music_tapping = join(
         trial_class=TapTrialMusic,
         stimuli=nodes_music,
         target_n_participants=NUM_PARTICIPANTS,
-        recruit_mode="num_participants",
+        recruit_mode="n_participants",
         check_performance_at_end=False,
     ),
 )

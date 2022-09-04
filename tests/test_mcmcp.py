@@ -17,7 +17,7 @@ def make_mcmcp_node(cls, experiment):
         #     experiment,
         #     chain_type="within",
         #     trials_per_node=1,
-        #     target_num_nodes=5,
+        #     target_n_nodes=5,
         # ),
         experiment=experiment,
         propagate_failure=False,

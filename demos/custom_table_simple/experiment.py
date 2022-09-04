@@ -35,14 +35,14 @@ def _collect_coin(participant):
     db.session.add(coin)
 
 
-def report_num_coins():
-    return PageMaker(_report_num_coins, time_estimate=5)
+def report_n_coins():
+    return PageMaker(_report_n_coins, time_estimate=5)
 
 
-def _report_num_coins(participant):
+def _report_n_coins(participant):
     coins = participant.all_coins
-    num_coins = len(coins)
-    return InfoPage(f"You currently have {num_coins} coin(s).", time_estimate=5)
+    n_coins = len(coins)
+    return InfoPage(f"You currently have {n_coins} coin(s).", time_estimate=5)
 
 
 def check_continue():
@@ -69,7 +69,7 @@ class Exp(psynet.experiment.Experiment):
             lambda participant: participant.var.collecting_coins == "Yes",
             logic=join(
                 collect_coin(),
-                report_num_coins(),
+                report_n_coins(),
                 check_continue(),
             ),
             expected_repetitions=3,

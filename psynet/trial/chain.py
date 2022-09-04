@@ -59,7 +59,7 @@ class ChainNetwork(TrialNetwork):
         in the chain before another chain will be added.
         Most paradigms have this equal to 1.
 
-    target_num_nodes
+    target_n_nodes
         Indicates the target number of nodes for that network.
         In a network with one trial per node, the total number of nodes will generally
         be one greater than the total number of trials. This is because
@@ -76,7 +76,7 @@ class ChainNetwork(TrialNetwork):
     Attributes
     ----------
 
-    target_num_trials : int or None
+    target_n_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
 
@@ -86,10 +86,10 @@ class ChainNetwork(TrialNetwork):
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
-    num_nodes : int
+    n_nodes : int
         Returns the number of non-failed nodes in the network.
 
-    num_completed_trials : int
+    n_completed_trials : int
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes, but excluding repeat trials).
 
@@ -135,7 +135,7 @@ class ChainNetwork(TrialNetwork):
         experiment,
         chain_type: str,
         trials_per_node: int,
-        target_num_nodes: int,
+        target_n_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
     ):
@@ -149,9 +149,9 @@ class ChainNetwork(TrialNetwork):
 
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
-        self.target_num_nodes = target_num_nodes
+        self.target_n_nodes = target_n_nodes
         # The last node in the chain doesn't receive any trials
-        self.target_num_trials = (target_num_nodes - 1) * trials_per_node
+        self.target_n_trials = (target_n_nodes - 1) * trials_per_node
 
         self.definition = self.make_definition()
         self.block = start_node.block
@@ -273,16 +273,16 @@ class ChainNetwork(TrialNetwork):
         return values[id_to_use % len(values)]
 
     @property
-    def target_num_nodes(self):
+    def target_n_nodes(self):
         return self.max_size
 
-    @target_num_nodes.setter
-    def target_num_nodes(self, target_num_nodes):
-        self.max_size = target_num_nodes
+    @target_n_nodes.setter
+    def target_n_nodes(self, target_n_nodes):
+        self.max_size = target_n_nodes
 
     @property
     def degree(self):
-        if self.num_nodes == 0:
+        if self.n_nodes == 0:
             return 0
         return max([node.degree for node in self.active_nodes])
 
@@ -307,16 +307,16 @@ class ChainNetwork(TrialNetwork):
             previous_head.connect(whom=node)
             previous_head.child = node
             node.parent = previous_head
-        if self.num_nodes >= self.target_num_nodes:
+        if self.n_nodes >= self.target_n_nodes:
             self.full = True
 
     @property
-    def num_trials_still_required(self):
-        assert self.target_num_trials is not None
+    def n_trials_still_required(self):
+        assert self.target_n_trials is not None
         if self.full:
             return 0
         else:
-            return self.target_num_trials - self.num_completed_trials
+            return self.target_n_trials - self.n_completed_trials
 
 
 class ChainNode(TrialNode):
@@ -406,7 +406,7 @@ class ChainNode(TrialNode):
         The node's child (i.e. direct descendant) in the chain, or
         ``None`` if no child exists.
 
-    target_num_trials
+    target_n_trials
         The target number of trials for the node,
         set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
 
@@ -423,7 +423,7 @@ class ChainNode(TrialNode):
         Returns all completed trials associated with the node.
         Excludes failed nodes and repeat trials.
 
-    num_completed_trials
+    n_completed_trials
         Counts the number of completed trials associated with the node.
         Excludes failed nodes and repeat_trials.
 
@@ -616,12 +616,12 @@ class ChainNode(TrialNode):
         return VarStore(self)
 
     @property
-    def target_num_trials(self):
+    def target_n_trials(self):
         return self.network.trials_per_node
 
     @property
     def ready_to_spawn(self):
-        return self.reached_target_num_trials()
+        return self.reached_target_n_trials()
 
     @property
     def completed_and_processed_trials(self):
@@ -635,8 +635,8 @@ class ChainNode(TrialNode):
     def viable_trials(self):
         return [t for t in self.trials if (not t.failed and not t.is_repeat_trial)]
 
-    def reached_target_num_trials(self):
-        return len(self.completed_and_processed_trials) >= self.target_num_trials
+    def reached_target_n_trials(self):
+        return len(self.completed_and_processed_trials) >= self.target_n_trials
 
     @property
     def failure_cascade(self):
@@ -886,7 +886,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
 
-    num_trials_per_participant
+    n_trials_per_participant
         Maximum number of trials that each participant may complete;
         once this number is reached, the participant will move on
         to the next stage in the timeline.
@@ -935,15 +935,15 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of
-        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``, though the latter requires overriding of
+        :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`.
 
     target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
+        ``recruit_mode="n_participants"``.
 
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
@@ -1002,7 +1002,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
-    num_networks : int
+    n_networks : int
         Returns the number of networks owned by the trial maker.
 
     networks : list
@@ -1042,7 +1042,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             balance_strategy: Set[str] = {"within", "across"},
             check_performance_at_end: bool = False,
             check_performance_every_trial: bool = False,
-            recruit_mode: str = "num_participants",
+            recruit_mode: str = "n_participants",
             fail_trials_on_premature_exit: bool = False,
             fail_trials_on_participant_performance_check: bool = False,
             propagate_failure: bool = True,
@@ -1066,9 +1066,9 @@ class ChainTrialMaker(NetworkTrialMaker):
                 "is ``True``."
             )
 
-        if chain_type == "within" and recruit_mode == "num_trials":
+        if chain_type == "within" and recruit_mode == "n_trials":
             raise ValueError(
-                "In within-chain experiments the 'num_trials' recruit method is not available."
+                "In within-chain experiments the 'n_trials' recruit method is not available."
             )
 
         if chain_type == "within":
@@ -1215,9 +1215,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.max_trials_per_block is not None
             and len(participant_trials_in_block) >= self.max_trials_per_block
         ) or (
-            self.num_trials_per_participant is not None
+            self.n_trials_per_participant is not None
             and len(participant_trials_in_trial_maker)
-            >= self.num_trials_per_participant
+            >= self.n_trials_per_participant
         )
 
     @property
@@ -1237,9 +1237,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         return all([not x.awaiting_async_process for x in networks])
 
     @property
-    def num_trials_still_required(self):
+    def n_trials_still_required(self):
         assert self.chain_type == "across"
-        return sum([network.num_trials_still_required for network in self.networks])
+        return sum([network.n_trials_still_required for network in self.networks])
 
     #########################
     # Participated networks #
@@ -1308,7 +1308,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             experiment=experiment,
             chain_type=self.chain_type,
             trials_per_node=self.trials_per_node,
-            target_num_nodes=self.max_nodes_per_chain,
+            target_n_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
         )
@@ -1338,8 +1338,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             "Looking for networks for participant %i.",
             participant.id,
         )
-        n_completed_trials = participant.module_state.num_completed_trials
-        if n_completed_trials >= self.num_trials_per_participant:
+        n_completed_trials = participant.module_state.n_completed_trials
+        if n_completed_trials >= self.n_trials_per_participant:
             logger.info(
                 "N completed trials (%i) >= N trials per participant (%i), skipping forward",
                 n_completed_trials,

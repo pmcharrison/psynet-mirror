@@ -143,7 +143,7 @@ class GraphicMixin:
             "dimensions": self.dimensions,
             "viewport_width": self.viewport_width,
             "loop": self.loop,
-            "num_frames": len(self.frames),
+            "n_frames": len(self.frames),
         }
 
 

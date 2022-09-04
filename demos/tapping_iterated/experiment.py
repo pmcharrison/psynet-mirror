@@ -116,7 +116,7 @@ class CustomTrial(CustomTrialAnalysis):
         info_stimulus = self.origin.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec"]
         trial_number = self.position + 1
-        num_trials = self.trial_maker.num_trials_per_participant
+        n_trials = self.trial_maker.n_trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(
@@ -124,7 +124,7 @@ class CustomTrial(CustomTrialAnalysis):
                 Markup(
                     f"""
                     <h3>Tap in time with the rhythm</h3>
-                    <i>Trial number {trial_number} out of {num_trials} trials.</i>
+                    <i>Trial number {trial_number} out of {n_trials} trials.</i>
                     """
                 ),
             ),
@@ -232,7 +232,7 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             chain_type="within",
-            num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
+            n_trials_per_participant=NUM_TRIALS_PARTICIPANT,
             max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
             chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
             chains_per_experiment=None,  # set to None if chain_type="within"
@@ -241,7 +241,7 @@ class Exp(psynet.experiment.Experiment):
             check_performance_at_end=False,
             check_performance_every_trial=False,
             propagate_failure=False,
-            recruit_mode="num_participants",
+            recruit_mode="n_participants",
             target_n_participants=TOTAL_NUM_PARTICIPANTS,
             wait_for_networks=True,
         ),

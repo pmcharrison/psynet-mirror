@@ -71,7 +71,7 @@ class CustomTrial(SingleStimulusTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Dense color demo"
     initial_recruitment_size = 1
-    num_trials_per_participant = 6
+    n_trials_per_participant = 6
 
     timeline = Timeline(
         NoConsent(),
@@ -79,10 +79,10 @@ class Exp(psynet.experiment.Experiment):
             id_="color",
             trial_class=CustomTrial,
             conditions=CONDITIONS,
-            recruit_mode="num_participants",
+            recruit_mode="n_participants",
             target_n_participants=1,
-            target_num_trials_per_condition=None,
-            max_trials_per_block=num_trials_per_participant,
+            target_n_trials_per_condition=None,
+            max_trials_per_block=n_trials_per_participant,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
@@ -90,4 +90,4 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot):
         assert not bot.failed
-        assert len(bot.trials) == self.num_trials_per_participant
+        assert len(bot.trials) == self.n_trials_per_participant

@@ -705,7 +705,7 @@ class REPPMarkersTest(StaticTrialMaker):
     materials_url: string
         The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
 
-    num_trials : int
+    n_trials : int
         The total number of trials to display, default: 3.
 
     time_estimate_per_trial : float
@@ -720,11 +720,11 @@ class REPPMarkersTest(StaticTrialMaker):
         label="repp_markers_test",
         performance_threshold: int = 0.6,
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
-        num_trials: int = 3,
+        n_trials: int = 3,
         time_estimate_per_trial: float = 12.0,
         trial_class=RecordMarkersTrial,
     ):
-        self.num_trials = num_trials
+        self.n_trials = n_trials
         self.materials_url = materials_url
 
         self.give_end_feedback_passed = False
@@ -773,7 +773,7 @@ class REPPMarkersTest(StaticTrialMaker):
                     f"""
             <h3>Recording test</h3>
             <hr>
-            Now we will test the recording quality of your laptop. In {self.num_trials} trials, you will be
+            Now we will test the recording quality of your laptop. In {self.n_trials} trials, you will be
             asked to remain silent while we play and record a sound.
             <br><br>
             <img style="width:50%" src="{assets['rules_image'].url}"  alt="rules_image">
@@ -876,7 +876,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
     performance_threshold : int
         The performance threshold, default: 6.
 
-    num_trials : float
+    n_trials : float
         The total number of trials to display, default: 7.
 
     trial_class :
@@ -890,7 +890,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
         media_url: str = "https://s3.amazonaws.com/langauge-test-materials",
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 6,
-        num_trials: int = 7,
+        n_trials: int = 7,
         trial_class=LanguageVocabularyTrial,
     ):
         self.media_url = media_url
@@ -901,8 +901,8 @@ class LanguageVocabularyTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(media_url, language_code, self.words),
-            max_trials_per_participant=num_trials,
-            expected_trials_per_participant=num_trials,
+            max_trials_per_participant=n_trials,
+            expected_trials_per_participant=n_trials,
             check_performance_at_end=True,
         )
 
@@ -1020,7 +1020,7 @@ class LexTaleTest(StaticTrialMaker):
     hide_after : float
         The time in seconds after the word disappears, default: 1.0.
 
-    num_trials : float
+    n_trials : float
         The total number of trials to display, default: 12.
 
     trial_class :
@@ -1034,11 +1034,11 @@ class LexTaleTest(StaticTrialMaker):
         performance_threshold: int = 8,
         media_url: str = "https://s3.amazonaws.com/lextale-test-materials",
         hide_after: float = 1,
-        num_trials: int = 12,
+        n_trials: int = 12,
         trial_class=LextaleTrial,
     ):
         self.hide_after = hide_after
-        self.num_trials = num_trials
+        self.n_trials = n_trials
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
@@ -1046,8 +1046,8 @@ class LexTaleTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(media_url),
-            expected_trials_per_participant=num_trials,
-            max_trials_per_participant=num_trials,
+            expected_trials_per_participant=n_trials,
+            max_trials_per_participant=n_trials,
             check_performance_at_end=True,
         )
 
@@ -1060,7 +1060,7 @@ class LexTaleTest(StaticTrialMaker):
                 <p>In each trial, you will be presented with either an existing word in English or a fake word that does not exist.</p>
                 <p>
                     <b>Your task is to decide whether the word exists not.</b>
-                    <br><br>Each word will disappear in {self.hide_after} seconds and you will see a total of {self.num_trials} words.
+                    <br><br>Each word will disappear in {self.hide_after} seconds and you will see a total of {self.n_trials} words.
                 </p>
                 """
             ),
@@ -1520,7 +1520,7 @@ class HeadphoneTest(StaticTrialMaker):
         media_url: str = "https://s3.amazonaws.com/headphone-check",
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
-        num_trials: int = 6,
+        n_trials: int = 6,
         trial_class=HeadphoneTrial,
 
     ):
@@ -1533,8 +1533,8 @@ class HeadphoneTest(StaticTrialMaker):
             nodes=self.get_nodes(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
-            expected_trials_per_participant=num_trials,
-            max_trials_per_participant=num_trials,
+            expected_trials_per_participant=n_trials,
+            max_trials_per_participant=n_trials,
         )
 
     @property

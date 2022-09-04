@@ -37,8 +37,8 @@ class Exp(psynet.experiment.Experiment):
                 input_dir="input/practice", media_ext=".wav", node_class=StaticNode
             ),
             target_n_participants=0,
-            recruit_mode="num_participants",
-            num_trials_per_participant=2,
+            recruit_mode="n_participants",
+            n_trials_per_participant=2,
         ),
         InfoPage("We continue with the experiment trials.", time_estimate=5),
         StaticTrialMaker(
@@ -48,8 +48,8 @@ class Exp(psynet.experiment.Experiment):
                 input_dir="input/experiment", media_ext=".wav", node_class=StaticNode
             ),
             target_n_participants=10,
-            recruit_mode="num_participants",
-            num_trials_per_participant=7,
+            recruit_mode="n_participants",
+            n_trials_per_participant=7,
         ),
         SuccessfulEndPage(),
     )
