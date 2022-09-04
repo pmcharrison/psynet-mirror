@@ -996,7 +996,7 @@ class TrialMaker(Module):
     trial_class
         The class object for trials administered by this maker.
 
-    expected_num_trials
+    expected_n_trials_per_participant
         Expected number of trials that the participant will take,
         including repeat trials
         (used for progress estimation).
@@ -1086,7 +1086,7 @@ class TrialMaker(Module):
         self,
         id_: str,
         trial_class,
-        expected_num_trials: Union[int, float],
+        expected_n_trials_per_participant: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         fail_trials_on_premature_exit: bool,
@@ -1108,7 +1108,7 @@ class TrialMaker(Module):
 
         self.trial_class = trial_class
         self.id = id_
-        self.expected_num_trials = expected_num_trials
+        self.expected_n_trials_per_participant = expected_n_trials_per_participant
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
@@ -1349,10 +1349,12 @@ class TrialMaker(Module):
         with div:
             with tags.ul(cls="details"):
                 if (
-                    hasattr(self, "expected_num_trials")
-                    and self.expected_num_trials is not None
+                    hasattr(self, "expected_n_trials_per_participant")
+                    and self.expected_n_trials_per_participant is not None
                 ):
-                    tags.li(f"Expected number of trials: {self.expected_num_trials}")
+                    tags.li(
+                        f"Expected number of trials: {self.expected_n_trials_per_participant}"
+                    )
                 if (
                     hasattr(self, "target_num_participants")
                     and self.target_num_participants is not None
@@ -1385,7 +1387,10 @@ class TrialMaker(Module):
         raise NotImplementedError
 
     def estimate_num_pending_trials(self, participant):
-        return self.expected_num_trials - participant.module_state.num_completed_trials
+        return (
+            self.expected_n_trials_per_participant
+            - participant.module_state.num_completed_trials
+        )
 
     @property
     def working_participants(self):
@@ -1728,7 +1733,7 @@ class TrialMaker(Module):
                     ),
                     self._wait_for_trial(),
                 ),
-                expected_repetitions=self.expected_num_trials,
+                expected_repetitions=self.expected_n_trials_per_participant,
                 fix_time_credit=False,
             ),
         )
@@ -1850,7 +1855,7 @@ class NetworkTrialMaker(TrialMaker):
         The class object for the networks used by this maker.
         This should subclass :class`~psynet.trial.main.TrialNetwork`.
 
-    expected_num_trials
+    expected_n_trials_per_participant
         Expected number of trials that the participant will take,
         including repeat trials
         (used for progress estimation).
@@ -1952,7 +1957,7 @@ class NetworkTrialMaker(TrialMaker):
         id_,
         trial_class,
         network_class,
-        expected_num_trials,
+        expected_n_trials_per_participant,
         check_performance_at_end,
         check_performance_every_trial,
         fail_trials_on_premature_exit,
@@ -1967,7 +1972,7 @@ class NetworkTrialMaker(TrialMaker):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
-            expected_num_trials=expected_num_trials,
+            expected_n_trials_per_participant=expected_n_trials_per_participant,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
@@ -2564,7 +2569,7 @@ class TrialSource(TrialNode):
 #             id_="null",
 #             trial_class=Trial,
 #             network_class=GenericTrialNetwork,
-#             expected_num_trials=None,
+#             expected_n_trials_per_participant=None,
 #             check_performance_at_end=False,
 #             check_performance_every_trial=False,
 #             fail_trials_on_premature_exit=False,

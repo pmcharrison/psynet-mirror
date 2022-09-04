@@ -1133,7 +1133,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             id_=id_,
             trial_class=trial_class,
             network_class=network_class,
-            expected_num_trials=num_trials_per_participant + num_repeat_trials,
+            expected_n_trials_per_participant=num_trials_per_participant
+            + num_repeat_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
