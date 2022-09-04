@@ -128,7 +128,7 @@ trial_maker = CustomTrialMaker(
     ],
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
-    num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,
+    num_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     num_chains_per_participant=None,  # set to None if chain_type="across"
     num_chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,

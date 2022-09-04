@@ -161,7 +161,7 @@ class Exp(psynet.experiment.Experiment):
             phase="experiment",
             chain_type="within",
             num_trials_per_participant=4,
-            num_iterations_per_chain=4,
+            num_nodes_per_chain=4,
             num_chains_per_experiment=None,
             num_chains_per_participant=2,
             trials_per_node=1,

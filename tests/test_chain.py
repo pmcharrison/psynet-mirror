@@ -32,10 +32,10 @@ def test_num_iterations():
     with pytest.deprecated_call():
         tm1 = new_trial_maker(num_nodes_per_chain=10)
         assert tm1.num_nodes_per_chain == 10
-        assert tm1.num_iterations_per_chain == 9
+        assert tm1.num_nodes_per_chain == 9
 
-    tm2 = new_trial_maker(num_iterations_per_chain=10)
+    tm2 = new_trial_maker(num_nodes_per_chain=10)
     assert tm2.num_nodes_per_chain == 11
 
     with pytest.raises(ValueError):
-        new_trial_maker(num_nodes_per_chain=10, num_iterations_per_chain=5)
+        new_trial_maker(num_nodes_per_chain=10, num_nodes_per_chain=5)

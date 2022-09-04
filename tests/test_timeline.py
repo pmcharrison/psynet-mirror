@@ -63,7 +63,7 @@ def new_trial_maker(**kwarg):
         node_class=ChainNode,
         trial_class=CustomTrial,
         chain_type="across",
-        num_iterations_per_chain=10,
+        num_nodes_per_chain=10,
         num_trials_per_participant=5,
         num_chains_per_participant=None,
         num_chains_per_experiment=5,

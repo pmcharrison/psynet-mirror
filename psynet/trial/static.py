@@ -235,7 +235,8 @@ class StaticTrialMaker(ChainTrialMaker):
         id_: str,
         trial_class,
         nodes: List[ChainNode],
-        num_trials_per_participant: int,
+        expected_trials_per_participant: int,
+        max_trials_per_participant: int = None,
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_node: Optional[int] = None,
@@ -258,12 +259,12 @@ class StaticTrialMaker(ChainTrialMaker):
         if active_balancing_across_participants:
             balance_strategy.add("across")
 
-        if num_trials_per_participant is None:
-            num_trials_per_participant = len(nodes)
+        if expected_trials_per_participant is None:
+            expected_trials_per_participant = len(nodes)
 
-        if num_trials_per_participant > len(nodes) and not allow_repeated_nodes:
+        if expected_trials_per_participant > len(nodes) and not allow_repeated_nodes:
             raise ValueError(
-                f"num_trials_per_participant ({num_trials_per_participant}) "
+                f"expected_trials_per_participant ({expected_trials_per_participant}) "
                 f"may not exceed len(nodes) ({len(nodes)}) "
                 "unless allow_repeated_nodes = True."
             )
@@ -276,7 +277,8 @@ class StaticTrialMaker(ChainTrialMaker):
             node_class=StaticNode,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            num_trials_per_participant=num_trials_per_participant,
+            expected_trials_per_participant=expected_trials_per_participant,
+            max_trials_per_participant=max_trials_per_participant,
             max_trials_per_block=max_trials_per_block,
             chain_type="across",
             num_chains_per_participant=None,
@@ -286,7 +288,7 @@ class StaticTrialMaker(ChainTrialMaker):
             else 1e6,
             balance_across_chains=balance_across_chains,
             balance_strategy=balance_strategy,
-            num_iterations_per_chain=1,
+            num_nodes_per_chain=1,
             num_nodes_per_chain=target_num_trials_per_node,
             allow_revisiting_networks_in_across_chains=allow_repeated_nodes,
             check_performance_at_end=check_performance_at_end,

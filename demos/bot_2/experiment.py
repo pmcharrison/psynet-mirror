@@ -115,7 +115,7 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             chain_type="within",
-            num_iterations_per_chain=5,
+            num_nodes_per_chain=5,
             num_trials_per_participant=5,
             num_chains_per_participant=1,
             num_chains_per_experiment=None,

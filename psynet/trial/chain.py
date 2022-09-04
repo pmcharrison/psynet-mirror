@@ -899,18 +899,18 @@ class ChainTrialMaker(NetworkTrialMaker):
         Number of chains to be created for the entire experiment;
         only relevant if ``chain_type="across"``.
 
-    num_iterations_per_chain
+    num_nodes_per_chain
         Specifies chain length in terms of the
         number of data-collection iterations that are required to complete a chain.
         The number of successful participant trials required to complete the chain then
-        corresponds to ``trials_per_node * num_iterations_per_chain``.
+        corresponds to ``trials_per_node * num_nodes_per_chain``.
         Previously chain length was specified using the now-deprecated argument ``num_nodes_per_chain``.
 
     num_nodes_per_chain
-        [DEPRECATED; new code should use ``num_iterations_per_chain`` and leave this argument empty.]
+        [DEPRECATED; new code should use ``num_nodes_per_chain`` and leave this argument empty.]
         Maximum number of nodes in the chain before the chain is marked as full and no more nodes will be added.
         The final node receives no participant trials, but instead summarizes the state of the network.
-        So, ``num_nodes_per_chain`` is equal to ``1 + num_iterations_per_chain``.
+        So, ``num_nodes_per_chain`` is equal to ``1 + num_nodes_per_chain``.
 
     trials_per_node
         Number of satisfactory trials to be received by the last node
@@ -1032,19 +1032,19 @@ class ChainTrialMaker(NetworkTrialMaker):
         node_class: Type[ChainNode],
         trial_class: Type[ChainTrial],
         chain_type: str,
-        num_trials_per_participant: int,
+        expected_trials_per_participant: int,
+        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_block: Optional[int] = None,
         num_chains_per_participant: Optional[int] = None,
         num_chains_per_experiment: Optional[int] = None,
         trials_per_node: int = 1,
         balance_across_chains: bool = False,
         start_nodes=None,
-        max_trials_per_block: Optional[int] = None,
         balance_strategy: Set[str] = {"within", "across"},
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         recruit_mode: str = "num_participants",
         target_num_participants: Optional[int] = None,
-        num_iterations_per_chain: Optional[int] = None,
         num_nodes_per_chain: Optional[int] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
@@ -1060,12 +1060,12 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if (
             chain_type == "across"
-            and num_trials_per_participant
-            and num_trials_per_participant > num_chains_per_experiment
+            and expected_trials_per_participant
+            and expected_trials_per_participant > num_chains_per_experiment
             and not allow_revisiting_networks_in_across_chains
         ):
             raise ValueError(
-                "In across-chain experiments, <num_trials_per_participant> "
+                "In across-participant chain experiments, <expected_trials_per_participant> "
                 "cannot exceed <num_chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
                 "is ``True``."
             )
@@ -1073,24 +1073,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         if chain_type == "within" and recruit_mode == "num_trials":
             raise ValueError(
                 "In within-chain experiments the 'num_trials' recruit method is not available."
-            )
-
-        if (num_nodes_per_chain is not None) and (num_iterations_per_chain is not None):
-            raise ValueError(
-                "num_nodes_per_chain and num_iterations_per_chain cannot both be provided"
-            )
-        elif num_nodes_per_chain is not None:
-            num_iterations_per_chain = num_nodes_per_chain - 1
-            warnings.simplefilter("always", DeprecationWarning)
-            warnings.warn(
-                "num_nodes_per_chain is deprecated, use num_iterations_per_chain instead",
-                DeprecationWarning,
-            )
-        elif num_iterations_per_chain is not None:
-            pass
-        elif (num_nodes_per_chain is None) and (num_iterations_per_chain is None):
-            raise ValueError(
-                "one of num_nodes_per_chain and num_iterations_per_chain must be provided"
             )
 
         if chain_type == "within":
@@ -1113,12 +1095,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.node_class = node_class
         self.trial_class = trial_class
         self.chain_type = chain_type
-        self.num_trials_per_participant = num_trials_per_participant
+        self.max_trials_per_participant = max_trials_per_participant
         self.max_trials_per_block = max_trials_per_block
         self.num_chains_per_participant = num_chains_per_participant
         self.num_chains_per_experiment = num_chains_per_experiment
-        self.num_iterations_per_chain = num_iterations_per_chain
-        self.num_nodes_per_chain = num_iterations_per_chain + 1
+        self.num_nodes_per_chain = num_nodes_per_chain
         self.trials_per_node = trials_per_node
         self.balance_across_chains = balance_across_chains
         self.balance_strategy = balance_strategy
@@ -1133,7 +1114,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             id_=id_,
             trial_class=trial_class,
             network_class=network_class,
-            expected_n_trials_per_participant=num_trials_per_participant
+            expected_trials_per_participant=expected_trials_per_participant
             + num_repeat_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,

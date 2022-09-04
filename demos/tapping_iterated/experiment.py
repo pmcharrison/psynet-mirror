@@ -233,7 +233,7 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
-            num_iterations_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
+            num_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
             num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
             num_chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,

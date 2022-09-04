@@ -901,7 +901,8 @@ class LanguageVocabularyTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(media_url, language_code, self.words),
-            num_trials_per_participant=num_trials,
+            max_trials_per_participant=num_trials,
+            expected_trials_per_participant=num_trials,
             check_performance_at_end=True,
         )
 
@@ -1045,7 +1046,8 @@ class LexTaleTest(StaticTrialMaker):
             id_=label,
             trial_class=trial_class,
             nodes=self.get_nodes(media_url),
-            num_trials_per_participant=num_trials,
+            expected_trials_per_participant=num_trials,
+            max_trials_per_participant=num_trials,
             check_performance_at_end=True,
         )
 
@@ -1518,7 +1520,9 @@ class HeadphoneTest(StaticTrialMaker):
         media_url: str = "https://s3.amazonaws.com/headphone-check",
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
+        num_trials: int = 6,
         trial_class=HeadphoneTrial,
+
     ):
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
@@ -1529,7 +1533,8 @@ class HeadphoneTest(StaticTrialMaker):
             nodes=self.get_nodes(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
-            num_trials_per_participant=6,
+            expected_trials_per_participant=num_trials,
+            max_trials_per_participant=num_trials,
         )
 
     @property
@@ -1671,15 +1676,16 @@ class AudioForcedChoiceTest(StaticTrialMaker):
 
         nodes = self.get_nodes(label, stimuli, specific_stimuli)
 
+        num_trials = n_stimuli_to_use if n_stimuli_to_use else len(nodes)
+
         super().__init__(
             id_=label,
             trial_class=trial_class,
             nodes=nodes,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
-            num_trials_per_participant=n_stimuli_to_use
-            if n_stimuli_to_use
-            else len(nodes),
+            expected_trials_per_participant=num_trials,
+            max_trials_per_participant=num_trials,
         )
 
     def load_stimuli(self, csv_path, question):
