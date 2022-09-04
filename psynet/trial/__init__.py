@@ -15,8 +15,8 @@ class Node(ChainNode):
 def compile_nodes_from_directory(
     input_dir: str,
     media_ext: str,
+    node_class,
     asset_label: str = "prompt",
-    node_class=Node,
 ):
     nodes = []
     participant_groups = [(f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()]

@@ -261,6 +261,13 @@ class StaticTrialMaker(ChainTrialMaker):
         if num_trials_per_participant is None:
             num_trials_per_participant = len(nodes)
 
+        if num_trials_per_participant > len(nodes) and not allow_repeated_nodes:
+            raise ValueError(
+                f"num_trials_per_participant ({num_trials_per_participant}) "
+                f"may not exceed len(nodes) ({len(nodes)}) "
+                "unless allow_repeated_nodes = True."
+            )
+
         super().__init__(
             id_=id_,
             start_nodes=lambda: nodes,
