@@ -169,7 +169,8 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
 
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
-            "volume_calibration_audio", materials_url + "/calibrate.prepared.wav"
+            url=materials_url + "/calibrate.prepared.wav",
+            local_key="volume_calibration_audio",
         )
 
     class AudioMeter(AudioMeterControl):
@@ -220,7 +221,8 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
 
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
-            "volume_calibration_audio", materials_url + "/only_markers.wav"
+            url=materials_url + "/only_markers.wav",
+            local_key="volume_calibration_audio",
         )
 
     class AudioMeter(AudioMeterControl):
@@ -283,8 +285,8 @@ class REPPTappingCalibration(Module):
 
     def instructions_asset(self, materials_url):
         return ExternalAsset(
-            materials_url + "/tapping_instructions.jpg",
-            "tapping_instructions_image",
+            url=materials_url + "/tapping_instructions.jpg",
+            local_key="tapping_instructions_image",
         )
 
     def instructions_text(self, assets):
@@ -574,8 +576,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 },
                 assets={
                     "stimulus": ExternalAsset(
-                        "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
-                        "1s_silence",
+                        url="https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                        local_key="1s_silence",
                     ),
                 },
             )
@@ -1336,7 +1338,7 @@ class ColorBlindnessTest(StaticTrialMaker):
                 },
                 assets={
                     "image": ExternalAsset(
-                        f"{media_url}/ishihara-{label}.jpg",
+                        url=f"{media_url}/ishihara-{label}.jpg",
                     )
                 },
             )
@@ -1522,7 +1524,6 @@ class HeadphoneTest(StaticTrialMaker):
         performance_threshold: int = 4,
         n_trials: int = 6,
         trial_class=HeadphoneTrial,
-
     ):
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
@@ -1745,7 +1746,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(
-                        stimulus["url"],
+                        url=stimulus["url"],
                     )
                 },
             )

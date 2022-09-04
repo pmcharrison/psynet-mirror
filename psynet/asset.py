@@ -1130,8 +1130,8 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 class ExternalAsset(Asset):
     def __init__(
         self,
-        *,
         url,
+        *,
         local_key=None,
         is_folder=False,
         description=None,
