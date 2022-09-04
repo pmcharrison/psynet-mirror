@@ -127,7 +127,8 @@ trial_maker = CustomTrialMaker(
         for target in TARGETS
     ],
     chain_type="across",  # can be "within" or "across"
-    trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     chains_per_participant=None,  # set to None if chain_type="across"
     chains_per_experiment=CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"

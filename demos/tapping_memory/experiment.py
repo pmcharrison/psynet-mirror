@@ -115,7 +115,7 @@ class CustomTrial(CustomTrialAnalysis):
         info_stimulus = self.node.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec_sec"]
         trial_number = self.position + 1
-        n_trials = self.trial_maker.trials_per_participant
+        n_trials = self.trial_maker.expected_trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(

@@ -1074,12 +1074,15 @@ class ChainTrialMaker(NetworkTrialMaker):
         if chain_type == "within":
             assert start_nodes is None or callable(start_nodes)
             assert not (start_nodes is None and chains_per_participant is None)
+            assert max_trials_per_participant is not None
         elif chain_type == "across":
             assert (
                 start_nodes is None
                 or callable(start_nodes)
                 or is_list_of(start_nodes, ChainNode)
             )
+            if allow_revisiting_networks_in_across_chains:
+                assert max_trials_per_participant is not None
         else:
             raise ValueError(f"Unrecognized chain type: {chain_type}")
 

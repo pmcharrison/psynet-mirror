@@ -81,8 +81,9 @@ class Exp(psynet.experiment.Experiment):
             conditions=CONDITIONS,
             recruit_mode="n_participants",
             target_n_participants=1,
-            target_n_trials_per_condition=None,
-            max_trials_per_block=trials_per_participant,
+            target_trials_per_condition=None,
+            expected_trials_per_participant=trials_per_participant,
+            max_trials_per_participant=trials_per_participant,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
@@ -90,4 +91,4 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot):
         assert not bot.failed
-        assert len(bot.alive_trials) == self.trials_per_participant
+        assert len(bot.alive_trials) == self.expected_trials_per_participant
