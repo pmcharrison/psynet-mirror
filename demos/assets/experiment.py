@@ -50,19 +50,19 @@ headphone_assets = [
 
 misc_assets = [
     CachedFunctionAsset(
-        key="slow_computation.txt",
+        local_key="slow_computation.txt",
         function=slow_computation,
         arguments=dict(n=200, k=5),
         extension=".txt",
     ),
     ExternalAsset(
-        key="psynet-logo.svg",
+        local_key="psynet-logo.svg",
         url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
         description="The PsyNet Logo",
         variables=dict(dimensions="150x150"),  # broken for some reason
     ),
     ExternalS3Asset(
-        key="headphone_check_folder",
+        local_key="headphone_check_folder",
         s3_bucket="headphone-check",
         s3_key="",
         description="A folder of stimuli for the headphone check",
@@ -74,7 +74,7 @@ misc_assets = [
         description="A file containing configuration variables",
     ),
     CachedAsset(
-        label="bier",
+        local_key="bier",
         input_path="bier.wav",
         description="A recording of someone saying 'bier'",
     ),
