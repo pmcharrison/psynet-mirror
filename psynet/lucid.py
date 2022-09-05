@@ -173,6 +173,15 @@ class LucidService(object):
                 "Order": 2,
                 "PreCodes": ["Chrome"],
             },
+            {
+                "Name": "headphones",
+                "QuestionID": 149326,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 1,
+                "IsActive": True,
+                "Order": 3,
+                "PreCodes": ["1", "2"],
+            },
         ]
 
         for qualification in qualifications:
@@ -183,7 +192,6 @@ class LucidService(object):
                 headers=self.headers,
             )
             response_data = response.json()
-
         return response_data
 
     def can_be_terminated(self, lucid_rid):
