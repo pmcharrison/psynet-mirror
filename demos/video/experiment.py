@@ -44,11 +44,11 @@ all_assets = join(
     ),
     CachedAsset(
         "assets/video-sync-test.mp4",
-        local_key="video-sync-test",
+        local_key="sync-test-video",
     ),
     CachedAsset(
         "assets/video-sync-test.wav",
-        local_key="video-sync-test",
+        local_key="sync-test-audio",
     ),
 )
 
@@ -108,7 +108,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_plus_audio_2",
             VideoPrompt(
-                assets["video-sync-test"],
+                assets["sync-test-video"],
                 """
                 Here's a second version, where the video and audio both come from the same original recording.
                 If everything is working properly, the video and the audio should be well-synchronized.
@@ -118,7 +118,7 @@ video_pages = join(
             ),
             media=MediaSpec(
                 audio={
-                    "soundtrack": assets["video-sync-test"],
+                    "soundtrack": assets["sync-test-audio"],
                     # "soundtrack": "https://psynet.s3.amazonaws.com/tests/video-sync-test.wav"
                 }
             ),
