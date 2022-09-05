@@ -386,8 +386,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
         return self.position == 0
 
     def show_feedback(self, experiment, participant):
-        output_analysis = json.loads(self.analysis)
-        num_resp_onsets_detected = output_analysis["num_resp_onsets_detected"]
+        num_resp_onsets_detected = self.analysis["num_resp_onsets_detected"]
 
         if self.failed:
             return InfoPage(
