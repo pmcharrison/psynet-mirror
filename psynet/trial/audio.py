@@ -45,8 +45,6 @@ class AudioImitationChainTrial(AudioRecordTrial, MediaImitationChainTrial):
 class AudioImitationChainNode(MediaImitationChainNode):
     """
     A Node class for audio imitation chains.
-    Users must override the
-    :meth:`~psynet.trial.audio.AudioImitationChainNode.synthesize_target` method.
     """
 
     pass

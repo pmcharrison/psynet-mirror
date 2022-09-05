@@ -120,7 +120,7 @@ class CustomTrial(CustomTrialAnalysis):
         return ModularPage(
             "tapping_page",
             AudioPrompt(
-                self.origin.target_url,
+                self.assets["stimulus"],
                 Markup(
                     f"""
                     <h3>Tap in time with the rhythm</h3>
