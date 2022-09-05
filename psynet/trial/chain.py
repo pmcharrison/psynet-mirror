@@ -802,7 +802,9 @@ class ChainTrial(Trial):
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
-        if participant.in_module:
+        if participant.in_module and hasattr(
+            participant.module_state, "current_block_position"
+        ):
             self.block_position = participant.module_state.current_block_position
 
     # @property

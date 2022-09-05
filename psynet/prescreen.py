@@ -81,7 +81,7 @@ class REPPVolumeCalibration(Module):
                       <br><br>
                       <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
                       <hr>
-                      <img style="width:70%" src="{assets['rules_image']} alt="image_rules">
+                      <img style="width:70%" src="{assets['rules_image']} alt="rules_image">
                       """
                 ),
             ),
@@ -752,7 +752,7 @@ class REPPMarkersTest(StaticTrialMaker):
     def image_asset(self):
         return ExternalAsset(
             url=f"{self.materials_url}/REPP-image_rules.png",
-            local_key="rules_image.png",
+            local_key="rules_image",
         )
 
     @property
