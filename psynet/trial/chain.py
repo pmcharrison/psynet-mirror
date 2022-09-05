@@ -1376,8 +1376,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self._should_finish_block(participant):
             if (
-                participant.module_state.current_block_position
-                >= participant.module_state.n_blocks + 1
+                participant.module_state.current_block_position + 1
+                >= participant.module_state.n_blocks
             ):
                 return "exit"
             else:
