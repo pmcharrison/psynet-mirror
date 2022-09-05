@@ -5,10 +5,7 @@ import random
 import tempfile
 from uuid import uuid4
 
-from sqlalchemy import Column
-
 from ..asset import ExperimentAsset
-from ..field import PythonObject
 from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
 from ..timeline import MediaSpec
@@ -204,7 +201,7 @@ class AudioGibbsTrial(GibbsTrial):
 
     @property
     def media(self):
-        slider_stimuli = self.slider_stimuli
+        slider_stimuli = self.var.slider_stimuli
         return MediaSpec(
             audio={
                 "slider_stimuli": {
@@ -245,8 +242,6 @@ class AudioGibbsNode(GibbsNode):
     A Node class for Audio Gibbs sampler chains.
     The user should not have to modify this.
     """
-
-    slider_stimuli = Column(PythonObject)
 
     vector_length = 0
     vector_ranges = []
@@ -307,7 +302,7 @@ class AudioGibbsNode(GibbsNode):
             )
             asset.deposit()
 
-            self.slider_stimuli = {"url": asset.url, "all": stimuli}
+            self.var.slider_stimuli = {"url": asset.url, "all": stimuli}
 
     def make_audio_regular_intervals(self, output_dir):
         granularity = self.granularity

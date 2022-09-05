@@ -7,6 +7,8 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
+from psynet.participant import Participant
+
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
@@ -119,7 +121,9 @@ class ChainNetwork(TrialNetwork):
     # pylint: disable=abstract-method
     # __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_id = Column(Integer)
+    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant = relationship(Participant, foreign_keys=[participant_id])
+
     id_within_participant = Column(Integer)
 
     chain_type = Column(String)
@@ -149,8 +153,7 @@ class ChainNetwork(TrialNetwork):
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
         self.target_n_nodes = target_n_nodes
-        # The last node in the chain doesn't receive any trials
-        self.target_n_trials = (target_n_nodes - 1) * trials_per_node
+        self.target_n_trials = target_n_nodes * trials_per_node
 
         self.definition = self.make_definition()
         self.block = start_node.block
@@ -306,8 +309,7 @@ class ChainNetwork(TrialNetwork):
             previous_head.connect(whom=node)
             previous_head.child = node
             node.parent = previous_head
-        if self.n_alive_nodes >= self.target_n_nodes:
-            self.full = True
+        self.calculate_full()
 
     @property
     def n_trials_still_required(self):
@@ -445,10 +447,18 @@ class ChainNode(TrialNode):
     propagate_failure = Column(Boolean)
 
     child = relationship(
-        "ChainNode", foreign_keys=[child_id], uselist=False, post_update=True
+        "ChainNode",
+        foreign_keys=[child_id],
+        remote_side=TrialNode.id,
+        uselist=False,
+        post_update=True,
     )
     parent = relationship(
-        "ChainNode", foreign_keys=[parent_id], uselist=False, post_update=True
+        "ChainNode",
+        foreign_keys=[parent_id],
+        remote_side=TrialNode.id,
+        uselist=False,
+        post_update=True,
     )
 
     def __init__(

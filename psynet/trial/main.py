@@ -2293,7 +2293,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     def __repr__(self):
         return ("<Network-{}-{} with {} nodes>").format(
-            self.id, self.type, len(self.nodes)
+            self.id, self.type, len(self.alive_nodes)
         )
 
     trial_maker_id = Column(String)
@@ -2421,12 +2421,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
         self.module_id = module_id
 
     @property
-    def participant(self):
-        source = self.source
-        if source:
-            return source.participant
-
-    @property
     def n_completed_trials(self):
         return len(
             [t for t in self.alive_trials if (t.complete and not t.is_repeat_trial)]
@@ -2532,6 +2526,9 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
         if not self.module_id:
             self.module_id = network.module_id
+
+        if not self.participant:
+            self.participant = network.participant
 
     @property
     def trial_maker(self):
