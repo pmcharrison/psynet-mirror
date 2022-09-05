@@ -719,8 +719,8 @@ class ManagedAsset(Asset):
 
     def __init__(
         self,
-        *,
         input_path,
+        *,
         label=None,
         is_folder=None,
         description=None,
@@ -932,8 +932,8 @@ class FunctionAssetMixin:
 
     def __init__(
         self,
-        *,
         function,
+        *,
         local_key: Optional[str] = None,
         arguments: Optional[dict] = None,
         is_folder=False,

@@ -1270,7 +1270,9 @@ class TrialMaker(Module):
 
     def selected_recruit_criterion(self, experiment):
         if self.recruit_mode not in self.recruit_criteria:
-            raise ValueError(f"Invalid recruitment mode: {self.recruit_mode}")
+            raise ValueError(
+                f"Invalid recruitment mode: {self.recruit_mode}. Valid options: f{self.recruit_criteria}"
+            )
         function = self.recruit_criteria[self.recruit_mode]
         return call_function(function, self=self, experiment=experiment)
 

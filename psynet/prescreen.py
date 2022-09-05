@@ -737,10 +737,13 @@ class REPPMarkersTest(StaticTrialMaker):
         self.performance_check_threshold = performance_threshold
         self.time_estimate_per_trial = time_estimate_per_trial
 
+        nodes = self.get_nodes()
+
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            nodes=self.get_nodes(),
+            nodes=nodes,
+            expected_trials_per_participant=len(nodes),
             check_performance_at_end=True,
         )
 

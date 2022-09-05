@@ -6,7 +6,7 @@ from psynet.consent import MainConsent
 from psynet.page import InfoPage, SuccessfulEndPage, UnityPage
 from psynet.participant import Participant
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus, StimulusSet
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -20,16 +20,13 @@ game = [1]
 SAME_SESSION_ID = "0"
 
 # Definition of network
-stimulus_set = StimulusSet(
-    "game",
-    [
-        Stimulus(
-            definition={"mGame": 1, "rule": mType},
-            participant_group=mType,
-        )
-        for mType in rules
-    ],
-)
+nodes = [
+    StaticNode(
+        definition={"mGame": 1, "rule": mType},
+        participant_group=mType,
+    )
+    for mType in rules
+]
 
 
 class UnityGamePage(UnityPage):
@@ -120,11 +117,10 @@ class GameTrialMaker(StaticTrialMaker):
 trial_maker = GameTrialMaker(
     id_="game",
     trial_class=GameTrial,
-    phase="experiment",
-    stimuli=stimulus_set,
-    max_trials_per_block=3,
-    allow_repeated_stimuli=True,
-    max_unique_stimuli_per_block=None,
+    nodes=nodes,
+    max_trials_per_participant=3,
+    expected_trials_per_participant=3,
+    allow_repeated_nodes=True,
     active_balancing_across_participants=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,

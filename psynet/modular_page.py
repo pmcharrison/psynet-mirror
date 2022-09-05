@@ -2183,7 +2183,7 @@ class AudioRecordControl(RecordControl):
         loop_playback: bool = False,
         num_channels: int = 1,
         personal=True,
-        bot_response_media: Optional[str] = None,
+        bot_response_media: Optional[Union[dict, str]],
         **kwargs,
     ):
         super().__init__(**kwargs)

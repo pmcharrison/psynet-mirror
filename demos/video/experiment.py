@@ -13,6 +13,7 @@ from psynet.page import SuccessfulEndPage, wait_while
 from psynet.timeline import (
     Event,
     MediaSpec,
+    Module,
     PageMaker,
     ProgressDisplay,
     ProgressStage,
@@ -30,24 +31,24 @@ logger = get_logger()
 
 all_assets = join(
     CachedAsset(
-        key="flower.mp4",
-        input_path="assets/flower.mp4",
+        "assets/flower.mp4",
+        local_key="flower",
     ),
     CachedAsset(
-        key="birds.mp4",
-        input_path="assets/flower.mp4",
+        "assets/birds.mp4",
+        local_key="birds",
     ),
     CachedAsset(
-        key="funk-game-loop.mp3",
-        input_path="assets/funk-game-loop.mp3",
+        "assets/funk-game-loop.mp3",
+        local_key="funk-game-loop",
     ),
     CachedAsset(
-        key="video-sync-test.mp4",
-        input_path="assets/video-sync-test.mp4",
+        "assets/video-sync-test.mp4",
+        local_key="video-sync-test",
     ),
     CachedAsset(
-        key="video-sync-test.wav",
-        input_path="assets/video-sync-test.wav",
+        "assets/video-sync-test.wav",
+        local_key="video-sync-test",
     ),
 )
 
@@ -57,7 +58,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "simple_video_prompt",
             VideoPrompt(
-                assets.get("flower.mp4"),
+                assets["flower"],
                 flask.Markup(
                     """
                 <h3>Example video prompt:</h3>
@@ -72,7 +73,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_play_window",
             VideoPrompt(
-                assets.get("flower.mp4"),
+                assets["flower"],
                 flask.Markup(
                     """
                 <h3>Example video prompt with play window:</h3>
@@ -88,11 +89,11 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_plus_audio",
             VideoPrompt(
-                assets.get("birds.mp4"),
+                assets["birds"],
                 "Here we play a video, muted, alongside an audio file.",
                 muted=True,
             ),
-            media=MediaSpec(audio={"soundtrack": assets.get("funk-game-loop.mp3")}),
+            media=MediaSpec(audio={"soundtrack": assets["funk-game-loop"]}),
             events={
                 "playSoundtrack": Event(
                     is_triggered_by="promptStart",
@@ -107,7 +108,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_plus_audio_2",
             VideoPrompt(
-                assets.get("video-sync-test.mp4"),
+                assets["video-sync-test"],
                 """
                 Here's a second version, where the video and audio both come from the same original recording.
                 If everything is working properly, the video and the audio should be well-synchronized.
@@ -117,7 +118,7 @@ video_pages = join(
             ),
             media=MediaSpec(
                 audio={
-                    "soundtrack": assets.get("video-sync-test.wav"),
+                    "soundtrack": assets["video-sync-test"],
                     # "soundtrack": "https://psynet.s3.amazonaws.com/tests/video-sync-test.wav"
                 }
             ),
@@ -135,7 +136,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_plus_video_record",
             VideoPrompt(
-                assets.get("birds.mp4"),
+                assets["birds"],
                 "Here we play a video and instruct the user to record an audio response.",
                 muted=True,
                 play_window=[0, 4],
@@ -146,7 +147,7 @@ video_pages = join(
                 bot_response_media="example_audio_recording.wav",
             ),
             progress_display=ProgressDisplay(stages=[ProgressStage(time=4)]),
-            media=MediaSpec(audio={"soundtrack": assets.get("funk-game-loop.mp3")}),
+            media=MediaSpec(audio={"soundtrack": assets["funk-game-loop"]}),
             events={
                 "playSoundtrack": Event(
                     is_triggered_by="promptStart",
@@ -166,7 +167,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_prompt_plus_video_record",
             VideoPrompt(
-                assets.get("birds.mp4"),
+                assets["birds"],
                 text="""
                 Here we play a video and instruct the user to record a video response after a countdown.
                 The soundtrack also has a 0.5 second fade-in and fade-out.
@@ -195,7 +196,7 @@ video_pages = join(
                     ProgressStage([3.0, 4.0 + 3.0], "Recording!", color="red"),
                 ],
             ),
-            media=MediaSpec(audio={"soundtrack": assets.get("funk-game-loop.mp3")}),
+            media=MediaSpec(audio={"soundtrack": assets["funk-game-loop"]}),
             events={
                 "trialPrepare": Event(is_triggered_by=None),
                 "promptStart": Event(is_triggered_by="trialStart", delay=3.0),
@@ -262,4 +263,13 @@ class Exp(psynet.experiment.Experiment):
     label = "Video demo"
     asset_storage = DebugStorage()
 
-    timeline = Timeline(NoConsent(), all_assets, video_pages, SuccessfulEndPage())
+    timeline = Timeline(
+        NoConsent(),
+        Module(
+            "video_demo",
+            video_pages,
+            assets=all_assets,
+        ),
+        video_pages,
+        SuccessfulEndPage(),
+    )

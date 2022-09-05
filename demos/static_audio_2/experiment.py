@@ -114,6 +114,7 @@ class Exp(psynet.experiment.Experiment):
             id_="static_audio",
             trial_class=CustomTrial,
             nodes=nodes,
+            expected_trials_per_participant=len(nodes),
             target_n_participants=3,
             recruit_mode="n_participants",
         ),

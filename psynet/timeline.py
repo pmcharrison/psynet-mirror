@@ -163,6 +163,7 @@ class Elt:
     time_estimate = None
     expected_repetitions = None
     id = None
+    created_within_page_maker = False
 
     def consume(self, experiment, participant):
         raise NotImplementedError
@@ -1181,6 +1182,7 @@ class PageMaker(Elt):
         )
         for i, elt in enumerate(res):
             elt.id = position + [i]
+            elt.created_within_page_maker = True
         return res
 
     def impute_time_estimates(self, elts):
@@ -2218,7 +2220,12 @@ class Module:
             if isinstance(elt, Asset):
                 self._staged_assets.append(elt)
 
-        self.assets = ModuleAssets(id_)
+        for asset in self._staged_assets:
+            asset.module_id = self.id
+
+    @property
+    def assets(self):
+        return ModuleAssets(self.id)
 
     def prepare_for_deployment(self, experiment):
         self.prepare_nodes_for_deployment(experiment)
@@ -2230,9 +2237,22 @@ class Module:
 
     def prepare_assets_for_deployment(self, experiment):
         for asset in self._staged_assets:
-            asset.module_id = self.id
             experiment.assets.stage(asset)
         db.session.commit()
+
+    def deposit_assets_on_the_fly(self):
+        if len(self._staged_assets) > 0:
+            logger.info(
+                "Depositing %i assets on-the-fly (i.e. while the participant waits for the "
+                "experiment to continue. This is a bad idea if the number of assets is large "
+                "and if they need to be uploaded to a remote server. "
+                "To avoid this, avoid defining your module/trial maker within a page maker.",
+                len(self._staged_assets),
+            )
+            for asset in self._staged_assets:
+                # TODO - parallelize this deposit, see code in Experiment class
+                asset.deposit()
+            db.session.commit()
 
     def nodes_register_in_db(self):
         for node in self.nodes:
@@ -2459,6 +2479,9 @@ class StartModule(NullElt):
 
     def consume(self, experiment, participant):
         self.module.start(participant)
+
+        if self.created_within_page_maker:
+            self.module.deposit_assets_on_the_fly()
 
 
 class EndModule(NullElt):
