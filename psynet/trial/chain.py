@@ -1058,6 +1058,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         if (
             chain_type == "across"
             and expected_trials_per_participant
+            and chains_per_experiment
             and expected_trials_per_participant > chains_per_experiment
             and not allow_revisiting_networks_in_across_chains
         ):
@@ -1294,11 +1295,12 @@ class ChainTrialMaker(NetworkTrialMaker):
             else:
                 nodes = self.start_nodes
                 assert isinstance(nodes, list)
-            assert len(nodes) == self.chains_per_experiment, (
-                f"Problem with trial maker {self.id}: "
-                f"The number of nodes provided by start_nodes ({len(nodes)}) did not equal 0 or "
-                f"chains_per_experiment ({self.chains_per_experiment})."
-            )
+            if self.chains_per_experiment:
+                assert len(nodes) == self.chains_per_experiment, (
+                    f"Problem with trial maker {self.id}: "
+                    f"The number of nodes provided by start_nodes ({len(nodes)}) did not equal 0 or "
+                    f"chains_per_experiment ({self.chains_per_experiment})."
+                )
         else:
             nodes = [None for _ in range(self.chains_per_experiment)]
         for node in nodes:  # type: ChainNode

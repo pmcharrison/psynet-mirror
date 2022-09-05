@@ -91,4 +91,4 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot):
         assert not bot.failed
-        assert len(bot.alive_trials) == self.expected_trials_per_participant
+        assert len(bot.alive_trials) == self.trials_per_participant

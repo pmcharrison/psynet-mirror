@@ -1687,7 +1687,9 @@ class Response(_Response):
         self.metadata = metadata
 
 
-def is_list_of(x: list, what):
+def is_list_of(x, what):
+    if not isinstance(x, list):
+        return False
     for val in x:
         if not isinstance(val, what):
             return False

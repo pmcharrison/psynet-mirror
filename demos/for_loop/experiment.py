@@ -29,7 +29,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         for_loop(
             label="Looping over letters D-F",
-            iterate_over=["D", "E", "F"],
+            iterate_over=lambda: ["D", "E", "F"],
             logic=lambda letter: InfoPage(f"{letter}"),
             time_estimate_per_iteration=5,
         ),

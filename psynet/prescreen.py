@@ -1317,6 +1317,7 @@ class ColorBlindnessTest(StaticTrialMaker):
             fail_trials_on_premature_exit=False,
         )
 
+    @property
     def introduction(self):
         if self.hide_after is None:
             hidden_instructions = ""
@@ -1448,6 +1449,7 @@ class ColorVocabularyTest(StaticTrialMaker):
         ("navy", [240, 100, 25]),
     ]
 
+    @property
     def introduction(self):
         return InfoPage(
             Markup(
