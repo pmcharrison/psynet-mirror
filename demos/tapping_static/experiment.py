@@ -250,6 +250,7 @@ ISO_tapping = join(
         id_="ISO_tapping",
         trial_class=TapTrialISO,
         nodes=nodes_iso,
+        expected_trials_per_participant=len(nodes_iso),
         target_n_participants=NUM_PARTICIPANTS,
         recruit_mode="n_participants",
         check_performance_at_end=False,
@@ -278,7 +279,8 @@ music_tapping = join(
     StaticTrialMaker(
         id_="music_tapping",
         trial_class=TapTrialMusic,
-        stimuli=nodes_music,
+        nodes=nodes_music,
+        expected_trials_per_participant=len(nodes_music),
         target_n_participants=NUM_PARTICIPANTS,
         recruit_mode="n_participants",
         check_performance_at_end=False,
