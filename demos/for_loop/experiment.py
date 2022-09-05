@@ -21,7 +21,7 @@ class Exp(psynet.experiment.Experiment):
             iterate_over=lambda: ["A", "B", "C"],
             logic=lambda letter: for_loop(
                 label="Looping over numbers 1-3",
-                iterate_over=[1, 2, 3],
+                iterate_over=lambda: [1, 2, 3],
                 logic=lambda number: InfoPage(f"{letter}{number}"),
                 time_estimate_per_iteration=5,
             ),
