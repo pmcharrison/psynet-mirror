@@ -2584,7 +2584,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def trial_maker(self):
         from ..experiment import get_trial_maker
 
-        return get_trial_maker(self.trial_maker_id)
+        if self.trial_maker_id:
+            return get_trial_maker(self.trial_maker_id)
 
     def fail(self, reason=None):
         if not self.failed:
