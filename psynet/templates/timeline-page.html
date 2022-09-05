@@ -1642,16 +1642,9 @@
         }
       }
 
-      /*let buttons = document.getElementsByClassName("btn");
-      console.log(buttons)
-      if (buttons != null) {
-        for (let i = 0; i < buttons.length; i++) {
-          buttons[i].addEventListener("click", function() {
-            window.removeEventListener("beforeunload", beforeunloadFunction);
-            psynet.nextPage(true);
-          });
-        }
-      }*/
+      $('.btn').click(function () {
+        window.removeEventListener("beforeunload", beforeunloadFunction);
+      })
 
       function beforeunloadFunction(event){
         event.returnValue = `Are you sure you want to leave?`;
