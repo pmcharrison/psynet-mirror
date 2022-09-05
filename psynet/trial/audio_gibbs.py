@@ -201,7 +201,7 @@ class AudioGibbsTrial(GibbsTrial):
 
     @property
     def media(self):
-        slider_stimuli = self.var.slider_stimuli
+        slider_stimuli = self.node.var.slider_stimuli
         return MediaSpec(
             audio={
                 "slider_stimuli": {

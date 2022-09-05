@@ -592,7 +592,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         return ModularPage(
             "markers_test_trial",
             AudioPrompt(
-                self.source.assets["stimulus"],
+                self.assets["stimulus"],
                 Markup(
                     """
                     <h3>Recording test</h3>
@@ -1243,7 +1243,7 @@ class ColorBlindnessTrial(StaticTrial):
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
-                self.source.assets["image"].url,
+                self.assets["image"].url,
                 "Write down the number in the image.",
                 width="350px",
                 height="344px",
