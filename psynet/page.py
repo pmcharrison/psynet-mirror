@@ -732,7 +732,7 @@ class AudioSliderPage(ModularPage):
         - <int> (default = 10000): number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
-        - ``"num_sounds"``: sets the number of steps to the number of sounds. This only makes sense
+        - ``"n_sounds"``: sets the number of steps to the number of sounds. This only makes sense
           if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
     snap_values:
@@ -783,7 +783,7 @@ class AudioSliderPage(ModularPage):
             )
 
         if isinstance(n_steps, str):
-            if n_steps == "num_sounds":
+            if n_steps == "n_sounds":
                 n_steps = len(sound_locations)
             else:
                 raise ValueError(f"Invalid value of n_steps: {n_steps}")

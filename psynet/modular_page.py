@@ -1886,7 +1886,7 @@ class AudioSliderControl(SliderControl):
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
-        - ``"num_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
+        - ``"n_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
           if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
         Default: `10000`.
@@ -1950,7 +1950,7 @@ class AudioSliderControl(SliderControl):
         minimal_time: Optional[int] = 0,
     ):
         if isinstance(n_steps, str):
-            if n_steps == "num_sounds":
+            if n_steps == "n_sounds":
                 n_steps = len(sound_locations)
             else:
                 raise ValueError(f"Invalid value of n_steps: {n_steps}")
