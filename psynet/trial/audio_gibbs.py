@@ -5,6 +5,8 @@ import random
 import tempfile
 from uuid import uuid4
 
+from psynet.field import claim_var
+
 from ..asset import ExperimentAsset
 from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
@@ -201,7 +203,7 @@ class AudioGibbsTrial(GibbsTrial):
 
     @property
     def media(self):
-        slider_stimuli = self.node.var.slider_stimuli
+        slider_stimuli = self.slider_stimuli
         return MediaSpec(
             audio={
                 "slider_stimuli": {
@@ -230,7 +232,7 @@ class AudioGibbsTrial(GibbsTrial):
 
     @property
     def slider_stimuli(self):
-        return self.origin.slider_stimuli
+        return self.node.slider_stimuli
 
     @property
     def vector_ranges(self):
@@ -243,10 +245,14 @@ class AudioGibbsNode(GibbsNode):
     The user should not have to modify this.
     """
 
+    __extra_vars__ = GibbsNode.__extra_vars__.copy()
+
     vector_length = 0
     vector_ranges = []
     granularity = 100
     n_jobs = 1
+
+    slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
 
     def validate(self):
         if not (isinstance(self.vector_length, int) and self.vector_length > 0):
@@ -302,7 +308,7 @@ class AudioGibbsNode(GibbsNode):
             )
             asset.deposit()
 
-            self.var.slider_stimuli = {"url": asset.url, "all": stimuli}
+            self.slider_stimuli = {"url": asset.url, "all": stimuli}
 
     def make_audio_regular_intervals(self, output_dir):
         granularity = self.granularity

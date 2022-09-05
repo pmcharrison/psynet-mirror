@@ -106,7 +106,7 @@ class CustomNode(AudioGibbsNode):
         }
 
     def synth_function(self, vector, output_path):
-        custom_synth.synth_stimulus(vector, output_path, self.context.input_file)
+        custom_synth.synth_stimulus(vector, output_path, self.context["input_file"])
 
 
 class CustomTrialMaker(AudioGibbsTrialMaker):
