@@ -1615,7 +1615,7 @@
 
       // Terminate on interaction (page reload, window/tab close, no focus)
       const INACTIVITY_TIMEOUT = {{experiment.recruiter.inactivity_timeout_in_s}} * 1000;
-      const POLLING_FREQUENCY = 1000;
+      const POLLING_FREQUENCY = 10000;
       const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
       const cancelParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
       var triedToLeave = false;
