@@ -5,7 +5,7 @@ from flask import Markup, escape
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.modular_page import AudioSliderControl, ModularPage
+from psynet.modular_page import MediaSliderControl, ModularPage
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline, join
 from psynet.utils import get_logger
@@ -27,12 +27,12 @@ def print_dict(x, **kwargs):
 def new_example(
     description, **kwargs
 ):  # TODO: Peter, rewrite this section to use the new PsyNet event scheduler
-    assert len(kwargs["sound_locations"]) == GRANULARITY_SLIDER
+    assert len(kwargs["media_locations"]) == GRANULARITY_SLIDER
     media = MediaSpec(
         audio={
             "batch": {
                 "url": "/static/audio/batch.rhythms",
-                "ids": [_id for _id, _ in kwargs["sound_locations"].items()],
+                "ids": [_id for _id, _ in kwargs["media_locations"].items()],
                 "type": "batch",
             }
         }
@@ -68,7 +68,9 @@ def new_example(
         ModularPage(
             "slider_page",
             prompt,
-            control=AudioSliderControl("slider_control", audio=media.audio, **kwargs),
+            control=MediaSliderControl(
+                "slider_control", modality="audio", multimedia=media.audio, **kwargs
+            ),
             media=media,
             time_estimate=time_estimate,
         ),
@@ -92,7 +94,7 @@ class CustomExp(psynet.experiment.Experiment):
                 interact 3 times with the slider before they are allowed to submit their response.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -109,7 +111,7 @@ class CustomExp(psynet.experiment.Experiment):
                 Same example with slider reversed.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -128,7 +130,7 @@ class CustomExp(psynet.experiment.Experiment):
                 so participants are forced to listen the stimulus before moving the slider.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -149,7 +151,7 @@ class CustomExp(psynet.experiment.Experiment):
                 and the phase to initialise the wrapping is randomised.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -167,7 +169,7 @@ class CustomExp(psynet.experiment.Experiment):
                 Same example now using both wrapping and disable slider while playing.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -186,7 +188,7 @@ class CustomExp(psynet.experiment.Experiment):
                 In this example we show how to use a circular slider without wrapping.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -207,7 +209,7 @@ class CustomExp(psynet.experiment.Experiment):
                 a transparent div on top of the slider instead.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,
@@ -227,7 +229,7 @@ class CustomExp(psynet.experiment.Experiment):
                 Now we use the circular slider with random wrapping.
                 """
             ),
-            sound_locations=dict(zip(ids, [i for i in ratios])),
+            media_locations=dict(zip(ids, [i for i in ratios])),
             snap_values=None,
             start_value=0.5,
             min_value=0.1,

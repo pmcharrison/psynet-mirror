@@ -179,6 +179,6 @@ We hope to extend this list over time through user contributions.
 
 * :ref:`Gibbs Sampling with People <gibbs>`
 
-* :ref:`Audio Gibbs Sampling with People <audio_gibbs>`
+* :ref:`Media (Audio and Video) Gibbs Sampling with People <media_gibbs>`
 
 * :ref:`Static experiments <static>`

@@ -1,12 +1,10 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-# Note: parselmouth must be installed with pip install praat-parselmouth
+# Note: ffmpeg must be installed
 
 ##########################################################################################
 # Imports
 ##########################################################################################
-
-import random
 
 from flask import Markup
 
@@ -16,123 +14,92 @@ from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardC
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
-    AudioGibbsNetwork,
-    AudioGibbsNode,
-    AudioGibbsSource,
-    AudioGibbsTrial,
-    AudioGibbsTrialMaker,
+    VideoGibbsNetwork,
+    VideoGibbsNode,
+    VideoGibbsSource,
+    VideoGibbsTrial,
+    VideoGibbsTrialMaker,
 )
 from psynet.utils import get_logger
 
 logger = get_logger()
 
 # Custom parameters, change these as you like!
-TARGETS = ["sad", "happy", "angry"]
-SENTENCE_RECORDINGS = [
-    "Harvard_L35_S01_0.wav",
-    "Harvard_L35_S02_0.wav",
-    "Harvard_L35_S03_0.wav",
+TARGETS = ["positive", "energetic"]
+DURATION_RANGE = [0.1, 1.5]
+RGB_RANGE = [0, 255]
+VECTOR_RANGES = [
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    DURATION_RANGE,
+    DURATION_RANGE,
 ]
-RANGES = [
-    # DURATION
-    # 1. Duration, percent
-    [0.8, 1.2],
-    # INTENSITY
-    # 2. Tremolo rate, st
-    [0.01, 5],
-    # 3. Tremolo depth, dB
-    [0.01, 10],
-    # PITCH
-    # 4. Shift, semitones
-    [-3, 3],
-    # 5. Range, percent
-    [0.2, 1.8],
-    # 6. Increase/Decrease, semitones
-    [-3, 3],
-    # 7. Jitter, custom unit
-    [0, 10],
-]
-INITIAL_VALUES = [
-    1,  # 1. Duration, percent
-    0.1,  # 2. Tremolo rate, st
-    0.05,  # 3. Tremolo depth, dB
-    0,  # 4. Shift, semitones
-    1,  # 5. Range, percent
-    0,  # 6. Increase/Decrease, semitones
-    0,  # 7. Jitter, custom unit
-]
-DIMENSIONS = len(INITIAL_VALUES)
-MIN_DURATION = 5
-TIME_ESTIMATE_PER_TRIAL = 5
-GRANULARITY = 25
-SNAP_SLIDER = False
+DIMENSIONS = len(VECTOR_RANGES)
+GRANULARITY = 25  # 25 different slider positions
+SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
 psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
+NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
 
-NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2  # every dimension is visited twice
-NUM_CHAINS_PER_EXPERIMENT = (
-    len(TARGETS) * 3
-)  # for each emotion there are 3 chains (each with a different sentence)
-NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3  # every participant does 9 trials
+NUM_CHAINS_PER_EXPERIMENT = 2
+NUM_CHAINS_PER_PARTICIPANT = 2
+NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomNetwork(AudioGibbsNetwork):
+class CustomNetwork(VideoGibbsNetwork):
+    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+
     synth_function_location = {
         "module_name": "custom_synth",
         "function_name": "synth_stimulus",
     }
 
-    s3_bucket = "audio-gibbs-demo"
+    s3_bucket = "video-gibbs-demo"
     vector_length = DIMENSIONS
-    vector_ranges = RANGES
+    vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
 
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
     def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS),
-            "file": random.sample(SENTENCE_RECORDINGS, 1)[0],  # Get random sample
-        }
+        return {"target": self.balance_across_networks(TARGETS)}
 
 
-class CustomTrial(AudioGibbsTrial):
+class CustomTrial(VideoGibbsTrial):
+    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
+
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
-    minimal_time = MIN_DURATION
-    time_estimate = TIME_ESTIMATE_PER_TRIAL
+    minimal_time = 3.0
+    time_estimate = 5.0
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "Adjust the slider to make the speaker sound like she is "
-            f"<strong>{self.network.definition['target']}</strong>."
+            "Adjust the slider so that the video is as "
+            f"<strong>{self.network.definition['target']}</strong> as possible."
         )
 
 
-class CustomNode(AudioGibbsNode):
-    pass
+class CustomNode(VideoGibbsNode):
+    __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
 
-class CustomSource(AudioGibbsSource):
-    def generate_seed(self, network, experiment, participant):
-        if network.vector_length is None:
-            raise ValueError(
-                "network.vector_length must not be None. Did you forget to set it?"
-            )
-        return {
-            "vector": INITIAL_VALUES,  # Start at predefined zero points, i.e. not at a random point in space
-            "active_index": random.randint(0, network.vector_length),  #
-        }
+class CustomSource(VideoGibbsSource):
+    __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
 
-class CustomTrialMaker(AudioGibbsTrialMaker):
+class CustomTrialMaker(VideoGibbsTrialMaker):
     response_timeout_sec = 1e9
 
 
 trial_maker = CustomTrialMaker(
-    id_="audio_gibbs_demo",
+    id_="video_gibbs_demo",
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
@@ -152,7 +119,6 @@ trial_maker = CustomTrialMaker(
     target_num_participants=None,
     wait_for_networks=True,
 )
-
 
 ##########################################################################################
 # Experiment

@@ -13,7 +13,7 @@ import psynet.media
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.audio_gibbs import (
+from psynet.trial.media_gibbs import (
     AudioGibbsNetwork,
     AudioGibbsNode,
     AudioGibbsSource,

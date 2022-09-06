@@ -8,7 +8,7 @@ from flask import Markup, escape
 
 from .modular_page import (
     AudioPrompt,
-    AudioSliderControl,
+    MediaSliderControl,
     ModularPage,
     NumberControl,
     Prompt,
@@ -702,7 +702,7 @@ class AudioSliderPage(ModularPage):
         Prompt to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    sound_locations:
+    media_locations:
         Dictionary with IDs as keys and locations on the slider as values.
 
     start_value:
@@ -718,11 +718,11 @@ class AudioSliderPage(ModularPage):
         - <int> (default = 10000): number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
-        - ``"num_sounds"``: sets the number of steps to the number of sounds. This only makes sense
+        - ``"num_media"``: sets the number of steps to the number of sounds. This only makes sense
           if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
     snap_values:
-        - ``"sound_locations"`` (default): slider snaps to nearest sound location.
+        - ``"media_locations"`` (default): slider snaps to nearest sound location.
 
         - <int>: indicates number of possible equidistant steps between `min_value` and `max_value`
 
@@ -745,12 +745,12 @@ class AudioSliderPage(ModularPage):
         label: str,
         prompt: Union[str, Markup],
         *,
-        sound_locations: dict,
+        media_locations: dict,
         start_value: float,
         min_value: float,
         max_value: float,
         num_steps: Union[str, int] = 10000,
-        snap_values: Optional[Union[int, list]] = "sound_locations",
+        snap_values: Optional[Union[int, list]] = "media_locations",
         autoplay: Optional[bool] = False,
         slider_id: Optional[str] = "sliderpage_slider",
         minimal_interactions: Optional[int] = 0,
@@ -769,21 +769,21 @@ class AudioSliderPage(ModularPage):
             )
 
         if isinstance(num_steps, str):
-            if num_steps == "num_sounds":
-                num_steps = len(sound_locations)
+            if num_steps == "num_media":
+                num_steps = len(media_locations)
             else:
                 raise ValueError(f"Invalid value of num_steps: {num_steps}")
 
         if isinstance(snap_values, str):
-            if snap_values == "sound_locations":
-                snap_values = list(sound_locations.values())
+            if snap_values == "media_locations":
+                snap_values = list(media_locations.values())
             else:
                 raise ValueError(f"Invalid value of snap_values: {snap_values}")
 
-        # Check if all stimuli specified in `sound_locations` are
+        # Check if all stimuli specified in `media_locations` are
         # also preloaded before the participant can start the trial
         audio = kwargs["media"].audio
-        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media_locations = [ID for ID, _ in media_locations.items()]
         IDs_media = []
         for key, value in audio.items():
             if isinstance(audio[key], dict) and "ids" in audio[key]:
@@ -796,29 +796,30 @@ class AudioSliderPage(ModularPage):
                 )
         IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
-        if not any([i in IDs_media for i in IDs_sound_locations]):
+        if not any([i in IDs_media for i in IDs_media_locations]):
             raise ValueError(
-                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+                "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
             )
 
         # Check if all audio files are also really playable
         # ticks, step_size, diff = self._get_ticks_step_size_and_diff(snap_values, max_value, min_value)
-        # if not all([location in ticks for _, location in sound_locations.items()]):
+        # if not all([location in ticks for _, location in media_locations.items()]):
         #     raise ValueError('The slider does not contain all locations for the audio')
 
-        self.sound_locations = sound_locations
+        self.media_locations = media_locations
         # All range checking is done in the parent class
 
         super().__init__(
             label,
             prompt=Prompt(prompt),
-            control=AudioSliderControl(
+            control=MediaSliderControl(
                 label=label,
                 start_value=start_value,
                 min_value=min_value,
                 max_value=max_value,
-                audio=audio,
-                sound_locations=self.sound_locations,
+                multimedia=audio,
+                modality="audio",
+                media_locations=self.media_locations,
                 autoplay=autoplay,
                 num_steps=num_steps,
                 slider_id=slider_id,

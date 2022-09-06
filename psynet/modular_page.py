@@ -1677,7 +1677,10 @@ class SliderControl(Control):
         )
 
 
-class AudioSliderControl(SliderControl):
+EXTENSIONS = {"audio": ["mp3", "wav"], "video": ["mp4", "ogg"]}
+
+
+class MediaSliderControl(SliderControl):
     """
     This control solicits a slider response from the user that results in playing some audio.
     The slider can either be horizontal or circular.
@@ -1697,8 +1700,8 @@ class AudioSliderControl(SliderControl):
     max_value:
         Maximum value of the slider.
 
-    audio:
-        A dictionary of audio assets.
+    multimedia:
+        A dictionary of media assets (video or sound).
         Each item can either be a string,
         corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
         or a dictionary, corresponding to metadata for a batch of media assets.
@@ -1709,19 +1712,21 @@ class AudioSliderControl(SliderControl):
         ::
 
             {
-                'example': '/static/example.wav',
-                'my_batch': {
+                'example_audio': '/static/example.wav',
+                'audio_batch': {
                     'url': '/static/file_concatenated.mp3',
                     'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
                     'type': 'batch'
                 }
             }
+    modality:
+        Either ``"audio"`` or ``"video"``, `"image"`` is not implemented yet.
 
-    sound_locations:
+    media_locations:
         Dictionary with IDs as keys and locations on the slider as values.
 
     autoplay:
-        The sound closest to the current slider position is played once the page is loaded. Default: `False`.
+        The media closest to the current slider position is played once the page is loaded. Default: `False`.
 
     disable_while_playing:
         If `True`, the slider is disabled while the audio is playing. Default: `False`.
@@ -1730,8 +1735,8 @@ class AudioSliderControl(SliderControl):
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
-        - ``"num_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
-          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+        - ``"num_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
         Default: `10000`.
 
@@ -1757,7 +1762,7 @@ class AudioSliderControl(SliderControl):
         Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
 
     snap_values:
-        - ``"sound_locations"``: slider snaps to nearest sound location.
+        - ``"media_locations"``: slider snaps to nearest sound location.
 
         - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
 
@@ -1765,7 +1770,7 @@ class AudioSliderControl(SliderControl):
 
         - ``None``: don't snap slider.
 
-        Default: `"sound_locations"`.
+        Default: `"media_locations"`.
 
     minimal_interactions:
         Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
@@ -1780,8 +1785,9 @@ class AudioSliderControl(SliderControl):
         start_value: float,
         min_value: float,
         max_value: float,
-        audio: dict,
-        sound_locations: dict,
+        multimedia: dict,
+        modality: str,
+        media_locations: dict,
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
         num_steps: Optional[int] = 10000,
@@ -1790,30 +1796,36 @@ class AudioSliderControl(SliderControl):
         random_wrap: Optional[bool] = False,
         reverse_scale: Optional[bool] = False,
         directional: bool = True,
-        snap_values: Optional[Union[int, list]] = "sound_locations",
+        snap_values: Optional[Union[int, list]] = "media_locations",
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
     ):
+        if modality not in ["audio", "video"]:
+            raise NotImplementedError(f"Modality not implemented: {modality}")
+
         if isinstance(num_steps, str):
-            if num_steps == "num_sounds":
-                num_steps = len(sound_locations)
+            if num_steps == "num_media":
+                num_steps = len(media_locations)
             else:
                 raise ValueError(f"Invalid value of num_steps: {num_steps}")
 
         if isinstance(snap_values, str):
-            if snap_values == "sound_locations":
-                snap_values = list(sound_locations.values())
+            if snap_values == "media_locations":
+                snap_values = list(media_locations.values())
             else:
                 raise ValueError(f"Invalid value of snap_values: {snap_values}")
 
-        # Check if all stimuli specified in `sound_locations` are
+        # Check if all stimuli specified in `media_locations` are
         # also preloaded before the participant can start the trial
-        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media_locations = [ID for ID, _ in media_locations.items()]
         IDs_media = []
-        for key, value in audio.items():
-            if isinstance(audio[key], dict) and "ids" in audio[key]:
-                IDs_media.append(audio[key]["ids"])
-            elif isinstance(audio[key], str):
+        for key, value in multimedia.items():
+            if isinstance(multimedia[key], dict) and "ids" in multimedia[key]:
+                IDs_media.append(multimedia[key]["ids"])
+            elif isinstance(multimedia[key], str):
+                assert any(
+                    [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
+                ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
                 IDs_media.append(key)
             else:
                 raise NotImplementedError(
@@ -1821,9 +1833,9 @@ class AudioSliderControl(SliderControl):
                 )
         IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
-        if not any([i in IDs_media for i in IDs_sound_locations]):
+        if not any([i in IDs_media for i in IDs_media_locations]):
             raise ValueError(
-                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+                "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
             )
 
         super().__init__(
@@ -1842,22 +1854,25 @@ class AudioSliderControl(SliderControl):
             minimal_time=minimal_time,
         )
 
-        self.sound_locations = sound_locations
+        self.media_locations = media_locations
+        self.modality = modality
         self.autoplay = autoplay
         self.disable_while_playing = disable_while_playing
         self.snap_values = snap_values
-        self.audio = audio
-        self.js_vars["sound_locations"] = sound_locations
+        self.multimedia = multimedia
+        self.js_vars["modality"] = modality
+        self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
         self.js_vars["disable_while_playing"] = disable_while_playing
 
-    macro = "audio_slider"
+    macro = "media_slider"
 
     @property
     def metadata(self):
         return {
             **super().metadata,
-            "sound_locations": self.sound_locations,
+            "media_locations": self.media_locations,
+            "modality": self.modality,
             "autoplay": self.autoplay,
             "disable_while_playing": self.disable_while_playing,
         }

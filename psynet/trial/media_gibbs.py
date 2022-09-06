@@ -4,13 +4,14 @@ import json
 import os
 import random
 import tempfile
+from datetime import datetime
 from uuid import uuid4
 
 from flask import Markup, escape
 
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
-from ..modular_page import AudioSliderControl, ModularPage
+from ..modular_page import MediaSliderControl, ModularPage
 from ..timeline import MediaSpec
 from ..utils import get_logger, get_object_from_module, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsSource, GibbsTrial, GibbsTrialMaker
@@ -18,16 +19,16 @@ from .gibbs import GibbsNetwork, GibbsNode, GibbsSource, GibbsTrial, GibbsTrialM
 logger = get_logger()
 
 
-class AudioGibbsNetwork(GibbsNetwork):
+class MediaGibbsNetwork(GibbsNetwork):
     """
-    A Network class for Audio Gibbs Sampler chains.
+    A Network class for Media Gibbs Sampler chains.
     The user should customise this by overriding the attributes
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.synth_function_location`,
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`,
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_ranges`,
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.synth_function_location`,
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.vector_length`,
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.vector_ranges`,
     and optionally
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`,
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.n_jobs`.
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.granularity`,
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.n_jobs`.
     The user is also invited to override the
     :meth:`psynet.trial.chain.ChainNetwork.make_definition` method
     in situations where different chains are to have different properties
@@ -47,7 +48,7 @@ class AudioGibbsNetwork(GibbsNetwork):
 
             - ``vector``, the parameter vector for the stimulus to be generated.
 
-            - ``output_path``, the output path for the audio file to be generated.
+            - ``output_path``, the output path for the media file to be generated.
 
             - ``chain_definition``, the ``definition`` dictionary for the current chain.
 
@@ -62,7 +63,7 @@ class AudioGibbsNetwork(GibbsNetwork):
 
     vector_ranges : list
         Must be overridden with a list with length equal to
-        :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`.
+        :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.vector_length`.
 
     n_jobs : int
         Integer indicating how many parallel processes should be used by an individual worker node
@@ -72,16 +73,18 @@ class AudioGibbsNetwork(GibbsNetwork):
         Default is 1, corresponding to no parallelization.
 
     granularity : Union[int, str]
-        When a new :class:`~psynet.trial.audio_gibbs.AudioGibbsNode`
+        When a new :class:`~psynet.trial.media_gibbs.MediaGibbsNode`
         is created, a collection of stimuli are generated that
         span a given dimension of the parameter vector.
         If ``granularity`` is an integer, then this integer sets the number
         of stimuli that are generated, and the stimuli will be spaced evenly
         across the closed interval defined by the corresponding element of
-        :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_ranges`.
+        :attr:`~psynet.trial.media_gibbs.MediaGibbsNetwork.vector_ranges`.
         If ``granularity`` is equal to ``"custom"``, then the spacing of the
-        stimuli is instead determined by the audio generation function.
+        stimuli is instead determined by the media generation function.
     """
+
+    __mapper_args__ = {"polymorphic_identity": "media_gibbs_network"}
 
     synth_function_location = {"module_name": "", "function_name": ""}
     s3_bucket = ""
@@ -89,6 +92,8 @@ class AudioGibbsNetwork(GibbsNetwork):
     vector_ranges = []
     granularity = 100
     n_jobs = 1
+    modality = None
+    supports_batch = False
 
     @property
     def synth_function(self):
@@ -124,6 +129,7 @@ class AudioGibbsNetwork(GibbsNetwork):
             )
 
         for r in self.vector_ranges:
+            print(self.vector_ranges)
             if not (len(r) == 2 and r[0] < r[1]):
                 raise ValueError(
                     "Each element of <vector_ranges> must be a list of two numbers in increasing order "
@@ -144,13 +150,14 @@ class AudioGibbsNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
-        logger.info("Synthesising audio for network %i...", self.id)
+        start = datetime.now()
+        logger.info(f"Synthesising {self.modality} for network {self.id}...")
 
         node = self.head
 
-        if isinstance(node, AudioGibbsSource):
+        if isinstance(node, MediaGibbsSource):
             logger.info(
-                "Network %i only contains a Source, no audio to be synthesised.",
+                "Network %i only contains a Source, no media to be synthesised.",
                 self.id,
             )
         else:
@@ -175,34 +182,58 @@ class AudioGibbsNetwork(GibbsNetwork):
                     "n_jobs": self.n_jobs,
                 }
 
-                if granularity == "custom":
-                    stimuli = make_audio_custom_intervals(**args)
-                else:
-                    stimuli = make_audio_regular_intervals(
-                        granularity=granularity, **args
+                if self.supports_batch:
+                    vectors = []
+                    range_to_sample = self.vector_ranges[active_index]
+                    values, _, _, _, stimuli = _prepare_stimuli(
+                        range_to_sample,
+                        granularity,
+                        individual_stimuli_dir,
+                        self.modality,
+                    )
+                    for idx, value in enumerate(values):
+                        _vector = vector.copy()
+                        _vector[active_index] = value
+                        vectors.append(_vector)
+
+                    self.synth_function(
+                        vector=vectors,
+                        output_path=batch_path,
+                        chain_definition=self.definition,
                     )
 
-                make_audio_batch_file(stimuli, batch_path)
+                else:
+                    if granularity == "custom":
+                        stimuli = make_media_custom_intervals(**args)
+                    else:
+                        stimuli = make_media_regular_intervals(
+                            modality=self.modality, granularity=granularity, **args
+                        )
+
+                    make_media_batch_file(stimuli, batch_path)
                 batch_url = upload_to_s3(
                     batch_path, self.s3_bucket, key=batch_file, public_read=True
                 )["url"]
 
+                logger.info(
+                    f"Finished synthesising {self.modality} for network {self.id} in {datetime.now() - start}"
+                )
                 node.slider_stimuli = {"url": batch_url, "all": stimuli}
 
 
-class AudioGibbsTrial(GibbsTrial):
+class MediaGibbsTrial(GibbsTrial):
     """
-    A Trial class for Audio Gibbs Sampler chains.
+    A Trial class for Media Gibbs Sampler chains.
     The user should customise this by overriding the
-    :meth:`~psynet.trial.audio_gibbs.AudioGibbsTrial.get_prompt`
+    :meth:`~psynet.trial.media_gibbs.MediaGibbsTrial.get_prompt`
     method.
     The user must also specify a time estimate
     by overriding the ``time_estimate`` class attribute.
     The user is also invited to override the
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.snap_slider`,
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.autoplay`,
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsTrial.snap_slider`,
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsTrial.autoplay`,
     and
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.minimal_interactions`
+    :attr:`~psynet.trial.media_gibbs.MediaGibbsTrial.minimal_interactions`
     attributes.
 
     Attributes
@@ -210,22 +241,22 @@ class AudioGibbsTrial(GibbsTrial):
 
     snap_slider : bool
         If ``True``, the slider snaps to the location corresponding to the
-        closest available audio stimulus.
+        closest available media stimulus.
         If ``False`` (default), continuous values are permitted.
 
     snap_slider_before_release: bool
-        If ``True``, the slider snaps to the closest audio stimulus before release
+        If ``True``, the slider snaps to the closest stimulus before release
         rather than after release. This option is only available
         if the stimuli are equally spaced.
 
     autoplay : bool
-        If ``True``, a sound corresponding to the initial location on the
+        If ``True``, a media corresponding to the initial location on the
         slider will play as soon as the slider is ready for interactions.
         If ``False`` (default), the sound only plays once the participant
         first moves the slider.
 
     disable_while_playing : bool
-        If `True`, the slider is disabled while the audio is playing. Default: `False`.
+        If `True`, the slider is disabled while the media is playing. Default: `False`.
 
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
@@ -265,17 +296,18 @@ class AudioGibbsTrial(GibbsTrial):
         vector_range = self.vector_ranges[self.active_index]
 
         return ModularPage(
-            "gibbs_audio_trial",
+            "gibbs_video_trial",
             self._get_prompt(experiment, participant),
-            control=AudioSliderControl(
+            control=MediaSliderControl(
                 "slider_control",
-                audio=self.media.audio,
-                sound_locations=self.sound_locations,
+                multimedia=self.media.data[self.network.modality],
+                modality=self.network.modality,
+                media_locations=self.media_locations,
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
-                num_steps="num_sounds" if self.snap_slider_before_release else 10000,
-                snap_values="sound_locations" if self.snap_slider else None,
+                num_steps="num_media" if self.snap_slider_before_release else 10000,
+                snap_values="media_locations" if self.snap_slider else None,
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,
                 reverse_scale=self.reverse_scale,
@@ -312,18 +344,22 @@ class AudioGibbsTrial(GibbsTrial):
     @property
     def media(self):
         slider_stimuli = self.slider_stimuli
-        return MediaSpec(
-            audio={
+        media_spec = MediaSpec()
+
+        media_spec.add(
+            self.network.modality,
+            {
                 "slider_stimuli": {
                     "url": slider_stimuli["url"],
                     "ids": [x["id"] for x in slider_stimuli["all"]],
                     "type": "batch",
                 }
-            }
+            },
         )
+        return media_spec
 
     @property
-    def sound_locations(self):
+    def media_locations(self):
         res = {}
         for stimulus in self.slider_stimuli["all"]:
             res[stimulus["id"]] = stimulus["value"]
@@ -352,40 +388,57 @@ class AudioGibbsTrial(GibbsTrial):
             "trial_id": self.id,
             "start_value": self.initial_vector[self.active_index],
             "vector_range": self.vector_ranges[self.active_index],
-            "sound_locations": self.sound_locations,
+            "media_locations": self.media_locations,
         }
 
 
-class AudioGibbsNode(GibbsNode):
+class MediaGibbsNode(GibbsNode):
     """
-    A Node class for Audio Gibbs sampler chains.
+    A Node class for Media Gibbs sampler chains.
     The user should not have to modify this.
     """
 
+    __mapper_args__ = {"polymorphic_identity": "media_gibbs_node"}
     __extra_vars__ = GibbsNode.__extra_vars__.copy()
 
     slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
 
 
-class AudioGibbsSource(GibbsSource):
+class MediaGibbsSource(GibbsSource):
     """
-    A Source class for Audio Gibbs sampler chains.
+    A Source class for Media Gibbs sampler chains.
     The user should not have to modify this.
     """
 
     pass
 
 
-class AudioGibbsTrialMaker(GibbsTrialMaker):
+class MediaGibbsTrialMaker(GibbsTrialMaker):
     pass
 
 
-def make_audio_batch_file(stimuli, output_path):
+def make_media_batch_file(stimuli, output_path):
     paths = [x["path"] for x in stimuli]
     make_batch_file(paths, output_path)
 
 
-def make_audio_regular_intervals(
+def _prepare_stimuli(range_to_sample, granularity, output_dir, modality):
+    logger.info(modality)
+    assert modality in ["audio", "video"]
+    ext = ".wav" if modality == "audio" else ".mp4"
+    values = linspace(range_to_sample[0], range_to_sample[1], granularity)
+    ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
+    files = [f"{_id}{ext}" for _id in ids]
+    paths = [os.path.join(output_dir, _file) for _file in files]
+    stimuli = [
+        {"id": _id, "value": _value, "path": _path}
+        for _id, _value, _path in zip(ids, values, paths)
+    ]
+    return values, ids, files, paths, stimuli
+
+
+def make_media_regular_intervals(
+    modality,
     granularity,
     vector,
     active_index,
@@ -395,11 +448,9 @@ def make_audio_regular_intervals(
     synth_function,
     n_jobs,
 ):
-    values = linspace(range_to_sample[0], range_to_sample[1], granularity)
-
-    ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-    files = [f"{_id}.wav" for _id in ids]
-    paths = [os.path.join(output_dir, _file) for _file in files]
+    values, ids, files, paths, stimuli = _prepare_stimuli(
+        range_to_sample, granularity, output_dir, modality
+    )
 
     def _synth(value, path):
         _vector = vector.copy()
@@ -420,13 +471,95 @@ def make_audio_regular_intervals(
         for _value, _path in zip(values, paths):
             _synth(_value, _path)
 
-    return [
-        {"id": _id, "value": _value, "path": _path}
-        for _id, _value, _path in zip(ids, values, paths)
-    ]
+    return stimuli
 
 
-def make_audio_custom_intervals(
+def make_media_custom_intervals(
     vector, active_index, range_to_sample, chain_definition, output_dir, synth_function
 ):
     raise NotImplementedError
+
+
+class AudioGibbsNetwork(MediaGibbsNetwork):
+    modality = "audio"
+    pass
+
+
+class AudioGibbsTrial(MediaGibbsTrial):
+    def show_trial(self, experiment, participant):
+        self._validate()
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+
+        return ModularPage(
+            "gibbs_audio_trial",
+            self._get_prompt(experiment, participant),
+            control=MediaSliderControl(
+                "slider_control",
+                multimedia=self.media.audio,
+                modality="audio",
+                media_locations=self.media_locations,
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                num_steps="num_media" if self.snap_slider_before_release else 10000,
+                snap_values="media_locations" if self.snap_slider else None,
+                autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                minimal_interactions=self.minimal_interactions,
+                minimal_time=self.minimal_time,
+                random_wrap=self.random_wrap,
+                input_type=self.input_type,
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+        )
+
+    @property
+    def media(self):
+        slider_stimuli = self.slider_stimuli
+        return MediaSpec(
+            audio={
+                "slider_stimuli": {
+                    "url": slider_stimuli["url"],
+                    "ids": [x["id"] for x in slider_stimuli["all"]],
+                    "type": "batch",
+                }
+            }
+        )
+
+
+class AudioGibbsNode(MediaGibbsNode):
+    pass
+
+
+class AudioGibbsSource(GibbsSource):
+    pass
+
+
+class AudioGibbsTrialMaker(GibbsTrialMaker):
+    pass
+
+
+class VideoGibbsNetwork(MediaGibbsNetwork):
+    modality = "video"
+    pass
+
+
+class VideoGibbsTrial(MediaGibbsTrial):
+    pass
+
+
+class VideoGibbsNode(MediaGibbsNode):
+    pass
+
+
+class VideoGibbsSource(GibbsSource):
+    pass
+
+
+class VideoGibbsTrialMaker(GibbsTrialMaker):
+    pass

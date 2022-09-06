@@ -879,6 +879,11 @@
                         throw Error("Unsupported media type: " + mediaType);
                     }
 
+                    // Make sure all batches are processed as arraybuffers
+                    if (args["batchId"] !== null){
+                        request.responseType = "arraybuffer";
+                    }
+
                     request.onprogress = function (e) {
                         psynet.media.downloadProgress.set(args["mediaType"], args["fileId"], e.loaded * 100 / e.total);
                     };
@@ -1110,6 +1115,7 @@
                             "Associating video '" + stimulusId
                             + "' with the player of the same name.'"
                         );
+                        data = new Blob( [ data] )  // convert to blob
                         player.src = URL.createObjectURL(data);
                         player.classList.remove("loader");
                         player.load();
@@ -1125,8 +1131,7 @@
                 };
 
                 let processMediaBatch = {};
-
-                processMediaBatch.audio = function (data, args) { //, ids,) {
+                processMediaBatch.extract_stimuli = function (data, args) {
                     let stimulusIds = args["stimulusIds"];
                     let mediaType = args["mediaType"];
                     let fileId = args["fileId"];
@@ -1139,8 +1144,14 @@
                         return dstU8;
                     }
 
+                    function stringToHTML(str) {
+                        var dom = document.createElement('div');
+                        dom.innerHTML = str;
+                        return dom;
+                    }
+
                     let numFiles = 0;
-                    psynet.log.debug('Unpacking the audio batch "' + fileId + '".');
+                    psynet.log.debug('Unpacking the ' + mediaType + ' batch "' + fileId + '".');
                     let bb = new DataView(data);
                     let offset = 0;
                     let promises = [];
@@ -1149,7 +1160,7 @@
                         let stimulusId = stimulusIds[numFiles];
                         let length = bb.getUint32(offset, true);
                         offset += 4;
-                        let sound = extractBuffer(data, offset, length);
+                        let media = extractBuffer(data, offset, length);
                         offset += length;
                         numFiles++;
 
@@ -1167,7 +1178,12 @@
                             fileId: fileId
                         };
 
-                        promises.push(createMediaFromBuffer.audio(sound.buffer, args));
+                        if (mediaType === 'video') {
+                            document.getElementById('main-body').prepend(stringToHTML(
+                                '<video style="display: none" class="video" id="' + stimulusId  +'"></video>'
+                            ))
+                        }
+                        promises.push(createMediaFromBuffer[mediaType](media.buffer, args));
                     }
                     if (numFiles < stimulusIds.length) {
                         throw Error(
@@ -1177,6 +1193,14 @@
                         );
                     }
                     return Promise.all(promises);
+                }
+
+                processMediaBatch.audio = function (data, args) { //, ids,) {
+                    return processMediaBatch.extract_stimuli(data, args);
+                };
+
+                processMediaBatch.video = function (data, args) { //, ids,) {
+                    return processMediaBatch.extract_stimuli(data, args);
                 };
 
                 let checkParticipantId = function () {
