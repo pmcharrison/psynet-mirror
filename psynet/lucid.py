@@ -180,7 +180,7 @@ class LucidService(object):
                 "NumberOfRequiredConditions": 1,
                 "IsActive": True,
                 "Order": 3,
-                "PreCodes": ["1", "2"],
+                "PreCodes": ["1"],
             },
         ]
 
