@@ -7,8 +7,6 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
-from psynet.participant import Participant
-
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
@@ -120,11 +118,6 @@ class ChainNetwork(TrialNetwork):
 
     # pylint: disable=abstract-method
     # __extra_vars__ = TrialNetwork.__extra_vars__.copy()
-
-    participant_id = Column(Integer, ForeignKey("participant.id"))
-    participant = relationship(Participant, foreign_keys=[participant_id])
-
-    id_within_participant = Column(Integer)
 
     chain_type = Column(String)
     trials_per_node = Column(Integer)

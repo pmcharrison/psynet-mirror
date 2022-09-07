@@ -2301,6 +2301,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
     target_n_trials = Column(Integer)
     participant_group = Column(String)
 
+    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant = relationship(Participant, foreign_keys=[participant_id])
+
+    id_within_participant = Column(Integer)
+
     all_trials = relationship("psynet.trial.main.Trial")
 
     @property
