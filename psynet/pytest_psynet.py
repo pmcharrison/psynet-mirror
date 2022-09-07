@@ -271,6 +271,7 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
     if not config.ready:
         config.load()
 
+    print(f"User: {os.getenv('USER')}")
     print(get_from_config("debug_storage_root"))
 
     # Make sure debug server runs to completion with bots
