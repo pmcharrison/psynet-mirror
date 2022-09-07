@@ -4,8 +4,12 @@ image: python:3.10
 services:
   - postgres:12.2-alpine
 
-# Comment this out if you decide to use local postgres instead
+
 variables:
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+  AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+  # Comment these out if you decide to use local postgres instead
   POSTGRES_DB: dallinger
   POSTGRES_USER: dallinger
   POSTGRES_PASSWORD: ""
@@ -46,7 +50,7 @@ before_script:
   - pip install -e /tmp/dallinger[data]
 # Install PsyNet
   - pip install -e .[dev]
-  - psynet generate-config --debug_storage_root "$HOME/psynet-debug-storage" --export_root "$HOME/psynet-exports"
+  - psynet generate-config --debug_storage_root "$HOME/psynet-debug-storage" --export_root "$HOME/psynet-exports" --aws_access_key_id "$AWS_ACCESS_KEY_ID" --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --aws_region "$AWS_DEFAULT_REGION"
 
 tests:
   parallel: 5
