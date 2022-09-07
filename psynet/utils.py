@@ -758,12 +758,12 @@ def clear_all_caches():
     import functools
     import gc
 
-    cached_functions = [
-        i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
-    ]
-
-    for func in cached_functions:
-        func.cache_clear()
+    for obj in gc.get_objects():
+        try:
+            if isinstance(obj, functools._lru_cache_wrapper):
+                obj.cache_clear()
+        except ReferenceError:
+            pass
 
 
 @contextlib.contextmanager
