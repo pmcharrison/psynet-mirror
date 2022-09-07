@@ -5,7 +5,7 @@ import psynet.field  # noqa
 from psynet.experiment import import_local_experiment
 from psynet.pytest_psynet import path_to_demo
 from psynet.serialize import serialize, unserialize
-from psynet.trial.static import StaticTrial, Stimulus
+from psynet.trial.static import StaticNode, StaticTrial
 
 
 @pytest.mark.parametrize(
@@ -65,7 +65,7 @@ class Test:
         trial_unserialized = unserialize(trial_serialized)
         assert isinstance(trial_unserialized, StaticTrial)
         assert trial.id == 1
-        assert isinstance(trial.origin, Stimulus)
+        assert isinstance(trial.node, StaticNode)
 
         self.check_mappers()
 
