@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from dallinger import db
 
@@ -32,9 +34,9 @@ class Test:
         db.session.commit()
 
         net_serialized = serialize(network)
-        assert (
-            net_serialized
-            == '{"py/object": "dallinger.models.Network", "identifiers": {"id": 6}}'
+        assert re.match(
+            '{"py/object": "dallinger.models.Network", "identifiers": {"id": [0-9]+}}',
+            net_serialized,
         )
         network_2 = unserialize(net_serialized)
         assert network_2.id == network.id
