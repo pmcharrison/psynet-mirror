@@ -5,14 +5,14 @@ import pytest
 from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
-from psynet.pytest_psynet import bot_class, next_page
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", ["../demos/custom_table_complex"], indirect=True
+    "experiment_directory", [path_to_demo("custom_table_complex")], indirect=True
 )
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session, experiment_module):

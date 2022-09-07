@@ -3,7 +3,7 @@ import time
 import pytest
 
 from psynet.participant import get_participant
-from psynet.pytest_psynet import bot_class, next_page
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo
 
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
@@ -11,7 +11,7 @@ EXPERIMENT = None
 
 @pytest.mark.parametrize(
     "experiment_directory",
-    ["../demos/demography/gmsi_two_modules_with_subscales"],
+    [path_to_demo("demography/gmsi_two_modules_with_subscales")],
     indirect=True,
 )
 class TestExp(object):

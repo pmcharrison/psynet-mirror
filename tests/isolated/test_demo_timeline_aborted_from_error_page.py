@@ -5,7 +5,7 @@ import pytest
 from selenium.webdriver.common.by import By
 
 from psynet.participant import get_participant
-from psynet.pytest_psynet import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -13,7 +13,7 @@ EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", ["../demos/timeline_with_error"], indirect=True
+    "experiment_directory", [path_to_demo("timeline_with_error")], indirect=True
 )
 class TestExp:
     def test_variables(self, db_session):

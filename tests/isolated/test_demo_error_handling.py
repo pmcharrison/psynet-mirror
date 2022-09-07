@@ -11,6 +11,7 @@ from psynet.pytest_psynet import (
     assert_text,
     bot_class,
     next_page,
+    path_to_demo,
     psynet_loaded,
     wait_until,
 )
@@ -21,10 +22,9 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-experiment_dir = "../../demos/error_handling"
-
-
-@pytest.mark.parametrize("experiment_directory", [experiment_dir], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("error_handling")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_exp(

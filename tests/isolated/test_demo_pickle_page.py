@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from psynet.pytest_psynet import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -11,7 +11,7 @@ EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", ["../demos/pickle_page"], indirect=True
+    "experiment_directory", [path_to_demo("pickle_page")], indirect=True
 )
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):

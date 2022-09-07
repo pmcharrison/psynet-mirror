@@ -6,10 +6,11 @@ import pytest
 from psynet.asset import Asset
 from psynet.command_line import run_prepare_in_subprocess
 from psynet.experiment import get_experiment
+from psynet.pytest_psynet import path_to_demo
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", ["../demos/static_audio"], indirect=True
+    "experiment_directory", [path_to_demo("static_audio")], indirect=True
 )
 def test_s3_asset_preparation(in_experiment_directory):
     exp = get_experiment()
