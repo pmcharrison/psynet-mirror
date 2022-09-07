@@ -21,7 +21,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-experiment_dir = "../demos/error_handling"
+experiment_dir = "../../demos/error_handling"
 
 
 @pytest.mark.parametrize("experiment_directory", [experiment_dir], indirect=True)
