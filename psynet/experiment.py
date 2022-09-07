@@ -524,14 +524,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for module in self.timeline.modules.values():
             module.prepare_for_deployment(experiment=self)
 
-        self.assets.prepare_for_deployment()
-
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")
             call_function_with_context(
                 routine.function, experiment=self, **routine.args
             )
 
+        self.assets.prepare_for_deployment()
         self.create_database_snapshot()
 
     @classmethod

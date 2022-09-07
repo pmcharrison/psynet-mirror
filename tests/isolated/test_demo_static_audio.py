@@ -16,8 +16,8 @@ def test_s3_asset_preparation(in_experiment_directory):
     exp = get_experiment()
     exp.asset_storage.delete_all()
     run_prepare_in_subprocess()
-    asset = Asset.query.all()[0]
-    assert asset.url.startswith("https://s3")
+    for asset in Asset.query.all():
+        assert asset.url.startswith("https://s3")
 
     with tempfile.NamedTemporaryFile() as f:
         asset.export(f.name)
