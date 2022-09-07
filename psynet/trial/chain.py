@@ -2,11 +2,13 @@ import random
 from typing import Optional, Set, Type
 
 from dallinger import db
+from dallinger.models import Vector
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
+from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
@@ -33,6 +35,10 @@ logger = get_logger()
 #
 #     __extra_vars__ = {}
 #     register_extra_var(__extra_vars__, "seed", field_type=dict)
+
+
+class ChainVector(SQLMixinDallinger, Vector):
+    pass
 
 
 class ChainNetwork(TrialNetwork):
@@ -296,13 +302,18 @@ class ChainNetwork(TrialNetwork):
         return first_node
 
     def add_node(self, node):
+        network_size = len(self.alive_nodes)
         node.set_network(self)
         if node.degree > 0:
             previous_head = self.get_node_with_degree(node.degree - 1)
-            previous_head.connect(whom=node)
+            vector = ChainVector(origin=previous_head, destination=self)
+            db.session.add(vector)
             previous_head.child = node
             node.parent = previous_head
-        self.calculate_full()
+            network_size += 1
+        if network_size > (self.max_size or 0):
+            # We avoid calling self.calculate_full because it involves a database query
+            self.full = True
 
     @property
     def n_trials_still_required(self):

@@ -2380,6 +2380,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
+        db.session.commit()
         self.full = len(self.alive_nodes) > (self.max_size or 0)
 
     def add_node(self, node):

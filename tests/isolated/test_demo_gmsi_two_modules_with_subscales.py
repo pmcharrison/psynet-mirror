@@ -38,23 +38,19 @@ class TestExp(object):
             next_page(driver, "1")
 
             participant = get_participant(1)
-            modules = participant.modules
-            assert list(modules.keys()) == ["gmsi_1", "gmsi_2"]
-            assert set(list(modules["gmsi_1"].keys())) == {
-                "time_started",
-                "time_finished",
-            }
-            assert set(list(modules["gmsi_2"].keys())) == {
-                "time_started",
-                "time_finished",
-            }
-            assert len(modules["gmsi_1"]["time_started"]) == 1
-            assert len(modules["gmsi_1"]["time_finished"]) == 1
-            assert len(modules["gmsi_2"]["time_started"]) == 1
-            assert len(modules["gmsi_2"]["time_finished"]) == 1
+
+            assert list(participant.module_states) == ["gmsi_1", "gmsi_2"]
+            for _module in ["gmsi_1", "gmsi_2"]:
+                for _attr in ["time_started", "time_finished"]:
+                    assert (
+                        getattr(participant.module_states[_module][0], _attr)
+                        is not None
+                    )
+
             assert participant.started_modules == ["gmsi_1", "gmsi_2"]
             assert participant.finished_modules == ["gmsi_1", "gmsi_2"]
             assert participant.current_module_id == "gmsi_2"
+
             assert participant.var.gmsi_1["mean_scores_per_scale"] == {
                 "Singing Abilities": 1.0,
             }

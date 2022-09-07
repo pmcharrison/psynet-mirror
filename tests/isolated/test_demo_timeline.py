@@ -34,7 +34,7 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            assert list(get_participant(1).modules.keys()) == ["main_consent"]
+            assert list(get_participant(1).started_modules) == ["main_consent"]
 
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
@@ -46,22 +46,14 @@ class TestExp(object):
 
             # Page 1
             participant = get_participant(1)
-            modules = participant.modules
-
-            assert list(modules.keys()) == [
-                "main_consent",
-                "introduction",
-            ]
-            assert set(list(modules["introduction"].keys())) == {
-                "time_started",
-                "time_finished",
-            }
-            assert len(modules["introduction"]["time_started"]) == 1
-            assert len(modules["introduction"]["time_finished"]) == 0
             assert participant.started_modules == [
                 "main_consent",
                 "introduction",
             ]
+            assert (
+                participant.started_modules["introduction"][0].time_started is not None
+            )
+            assert participant.started_modules["introduction"][0].time_finished is None
             assert participant.finished_modules == ["main_consent"]
             assert participant.current_module_id == "introduction"
 
@@ -156,17 +148,9 @@ class TestExp(object):
             # Page 7
             db_session.commit()
             participant = get_participant(1)
-            modules = participant.modules
-            assert set(list(modules.keys())) == {
-                "main_consent",
-                "chocolate",
-                "weight",
-                "introduction",
-            }
-            assert len(modules["introduction"]["time_started"]) == 1
-            assert len(modules["introduction"]["time_finished"]) == 1
-            assert len(modules["chocolate"]["time_started"]) == 1
-            assert len(modules["chocolate"]["time_finished"]) == 0
+
+            assert participant.module_states["introduction"].finished
+            assert not participant.module_states["chocolate"].finished
             assert participant.started_modules == [
                 "main_consent",
                 "introduction",
@@ -203,9 +187,8 @@ class TestExp(object):
             next_page(driver, "No")
 
             db_session.commit()
-            modules = get_participant(1).modules
-            assert len(modules["loop"]["time_started"]) == 4
-            assert len(modules["loop"]["time_finished"]) == 4
+
+            assert len(participant.module_states["loop"]) == 4
 
             assert_text(
                 driver,

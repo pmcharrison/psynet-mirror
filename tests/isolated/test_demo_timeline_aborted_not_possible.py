@@ -61,11 +61,10 @@ class TestExp:
             time.sleep(0.5)
 
             participant = get_participant(1)
-            modules = participant.modules
 
             assert participant.aborted is True
             assert participant.aborted_modules == [
                 "introduction",
             ]
-            assert len(modules["introduction"]["time_aborted"]) == 1
-            assert len(modules["introduction"]["time_finished"]) == 0
+            assert participant.module_states["introduction"][0].aborted
+            assert not participant.module_states["introduction"][0].finished

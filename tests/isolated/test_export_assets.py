@@ -172,7 +172,7 @@ class TestAssetExport:
                 os.path.join(tempdir, "anonymous", "assets", "test_personal_asset")
             )
             assert not os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_external_asset")
+                os.path.join(tempdir, "regular", "assets", "test_external_asset.wav")
             )
             assert not os.path.exists(
                 os.path.join(tempdir, "regular", "assets", "test_fast_function_asset")
@@ -185,7 +185,7 @@ class TestAssetExport:
                 os.path.join(tempdir, "regular", "assets", "test_personal_asset")
             )
             assert os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_external_asset")
+                os.path.join(tempdir, "regular", "assets", "test_external_asset.wav")
             )  # now we have this
             assert os.path.exists(
                 os.path.join(tempdir, "regular", "assets", "test_fast_function_asset")
