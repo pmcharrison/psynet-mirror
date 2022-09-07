@@ -113,7 +113,7 @@ def claim_var(
     def function(self):
         try:
             return unserialise(getattr(self.var, name))
-        except UndefinedVariableError:
+        except KeyError:
             if use_default:
                 return default()
             raise
@@ -134,10 +134,6 @@ def check_type(x, allowed):
             match = True
     if not match:
         raise TypeError(f"{x} did not have a type in the approved list ({allowed}).")
-
-
-class UndefinedVariableError(Exception):
-    pass
 
 
 class BaseVarStore:
@@ -170,7 +166,7 @@ class BaseVarStore:
         Raises
         ------
 
-        UndefinedVariableError
+        KeyError
             Thrown if the variable doesn't exist and no default value is provided.
         """
         try:
@@ -249,7 +245,7 @@ class BaseVarStore:
         Raises
         ------
 
-        UndefinedVariableError
+        KeyError
             Thrown if the variable doesn't exist.
         """
         original = self.get(name)
@@ -280,7 +276,7 @@ class BaseVarStore:
         Raises
         ------
 
-        UndefinedVariableError
+        KeyError
             Thrown if the variable doesn't exist.
         """
         if self.has(name):
@@ -363,19 +359,6 @@ class VarStore(BaseVarStore):
     def items(self):
         return self.__dict__["_owner"].vars.items()
 
-    # def serialize(self, obj):
-    #     return serialize(obj)
-    #
-    # def unserialize(self, string):
-    #     return unserialize(string)
-    #
-    # def get_var(self, name):
-    #     vars_ = self.get_vars()
-    #     try:
-    #         return self.unserialize(vars_[name])
-    #     except KeyError:
-    #         raise UndefinedVariableError(f"Undefined variable: {name}.")
-
     def __setattr__(self, name, value):
         if name == "_owner":
             self.__dict__["_owner"] = value
@@ -385,26 +368,6 @@ class VarStore(BaseVarStore):
             self.__dict__["_owner"].vars[name] = value
             # self[name] = value
             # self.set_var(name, value)
-
-    # def set_var(self, name, value):
-    #     vars_ = self.get_vars()
-    #     value_encoded = self.serialize(value)
-    #     vars_[name] = value_encoded
-    #     self.set_vars(vars_)
-    #
-    # def get_vars(self):
-    #     vars_ = self.__dict__["_owner"].details
-    #     if vars_ is None:
-    #         vars_ = {}
-    #     return vars_.copy()
-
-    # def set_vars(self, vars_):
-    #     # We need to copy the dictionary otherwise
-    #     # SQLAlchemy won't notice if we change it later.
-    #     self.__dict__["_owner"].details = vars_.copy()
-
-    # def list(self):
-    #     return list(self._all.keys())
 
 
 # class DotDict(dict, BaseVarStore):
@@ -458,7 +421,7 @@ def json_add_extra_vars(x, obj):
         if valid_key(key):
             try:
                 val = getattr(obj, key)
-            except UndefinedVariableError:
+            except KeyError:
                 val = None
             x[key] = val
 

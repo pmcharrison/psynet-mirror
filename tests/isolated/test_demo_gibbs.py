@@ -4,7 +4,6 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 
-from psynet.field import UndefinedVariableError
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
@@ -66,7 +65,7 @@ class TestExp:
             trials = pt.alive_trials
             assert len(trials) == 7  # includes repeat trials
 
-            with pytest.raises(UndefinedVariableError):
+            with pytest.raises(KeyError):
                 pt.var.get("uninitialized_variable")
 
             assert pt.var.get("uninitialized_variable", default=123) == 123
