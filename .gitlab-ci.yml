@@ -53,7 +53,7 @@ before_script:
   - psynet generate-config --debug_storage_root "$HOME/psynet-debug-storage" --default_export_root "$HOME/psynet-exports" --aws_access_key_id "$AWS_ACCESS_KEY_ID" --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --aws_region "$AWS_DEFAULT_REGION"
 
 tests:
-  parallel: 10
+  parallel: 5
   stage: test
   script:
   - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests
