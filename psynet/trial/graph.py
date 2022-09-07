@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from dallinger import db
 
@@ -39,25 +39,22 @@ class GraphChainNetwork(ChainNetwork):
     def __init__(  # overriden
         self,
         trial_maker_id: str,
-        source_class,
         experiment,
+        start_node: "GraphChainNode",
         chain_type: str,
-        vertex_id: int,
-        dependent_vertex_ids: List[int],
         trials_per_node: int,
         target_n_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
-        source_seed: Optional = None,
     ):
 
-        self.vertex_id = vertex_id
-        self.dependent_vertex_ids = dependent_vertex_ids
-        self.source_seed = source_seed
+        self.vertex_id = start_node.vertex_id
+        self.dependent_vertex_ids = start_node.dependent_vertex_ids
+        self.source_seed = start_node.seed
 
         super().__init__(
             trial_maker_id=trial_maker_id,
-            source_class=source_class,
+            start_node=start_node,
             experiment=experiment,
             chain_type=chain_type,
             trials_per_node=trials_per_node,
@@ -135,6 +132,13 @@ class GraphChainNode(ChainNode):
             propagate_failure=propagate_failure,
             participant=participant,
         )
+
+    # def create_initial_seed(self, experiment, participant):
+    #     return self.network.source_seed
+
+    @staticmethod
+    def generate_class_seed():
+        raise NotImplementedError
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -234,21 +238,6 @@ class GraphChainNode(ChainNode):
         return parents
 
 
-class GraphChainSource(ChainSource):
-    """
-    A Source class for graph chains.
-    """
-
-    __extra_vars__ = ChainSource.__extra_vars__.copy()
-
-    def generate_seed(self, network, experiment, participant):
-        return network.source_seed
-
-    @staticmethod
-    def generate_class_seed():
-        raise NotImplementedError
-
-
 class GraphChainTrialMaker(ChainTrialMaker):
     """
     A TrialMaker class for graph chains;
@@ -269,13 +258,11 @@ class GraphChainTrialMaker(ChainTrialMaker):
         self,
         *,
         id_,
-        network_class,
-        node_class,
-        source_class,
-        trial_class,
+        node_class: Type[GraphChainNode],
+        trial_class: Type[GraphChainTrial],
         network_structure,
         chain_type: str,
-        estimated_trials_per_participant: int,
+        expected_trials_per_participant: int,
         max_trials_per_participant: int,
         chains_per_participant: Optional[int],
         # chains_per_experiment: Optional[int],
@@ -299,11 +286,10 @@ class GraphChainTrialMaker(ChainTrialMaker):
         self.network_structure = network_structure
         super().__init__(
             id_=id_,
-            network_class=network_class,
             node_class=node_class,
             trial_class=trial_class,
             chain_type=chain_type,
-            estimated_trials_per_participant=estimated_trials_per_participant,
+            expected_trials_per_participant=expected_trials_per_participant,
             max_trials_per_participant=max_trials_per_participant,
             chains_per_participant=chains_per_participant,
             chains_per_experiment=chains_per_experiment,
@@ -321,6 +307,10 @@ class GraphChainTrialMaker(ChainTrialMaker):
             wait_for_networks=wait_for_networks,
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
         )
+
+    @property
+    def default_network_class(self):
+        return GraphChainNetwork
 
     def pre_deploy_routine(self, experiment):
         if self.chain_type == "across":
@@ -344,31 +334,36 @@ class GraphChainTrialMaker(ChainTrialMaker):
             dependent_vertex_ids = self.get_dependent_vertex_ids(
                 vertex_id, network_structure
             )
-            self.create_network(
-                experiment, vertex_id, dependent_vertex_ids, source_seed
+            start_node = self.node_class(
+                seed=source_seed,
+                degree=0,
+                network=None,
+                experiment=experiment,
+                propagate_failure=self.propagate_failure,
+                vertex_id=vertex_id,
+                dependent_vertex_ids=dependent_vertex_ids,
+                participant=None,
+            )
+            self.create_graph_network(
+                experiment, start_node
             )
 
-    def create_network(
+    def create_graph_network(
         self,
         experiment,
-        vertex_id,
-        dependent_vertex_ids,
-        source_seed,
+        start_node,
         participant=None,
         id_within_participant=None,
     ):
         network = self.network_class(
             trial_maker_id=self.id,
-            source_class=self.source_class,
+            start_node=start_node,
             experiment=experiment,
             chain_type=self.chain_type,
-            vertex_id=vertex_id,
-            dependent_vertex_ids=dependent_vertex_ids,
             trials_per_node=self.trials_per_node,
             target_n_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
-            source_seed=source_seed,
         )
         db.session.add(network)
         db.session.commit()
@@ -434,7 +429,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         centers = [
             {
                 "vertex_id": v,
-                "content": self.source_class.generate_class_seed(),
+                "content": self.node_class.generate_class_seed(),
                 "is_center": True,
             }
             for v in vertices

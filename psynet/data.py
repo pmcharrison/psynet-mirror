@@ -344,12 +344,13 @@ class SQLMixinDallinger(SharedMixin):
 
         return x
 
-    def __json__(self):
+    def __json__(self) -> dict:
         "Used to transmit the item to the Dallinger dashboard"
         data = self.to_dict()
         for key, value in data.items():
             if not is_basic_type(value):
-                data[value] = repr(value)
+                data[key] = repr(value)
+        return data
 
     @classproperty
     def sql_columns(cls):

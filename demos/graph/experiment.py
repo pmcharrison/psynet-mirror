@@ -18,9 +18,7 @@ from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.graph import (
-    GraphChainNetwork,
     GraphChainNode,
-    GraphChainSource,
     GraphChainTrial,
     GraphChainTrialMaker,
 )
@@ -76,7 +74,7 @@ class NecklaceCircle(Circle):
         super().__init__(id_, x, y, radius, click_to_answer=not interactive, **kwargs)
 
     @property
-    def js_init(self) -> str:
+    def js_init(self):
         return [
             *super().js_init,
             f"""
@@ -150,6 +148,7 @@ class NecklaceNAFCPage(ModularPage):
                 prevent_control_submit=True,
             ),
             time_estimate=time_estimate,
+            bot_response=lambda: random.choice(range(len(self.necklace_states)))
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -198,7 +197,7 @@ class NecklaceInteractivePage(ModularPage):
         self,
         label: str,
         prompt: str,
-        necklace_state: List[List[int]],
+        necklace_state,
         color_options: List[str],
         time_estimate=10,
     ):
@@ -227,6 +226,7 @@ class NecklaceInteractivePage(ModularPage):
                 ],
             ),
             time_estimate=time_estimate,
+            bot_response=lambda: random.choice(range(len(COLOR_OPTIONS))),
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -259,7 +259,7 @@ class NecklaceInteractivePage(ModularPage):
 
 class CustomTrial(GraphChainTrial):
     accumulate_answers = True
-    time_estimate = 5
+    time_estimate = 20
 
     def show_trial(self, experiment, participant):
         options = [option["content"] for option in self.definition]
@@ -274,30 +274,24 @@ class CustomTrial(GraphChainTrial):
         page_2 = NecklaceInteractivePage(
             label="reproduce",
             prompt="Recolor the present necklace like the necklace you just chose.",
-            necklace_state=CustomSource.generate_class_seed(),
+            necklace_state=CustomNode.generate_class_seed(),
             color_options=COLOR_OPTIONS,
         )
 
         return [page_1, page_2]
 
 
-class CustomNetwork(GraphChainNetwork):
-    pass
-
-
 class CustomNode(GraphChainNode):
-    def summarize_trials(self, trials: list, experiment, paricipant):
-        answers = np.array([trial.answer[1] for trial in trials])
-        summary = stats.mode(answers)
-        return summary.mode.flatten().tolist()
-
-
-class CustomSource(GraphChainSource):
     @staticmethod
     def generate_class_seed():
         return [
             random.randint(0, len(COLOR_OPTIONS) - 1) for i in range(NECKLACE_LENGTH)
         ]
+
+    def summarize_trials(self, trials: list, experiment, paricipant):
+        answers = np.array([trial.answer["reproduce"] for trial in trials])
+        summary = stats.mode(answers)
+        return summary.mode.flatten().tolist()
 
 
 class CustomTrialMaker(GraphChainTrialMaker):
@@ -312,13 +306,11 @@ class CustomTrialMaker(GraphChainTrialMaker):
         self,
         *,
         id_,
-        network_class,
         node_class,
-        source_class,
         trial_class,
         grid_dimension: int,
         chain_type: str,
-        estimated_trials_per_participant: int,
+        expected_trials_per_participant: int,
         max_trials_per_participant: int,
         chains_per_participant: Optional[int],
         trials_per_node: int,
@@ -339,13 +331,11 @@ class CustomTrialMaker(GraphChainTrialMaker):
         network_structure = self.generate_grid(grid_dimension)
         super().__init__(
             id_=id_,
-            network_class=network_class,
             node_class=node_class,
-            source_class=source_class,
             trial_class=trial_class,
             network_structure=network_structure,
             chain_type=chain_type,
-            estimated_trials_per_participant=estimated_trials_per_participant,
+            expected_trials_per_participant=expected_trials_per_participant,
             max_trials_per_participant=max_trials_per_participant,
             chains_per_participant=chains_per_participant,
             trials_per_node=trials_per_node,
@@ -453,14 +443,12 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("Let's begin!", time_estimate=3),
         CustomTrialMaker(
             id_="graph_demo",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
             grid_dimension=3,
             chain_type="across",
             max_nodes_per_chain=5,
-            estimated_trials_per_participant=9,
+            expected_trials_per_participant=9,
             max_trials_per_participant=9,
             chains_per_participant=None,
             trials_per_node=1,
