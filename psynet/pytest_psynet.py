@@ -250,9 +250,7 @@ pytest_dallinger.clear_workers = clear_workers
 
 
 @pytest.fixture(scope="class")
-def debug_experiment(
-    request, env, clear_workers, in_experiment_directory, db_session, psynet_config
-):
+def debug_experiment(request, env, clear_workers, in_experiment_directory, db_session):
     """
     This overrides the debug_experiment fixture in Dallinger to
     use PsyNet debug instead. Note that we use legacy mode for now.
@@ -433,14 +431,3 @@ def deployment_id():
 
 def path_to_demo(demo):
     return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()
-
-
-@pytest.fixture
-def psynet_config(active_config):
-    active_config.extend(
-        {
-            "debug_storage_root": "~/psynet-test-debug-storage",
-            "default_export_root": "~/psynet-test-export-root",
-        }
-    )
-    return active_config
