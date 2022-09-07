@@ -344,9 +344,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 dependent_vertex_ids=dependent_vertex_ids,
                 participant=None,
             )
-            self.create_graph_network(
-                experiment, start_node
-            )
+            self.create_graph_network(experiment, start_node)
 
     def create_graph_network(
         self,

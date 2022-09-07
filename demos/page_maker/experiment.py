@@ -25,9 +25,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         CodeBlock(
-            lambda participant: participant.var.set(
-                "n_pages", int(participant.answer)
-            )
+            lambda participant: participant.var.set("n_pages", int(participant.answer))
         ),
         PageMaker(
             lambda participant: [

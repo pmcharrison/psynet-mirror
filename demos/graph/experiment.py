@@ -17,11 +17,7 @@ from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.graph import (
-    GraphChainNode,
-    GraphChainTrial,
-    GraphChainTrialMaker,
-)
+from psynet.trial.graph import GraphChainNode, GraphChainTrial, GraphChainTrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -148,7 +144,7 @@ class NecklaceNAFCPage(ModularPage):
                 prevent_control_submit=True,
             ),
             time_estimate=time_estimate,
-            bot_response=lambda: random.choice(range(len(self.necklace_states)))
+            bot_response=lambda: random.choice(range(len(self.necklace_states))),
         )
 
     def format_answer(self, raw_answer, **kwargs):
