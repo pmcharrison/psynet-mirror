@@ -51,6 +51,7 @@ before_script:
 # Install PsyNet
   - pip install -e .[dev]
   - psynet generate-config --debug_storage_root "$HOME/psynet-debug-storage" --export_root "$HOME/psynet-exports" --aws_access_key_id "$AWS_ACCESS_KEY_ID" --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --aws_region "$AWS_DEFAULT_REGION"
+  - cat "~/.dallingerconfig"
 
 tests:
   parallel: 5
