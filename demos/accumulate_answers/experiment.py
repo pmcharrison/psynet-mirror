@@ -85,7 +85,7 @@ trial_maker_1 = StaticTrialMaker(
     max_trials_per_block=1,
     target_n_participants=1,
     target_trials_per_node=None,
-    recruit_mode="num_participants",
+    recruit_mode="n_participants",
 )
 
 part_1_logic = PageMaker(
