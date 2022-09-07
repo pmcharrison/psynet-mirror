@@ -72,12 +72,14 @@ class TestProcesses2:
         def local_function():
             pass
 
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(
+            ValueError,
+            match="You cannot use a function defined within another function in an async process.",
+        ):
             LocalAsyncProcess(
                 local_function,
                 arguments={},
             )
-        assert "The provided function could not be serialized" in str(e.value)
 
         class A:
             def instance_method(self):

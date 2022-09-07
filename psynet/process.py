@@ -8,6 +8,7 @@ import dallinger.db
 import sqlalchemy
 from dallinger import db
 from dallinger.db import redis_conn
+from jsonpickle.util import importable_name
 from rq import Queue
 from rq.job import Job
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
@@ -156,6 +157,11 @@ class AsyncProcess(SQLBase, SQLMixin):
         from .serialize import serialize, unserialize
 
         assert callable(function)
+        if "<locals>" in importable_name(function):
+            raise ValueError(
+                "You cannot use a function defined within another function "
+                "in an async process."
+            )
         if unserialize(serialize(function)) is None:
             raise ValueError(
                 "The provided function could not be serialized. Make sure that the function is defined at the module "
