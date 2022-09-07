@@ -9,16 +9,10 @@ def make_mcmcp_node(cls, experiment):
     return cls(
         seed=seed,
         degree=1,
-        network=TrialNetwork("mcmcp", "experiment", experiment),
-        # network=MCMCPNetwork(
-        #     "mcmcp",
-        #     MCMCPSource,
-        #     "experiment",
-        #     experiment,
-        #     chain_type="within",
-        #     trials_per_node=1,
-        #     target_n_nodes=5,
-        # ),
+        network=TrialNetwork(
+            trial_maker_id="mcmcp",
+            experiment=experiment,
+        ),
         experiment=experiment,
         propagate_failure=False,
         participant=None,

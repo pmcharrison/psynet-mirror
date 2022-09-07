@@ -2413,7 +2413,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
     def __init__(
         self,
         trial_maker_id: str,
-        experiment,
+        experiment,  # noqa
         module_id: Optional[str] = None,
     ):
         # pylint: disable=unused-argument
