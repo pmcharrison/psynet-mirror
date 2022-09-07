@@ -9,6 +9,7 @@ from pathlib import Path
 
 import dallinger.pytest_dallinger
 import pexpect
+import pexpect.exceptions
 import pytest
 import sqlalchemy.exc
 from cached_property import cached_property
@@ -287,6 +288,11 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
         # )
         p.expect_exact("Experiment launch complete!", timeout=timeout)
         yield p
+    except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
+        print(p.before)
+        raise RuntimeError(
+            "An error occurred when trying to launch the experiment. The last few lines of the logs are printed above."
+        )
     finally:
         try:
             flush_output(p, timeout=0.1)
