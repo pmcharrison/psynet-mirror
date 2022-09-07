@@ -72,7 +72,7 @@ def new_trial_maker(**kwarg):
         balance_across_chains=True,
         check_performance_at_end=True,
         check_performance_every_trial=False,
-        recruit_mode="num_trials",
+        recruit_mode="n_trials",
         target_n_participants=None,
     )
     all_args = {**args, **kwarg}

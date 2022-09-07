@@ -13,7 +13,7 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import CodeBlock, Timeline
+from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
@@ -112,13 +112,6 @@ class AnimalTrialMaker(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def custom_stimulus_filter(self, candidates, participant):
-        # If the participant answers "Very much", then the next question will be about ponies
-        if participant.var.custom_filters and participant.answer == "Very much":
-            return [x for x in candidates if x.definition["animal"] == "ponies"]
-        else:
-            return candidates
-
 
 trial_maker = AnimalTrialMaker(
     id_="animals",
@@ -133,7 +126,7 @@ trial_maker = AnimalTrialMaker(
     check_performance_every_trial=True,
     target_n_participants=1,
     target_trials_per_node=None,
-    recruit_mode="num_participants",
+    recruit_mode="n_participants",
     n_repeat_trials=3,
 )
 
@@ -148,17 +141,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        ModularPage(
-            "custom_filters",
-            "Do you want to enable custom stimulus and stimulus version filters?",
-            PushButtonControl(["Yes", "No"]),
-            time_estimate=5,
-        ),
-        CodeBlock(
-            lambda participant: participant.var.set(
-                "custom_filters", participant.answer == "Yes"
-            )
-        ),
         trial_maker,
         SuccessfulEndPage(),
     )

@@ -3,11 +3,10 @@ import time
 from collections import Counter
 
 import pytest
-from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
-from psynet.trial.static import StaticNetwork, StaticTrial, Stimulus
+from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -25,18 +24,15 @@ class TestExp:
             time.sleep(1)
 
             networks = StaticNetwork.query.filter_by(trial_maker_id="animals").all()
-            stimuli = Stimulus.query.all()
+            nodes = StaticNode.query.all()
 
             assert networks[0].type == "StaticNetwork"
-            assert stimuli[0].type == "Stimulus"
+            assert nodes[0].type == "StaticNode"
 
-            assert len(networks) == 3
-            assert len(stimuli) == len(networks) * 4
+            assert len(networks) == 12
+            assert len(nodes) == 12
 
-            assert sorted([n.block for n in networks]) == ["A", "B", "C"]
-
-            # Do you want to enable custom stimulus filters?
-            next_page(driver, "No")
+            assert set([n.block for n in networks]) == {"A", "B", "C"}
 
             assert_text(driver, "trial-position", "Trial 1")
             next_page(driver, "A little")
@@ -75,31 +71,26 @@ class TestExp:
             )
             assert list(trials_by_block.values()) == [2, 2, 2]  # 2 trials in each block
 
-            trials_by_stimulus = Counter(
+            trials_by_node = Counter(
                 [
-                    trial.stimulus_id
+                    trial.node_id
                     for trial in trials
                     if trial.participant_id == 1 and not trial.is_repeat_trial
                 ]
             )
-            assert list(trials_by_stimulus.values()) == [
+            assert list(trials_by_node.values()) == [
                 1,
                 1,
                 1,
                 1,
                 1,
                 1,
-            ]  # no stimulus comes twice
+            ]  # no node comes twice
 
             assert len([t for t in trials if t.is_repeat_trial]) == 3  # 3 repeat trials
 
             participant = Participant.query.filter_by(id=1).one()
             p_trials = trial_maker.get_participant_trials(participant=participant)
-
-            completed_stimuli = trial_maker.get_completed_stimuli(participant)
-            for counter in completed_stimuli.values():
-                for id_ in counter.keys():
-                    assert isinstance(id_, int)
 
             assert len(p_trials) == 9
             for t in p_trials:
@@ -115,38 +106,10 @@ class TestExp:
                 "main-body",
                 """
                 That\'s the end of the experiment! In addition to your base payment of $0.10,
-                you will receive a bonus of $0.11 for the time you spent on the experiment.
+                you will receive a bonus of $0.10 for the time you spent on the experiment.
                 You have also been awarded a performance bonus of $9.00! Thank you for taking part.
                 Please click "Finish" to complete the HIT. Finish
                 """,
             )
 
-            next_page(driver, "next-button", finished=True)
-
-    def test_custom_filters(self, bot_recruits, db_session, trial_maker):
-        for participant, bot in enumerate(bot_recruits):
-            driver = bot.driver
-            time.sleep(1)
-
-            # Do you want to enable custom stimulus filters?
-            next_page(driver, "Yes")
-
-            next_page(driver, "A little")
-            next_page(driver, "Very much")
-
-            # This part tests that the custom_stimulus_filter works appropriately -
-            # the fact that the previous answer was "Very much" means that
-            # the next question will be about ponies
-            assert (
-                driver.find_element(By.ID, "question").text
-                == "How much do you like ponies?"
-            )
-
-            n_remaining_trials = 4
-            n_repeat_trials = 3
-
-            for _ in range(n_remaining_trials + n_repeat_trials):
-                next_page(driver, "Very much")
-
-            next_page(driver, "next-button")
             next_page(driver, "next-button", finished=True)
