@@ -74,7 +74,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Static audio demo"
     # asset_storage = DebugStorage()
     asset_storage = S3Storage(
-        "psynet-demos", "static-audio"
+        "psynet-tests", "static-audio"
     )  # We use this S3Storage for the CI tests
 
     timeline = Timeline(

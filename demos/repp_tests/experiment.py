@@ -19,7 +19,7 @@ from psynet.timeline import Timeline
 class Exp(psynet.experiment.Experiment):
     label = "REPP tests demo"
 
-    # asset_storage = S3Storage("psynet-demos", "repp-tests")
+    # asset_storage = S3Storage("psynet-tests", "repp-tests")
     asset_storage = DebugStorage()
 
     timeline = Timeline(

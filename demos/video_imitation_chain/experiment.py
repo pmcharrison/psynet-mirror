@@ -122,7 +122,7 @@ class CustomNode(CameraImitationChainNode):
 class Exp(psynet.experiment.Experiment):
     label = "Video imitation chain demo"
 
-    # asset_storage = S3Storage("psynet-demos", "video-imitation-chain")
+    # asset_storage = S3Storage("psynet-tests", "video-imitation-chain")
     asset_storage = DebugStorage()
 
     initial_recruitment_size = 1

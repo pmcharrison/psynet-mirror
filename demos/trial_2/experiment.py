@@ -71,7 +71,7 @@ audio_ratings = Module(
 class Exp(psynet.experiment.Experiment):
     label = "Simple trial demo (2)"
     asset_storage = DebugStorage()
-    # asset_storage = S3Storage("psynet-demos", "static-audio")
+    # asset_storage = S3Storage("psynet-tests", "static-audio")
 
     timeline = Timeline(
         NoConsent(),

@@ -37,7 +37,7 @@ from psynet.timeline import MediaSpec, Timeline
 class Exp(psynet.experiment.Experiment):
     label = "Graphics demo"
 
-    # asset_storage = S3Storage("psynet-demos", "graphics")
+    # asset_storage = S3Storage("psynet-tests", "graphics")
     asset_storage = DebugStorage()
 
     timeline = Timeline(

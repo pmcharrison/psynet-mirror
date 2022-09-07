@@ -213,7 +213,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Tapping memory demo"
 
     asset_storage = DebugStorage()
-    # asset_storage = S3Storage("psynet-demos", "iterated-tapping")
+    # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
 
     timeline = Timeline(
         NoConsent(),
