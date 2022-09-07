@@ -288,8 +288,8 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
         # )
         p.expect_exact("Experiment launch complete!", timeout=timeout)
         yield p
-    except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
-        print(p.before)
+    except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT) as err:
+        print(err.before)
         raise RuntimeError(
             "An error occurred when trying to launch the experiment. The last few lines of the logs are printed above."
         )
