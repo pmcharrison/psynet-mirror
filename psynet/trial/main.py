@@ -195,8 +195,8 @@ class Trial(SQLMixinDallinger, Info):
         :meth:`~psynet.trial.main.Trial.make_definition`.
 
     run_async_post_trial : bool
-        Set this to ``True`` if you want the :meth:`~psynet.trial.main.Trial.async_post_trial`
-        method to run after the user responds to the trial.
+        Set this to ``False`` if you want to disable :meth:`~psynet.trial.main.Trial.async_post_trial`.
+        This is only included for back-compatibility.
 
     wait_for_feedback : bool
         Set this class attribute to ``False`` if you don't want to wait for asynchronous processes
@@ -646,7 +646,7 @@ class Trial(SQLMixinDallinger, Info):
             is not None
         )
 
-    run_async_post_trial = False
+    run_async_post_trial = None
 
     def async_post_trial(self):
         """
@@ -688,7 +688,13 @@ class Trial(SQLMixinDallinger, Info):
 
     def check_if_can_run_async_post_trial(self):
         db.session.commit()
-        if self.run_async_post_trial and not self.awaiting_asset_deposit:
+        if self.run_async_post_trial is not None and not self.run_async_post_trial:
+            return
+        elif self.awaiting_async_deposit:
+            return
+        elif self.async_post_trial == Trial.async_post_trial:
+            return
+        else:
             WorkerAsyncProcess(
                 self.call_async_post_trial,
                 label="post_trial",
