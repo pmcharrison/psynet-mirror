@@ -976,6 +976,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "deploy",
                 "deploy",
             ),
+            (
+                resource_filename(
+                    "psynet",
+                    "resources/DEPLOYMENT_PACKAGE",
+                ),
+                "DEPLOYMENT_PACKAGE",
+            ),
         ]
         if isinstance(cls.assets.storage, DebugStorage):
             _path = f"static/{cls.assets.storage.label}"
@@ -1730,3 +1737,7 @@ def get_experiment() -> Experiment:
 def get_trial_maker(trial_maker_id) -> TrialMaker:
     exp = get_experiment()
     return exp.timeline.get_trial_maker(trial_maker_id)
+
+
+def in_deployment_package():
+    return os.path.exists("DEPLOYMENT_PACKAGE")

@@ -284,7 +284,7 @@ class AudioGibbsNode(GibbsNode):
     def random_sample(self, i):
         return random.uniform(self.vector_ranges[i][0], self.vector_ranges[i][1])
 
-    def on_create(self):
+    def async_on_deploy(self):
         self.make_stimuli()
 
     def make_stimuli(self):

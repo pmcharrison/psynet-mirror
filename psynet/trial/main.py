@@ -772,7 +772,8 @@ class Trial(SQLMixinDallinger, Info):
             node = GenericTrialNode(module_id, experiment)
             db.session.add(node)
             db.session.commit()
-            node.ensure_on_create_called()
+            node.check_on_create()
+            node.check_on_deploy()
             return node
 
     @classmethod
@@ -2455,6 +2456,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     trial_maker_id = Column(String)
     module_id = Column(String)
     _on_create_called = Column(Boolean, default=False)
+    _on_deploy_called = Column(Boolean, default=False)
 
     async_processes = relationship("AsyncProcess")
 
@@ -2515,13 +2517,38 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.participant = participant
             self.participant_id = participant.id
 
-    def ensure_on_create_called(self):
+    def check_on_create(self):
         if not self._on_create_called:
             self.on_create()
             self._on_create_called = True
 
+    def check_on_deploy(self):
+        from psynet.experiment import in_deployment_package
+
+        if in_deployment_package and not self._on_deploy_called:
+            self.on_deploy()
+            self._on_deploy_called = True
+
     def on_create(self):
         "To be called when the instance is added to the database"
+        pass
+
+    def on_deploy(self):
+        if self.async_on_deploy != TrialNode.async_on_deploy:
+            WorkerAsyncProcess(
+                function=self.async_on_deploy,
+                node=self,
+                timeout=self.trial_maker.async_timeout_sec,
+                unique=True,
+            )
+
+    def async_on_deploy(self):
+        """
+        Called when the node is deployed to the remote server. This includes both
+        deploying nodes from the local machine to the remote machine
+        (e.g. when we have static stimuli that are preregistered in the database)
+        and creating new nodes on the remote machine (e.g. when we have a chain experiment).
+        """
         pass
 
     def set_network(self, network):

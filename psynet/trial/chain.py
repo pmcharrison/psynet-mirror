@@ -170,7 +170,8 @@ class ChainNetwork(TrialNetwork):
         db.session.add(start_node)
         self.add_node(start_node)
         db.session.commit()
-        start_node.ensure_on_create_called()
+        start_node.check_on_create()
+        start_node.check_on_deploy()
         db.session.commit()
 
         self.validate()
@@ -306,7 +307,7 @@ class ChainNetwork(TrialNetwork):
         node.set_network(self)
         if node.degree > 0:
             previous_head = self.get_node_with_degree(node.degree - 1)
-            vector = ChainVector(origin=previous_head, destination=self)
+            vector = ChainVector(origin=previous_head, destination=node)
             db.session.add(vector)
             previous_head.child = node
             node.parent = previous_head
@@ -1559,7 +1560,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             db.session.add(node)
             network.add_node(node)
             db.session.commit()
-            node.ensure_on_create_called()
+            node.check_on_create()
+            node.check_on_deploy()
             db.session.commit()
             return True
         return False
