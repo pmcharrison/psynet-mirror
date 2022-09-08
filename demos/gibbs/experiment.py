@@ -260,6 +260,7 @@ class Exp(psynet.experiment.Experiment):
             control=PushButtonControl(["A", "B"], arrange_vertically=False),
             time_estimate=5,
             save_answer="participant_group",
+            bot_response=lambda bot: ["A", "B"][bot.id % 2],
         ),
         trial_maker,
         collect_coin(),
@@ -271,8 +272,12 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bots(self, bots: List[Bot]):
         time.sleep(2.0)
+
+        assert len([b for b in bots if b.var.participant_group == "A"]) == 2
+        assert len([b for b in bots if b.var.participant_group == "B"]) == 2
+
         for b in bots:
-            assert len(b.alive_trials) == 4
+            assert len(b.alive_trials) == 7  # 4 normal trials + 3 repeat trials
             assert all([t.finalized for t in b.alive_trials])
 
         processes = AsyncProcess.query.all()

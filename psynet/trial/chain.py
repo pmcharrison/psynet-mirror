@@ -306,7 +306,6 @@ class ChainNetwork(TrialNetwork):
         return first_node
 
     def add_node(self, node):
-        network_size = len(self.alive_nodes)
         node.set_network(self)
         if node.degree > 0:
             previous_head = self.get_node_with_degree(node.degree - 1)
@@ -314,9 +313,10 @@ class ChainNetwork(TrialNetwork):
             db.session.add(vector)
             previous_head.child = node
             node.parent = previous_head
-            network_size += 1
-        if network_size > (self.max_size or 0):
-            # We avoid calling self.calculate_full because it involves a database query
+        if node.degree >= self.max_size:
+            # We avoid calling self.calculate_full because it involves a database query.
+            # Setting full=True means that no participants will be assigned to the final node,
+            # and it'll just be used as a summary of the chain's final state.
             self.full = True
 
     @property
