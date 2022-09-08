@@ -1011,11 +1011,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         panes = exp.monitoring_panels()
 
+        module_info = {
+            "modules": [{"id": module.id} for module in exp.timeline.module_list]
+        }
+
         return render_template(
             "dashboard_timeline.html",
             title="Timeline modules",
             panes=panes,
-            timeline_modules=json.dumps(exp.timeline.modules(), default=serialise),
+            timeline_modules=json.dumps(module_info, default=serialise),
         )
 
     @dashboard_tab("Participant", after_route="monitoring")
@@ -1193,8 +1197,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
         module_ids = request.args.getlist("module_ids[]")
         for module_id in module_ids:
-            trial_maker = exp.timeline.get_trial_maker(module_id)
-            progress_info.update(trial_maker.get_progress_info())
+            module = exp.timeline.modules[module_id]
+            progress_info.update(module.get_progress_info())
 
         return jsonify(progress_info)
 

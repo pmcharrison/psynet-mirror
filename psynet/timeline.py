@@ -1302,20 +1302,22 @@ class Timeline:
     def __init__(self, *args):
         elts = join(*args)
         self.elts = elts
-        self.modules = self.compile_modules()
+        self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
         self.estimated_time_credit = CreditEstimate(self.elts)
 
     def compile_modules(self):
         modules = {}
+        module_list = []
         for elt in self.elts:
             if isinstance(elt, StartModule):
                 module = elt.module
                 if module.id in modules:
                     raise ValueError(f"Duplicated module name detected: {module.id}")
                 modules[module.id] = module
-        return modules
+                module_list.append(module)
+        return modules, module_list
 
     def check_elts(self):
         assert isinstance(self.elts, list)
@@ -1384,14 +1386,17 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
-    def modules(self):
-        return {
-            "modules": [
-                {"id": elt.module.id}
-                for elt in self.elts
-                if isinstance(elt, StartModule)
-            ]
-        }
+    # @property
+    # def modules(self):
+    #     return {
+    #         "modules": [
+    #             {"id": elt.module.id}
+    #             for elt in self.elts
+    #             if isinstance(elt, StartModule)
+    #         ]
+    #     }
+    #
+    # # def report_module_status(self):
 
     @cached_property
     def trial_makers(self):
@@ -2329,10 +2334,9 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(
-                self.state_class.module_id == self.id, self.state_class.aborted
-            )
+            .filter(self.state_class.module_id == self.id, self.state_class.aborted)
             .order_by(self.state_class.time_aborted)
+            .all()
         )
 
         # participants = Participant.query.all()
@@ -2346,10 +2350,9 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(
-                self.state_class.module_id == self.id, self.state_class.started
-            )
+            .filter(self.state_class.module_id == self.id, self.state_class.started)
             .order_by(self.state_class.time_started)
+            .all()
         )
 
         # participants = Participant.query.all()
@@ -2363,10 +2366,9 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(
-                self.state_class.module_id == self.id, self.state_class.finished
-            )
+            .filter(self.state_class.module_id == self.id, self.state_class.finished)
             .order_by(self.state_class.time_finished)
+            .all()
         )
 
         # participants = Participant.query.all()
@@ -2466,9 +2468,9 @@ class Module:
 
         return {
             self.id: {
-                "started_num_participants": len(self.started_participants),
-                "finished_num_participants": len(self.finished_participants),
-                "aborted_num_participants": len(self.aborted_participants),
+                "started_n_participants": len(self.started_participants),
+                "finished_n_participants": len(self.finished_participants),
+                "aborted_n_participants": len(self.aborted_participants),
                 "target_n_participants": target_n_participants,
                 "progress": progress,
             }
