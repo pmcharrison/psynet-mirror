@@ -47,6 +47,7 @@ from ..utils import (
     call_function_with_context,
     corr,
     get_logger,
+    is_method_overridden,
 )
 
 logger = get_logger()
@@ -692,7 +693,7 @@ class Trial(SQLMixinDallinger, Info):
             return
         elif self.awaiting_asset_deposit:
             return
-        elif self.async_post_trial == Trial.async_post_trial:
+        elif not is_method_overridden(self, Trial, "async_post_trial"):
             return
         else:
             WorkerAsyncProcess(
@@ -2126,7 +2127,7 @@ class NetworkTrialMaker(TrialMaker):
             and not network.run_async_post_grow_network
         ):
             return
-        elif network.async_post_grow_network == TrialNetwork.async_post_grow_network:
+        elif not is_method_overridden(network, TrialNetwork, "async_post_grow_network"):
             return
         else:
             WorkerAsyncProcess(
@@ -2551,7 +2552,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         pass
 
     def on_deploy(self):
-        if self.async_on_deploy != TrialNode.async_on_deploy:
+        if is_method_overridden(self, TrialNode, "async_on_deploy"):
             WorkerAsyncProcess(
                 function=self.async_on_deploy,
                 node=self,

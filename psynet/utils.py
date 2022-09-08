@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
 from pathlib import Path
-from typing import Union
+from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import jsonpickle
@@ -805,3 +805,28 @@ def log_pexpect_errors(process):
 #             message += inspect.getsource(func)
 #
 #         raise RuntimeError(message)
+
+
+def is_method_overridden(obj, ancestor: Type, method: str):
+    """
+    Test whether a method has been overridden.
+
+    Parameters
+    ----------
+    obj :
+        Object to test.
+
+    ancestor :
+        Ancestor class to test against.
+
+    method :
+        Method name.
+
+    Returns
+    -------
+
+    Returns ``True`` if the object shares a method with its ancestor,
+    or ``False`` if that method has been overridden.
+
+    """
+    return getattr(obj.__class__, method) != getattr(ancestor, method)
