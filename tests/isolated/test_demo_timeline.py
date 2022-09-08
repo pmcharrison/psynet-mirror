@@ -209,7 +209,7 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor']. Next",
+                "If accumulate_answers is True, then the answers are stored in a dictionary, in this case: {'shape': 'Square', 'chord': 'Minor'}. Next",
             )
             next_page(driver, "next-button")
 
