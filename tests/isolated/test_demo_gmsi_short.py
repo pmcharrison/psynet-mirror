@@ -54,7 +54,6 @@ class TestExp(object):
 
             assert participant.started_modules == ["gmsi"]
             assert participant.finished_modules == ["gmsi"]
-            assert participant.module_id == "gmsi"
 
             assert participant.var.gmsi["mean_scores_per_scale"] == {
                 "General": 2.866667,
