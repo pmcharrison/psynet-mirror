@@ -272,6 +272,7 @@ class Exp(psynet.experiment.Experiment):
     def test_check_bots(self, bots: List[Bot]):
         time.sleep(2.0)
         for b in bots:
+            assert len(b.alive_trials) == 4
             assert all([t.finalized for t in b.alive_trials])
 
         processes = AsyncProcess.query.all()

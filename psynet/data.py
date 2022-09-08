@@ -777,6 +777,7 @@ def ingest_zip(path, engine=None):
     import_order = [
         "network",
         "participant",
+        "response",
         "node",
         "info",
         "notification",

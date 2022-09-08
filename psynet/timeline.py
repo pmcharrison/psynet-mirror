@@ -2112,6 +2112,7 @@ def multiply_expected_repetitions(logic, factor: float):
     return logic
 
 
+@register_table
 class ModuleState(SQLBase, SQLMixin):
     __tablename__ = "module_state"
 
