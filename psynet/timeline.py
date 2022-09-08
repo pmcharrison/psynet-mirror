@@ -31,8 +31,10 @@ from .utils import (
     format_datetime_string,
     get_args,
     get_logger,
+    log_time_taken,
     merge_dicts,
     serialise,
+    time_logger,
     unserialise_datetime,
 )
 
@@ -838,6 +840,7 @@ class Page(Elt):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
+    @log_time_taken
     def process_response(
         self,
         raw_answer,
@@ -1431,6 +1434,7 @@ class Timeline:
     def __getitem__(self, key):
         return self.elts[key]
 
+    @log_time_taken
     def get_current_elt(self, experiment, participant):
         # Remember, ``participant.elt_id`` corresponds to a list representation
         # of the participant's position in the timeline, where the first element corresponds
@@ -1498,6 +1502,7 @@ class Timeline:
 
         return selected_elt
 
+    @log_time_taken
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
@@ -1513,7 +1518,8 @@ class Timeline:
                 participant.elt_id.append(-1)
                 continue
 
-            new_elt.consume(experiment, participant)
+            with time_logger(f"consuming elt {new_elt.id} ({type(new_elt)})"):
+                new_elt.consume(experiment, participant)
             db.session.commit()
 
             if isinstance(new_elt, Page):

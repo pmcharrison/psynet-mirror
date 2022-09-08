@@ -86,19 +86,25 @@ def call_function_with_context(function, *args, **kwargs):
     nodes = kwargs.get("nodes", NoArgumentProvided)
     trial_maker = kwargs.get("trial_maker", NoArgumentProvided)
 
-    if participant != NoArgumentProvided and participant.module_state:
-        if assets == NoArgumentProvided:
-            assets = participant.module_state.assets
-        if nodes == NoArgumentProvided:
-            nodes = participant.module_state.nodes
+    requested = get_args(function)
 
-    if trial_maker == NoArgumentProvided:
+    if participant != NoArgumentProvided and participant.module_state:
+        if assets in requested and assets == NoArgumentProvided:
+            with time_logger("participant.module_state.assets"):
+                assets = participant.module_state.assets
+
+        if nodes in requested and nodes == NoArgumentProvided:
+            with time_logger("participant.module_state.nodes"):
+                nodes = participant.module_state.nodes
+
+    if trial_maker in requested and trial_maker == NoArgumentProvided:
         if (
             participant != NoArgumentProvided
             and participant.in_module
             and isinstance(participant.current_trial, Trial)
         ):
-            trial_maker = participant.current_trial.trial_maker
+            with time_logger("participant.current_trial.trial_maker"):
+                trial_maker = participant.current_trial.trial_maker
 
     kwargs = {
         "experiment": experiment,
@@ -166,14 +172,11 @@ def get_object_from_module(module_name: str, object_name: str):
     return obj
 
 
-def log_time_taken(fun):
+def log_time_taken(fun, threshold=0.005):
     @wraps(fun)
     def wrapper(*args, **kwargs):
-        start_time = time.monotonic()
-        res = fun(*args, **kwargs)
-        end_time = time.monotonic()
-        time_taken = end_time - start_time
-        logger.info("Time taken by %s: %.3f seconds.", fun.__name__, time_taken)
+        with time_logger(fun.__name__, threshold):
+            res = fun(*args, **kwargs)
         return res
 
     return wrapper
@@ -830,3 +833,35 @@ def is_method_overridden(obj, ancestor: Type, method: str):
 
     """
     return getattr(obj.__class__, method) != getattr(ancestor, method)
+
+
+time_logger_stack = []
+
+
+@contextlib.contextmanager
+def time_logger(label, threshold=0.005):
+    time_logger_stack.append(label)
+    log = {
+        "time_started": time.monotonic(),
+        "time_finished": None,
+        "time_taken": None,
+    }
+    yield log
+    log["time_finished"] = time.monotonic()
+    log["time_taken"] = log["time_finished"] - log["time_started"]
+    if log["time_taken"] > threshold:
+        stack = " -> ".join(time_logger_stack)
+        # if isinstance(time_logger_stack[-1], CodeBlock):
+        #     stack = stack + " " + inspect.getsource(time_logger_stack[-1].function)
+        logger.debug(
+            "%.3f s: %s", log["time_taken"], stack
+        ),  # log["time_taken"], label)
+    time_logger_stack.pop()
+
+
+@contextlib.contextmanager
+def log_level(logger: logging.Logger, level):
+    original_level = logger.level
+    logger.setLevel(level)
+    yield
+    logger.setLevel(original_level)

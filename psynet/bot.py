@@ -8,7 +8,13 @@ from sqlalchemy import Column, Integer
 
 from .participant import Participant
 from .timeline import EndPage, Page
-from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
+from .utils import (
+    NoArgumentProvided,
+    get_logger,
+    log_time_taken,
+    time_logger,
+    wait_until,
+)
 
 logger = get_logger()
 
@@ -105,11 +111,13 @@ class Bot(Participant):
         while True:
             page = self.get_current_page()
             if render_pages:
-                req = requests.get(
-                    f"http://localhost:5000/timeline?participant_id={self.id}&auth_token={self.auth_token}"
-                )
+                with time_logger("timeline_route"):
+                    req = requests.get(
+                        f"http://localhost:5000/timeline?participant_id={self.id}&auth_token={self.auth_token}"
+                    )
                 assert req.status_code == 200
-            self.take_page(page, time_factor)
+            with time_logger("take_page"):
+                self.take_page(page, time_factor)
             db.session.commit()
             if not self.status == "working":
                 break
@@ -121,7 +129,8 @@ class Bot(Participant):
         from .page import WaitPage
 
         if page is None:
-            page = self.get_current_page()
+            with time_logger("get_current_page"):
+                page = self.get_current_page()
 
         bot = self
         experiment = self.experiment
@@ -142,15 +151,17 @@ class Bot(Participant):
 
         if not isinstance(page, EndPage):
             try:
-                experiment.process_response(
-                    participant_id=self.id,
-                    raw_answer=response.raw_answer,
-                    blobs=response.blobs,
-                    metadata=response.metadata,
-                    page_uuid=self.page_uuid,
-                    client_ip_address=response.client_ip_address,
-                    answer=response.answer,
-                )
+                with time_logger("process_response"):
+
+                    experiment.process_response(
+                        participant_id=self.id,
+                        raw_answer=response.raw_answer,
+                        blobs=response.blobs,
+                        metadata=response.metadata,
+                        page_uuid=self.page_uuid,
+                        client_ip_address=response.client_ip_address,
+                        answer=response.answer,
+                    )
             except RuntimeError as err:
                 if "Working outside of request context" in str(err):
                     err.args = (

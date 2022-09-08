@@ -48,6 +48,7 @@ from ..utils import (
     corr,
     get_logger,
     is_method_overridden,
+    log_time_taken,
 )
 
 logger = get_logger()
@@ -1666,6 +1667,7 @@ class TrialMaker(Module):
     #         lambda participant, experiment:
     #     )
 
+    @log_time_taken
     def _prepare_trial(self, experiment, participant):
         if not participant.module_state.in_repeat_phase:
             trial = self.prepare_trial(experiment=experiment, participant=participant)
@@ -2000,12 +2002,14 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
+    @log_time_taken
     def _grow_all_networks(self, experiment):
         logger.info("Making sure all networks have grown.")
         networks = TrialNetwork.query.filter_by(trial_maker_id=self.id)
         for network in networks:
             self.grow_network(network, experiment)
 
+    @log_time_taken
     def prepare_trial(self, experiment, participant):
         logger.info("Preparing trial for participant %i.", participant.id)
         self._grow_all_networks(experiment)
@@ -2100,6 +2104,7 @@ class NetworkTrialMaker(TrialMaker):
         """
         raise NotImplementedError
 
+    @log_time_taken
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(
             experiment=experiment,

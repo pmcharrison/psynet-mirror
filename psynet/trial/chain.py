@@ -12,7 +12,7 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
-from ..utils import call_function_with_context, get_logger, negate
+from ..utils import call_function_with_context, get_logger, log_time_taken, negate
 from .main import (
     NetworkTrialMaker,
     NetworkTrialMakerState,
@@ -1351,6 +1351,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         db.session.commit()
         return network
 
+    @log_time_taken
     def find_networks(self, participant, experiment):
         """
 
@@ -1547,6 +1548,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         return query
 
+    @log_time_taken
     def grow_network(self, network, experiment):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
@@ -1571,6 +1573,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             return True
         return False
 
+    @log_time_taken
     def find_node(self, network, participant, experiment):
         assert (
             not network.awaiting_async_process
