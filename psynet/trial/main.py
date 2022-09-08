@@ -690,7 +690,7 @@ class Trial(SQLMixinDallinger, Info):
         db.session.commit()
         if self.run_async_post_trial is not None and not self.run_async_post_trial:
             return
-        elif self.awaiting_async_deposit:
+        elif self.awaiting_asset_deposit:
             return
         elif self.async_post_trial == Trial.async_post_trial:
             return
@@ -2116,14 +2116,25 @@ class NetworkTrialMaker(TrialMaker):
         # pylint: disable=no-member
         grown = self.grow_network(network, experiment)
         assert isinstance(grown, bool)
-        if grown and network.run_async_post_grow_network:
+        if grown:
+            self._check_run_async_post_grow_network(network)
+            db.session.commit()
+
+    def _check_run_async_post_grow_network(self, network):
+        if (
+            network.run_async_post_grow_network is not None
+            and not network.run_async_post_grow_network
+        ):
+            return
+        elif network.async_post_grow_network == TrialNetwork.async_post_grow_network:
+            return
+        else:
             WorkerAsyncProcess(
                 network.async_post_grow_network,
                 label="post_grow_network",
                 timeout=self.async_timeout_sec,
                 network=network,
             )
-            db.session.commit()
 
     @property
     def network_query(self):
@@ -2439,7 +2450,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             [t for t in self.alive_trials if (t.complete and not t.is_repeat_trial)]
         )
 
-    run_async_post_grow_network = False
+    run_async_post_grow_network = None
 
     def async_post_grow_network(self):
         """
@@ -2531,7 +2542,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def check_on_deploy(self):
         from psynet.experiment import in_deployment_package
 
-        if in_deployment_package and not self._on_deploy_called:
+        if in_deployment_package() and not self._on_deploy_called:
             self.on_deploy()
             self._on_deploy_called = True
 

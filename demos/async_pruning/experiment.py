@@ -240,10 +240,12 @@ class Exp(psynet.experiment.Experiment):
                 # One might implement more complex checks here, for example only running the
                 # task for trials that have already received a response from the participant.
                 WorkerAsyncProcess(
-                    "expensive_computation",
                     function=CustomTrial.expensive_computation,
                     arguments={
                         "trial": t,
                         "seed": random.randint(0, 10),
                     },
                 )
+
+    def test_experiment(self):
+        super().test_experiment()
