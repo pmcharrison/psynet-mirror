@@ -745,26 +745,8 @@ class REPPMarkersTest(StaticTrialMaker):
             nodes=nodes,
             expected_trials_per_participant=len(nodes),
             check_performance_at_end=True,
+            assets=[self.image_asset],
         )
-
-    @property
-    def introduction(self):
-        return join(
-            self.audio_assets,
-            self.image_asset,
-            self.instruction_page,
-        )
-
-    @property
-    def audio_assets(self):
-        return [
-            ExternalAsset(
-                local_key=f"markers_test_audio_{i + 1}",
-                url=f"{self.materials_url}/audio{i + 1}.wav",
-                label=f"audio{i + 1}.wav",
-            )
-            for i in range(3)
-        ]
 
     @property
     def image_asset(self):
@@ -774,7 +756,7 @@ class REPPMarkersTest(StaticTrialMaker):
         )
 
     @property
-    def instruction_page(self):
+    def introduction(self):
         return PageMaker(
             lambda assets: InfoPage(
                 Markup(
@@ -798,7 +780,7 @@ class REPPMarkersTest(StaticTrialMaker):
         return [
             Node(
                 definition={
-                    "stim_name": asset.label,
+                    "stim_name": f"audio{i + 1}.wav",
                     "markers_onsets": [
                         2000.0,
                         2280.0,
@@ -810,14 +792,17 @@ class REPPMarkersTest(StaticTrialMaker):
                     "stim_shifted_onsets": [4500.0, 5000.0, 5500.0],
                     "onset_is_played": [True, True, True],
                     "duration_sec": 12,
-                    "url_audio": asset.url,  # redundant but keeping for back-compatibility
                     "correct_answer": 6,
                 },
                 assets={
-                    "stimulus": asset,
+                    "stimulus": ExternalAsset(
+                        f"{self.materials_url}/audio{i + 1}.wav",
+                        # local_key=f"markers_test_audio_{i + 1}",
+                        # label=f"audio{i + 1}.wav",
+                    )
                 },
             )
-            for asset in self.audio_assets
+            for i in range(3)
         ]
 
 

@@ -270,6 +270,5 @@ class Exp(psynet.experiment.Experiment):
             video_pages,
             assets=all_assets,
         ),
-        video_pages,
         SuccessfulEndPage(),
     )

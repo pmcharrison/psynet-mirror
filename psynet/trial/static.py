@@ -249,6 +249,7 @@ class StaticTrialMaker(ChainTrialMaker):
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
         n_repeat_trials: int = 0,
+        assets=None,
     ):
         balance_across_chains = (
             active_balancing_across_participants or active_balancing_within_participants
@@ -299,6 +300,7 @@ class StaticTrialMaker(ChainTrialMaker):
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             n_repeat_trials=n_repeat_trials,
+            assets=assets,
         )
 
 
