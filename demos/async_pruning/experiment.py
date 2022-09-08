@@ -20,6 +20,7 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.experiment import scheduled_task
 from psynet.modular_page import SliderControl
@@ -247,5 +248,19 @@ class Exp(psynet.experiment.Experiment):
                     },
                 )
 
-    def test_experiment(self):
-        super().test_experiment()
+    def test_check_bot(self, bot: Bot, **kwargs):
+        trials = bot.all_trials
+        trials.sort(key=lambda x: x.id)
+
+        assert not trials[0].failed
+        assert not trials[1].failed
+
+        assert trials[2].failed
+        assert trials[2].failed_reason.startswith(
+            "Exception in asynchronous process: AssertionError"
+        )
+
+        assert trials[3].failed
+        assert trials[3].failed_reason.startswith(
+            "Exception in asynchronous process: JobTimeoutException"
+        )

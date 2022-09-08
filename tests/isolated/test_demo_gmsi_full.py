@@ -63,17 +63,11 @@ class TestExp(object):
             next_page(driver, "Yes")
 
             participant = get_participant(1)
-            modules = participant.modules
-            assert list(modules.keys()) == ["gmsi"]
-            assert set(list(modules["gmsi"].keys())) == {
-                "time_started",
-                "time_finished",
-            }
-            assert len(modules["gmsi"]["time_started"]) == 1
-            assert len(modules["gmsi"]["time_finished"]) == 1
+
             assert participant.started_modules == ["gmsi"]
             assert participant.finished_modules == ["gmsi"]
-            assert participant.current_module_id == "gmsi"
+            assert participant.module_id == "gmsi"
+
             assert participant.var.gmsi["mean_scores_per_scale"] == {
                 "General": 3.444444,
                 "Emotions": 4.5,

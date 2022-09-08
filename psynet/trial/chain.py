@@ -36,6 +36,9 @@ logger = get_logger()
 #     __extra_vars__ = {}
 #     register_extra_var(__extra_vars__, "seed", field_type=dict)
 
+# Vector.type = Column(String(50))
+# Vector.__mapper_args__ = {"polymorphic_on": Vector.type, "polymorphic_identity": "vector"}
+
 
 class ChainVector(SQLMixinDallinger, Vector):
     pass

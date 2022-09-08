@@ -46,7 +46,7 @@ before_script:
 #  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition-lab/psynet/postgres_setup.sql"'
 # Install Dallinger
 #  - git clone --branch v9.0.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
-  - git clone --branch patch-dallingerconfig-in-ci https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+  - git clone --branch tmp-peter https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
 # Install PsyNet
