@@ -1301,8 +1301,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             network = self.create_network(
                 experiment, participant, id_within_participant=i, start_node=nodes[i]
             )
-            self._grow_network(network, experiment)
+            # self._grow_network(network, experiment)  # not necessary any more!
             networks.append(network)
+
+        db.session.commit()
 
         return networks
 
@@ -1348,7 +1350,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         start_node.set_network(network)
-        db.session.commit()
+        db.session.commit()  # TODO - remove this for efficiency?
         return network
 
     @log_time_taken
