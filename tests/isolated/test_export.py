@@ -86,6 +86,7 @@ class TestExp:
             assert sorted(list(json)) == [
                 "AssetTrial",
                 "Bot",
+                "ChainVector",
                 "Coin",
                 "CustomNetwork",
                 "CustomNode",
@@ -97,7 +98,6 @@ class TestExp:
                 "GenericTrialNetwork",
                 "GenericTrialNode",
                 "Response",
-                "Vector",
                 "WorkerAsyncProcess",
             ]
             # No Notification table here as bots don't produce Notifications currently
@@ -109,6 +109,7 @@ class TestExp:
             assert sorted(os.listdir(data_dir)) == [
                 "AssetTrial.csv",
                 "Bot.csv",
+                "ChainVector.csv",
                 "Coin.csv",
                 "CustomNetwork.csv",
                 "CustomNode.csv",
@@ -121,7 +122,6 @@ class TestExp:
                 "GenericTrialNode.csv",
                 # "Notification.csv",  # Bots don't produce notifications
                 "Response.csv",
-                "Vector.csv",
                 "WorkerAsyncProcess.csv",
             ]
 

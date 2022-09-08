@@ -148,8 +148,8 @@ class TestExp(object):
             db_session.commit()
             participant = get_participant(1)
 
-            assert participant.module_states["introduction"].finished
-            assert not participant.module_states["chocolate"].finished
+            assert participant.module_states["introduction"][0].finished
+            assert not participant.module_states["chocolate"][0].finished
             assert participant.started_modules == [
                 "main_consent",
                 "introduction",
