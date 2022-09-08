@@ -1644,7 +1644,7 @@ class Response(_Response):
 
     __extra_vars__ = {}
 
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
         backref="all_responses",

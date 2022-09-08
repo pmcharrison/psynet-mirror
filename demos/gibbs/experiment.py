@@ -222,7 +222,7 @@ class Coin(SQLBase, SQLMixin):
     __tablename__ = "coin"
 
     participant = relationship(Participant, backref="all_coins")
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
 
     def __init__(self, participant):
         self.participant = participant

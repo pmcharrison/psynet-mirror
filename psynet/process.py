@@ -36,28 +36,28 @@ class AsyncProcess(SQLBase, SQLMixin):
     time_taken = Column(Float)
     _unique_key = Column(PythonDict, unique=True)
 
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant", backref="async_processes"
     )
 
-    trial_maker_id = Column(String)
+    trial_maker_id = Column(String, index=True)
 
-    network_id = Column(Integer, ForeignKey("network.id"))
+    network_id = Column(Integer, ForeignKey("network.id"), index=True)
     network = relationship("TrialNetwork", back_populates="async_processes")
 
-    node_id = Column(Integer, ForeignKey("node.id"))
+    node_id = Column(Integer, ForeignKey("node.id"), index=True)
     node = relationship("TrialNode", back_populates="async_processes")
 
-    trial_id = Column(Integer, ForeignKey("info.id"))
+    trial_id = Column(Integer, ForeignKey("info.id"), index=True)
     trial = relationship("psynet.trial.main.Trial", back_populates="async_processes")
 
-    response_id = Column(Integer, ForeignKey("response.id"))
+    response_id = Column(Integer, ForeignKey("response.id"), index=True)
     response = relationship(
         "psynet.timeline.Response", back_populates="async_processes"
     )
 
-    asset_key = Column(String, ForeignKey("asset.key"))
+    asset_key = Column(String, ForeignKey("asset.key"), index=True)
     asset = relationship("Asset", back_populates="async_processes")
 
     errors = relationship("ErrorRecord")

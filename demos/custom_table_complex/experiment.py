@@ -27,7 +27,7 @@ class Pet(SQLBase, SQLMixin):
     base_price = None
 
     participant = relationship(Participant, backref="all_pets")
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
 
     price = Column(Float)
     name = Column(String)

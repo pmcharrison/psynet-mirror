@@ -445,8 +445,8 @@ class ChainNode(TrialNode):
 
     key = Column(String, index=True)
     degree = Column(Integer)
-    child_id = Column(Integer, ForeignKey("node.id"))
-    parent_id = Column(Integer, ForeignKey("node.id"))
+    child_id = Column(Integer, ForeignKey("node.id"), index=True)
+    parent_id = Column(Integer, ForeignKey("node.id"), index=True)
     seed = Column(PythonObject, default=lambda: {})
     definition = Column(PythonObject, default=lambda: {})
     context = Column(PythonObject)

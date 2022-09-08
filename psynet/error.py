@@ -19,32 +19,32 @@ class ErrorRecord(SQLBase, SQLMixin):
     message = Column(String)
     traceback = Column(String)
 
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant", back_populates="errors"
     )
 
     worker_id = Column(String)
 
-    network_id = Column(Integer, ForeignKey("network.id"))
+    network_id = Column(Integer, ForeignKey("network.id"), index=True)
     network = relationship("TrialNetwork", back_populates="errors")
 
-    node_id = Column(Integer, ForeignKey("node.id"))
+    node_id = Column(Integer, ForeignKey("node.id"), index=True)
     node = relationship("TrialNode", back_populates="errors")
 
-    response_id = Column(Integer, ForeignKey("response.id"))
+    response_id = Column(Integer, ForeignKey("response.id"), index=True)
     response = relationship("psynet.timeline.Response", back_populates="errors")
 
-    trial_id = Column(Integer, ForeignKey("info.id"))
+    trial_id = Column(Integer, ForeignKey("info.id"), index=True)
     trial = relationship("psynet.trial.main.Trial", back_populates="errors")
 
-    response_id = Column(Integer, ForeignKey("response.id"))
+    response_id = Column(Integer, ForeignKey("response.id"), index=True)
     response = relationship("psynet.timeline.Response", back_populates="errors")
 
-    asset_key = Column(String, ForeignKey("asset.key"))
+    asset_key = Column(String, ForeignKey("asset.key"), index=True)
     asset = relationship("Asset", back_populates="errors")
 
-    process_id = Column(Integer, ForeignKey("process.id"))
+    process_id = Column(Integer, ForeignKey("process.id"), index=True)
     process = relationship("AsyncProcess", back_populates="errors")
 
     def __init__(self, error, **kwargs):

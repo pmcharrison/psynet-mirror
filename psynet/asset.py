@@ -168,7 +168,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     local_key = Column(String, index=True)
     key = Column(String, primary_key=True, index=True)  # £, onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     label = Column(String)
     parent = Column(PythonObject)
     description = Column(String)
