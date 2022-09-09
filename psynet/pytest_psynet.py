@@ -250,6 +250,25 @@ def clear_workers():
 pytest_dallinger.clear_workers = clear_workers
 
 
+def patch_pexpect_error_reporter(p):
+    original_reporter = pexpect.spawn.__str__
+
+    def __str__(self):
+        original = original_reporter(self)
+        new = "\n".join(
+            [
+                "~~~",
+                "Full error context:",
+                "",
+                self.before[-10000:],
+                "~~~",
+            ]
+        )
+        return original + "\n\n" + new
+
+    pexpect.spawn.__str__ = __str__
+
+
 @pytest.fixture(scope="class")
 def debug_experiment(request, env, clear_workers, in_experiment_directory, db_session):
     """
@@ -288,7 +307,8 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
         env=env,
         encoding="utf-8",
     )
-    p.str_last_chars = 2000
+    patch_pexpect_error_reporter(p)
+    # p.str_last_chars = 2000
     p.logfile = sys.stdout
 
     try:
@@ -299,8 +319,6 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
         # )
         p.expect_exact("Experiment launch complete!", timeout=timeout)
         yield p
-    except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT) as err:
-        raise RuntimeError(f"Launch error: \n{p.before}") from err
     finally:
         try:
             flush_output(p, timeout=0.1)
