@@ -252,7 +252,7 @@ pytest_dallinger.clear_workers = clear_workers
 
 @pytest.fixture(scope="class")
 def debug_experiment(
-    request, env, clear_workers, in_experiment_directory, db_session, capsys
+    request, env, clear_workers, in_experiment_directory, db_session
 ):
     """
     This overrides the debug_experiment fixture in Dallinger to
