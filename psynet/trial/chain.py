@@ -1529,11 +1529,11 @@ class ChainTrialMaker(NetworkTrialMaker):
     @staticmethod
     def filter_by_participant_id(networks, participant):
         query = networks.filter_by(participant_id=participant.id)
-        logger.info(
-            "%i of these belong to participant %i.",
-            query.count(),
-            participant.id,
-        )
+        # logger.info(
+        #     "%i of these belong to participant %i.",
+        #     query.count(),
+        #     participant.id,
+        # )
         return query
 
     def exclude_participated(self, networks, participant):
@@ -1544,10 +1544,10 @@ class ChainTrialMaker(NetworkTrialMaker):
                 )
             )
         )
-        logger.info(
-            "%i of these are available once you exclude already-visited networks.",
-            query.count(),
-        )
+        # logger.info(
+        #     "%i of these are available once you exclude already-visited networks.",
+        #     query.count(),
+        # )
         return query
 
     @log_time_taken
