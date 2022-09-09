@@ -301,8 +301,7 @@ def debug_experiment(
         p.expect_exact("Experiment launch complete!", timeout=timeout)
         yield p
     except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
-        print(p.before, flush=True)
-        raise
+        raise RuntimeError(f"Launch error: \n{p.before}")
     finally:
         try:
             flush_output(p, timeout=0.1)
