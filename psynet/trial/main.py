@@ -276,7 +276,7 @@ class Trial(SQLMixinDallinger, Info):
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
-        select(AsyncProcess)
+        select(AsyncProcess.trial_id, AsyncProcess.pending)
         .where(AsyncProcess.trial_id == Info.id, AsyncProcess.pending)
         .exists()
     )
@@ -2425,7 +2425,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         return VarStore(self)
 
     awaiting_async_process = column_property(
-        select(AsyncProcess)
+        select(AsyncProcess.network_id, AsyncProcess.pending)
         .where(
             AsyncProcess.network_id == dallinger.models.Network.id, AsyncProcess.pending
         )
@@ -2484,7 +2484,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     async_processes = relationship("AsyncProcess")
 
     awaiting_async_process = column_property(
-        select(AsyncProcess)
+        select(AsyncProcess.node_id, AsyncProcess.pending)
         .where(AsyncProcess.node_id == dallinger.models.Node.id, AsyncProcess.pending)
         .exists()
     )

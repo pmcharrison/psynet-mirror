@@ -184,7 +184,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
-        select(AsyncProcess)
+        select(AsyncProcess.asset_key, AsyncProcess.pending)
         .where(AsyncProcess.asset_key == key, AsyncProcess.pending)
         .exists()
     )

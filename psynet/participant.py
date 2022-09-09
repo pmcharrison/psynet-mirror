@@ -227,7 +227,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     #     self.current_trial_id = trial.id if isinstance(trial, Trial) else None
 
     awaiting_async_process = column_property(
-        select(AsyncProcess)
+        select(AsyncProcess.participant_id, AsyncProcess.pending)
         .where(
             AsyncProcess.participant_id == dallinger.models.Participant.id,
             AsyncProcess.pending,
