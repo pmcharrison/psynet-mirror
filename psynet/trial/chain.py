@@ -1163,7 +1163,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     @property
     def default_network_class(self):
-        raise NotImplementedError
+        return ChainNetwork
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
