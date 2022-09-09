@@ -70,29 +70,26 @@ class CustomTrial(CameraImitationChainTrial):
                 events={"recordStart": Event(is_triggered_by="trialStart", delay=1.5)},
             )
         else:
-            return join(
-                [
-                    ModularPage(
-                        "webcam_prompt",
-                        VideoPrompt(
-                            self.assets["stimulus"],
-                            "When you are ready, press next to imitate the figure that you see.",
-                            text_align="center",
-                            width="360px",
-                        ),
-                        time_estimate=5,
-                    ),
-                    ModularPage(
-                        "webcam_recording",
-                        prompt="",
-                        control=CustomVideoRecordControl(
-                            bot_response_media="assets/example_recording.webm",
-                        ),
-                        time_estimate=5,
-                        progress_display=custom_progress_display(),
-                    ),
-                ]
+            page_1 = ModularPage(
+                "webcam_prompt",
+                VideoPrompt(
+                    self.assets["stimulus"],
+                    "When you are ready, press next to imitate the figure that you see.",
+                    text_align="center",
+                    width="360px",
+                ),
+                time_estimate=5,
             )
+            page_2 = ModularPage(
+                "webcam_recording",
+                prompt="",
+                control=CustomVideoRecordControl(
+                    bot_response_media="assets/example_recording.webm",
+                ),
+                time_estimate=5,
+                progress_display=custom_progress_display(),
+            )
+            return join(page_1, page_2)
 
     def analyze_recording(self, experiment, participant):
         return {"failed": False}
