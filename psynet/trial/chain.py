@@ -1400,11 +1400,11 @@ class ChainTrialMaker(NetworkTrialMaker):
             trial_maker_id=self.id, full=False
         )
 
-        logger.info(
-            "There are %i non-full networks for trialmaker %s.",
-            networks.count(),
-            self.id,
-        )
+        # logger.info(
+        #     "There are %i non-full networks for trialmaker %s.",
+        #     networks.count(),
+        #     self.id,
+        # )
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)
@@ -1417,11 +1417,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant_group = participant.module_state.participant_group
         networks = networks.filter_by(participant_group=participant_group)
 
-        logger.info(
-            "%i of these networks match the current participant group (%s).",
-            networks.count(),
-            participant_group,
-        )
+        # logger.info(
+        #     "%i of these networks match the current participant group (%s).",
+        #     networks.count(),
+        #     participant_group,
+        # )
 
         networks = networks.all()
 
