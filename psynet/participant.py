@@ -247,7 +247,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
 
     errors = relationship("ErrorRecord")
-    _module_states = relationship("ModuleState")
+    _module_states = relationship("ModuleState", lazy="selectin")
 
     @property
     def module_states(self):
