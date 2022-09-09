@@ -21,14 +21,13 @@ def test_experiment(launched_experiment):
     # We allow the first page to be slowish
     with log_level(logger, logging.DEBUG), time_logger("take_page") as log:
         bot.take_page()
-    assert log["time_taken"] < 2
+    assert log["time_taken"] < 1
 
     while True:
         with log_level(logger, logging.DEBUG), time_logger("take_page") as log:
             bot.take_page()
 
-        # The page should load in less than 0.25 seconds
-        assert log["time_taken"] < 0.25
+        assert log["time_taken"] < 1
 
         db.session.commit()
         if not bot.status == "working":
