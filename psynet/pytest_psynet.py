@@ -301,9 +301,8 @@ def debug_experiment(
         p.expect_exact("Experiment launch complete!", timeout=timeout)
         yield p
     except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
-        with capsys.disabled():
-            print(p.before)
-            raise
+        print(p.before, flush=True)
+        raise
     finally:
         try:
             flush_output(p, timeout=0.1)
