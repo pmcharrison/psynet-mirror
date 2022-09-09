@@ -288,6 +288,7 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
         env=env,
         encoding="utf-8",
     )
+    p.str_last_chars = 2000
     p.logfile = sys.stdout
 
     try:
