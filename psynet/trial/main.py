@@ -2331,11 +2331,12 @@ class TrialNetwork(SQLMixinDallinger, Network):
     id_within_participant = Column(Integer)
 
     all_trials = relationship("psynet.trial.main.Trial")
+    every_node = relationship("psynet.trial.main.TrialNode", lazy="selectin")
 
     @property
     @extra_var(__extra_vars__)
-    def n_all_nodes(self):
-        return len(self.all_nodes)
+    def n_every_node(self):
+        return len(self.every_node)
 
     @property
     @extra_var(__extra_vars__)
@@ -2349,11 +2350,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     @property
     def alive_nodes(self):
-        return [node for node in self.all_nodes if not self.failed]
+        return [node for node in self.every_node if not self.failed]
 
     @property
     def failed_nodes(self):
-        return [node for node in self.all_nodes if self.failed]
+        return [node for node in self.every_node if self.failed]
 
     @property
     @extra_var(__extra_vars__)
@@ -2480,6 +2481,10 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     module_id = Column(String)
     _on_create_called = Column(Boolean, default=False)
     _on_deploy_called = Column(Boolean, default=False)
+
+    network = relationship(
+        "psynet.trial.main.TrialNetwork", back_populates="every_node"
+    )
 
     async_processes = relationship("AsyncProcess")
 
