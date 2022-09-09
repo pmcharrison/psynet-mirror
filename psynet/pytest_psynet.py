@@ -251,7 +251,9 @@ pytest_dallinger.clear_workers = clear_workers
 
 
 @pytest.fixture(scope="class")
-def debug_experiment(request, env, clear_workers, in_experiment_directory, db_session):
+def debug_experiment(
+    request, env, clear_workers, in_experiment_directory, db_session, capsys
+):
     """
     This overrides the debug_experiment fixture in Dallinger to
     use PsyNet debug instead. Note that we use legacy mode for now.
@@ -299,11 +301,9 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
         p.expect_exact("Experiment launch complete!", timeout=timeout)
         yield p
     except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
-        print(p.before)
-        raise RuntimeError(
-            "An error occurred when trying to launch the experiment. "
-            f"The context was: {p.before}"
-        )
+        with capsys.disabled():
+            print(p.before)
+            raise
     finally:
         try:
             flush_output(p, timeout=0.1)
