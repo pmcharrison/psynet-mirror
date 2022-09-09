@@ -288,7 +288,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
         ingest_zip(database_template_path, db.engine)
-        db.session.commit()
+        self._nodes_on_deploy()
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
@@ -297,6 +297,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.var.dashboard_password = get_from_config("dashboard_password")
         self.asset_storage.on_every_launch()
         self.grow_all_networks()
+
+    def _nodes_on_deploy(self):
+        from .trial.main import TrialNode
+
+        for node in TrialNode.query.filter_by(_on_deploy_called=False).all():
+            node.on_deploy()
+
+        db.session.commit()
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
@@ -317,6 +325,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
+        os.environ["DEPLOYMENT_PACKAGE"] = "True"
         bots = self.test_create_bots()
         self.test_run_bots(bots)
         self.test_check_bots(bots)
@@ -1744,4 +1753,4 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 
 def in_deployment_package():
-    return os.path.exists("DEPLOYMENT_PACKAGE")
+    return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))

@@ -1303,6 +1303,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             )
             # self._grow_network(network, experiment)  # not necessary any more!
             networks.append(network)
+            node.check_on_deploy()
 
         db.session.commit()
 
