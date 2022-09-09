@@ -89,15 +89,15 @@ def call_function_with_context(function, *args, **kwargs):
     requested = get_args(function)
 
     if participant != NoArgumentProvided and participant.module_state:
-        if assets in requested and assets == NoArgumentProvided:
+        if "assets" in requested and assets == NoArgumentProvided:
             with time_logger("participant.module_state.assets"):
                 assets = participant.module_state.assets
 
-        if nodes in requested and nodes == NoArgumentProvided:
+        if "nodes" in requested and nodes == NoArgumentProvided:
             with time_logger("participant.module_state.nodes"):
                 nodes = participant.module_state.nodes
 
-    if trial_maker in requested and trial_maker == NoArgumentProvided:
+    if "trial_maker" in requested and trial_maker == NoArgumentProvided:
         if (
             participant != NoArgumentProvided
             and participant.in_module
@@ -106,7 +106,7 @@ def call_function_with_context(function, *args, **kwargs):
             with time_logger("participant.current_trial.trial_maker"):
                 trial_maker = participant.current_trial.trial_maker
 
-    kwargs = {
+    new_kwargs = {
         "experiment": experiment,
         "participant": participant,
         "assets": assets,
@@ -115,7 +115,7 @@ def call_function_with_context(function, *args, **kwargs):
         **kwargs,
     }
 
-    return call_function(function, *args, **kwargs)
+    return call_function(function, *args, **new_kwargs)
 
 
 config_defaults = {
