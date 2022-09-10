@@ -29,5 +29,3 @@ RUN pip install -r dev-requirements.txt
 
 COPY . /psynet
 RUN pip install -e .
-
-WORKDIR /
