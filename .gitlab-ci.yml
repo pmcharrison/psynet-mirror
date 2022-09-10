@@ -8,9 +8,16 @@ variables:
   POSTGRES_PASSWORD: "dallinger"
   DATABASE_URL: postgresql://dallinger:dallinger@localhost:5432/dallinger
 
+# The build_dependencies image includes all of PsyNet's dependencies but not PsyNet itself.
+# This image should only be rebuilt when PsyNet's dependencies change.
+# We can then use that image for running our PsyNet tests.
 build_dependencies:
   image: docker:20.10.16
   stage: build
+  rules:
+    - changes:
+        - Dockerfile
+        - setup.py
   services:
     - docker:20.10.16-dind
   variables:
