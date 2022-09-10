@@ -27,5 +27,7 @@ RUN pip-compile dev-requirements.in --verbose
 RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
 
-#COPY . /psynet
-#RUN pip install -e .
+COPY . /psynet
+RUN pip install -e .
+
+WORKDIR /

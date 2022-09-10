@@ -20,17 +20,20 @@ variables:
   POSTGRES_HOST_AUTH_METHOD: trust
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
+  HEADLESS: TRUE
 
-# The build_dependencies image includes all of PsyNet's dependencies but not PsyNet itself.
-# This image should only be rebuilt when PsyNet's dependencies change.
-# We can then use that image for running our PsyNet tests.
-build_dependencies:
+build:
   image: docker:20.10.16
   stage: build
-  rules:
-    - changes:
-        - Dockerfile
-        - setup.py
+  # Originally I thought it would be clever to add this, so that the image only rebuilds when Dockerfile or setup.py
+  # change. The problem however is that you could run two quick pipeline in succession, the first of which changes
+  # setup.py but the second doesn't; the first pipeline would start building dependencies, but the second pipeline
+  # would skip building dependencies and proceed with an outdated docker image.
+  #
+  #  rules:
+  #    - changes:
+  #        - Dockerfile
+  #        - setup.py
   services:
     - docker:20.10.16-dind
   variables:
@@ -41,32 +44,26 @@ build_dependencies:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:dependencies_$CI_COMMIT_BRANCH --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:dependencies_$CI_COMMIT_BRANCH .
+    - docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:dependencies_$CI_COMMIT_BRANCH
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
 
 tests:
-  image: $CI_REGISTRY_IMAGE:dependencies_$CI_COMMIT_BRANCH
+  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
   parallel: 5
   stage: test
-  before_script:
-    - pip install -e .
   script:
     - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests
 
 tests_isolated:
   image: $CI_REGISTRY_IMAGE:dependencies_$CI_COMMIT_BRANCH
   stage: test
-  before_script:
-    - pip install -e .
   script:
     - pytest --chrome tests/isolated/test_demo_gibbs.py
 
 pages:
   image: $CI_REGISTRY_IMAGE:dependencies_$CI_COMMIT_BRANCH
   stage: deploy
-  before_script:
-    - pip install -e .
   script:
     - pip install -U sphinx
     - pip install sphinx_rtd_theme
