@@ -5,8 +5,9 @@ services:
 variables:
   POSTGRES_DB: dallinger
   POSTGRES_USER: dallinger
-  POSTGRES_PASSWORD: "dallinger"
-  DATABASE_URL: postgresql://dallinger:dallinger@localhost:5432/dallinger
+  POSTGRES_PASSWORD: ""
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 # The build_dependencies image includes all of PsyNet's dependencies but not PsyNet itself.
 # This image should only be rebuilt when PsyNet's dependencies change.
