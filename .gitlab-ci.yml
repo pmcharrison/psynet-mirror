@@ -20,7 +20,7 @@ variables:
   POSTGRES_HOST_AUTH_METHOD: trust
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
-  HEADLESS: TRUE
+  HEADLESS: "TRUE"
 
 build:
   image: docker:20.10.16
