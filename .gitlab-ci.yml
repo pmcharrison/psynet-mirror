@@ -1,6 +1,17 @@
-# Comment this out if you decide to use local postgres instead
+# The following workflow runs:
+# - Branch pipelines when a merge request is not open for the branch.
+# - Merge request pipelines when a merge request is open for the branch.
+# See https://docs.gitlab.com/ee/ci/yaml/workflow.html for more details.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
 services:
   - postgres:12.2-alpine
+  - redis:latest
 
 variables:
   POSTGRES_DB: dallinger
