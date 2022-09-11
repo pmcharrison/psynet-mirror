@@ -33,8 +33,8 @@ variables:
 before_script:
   - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 })
   - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 })
-  - echo "POSTGRES_IP: $POSTGRES_IP"
-  - echo "REDIS_IP: REDIS_IP"
+  - echo $POSTGRES_IP
+  - echo $REDIS_IP
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker pull $DOCKER_IMAGE || true
   - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
