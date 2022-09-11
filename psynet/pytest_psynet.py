@@ -251,22 +251,23 @@ pytest_dallinger.clear_workers = clear_workers
 
 
 def patch_pexpect_error_reporter(p):
-    original_reporter = pexpect.spawn.__str__
-
-    def __str__(self):
-        original = original_reporter(self)
-        new = "\n".join(
-            [
-                "~~~",
-                "Full error context:",
-                "",
-                self.before[-10000:],
-                "~~~",
-            ]
-        )
-        return original + "\n\n" + new
-
-    pexpect.spawn.__str__ = __str__
+    p.str_last_chars = 2000
+    # original_reporter = pexpect.spawn.__str__
+    #
+    # def __str__(self):
+    #     original = original_reporter(self)
+    #     new = "\n".join(
+    #         [
+    #             "~~~",
+    #             "Full error context:",
+    #             "",
+    #             self.before[-10000:],
+    #             "~~~",
+    #         ]
+    #     )
+    #     return original + "\n\n" + new
+    #
+    # pexpect.spawn.__str__ = __str__
 
 
 @pytest.fixture(scope="class")
