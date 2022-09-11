@@ -13,6 +13,8 @@ services:
   - postgres:12.2-alpine
   - redis:latest
 
+# TODO - build on tags
+
 variables:
   POSTGRES_DB: dallinger
   POSTGRES_USER: dallinger
