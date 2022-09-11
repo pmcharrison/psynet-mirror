@@ -71,11 +71,11 @@ deploy_docker:
   script:
     - docker push $DOCKER_IMAGE
 
-pages:
+deploy_docs:
   image: $DOCKER_IMAGE
   stage: deploy
+  needs: [deploy_docker]
   script:
-    - TODO
     - pip install -U sphinx
     - pip install sphinx_rtd_theme
     - pip install sphinx-autodoc-typehints
