@@ -36,14 +36,16 @@ before_script:
   - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
 
 #    - -p 5432:5432 -p 6379:6379
+#    --network host
+#-e DATABASE_URL
+#-e REDIS_URL -
 tests:
   parallel: 5
   stage: test
   script:
     - docker run 
-      --network host
-      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e DATABASE_URL
-      -e REDIS_URL -e HEADLESS
+      -p 5432:5432 -p 6379:6379
+      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e HEADLESS
       $DOCKER_IMAGE bash -c 
       "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX 
       --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests"
@@ -52,10 +54,9 @@ tests:
 tests_isolated:
   stage: test
   script:
-    - docker run 
-      --network host
-      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e DATABASE_URL
-      -e REDIS_URL -e HEADLESS
+    - docker run
+      -p 5432:5432 -p 6379:6379
+      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e HEADLESS
       $DOCKER_IMAGE bash -c 
       "pytest --chrome tests/isolated/test_demo_gibbs.py"
 
