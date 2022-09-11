@@ -44,7 +44,7 @@ tests:
   stage: test
   script:
     - docker run 
-      -p 5432:5432 -p 6379:6379
+      --network host
       -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e HEADLESS
       $DOCKER_IMAGE bash -c 
       "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX 
@@ -55,7 +55,7 @@ tests_isolated:
   stage: test
   script:
     - docker run
-      -p 5432:5432 -p 6379:6379
+      --network host
       -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e HEADLESS
       $DOCKER_IMAGE bash -c 
       "pytest --chrome tests/isolated/test_demo_gibbs.py"
