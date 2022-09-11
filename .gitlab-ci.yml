@@ -39,27 +39,27 @@ before_script:
   - docker pull $DOCKER_IMAGE || true
   - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
 
-tests:
-  parallel: 10
-  stage: test
-  script:
-    - docker run 
-      --add-host=postgres:$POSTGRES_IP
-      --add-host=redis:$REDIS_IP
-      -e HEADLESS -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      $DOCKER_IMAGE bash -c 
-      "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX 
-      --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
-
-tests_isolated:
-  stage: test
-  script:
-    - docker run
-      --add-host=postgres:$POSTGRES_IP
-      --add-host=redis:$REDIS_IP
-      -e HEADLESS -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      $DOCKER_IMAGE bash -c 
-      "pytest --chrome tests/isolated/test_demo_gibbs.py"
+#tests:
+#  parallel: 10
+#  stage: test
+#  script:
+#    - docker run
+#      --add-host=postgres:$POSTGRES_IP
+#      --add-host=redis:$REDIS_IP
+#      -e HEADLESS -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+#      $DOCKER_IMAGE bash -c
+#      "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
+#      --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
+#
+#tests_isolated:
+#  stage: test
+#  script:
+#    - docker run
+#      --add-host=postgres:$POSTGRES_IP
+#      --add-host=redis:$REDIS_IP
+#      -e HEADLESS -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+#      $DOCKER_IMAGE bash -c
+#      "pytest --chrome tests/isolated/test_demo_gibbs.py"
 
 deploy_docker:
   stage: deploy

@@ -31,4 +31,4 @@ RUN pip install -r dev-requirements.txt
 
 COPY . /psynet
 RUN pip install -e .
-COPY ./ci/.dallingerconfig $HOME/.dallingerconfig
+COPY ./ci/.dallingerconfig /root/.dallingerconfig
