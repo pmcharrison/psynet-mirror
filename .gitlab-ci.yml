@@ -31,6 +31,10 @@ variables:
   DOCKER_TLS_CERTDIR: "/certs"
 
 before_script:
+  - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 })
+  - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 })
+  - echo "POSTGRES_IP: $POSTGRES_IP"
+  - echo "REDIS_IP: REDIS_IP"
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker pull $DOCKER_IMAGE || true
   - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
@@ -44,8 +48,9 @@ tests:
   stage: test
   script:
     - docker run 
-      --network host
-      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e HEADLESS
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e HEADLESS
       $DOCKER_IMAGE bash -c 
       "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX 
       --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests"
@@ -55,8 +60,9 @@ tests_isolated:
   stage: test
   script:
     - docker run
-      --network host
-      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_HOST_AUTH_METHOD -e HEADLESS
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e HEADLESS
       $DOCKER_IMAGE bash -c 
       "pytest --chrome tests/isolated/test_demo_gibbs.py"
 
