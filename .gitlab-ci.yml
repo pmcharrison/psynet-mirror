@@ -50,7 +50,7 @@ tests:
     - docker run 
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
-      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e HEADLESS
+      -e HEADLESS -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       $DOCKER_IMAGE bash -c 
       "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX 
       --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests"
@@ -62,7 +62,7 @@ tests_isolated:
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
-      -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD -e HEADLESS
+      -e HEADLESS -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       $DOCKER_IMAGE bash -c 
       "pytest --chrome tests/isolated/test_demo_gibbs.py"
 
