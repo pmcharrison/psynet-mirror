@@ -9,7 +9,10 @@ workflow:
 #      when: never
 #    - if: $CI_COMMIT_BRANCH
 
+image: docker:20.10.16
+
 services:
+  - docker:20.10.16-dind
   - postgres:12.2-alpine
   - redis:latest
 
@@ -24,50 +27,35 @@ variables:
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
   DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
 
-build:
-  image: docker:20.10.16
-  stage: build
-  # Originally I thought it would be clever to add this, so that the image only rebuilds when Dockerfile or setup.py
-  # change. The problem however is that you could run two quick pipeline in succession, the first of which changes
-  # setup.py but the second doesn't; the first pipeline would start building dependencies, but the second pipeline
-  # would skip building dependencies and proceed with an outdated docker image.
-  #
-  #  rules:
-  #    - changes:
-  #        - Dockerfile
-  #        - setup.py
-  services:
-    - docker:20.10.16-dind
-  variables:
-    # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - echo $DOCKER_IMAGE
-    - docker pull $DOCKER_IMAGE || true
-    - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
-    - docker push $DOCKER_IMAGE
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker pull $DOCKER_IMAGE || true
+  - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
 
 tests:
-  image: $DOCKER_IMAGE
   parallel: 5
   stage: test
   script:
-    - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests
+    - docker run -p 5432:5432 -p 6379:6379 $DOCKER_IMAGE bash -c "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests"
 
 tests_isolated:
-  image: $DOCKER_IMAGE
   stage: test
   script:
-    - pytest --chrome tests/isolated/test_demo_gibbs.py
+    - docker run -p 5432:5432 -p 6379:6379 $DOCKER_IMAGE bash -c "pytest --chrome tests/isolated/test_demo_gibbs.py"
+
+deploy_docker:
+  stage: deploy
+  script:
+    - docker push $DOCKER_IMAGE
 
 pages:
   image: $DOCKER_IMAGE
   stage: deploy
   script:
+    - TODO
     - pip install -U sphinx
     - pip install sphinx_rtd_theme
     - pip install sphinx-autodoc-typehints
