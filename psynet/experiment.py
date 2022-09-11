@@ -556,14 +556,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return deployment_info.read("deployment_id")
 
     def grow_all_networks(self):
-        from .trial.main import TrialNetwork
+        from .trial.main import NetworkTrialMaker
 
-        networks = TrialNetwork.query.all()
-        if len(networks) > 0:
-            logger.info("Growing networks...")
-            for n in networks:
-                n.grow(experiment=self)
-            db.session.commit()
+        NetworkTrialMaker.grow_all_networks(experiment=self)
 
     @classmethod
     def create_database_snapshot(cls):

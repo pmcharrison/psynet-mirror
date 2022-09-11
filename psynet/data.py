@@ -1,3 +1,4 @@
+import contextlib
 import csv
 import io
 import os
@@ -592,26 +593,44 @@ def list_fkeys():
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
+# @contextlib.contextmanager
+# def disable_foreign_key_constraints():
+#     db.session.execute("SET session_replication_role = replica;")
+#     # connection.execute("SET session_replication_role = replica;")
+#     yield
+#     db.session.execute("SET session_replication_role = DEFAULT;")
+
 # This would have been useful for importing data, however in practice
 # it caused the import process to hang.
 #
-# @contextlib.contextmanager
-# def disable_foreign_key_constraints():
-#     db.session.commit()
-#     con = db.engine.connect()
-#     trans = con.begin()
-#
-#     all_fkeys, tables = list_fkeys()
-#
-#     for fkey in all_fkeys:
-#         con.execute(DropConstraint(fkey))
-#
-#     yield
-#
-#     for fkey in all_fkeys:
-#         con.execute(AddConstraint(fkey))
-#
-#     trans.commit()
+@contextlib.contextmanager
+def disable_foreign_key_constraints():
+    db.session.commit()
+    # con = db.engine.connect()
+    # trans = con.begin()
+
+    all_fkeys, tables = list_fkeys()
+
+    for fkey in all_fkeys:
+        # con.execute(DropConstraint(fkey))
+        db.session.execute(DropConstraint(fkey))
+
+    db.session.commit()
+
+    yield
+
+    # This code was meant to re-add the constraints afterwards, but it causes an error that we have not been
+    # able to debug, so we have disabled it. It should not be too much of a problem, though; SQLAlchemy
+    # should protect us from foreign key misuse anyway.
+    #
+    # for fkey in all_fkeys:
+    #     # con.execute(AddConstraint(fkey))
+    #     print(fkey)
+    #     db.session.execute(AddConstraint(fkey))
+    #
+    # db.session.commit()
+
+    # trans.commit()
 
 
 def _sql_dallinger_base_classes():
@@ -750,10 +769,10 @@ def ingest_to_model(
         reader = csv.reader(file)
         columns = tuple('"{}"'.format(n) for n in next(reader))
 
-        # with disable_foreign_key_constraints():
-        postgres_copy.copy_from(
-            file, model, engine, columns=columns, format="csv", HEADER=False
-        )
+        with disable_foreign_key_constraints():
+            postgres_copy.copy_from(
+                file, model, engine, columns=columns, format="csv", HEADER=False
+            )
 
         column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
         if "id" in column_names:

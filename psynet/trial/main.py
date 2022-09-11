@@ -1755,7 +1755,7 @@ class TrialMaker(Module):
 
     def _wait_for_trial(self):
         def _try_to_prepare_trial(experiment, participant):
-            self._grow_all_networks(experiment)
+            self.grow_all_networks(experiment)
             trial = self._prepare_trial(experiment, participant)
             assert isinstance(trial, Trial) or trial in ["wait", "exit"]
             participant.current_trial = trial
@@ -2002,17 +2002,27 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
+    @classmethod
     @log_time_taken
-    def _grow_all_networks(self, experiment):
-        logger.info("Making sure all networks have grown.")
-        networks = TrialNetwork.query.filter_by(trial_maker_id=self.id)
-        for network in networks:
-            self.grow_network(network, experiment)
+    def grow_all_networks(cls, experiment):
+        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
+        # cover other types of networks in the future.
+        from psynet.trial.chain import ChainNetwork
+
+        networks = ChainNetwork.query.filter_by(ready_to_spawn=True).all()
+        if len(networks) > 0:
+            logger.info("Growing %i networks...", len(networks))
+            for n in networks:
+                n.grow(experiment=experiment)
+            db.session.commit()
+        # networks = ChainTrialNetwork.query.filter_by(trial_maker_id=self.id)
+        # for network in networks:
+        #     self.grow_network(network, experiment)
 
     @log_time_taken
     def prepare_trial(self, experiment, participant):
         logger.info("Preparing trial for participant %i.", participant.id)
-        self._grow_all_networks(experiment)
+        self.grow_all_networks(experiment)
         networks = self.find_networks(participant=participant, experiment=experiment)
 
         if networks in ["wait", "exit"]:
@@ -2331,12 +2341,12 @@ class TrialNetwork(SQLMixinDallinger, Network):
     id_within_participant = Column(Integer)
 
     all_trials = relationship("psynet.trial.main.Trial")
-    every_node = relationship("psynet.trial.main.TrialNode", lazy="selectin")
+    # all_nodes = relationship("psynet.trial.main.TrialNode")
 
     @property
     @extra_var(__extra_vars__)
-    def n_every_node(self):
-        return len(self.every_node)
+    def n_all_nodes(self):
+        return len(self.all_nodes)
 
     @property
     @extra_var(__extra_vars__)
@@ -2350,11 +2360,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     @property
     def alive_nodes(self):
-        return [node for node in self.every_node if not self.failed]
+        return [node for node in self.all_nodes if not self.failed]
 
     @property
     def failed_nodes(self):
-        return [node for node in self.every_node if self.failed]
+        return [node for node in self.all_nodes if self.failed]
 
     @property
     @extra_var(__extra_vars__)
@@ -2482,9 +2492,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     _on_create_called = Column(Boolean, default=False)
     _on_deploy_called = Column(Boolean, default=False)
 
-    network = relationship(
-        "psynet.trial.main.TrialNetwork", back_populates="every_node"
-    )
+    # network = relationship(
+    #     "psynet.trial.main.TrialNetwork",
+    #     foreign_keys=[dallinger.models.Node.network_id],
+    #     back_populates="all_nodes",
+    # )
 
     async_processes = relationship("AsyncProcess")
 

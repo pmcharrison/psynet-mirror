@@ -3,10 +3,19 @@ from typing import Optional, Set, Type
 
 from dallinger import db
 from dallinger.models import Vector
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import not_
+from sqlalchemy.sql.expression import not_, select
 
 from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
@@ -129,9 +138,12 @@ class ChainNetwork(TrialNetwork):
     # __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     chain_type = Column(String)
+    head_id = Column(Integer, ForeignKey("node.id"))
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)
     block = Column(String, index=True)
+
+    head = relationship("ChainNode", foreign_keys=[head_id], post_update=True)
 
     def __init__(
         self,
@@ -291,9 +303,9 @@ class ChainNetwork(TrialNetwork):
             return 0
         return max([node.degree for node in self.alive_nodes])
 
-    @property
-    def head(self):
-        return self.get_node_with_degree(self.degree)
+    # @property
+    # def head(self):
+    #     return self.get_node_with_degree(self.degree)
 
     def get_node_with_degree(self, degree):
         nodes = [n for n in self.alive_nodes if n.degree == degree]
@@ -308,7 +320,8 @@ class ChainNetwork(TrialNetwork):
     def add_node(self, node):
         node.set_network(self)
         if node.degree > 0:
-            previous_head = self.get_node_with_degree(node.degree - 1)
+            # previous_head = self.get_node_with_degree(node.degree - 1)
+            previous_head = self.head
             vector = ChainVector(origin=previous_head, destination=node)
             db.session.add(vector)
             previous_head.child = node
@@ -318,6 +331,7 @@ class ChainNetwork(TrialNetwork):
             # Setting full=True means that no participants will be assigned to the final node,
             # and it'll just be used as a summary of the chain's final state.
             self.full = True
+        self.head = node
 
     @property
     def n_trials_still_required(self):
@@ -326,6 +340,18 @@ class ChainNetwork(TrialNetwork):
             return 0
         else:
             return self.target_n_trials - self.n_completed_trials
+
+    @hybrid_property
+    def ready_to_spawn(self):
+        return self.head.ready_to_spawn
+
+    @ready_to_spawn.expression
+    def ready_to_spawn(cls):
+        return (
+            select(ChainNode.ready_to_spawn)
+            .where(ChainNode.id == cls.head_id)
+            .scalar_subquery()
+        )
 
 
 class ChainNode(TrialNode):
@@ -632,13 +658,23 @@ class ChainNode(TrialNode):
     def var(self):
         return VarStore(self)
 
-    @property
+    @hybrid_property
     def target_n_trials(self):
         return self.network.trials_per_node
 
-    @property
-    def ready_to_spawn(self):
-        return self.reached_target_n_trials()
+    @target_n_trials.expression
+    def target_n_trials(cls):
+        # Does this produce a correlated subquery? Is it problematic for performance?
+        # (https://docs.sqlalchemy.org/en/14/orm/extensions/hybrid.html#correlated-subquery-relationship-hybrid)
+        return (
+            select(ChainNetwork.trials_per_node)
+            .where(ChainNetwork.id == cls.network_id)
+            .scalar_subquery()
+        )
+
+    # @property
+    # def ready_to_spawn(self):
+    #     return self.reached_target_n_trials()
 
     @property
     def completed_and_processed_trials(self):
@@ -648,12 +684,56 @@ class ChainNode(TrialNode):
             if (t.complete and t.finalized and not t.is_repeat_trial)
         ]
 
+    @hybrid_property
+    def n_completed_and_processed_trials(self):
+        return len(self.completed_and_processed_trials)
+
+    @n_completed_and_processed_trials.expression
+    def n_completed_and_processed_trials(cls):
+        return (
+            select(func.count(Trial.id))
+            .where(
+                Trial.node_id == cls.id,
+                Trial.complete,
+                Trial.finalized,
+                ~Trial.is_repeat_trial,
+            )
+            .scalar_subquery()
+        )
+
+    # column_property(
+    #     # select(Trial.node_id, Trial.complete, Trial.finalized, Trial.is_repeat_trial)
+    #     select(func.count(Trial.id))
+    #     .where(Trial.node_id == TrialNode.id, Trial.complete, Trial.finalized, ~ Trial.is_repeat_trial)
+    # )
+
+    @hybrid_property
+    def reached_target_n_trials(self):
+        return self.n_completed_and_processed_trials >= self.target_n_trials
+
+    @reached_target_n_trials.expression
+    def reached_target_n_trials(cls):
+        return cls.n_completed_and_processed_trials >= cls.target_n_trials
+
+    @hybrid_property
+    def ready_to_spawn(self):
+        return self.reached_target_n_trials
+
+    @ready_to_spawn.expression
+    def ready_to_spawn(cls):
+        return cls.reached_target_n_trials
+
     @property
     def viable_trials(self):
         return [t for t in self.alive_trials if not t.is_repeat_trial]
 
-    def reached_target_n_trials(self):
-        return len(self.completed_and_processed_trials) >= self.target_n_trials
+    # def reached_target_n_trials(self):
+    #     return len(self.completed_and_processed_trials) >= self.target_n_trials
+
+    def fail(self, reason=None):
+        if self.network.head.id == self.id:
+            self.network.head = self.parent
+        super().fail(reason)
 
     @property
     def failure_cascade(self):
