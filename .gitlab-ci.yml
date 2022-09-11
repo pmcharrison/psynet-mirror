@@ -31,8 +31,8 @@ variables:
   DOCKER_TLS_CERTDIR: "/certs"
 
 before_script:
-  - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 })
-  - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 })
+  - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 }')
+  - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 }')
   - echo $POSTGRES_IP
   - echo $REDIS_IP
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
