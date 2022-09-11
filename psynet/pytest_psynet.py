@@ -33,7 +33,7 @@ from .data import init_db
 from .experiment import Experiment, get_experiment, import_local_experiment
 from .redis import redis_vars
 from .trial.main import TrialNetwork
-from .utils import clear_all_caches, disable_logger, get_from_config, wait_until
+from .utils import clear_all_caches, disable_logger, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -291,17 +291,6 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
     if not config.ready:
         config.load()
 
-    print(f"User: {os.getenv('USER')}")
-
-    global_config_path = os.path.expanduser("~/.dallingerconfig")
-    with open(global_config_path, "r") as file:
-        lines = file.read()
-    print("Printing from config:")
-    print(lines)
-
-    print(get_from_config("debug_storage_root"))
-
-    # Make sure debug server runs to completion with bots
     p = pexpect.spawn(
         "psynet",
         ["debug", "--no-browsers", "--verbose", "--legacy"],
