@@ -914,11 +914,11 @@ class ChainTrial(Trial):
 class ChainTrialMakerState(NetworkTrialMakerState):
     block_order = Column(PythonList)
     block_position = Column(Integer)
-    current_block = Column(String)
+    block = Column(String)
     participated_networks = Column(PythonList, default=lambda: [])
 
     # @hybrid_property
-    # def current_block(self):
+    # def block(self):
     #     return self.block_order[self.block_position]
 
     @property
@@ -931,7 +931,7 @@ class ChainTrialMakerState(NetworkTrialMakerState):
 
     def set_block_position(self, i):
         self.block_position = i
-        self.current_block = self.block_order[i]
+        self.block = self.block_order[i]
 
     def go_to_next_block(self):
         self.set_block_position(self.block_position + 1)
@@ -1318,7 +1318,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     def _should_finish_block(self, participant):
         state = participant.module_state
 
-        assert state.current_block is not None
+        assert state.block is not None
         assert state.block_position is not None
 
         # Used to pass these for convenience, but it produces unnecessary computation.
@@ -1336,7 +1336,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         return self.should_finish_block(
             participant,
-            state.current_block,
+            state.block,
             state.block_position,
             state.n_participant_trials_in_block,
             state.n_participant_trials_in_trial_maker,
@@ -1345,7 +1345,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     def should_finish_block(
         self,
         participant,  # noqa
-        current_block,  # noqa
+        block,  # noqa
         block_position,  # noqa
         n_participant_trials_in_block,
         n_participant_trials_in_trial_maker,
@@ -1599,7 +1599,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                     )
                 )
 
-        current_block = participant.module_state.current_block
+        current_block = participant.module_state.block
         remaining_blocks = participant.module_state.remaining_blocks
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
