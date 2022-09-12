@@ -16,7 +16,7 @@ from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -2127,13 +2127,19 @@ def multiply_expected_repetitions(logic, factor: float):
 class ModuleState(SQLBase, SQLMixin):
     __tablename__ = "module_state"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    module_id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True, unique=True)
+    module_id = Column(String)
+    # parent_id = Column(Integer, ForeignKey("module_state.id"))
+    # parent = relationship("ModuleState", foreign_keys=[parent_id], post_update=True)
     participant_id = Column(
         Integer,
         ForeignKey("participant.id"),
-        primary_key=True,
         back_populates="_module_states",
+    )
+    participant = relationship(
+        "psynet.participant.Participant",
+        foreign_keys=[participant_id],
+        backref=backref("_module_states", lazy="selectin"),
     )
     current_trial = Column(
         PythonObject
@@ -2149,8 +2155,6 @@ class ModuleState(SQLBase, SQLMixin):
     started = Column(Boolean, default=False)
     finished = Column(Boolean, default=False)
     aborted = Column(Boolean, default=False)
-
-    participant = relationship("psynet.participant.Participant")
 
     assets = relationship(
         # We see assets that belong to that module,
@@ -2193,8 +2197,8 @@ class ModuleState(SQLBase, SQLMixin):
         self.time_finished = datetime.now()
         self.aborted = True
 
-    def get(self, module_id: str):
-        return self.participant.get_module_state(module_id)
+    # def get(self, module_id: str):
+    #     return self.participant.get_module_state(module_id)
 
 
 class ModuleAssets:
@@ -2288,6 +2292,7 @@ class Module:
     def start(self, participant):
         state = self.state_class(self, participant)
         state.start()
+        participant.module_state = state
         db.session.add(state)
         db.session.commit()
 
@@ -2298,6 +2303,8 @@ class Module:
             module_id=self.id, participant_id=participant.id, finished=False
         ).one()
         state.finish()
+        db.session.commit()
+        participant.refresh_module_state()
         db.session.commit()
 
     @classmethod

@@ -7,7 +7,7 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Boolean, Column, Float, Integer, String, desc, select
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -158,7 +158,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     auth_token = Column(String)
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
-    selected_module = Column(String)
+    module_state_id = Column(Integer, ForeignKey("module_state.id"))
+    module_state = relationship(
+        "ModuleState", foreign_keys=[module_state_id], post_update=True
+    )
 
     @property
     def current_trial(self):
@@ -247,7 +250,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
 
     errors = relationship("ErrorRecord")
-    _module_states = relationship("ModuleState", lazy="selectin")
+    # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")
 
     @property
     def module_states(self):
@@ -257,14 +260,14 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             sort_key=lambda x: x.time_started,
         )
 
-    def get_module_state(self, module_id: str):
-        return self.module_states[module_id][-1]
-
     def select_module(self, module_id: str):
-        self.selected_module = module_id
-
-    def deselect_module(self):
-        self.selected_module = None
+        candidates = [
+            state
+            for state in self._module_states
+            if not state.finished and state.module_id == module_id
+        ]
+        assert len(candidates) == 1
+        self.module_state = candidates[0]
 
     @property
     def var(self):
@@ -323,19 +326,16 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if log.finished
         ]
 
-    @property
-    def module_state(self):
+    def refresh_module_state(self):
         if len(self._module_states) == 0:
-            return None
+            self.module_state = None
         else:
             unfinished = [x for x in self._module_states if not x.finished]
             unfinished.sort(key=lambda x: x.time_started)
-            if self.selected_module:
-                unfinished.sort(key=lambda x: x.module_id == self.selected_module)
             if len(unfinished) == 0:
-                return None
+                self.module_state = None
             else:
-                return unfinished[-1]
+                self.module_state = unfinished[-1]
 
     @property
     def in_module(self):
