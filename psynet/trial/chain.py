@@ -327,9 +327,10 @@ class ChainNetwork(TrialNetwork):
             previous_head.child = node
             node.parent = previous_head
         if node.degree >= self.max_size:
-            # We avoid calling self.calculate_full because it involves a database query.
             # Setting full=True means that no participants will be assigned to the final node,
             # and it'll just be used as a summary of the chain's final state.
+            #
+            # Note: We avoid calling self.calculate_full because it involves a database query.
             self.full = True
         self.head = node
 
