@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.sql.expression import not_, select
 
 from ..data import SQLMixinDallinger
@@ -477,8 +477,8 @@ class ChainNode(TrialNode):
     seed = Column(PythonObject, default=lambda: {})
     definition = Column(PythonObject, default=lambda: {})
     context = Column(PythonObject)
-    participant_group = Column(String)
-    block = Column(String)
+    participant_group = Column(String, index=True)
+    block = Column(String, index=True)
     propagate_failure = Column(Boolean)
 
     child = relationship(
@@ -874,12 +874,12 @@ class ChainTrial(Trial):
     # pylint: disable=abstract-method
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    block = association_proxy("node", "block")
     participant_group = association_proxy("node", "participant_group")
     degree = association_proxy("node", "degree")
     context = association_proxy("node", "context")
 
-    block_position = Column(Integer)
+    block_position = Column(Integer, index=True)
+    block = Column(String, index=True)
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
@@ -887,6 +887,7 @@ class ChainTrial(Trial):
             participant.module_state, "current_block_position"
         ):
             self.block_position = participant.module_state.current_block_position
+            self.block = participant.module_state.block
 
     # @property
     # @extra_var(__extra_vars__)
@@ -913,11 +914,12 @@ class ChainTrial(Trial):
 class ChainTrialMakerState(NetworkTrialMakerState):
     block_order = Column(PythonList)
     current_block_position = Column(Integer)
+    current_block = Column(String)
     participated_networks = Column(PythonList, default=lambda: [])
 
-    @property
-    def current_block(self):
-        return self.block_order[self.current_block_position]
+    # @hybrid_property
+    # def current_block(self):
+    #     return self.block_order[self.current_block_position]
 
     @property
     def n_blocks(self):
@@ -927,8 +929,28 @@ class ChainTrialMakerState(NetworkTrialMakerState):
     def remaining_blocks(self):
         return self.block_order[self.current_block_position :]
 
+    def set_block_position(self, i):
+        self.current_block_position = i
+        self.current_block = self.block_order[i]
+
     def go_to_next_block(self):
-        self.current_block_position += 1
+        self.set_block_position(self.current_block_position + 1)
+
+
+ChainTrialMakerState.n_participant_trials_in_trial_maker = column_property(
+    select(func.count(ChainTrial.id))
+    .where(ChainTrial.module_state_id == ChainTrialMakerState.id)
+    .scalar_subquery()
+)
+
+ChainTrialMakerState.n_participant_trials_in_block = column_property(
+    select(func.count(ChainTrial.id))
+    .where(
+        ChainTrial.module_state_id == ChainTrialMakerState.id,
+        ChainTrial.block_position == ChainTrialMakerState.current_block_position,
+    )
+    .scalar_subquery()
+)
 
 
 class ChainTrialMaker(NetworkTrialMaker):
@@ -1255,7 +1277,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks = self.networks
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
-        participant.module_state.current_block_position = 0
+        participant.module_state.reset_block_position()
 
     def init_block_order(self, experiment, participant, blocks):
         block_order = call_function_with_context(
@@ -1294,27 +1316,30 @@ class ChainTrialMaker(NetworkTrialMaker):
         return random.sample(list(blocks), len(blocks))
 
     def _should_finish_block(self, participant):
-        current_block = participant.module_state.current_block
-        current_block_position = participant.module_state.current_block_position
+        state = participant.module_state
 
-        assert current_block is not None
-        assert current_block_position is not None
+        assert state.current_block is not None
+        assert state.current_block_position is not None
 
-        trials_in_trial_maker = [
-            trial for trial in participant.all_trials if trial.trial_maker_id == self.id
-        ]
-        trials_in_block = [
-            trial
-            for trial in trials_in_trial_maker
-            if trial.block_position == current_block_position
-        ]
+        # Used to pass these for convenience, but it produces unnecessary computation.
+        # Keeping the code here though in case people overriding this function want
+        # to make use of these.
+        #
+        # trials_in_trial_maker = [
+        #     trial for trial in participant.all_trials if trial.trial_maker_id == self.id
+        # ]
+        # trials_in_block = [
+        #     trial
+        #     for trial in trials_in_trial_maker
+        #     if trial.block_position == current_block_position
+        # ]
 
         return self.should_finish_block(
             participant,
-            current_block,
-            current_block_position,
-            trials_in_block,
-            trials_in_trial_maker,
+            state.current_block,
+            state.current_block_position,
+            state.n_participant_trials_in_block,
+            state.n_participant_trials_in_trial_maker,
         )
 
     def should_finish_block(
@@ -1322,16 +1347,15 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant,  # noqa
         current_block,  # noqa
         current_block_position,  # noqa
-        participant_trials_in_block,
-        participant_trials_in_trial_maker,
+        n_participant_trials_in_block,
+        n_participant_trials_in_trial_maker,
     ):  # noqa
         return (
             self.max_trials_per_block is not None
-            and len(participant_trials_in_block) >= self.max_trials_per_block
+            and n_participant_trials_in_block >= self.max_trials_per_block
         ) or (
             self.max_trials_per_participant is not None
-            and len(participant_trials_in_trial_maker)
-            >= self.max_trials_per_participant
+            and n_participant_trials_in_trial_maker >= self.max_trials_per_participant
         )
 
     @property
