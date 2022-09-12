@@ -884,9 +884,9 @@ class ChainTrial(Trial):
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
         if participant.in_module and hasattr(
-            participant.module_state, "current_block_position"
+            participant.module_state, "block_position"
         ):
-            self.block_position = participant.module_state.current_block_position
+            self.block_position = participant.module_state.block_position
             self.block = participant.module_state.block
 
     # @property
@@ -913,13 +913,13 @@ class ChainTrial(Trial):
 
 class ChainTrialMakerState(NetworkTrialMakerState):
     block_order = Column(PythonList)
-    current_block_position = Column(Integer)
+    block_position = Column(Integer)
     current_block = Column(String)
     participated_networks = Column(PythonList, default=lambda: [])
 
     # @hybrid_property
     # def current_block(self):
-    #     return self.block_order[self.current_block_position]
+    #     return self.block_order[self.block_position]
 
     @property
     def n_blocks(self):
@@ -927,14 +927,14 @@ class ChainTrialMakerState(NetworkTrialMakerState):
 
     @property
     def remaining_blocks(self):
-        return self.block_order[self.current_block_position :]
+        return self.block_order[self.block_position :]
 
     def set_block_position(self, i):
-        self.current_block_position = i
+        self.block_position = i
         self.current_block = self.block_order[i]
 
     def go_to_next_block(self):
-        self.set_block_position(self.current_block_position + 1)
+        self.set_block_position(self.block_position + 1)
 
 
 ChainTrialMakerState.n_participant_trials_in_trial_maker = column_property(
@@ -947,7 +947,7 @@ ChainTrialMakerState.n_participant_trials_in_block = column_property(
     select(func.count(ChainTrial.id))
     .where(
         ChainTrial.module_state_id == ChainTrialMakerState.id,
-        ChainTrial.block_position == ChainTrialMakerState.current_block_position,
+        ChainTrial.block_position == ChainTrialMakerState.block_position,
     )
     .scalar_subquery()
 )
@@ -1319,7 +1319,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         state = participant.module_state
 
         assert state.current_block is not None
-        assert state.current_block_position is not None
+        assert state.block_position is not None
 
         # Used to pass these for convenience, but it produces unnecessary computation.
         # Keeping the code here though in case people overriding this function want
@@ -1331,13 +1331,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         # trials_in_block = [
         #     trial
         #     for trial in trials_in_trial_maker
-        #     if trial.block_position == current_block_position
+        #     if trial.block_position == block_position
         # ]
 
         return self.should_finish_block(
             participant,
             state.current_block,
-            state.current_block_position,
+            state.block_position,
             state.n_participant_trials_in_block,
             state.n_participant_trials_in_trial_maker,
         )
@@ -1346,7 +1346,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self,
         participant,  # noqa
         current_block,  # noqa
-        current_block_position,  # noqa
+        block_position,  # noqa
         n_participant_trials_in_block,
         n_participant_trials_in_trial_maker,
     ):  # noqa
@@ -1496,7 +1496,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self._should_finish_block(participant):
             if (
-                participant.module_state.current_block_position + 1
+                participant.module_state.block_position + 1
                 >= participant.module_state.n_blocks
             ):
                 return "exit"
