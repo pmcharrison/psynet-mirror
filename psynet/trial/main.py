@@ -12,9 +12,10 @@ from dallinger import db
 from dallinger.models import Info, Network
 from dominate import tags
 from flask import Markup
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -241,7 +242,9 @@ class Trial(SQLMixinDallinger, Info):
     node_id = Column(Integer, ForeignKey("node.id"), index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     # module_id = Column(String)
-    module_id = association_proxy("node", "module_id")
+    module_id = association_proxy("module_state", "module_id")
+    module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)
+    module_state = relationship("ModuleState", foreign_keys=[module_state_id])
     trial_maker_id = Column(String, index=True)
     definition = Column(PythonObject)
     complete = Column(Boolean)
@@ -403,6 +406,7 @@ class Trial(SQLMixinDallinger, Info):
         self.response_id = None
         self.time_taken = None
         self.trial_maker_id = node.trial_maker_id
+        self.module_state = participant.module_state
         # self.module_id = node.module_id
 
         if assets is None:
@@ -1755,7 +1759,6 @@ class TrialMaker(Module):
 
     def _wait_for_trial(self):
         def _try_to_prepare_trial(experiment, participant):
-            self.grow_all_networks(experiment)
             trial = self._prepare_trial(experiment, participant)
             assert isinstance(trial, Trial) or trial in ["wait", "exit"]
             participant.current_trial = trial
@@ -2461,7 +2464,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
         self.module_id = module_id
 
-    @property
+    @hybrid_property
     def n_completed_trials(self):
         return len(
             [t for t in self.alive_trials if (t.complete and not t.is_repeat_trial)]
@@ -2480,6 +2483,25 @@ class TrialNetwork(SQLMixinDallinger, Network):
         # Currently this function is redundant, but it's there in case we want to
         # add wrapping logic one day.
         self.async_post_grow_network()
+
+
+# This column_property has to be defined outside the class main definition because of a quirk with
+# SQLAlchemy. From the documentation:
+#
+# > If import issues prevent the column_property() from being defined inline with the class, it can be assigned to the
+# > class after both are configured. When using mappings that make use of a declarative_base() base class,
+# > this attribute assignment has the effect of calling Mapper.add_property() to add an additional property after the
+# > fact.
+TrialMakerState.n_completed_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.module_state_id == TrialMakerState.id,
+        Trial.complete,
+        ~Trial.is_repeat_trial,
+        ~Trial.failed,
+    )
+    .scalar_subquery()
+)
 
 
 class TrialNode(SQLMixinDallinger, dallinger.models.Node):
