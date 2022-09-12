@@ -142,19 +142,10 @@ class StaticTrialMaker(ChainTrialMaker):
         in each block. Once this quota is reached, the participant will be forced to repeat
         previously experienced nodes.
 
-    active_balancing_within_participants
-        If ``True`` (default), active balancing within participants is enabled, meaning that
-        node selection always favours the nodes that have been presented fewest times
-        to that participant so far.
-
-    active_balancing_across_participants
+    balance_across_nodes
         If ``True`` (default), active balancing across participants is enabled, meaning that
         node selection favours nodes that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
-        This criterion defers to ``active_balancing_within_participants``;
-        if both ``active_balancing_within_participants=True``
-        and ``active_balancing_across_participants=True``,
-        then the latter criterion is only used for tie breaking.
 
     check_performance_at_end
         If ``True``, the participant's performance
@@ -242,8 +233,7 @@ class StaticTrialMaker(ChainTrialMaker):
         target_trials_per_node: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         allow_repeated_nodes: bool = False,
-        active_balancing_within_participants: bool = True,
-        active_balancing_across_participants: bool = True,
+        balance_across_nodes: bool = True,
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
@@ -251,14 +241,14 @@ class StaticTrialMaker(ChainTrialMaker):
         n_repeat_trials: int = 0,
         assets=None,
     ):
-        balance_across_chains = (
-            active_balancing_across_participants or active_balancing_within_participants
-        )
-        balance_strategy = set()
-        if active_balancing_within_participants:
-            balance_strategy.add("within")
-        if active_balancing_across_participants:
-            balance_strategy.add("across")
+        # balance_across_chains = (
+        #     active_balancing_across_participants or active_balancing_within_participants
+        # )
+        # balance_strategy = set()
+        # if active_balancing_within_participants:
+        #     balance_strategy.add("within")
+        # if active_balancing_across_participants:
+        #     balance_strategy.add("across")
 
         if expected_trials_per_participant is None:
             expected_trials_per_participant = len(nodes)
@@ -292,8 +282,8 @@ class StaticTrialMaker(ChainTrialMaker):
             chains_per_experiment=len(nodes),
             max_nodes_per_chain=1,
             trials_per_node=target_trials_per_node if target_trials_per_node else 1e6,
-            balance_across_chains=balance_across_chains,
-            balance_strategy=balance_strategy,
+            balance_across_chains=balance_across_nodes,
+            # balance_strategy=balance_strategy,
             allow_revisiting_networks_in_across_chains=allow_repeated_nodes,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,

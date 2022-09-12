@@ -89,19 +89,10 @@ class DenseTrialMaker(StaticTrialMaker):
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.
 
-    active_balancing_within_participants
-        If ``True`` (default), active balancing within participants is enabled, meaning that
-        stimulus selection always favours the stimuli that have been presented fewest times
-        to that participant so far.
-
-    active_balancing_across_participants
+    balance_across_nodes
         If ``True`` (default), active balancing across participants is enabled, meaning that
-        stimulus selection favours stimuli that have been presented fewest times to any participant
+        node selection favours nodes that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
-        This criterion defers to ``active_balancing_within_participants``;
-        if both ``active_balancing_within_participants=True``
-        and ``active_balancing_across_participants=True``,
-        then the latter criterion is only used for tie breaking.
 
     check_performance_at_end
         If ``True``, the participant's performance
@@ -189,8 +180,7 @@ class DenseTrialMaker(StaticTrialMaker):
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
         target_trials_per_condition: Optional[int] = None,
-        active_balancing_within_participants: bool = True,
-        active_balancing_across_participants: bool = True,
+        balance_across_nodes: bool = True,
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
@@ -213,8 +203,7 @@ class DenseTrialMaker(StaticTrialMaker):
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             n_repeat_trials=n_repeat_trials,
-            active_balancing_across_participants=active_balancing_across_participants,
-            active_balancing_within_participants=active_balancing_within_participants,
+            balance_across_nodes=balance_across_nodes,
         )
 
 

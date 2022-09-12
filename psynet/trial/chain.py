@@ -1,5 +1,5 @@
 import random
-from typing import Optional, Set, Type
+from typing import Optional, Type
 
 from dallinger import db
 from dallinger.models import Vector
@@ -1041,12 +1041,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         such that trials are preferentially sourced from chains with
         fewer valid trials.
 
-    balance_strategy
-        A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
-        If the list contains "across", then the balancing will take into account trials from other participants.
-        If it contains "within", then the balancing will take into account trials from the present participant.
-        If both are selected, then the balancing strategy will prioritize balancing within the current participant,
-        but will use counts from other participants as a tie breaker.
+    # balance_strategy
+    #     A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
+    #     If the list contains "across", then the balancing will take into account trials from other participants.
+    #     If it contains "within", then the balancing will take into account trials from the present participant.
+    #     If both are selected, then the balancing strategy will prioritize balancing within the current participant,
+    #     but will use counts from other participants as a tie breaker.
 
     check_performance_at_end
         If ``True``, the participant's performance
@@ -1162,7 +1162,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         target_n_participants: Optional[int] = None,
         balance_across_chains: bool = False,
         start_nodes=None,
-        balance_strategy: Set[str] = {"within", "across"},
+        # balance_strategy: Set[str] = {"within", "across"},
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         recruit_mode: str = "n_participants",
@@ -1220,8 +1220,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         self.start_nodes = start_nodes
 
-        assert len(balance_strategy) <= 2
-        assert all([x in ["across", "within"] for x in balance_strategy])
+        # assert len(balance_strategy) <= 2
+        # assert all([x in ["across", "within"] for x in balance_strategy])
 
         self.node_class = node_class
         self.trial_class = trial_class
@@ -1233,7 +1233,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.max_nodes_per_chain = max_nodes_per_chain
         self.trials_per_node = trials_per_node
         self.balance_across_chains = balance_across_chains
-        self.balance_strategy = balance_strategy
+        # self.balance_strategy = balance_strategy
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
@@ -1586,18 +1586,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         random.shuffle(networks)
 
         if self.balance_across_chains:
-            if "across" in self.balance_strategy:
-                networks.sort(key=lambda network: network.n_completed_trials)
-            if "within" in self.balance_strategy:
-                networks.sort(
-                    key=lambda network: len(
-                        [
-                            t
-                            for t in network.alive_trials
-                            if t.participant_id == participant.id
-                        ]
-                    )
-                )
+            networks.sort(key=lambda network: network.n_completed_trials)
+
+            # if "across" in self.balance_strategy:
+            #     networks.sort(key=lambda network: network.n_completed_trials)
+            # if "within" in self.balance_strategy:
+            #     networks.sort(
+            #         key=lambda network: len(
+            #             [
+            #                 t
+            #                 for t in network.alive_trials
+            #                 if t.participant_id == participant.id
+            #             ]
+            #         )
+            #     )
 
         current_block = participant.module_state.block
         remaining_blocks = participant.module_state.remaining_blocks
