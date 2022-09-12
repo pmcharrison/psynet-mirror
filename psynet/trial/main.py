@@ -2478,6 +2478,18 @@ class TrialNetwork(SQLMixinDallinger, Network):
         self.async_post_grow_network()
 
 
+TrialNetwork.n_completed_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.network_id == TrialNetwork.id,
+        ~Trial.failed,
+        Trial.complete,
+        ~Trial.is_repeat_trial,
+    )
+    .scalar_subquery()
+)
+
+
 # This column_property has to be defined outside the class main definition because of a quirk with
 # SQLAlchemy. From the documentation:
 #

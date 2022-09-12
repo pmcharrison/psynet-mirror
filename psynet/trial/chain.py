@@ -1277,7 +1277,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks = self.networks
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
-        participant.module_state.reset_block_position()
+        participant.module_state.set_block_position(0)
 
     def init_block_order(self, experiment, participant, blocks):
         block_order = call_function_with_context(
