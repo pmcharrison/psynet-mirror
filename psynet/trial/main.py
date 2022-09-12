@@ -15,7 +15,6 @@ from flask import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -2463,12 +2462,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
             module_id = trial_maker_id
 
         self.module_id = module_id
-
-    @hybrid_property
-    def n_completed_trials(self):
-        return len(
-            [t for t in self.alive_trials if (t.complete and not t.is_repeat_trial)]
-        )
 
     run_async_post_grow_network = None
 
