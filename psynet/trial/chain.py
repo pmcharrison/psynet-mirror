@@ -145,6 +145,20 @@ class ChainNetwork(TrialNetwork):
 
     head = relationship("ChainNode", foreign_keys=[head_id], post_update=True)
 
+    # @hybrid_property
+    # def n_viable_trials_at_head(self):
+    #     return self.head.n_viable_trials
+    #
+    # @n_viable_trials_at_head.expression
+    # def n_viable_trials_at_head(cls):
+    #     return
+    #
+    #
+    #     column_property(
+    # ef n_viable_trials_at_head = column_property(
+    #
+    # )
+
     def __init__(
         self,
         trial_maker_id: str,
@@ -744,6 +758,33 @@ class ChainNode(TrialNode):
             if self.child:
                 to_fail.append(lambda: [self.child])
         return to_fail
+
+    # @hybrid_property
+    # def n_viable_trials(self):
+    #     return len(self.viable_trials)
+    #
+    # @n_viable_trials.expression
+    # def n_viable_trials(cls):
+    #     return (
+    #         select(func.count(Trial.id))
+    #         .where(
+    #             Trial.node_id == cls.id,
+    #             ~ Trial.is_repeat_trial,
+    #             ~ Trial.failed,
+    #         )
+    #         .scalar_subquery()
+    #     )
+
+
+TrialNode.n_viable_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.node_id == TrialNode.id,
+        ~Trial.is_repeat_trial,
+        ~Trial.failed,
+    )
+    .scalar_subquery()
+)
 
 
 UniqueConstraint(ChainNode.module_id, ChainNode.key)
@@ -1503,6 +1544,13 @@ class ChainTrialMaker(NetworkTrialMaker):
             else:
                 participant.module_state.go_to_next_block()
 
+        # networks = db.session.query(
+        #     self.network_class.chain_type,
+        #     self.network_class.head,
+        # ,
+        # )
+        #
+        #
         networks = self.network_class.query.filter_by(
             trial_maker_id=self.id, full=False
         )
@@ -1565,7 +1613,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = networks_without_pending_processes
 
         networks_with_head_space = [
-            n for n in networks if len(n.head.viable_trials) < self.trials_per_node
+            n for n in networks if n.head.n_viable_trials < self.trials_per_node
         ]
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
