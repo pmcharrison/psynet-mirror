@@ -2151,9 +2151,9 @@ class ModuleState(SQLBase, SQLMixin):
         foreign_keys=[participant_id],
         backref="_module_states",
     )
-    current_trial = Column(
-        PythonObject
-    )  # Note: this can sometimes be a trial object or alternatively a string
+    # current_trial = Column(
+    #     PythonObject
+    # )  # Note: this can sometimes be a trial object or alternatively a string
 
     @property
     def var(self):

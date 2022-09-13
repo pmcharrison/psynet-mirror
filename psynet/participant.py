@@ -162,15 +162,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     module_state = relationship(
         "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="joined"
     )
+    current_trial_id = Column(Integer, ForeignKey("info.id"))
+    current_trial = relationship(
+        "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
+    )
+    trial_status = Column(String)
 
-    @property
-    def current_trial(self):
-        if self.in_module and hasattr(self.module_state, "current_trial"):
-            return self.module_state.current_trial
-
-    @current_trial.setter
-    def current_trial(self, value):
-        self.module_state.current_trial = value
+    # @property
+    # def current_trial(self):
+    #     if self.in_module and hasattr(self.module_state, "current_trial"):
+    #         return self.module_state.current_trial
+    #
+    # @current_trial.setter
+    # def current_trial(self, value):
+    #     self.module_state.current_trial = value
 
     @property
     def last_response(self):
@@ -178,7 +183,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         return Response.query.filter_by(id=self.last_response_id).one()
 
-    all_trials = relationship("psynet.trial.main.Trial")
+    # all_trials = relationship("psynet.trial.main.Trial")
 
     @property
     def alive_trials(self):

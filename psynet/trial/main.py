@@ -269,7 +269,7 @@ class Trial(SQLMixinDallinger, Info):
     participant = relationship(
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
-        back_populates="all_trials",
+        backref="all_trials",
     )
     parent_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
@@ -1232,9 +1232,8 @@ class TrialMaker(Module):
         Returns
         _______
 
-        :class:`~psynet.trial.main.Trial`
-            A :class:`~psynet.trial.main.Trial` object representing the trial
-            to be taken by the participant.
+        A tuple of (:class:`~psynet.trial.main.Trial`, ``str``), where the first is a Trial object,
+        and the second is a status string.
         """
         raise NotImplementedError
 
@@ -1673,18 +1672,20 @@ class TrialMaker(Module):
     @log_time_taken
     def _prepare_trial(self, experiment, participant):
         if not participant.module_state.in_repeat_phase:
-            trial = self.prepare_trial(experiment=experiment, participant=participant)
+            trial, trial_status = self.prepare_trial(
+                experiment=experiment, participant=participant
+            )
             if trial == "exit" and self.n_repeat_trials > 0:
                 participant.module_state.in_repeat_phase = True
 
         if participant.module_state.in_repeat_phase:
-            trial = self._prepare_repeat_trial(
+            trial, trial_status = self._prepare_repeat_trial(
                 experiment=experiment, participant=participant
             )
 
-        db.session.commit()
+        # db.session.commit()  # TODO - try deleting this for performance
 
-        return trial
+        return trial, trial_status
 
     def _prepare_repeat_trial(self, experiment, participant):
         if not participant.module_state.trials_to_repeat:
@@ -1692,6 +1693,8 @@ class TrialMaker(Module):
 
         trials_to_repeat = participant.module_state.trials_to_repeat
         repeat_trial_index = participant.module_state.repeat_trial_index
+
+        trial_status = "available"
 
         try:
             trial_to_repeat_id = trials_to_repeat[repeat_trial_index]
@@ -1703,10 +1706,12 @@ class TrialMaker(Module):
             )
             participant.module_state.repeat_trial_index += 1
             db.session.add(trial)
-            db.session.commit()
+            # db.session.commit()
         except IndexError:
-            trial = "exit"
-        return trial
+            trial = None
+            trial_status = "exit"
+
+        return trial, trial_status
 
     def _init_trials_to_repeat(self, participant):
         completed_trial_ids = [t.id for t in self.get_participant_trials(participant)]
@@ -1726,7 +1731,7 @@ class TrialMaker(Module):
             self._wait_for_trial(),
             conditional(
                 "is_trial_available",
-                condition=lambda participant: participant.current_trial != "exit",
+                condition=lambda participant: participant.trial_status != "exit",
                 logic_if_true=self.trial_class.trial_logic(trial_maker=self),
                 logic_if_false=CodeBlock(
                     lambda: logger.info("No trial found, skipping")
@@ -1741,7 +1746,7 @@ class TrialMaker(Module):
             self._wait_for_trial(),
             while_loop(
                 self.with_namespace("trial_loop"),
-                condition=lambda participant: participant.current_trial != "exit",
+                condition=lambda participant: participant.trial_status != "exit",
                 logic=join(
                     self.trial_class.trial_logic(trial_maker=self),
                     (
@@ -1758,9 +1763,14 @@ class TrialMaker(Module):
 
     def _wait_for_trial(self):
         def _try_to_prepare_trial(experiment, participant):
-            trial = self._prepare_trial(experiment, participant)
-            assert isinstance(trial, Trial) or trial in ["wait", "exit"]
+            trial, trial_status = self._prepare_trial(experiment, participant)
+            if trial is None:
+                assert trial_status in ["wait", "exit"]
+            else:
+                assert isinstance(trial, Trial)
+                assert trial_status == "available"
             participant.current_trial = trial
+            participant.trial_status = trial_status
 
         def try_to_prepare_trial():
             return CodeBlock(_try_to_prepare_trial)
@@ -1769,7 +1779,7 @@ class TrialMaker(Module):
             try_to_prepare_trial(),
             while_loop(
                 "Waiting for trial",
-                lambda participant: participant.module_state.current_trial == "wait",
+                lambda participant: participant.trial_status == "wait",
                 logic=join(
                     try_to_prepare_trial(),
                     WaitPage(wait_time=2.0),
@@ -2029,7 +2039,9 @@ class NetworkTrialMaker(TrialMaker):
 
         if networks in ["wait", "exit"]:
             logger.info("Outcome of find_networks: %s", networks)
-            return networks
+            trial = None
+            trial_status = networks
+            return trial, trial_status
 
         logger.info(
             "Outcome: found %i candidate network(s) for participant %i.",
@@ -2050,14 +2062,18 @@ class NetworkTrialMaker(TrialMaker):
                     node.network.id,
                     participant.id,
                 )
-                return self._create_trial(
+                trial = self._create_trial(
                     node=node, participant=participant, experiment=experiment
                 )
+                trial_status = "available"
+                return trial, trial_status
         logger.info(
             "Failed to create any nodes from these networks for participant %i, exiting.",
             participant.id,
         )
-        return "exit"
+        trial = None
+        trial_status = "exit"
+        return trial, trial_status
 
     ####
 
