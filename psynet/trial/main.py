@@ -1683,8 +1683,6 @@ class TrialMaker(Module):
                 experiment=experiment, participant=participant
             )
 
-        # db.session.commit()  # TODO - try deleting this for performance
-
         return trial, trial_status
 
     def _prepare_repeat_trial(self, experiment, participant):
