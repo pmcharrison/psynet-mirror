@@ -203,14 +203,16 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        db.session.commit()
+        with time_logger("CodeBlock pre-commit", indent=2):
+            db.session.commit()
         call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
         )
-        db.session.commit()
+        with time_logger("CodeBlock post-commit", indent=2):
+            db.session.commit()
 
 
 class FixTime(Elt):

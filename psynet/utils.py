@@ -839,7 +839,7 @@ time_logger_stack = []
 
 
 @contextlib.contextmanager
-def time_logger(label, threshold=0, indent=0):
+def time_logger(label, threshold=0.01, indent=0.05):
     indent = len(time_logger_stack) * 4
     time_logger_stack.append(label)
     log = {

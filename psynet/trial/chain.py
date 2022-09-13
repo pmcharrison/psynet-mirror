@@ -21,7 +21,13 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
-from ..utils import call_function_with_context, get_logger, log_time_taken, negate
+from ..utils import (
+    call_function_with_context,
+    get_logger,
+    log_time_taken,
+    negate,
+    time_logger,
+)
 from .main import (
     NetworkTrialMaker,
     NetworkTrialMakerState,
@@ -587,8 +593,8 @@ class ChainNode(TrialNode):
     def stage_assets(self, experiment):
         self.assets = {}
 
-        if self.network:
-            self.assets.update(**self.network.assets)
+        # if self.network:
+        #     self.assets.update(**self.network.assets)
 
         for label, asset in self._staged_assets.items():
             if asset.label is None:
@@ -1732,23 +1738,28 @@ class ChainTrialMaker(NetworkTrialMaker):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None
-        head = network.head
-        if head.ready_to_spawn:
-            seed = head.create_seed(experiment, participant)
-            node = self.node_class(
-                seed=seed,
-                parent=head,
-                network=network,
-                experiment=experiment,
-                propagate_failure=self.propagate_failure,
-                participant=participant,
-            )
-            db.session.add(node)
-            network.add_node(node)
-            db.session.commit()
-            node.check_on_create()
-            node.check_on_deploy()
-            db.session.commit()
+        if network.ready_to_spawn:
+            head = network.head
+            with time_logger("create seed", indent=4):
+                seed = head.create_seed(experiment, participant)
+            with time_logger("create node", indent=4):
+                node = self.node_class(
+                    seed=seed,
+                    parent=head,
+                    network=network,
+                    experiment=experiment,
+                    propagate_failure=self.propagate_failure,
+                    participant=participant,
+                )
+            with time_logger("add node to DB", indent=4):
+                db.session.add(node)
+                network.add_node(node)
+                db.session.commit()
+            with time_logger("creation checks", indent=4):
+                node.check_on_create()
+                node.check_on_deploy()
+            with time_logger("final commit", indent=4):
+                db.session.commit()
             return True
         return False
 

@@ -2620,9 +2620,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     def set_network(self, network):
         self.network = network
-        self.assets.update(network.assets)
         self.trial_maker_id = network.trial_maker_id
-        network.calculate_full()
 
         if not self.module_id:
             self.module_id = network.module_id
