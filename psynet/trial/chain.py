@@ -356,17 +356,17 @@ class ChainNetwork(TrialNetwork):
         else:
             return self.target_n_trials - self.n_completed_trials
 
-    @hybrid_property
-    def ready_to_spawn(self):
-        return self.head.ready_to_spawn
-
-    @ready_to_spawn.expression
-    def ready_to_spawn(cls):
-        return (
-            select(ChainNode.ready_to_spawn)
-            .where(ChainNode.id == cls.head_id)
-            .scalar_subquery()
-        )
+    # @hybrid_property
+    # def ready_to_spawn(self):
+    #     return self.head.ready_to_spawn
+    #
+    # @ready_to_spawn.expression
+    # def ready_to_spawn(cls):
+    #     return (
+    #         select(ChainNode.ready_to_spawn)
+    #         .where(ChainNode.id == cls.head_id)
+    #         .scalar_subquery()
+    #     )
 
 
 class ChainNode(TrialNode):
@@ -783,6 +783,24 @@ TrialNode.n_viable_trials = column_property(
         ~Trial.is_repeat_trial,
         ~Trial.failed,
     )
+    .scalar_subquery()
+)
+
+ChainNetwork.ready_to_spawn = column_property(
+    select(ChainNode.ready_to_spawn)
+    .where(ChainNode.id == ChainNetwork.head_id)
+    .scalar_subquery()
+)
+
+ChainNetwork.n_viable_trials_at_head = column_property(
+    select(TrialNode.n_viable_trials)
+    .where(TrialNode.id == ChainNetwork.head_id)
+    .scalar_subquery()
+)
+
+ChainNetwork.head_is_awaiting_async_process = column_property(
+    select(TrialNode.awaiting_async_process)
+    .where(TrialNode.id == ChainNetwork.head_id)
     .scalar_subquery()
 )
 
@@ -1590,7 +1608,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             return TypeError("custom_network_filter must return a list of networks")
 
         def has_pending_process(network):
-            return network.awaiting_async_process or network.head.awaiting_async_process
+            return (
+                network.awaiting_async_process or network.head_is_awaiting_async_process
+            )
 
         networks_without_pending_processes = [
             n for n in networks if not has_pending_process(n)
@@ -1613,7 +1633,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = networks_without_pending_processes
 
         networks_with_head_space = [
-            n for n in networks if n.head.n_viable_trials < self.trials_per_node
+            n for n in networks if n.n_viable_trials_at_head < self.trials_per_node
         ]
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
