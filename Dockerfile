@@ -1,7 +1,7 @@
 FROM ghcr.io/dallinger/dallinger:9.1.0docker0
 
-RUN mkdir /psynet
-WORKDIR /psynet
+RUN mkdir /PsyNet
+WORKDIR /PsyNet
 
 COPY setup.py setup.py
 
@@ -27,5 +27,5 @@ RUN pip-compile dev-requirements.in --verbose
 RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
 
-COPY . /psynet
+COPY . /PsyNet
 RUN pip install -e .
