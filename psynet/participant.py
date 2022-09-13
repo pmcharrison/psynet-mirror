@@ -160,7 +160,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     browser_platform = Column(String, default="")
     module_state_id = Column(Integer, ForeignKey("module_state.id"))
     module_state = relationship(
-        "ModuleState", foreign_keys=[module_state_id], post_update=True
+        "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="joined"
     )
 
     @property

@@ -16,7 +16,7 @@ from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -2144,12 +2144,12 @@ class ModuleState(SQLBase, SQLMixin):
     participant_id = Column(
         Integer,
         ForeignKey("participant.id"),
-        back_populates="_module_states",
+        # back_populates="_module_states",
     )
     participant = relationship(
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
-        backref=backref("_module_states", lazy="selectin"),
+        backref="_module_states",
     )
     current_trial = Column(
         PythonObject
