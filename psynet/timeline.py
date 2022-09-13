@@ -203,12 +203,14 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
+        db.session.commit()
         call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
         )
+        db.session.commit()
 
 
 class FixTime(Elt):
@@ -1525,8 +1527,8 @@ class Timeline:
                 ):
                     new_elt.consume(experiment, participant)
 
-                with time_logger("advance_page commit"):
-                    db.session.commit()
+                # with time_logger("advance_page commit"):
+                #     db.session.commit()
 
                 if isinstance(new_elt, Page):
                     finished = True
