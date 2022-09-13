@@ -1506,24 +1506,30 @@ class Timeline:
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            participant.elt_id[-1] += 1
+            with time_logger("advance_page", indent=8):
+                with time_logger("advance_page update participant elt_id"):
+                    participant.elt_id[-1] += 1
 
-            try:
-                new_elt = self.get_current_elt(experiment, participant)
-            except PageMakerFinishedError:
-                participant.elt_id = participant.elt_id[:-1]
-                participant.elt_id_max = participant.elt_id_max[:-1]
-                continue
-            if isinstance(new_elt, PageMaker):
-                participant.elt_id.append(-1)
-                continue
+                try:
+                    new_elt = self.get_current_elt(experiment, participant)
+                except PageMakerFinishedError:
+                    participant.elt_id = participant.elt_id[:-1]
+                    participant.elt_id_max = participant.elt_id_max[:-1]
+                    continue
+                if isinstance(new_elt, PageMaker):
+                    participant.elt_id.append(-1)
+                    continue
 
-            with time_logger(f"consuming elt {new_elt.id} ({type(new_elt)})"):
-                new_elt.consume(experiment, participant)
-            db.session.commit()
+                with time_logger(
+                    f"consuming elt {new_elt.id} ({type(new_elt)})", indent=12
+                ):
+                    new_elt.consume(experiment, participant)
 
-            if isinstance(new_elt, Page):
-                finished = True
+                with time_logger("advance_page commit"):
+                    db.session.commit()
+
+                if isinstance(new_elt, Page):
+                    finished = True
 
     def estimated_max_bonus(self, wage_per_hour):
         return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)

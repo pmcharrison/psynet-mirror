@@ -73,6 +73,7 @@ from .utils import (
     get_arg_from_dict,
     get_from_config,
     get_logger,
+    log_time_taken,
     pretty_log_dict,
     serialise,
     working_directory,
@@ -1521,6 +1522,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
     @classmethod
+    @log_time_taken
     def get_current_page(cls, experiment, participant):
         if participant.elt_id == [-1]:
             experiment.timeline.advance_page(experiment, participant)
