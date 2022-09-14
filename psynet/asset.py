@@ -1452,12 +1452,18 @@ class DebugStorage(AssetStorage):
         return os.path.join("static", self.label)
 
     def _create_symlink(self):
+        from pathlib import Path
         try:
             os.unlink(self.public_path)
+        except NotADirectoryError:
+            # breakpoint()
+            # Path(self.public_path).rmdir()
+            shutil.rmtree(self.public_path)
+            # os.unlink(self.public_path)
         except FileNotFoundError:
             pass
-        except PermissionError:
-            shutil.rmtree(self.public_path)
+        # except PermissionError:
+        #     shutil.rmtree(self.public_path)
 
         os.makedirs("static", exist_ok=True)
 

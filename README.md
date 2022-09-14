@@ -15,6 +15,8 @@ python -m pytest
 
 ## Via Docker (WIP)
 
+This assumes you've performed certain setup steps, see: https://github.com/Dallinger/Dallinger/pull/4293/files
+
 ```
 # Build the Docker image
 docker build --tag psynet-test .
