@@ -1458,10 +1458,11 @@ class DebugStorage(AssetStorage):
         except (FileNotFoundError, IsADirectoryError):
             # breakpoint()
             # Path(self.public_path).rmdir()
-            shutil.rmtree(self.public_path)
+            try:
+                shutil.rmtree(self.public_path)
             # os.unlink(self.public_path)
-        except (FileNotFoundError, NotADirectoryError):
-            pass
+            except (FileNotFoundError, NotADirectoryError):
+                pass
         # except PermissionError:
         #     shutil.rmtree(self.public_path)
 
