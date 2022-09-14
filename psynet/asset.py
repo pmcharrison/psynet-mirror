@@ -1455,12 +1455,12 @@ class DebugStorage(AssetStorage):
         from pathlib import Path
         try:
             os.unlink(self.public_path)
-        except NotADirectoryError:
+        except (FileNotFoundError, IsADirectoryError):
             # breakpoint()
             # Path(self.public_path).rmdir()
             shutil.rmtree(self.public_path)
             # os.unlink(self.public_path)
-        except FileNotFoundError:
+        except (FileNotFoundError, NotADirectoryError):
             pass
         # except PermissionError:
         #     shutil.rmtree(self.public_path)
