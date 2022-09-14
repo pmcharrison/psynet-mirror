@@ -23,7 +23,7 @@ docker build --tag psynet-test .
 docker start dallinger_redis dallinger_postgres
 
 # Launch a terminal in the Docker container
-docker run --rm -it --network dallinger -p 5000:5000 -e FLASK_OPTIONS='-h 0.0.0.0' -e REDIS_URL=redis://dallinger_redis:6379 -e DATABASE_URL=postgresql://dallinger:dallinger@dallinger_postgres/dallinger psynet-test
+docker run --rm -it --network dallinger -p 5000:5000 -e FLASK_OPTIONS='-h 0.0.0.0' -e REDIS_URL=redis://dallinger_redis:6379 -e DATABASE_URL=postgresql://dallinger:dallinger@dallinger_postgres/dallinger -v $HOME/.dallingerconfig:/root/.dallingerconfig psynet-test
 
 # Run all tests (if you want)
 python -m pytest  
