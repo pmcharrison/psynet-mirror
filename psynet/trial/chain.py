@@ -702,7 +702,7 @@ class ChainNode(TrialNode):
 
     # @property
     # def ready_to_spawn(self):
-    #     return self.reached_target_n_trials()
+    #     return self.reached_target_n_trials
 
     @property
     def completed_and_processed_trials(self):
