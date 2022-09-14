@@ -1,7 +1,7 @@
 FROM ghcr.io/dallinger/dallinger:9.1.0a1
 
-RUN mkdir /psynet
-WORKDIR /psynet
+RUN mkdir /PsyNet
+WORKDIR /PsyNet
 
 COPY setup.py setup.py
 
@@ -34,7 +34,7 @@ RUN pip install -r dev-requirements.txt
 RUN pip install "git+https://github.com/Dallinger/Dallinger.git@add-foreign-keys"
 RUN rm -rf /dallinger
 
-COPY . /psynet
+COPY . .
 RUN pip install -e .
 
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
