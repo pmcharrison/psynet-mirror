@@ -23,6 +23,7 @@ RUN export HEADLESS=TRUE
 
 # Ultimately we might want to decouple dev requirements from the Docker distribution
 COPY ./dev-requirements.in dev-requirements.in
+# For some reason you need a README before you can run pip-compile...?
 COPY ./README.md README.md
 
 RUN pip-compile dev-requirements.in --verbose
