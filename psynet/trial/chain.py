@@ -56,7 +56,14 @@ logger = get_logger()
 
 
 class ChainVector(SQLMixinDallinger, Vector):
-    pass
+    def __init__(self, origin, destination):
+        """
+        Patched version of ``dallinger.models.Vector`` that does not assume that
+        ``origin`` or ``destination`` have been committed to the database yet.
+        """
+        self.origin = origin
+        self.destination = destination
+        self.network = self.origin.network
 
 
 class ChainNetwork(TrialNetwork):
