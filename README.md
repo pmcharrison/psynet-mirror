@@ -26,7 +26,12 @@ docker start dallinger_redis dallinger_postgres
 docker run --rm -it --network dallinger -p 5000:5000 -e FLASK_OPTIONS='-h 0.0.0.0' -e REDIS_URL=redis://dallinger_redis:6379 -e DATABASE_URL=postgresql://dallinger:dallinger@dallinger_postgres/dallinger -v $HOME/.dallingerconfig:/root/.dallingerconfig psynet-test
 
 # Run all tests (if you want)
-python -m pytest  
+pytest
+
+# Run a particular test
+pytest tests/isolated/test_demo_error_handling.py --chrome
+
+pytest tests/isolated/test_demo_gibbs.py --chrome
 
 # Run a particular experiment test
 cd /psynet/demos/static_audio
