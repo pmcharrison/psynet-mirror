@@ -3,7 +3,6 @@ import time
 
 import pytest
 import requests
-from dallinger.bots import BotBase
 
 from psynet.error import ErrorRecord
 from psynet.participant import Participant
@@ -32,7 +31,7 @@ class TestExp(object):
     ):  # two_iterations, bot_recruits):
         for i in range(4):
             url = launched_experiment.recruiter.recruit()[0]
-            bot = BotBase(url)
+            bot = PYTEST_BOT_CLASS(url)
 
             bot.participant_id = i + 1
             bot.sign_up()
@@ -176,6 +175,8 @@ class TestExp(object):
             requests.post(
                 f"http://localhost:5000/worker_complete?participant_id={bot.participant_id}"
             )
+
+            bot.driver.quit()
 
             # We can use this code one day to code a dashboard test
             #
