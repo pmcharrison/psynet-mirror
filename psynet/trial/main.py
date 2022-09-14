@@ -1675,7 +1675,7 @@ class TrialMaker(Module):
             trial, trial_status = self.prepare_trial(
                 experiment=experiment, participant=participant
             )
-            if trial == "exit" and self.n_repeat_trials > 0:
+            if trial_status == "exit" and self.n_repeat_trials > 0:
                 participant.module_state.in_repeat_phase = True
 
         if participant.module_state.in_repeat_phase:
