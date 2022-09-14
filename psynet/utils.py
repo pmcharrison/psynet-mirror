@@ -608,10 +608,6 @@ def cache(user_function, /):
     return lru_cache(maxsize=None)(user_function)
 
 
-def cached_class_property(f):
-    return classmethod(property(cache(f)))
-
-
 def organize_by_key(lst, key, sort_key=None):
     """
     Sorts a list of items into groups.

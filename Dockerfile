@@ -24,7 +24,7 @@ RUN export HEADLESS=TRUE
 # Ultimately we might want to decouple dev requirements from the Docker distribution
 COPY ./dev-requirements.in dev-requirements.in
 # For some reason you need a README before you can run pip-compile...?
-COPY ./README.md README.md
+RUN touch README.md
 
 RUN pip-compile dev-requirements.in --verbose
 RUN pip install --no-cache-dir -r dev-requirements.txt
@@ -38,3 +38,4 @@ COPY . /psynet
 RUN pip install -e .
 
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
+COPY ./README.md README.md

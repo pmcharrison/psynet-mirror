@@ -65,9 +65,9 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
 from .utils import (
     NoArgumentProvided,
     cache,
-    cached_class_property,
     call_function,
     call_function_with_context,
+    classproperty,
     disable_logger,
     error_page,
     get_arg_from_dict,
@@ -552,7 +552,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def generate_deployment_id(cls):
         return cls.label + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-    @cached_class_property
+    @classproperty
     def deployment_id(cls):
         return deployment_info.read("deployment_id")
 

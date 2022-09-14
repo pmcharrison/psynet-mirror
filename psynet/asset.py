@@ -29,7 +29,7 @@ from .media import get_aws_credentials
 from .process import AsyncProcess, LocalAsyncProcess
 from .utils import (
     cache,
-    cached_class_property,
+    classproperty,
     get_args,
     get_extension,
     get_file_size_mb,
@@ -583,17 +583,17 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
 
-    @cached_class_property
+    @classproperty
     def experiment_class(cls):  # noqa
         from .experiment import import_local_experiment
 
         return import_local_experiment()["class"]
 
-    @cached_class_property
+    @classproperty
     def registry(cls):  # noqa
         return cls.experiment_class.assets
 
-    @cached_class_property
+    @classproperty
     def default_storage(cls):  # noqa
         return cls.registry.storage
 
@@ -1084,7 +1084,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         )
         self.secret = uuid.uuid4()  # Used to protect unauthorized access
 
-    @cached_class_property
+    @classproperty
     def default_storage(cls):  # noqa
         return NoStorage()
 
@@ -1180,7 +1180,7 @@ class ExternalAsset(Asset):
     def get_content_id(self):
         return self.url
 
-    @cached_class_property
+    @classproperty
     def default_storage(cls):  # noqa
         return WebStorage()
 
