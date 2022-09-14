@@ -1,4 +1,4 @@
-FROM ghcr.io/dallinger/dallinger:9.1.0docker0
+FROM ghcr.io/dallinger/dallinger:9.1.0docker2
 
 RUN mkdir /PsyNet
 WORKDIR /PsyNet
