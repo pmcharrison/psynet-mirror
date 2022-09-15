@@ -11,7 +11,6 @@ from functools import cached_property
 from typing import Optional
 
 import boto3
-import psutil
 import requests
 import sqlalchemy
 from dallinger import db
@@ -1866,12 +1865,18 @@ class AssetRegistry:
         self.storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        if self.n_parallel:
-            n_jobs = self.n_parallel
-        elif len(self._staged_asset_specifications) < 25:
-            n_jobs = 1
-        else:
-            n_jobs = psutil.cpu_count()
+        # if self.n_parallel:
+        #     n_jobs = self.n_parallel
+        # elif len(self._staged_asset_specifications) < 25:
+        #     n_jobs = 1
+        # else:
+        #     n_jobs = psutil.cpu_count()
+
+        # The parallel implementation is not reliable yet;
+        # the language_tests demo fails due to a deadlock between
+        # competing transactions. As a patch for now we disable
+        # parallel processing.
+        n_jobs = 1
 
         logger.info("Preparing assets for deployment...")
         Parallel(
