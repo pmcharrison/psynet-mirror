@@ -1864,6 +1864,20 @@ class AssetRegistry:
         # the language_tests demo fails due to a deadlock between
         # competing transactions. As a patch for now we disable
         # parallel processing.
+        #
+        # If you wish to revist this, you may find the following Postgres
+        # code useful: it displays all blocking processes along with the
+        # responsible queries.
+        #
+        # SELECT
+        #     activity.pid,
+        #     activity.usename,
+        #     activity.query,
+        #     blocking.pid AS blocking_id,
+        #     blocking.query AS blocking_query
+        # FROM pg_stat_activity AS activity
+        # JOIN pg_stat_activity AS blocking ON blocking.pid = ANY(pg_blocking_pids(activity.pid));
+
         n_jobs = 1
 
         logger.info("Preparing assets for deployment...")
