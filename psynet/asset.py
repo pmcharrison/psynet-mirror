@@ -494,21 +494,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
 
-            # if self.link:
-            #     db.session.add(self.link)
-
-            # if self.network:
-            #     self.network.assets[self.label_or_key] = self
-            #
-            # if self.node:
-            #     self.node.assets[self.label_or_key] = self
-            #
-            # if self.trial:
-            #     self.trial.assets[self.label_or_key] = self
-            #
-            # if self.response:
-            #     self.response.assets[self.label_or_key] = self
-
             return asset_to_use
 
         finally:
