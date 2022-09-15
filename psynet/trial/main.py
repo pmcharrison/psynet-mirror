@@ -2611,7 +2611,14 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self._on_deploy_called = True
 
     def on_create(self):
-        "To be called when the instance is added to the database"
+        """
+        To be called when the instance is added to the database. Can be overridden with custom logic.
+        Note: this function is called both on nodes that are created on the remote server
+        and on nodes that are initialized on the local machine when preparing for deployment
+        (e.g. the nodes in a static experiment). Synthesizing stimuli in dynamic experiments
+        (e.g. iterated reproduction) is best done by overriding the async_on_deploy function instead,
+        which only runs on the remote server.
+        """
         pass
 
     def on_deploy(self):

@@ -253,7 +253,7 @@ class MediaImitationChainNode(ImitationChainNode):
         """
         raise NotImplementedError
 
-    def on_create(self):
+    def async_on_deploy(self):
         logger.info("Synthesizing media for node %i...", self.id)
 
         with tempfile.NamedTemporaryFile() as temp_file:
