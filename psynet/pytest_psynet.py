@@ -300,6 +300,7 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
     patch_pexpect_error_reporter(p)
     # p.str_last_chars = 2000
     p.logfile = sys.stdout
+    p.timeout = timeout
 
     try:
         # assert_logs_contain(
