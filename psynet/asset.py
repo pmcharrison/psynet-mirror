@@ -570,6 +570,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         _old = old.content_id
         _new = new.content_id
 
+        if _old is None or _new is None:
+            return
+
         if _old != _new:
             raise cls.InconsistentContentError(
                 f"Initiated a new deposit for pre-existing asset ({new.key}), "
