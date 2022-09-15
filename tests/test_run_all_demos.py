@@ -29,6 +29,9 @@ def find_demo_dirs():
 
 demos = find_demo_dirs()
 
+# Skip the recruiter demos because they're not meaningful to run here
+demos = [d for d in demos if "demos/recruiters" not in d]
+
 # Uncomment this code if you want to start the test sequence at a particular point
 #
 # start_after = "video"
