@@ -485,7 +485,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                     else:
                         raise
 
-            if asset_to_use == self:
+            if asset_to_use == self or not self.deposited:
                 self._deposit(self.storage, async_, delete_input)
                 # if deposit_complete:
                 #     self.deposited = True
@@ -493,6 +493,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.parent:
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
+
+            if not self.content_id:
+                self.content_id = self.get_content_id()
 
             return asset_to_use
 
