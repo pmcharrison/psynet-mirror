@@ -42,19 +42,6 @@ from .utils import (
 logger = get_logger()
 
 
-def _get_experiment_if_available():
-    from .utils import disable_logger
-
-    try:
-        with disable_logger():
-            # This is to suppress Dallinger's 'Error retrieving experiment class' messages
-            from .experiment import get_experiment
-
-            return get_experiment()
-    except ImportError:
-        return None
-
-
 class AssetSpecification(NullElt):
     export_path = None
     key = None
