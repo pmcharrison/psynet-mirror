@@ -47,30 +47,49 @@ class AssetSpecification(NullElt):
     A base class for asset specifications.
     An asset specification defines some kind of asset or collection or assets.
     It can be included within an experiment timeline.
+
+    Parameters
+    ----------
+
+    key : str
+        A string that identifies the asset uniquely within the experiment.
+        This is often automatically generated, and might look something like
+        ``"visual_stimuli/node_6__network_2__stimulus"``.
+
+    label : str
+        A secondary identifier for the asset that does not have the same uniqueness
+        constraint as the key, and hence can typically be somewhat shorter and
+        easier to manipulate. The label for the example given above might simply be
+        ``"stimulus"``.
+
+    description : str
+        An optional longer string that provides further documentation about the asset.
     """
 
     def __init__(self, key, label, description):
-        self.key = None
-        self.export_path = None
+        if key is None:
+            self.key = f"pending--{uuid.uuid4()}"
+
+        self.key = key
         self.label = label
         self.description = description
-
-        if key is None:
-            self.set_key(f"pending--{uuid.uuid4()}")
+        self.export_path = None
 
     def prepare_for_deployment(self, registry):
         raise NotImplementedError
 
-    null_key_pattern = re.compile("^pending--.*")
+    pending_key_pattern = re.compile("^pending--.*")
 
-    def set_key(self, key):
-        self.key = key
-        self.generate_export_path()
+    def __setattr__(self, key, value):
+        super().__setattr__(key, value)
+        if key == "key":
+            self.generate_export_path()
 
     def generate_export_path(self):
         path = self.key
         if (
-            hasattr(self, "extension")
+            path is not None
+            and hasattr(self, "extension")
             and self.extension
             and not path.endswith(self.extension)
         ):
@@ -79,15 +98,38 @@ class AssetSpecification(NullElt):
 
     @property
     def has_key(self):
-        return self.key is not None and not self.null_key_pattern.match(self.key)
+        return self.key is not None and not self.pending_key_pattern.match(self.key)
 
 
 class AssetCollection(AssetSpecification):
+    """
+    A base class for specifying a collection of assets.
+    """
+
     pass
 
 
 class InheritedAssets(AssetCollection):
-    def __init__(self, path, key: str):
+    """
+    Experimental: Provides a way to load assets from a previously deployed
+    experiment into a new experiment.
+
+    Parameters
+    ----------
+
+    path : str
+        Path to a CSV file specifying the previous assets. This CSV file should come
+        from the ``db/asset.csv` file of an experiment export. The CSV file can
+        optionally be customized by deleting rows corresponding to unneeded assets,
+        or it can be merged with analogous CSV files from other experiments.
+        Importantly, however, the ``key`` column must not contain any duplicates.
+
+    key : str
+        A string that is used to identify the source of the imported assets
+        in the ``Asset.inherited_from`` attribute.
+    """
+
+    def __init__(self, path: str, key: str):
         super().__init__(key, label=None, description=None)
 
         self.path = path
@@ -97,7 +139,6 @@ class InheritedAssets(AssetCollection):
 
     def ingest_specification_to_db(self):
         clear_columns = ["parent"]
-        # clear_columns = Asset.foreign_keyed_columns + ["parent"]
         with open(self.path, "r") as file:
             ingest_to_model(
                 file,
@@ -108,26 +149,6 @@ class InheritedAssets(AssetCollection):
                     inherited_from=self.key,
                 ),
             )
-
-
-# def get_asset(key):
-#     from .experiment import is_experiment_launched
-#
-#     if not is_experiment_launched():
-#         raise RuntimeError(
-#             "You can't call get_asset before the experiment is launched. "
-#             "The usual solution is to wrap this code in a PageMaker or a CodeBlock."
-#         )
-#
-#     matches = Asset.query.filter_by(key=key).all()
-#     if len(matches) == 0:
-#         raise KeyError
-#     elif len(matches) == 1:
-#         return matches[0]
-#     else:
-#         raise ValueError(
-#             f"Unexpected number of assets found with key = {key} ({len(matches)})"
-#         )
 
 
 @register_table
@@ -310,17 +331,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.module_id = value.module_id
         elif key == "module_id":
             if self.key and self.local_key:
-                self.set_key(os.path.join(value, self.local_key))
+                self.key = os.path.join(value, self.local_key)
 
     def generate_key(self):
         self.local_key = self.generate_local_key()
 
         if self.module_id:
-            key = os.path.join(self.module_id, self.local_key)
+            self.key = os.path.join(self.module_id, self.local_key)
         else:
-            key = self.local_key
-
-        self.set_key(key)
+            self.key = self.local_key
 
     def generate_local_key(self):
         return os.path.join(
