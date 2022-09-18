@@ -43,15 +43,20 @@ logger = get_logger()
 
 
 class AssetSpecification(NullElt):
-    export_path = None
-    key = None
+    """
+    A base class for asset specifications.
+    An asset specification defines some kind of asset or collection or assets.
+    It can be included within an experiment timeline.
+    """
 
     def __init__(self, key, label, description):
-        if key is None:
-            key = f"pending--{uuid.uuid4()}"
-        self.set_key(key)
+        self.key = None
+        self.export_path = None
         self.label = label
         self.description = description
+
+        if key is None:
+            self.set_key(f"pending--{uuid.uuid4()}")
 
     def prepare_for_deployment(self, registry):
         raise NotImplementedError
