@@ -63,10 +63,6 @@ class AssetSpecification(NullElt):
         self.generate_export_path()
 
     def generate_export_path(self):
-        # assert self.key is not None
-        # if self.module_id:
-        #     path = os.path.join(self.module_id, self.key)
-        # else:
         path = self.key
         if (
             hasattr(self, "extension")
