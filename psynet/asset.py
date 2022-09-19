@@ -153,6 +153,131 @@ class InheritedAssets(AssetCollection):
 
 @register_table
 class Asset(AssetSpecification, SQLBase, SQLMixin):
+    """
+    Assets represent particular files (or sometimes collections of files) that
+    are used within an experiment. It is encouraged to register things like
+    audio files and video files as assets so that they can be managed
+    appropriately by PsyNet's deploy and export mechanisms.
+
+    Parameters
+    ----------
+
+    local_key : str
+        A key that uniquely identifies the asset within a given module.
+
+    label : str
+        A secondary identifier for the asset that does not have the same uniqueness
+        constraint as the key, and hence can typically be somewhat shorter and
+        easier to manipulate, for example ``"stimulus"``.
+
+    description : str
+        An optional longer string that provides further documentation about the asset.
+
+    is_folder : bool
+        Whether the asset is a folder.
+
+    data_type : str
+        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
+
+    extension : str
+        The file extension, if applicable.
+
+    parent : object
+        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
+
+    key : str
+        A string that identifies the asset uniquely within the experiment.
+        This is often automatically generated, and might look something like
+        ``"visual_stimuli/node_6__network_2__stimulus"``.
+
+    module_id : str
+        The module within which the asset is located.
+
+    replace_existing : bool
+        Whether the asset was created with the instruction to replace any pre-existing asset with the same key.
+
+    personal : bool
+        Whether the asset is 'personal' and hence omitted from anonymous database exports.
+
+
+    Attributes
+    ----------
+
+    needs_storage_backend : bool
+        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
+        (e.g. in the case of an externally hosted resource accessible by a URL).
+
+    psynet_version : str
+        The version of PsyNet used to create the asset.
+
+    deployment_id : str
+        A string used to identify the particular experiment deployment.
+
+    deposited: bool
+        Whether the asset has been deposited yet.
+
+    inherited : bool
+        Whether the asset was inherited from a previous experiment, typically via the
+        ``InheritedAssets` functionality.
+
+    inherited_from : str
+        Identifies the source of an inherited asset.
+
+    export_path : str
+        A relative path constructed from the key that will be used by default when the asset is exported.
+
+    participant_id : int
+        ID of the participant who 'owns' the asset, if applicable.
+
+    content_id : str
+        A token used for checking whether the contents of two assets are equivalent.
+        This takes various forms depending on the asset type.
+        For a file, the ``content_id`` would typically be a hash;
+        for an externally hosted asset, it would be the URL, etc.
+
+    host_path : str
+        The filepath used to host the asset within the storage repository, if applicable.
+
+    url : str
+        The URL that can be used to access the asset from the perspective of the experiment front-end.
+
+    storage : AssetStorage
+        The storage backend used for the asset.
+
+    async_processes : list
+        Lists all async processes that have been created for the asset, including completed ones.
+
+    awaiting_async_process : bool
+        Whether the asset is waiting for an async process to finish.
+
+    participant :
+        If the parent is a ``Participant``, returns that participant.
+
+    participants : list
+        Lists all participants associated with the asset.
+
+    trial :
+        If the parent is a ``trial``, returns that trial.
+
+    trials : list
+        Lists all trials associated with the asset.
+
+    node :
+        If the parent is a ``Node``, returns that participant.
+
+    nodes : list
+        Lists all nodes associated with the asset.
+
+    network :
+        If the parent is a ``Network``, returns that participant.
+
+    networks : list
+        Lists all networks associated with the asset.
+
+    errors : list
+        Lists the errors associated with the asset.
+    """
+
     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
@@ -282,7 +407,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         key=None,
         module_id=None,
         replace_existing=False,
-        variables: Optional[dict] = None,
         personal=False,
     ):
         self.local_key = local_key
@@ -319,7 +443,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.parent:
                 self.module_id = self.parent.module_id
 
-        self.set_variables(variables)
         self.personal = personal
 
         super().__init__(key, label, description)
@@ -400,11 +523,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         from psynet.experiment import get_trial_maker
 
         return get_trial_maker(self.trial_maker_id)
-
-    def set_variables(self, variables):
-        if variables:
-            for key, value in variables.items():
-                self.var.set(key, value)
 
     # @property
     # def identifiers(self):
