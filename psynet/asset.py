@@ -862,15 +862,14 @@ class ManagedAsset(Asset):
         input_path: str,
         *,
         label=None,
-        is_folder=None,
         description=None,
+        is_folder=None,
         data_type=None,
         extension=None,
         parent=None,
         local_key=None,
         module_id=None,
         key=None,
-        variables: Optional[dict] = None,
         personal=False,
         replace_existing=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
@@ -894,7 +893,6 @@ class ManagedAsset(Asset):
             module_id=module_id,
             parent=parent,
             replace_existing=replace_existing,
-            variables=variables,
             personal=personal,
         )
 
@@ -980,7 +978,81 @@ class ManagedAsset(Asset):
 
 
 class ExperimentAsset(ManagedAsset):
-    """ """
+    """
+    The ``ExperimentAsset`` class is one of the most commonly used Asset classes. It refers to assets that are
+    specific to the current experiment deployment. This would typically mean assets that are generated *during the
+    course* of the experiment, for example recordings from a singer, or stimuli generated on the basis of
+    participant responses.
+
+    Examples
+    --------
+
+    ::
+        import tempfile
+
+        with tempfile.NamedTemporaryFile("w") as file:
+            file.write(f"Your message here")
+            asset = ExperimentAsset(
+                label="my_message",
+                input_path=file.name,
+                extension=".txt",
+                parent=participant,
+            )
+            asset.deposit()
+
+    Parameters
+    ----------
+
+    input_path : str
+        Path to the file/folder from which the asset is to be created.
+
+    label : str
+        An optional string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
+        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
+        should share that combination of properties).
+
+    description : str
+        An optional longer string that provides further documentation about the asset.
+
+    is_folder : bool
+        Whether the asset is a folder.
+
+    data_type : str
+        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
+
+    extension : str
+        The file extension, if applicable.
+
+    parent : object
+        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
+
+    local_key : str
+        An optional key that uniquely identifies the asset within a given module. If left unspecified,
+        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+
+    module_id : str
+        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
+        infer the ``module_id`` from the ``parent`` parameter, if provided.
+
+    key : str
+        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
+        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        of which may itself be automatically generated from ``parent``.
+
+    personal : bool
+        Whether the asset is 'personal' and hence omitted from anonymous database exports.
+
+    replace_existing : bool
+        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
+
+    obfuscate : int
+        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
+        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
+        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
+        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
+        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
+        cases where you're worried about participants cheating on the experiment by looking at file URLs.
+    """
 
     def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
@@ -1011,6 +1083,10 @@ class ExperimentAsset(ManagedAsset):
 
 
 class CachedAsset(ManagedAsset):
+    """
+    In contrast to Experiment Assets, Cached Assets
+    """
+
     used_cache = Column(Boolean)
 
     @cached_property
@@ -1076,7 +1152,6 @@ class FunctionAssetMixin:
         key=None,
         module_id=None,
         parent=None,
-        variables: Optional[dict] = None,
         replace_existing=False,
         personal=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
@@ -1104,7 +1179,6 @@ class FunctionAssetMixin:
             parent=parent,
             key=key,
             module_id=module_id,
-            variables=variables,
             replace_existing=replace_existing,
             personal=personal,
             obfuscate=obfuscate,
@@ -1194,7 +1268,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         key: Optional[str] = None,
         module_id: Optional[str] = None,
         parent=None,
-        variables: Optional[dict] = None,
         replace_existing=False,
         personal=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
@@ -1210,7 +1283,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             key=key,
             module_id=module_id,
             parent=parent,
-            variables=variables,
             replace_existing=replace_existing,
             personal=personal,
             obfuscate=obfuscate,
@@ -1275,7 +1347,6 @@ class ExternalAsset(Asset):
         module_id=None,
         key=None,
         parent=None,
-        variables: Optional[dict] = None,
         personal=False,
     ):
         self.host_path = url
@@ -1293,7 +1364,6 @@ class ExternalAsset(Asset):
             key=key,
             parent=parent,
             replace_existing=replace_existing,
-            variables=variables,
             personal=personal,
         )
 
@@ -1339,7 +1409,6 @@ class ExternalS3Asset(ExternalAsset):
         module_id=None,
         key=None,
         parent=None,
-        variables: Optional[dict] = None,
         personal=False,
     ):
         self.s3_bucket = s3_bucket
@@ -1357,7 +1426,6 @@ class ExternalS3Asset(ExternalAsset):
             module_id=module_id,
             key=key,
             parent=parent,
-            variables=variables,
             personal=personal,
         )
 
