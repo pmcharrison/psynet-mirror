@@ -1032,12 +1032,6 @@ class CachedAsset(ManagedAsset):
 
         return host_path
 
-    # def generate_dir(self):
-    #     return os.path.join(
-    #         super().generate_dir(),
-    #         self.compute_hash(),
-    #     )
-
     def _needs_depositing(self):
         exists_in_cache = self.storage.check_cache(
             self.host_path, is_folder=self.is_folder
