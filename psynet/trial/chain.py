@@ -610,7 +610,7 @@ class ChainNode(TrialNode):
             asset.parent = self
 
             if not asset.has_key:
-                asset.generate_key()
+                asset.set_keys()
 
             asset.receive_node_definition(self.definition)
 

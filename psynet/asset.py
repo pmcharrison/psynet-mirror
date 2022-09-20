@@ -473,7 +473,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.key and self.local_key:
                 self.key = os.path.join(value, self.local_key)
 
-    def generate_key(self):
+    def set_keys(self):
         self.local_key = self.generate_local_key()
 
         if self.module_id:
@@ -522,7 +522,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if not self.module_id:
             self.module_id = participant.module_id
         if not self.has_key:
-            self.generate_key()
+            self.set_keys()
         self.deposit()
 
     def infer_data_type(self):
@@ -582,7 +582,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.content_id = self.get_content_id()
 
             if not self.has_key:
-                self.generate_key()
+                self.set_keys()
 
             asset_to_use = self
             duplicate = self.find_duplicate()
