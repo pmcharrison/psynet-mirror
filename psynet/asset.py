@@ -1522,6 +1522,28 @@ class CachedAsset(ManagedAsset):
 
 
 class FunctionAssetMixin:
+    """
+    This Mixin is used to define Asset classes that create their assets not from input files but from functions
+    that are called with a specified set of arguments. It is not to be instantiated directly.
+
+    Parameters
+    ----------
+
+    function : callable
+        A function responsible for generating the asset. The function should receive an argument called ``path``
+        and create a file or a folder at that path. It can also receive additional arguments specified via the
+        ``arguments`` parameter.
+
+    arguments : dict
+        An optional dictionary of arguments that should be passed to the function.
+
+    Attributes
+    ----------
+
+    computation_time_sec : float
+        The time taken to generate the asset.
+    """
+
     # The following conditional logic in the column definitions is required
     # to prevent column conflict errors, see
     # https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html#resolving-column-conflicts
@@ -1531,7 +1553,6 @@ class FunctionAssetMixin:
 
     @declared_attr
     def arguments(cls):
-        # The MutableDict stuff ensures that in-place edits like ``asset.arguments["x"] = 3`` are tracked properly
         return cls.__table__.c.get("arguments", Column(PythonDict))
 
     @declared_attr
