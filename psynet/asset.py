@@ -829,6 +829,45 @@ class ManagedAsset(Asset):
     input_path : str
         Path to the file/folder from which the asset is to be created.
 
+    label : str
+        An optional string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
+        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
+        should share that combination of properties).
+
+    description : str
+        An optional longer string that provides further documentation about the asset.
+
+    is_folder : bool
+        Whether the asset is a folder.
+
+    data_type : str
+        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
+
+    extension : str
+        The file extension, if applicable.
+
+    parent : object
+        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
+
+    local_key : str
+        An optional key that uniquely identifies the asset within a given module. If left unspecified,
+        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+
+    module_id : str
+        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
+        infer the ``module_id`` from the ``parent`` parameter, if provided.
+
+    key : str
+        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
+        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        of which may itself be automatically generated from ``parent``.
+
+    personal : bool
+        Whether the asset is 'personal' and hence omitted from anonymous database exports.
+
+    replace_existing : bool
+        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
+
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
         which means that the URL contains a human-readable component containing useful metadata (e.g the participant
@@ -849,6 +888,97 @@ class ManagedAsset(Asset):
 
     deposit_time_sec : float
         The time it took to deposit the asset.
+
+    needs_storage_backend : bool
+        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
+        (e.g. in the case of an externally hosted resource accessible by a URL).
+
+    psynet_version : str
+        The version of PsyNet used to create the asset.
+
+    deployment_id : str
+        A string used to identify the particular experiment deployment.
+
+    deposited: bool
+        Whether the asset has been deposited yet.
+
+    inherited : bool
+        Whether the asset was inherited from a previous experiment, typically via the
+        ``InheritedAssets` functionality.
+
+    inherited_from : str
+        Identifies the source of an inherited asset.
+
+    export_path : str
+        A relative path constructed from the key that will be used by default when the asset is exported.
+
+    participant_id : int
+        ID of the participant who 'owns' the asset, if applicable.
+
+    content_id : str
+        A token used for checking whether the contents of two assets are equivalent.
+        This takes various forms depending on the asset type.
+        For a file, the ``content_id`` would typically be a hash;
+        for an externally hosted asset, it would be the URL, etc.
+
+    host_path : str
+        The filepath used to host the asset within the storage repository, if applicable.
+
+    url : str
+        The URL that can be used to access the asset from the perspective of the experiment front-end.
+
+    storage : AssetStorage
+        The storage backend used for the asset.
+
+    async_processes : list
+        Lists all async processes that have been created for the asset, including completed ones.
+
+    awaiting_async_process : bool
+        Whether the asset is waiting for an async process to finish.
+
+    participant :
+        If the parent is a ``Participant``, returns that participant.
+
+    participants : list
+        Lists all participants associated with the asset.
+
+    trial :
+        If the parent is a ``trial``, returns that trial.
+
+    trials : list
+        Lists all trials associated with the asset.
+
+    node :
+        If the parent is a ``Node``, returns that participant.
+
+    nodes : list
+        Lists all nodes associated with the asset.
+
+    network :
+        If the parent is a ``Network``, returns that participant.
+
+    networks : list
+        Lists all networks associated with the asset.
+
+    errors : list
+        Lists the errors associated with the asset.
+
+    Linking assets to other database objects
+    ----------------------------------------
+
+    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
+    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
+    may not possess more than one parent.
+    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
+    of additional database objects. These latter links have a key-value construction, meaning that one can access
+    a given asset by reference to a given key, for example: ``node.assets["response"]``.
+    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
+    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
+    the following:
+
+    ::
+        participant.assets["stimulus"] = my_asset
+        db.session.commit()
     """
 
     input_path = Column(String)
@@ -1052,6 +1182,100 @@ class ExperimentAsset(ManagedAsset):
         by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
         then the human-readable component is omitted, and only the random portion is kept. This might be useful in
         cases where you're worried about participants cheating on the experiment by looking at file URLs.
+
+    Attributes
+    ----------
+
+    needs_storage_backend : bool
+        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
+        (e.g. in the case of an externally hosted resource accessible by a URL).
+
+    psynet_version : str
+        The version of PsyNet used to create the asset.
+
+    deployment_id : str
+        A string used to identify the particular experiment deployment.
+
+    deposited: bool
+        Whether the asset has been deposited yet.
+
+    inherited : bool
+        Whether the asset was inherited from a previous experiment, typically via the
+        ``InheritedAssets` functionality.
+
+    inherited_from : str
+        Identifies the source of an inherited asset.
+
+    export_path : str
+        A relative path constructed from the key that will be used by default when the asset is exported.
+
+    participant_id : int
+        ID of the participant who 'owns' the asset, if applicable.
+
+    content_id : str
+        A token used for checking whether the contents of two assets are equivalent.
+        This takes various forms depending on the asset type.
+        For a file, the ``content_id`` would typically be a hash;
+        for an externally hosted asset, it would be the URL, etc.
+
+    host_path : str
+        The filepath used to host the asset within the storage repository, if applicable.
+
+    url : str
+        The URL that can be used to access the asset from the perspective of the experiment front-end.
+
+    storage : AssetStorage
+        The storage backend used for the asset.
+
+    async_processes : list
+        Lists all async processes that have been created for the asset, including completed ones.
+
+    awaiting_async_process : bool
+        Whether the asset is waiting for an async process to finish.
+
+    participant :
+        If the parent is a ``Participant``, returns that participant.
+
+    participants : list
+        Lists all participants associated with the asset.
+
+    trial :
+        If the parent is a ``trial``, returns that trial.
+
+    trials : list
+        Lists all trials associated with the asset.
+
+    node :
+        If the parent is a ``Node``, returns that participant.
+
+    nodes : list
+        Lists all nodes associated with the asset.
+
+    network :
+        If the parent is a ``Network``, returns that participant.
+
+    networks : list
+        Lists all networks associated with the asset.
+
+    errors : list
+        Lists the errors associated with the asset.
+
+    Linking assets to other database objects
+    ----------------------------------------
+
+    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
+    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
+    may not possess more than one parent.
+    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
+    of additional database objects. These latter links have a key-value construction, meaning that one can access
+    a given asset by reference to a given key, for example: ``node.assets["response"]``.
+    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
+    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
+    the following:
+
+    ::
+        participant.assets["stimulus"] = my_asset
+        db.session.commit()
     """
 
     def generate_host_path(self, deployment_id: str):
@@ -1084,7 +1308,182 @@ class ExperimentAsset(ManagedAsset):
 
 class CachedAsset(ManagedAsset):
     """
-    In contrast to Experiment Assets, Cached Assets
+    The classic use of a ``CachedAsset`` would be to store some kind of stimulus that is pre-defined in advance of
+    experiment launch. For example:
+
+    ::
+         asset = CachedAsset(
+            local_key="bier",
+            input_path="bier.wav",
+            description="A recording of someone saying 'bier'",
+         )
+
+    Cached assets are most commonly instantiated by passing them to the ``assets`` arguments of modules or nodes
+    when defining the Experiment timeline. PsyNet compiles these assets together before experiment deployment
+    and makes sure they are uploaded if necessary.
+
+    In contrast to Experiment Assets, Cached Assets are shared between different experiments, so as to avoid
+    duplicating time-consuming file generation or upload routines. The cached assets are stored in the selected
+    asset storage back-end, and if PsyNet detects that the requested asset exists already then it will skip
+    creating/uploading that asset. Under the hood there is some special logic to ensure that the caches are invalidated
+    if the file content has changed.
+
+    Parameters
+    ----------
+
+    input_path : str
+        Path to the file/folder from which the asset is to be created.
+
+    label : str
+        An optional string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
+        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
+        should share that combination of properties).
+
+    description : str
+        An optional longer string that provides further documentation about the asset.
+
+    is_folder : bool
+        Whether the asset is a folder.
+
+    data_type : str
+        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
+
+    extension : str
+        The file extension, if applicable.
+
+    parent : object
+        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
+
+    local_key : str
+        An optional key that uniquely identifies the asset within a given module. If left unspecified,
+        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+
+    module_id : str
+        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
+        infer the ``module_id`` from the ``parent`` parameter, if provided.
+
+    key : str
+        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
+        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        of which may itself be automatically generated from ``parent``.
+
+    personal : bool
+        Whether the asset is 'personal' and hence omitted from anonymous database exports.
+
+    replace_existing : bool
+        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
+
+    obfuscate : int
+        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
+        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
+        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
+        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
+        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
+        cases where you're worried about participants cheating on the experiment by looking at file URLs.
+
+    Attributes
+    ----------
+
+    md5_contents : str
+        Contains an automatically generated MD5 hash of the object's contents, where 'contents' is liberally defined;
+        it could mean hashing the file itself, or hashing the arguments of the function used to generate that file.
+
+    size_mb : float
+        The size of the asset's file(s) (in MB).
+
+    deposit_time_sec : float
+        The time it took to deposit the asset.
+
+    needs_storage_backend : bool
+        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
+        (e.g. in the case of an externally hosted resource accessible by a URL).
+
+    psynet_version : str
+        The version of PsyNet used to create the asset.
+
+    deployment_id : str
+        A string used to identify the particular experiment deployment.
+
+    deposited: bool
+        Whether the asset has been deposited yet.
+
+    inherited : bool
+        Whether the asset was inherited from a previous experiment, typically via the
+        ``InheritedAssets` functionality.
+
+    inherited_from : str
+        Identifies the source of an inherited asset.
+
+    export_path : str
+        A relative path constructed from the key that will be used by default when the asset is exported.
+
+    participant_id : int
+        ID of the participant who 'owns' the asset, if applicable.
+
+    content_id : str
+        A token used for checking whether the contents of two assets are equivalent.
+        This takes various forms depending on the asset type.
+        For a file, the ``content_id`` would typically be a hash;
+        for an externally hosted asset, it would be the URL, etc.
+
+    host_path : str
+        The filepath used to host the asset within the storage repository, if applicable.
+
+    url : str
+        The URL that can be used to access the asset from the perspective of the experiment front-end.
+
+    storage : AssetStorage
+        The storage backend used for the asset.
+
+    async_processes : list
+        Lists all async processes that have been created for the asset, including completed ones.
+
+    awaiting_async_process : bool
+        Whether the asset is waiting for an async process to finish.
+
+    participant :
+        If the parent is a ``Participant``, returns that participant.
+
+    participants : list
+        Lists all participants associated with the asset.
+
+    trial :
+        If the parent is a ``trial``, returns that trial.
+
+    trials : list
+        Lists all trials associated with the asset.
+
+    node :
+        If the parent is a ``Node``, returns that participant.
+
+    nodes : list
+        Lists all nodes associated with the asset.
+
+    network :
+        If the parent is a ``Network``, returns that participant.
+
+    networks : list
+        Lists all networks associated with the asset.
+
+    errors : list
+        Lists the errors associated with the asset.
+
+    Linking assets to other database objects
+    ----------------------------------------
+
+    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
+    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
+    may not possess more than one parent.
+    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
+    of additional database objects. These latter links have a key-value construction, meaning that one can access
+    a given asset by reference to a given key, for example: ``node.assets["response"]``.
+    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
+    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
+    the following:
+
+    ::
+        participant.assets["stimulus"] = my_asset
+        db.session.commit()
     """
 
     used_cache = Column(Boolean)
