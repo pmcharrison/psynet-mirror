@@ -276,6 +276,23 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     errors : list
         Lists the errors associated with the asset.
+
+    Linking assets to other database objects
+    ----------------------------------------
+
+    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
+    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
+    may not possess more than one parent.
+    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
+    of additional database objects. These latter links have a key-value construction, meaning that one can access
+    a given asset by reference to a given key, for example: ``node.assets["response"]``.
+    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
+    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
+    the following:
+
+    ::
+        participant.assets["stimulus"] = my_asset
+        db.session.commit()
     """
 
     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
@@ -299,7 +316,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     inherited_from = Column(String)
     module_id = Column(String, index=True)
     local_key = Column(String, index=True)
-    key = Column(String, primary_key=True, index=True)  # £, onupdate="cascade")
+    key = Column(String, primary_key=True, index=True)  # , onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     label = Column(String)
@@ -483,9 +500,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if self.label:
             ids.append(f"{self.label}")
 
-        return "__".join(
-            ids
-        )  # keys don't contain extensions by default  #  + self.extension
+        return "__".join(ids)
 
     def generate_local_key_child_ids(self):
         from psynet.trial.static import StaticNetwork
@@ -523,21 +538,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         from psynet.experiment import get_trial_maker
 
         return get_trial_maker(self.trial_maker_id)
-
-    # @property
-    # def identifiers(self):
-    #     attr = [
-    #         "key",
-    #         "is_folder",
-    #         "data_type",
-    #         "extension",
-    #         "participant_id",
-    #         "trial_maker_id",
-    #         "network_id",
-    #         "node_id",
-    #         "trial_id",
-    #     ]
-    #     return {a: getattr(self, a) for a in attr}
 
     def get_extension(self):
         raise NotImplementedError
