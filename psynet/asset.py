@@ -402,14 +402,25 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         else:
             return self.parent.participant
 
-    def get_ancestors(self):
-        return {
-            "network": self.network.id if self.network else None,
-            "node": self.node.id if self.node else None,
-            "degree": self.node.degree if hasattr(self.node, "degree") else None,
-            "trial": self.trial.id if self.trial else None,
-            "participant": self.participant.id if self.participant else None,
-        }
+    @property
+    def trial_maker(self):
+        from psynet.experiment import get_trial_maker
+
+        return get_trial_maker(self.trial_maker_id)
+
+    @classproperty
+    def experiment_class(cls):  # noqa
+        from .experiment import import_local_experiment
+
+        return import_local_experiment()["class"]
+
+    @classproperty
+    def registry(cls):  # noqa
+        return cls.experiment_class.assets
+
+    @classproperty
+    def default_storage(cls):  # noqa
+        return cls.registry.storage
 
     def __init__(
         self,
@@ -473,6 +484,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.key and self.local_key:
                 self.key = os.path.join(value, self.local_key)
 
+    def get_ancestors(self):
+        return {
+            "network": self.network.id if self.network else None,
+            "node": self.node.id if self.node else None,
+            "degree": self.node.degree if hasattr(self.node, "degree") else None,
+            "trial": self.trial.id if self.trial else None,
+            "participant": self.participant.id if self.participant else None,
+        }
+
     def set_keys(self):
         self.local_key = self.generate_local_key()
 
@@ -533,12 +553,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         else:
             return None
 
-    @property
-    def trial_maker(self):
-        from psynet.experiment import get_trial_maker
-
-        return get_trial_maker(self.trial_maker_id)
-
     def get_extension(self):
         raise NotImplementedError
 
@@ -550,7 +564,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def deposit(
         self,
         storage=None,
-        replace=None,
+        replace: bool = False,
         async_: bool = False,
         delete_input: bool = False,
     ):
@@ -558,16 +572,22 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         Parameters
         ----------
-        storage
-        replace
-        async_
+        storage :
+            If set to an ``AssetStorage`` object, the asset will be deposited to the provided storage location
+            rather than defaulting to the Experiment class's storage location.
+
+        replace :
+            If set to ``True``, then the deposit will overwrite any pre-existing asset with the same key,
+            instead of throwing an error.
+
+        async_ :
+            If set to ``True``, then the asset deposit will be performed asynchronously and the program's
+            execution will continue without waiting for the deposit to complete. It is sensible to
+            set this to ``True`` if you see that the participant interface is being held up noticeably by
+            waiting for the deposit to complete.
 
         delete_input :
-            Whether or not to delete the input file after it has been deposited.
-
-        Returns
-        -------
-
+            If set to ``True``, then the input file will be deleted after it has been deposited.
         """
         try:
 
@@ -612,8 +632,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
             if asset_to_use == self or not self.deposited:
                 self._deposit(self.storage, async_, delete_input)
-                # if deposit_complete:
-                #     self.deposited = True
 
             if self.parent:
                 _label = self.label if self.label else self.key
@@ -662,20 +680,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     @classmethod
     def assert_assets_are_equivalent(cls, old, new):
-        # cls.assert_identifiers_are_equivalent(old, new)
         cls.assert_content_ids_are_equivalent(old, new)
-
-    # @classmethod
-    # def assert_identifiers_are_equivalent(cls, old, new):
-    #     _old = old.identifiers
-    #     _new = new.identifiers
-    #     if _old != _new:
-    #         raise cls.InconsistentIdentifiersError(
-    #             f"Tried to add duplicate assets with the same key ({old.key}, "
-    #             "but they had inconsistent identifiers.\n"
-    #             f"\nOld asset: {old.identifiers}\n"
-    #             f"\nNew asset: {new.identifiers}"
-    #         )
 
     @classmethod
     def assert_content_ids_are_equivalent(cls, old, new):
@@ -697,20 +702,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
-
-    @classproperty
-    def experiment_class(cls):  # noqa
-        from .experiment import import_local_experiment
-
-        return import_local_experiment()["class"]
-
-    @classproperty
-    def registry(cls):  # noqa
-        return cls.experiment_class.assets
-
-    @classproperty
-    def default_storage(cls):  # noqa
-        return cls.registry.storage
 
     def export(self, path):
         try:
@@ -756,6 +747,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
 
 class AssetLink:
+    """
+    These objects define many-to-many mappings between assets and other database objects.
+    When we write something like ``participant.assets["stimulus"] = my_asset``,
+    this creates an object subclassing ``AssetLink`` to represent that relationship.
+    """
+
     id = None
     failed = None
     failed_reason = None
@@ -793,10 +790,6 @@ class AssetTrial(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="trial_links")
 
-    # def __init__(self, label, asset, trial):
-    #     super().__init__(label, asset)
-    #     self.trial = trial
-
 
 @register_table
 class AssetNode(AssetLink, SQLBase, SQLMixin):
@@ -826,7 +819,6 @@ class AssetNetwork(AssetLink, SQLBase, SQLMixin):
 
 class ManagedAsset(Asset):
     input_path = Column(String)
-    # autogenerate_key = Column(Boolean)
     obfuscate = Column(Integer)
     md5_contents = Column(String)
     size_mb = Column(Float)
@@ -1099,7 +1091,7 @@ class FunctionAssetMixin:
     def deposit(
         self,
         storage=None,
-        replace=None,
+        replace: bool = False,
         async_: bool = False,
     ):
         self.input_path = self.generate_input_path()
