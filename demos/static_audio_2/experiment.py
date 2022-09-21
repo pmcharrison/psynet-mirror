@@ -74,7 +74,7 @@ class CustomTrial(StaticTrial):
         return ModularPage(
             "feedback_page",
             AudioPrompt(
-                self.assets["imitation"].url,
+                self.assets["imitation"],
                 "Listen back to your recording. Did you do a good job?",
             ),
             time_estimate=self._time_feedback,
