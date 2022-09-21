@@ -78,8 +78,6 @@ this list with multiple assets. For example:
             )
         )
 
-TODO: Update `Module` to accept dictionaries.
-
 You can then access this asset within your module as follows:
 
 ::

@@ -152,9 +152,9 @@ class Exp(psynet.experiment.Experiment):
             check_performance_every_trial=False,
             target_n_participants=25,
             wait_for_networks=True,
-            assets=[
-                CachedAsset(local_key="5s_silence", input_path="assets/5s_silence.wav"),
-            ],
+            assets={
+                "5s_silence": CachedAsset(input_path="assets/5s_silence.wav"),
+            },
         ),
         SuccessfulEndPage(),
     )

@@ -2239,7 +2239,18 @@ class Module:
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
         self.nodes = nodes if nodes else []
-        self._staged_assets = assets if assets else []
+
+        if assets is None:
+            self._staged_assets = []
+        elif isinstance(assets, dict):
+            self._staged_assets = []
+            for _local_key, _asset in assets.items():
+                _asset.local_key = _local_key
+                self._staged_assets.append(_asset)
+        else:
+            assert isinstance(assets, list)
+            self._staged_assets = assets
+
         self.state_class = state_class if state_class else self.__class__.state_class
 
         from psynet.asset import Asset
