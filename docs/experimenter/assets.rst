@@ -170,9 +170,11 @@ Creating an asset during the experiment
 There are several situations in which we might want to create an asset
 during the experiment:
 
-- Creating an asset from the participant's response
-- Creating an asset when we create a Trial Node
-- Creating an asset when we create a Trial
+- Creating an asset from the participant's response;
+- Creating an asset when we create a Trial Node;
+- Creating an asset when we create a Trial.
+
+Let's discuss each in turn.
 
 
 Creating an asset from the participant's response
