@@ -2487,7 +2487,9 @@ class NoStorage(AssetStorage):
         pass
 
 
-class DebugStorage(AssetStorage):
+class LocalStorage(AssetStorage):
+    label = "local_storage"
+
     def __init__(self, root=None):
         """
 
@@ -2507,7 +2509,6 @@ class DebugStorage(AssetStorage):
 
         self._initialized = False
         self._root = root
-        self.label = "debug_storage"
         self.public_path = self._create_public_path()
 
     def setup_files(self):
@@ -2624,6 +2625,10 @@ class DebugStorage(AssetStorage):
             (is_folder and os.path.isdir(file_system_path))
             or (not is_folder and os.path.isfile(file_system_path))
         )
+
+
+class DebugStorage(LocalStorage):
+    label = "debug_storage"
 
 
 # def create_bucket_if_necessary(fun):

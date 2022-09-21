@@ -416,9 +416,6 @@ deploy your experiments via Heroku, because Heroku deployments split the process
 over multiple web servers, and these different web servers do not share the
 same file system.
 
-TODO - rename DebugStorage to LocalStorage, and add a check that prevents
-you from deploying on Heroku if you've selected LocalStorage.
-
 You select your storage backend by setting the ``asset_storage`` property
 of your ``Experiment`` class in experiment.py, for example:
 
