@@ -357,7 +357,43 @@ Creating an asset when we create a Trial
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 By default, PsyNet Trials inherit their definitions from the Trial Nodes that
-created them.
+created them. However, sometimes we add some additional manipulations to this definition,
+for example adding a randomization component. We typically do this by overriding the
+:meth:`~psynet.trial.main.Trial.finalize_definition` method.
+At this point, we may then want to generate a new asset that reflects this updated
+definition. This can be done as follows (source code from the third 'static audio'
+demo):
+
+::
+
+    class CustomTrial(StaticTrial):
+        _time_trial = 3
+        _time_feedback = 2
+
+        time_estimate = _time_trial + _time_feedback
+        wait_for_feedback = True
+
+        def finalize_definition(self, definition, experiment, participant):
+            definition["start_frequency"] = random.uniform(-100, 100)
+            definition["frequencies"] = [
+                definition["start_frequency"] + i * definition["frequency_gradient"]
+                for i in range(5)
+            ]
+            self.add_assets(
+                {
+                    "stimulus": FastFunctionAsset(
+                        function=synth_stimulus,
+                        extension=".wav",
+                    )
+                }
+            )
+            return definition
+
+
+Look in particular at the ``add_assets`` method. This takes a dictionary of assets
+that can be created on the basis of the dynamically generated definition,
+and will then be added to the trials ``assets`` slot.
+
 
 Storage back-ends
 -----------------
@@ -435,17 +471,3 @@ all Experiment Assets. Alternatively, setting ``--assets all`` means that
 all assets will be exported; setting ``--assets none`` means that no assets
 will be exported. See the documentation for :func:`~psynet.command_line.export`
 for more details.
-
-
-Usage examples
---------------
-
-The best way for getting to grips with using Assets is to explore the PsyNet source
-code. In particular, you might want to explore the source code for the following
-classes:
-
-- :class:`psynet.modular_page.AudioRecordControl`
-- :class:`psynet.record.MediaImitationChainNode`
-
-You can also find some examples in the Assets and the Gibbs demos
-(though these might be revised in the near future).
