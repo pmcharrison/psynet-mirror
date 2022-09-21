@@ -262,7 +262,7 @@ at `psynet/modular_page.py`. Let's look in particular at the
             "supports_record_trial": True,
             "key": asset.key,
             "url": asset.url,
-            "duration_sec": self.duration,  # TODO - base this on the actual audio file?
+            "duration_sec": self.duration,
         }
 
 
