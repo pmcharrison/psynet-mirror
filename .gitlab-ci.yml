@@ -34,7 +34,7 @@ before_script:
   - pip install pytest-test-groups
   - export HEADLESS=TRUE
 # Install and setup PostgreSQL
-  - apt install -y postgresql postgresql-contrib libpq-dev
+  - apt install -y postgresql-12 postgresql-contrib libpq-dev
   - service postgresql start
   - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
   - chown postgres:postgres postgres_setup.sql
