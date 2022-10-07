@@ -34,11 +34,11 @@ before_script:
   - pip install pytest-test-groups
   - export HEADLESS=TRUE
 # Install and setup PostgreSQL
-  - apt install -y postgresql-12 postgresql-contrib libpq-dev
+  - apt install -y postgresql postgresql-contrib libpq-dev
   - service postgresql start
   - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
   - chown postgres:postgres postgres_setup.sql
-  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition-lab/psynet/postgres_setup.sql"'
+  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition-lab/PsyNet/postgres_setup.sql"'
 # Install Dallinger
   - git clone --branch v9.0.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
