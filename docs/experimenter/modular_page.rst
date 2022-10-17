@@ -4,14 +4,11 @@
 Modular Pages
 =============
 
-Modular pages are a new way to implement pages in PsyNet.
+Modular pages are the recommended way to implement custom pages in PsyNet.
 They work by splitting page design into two main components:
 the `Prompts`_, constituting the information or stimulus that is presented
 to the listener, and the `Controls`_, constituting the participant's
 way of responding to the information or stimulus.
-
-.. note::
-  The modular page functionality is still experimental, and its API is liable to change.
 
 Prompts
 -------
