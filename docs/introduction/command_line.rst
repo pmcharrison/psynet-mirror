@@ -9,10 +9,11 @@ PsyNet is executed from the command line within the experiment directory.
 Commands:
 
 | :ref:`debug <debug>`
-| :ref:`sandbox <sandbox>`
 | :ref:`deploy <deploy>`
 | :ref:`estimate <estimate>`
 | :ref:`export <export>`
+| :ref:`generate_constraints <generate-constraints>`
+| :ref:`sandbox <sandbox>`
 | :ref:`update <update>`
 
 .. _debug:
@@ -157,6 +158,27 @@ Export from sandbox/production
     --local          Export local data
     --force-prepare  Force override of cache.
     --help           Show this message and exit.
+
+
+.. _update:
+
+Generate the constraints.txt file (``generate-constraints``)
+------------------------------------------------------------
+
+Generate the constraints.txt file from requirements.txt.
+
+.. code:: bash
+
+  psynet generate-constraints
+
+**Usage**
+
+.. code:: bash
+
+  psynet generate-constraints [OPTIONS]
+
+  Options:
+    --help                    Show this message and exit.
 
 
 .. _update:
