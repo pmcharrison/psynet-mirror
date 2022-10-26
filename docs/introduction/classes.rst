@@ -98,13 +98,51 @@ they all fit together and how they are used in practice.
 Overview of key PsyNet classes
 ------------------------------
 
-- Experiment
-- Page (also modular page, control, prompt)
-- Asset
-- Module
-- Trial
-- Node
-- Trial maker
+Experiment
+^^^^^^^^^^
+
+The ``Experiment`` class is the most central class in the PsyNet experiment.
+It is defined in ``experiment.py``, the main Python file in your experiment directory.
+You define your ``Experiment`` class by subclassing PsyNet's built-in
+:class:`~psynet.experiment.Experiment` class. Your custom ``Experiment`` class
+must include a definition of the experiment's timeline:
+
+::
+
+    import psynet.experiment
+
+    class Exp(psynet.experiment.Experiment):
+        timeline = join(
+            InfoPage(...)
+            ...
+        )
+    )
+
+The ``timeline`` attribute should receive a series of test
+
+There are various other customizations that can be applied to the experiment via this experiment class,
+see the :class:`~psynet.experiment.Experiment` documentation for details.
+
+
+Page
+^^^^
+
+(also modular page, control, prompt)
+
+Asset
+^^^^^
+
+Module
+^^^^^^
+
+Trial
+^^^^^
+
+Node
+^^^^
+
+Trial maker
+^^^^^^^^^^^
 
 Creating your own
 
