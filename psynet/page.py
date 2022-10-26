@@ -948,16 +948,16 @@ class VolumeCalibration(Module):
         super().__init__(
             id_,
             self.page(min_time, time_estimate, id_),
-            assets=[
-                self.asset(url),
-            ],
+            assets={
+                "volume_calibration_audio": self.asset(url),
+            },
         )
 
     def asset(self, url):
         if url.startswith("http"):
-            return ExternalAsset(url=url, local_key="volume_calibration_audio")
+            return ExternalAsset(url=url)
         else:
-            return CachedAsset(input_path=url, local_key="volume_calibration_audio")
+            return CachedAsset(input_path=url)
 
     def page(self, min_time, time_estimate, id_):
         return PageMaker(

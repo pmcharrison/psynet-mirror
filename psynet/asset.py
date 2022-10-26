@@ -2292,6 +2292,10 @@ class ExternalAsset(Asset):
 
 
 class ExternalS3Asset(ExternalAsset):
+    """
+    Represents an external asset that is stored in an Amazon Web Services S3 bucket.
+    """
+
     s3_bucket = Column(String)
     s3_key = Column(String)
 
@@ -2349,6 +2353,10 @@ class ExternalS3Asset(ExternalAsset):
 
 
 class AssetStorage:
+    """
+    Defines a storage back-end for storing assets.
+    """
+
     @property
     def experiment(self):
         from .experiment import get_experiment
@@ -2438,6 +2446,10 @@ class AssetStorage:
 
 
 class WebStorage(AssetStorage):
+    """
+    The notional storage back-end for external web-hosted assets.
+    """
+
     def export(self, asset, path):
         if asset.is_folder:
             self._folder_exporter(asset, path)
@@ -2480,6 +2492,10 @@ class WebStorage(AssetStorage):
 
 
 class NoStorage(AssetStorage):
+    """
+    A 'null' storage back-end for assets that don't require any storage.
+    """
+
     def _receive_deposit(self, asset, host_path: str):
         raise RuntimeError("Asset depositing is not supported by 'NoStorage' objects.")
 
@@ -2487,7 +2503,19 @@ class NoStorage(AssetStorage):
         pass
 
 
-class DebugStorage(AssetStorage):
+class LocalStorage(AssetStorage):
+    """
+    Stores assets in a local folder on the same computer that is running your Python code.
+    This approach is suitable when you are running experiments on a single local machine (e.g.
+    when doing fieldwork or laboratory-based data collection), and when you are deploying your
+    experiments to your own remote web server via Docker. It is *not* appropriate if you
+    deploy your experiments via Heroku, because Heroku deployments split the processing
+    over multiple web servers, and these different web servers do not share the
+    same file system.
+    """
+
+    label = "local_storage"
+
     def __init__(self, root=None):
         """
 
@@ -2507,7 +2535,6 @@ class DebugStorage(AssetStorage):
 
         self._initialized = False
         self._root = root
-        self.label = "debug_storage"
         self.public_path = self._create_public_path()
 
     def setup_files(self):
@@ -2626,6 +2653,14 @@ class DebugStorage(AssetStorage):
         )
 
 
+class DebugStorage(LocalStorage):
+    """
+    A local storage back-end used for debugging.
+    """
+
+    label = "debug_storage"
+
+
 # def create_bucket_if_necessary(fun):
 #     @wraps(fun)
 #     def wrapper(self, *args, **kwargs):
@@ -2706,6 +2741,13 @@ class AwsCliError(RuntimeError):
 
 
 class S3Storage(AssetStorage):
+    """
+    A storage back-end that stores assets using Amazon Web Services'
+    S3 Storage system. This service is relatively inexpensive as long as your
+    file collection does not number more than a few gigabytes. To use this
+    service you will need to sign up for an Amazon Web Services account.
+    """
+
     def __init__(self, s3_bucket, root):
         super().__init__()
         assert not root.endswith("/")

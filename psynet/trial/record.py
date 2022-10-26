@@ -267,7 +267,6 @@ class MediaImitationChainNode(ImitationChainNode):
                 parent=self,
             )
             asset.deposit()
-            db.session.commit()
 
 
 class MediaImitationChainTrialMaker(ImitationChainTrialMaker):

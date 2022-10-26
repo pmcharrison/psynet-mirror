@@ -26,57 +26,50 @@ def slow_computation(path, n, k):
         f.write(str(x))
 
 
-headphone_assets = [
-    ExternalS3Asset(
+headphone_assets = {
+    "stimulus_1": ExternalS3Asset(
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_ISO.wav",
-        local_key="stimulus-1",
         description="A stimulus for the headphone check",
     ),
-    ExternalS3Asset(
+    "stimulus_2": ExternalS3Asset(
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_IOS.wav",
-        local_key="stimulus-2",
         description="A stimulus for the headphone check",
     ),
-    ExternalS3Asset(
+    "stimulus_3": ExternalS3Asset(
         s3_bucket="headphone-check",
         s3_key="antiphase_HC_SOI.wav",
-        local_key="stimulus-3",
         description="A stimulus for the headphone check",
     ),
-]
+}
 
-misc_assets = [
-    CachedFunctionAsset(
+misc_assets = {
+    "slow_computation": CachedFunctionAsset(
         local_key="slow_computation.txt",
         function=slow_computation,
         arguments=dict(n=200, k=5),
         extension=".txt",
     ),
-    ExternalAsset(
-        local_key="psynet-logo.svg",
+    "psynet_logo": ExternalAsset(
         url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
         description="The PsyNet Logo",
         variables=dict(dimensions="150x150"),  # broken for some reason
     ),
-    ExternalS3Asset(
-        local_key="headphone_check_folder",
+    "headphone_check_folder": ExternalS3Asset(
         s3_bucket="headphone-check",
         s3_key="",
         description="A folder of stimuli for the headphone check",
     ),
-    ExperimentAsset(
-        local_key="config",
+    "config": ExperimentAsset(
         input_path="config.txt",
         description="A file containing configuration variables",
     ),
-    CachedAsset(
-        local_key="bier",
+    "bier": CachedAsset(
         input_path="bier.wav",
         description="A recording of someone saying 'bier'",
     ),
-]
+}
 
 
 def save_text(participant):
@@ -111,7 +104,7 @@ class Exp(psynet.experiment.Experiment):
                     lambda assets, i=i: ModularPage(
                         f"headphone_check_{i}",
                         AudioPrompt(
-                            assets[f"stimulus-{i}"],
+                            assets[f"stimulus_{i}"],
                             text=f"This is headphone check stimulus number {i}.",
                         ),
                     ),

@@ -55,19 +55,17 @@ class REPPVolumeCalibration(Module):
                     time_estimate_for_calibration_page,
                 ),
             ),
-            assets=[
-                self.asset_calibration_audio(materials_url),
-                self.asset_rules(materials_url),
-            ],
+            assets={
+                "volume_calibration_audio": self.asset_calibration_audio(materials_url),
+                "rules_image": self.asset_rules(materials_url),
+            },
         )
 
     def asset_calibration_audio(self, materials_url):
         raise NotImplementedError
 
     def asset_rules(self, materials_url):
-        return ExternalAsset(
-            local_key="rules_image", url=materials_url + "/REPP-image_rules.png"
-        )
+        return ExternalAsset(url=materials_url + "/REPP-image_rules.png")
 
     @property
     def introduction(self):
@@ -170,7 +168,6 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
             url=materials_url + "/calibrate.prepared.wav",
-            local_key="volume_calibration_audio",
         )
 
     class AudioMeter(AudioMeterControl):
@@ -222,7 +219,6 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
             url=materials_url + "/only_markers.wav",
-            local_key="volume_calibration_audio",
         )
 
     class AudioMeter(AudioMeterControl):
@@ -278,15 +274,14 @@ class REPPTappingCalibration(Module):
                     time_estimate=time_estimate_per_trial,
                 ),
             ),
-            assets=[
-                self.instructions_asset(materials_url),
-            ],
+            assets={
+                "tapping_instructions_image": self.instructions_asset(materials_url),
+            },
         )
 
     def instructions_asset(self, materials_url):
         return ExternalAsset(
             url=materials_url + "/tapping_instructions.jpg",
-            local_key="tapping_instructions_image",
         )
 
     def instructions_text(self, assets):
@@ -744,14 +739,13 @@ class REPPMarkersTest(StaticTrialMaker):
             nodes=nodes,
             expected_trials_per_participant=len(nodes),
             check_performance_at_end=True,
-            assets=[self.image_asset],
+            assets={"rules_image": self.image_asset},
         )
 
     @property
     def image_asset(self):
         return ExternalAsset(
             url=f"{self.materials_url}/REPP-image_rules.png",
-            local_key="rules_image",
         )
 
     @property
