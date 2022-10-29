@@ -17,7 +17,7 @@ associated with a given experiment, and it implements clever caching routines th
 save time when redeploying different versions of the same experiment, as well as
 asynchronous functionality that minimizes the performance impact of incorporating
 large assets in your experiment. Moreover, it provides a handy export functionality
-that allows you to compile all your generated assets in an organized fasion
+that allows you to compile all your generated assets in an organized fashion
 suitable for your research paper's Supplementary Materials.
 
 Storage back-ends
