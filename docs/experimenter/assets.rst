@@ -20,31 +20,169 @@ large assets in your experiment. Moreover, it provides a handy export functional
 that allows you to compile all your generated assets in an organized fasion
 suitable for your research paper's Supplementary Materials.
 
+Storage back-ends
+-----------------
+
+PsyNet supports several different storage back-ends, and provides hooks for you
+to define your own back-ends should you need them. The built-in back-ends include
+the following:
+
+:class:`~psynet.asset.S3Storage` stores the assets using Amazon Web Services'
+S3 Storage system. This service is relatively inexpensive as long as your
+file collection does not number more than a few gigabytes. To use this
+service you will need to sign up for an Amazon Web Services account.
+
+:class:`~psynet.asset.LocalStorage` stores the assets on the same web server
+that is running your Python code. This approach is suitable when you are
+running experiments on a single local machine (e.g. when doing fieldwork
+or laboratory-based data collection), and when you are deploying your experiments
+to your own remote web server via Docker. It is *not* appropriate if you
+deploy your experiments via Heroku, because Heroku deployments split the processing
+over multiple web servers, and these different web servers do not share the
+same file system.
+
+You select your storage backend by setting the ``asset_storage`` property
+of your ``Experiment`` class in experiment.py, for example:
+
+::
+
+    import psynet.experiment
+    from psynet.asset import S3Storage
+
+    class Exp(psynet.experiment.Experiment):
+        asset_storage = S3Storage("psynet-tests", "repp-tests")
+
+For more details about individual storage back-ends follow the class documentation
+links above.
+
 Types of assets
 ---------------
 
 PsyNet defines several types of Assets, each with their own specific applications.
-Click on the links to see more details about these asset types.
+There are three main types of assets:
 
-An :class:`~psynet.asset.ExternalAsset`...
+1. An :class:`~psynet.asset.ExternalAsset` is an asset that is not managed by PsyNet. This would typically mean
+some kind of file that is hosted on a remote web server and is accessible by a URL.
 
-An :class:`~psynet.asset.ExperimentAsset`...
+2. An :class:`~psynet.asset.ExperimentAsset` is an asset that is specific to the current experiment
+deployment. This would typically mean assets that are generated *during the course*
+of the experiment, for example recordings from a singer, or stimuli generated on the basis of
+participant responses.
 
-A :class:`~psynet.asset.CachedAsset`...
+3. A :class:`~psynet.asset.CachedAsset` is an asset that is reused over multiple experiment
+deployments. The classic use of a ``CachedAsset`` would be to represent some kind of stimulus
+that is pre-defined in advance of experiment launch. In the standard case, the :class:`~psynet.asset.CachedAsset
+refers to a file on the local computer that is uploaded to a remote server on deployment.
 
-A :class:`~psynet.asset.CachedFunctionAsset`...
+It's also worth knowing about a few special cases of these asset types.
 
-A :class:`~psynet.asset.FastFunctionAsset`...
+- An :class:`~psynet.asset.ExternalS3Asset` is a special type of :class:`~psynet.asset.ExternalAsset`
+that is stored in an Amazon Web Services S3 bucket.
+
+- A :class:`~psynet.asset.CachedFunctionAsset` is a special type of :class:`~psynet.asset.CachedAsset`
+where the source is not a file on the computer, but rather a function responsible for generating
+such a file. This means that you can write your stimulus generation code transparently as part
+of your experiment code.
+
+A :class:`~psynet.asset.FastFunctionAsset` is like a :class:`~psynet.asset.CachedFunctionAsset`
+but has no caching at all; instead, the file is (re)generated on demand whenever it is requested
+from the front-end. This is suitable for files that can be generated very quickly.
+
+
+Accessing assets
+-----------------
+
+Each asset is represented as a database object.
+Like all database objects, you can access assets using SQLAlchemy queries.
+For example:
+
+::
+
+    from psynet.asset import Asset
+
+    all_assets = Asset.query.all()
+    dog_asset = Asset.query.filter_by(key="dog").one()
+
+
+Assets are often associated with particular database assets.
+The following statements are all legitimate ways to access assets:
+
+::
+
+    participant.assets
+    module.assets
+    node.assets
+    trial.assets
+
+These `assets` attributes all take the form of dictionaries. This means that
+you can access particular assets using keys that identify the relationship of that
+asset to that object. For example, you might write ``trial.assets["stimulus"]``
+to access the stimulus for a trial, and ``trial.assets["response"]`` to access
+the response. Importantly, the same asset can have different keys for different items;
+an asset might be the response for one trial and then the stimulus for another trial.
+
+
+Inheriting assets
+-----------------
+
+Sometimes we run an experiment that produces some assets (e.g. audio recordings from
+our participants), and we then want to follow up that experiment with another
+experiment that uses those assets (e.g. to produce some kind of validation ratings).
+PsyNet provides a helper class for these situations called
+:class:`~psynet.asset.InheritedAssets`.
+This class allows you to inherit assets from a previously exported experiment
+and use them in your new experiment. See the class documentation for details.
+
+
+Exporting assets
+----------------
+
+It is not strictly necessary to export your assets once you've run an experiment.
+By default, PsyNet organizes your storage back-end in a sensible hierarchy
+so that you can easily look up assets generated from a given historic experiment
+deployment. However, there are some limitations of working with this format:
+
+- The file names often contain obfuscation components for security purposes,
+  for example ``config_variables__abfe4815-f038-4a47-b59d-8c462d3d5b28.txt``,
+  which are ugly to retain in the long term.
+- Cached files won't be included in the experiment directory, so if you want
+  to construct a full set of your experiment's assets for your research paper's
+  Supplementary Materials, you'll have to do some extra work digging those out
+  from elsewhere in your storage back-end.
+
+PsyNet therefore provides an additional workflow for exporting assets.
+This workflow is accessed via the standard ``psynet export`` command
+that is responsible for exporting the database contents once an experiment is finished.
+In particular, there is an option ``--assets`` which can be used to specify
+what assets should be exported. The default, ``--assets experiment``, exports
+all Experiment Assets. Alternatively, setting ``--assets all`` means that
+all assets will be exported; setting ``--assets none`` means that no assets
+will be exported. See the documentation for :func:`~psynet.command_line.export`
+for more details.
 
 
 Creating an asset
 -----------------
 
-There are two main modes of creating an asset:
-before launching an experiment, and during an experiment.
+The interface for creating Assets is complex but powerful. The general idea is simple:
+you create the Asset by calling the relevant Asset class's constructor function, for example
+
+::
+
+
+    from psynet.asset import CachedAsset
+
+    asset = CachedAsset("logo.svg")
+
+
+However, the way in which you 'feed' the asset into the experiment differs depending
+on your use case. The main distinction is whether you are creating the asset
+*before* launching an experiment or *during* an experiment.
 The former is appropriate if you know what your stimuli will be in advance;
 the latter is appropriate if you are generating the stimuli dynamically
 during the experiment.
+We will now describe both scenarios in turn.
+
 
 Creating an asset before launching the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -394,77 +532,3 @@ Look in particular at the ``add_assets`` method. This takes a dictionary of asse
 that can be created on the basis of the dynamically generated definition,
 and will then be added to the trials ``assets`` slot.
 
-
-Storage back-ends
------------------
-
-PsyNet supports several different storage back-ends, and provides hooks for you
-to define your own back-ends should you need them. The built-in back-ends include
-the following:
-
-:class:`~psynet.asset.S3Storage` stores the assets using Amazon Web Services'
-S3 Storage system. This service is relatively inexpensive as long as your
-file collection does not number more than a few gigabytes. To use this
-service you will need to sign up for an Amazon Web Services account.
-
-:class:`~psynet.asset.LocalStorage` stores the assets on the same web server
-that is running your Python code. This approach is suitable when you are
-running experiments on a single local machine (e.g. when doing fieldwork
-or laboratory-based data collection), and when you are deploying your experiments
-to your own remote web server via Docker. It is *not* appropriate if you
-deploy your experiments via Heroku, because Heroku deployments split the processing
-over multiple web servers, and these different web servers do not share the
-same file system.
-
-You select your storage backend by setting the ``asset_storage`` property
-of your ``Experiment`` class in experiment.py, for example:
-
-::
-
-    import psynet.experiment
-    from psynet.asset import S3Storage
-
-    class Exp(psynet.experiment.Experiment):
-        asset_storage = S3Storage("psynet-tests", "repp-tests")
-
-For more details about individual storage back-ends follow the class documentation
-links above.
-
-
-Inheriting assets
------------------
-
-Sometimes we run an experiment that produces some assets (e.g. audio recordings from
-our participants), and we then want to follow up that experiment with another
-experiment that uses those assets (e.g. to produce some kind of validation ratings).
-PsyNet provides a helper class for these situations called
-:class:`~psynet.asset.InheritedAssets`.
-This class allows you to inherit assets from a previously exported experiment
-and use them in your new experiment. See the class documentation for details.
-
-
-Exporting assets
-----------------
-
-It is not strictly necessary to export your assets once you've run an experiment.
-By default, PsyNet organizes your storage back-end in a sensible hierarchy
-so that you can easily look up assets generated from a given historic experiment
-deployment. However, there are some limitations of working with this format:
-
-- The file names often contain obfuscation components for security purposes,
-  for example ``config_variables__abfe4815-f038-4a47-b59d-8c462d3d5b28.txt``,
-  which are ugly to retain in the long term.
-- Cached files won't be included in the experiment directory, so if you want
-  to construct a full set of your experiment's assets for your research paper's
-  Supplementary Materials, you'll have to do some extra work digging those out
-  from elsewhere in your storage back-end.
-
-PsyNet therefore provides an additional workflow for exporting assets.
-This workflow is accessed via the standard ``psynet export`` command
-that is responsible for exporting the database contents once an experiment is finished.
-In particular, there is an option ``--assets`` which can be used to specify
-what assets should be exported. The default, ``--assets experiment``, exports
-all Experiment Assets. Alternatively, setting ``--assets all`` means that
-all assets will be exported; setting ``--assets none`` means that no assets
-will be exported. See the documentation for :func:`~psynet.command_line.export`
-for more details.
