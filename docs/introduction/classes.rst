@@ -323,6 +323,7 @@ The following example uses a For Loop to create a series of Info Pages
 counting from 1 to 3:
 
 ::
+
     from psynet.timeline import for_loop
     from psynet.page import InfoPage
 
@@ -338,6 +339,7 @@ This provides a straightforward way to randomize the order of material
 presented to Participants. For example:
 
 ::
+
     import random
     from psynet.timeline import for_loop
     from psynet.page import InfoPage
@@ -405,14 +407,102 @@ of the function. For example:
         },
     )
 
-Asset
-^^^^^
-
 Module
 ^^^^^^
 
+A :class:`~psynet.timeline.Module` is a construct for organizing Timeline logic
+into standalone blocks. For example, if we create a pre-screening test that involves
+asking the Participant some spelling questions, we might make this pre-screening test a Module
+and then distribute it in a helper package.
+
+Modules are useful for tracking the Participants' journey through the experiment.
+For example, the Dashboard contains a useful visualization that shows how many Participants
+have started and finished each Module.
+
+Modules are also useful for encapsulating Participant state. This means that variables don't
+unintentionally leak from one part of the Experiment to the other, something which otherwise
+can produce subtle bugs. To take advantage of this feature, the experimenter avoids setting
+participant variables in this way (which sets variables that are 'global' to the entire timeline):
+
+::
+
+    participant.var.custom_variable = 3
+
+and instead sets participant variables this way:
+
+::
+
+    participant.locals.custom_variable = 3
+
+or equivalently:
+
+::
+
+    participant.module_state.var.custom_variable = 3
+
+Modules can be used as the base class for object-oriented hierarchies of Timeline constructs.
+For example, the :class:`~psynet.trial.main.TrialMaker` class is a special kind of Module class
+that implements logic for administering Trials to the participant (see below).
+One day we might similarly create a PreScreen class for implementing pre-screening tests.
+
+Modules are also useful for managing Assets, as described below.
+
+Asset
+^^^^^
+
+An :class:`~psynet.asset.Asset` is some kind of file (or collection of files) that
+is referenced during an experiment. These might for example be video files that we play
+to the participant, or perhaps audio recordings that we collect from the participant.
+
+The API for Assets is powerful but complex. PsyNet provides many patterns for creating Assets
+and for accessing them within an experiment. These are documented in detail in the
+Assets chapter. For now, we will just illustrate the simplest of these patterns,
+which is to define an Asset at the Module level.
+
+You can create an asset within a Module by passing it to the Module constructor's
+``assets`` argument. This argument expects a dictionary. For example:
+
+::
+
+    import psynet.experiment
+    from psynet.asset import CachedAsset
+
+    class Exp(psynet.experiment.Experiment):
+        timeline = join(
+            Module(
+                "my_module",
+                my_pages(),
+                assets={
+                    "logo": CachedAsset("logo.svg"),
+                }
+            )
+        )
+
+You can then access this asset within your module as follows:
+
+::
+
+    from psynet.timeline import PageMaker
+
+    def my_pages():
+        return PageMaker(
+            lambda assets: ModularPage(
+                "audio_player",
+                ImagePrompt(assets["logo"], "Look at this image."),
+                time_estimate=5,
+            )
+        )
+
+Note how the asset must be accessed within a ``PageMaker``,
+and is pulled from the optional ``assets`` argument that we included
+in the lambda function. This ``assets`` argument is populated with a dictionary
+of assets from the current module.
+
+
 Trial
 ^^^^^
+
+
 
 Node
 ^^^^

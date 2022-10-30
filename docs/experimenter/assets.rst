@@ -197,8 +197,7 @@ Creating an asset within a module
 """""""""""""""""""""""""""""""""
 
 You can create an asset within a module by passing it to the module constructor's
-``assets`` argument. This argument expects a list, and you can populate
-this list with multiple assets. For example:
+``assets`` argument. This argument expects a dictionary. For example:
 
 ::
 
