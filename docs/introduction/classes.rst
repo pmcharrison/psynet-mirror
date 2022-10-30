@@ -502,7 +502,14 @@ of assets from the current module.
 Trial
 ^^^^^
 
+The :class:`~psynet.trial.main.Trial` class represents a single Trial within the Experiment.
+A Trial typically involves administering some kind of stimulus to the Participant
+and recording their response.
 
+The PsyNet experimenter typically creates their own Trial subclass as part of the
+Experiment implementation.
+
+TODO
 
 Node
 ^^^^
