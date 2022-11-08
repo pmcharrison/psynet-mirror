@@ -30,9 +30,9 @@ RUN pip-compile dev-requirements.in --verbose
 RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
 
-# Temporary patch for foreign keys problem
-RUN pip install "git+https://github.com/Dallinger/Dallinger.git@add-foreign-keys"
-RUN rm -rf /dallinger
+# The following code can be used to reinstall Dallinger from a particular development branch or commit
+#RUN pip install "git+https://github.com/Dallinger/Dallinger.git@add-foreign-keys"
+#RUN rm -rf /dallinger
 
 COPY . .
 RUN pip install -e .
