@@ -67,7 +67,7 @@ class AssetSpecification(NullElt):
 
     def __init__(self, key, label, description):
         if key is None:
-            self.key = f"pending--{uuid.uuid4()}"
+            key = f"pending--{uuid.uuid4()}"
 
         self.key = key
         self.label = label
