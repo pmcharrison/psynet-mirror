@@ -10,7 +10,7 @@ programming languages. In object-oriented programming, one defines a collection 
 an abstract category of objects, for example 'users', 'transactions', or 'events'. The programmer then creates and
 manipulates instances of these classes, called *objects*. In Python, one can create classes as follows:
 
-::
+.. code-block:: python
 
     class Person:
         def __init__(self, forename, surname):
@@ -38,7 +38,7 @@ but they have customized greeting methods corresponding to their respective lang
 
 We can then create instances of these classes as follows:
 
-::
+.. code-block:: python
 
         jeff = EnglishPerson(forename="Jeff", surname="Stevens")
         madeleine = FrenchPerson(forename="Madeleine", surname="de la Coeur")
@@ -68,7 +68,7 @@ PsyNet classes in experiment.py
 If you open a given PsyNet experiment (e.g. ``demos/mcmcp/experiment.py``) you will typically see a variety of
 PsyNet classes. These will be imported from particular PsyNet modules, for example:
 
-::
+.. code-block:: python
 
     from psynet.page import InfoPage
 
@@ -79,7 +79,7 @@ you'll see logic for instructions using this class, for example.
 Many PsyNet experiments also include some custom subclasses that inherit from particular PsyNet classes.
 For example, you might see something like this:
 
-::
+.. code-block:: python
 
     from psynet.trial.mcmcp import MCMCPTrial
 
@@ -107,7 +107,7 @@ You define your ``Experiment`` class by subclassing PsyNet's built-in
 :class:`~psynet.experiment.Experiment` class. Your custom ``Experiment`` class
 must include a definition of the experiment's timeline:
 
-::
+.. code-block:: python
 
     import psynet.experiment
 
@@ -171,7 +171,7 @@ Jinja is a templating engine that is popular for creating websites with a Python
 For example, here's what the template for :class:`psynet.timeline.SuccessfulEndPage` currently
 looks like:
 
-::
+.. code-block:: html
 
     {% extends "timeline-page.html" %}
 
@@ -197,7 +197,7 @@ that create these templates programmatically.
 The simplest case is the :class:`~psynet.page.InfoPage`. The Info Page simply displays some information to
 the participant, and does not request any response. An Info Page can be created like this:
 
-::
+.. code-block:: python
 
     from psynet.page import InfoPage
 
@@ -243,7 +243,7 @@ Page Maker
 The resulting pages can be dynamic, incorporating content that depends on the current
 state of the participant or the experiment.
 
-::
+.. code-block:: python
 
     from psynet.timeline import PageMaker
 
@@ -273,7 +273,7 @@ they take a function as the primary argument, which can optionally take a variet
 such as ``participant``.
 Unlike Page Makers, they only ever run once, so they're a safe place to put random functions.
 
-::
+.. code-block:: python
 
     from psynet.timeline import CodeBlock
 
@@ -294,7 +294,7 @@ A While Loop repeats a particular series of Elts while a particular condition is
 satisfied. The condition is specified as a function that is called with various
 optional arguments, most commonly ``participant``.
 
-::
+.. code-block:: python
 
     while_loop(
         "example_loop",
@@ -315,14 +315,12 @@ optional arguments, most commonly ``participant``.
 For Loop
 """"""""
 
-::
-
 A For Loop instructs PsyNet to loop over the values of a list,
 and using these values to dynamically generate Elts in the manner of a Page Maker.
 The following example uses a For Loop to create a series of Info Pages
 counting from 1 to 3:
 
-::
+.. code-block:: python
 
     from psynet.timeline import for_loop
     from psynet.page import InfoPage
@@ -338,7 +336,7 @@ For Loops can also include random functions to generate their seed lists.
 This provides a straightforward way to randomize the order of material
 presented to Participants. For example:
 
-::
+.. code-block:: python
 
     import random
     from psynet.timeline import for_loop
@@ -363,7 +361,7 @@ If the function returns True, then the logic follows the first branch;
 if it returns False, the logic follows the second branch (if such a branch
 was specified). For example:
 
-::
+.. code-block:: python
 
     from psynet.timelime import conditional
     from psynet.page import InfoPage
@@ -393,7 +391,7 @@ and the branches are keyed by possible outputs of the function.
 PsyNet sends the Participant to the branch that's keyed by the output
 of the function. For example:
 
-::
+.. code-block:: python
 
     from psynet.timeline import switch
 
@@ -424,19 +422,19 @@ unintentionally leak from one part of the Experiment to the other, something whi
 can produce subtle bugs. To take advantage of this feature, the experimenter avoids setting
 participant variables in this way (which sets variables that are 'global' to the entire timeline):
 
-::
+.. code-block:: python
 
     participant.var.custom_variable = 3
 
 and instead sets participant variables this way:
 
-::
+.. code-block:: python
 
     participant.locals.custom_variable = 3
 
 or equivalently:
 
-::
+.. code-block:: python
 
     participant.module_state.var.custom_variable = 3
 
@@ -462,7 +460,7 @@ which is to define an Asset at the Module level.
 You can create an asset within a Module by passing it to the Module constructor's
 ``assets`` argument. This argument expects a dictionary. For example:
 
-::
+.. code-block:: python
 
     import psynet.experiment
     from psynet.asset import CachedAsset
@@ -480,7 +478,7 @@ You can create an asset within a Module by passing it to the Module constructor'
 
 You can then access this asset within your module as follows:
 
-::
+.. code-block:: python
 
     from psynet.timeline import PageMaker
 
@@ -507,17 +505,246 @@ A Trial typically involves administering some kind of stimulus to the Participan
 and recording their response.
 
 The PsyNet experimenter typically creates their own Trial subclass as part of the
-Experiment implementation.
+Experiment implementation. This might look something like this:
 
-TODO
+.. code-block:: python
+
+    from psynet.trial.main import Trial
+
+    class RateTrial(Trial):
+        time_estimate = 3
+
+        def show_trial(self, experiment, participant):
+            word = self.definition["word"]
+
+            return ModularPage(
+                "rate_trial",
+                Markup(f"How happy is the following word: <strong>{word}</strong>"),
+                PushButtonControl(
+                    ["Not at all", "A little", "Very much"],
+                ),
+            )
+
+This minimal example of a custom trial class has two important elements:
+``time_estimate`` and ``show_trial``.
+
+The ``time_estimate`` attribute tells PsyNet how long an average Trial is expected to last, in seconds.
+This is used to construct progress bars and to reward participants for their progress through
+the experiment.
+
+The ``show_trial`` method then defines how the Trial is displayed to the Participant.
+The ``show_trial`` method method should refer to the Trial's ``definition`` attribute,
+which will be a dictionary containing defining information about the Trial,
+typically providing all the information required to uniquely determine the stimulus
+that will be presented to the Participant.
+Ordinarily the ``show_trial`` method should return a single page,
+however, it's also possible to construct more complex multi-page Trials by returning
+a series of Elts wrapped in a call to :func:`~psynet.timeline.join`.
+
+The simplest way to use a custom Trial class in an experiment is by using the
+:meth:`~psynet.trial.main.Trial.cue` method. This inserts a Trial in the timeline with a
+given definition, with this definition provided as an argument to ``cue``.
+The following example combines ``Trial.cue`` with a ``for_loop`` to deliver three
+trials with randomly sampled words:
+
+.. code-block:: python
+
+    for_loop(
+        label="Randomly sample three words from the word list",
+        iterate_over=lambda: random.sample(WORDS, 3),
+        logic=lambda word: RateTrial.cue(
+            {
+                "word": word,
+            }
+        ),
+        time_estimate_per_iteration=3,
+    )
+
+Trials used in this way can also incorporate Assets.
+However, this approach is only recommended for
+External Assets (i.e. Assets that are hosted externally on a web server)
+or for Fast Function Assets (i.e. Assets that are generated on-demand).
+
+.. code-block:: python
+
+    audio_ratings = Module(
+        "audio_ratings",
+        for_loop(
+            label="Deliver 5 trials with randomly sampled parameters",
+            iterate_over=lambda: [
+                {
+                    "frequency_gradient": random.uniform(-100, 100),
+                    "start_frequency": random.uniform(-100, 100),
+                }
+                for _ in range(5)
+            ],
+            logic=lambda definition: RateTrial.cue(
+                definition,
+                assets={
+                    "audio": FastFunctionAsset(
+                        function=synth_stimulus,
+                        extension=".wav",
+                    ),
+                },
+            ),
+            time_estimate_per_iteration=RateTrial.time_estimate,
+        ),
+    )
+
 
 Node
 ^^^^
 
+If your experiment design requires the Participant session to depend on what happened in previous
+Participant sessions (e.g. if you want to ensure that every stimulus receives exactly the same number
+of ratings), or if it requires pregenerating Assets (which normally is sensible if your Assets
+are slow to generate), then you will likely want to take advantage of Nodes.
+
+A :class:`~psynet.trial.main.Node` is a PsyNet database construct that is used for organizing Trials.
+In particular, it can be conceptualized as a *parent* for Trials,
+storing important parameters that are used to define its child Trials,
+as well as storing Assets that the Trials can make use of.
+
+Nodes are useful for enacting interactions between Participant sessions because they exist
+independently of individual Participants.
+In a non-adaptive experiment, a Node would typically represent a stimulus that is to be shown
+to multiple Participants. PsyNet can then balance stimulus selection by making sure that each
+Node ends up receiving the same number of Trials.
+In an adaptive experiment (e.g. Gibbs Sampling with People), a Node can instead represent the
+current state of the experiment (or, more specifically, the state of a particular chain within an experiment).
+
+Nodes are useful for asset management because they are typically created before the Participant comes along.
+This means they can have a headstart with asset generation, meaning that the Participant isn't kept waiting
+in the meantime. Moreover, since the same Node can spawn many Trials, the same Assets can be reused
+many times, instead of having to be regenerated for each new Trial.
+
+The simplest way to use Nodes in an experiment is to create a collection of Nodes in experiment.py
+and use these for your Trials. Here's an example from a PsyNet demo:
+
+.. code-block:: python
+
+    def synth_stimulus(path, frequencies):
+        synth_prosody(vector=frequencies, output_path=path)
+
+    NODES = [
+        Node(
+            definition={
+                "frequency_gradient": frequency_gradient,
+                "start_frequency": start_frequency,
+                "frequencies": [start_frequency + i * frequency_gradient for i in range(5)],
+            },
+            assets={
+                "stimulus": CachedFunctionAsset(
+                    function=synth_stimulus,
+                    extension=".wav",
+                )
+            },
+        )
+        for frequency_gradient in [-100, -50, 0, 50, 100]
+        for start_frequency in [-100, 0, 100]
+    ]
+
+
+    class RateTrial(Trial):
+        time_estimate = 5
+
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "audio_rating",
+                AudioPrompt(
+                    self.node.assets["stimulus"],
+                    text="How happy is the following word?",
+                ),
+                PushButtonControl(
+                    ["Not at all", "A little", "Very much"],
+                ),
+            )
+
+
+    audio_ratings = Module(
+        "audio_ratings",
+        for_loop(
+            label="Deliver 5 random samples from the stimulus set",
+            iterate_over=lambda nodes: random.sample(nodes, 5),
+            logic=lambda node: RateTrial.cue(node),
+            time_estimate_per_iteration=RateTrial.time_estimate,
+            expected_repetitions=5,
+        ),
+        nodes=NODES,
+    )
+
+Here the Nodes are used to define a stimulus set that explores a factorial combination of two variables,
+``frequency_gradient`` and ``start_frequency``. Each Node has an Asset, specifically a Cached Function Asset,
+defined as a function that gets its arguments from the Node's definition. When the experiment is deployed,
+PsyNet will automatically generate the full set of Assets if it doesn't find them in its cache.
+
+Note how the Nodes are passed to the ``Module`` call. This ensures that the Nodes are recognized by
+the Experiment, and it associates the Nodes with the ``"audio_ratings"`` module. Now code within that module
+(e.g. Page Makers, For Loops) can access those Nodes within lambda functions, as in the example above.
+These nodes can be used to create Trials by using the ``Trial.cue`` method, as in the example above.
+The Trial then inherits the Node's definition (in this case ``frequency_gradient``, ``start_frequency``,
+and ``frequencies``); the Node's assets then can be accessed through ``trial.node.assets``.
+
+It is also possible to create Nodes during the Experiment using similar techniques,
+but at the time of writing we haven't got a demo for this yet. Watch this space.
+
 Trial maker
 ^^^^^^^^^^^
 
-Creating your own
+The previous sections described how trial-based experiments can be implemented using the ``Trial.cue`` method.
+With this approach, the experimenter has to define the logic of choosing Trials themselves
+using constructs such as For Loops.
+However, such logic can get complex and repetitive. PsyNet therefore provides some built-in constructs
+that cover a variety of use cases, including:
+
+- Static experiments, where Trials are generated from a pre-specified collection of Nodes,
+  and Node selection is balanced to ensure that Trials accumulate evenly across Nodes;
+- Serial reproduction, where a participant imitates a stimulus, another participant imitates that imitation,
+  and so on for many generations;
+- Markov Chain Monte Carlo with People, a procedure which coordinates many two-alternative forced-choice trials
+  into a process which stochastically samples from a (possibly high-dimensional) stimulus space;
+- Gibbs Sampling with People, a variant of Markov Chain Monte Carlo with People based on a continuous
+  slider-based task.
+
+These constructs are implemented as Trial Makers (:class:`psynet.trial.main.TrialMaker`).
+A Trial Maker is a special kind of Module that provides logic for administering Trials within an experiment.
+Experiments using a Trial Maker typically implement custom Trial classes, as before.
+Complex experiments (e.g. chain-based) experiments will typically also implement a custom Node class.
+Then, instead of using some combination of For Loops with ``Trial.cue``, the experimenter instead
+inserts a Trial Maker instance into the Timeline. This Trial Maker might look something like this:
+
+.. code-block:: python
+
+    AnimalTrialMaker(
+        id_="animals",
+        trial_class=AnimalTrial,
+        nodes=nodes,
+        expected_trials_per_participant=6,
+        max_trials_per_block=2,
+        allow_repeated_nodes=True,
+        balance_across_nodes=True,
+        check_performance_at_end=True,
+        check_performance_every_trial=False,
+        target_n_participants=50,
+        target_trials_per_node=None,
+        recruit_mode="n_participants",
+        n_repeat_trials=3,
+    )
+
+This Trial Maker has several features as determined by the options that have been passed to it:
+
+- PsyNet will expect each participant to take about 6 trials;
+- Each participant will take no more than 2 trials in each block;
+- Each participant is in theory allowed to take multiple Trials from the same Node;
+- Node selection will be balanced, meaning that Trials should accumulate evenly across Nodes;
+- PsyNet will check the participant's performance at the end of the Trial Maker, and potentially terminate
+  their session if they perform too badly;
+- The Trial Maker will prompt PsyNet to keep recruiting until 50 participants have been recruited;
+- The Trial Maker will administer three Trials at the end that are repeats of three randomly selected
+  Trials from earlier in the Trial Maker; the results from these Trials can be used to evaluate the
+  participant's test-rest reliability.
+
+Explore documentation for specific Trial Maker classes as well as PsyNet demos for more information.
 
 Connection to SQLAlchemy classes
 --------------------------------
