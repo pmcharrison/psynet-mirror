@@ -2219,7 +2219,6 @@ class AudioRecordControl(RecordControl):
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 parent=parent,
-                variables=dict(),
                 personal=self.personal,
             )
 
