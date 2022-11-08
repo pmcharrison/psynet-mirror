@@ -219,6 +219,21 @@ def _cleanup_before_debug():
 
 
 def run_pre_auto_reload_checks():
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    from dallinger.utils import develop_target_path
+
+    _develop_path = str(develop_target_path(config))
+    if "." in _develop_path:
+        raise ValueError(
+            f"The target path for your app's temporary development directory ({_develop_path}) "
+            "contains a period ('.'). Unfortunately Dallinger doesn't support this."
+            "You should set a revised path in your .dallingerconfig file. "
+            "We recommend: dallinger_develop_directory = /tmp/dallinger_develop"
+        )
+
     if is_editable("psynet"):
         root_dir = str(psynet_dir())
         root_basename = os.path.basename(root_dir)
