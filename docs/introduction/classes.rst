@@ -749,7 +749,41 @@ Explore documentation for specific Trial Maker classes as well as PsyNet demos f
 Connection to SQLAlchemy classes
 --------------------------------
 
+Several PsyNet classes are database-backed, which means that their objects are represented as rows
+in a database. This enables object states to be communicated across servers and persisted
+throughout the duration of the experiment. Examples of database-backed classes include:
 
+- Participants
+- Trials
+- Nodes
+- Assets
+- Error Logs
+- Asynchronous Processes
+
+This database integration is implemented via SQLAlchemy. SQLAlchemy is a powerful Python package
+that creates a mapping between Python objects and database elements.
+
+In most PsyNet usage you do not need to worry much about the mechanics of this database integration.
+As long as you work with pre-existing object attributes and variable stores
+(e.g. ``participant.var.my_variable``), then your changes should propagate and persist just
+as you expect. However in advanced usage you will eventually want to understand more about
+how this integration works. We will soon include a tutorial on SQLAlchemy usage into this
+documentation website.
 
 Connection to Dallinger classes
 -------------------------------
+
+As you may know, PsyNet is built on an earlier platform called Dallinger which deals with many
+of the lower-level aspects of server management and experiment deployment.
+Dallinger has its own collection of database-backed classes which are designed with a particular
+focus on cultural simulation experiments, with names such as
+Info, Vector, Transmission, Node, and so on.
+
+Several PsyNet classes are built on some of these pre-existing Dallinger classes.
+For example, Trials are built on Infos, PsyNet Nodes are built on Dallinger Nodes,
+and PsyNet Nodes are organized into Networks, just like in Dallinger.
+The motivation for this inheritance is that it allows PsyNet to share some features
+with Dallinger, in particular as regards network visualizations in the dashboard.
+However, it does mean that in a few places in the code and the database
+you might see the word Info used when you were expecting to see the word Trial. We are
+working to eliminate these instances to make the abstraction more intuitive.
