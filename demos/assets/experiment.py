@@ -54,7 +54,6 @@ misc_assets = {
     "psynet_logo": ExternalAsset(
         url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
         description="The PsyNet Logo",
-        variables=dict(dimensions="150x150"),  # broken for some reason
     ),
     "headphone_check_folder": ExternalS3Asset(
         s3_bucket="headphone-check",
@@ -83,10 +82,6 @@ def save_text(participant):
             extension=".txt",
             description="Some text that the participant filled out",
             parent=participant,
-            variables=dict(
-                n_characters=len(participant.answer),
-                writing_time=participant.last_response.metadata["time_taken"],
-            ),
         )
         asset.deposit()
 
