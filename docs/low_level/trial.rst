@@ -15,13 +15,6 @@ ChainNode
 .. autoclass:: psynet.trial.chain.ChainNode
     :members:
 
-===========
-ChainSource
-===========
-
-.. autoclass:: psynet.trial.chain.ChainSource
-    :members:
-
 ==========
 ChainTrial
 ==========

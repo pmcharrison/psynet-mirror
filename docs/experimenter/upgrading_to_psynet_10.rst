@@ -3,14 +3,14 @@ Upgrading to PsyNet 10
 ======================
 
 Introduction
-------------
+============
 
 PsyNet 10 brings a host of new features. We are excited about what these new features bring,
 but they do necessitate a few changes to experiments implemented with earlier PsyNet versions.
 This guide is intended to help you with that upgrade process.
 
 Accumulating answers
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 PsyNet supports Trials containing multiple Pages. If ``accumulate_answers`` is set to ``True``,
 PsyNet used to accumulate the answers from these Pages into a single list, for example
@@ -25,7 +25,7 @@ these answers into separate columns. This means you don't have to worry about
 unpacking the dictionary representation yourself.
 
 Action needed
-.............
+_____________
 
 Action is only needed if your experiment uses answer accumulation
 (i.e. you have ``accumulate_answers = True`` in one of your Trial classes).
@@ -40,7 +40,7 @@ If so:
 
 
 S3 and asset management
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 Previous PsyNet versions required experimenters to rely on Amazon S3 storage for managing media files.
 They were expected to use various functions to interact with S3 manually,
@@ -60,7 +60,7 @@ Switching between different storage back-ends (e.g. from S3 to local storage) ca
 just by changing a single line of code in the Experiment class.
 
 Action needed
-.............
+_____________
 
 If your experiments have any explicit interaction with S3 (which normally means calling PsyNet
 functions with ``s3`` in the name), then this code will probably throw an error because those
@@ -77,7 +77,7 @@ assets recorded during the experiment.
 Note: Audio Imitation Chain experiments should not need any upgrading, as far as I can tell.
 
 Static versus Chain experiments
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 PsyNet 10 consolidates the underlying implementation for Static experiments and Chain experiments
 into a common code-base. As a result, Chain experiments can now access various features that
@@ -95,17 +95,17 @@ one now just provides a simple list of Nodes to the trial maker,
 with these Nodes defining e.g. the initial set of stimuli or the starting states of the chain networks.
 
 Action needed
-.............
+_____________
 
 Stimulus sets
-`````````````
+~~~~~~~~~~~~~
 
 Instead of passing a list of Stimulus Specs to the ``stimulus_set`` argument of the Trial Maker,
 you should now pass a list of Nodes to the ``nodes`` argument of the Trial Maker.
 See the ``static`` demo for an example.
 
 Stimulus versions
-`````````````````
+~~~~~~~~~~~~~~~~~
 
 Experiments using Stimulus Versions need to be reorganized.
 The standard solution is to turn each Stimulus Version into a Node.
@@ -114,7 +114,7 @@ controlled the accumulation of Trials across Stimuli, not across Stimulus Versio
 This shouldn't matter much for most people.
 
 Assets
-``````
+~~~~~~
 
 Old PsyNet experiments that use Stimuli with media (e.g. audio files) need to be updated
 to use the new PsyNet asset management system. The best way to do this is to read the new
@@ -122,7 +122,7 @@ to use the new PsyNet asset management system. The best way to do this is to rea
 It should be rather straightforward to update your code to follow this model.
 
 Trial Makers
-````````````
+~~~~~~~~~~~~
 
 The built-in arguments for Trial Makers have been updated slightly and pre-existing code is likely to
 throw an error. Don't worry, the fixes are very minor.
@@ -139,7 +139,7 @@ or visit the documentation for :class:`~psynet.trial.chain.ChainTrialMaker`
 or :class:`~psynet.trial.static.StaticTrialMaker` depending on what's appropriate.
 
 Initializing chain experiments
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Previously Chain experiments would initialize their chains using code like the following:
 
@@ -163,7 +163,7 @@ This new approach is much more flexible, and moreover allows the experimenter to
 for initializing those chains.
 
 Custom network classes
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
 Implementing Chain experiments used to involve implementing custom Network classes, for example:
 
@@ -207,7 +207,7 @@ Note that in this particular case (Audio Gibbs) there are several other changes 
 streamlined the definition of the Custom Node class. They're covered in other parts of this documentation.
 
 Action needed
-.............
+_____________
 
 If you have a Chain experiment you will need to migrate most elements from your custom Network class
 to your custom Node class. The precise migration required depends on which paradigm you are using.
@@ -215,7 +215,7 @@ Look at the corresponding PsyNet demo for guidance here.
 
 
 Audio Gibbs experiments
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 In addition to the changes noted above, the Audio Gibbs pattern now has a simplified mechanism
 for specifying the synthesis function. Instead of this Network attribute:
@@ -237,13 +237,13 @@ We now have this Node attribute:
             custom_synth.synth_stimulus(vector, output_path)
 
 Action needed
-.............
+_____________
 
 If you have an Audio Gibbs experiment you need to update your synthesis function specfication
 to match the pattern described above.
 
 Sources
-^^^^^^^
+=======
 
 Former PsyNet versions had the concept of Sources.
 Sources were used as the starting point for chains in paradigms such as Serial Reproduction
@@ -252,7 +252,7 @@ We have now streamlined the syntax for such experiments and eliminated the need 
 subsuming their function under the Node class.
 
 Action needed
-.............
+_____________
 
 This change should not impact most people's Experiment code. It may impact your analysis code,
 depending on how it is implemented, but quite possibly not.

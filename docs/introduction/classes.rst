@@ -277,7 +277,7 @@ Unlike Page Makers, they only ever run once, so they're a safe place to put rand
 
     from psynet.timeline import CodeBlock
 
-    CodeBlock(lambda participant: participant.var.seed = random.randint(0, 5)
+    CodeBlock(lambda participant: participant.var.seed = random.randint(0, 5))
 
 
 Control Flow
