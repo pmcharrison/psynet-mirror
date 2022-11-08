@@ -1171,6 +1171,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         If this is set to ``True``, then participants can revisit the same network
         in across-participant chains. The default is ``False``.
 
+    choose_participant_group
+        Only relevant if the trial maker uses nodes with non-default participant groups.
+        In this case the experimenter is expected to supply a function that takes participant as an argument
+        and returns the chosen participant group for that trial maker.
+
     Attributes
     ----------
 
@@ -1244,6 +1249,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
         assets=None,
+        choose_participant_group: Optional[callable] = None,
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1312,6 +1318,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.allow_revisiting_networks_in_across_chains = (
             allow_revisiting_networks_in_across_chains
         )
+        self.choose_participant_group = choose_participant_group
 
         super().__init__(
             id_=id_,
@@ -1336,6 +1343,19 @@ class ChainTrialMaker(NetworkTrialMaker):
     def check_initialization(self):
         pass
 
+    def check_participant_groups(self, networks):
+        for n in networks:
+            if (
+                n.participant_group != "default"
+                and self.choose_participant_group is None
+            ):
+                raise ValueError(
+                    f"Since the Trial Maker's starting nodes contain a non-default participant_group "
+                    f"({n.participant_group}), you must provide a value for the choose_participant_groups "
+                    "argument. This should be a function that takes 'participant' as an argument and returns "
+                    "the participant group chosen for that Trial Maker."
+                )
+
     @property
     def default_network_class(self):
         return ChainNetwork
@@ -1350,6 +1370,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
         participant.module_state.set_block_position(0)
+        self.check_participant_groups(networks)
 
     def init_block_order(self, experiment, participant, blocks):
         block_order = call_function_with_context(

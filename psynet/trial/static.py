@@ -178,6 +178,11 @@ class StaticTrialMaker(ChainTrialMaker):
         after all blocks have been completed.
         Defaults to 0.
 
+    choose_participant_group
+        Only relevant if the trial maker uses nodes with non-default participant groups.
+        In this case the experimenter is expected to supply a function that takes participant as an argument
+        and returns the chosen participant group for that trial maker.
+
     Attributes
     ----------
 
@@ -240,6 +245,7 @@ class StaticTrialMaker(ChainTrialMaker):
         fail_trials_on_participant_performance_check: bool = True,
         n_repeat_trials: int = 0,
         assets=None,
+        choose_participant_group: Optional[callable] = None,
     ):
         # balance_across_chains = (
         #     active_balancing_across_participants or active_balancing_within_participants
@@ -291,6 +297,7 @@ class StaticTrialMaker(ChainTrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             n_repeat_trials=n_repeat_trials,
             assets=assets,
+            choose_participant_group=choose_participant_group,
         )
 
 

@@ -133,6 +133,10 @@ throw an error. Don't worry, the fixes are very minor.
   ``expected_trials_per_participant``, which is different from ``max_trials_per_participant``;
   the former is used for estimating experiment duration, whereas the latter is used as a rule
   for determining when the participant stops receiving trials from the Trial Maker.
+- The old way of assigning participants to participant groups was to override the
+  ``choose_participant_group`` method of the Trial Maker.
+  The new way is to provide a function to the Trial Maker's ``choose_participant_group argument``,
+  a function which takes one argument (``participant``) and returns the chosen participant group.
 
 To find the up-to-date list of Trial Maker arguments, use the autocomplete function of your IDE,
 or visit the documentation for :class:`~psynet.trial.chain.ChainTrialMaker`

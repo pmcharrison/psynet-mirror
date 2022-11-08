@@ -1,3 +1,5 @@
+import random
+
 import psynet.experiment
 from psynet.asset import DebugStorage
 from psynet.consent import NoConsent
@@ -51,6 +53,9 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=10,
             recruit_mode="n_participants",
             expected_trials_per_participant=7,
+            choose_participant_group=lambda participant: random.choice(
+                ["participant-group-1", "participant-group-2"]
+            ),
         ),
         SuccessfulEndPage(),
     )

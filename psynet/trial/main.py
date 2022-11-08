@@ -1459,33 +1459,13 @@ class TrialMaker(Module):
 
     def init_participant_group(self, experiment, participant):
         if not participant.module_state.participant_group:
-            participant.module_state.participant_group = self.choose_participant_group(
-                experiment=experiment, participant=participant
-            )
-
-    def choose_participant_group(self, experiment, participant):
-        # pylint: disable=unused-argument
-        """
-        Determines the participant group assigned to the current participant.
-        By default the participant is assigned to the group "default".
-
-        Parameters
-        ----------
-
-        experiment
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-
-        participant
-            An instantiation of :class:`psynet.participant.Participant`,
-            corresponding to the current participant.
-
-        Returns
-        -------
-
-        A string label identifying the selected participant group.
-        """
-        return "default"
+            if self.choose_participant_group is None:
+                group = "default"
+            else:
+                group = self.choose_participant_group(
+                    participant=participant,
+                )
+            participant.module_state.participant_group = group
 
     def on_complete(self, experiment, participant):
         """

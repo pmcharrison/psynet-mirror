@@ -177,9 +177,6 @@ class CustomTrialMaker(GibbsTrialMaker):
         # in order of increasing network ID.
         return sorted(candidates, key=lambda x: x.id)
 
-    def choose_participant_group(self, experiment, participant):
-        return participant.var.participant_group
-
 
 start_nodes = [
     CustomNode(context={"target": target}, participant_group=participant_group)
@@ -208,6 +205,7 @@ trial_maker = CustomTrialMaker(
     target_n_participants=None,
     n_repeat_trials=3,
     wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
+    choose_participant_group=lambda participant: participant.var.participant_group,
 )
 
 ###################
