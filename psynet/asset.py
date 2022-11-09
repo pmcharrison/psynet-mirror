@@ -69,10 +69,10 @@ class AssetSpecification(NullElt):
         if key is None:
             key = f"pending--{uuid.uuid4()}"
 
+        self.export_path = None
         self.key = key
         self.label = label
         self.description = description
-        self.export_path = None
 
     def prepare_for_deployment(self, registry):
         raise NotImplementedError

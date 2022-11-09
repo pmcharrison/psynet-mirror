@@ -45,6 +45,21 @@ def generate_text_file(path):
         file.write("Lorem ipsum")
 
 
+def test_export_path__external_asset():
+    asset = ExternalAsset(
+        key="test_external_asset",
+        url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
+    )
+    assert asset.export_path == "test_external_asset.wav"
+
+
+def test_export_path__fast_function_asset():
+    asset = FastFunctionAsset(
+        function=generate_text_file, key="test_fast_function_asset", extension=".txt"
+    )
+    assert asset.export_path == "test_fast_function_asset.txt"
+
+
 # @pytest.mark.usefixtures("db_session")  # Assuming we don't need this
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
