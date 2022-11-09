@@ -1999,6 +1999,8 @@ class NetworkTrialMaker(TrialMaker):
         # cover other types of networks in the future.
         from psynet.trial.chain import ChainNetwork
 
+        db.session.commit()  # Introduced to try and avoid deadlocks we were seeing
+
         networks = ChainNetwork.query.filter_by(ready_to_spawn=True).all()
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
