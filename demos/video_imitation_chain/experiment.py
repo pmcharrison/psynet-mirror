@@ -70,10 +70,30 @@ class CustomTrial(CameraImitationChainTrial):
                 events={"recordStart": Event(is_triggered_by="trialStart", delay=1.5)},
             )
         else:
+            try:
+                stimulus = self.assets["stimulus"]
+            except KeyError:
+                logger.info(
+                    "Failed to find self.assets['stimulus']. This error happens occasionally in the automated tests "
+                    "and we haven't been able to debug it yet. It may be some kind of race condition. "
+                    "We'll now print some debugging information to try and help solve this mystery. "
+                )
+                logger.info("Does our trial's node have pending async processes?")
+                logger.info(self.node.async_processes)
+                logger.info([x.__json__() for x in self.node.async_processes])
+
+                logger.info("What happens if we refresh the object?")
+
+                logger.info("Does our trial's node have pending async processes?")
+                logger.info(self.node.async_processes)
+                logger.info([x.__json__() for x in self.node.async_processes])
+
+                stimulus = self.assets["stimulus"]
+
             page_1 = ModularPage(
                 "webcam_prompt",
                 VideoPrompt(
-                    self.assets["stimulus"],
+                    stimulus,
                     "When you are ready, press next to imitate the figure that you see.",
                     text_align="center",
                     width="360px",
