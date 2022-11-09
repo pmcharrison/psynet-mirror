@@ -113,6 +113,30 @@ This has subtle implications for the balancing; previously balancing only
 controlled the accumulation of Trials across Stimuli, not across Stimulus Versions.
 This shouldn't matter much for most people.
 
+Accessing stimuli within trials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some people's experiments access the ``stimulus`` object within trial methods, for example:
+
+.. code-block:: python
+
+    def show_trial(self, experiment, participant):
+        the_rule = self.stimulus.definition["rule"]
+        ...
+
+In such cases you should replace ``stimulus`` with ``node``:
+
+.. code-block:: python
+
+    def show_trial(self, experiment, participant):
+        the_rule = self.node.definition["rule"]
+        ...
+
+
+More generally, it's a good idea to do a full-text search for ``stimulus`` throughout your code base
+to find cases where it ought to be replaced with ``node``.
+
+
 Assets
 ~~~~~~
 
@@ -260,3 +284,35 @@ _____________
 
 This change should not impact most people's Experiment code. It may impact your analysis code,
 depending on how it is implemented, but quite possibly not.
+
+
+``prepare_trial``
+=================
+
+There is a Trial Maker method called ``prepare_trial`` which is responsible for preparing the
+next trial that the participant receives. Originally this method was expected to return
+either a Trial object or ``None``, with the latter signifying that the Trial Maker should terminate.
+The signature of this method has now changed; it's now expected to return a tuple where the first
+element is the Trial object, as before, with ``None`` if no Trial is found, and the second element
+being a string taking one of three values: "available", "wait", and "exit".
+
+Most experiments do not touch the ``prepare_trial`` method. However, experiments that do override it
+need to be updated for PsyNet 10. For example, one's original code might look like this:
+
+.. code-block:: python
+
+    def prepare_trial(self, experiment, participant):
+        if participant.var.has("expire"):  # finish the game
+            logger.info("Ending game")
+            return None
+        return super().prepare_trial(experiment, participant)
+
+Such code should be updated to this:
+
+.. code-block:: python
+
+    def prepare_trial(self, experiment, participant):
+        if participant.var.has("expire"):  # finish the game
+            logger.info("Ending game")
+            return None, "exit"
+        return super().prepare_trial(experiment, participant)

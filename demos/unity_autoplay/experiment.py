@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import Optional
 
 import psynet.experiment
@@ -60,7 +61,7 @@ class GameTrial(StaticTrial):
     time_estimate = 1
 
     def show_trial(self, experiment, participant):
-        the_rule = self.stimulus.definition["rule"]
+        the_rule = self.node.definition["rule"]
         goal = Goal
         data = {
             "goal": goal,
@@ -84,7 +85,7 @@ class GameTrialMaker(StaticTrialMaker):
     def prepare_trial(self, experiment, participant):
         if participant.var.has("expire"):  # finish the game
             logger.info("Ending game")
-            return None
+            return None, "exit"
         return super().prepare_trial(experiment, participant)
 
     def finalize_trial(self, answer, trial, experiment, participant: Participant):
@@ -127,6 +128,7 @@ trial_maker = GameTrialMaker(
     target_n_participants=3,
     recruit_mode="n_participants",
     n_repeat_trials=0,
+    choose_participant_group=lambda participant: random.choice(rules),
 )
 
 
