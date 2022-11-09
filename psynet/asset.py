@@ -2302,7 +2302,6 @@ class ExternalS3Asset(ExternalAsset):
     def __init__(
         self,
         *,
-        local_key,
         s3_bucket: str,
         s3_key: str,
         is_folder=False,
@@ -2311,6 +2310,7 @@ class ExternalS3Asset(ExternalAsset):
         replace_existing=False,
         label=None,
         module_id=None,
+        local_key=None,
         key=None,
         parent=None,
         personal=False,
@@ -2320,7 +2320,6 @@ class ExternalS3Asset(ExternalAsset):
         url = self.generate_url()
 
         super().__init__(
-            local_key=local_key,
             url=url,
             is_folder=is_folder,
             description=description,
@@ -2328,6 +2327,7 @@ class ExternalS3Asset(ExternalAsset):
             replace_existing=replace_existing,
             label=label,
             module_id=module_id,
+            local_key=local_key,
             key=key,
             parent=parent,
             personal=personal,
