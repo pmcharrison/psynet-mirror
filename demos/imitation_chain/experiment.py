@@ -25,11 +25,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-##########################################################################################
-# Stimuli
-##########################################################################################
-
-
 class FixedDigitInputPage(ModularPage):
     def __init__(self, label: str, prompt: str, time_estimate: float):
         self.num_digits = 7

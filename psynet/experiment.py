@@ -43,12 +43,15 @@ from .timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
+    Response,
     Timeline,
 )
 from .trial.main import Trial
 from .utils import (
+    NoArgumentProvided,
     call_function,
     get_arg_from_dict,
+    get_experiment,
     get_logger,
     pretty_log_dict,
     serialise,
@@ -216,22 +219,34 @@ class Experiment(dallinger.experiment.Experiment):
     def on_launch(self):
         if not self.setup_complete:
             self.setup()
+        self.var.launched = True
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
 
+    def initialize_bot(self, bot):
+        """
+        This function is called when a bot is created.
+        It can be used to set stochastic random parameters corresponding
+        to participant latent traits, for example.
+
+        e.g.
+
+        ```bot.var.musician = True``
+        """
+        pass
+
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def check_database():
-        exp_class = dallinger.experiment.load()
-        exp = exp_class.new(db.session)
+        exp = get_experiment()
         for c in exp.database_checks:
             c.run()
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def run_recruiter_checks():
-        exp = dallinger.experiment.load().new(db.session)
+        exp = get_experiment()
         recruiter = exp.recruiter
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
@@ -314,6 +329,7 @@ class Experiment(dallinger.experiment.Experiment):
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
+            "launched": False,
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -662,6 +678,7 @@ class Experiment(dallinger.experiment.Experiment):
         metadata,
         page_uuid,
         client_ip_address,
+        answer=NoArgumentProvided,
     ):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
@@ -676,6 +693,7 @@ class Experiment(dallinger.experiment.Experiment):
                 experiment=self,
                 participant=participant,
                 client_ip_address=client_ip_address,
+                answer=answer,
             )
             validation = event.validate(
                 response, experiment=self, participant=participant
@@ -799,7 +817,7 @@ class Experiment(dallinger.experiment.Experiment):
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
     def dashboard_timeline(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         panes = exp.monitoring_panels()
 
         return render_template(
@@ -936,21 +954,21 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/module", methods=["POST"])
     @classmethod
     def get_module_details_as_rendered_html(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
         return trial_maker.visualize()
 
     @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
     def get_module_tooltip_as_rendered_html(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
         return trial_maker.visualize_tooltip()
 
     @experiment_route("/module/progress_info", methods=["GET"])
     @classmethod
     def get_progress_info(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         progress_info = {
             "spending": {
                 "amount_spent": exp.amount_spent(),
@@ -970,7 +988,7 @@ class Experiment(dallinger.experiment.Experiment):
     def update_spending_limits(cls):
         hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
         soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
-        exp = cls.new(db.session)
+        exp = get_experiment()
         exp.var.set("hard_max_experiment_payment", float(hard_max_experiment_payment))
         exp.var.set("soft_max_experiment_payment", float(soft_max_experiment_payment))
         logger.info(
@@ -990,7 +1008,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
     def route_debugger(cls, password):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         if password == "my-secure-password-195762":
             exp.new(db.session)
             rpdb.set_trace()
@@ -1020,7 +1038,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
     @classmethod
     def grow_network(cls, network_id):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         from .trial.main import TrialNetwork
 
         network = TrialNetwork.query.filter_by(id=network_id).one()
@@ -1112,7 +1130,7 @@ class Experiment(dallinger.experiment.Experiment):
 
         from psynet.utils import error_page
 
-        exp = cls.new(db.session)
+        exp = get_experiment()
         mode = request.args.get("mode")
         participant = get_participant(participant_id)
 
@@ -1176,7 +1194,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/response", methods=["POST"])
     @classmethod
     def route_response(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         json_data = json.loads(request.values["json"])
         blobs = request.files.to_dict()
 
@@ -1284,9 +1302,9 @@ def _patch_dallinger_models():
     # There are some Dallinger functions that rely on the ability to look up
     # models by name in dallinger.models. One example is the code for
     # generating dashboard tabs for SQL object types. We therefore need
-    # to patch in certain PsyNet classes so that Dallinger can access them
-    # (in particular the Trial class).
+    # to patch in certain PsyNet classes so that Dallinger can access them.
     dallinger.models.Trial = Trial
+    dallinger.models.Response = Response
 
 
 _patch_dallinger_models()

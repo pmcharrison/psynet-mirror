@@ -1,11 +1,91 @@
 # CHANGELOG
 
+# [9.2.0] Released on 2022-11-10
+
+#### Fixed
+- Fixed display of `ExperimentConfigs`, `LucidRIDs`, and `Responses` database tables in dashboard (author: Peter Harrison, reviewer: Frank Höger).
+- Hotfix that fixes import errors for experiment containing stimulus sets. Will be superceded by the storage branch, to be merged soon (author: Peter Harrison).
+- Fixed bug where the wrong participant information was given in error pages (author: Peter Harrison, reviewer: Frank Höger).
+- Renamed `psynet` to `PsyNet` in .gitlab-ci.yml (author: Frank Höger).
+- Removed failing detection of `editable mode` in `psynet update` command (author: Frank Höger).
+
+#### Added
+- Added `utils.get_experiment`, an easy way to get an `Experiment` instance from an arbitrary part of your code (author: Peter Harrison, reviewer: Pol van Rijn).
+- Added the ability to customize the SQLAlchemy polymorphic identity of a given class by setting the `polymorphic_identity` attribute in the class definition (author: Peter Harrison, reviewer: Pol van Rijn).
+- Added new tools for creating bots in PsyNet. Bots are artificially simulated participants that progress through the experiment in much the same way as ordinary PsyNet participants, with the exception that they never interact with the web browser itself, but instead interact with the Python objects that underlie the timeline. Bots can be used for creating tests for PsyNet experiments, for simulating emergent network dynamics, or for introducing controllable characters into the actual experiment deployment (author: Peter Harrison, reviewer: Pol van Rijn):
+
+A bot is created with a command like the following:
+
+``` py
+from psynet.bot import Bot
+
+bot = Bot()
+```
+
+At this point you can set custom variables within that bot object, for example to correspond to relevant participant parameters such as gender or musicianship. You might do this deterministically or stochastically, depending on your interest.
+
+```py
+import random
+
+bot.var.gender = "female"
+bot.var.is_musician = random.sample([True, False], 1][0]
+```
+
+You can also define a universal bot initialization method on the Experiment class, like this:
+
+``` py
+class Exp(...):
+    def initialize_bot(self, bot):
+        bot.var.is_musician = random.sample([True, False], 1)[0]
+```
+
+This method will be called automatically whenever a bot is initialized.
+
+PsyNet needs to be told how bots respond to particular pages. This can be done in two ways.
+
+The first way is to pass a `bot_response` function to the Page or Control constructor. For example:
+
+```py
+ModularPage(
+    "How many years of musical training do you have?",
+    TextControl(
+        ...
+        bot_response=lambda bot: 10 if bot.var.is_musician else 0,
+    )
+)
+```
+
+This `bot_response` can take various other parameters, including the `experiment`, the `page`, and the `prompt`, so that you have all the information you need to define the bot's response.
+
+Alternatively, if you are defining a custom Page or Control class, you can define a custom `get_bot_response` method, which achieves much the same response.
+
+To tell the bot to progress through the experiment, you can use one of two functions: `take_page` and `take_experiment`. The first advances by just one page, whereas the latter progresses through the experiment. The speed of advancement can be determined by a parameter that acts as a multiplier on each page's `time_estimate` value.
+
+There are various ways to configure bots to take part in a real experiment. One of the easiest currently is to define a scheduled task that occurs periodically in the background of the experiment and runs a bot participant.
+
+```py
+    @staticmethod
+    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
+    def run_bot_participant():
+        # Every 7 seconds, runs a bot participant.
+        experiment = get_experiment()
+        if experiment.var.launched:
+            bot = Bot()
+            bot.take_experiment()
+```
+- Added `psynet generate-constraints` to command line (author: Frank Höger; reviewer: Peter Harrison).
+
+#### Updated
+- Updated `Dallinger` to `v9.2.0` adding experimental support for Docker deployment. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.2.0.
+
 # [9.1.2] Released on 2022-08-13
+
+#### Fixed
 - Fixed a bug that caused incorrect participant details in error messages (author: Peter Harrison, reviewer: Frank Höger).
 
 # [9.1.1] Released on 2022-08-03
 
-## Fixed
+#### Fixed
 - Fixed a bug that introduced import errors for experiments containing stimulus sets (author: Peter Harrison, reviewer: Frank Höger).
 
 # [9.1.0] Released on 2022-07-11

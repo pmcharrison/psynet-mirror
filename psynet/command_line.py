@@ -18,6 +18,7 @@ from psynet import __version__
 
 from .data import drop_all_db_tables, dump_db_to_disk, init_db
 from .utils import (
+    get_experiment,
     import_local_experiment,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -414,7 +415,6 @@ def docs(force_rebuild):
 
 
 def run_pre_checks(mode):
-    from dallinger import db
     from dallinger.recruiters import MTurkRecruiter
 
     init_db(drop_all=True)
@@ -423,8 +423,7 @@ def run_pre_checks(mode):
     if not config.ready:
         config.load()
 
-    exp_class = import_local_experiment()["class"]
-    exp = exp_class.new(db.session)
+    exp = get_experiment()
 
     recruiter = exp.recruiter
     is_mturk = isinstance(recruiter, MTurkRecruiter)
@@ -690,6 +689,26 @@ def verify_experiment_id(ctx, param, app):
     from dallinger.command_line import verify_id
 
     return verify_id(ctx, param, app)
+
+
+########################
+# generate-constraints #
+########################
+@psynet.command()
+@click.pass_context
+def generate_constraints(ctx):
+    """
+    Generate the constraints.txt file from requirements.txt.
+    """
+    from dallinger.command_line import (
+        generate_constraints as dallinger_generate_constraints,
+    )
+
+    log(header)
+    try:
+        ctx.invoke(dallinger_generate_constraints)
+    finally:
+        reset_console()
 
 
 ##########

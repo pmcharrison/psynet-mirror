@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="psynet",
-    version="9.1.2",
+    version="9.2.0",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
@@ -22,7 +22,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger>=9.0.1, <10.0.0",
+        "dallinger>=9.2.0, <10.0.0",
         "click",
         "datetime",
         "dominate",
