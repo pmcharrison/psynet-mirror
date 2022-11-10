@@ -1,4 +1,4 @@
-FROM ghcr.io/dallinger/dallinger:9.1.0a1-dashboard-url
+FROM ghcr.io/dallinger/dallinger:9.3.0a1-dashboard-url
 
 RUN mkdir /PsyNet
 WORKDIR /PsyNet
