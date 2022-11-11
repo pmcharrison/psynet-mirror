@@ -1,1 +1,5 @@
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
+# Example pinning a particular version of Dallinger
+dallinger@git+https://github.com/Dallinger/Dallinger.git@print-dashboard-url#egg=dallinger
+
+# Example pinning a particular version of PsyNet
+psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@v10-draft#egg=psynet
