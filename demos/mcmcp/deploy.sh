@@ -1,6 +1,6 @@
 EXPERIMENT_IMAGE=psynet-experiment
-DOCKER_BUILDKIT=1
 
+DOCKER_BUILDKIT=1
 docker build . -t ${EXPERIMENT_IMAGE}
 
 printf "\n"
