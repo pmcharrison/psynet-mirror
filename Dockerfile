@@ -1,4 +1,6 @@
-FROM ghcr.io/dallinger/dallinger:9.3.0a1-dashboard-url
+FROM ghcr.io/dallinger/dallinger:9.3.0
+# If you want to pin a Dallinger development version, don't do it here!
+# Instead pin it below (see comments)
 
 RUN mkdir /PsyNet
 WORKDIR /PsyNet
@@ -21,6 +23,14 @@ RUN pip install "git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/compu
 RUN pip install pytest-test-groups
 RUN export HEADLESS=TRUE
 
+# The following code can be used to reinstall Dallinger from a particular development branch or commit
+RUN rm -rf /dallinger
+RUN mkdir /dallinger
+WORKDIR /dallinger
+RUN git clone https://github.com/Dallinger/Dallinger.git@print-dashboard-url
+RUN pip install -e ".[data]"
+WORKDIR /PsyNet
+
 # Ultimately we might want to decouple dev requirements from the Docker distribution
 COPY ./dev-requirements.in dev-requirements.in
 # For some reason you need a README before you can run pip-compile...?
@@ -29,10 +39,6 @@ RUN touch README.md
 RUN pip-compile dev-requirements.in --verbose
 RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
-
-# The following code can be used to reinstall Dallinger from a particular development branch or commit
-#RUN pip install "git+https://github.com/Dallinger/Dallinger.git@add-foreign-keys"
-#RUN rm -rf /dallinger
 
 COPY . .
 RUN pip install -e .
