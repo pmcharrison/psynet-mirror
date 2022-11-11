@@ -41,7 +41,7 @@ before_script:
 
 tests:
   parallel: 10
-  stage: test
+  stage: main
   script:
     - docker run
       --add-host=postgres:$POSTGRES_IP
@@ -53,13 +53,13 @@ tests:
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
 
 deploy_docker:
-  stage: deploy
+  stage: main
   script:
     - docker push $DOCKER_IMAGE
 
 deploy_docs:
   image: $DOCKER_IMAGE
-  stage: deploy
+  stage: main
   needs: [deploy_docker]
   script:
     - pip install -U sphinx
