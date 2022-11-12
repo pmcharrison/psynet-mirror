@@ -2035,7 +2035,7 @@ class NetworkTrialMaker(TrialMaker):
             node = self.find_node(
                 network=network, participant=participant, experiment=experiment
             )
-            if node is not None:
+            if node is not None and node.ready_for_trials:
                 logger.info(
                     "Selected node %i from network %i to give to participant %i.",
                     node.id,
@@ -2514,6 +2514,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     module_id = Column(String)
     _on_create_called = Column(Boolean, default=False)
     _on_deploy_called = Column(Boolean, default=False)
+    ready_for_trials = Column(Boolean, default=False)
 
     # network = relationship(
     #     "psynet.trial.main.TrialNetwork",
@@ -2606,11 +2607,17 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def on_deploy(self):
         if is_method_overridden(self, TrialNode, "async_on_deploy"):
             WorkerAsyncProcess(
-                function=self.async_on_deploy,
+                function=self._async_on_deploy,
                 node=self,
                 timeout=self.trial_maker.async_timeout_sec,
                 unique=True,
             )
+        else:
+            self.ready_for_trials = True
+
+    def _async_on_deploy(self):
+        self.async_on_deploy()
+        self.ready_for_trials = True
 
     def async_on_deploy(self):
         """
