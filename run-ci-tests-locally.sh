@@ -4,7 +4,10 @@
 # which is slow. In fact, because the data transfer now happens over the internet,
 # it seems to take even longer than the CI hosted version.
 #
-# Note -- this script is still incomplete -- AWS credentials are not passed, and CI test node is not passed either
+# Note -- this script is still incomplete -- AWS credentials are not passed, and CI test node is not passed either.
+#
+# Note -- maybe a better approach for debugging would be to remove one layer of wrapping and not use Docker-in-Docker,
+# but instead just use one layer of Docker?
 #
 # You need to install the following first:
 # - docker - https://docs.docker.com/install/
