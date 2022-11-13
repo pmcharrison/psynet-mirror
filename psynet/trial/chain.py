@@ -1793,10 +1793,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     @log_time_taken
     def find_node(self, network, participant, experiment):
-        assert (
-            not network.awaiting_async_process
-            and not network.head.awaiting_async_process
-        )
         return network.head
 
     def finalize_trial(self, answer, trial, experiment, participant):
