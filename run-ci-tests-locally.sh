@@ -1,7 +1,10 @@
 # The purpose of this code is to come as close as possible to running the CI tests
 # as they would be run on the CI server. This workflow shares the disadvantage
 # of the CI tests in that they have to pull the Docker images each time,
-# which is slow.
+# which is slow. In fact, because the data transfer now happens over the internet,
+# it seems to take even longer than the CI hosted version.
+#
+# Note -- this script is still incomplete -- AWS credentials are not passed, and CI test node is not passed either
 #
 # You need to install the following first:
 # - docker - https://docs.docker.com/install/
