@@ -342,9 +342,8 @@ class SQLMixinDallinger(SharedMixin):
 
         x["class"] = self.__class__.__name__
 
-        # This is a little hack we do for compatibility with the Dalligner
+        # This is a little hack we do for compatibility with the Dallinger
         # network visualization, which relies on sources being explicitly labeled.
-        print(isinstance(self, ChainNode))
         if isinstance(self, ChainNode) and self.degree == 0:
             x["type"] = "TrialSource"
         else:
