@@ -32,9 +32,6 @@ class ADSRTimbre(Timbre):
         (as experienced at the transition between the 'attack' and
         'decay' portions.
 
-    duration:
-        Duration of the tone, in seconds.
-
     release:
         Duration of the 'release' portion of the sound, in seconds.
     """
@@ -44,14 +41,12 @@ class ADSRTimbre(Timbre):
         attack: float = 0.2,
         decay: float = 0.1,
         sustain_amp: float = 0.8,
-        duration: float = 0.75,
         release: float = 0.4,
     ):
         super().__init__(
             attack=attack,
             decay=decay,
             sustain_amp=sustain_amp,
-            duration=duration,
             release=release,
         )
 
