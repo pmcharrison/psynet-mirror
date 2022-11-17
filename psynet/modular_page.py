@@ -937,7 +937,7 @@ class PushButtonControl(OptionControl):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[Union[str, float, int]],
         labels: Optional[List[str]] = None,
         style: str = "min-width: 100px; margin: 10px",
         arrange_vertically: bool = True,
