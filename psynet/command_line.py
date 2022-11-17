@@ -706,19 +706,15 @@ def update(dallinger_version, psynet_version, verbose):
     # PsyNet
     log("Updating PsyNet...")
     cwd = psynet_dir()
-    if is_editable("psynet"):
-        _prepare(
-            psynet_version,
-            "PsyNet",
-            cwd,
-            capture_output,
-        )
+    _prepare(
+        psynet_version,
+        "PsyNet",
+        cwd,
+        capture_output,
+    )
 
-        text = "Installing base packages and development requirements..."
-        install_command = "pip install -e '.[dev]'"
-    else:
-        text = "Installing base packages..."
-        install_command = "pip install .'"
+    text = "Installing base packages and development requirements..."
+    install_command = "pip install -e '.[dev]'"
 
     with yaspin(text=text, color="green") as spinner:
         install_command = install_command
@@ -804,6 +800,26 @@ def verify_experiment_id(ctx, param, app):
     from dallinger.command_line import verify_id
 
     return verify_id(ctx, param, app)
+
+
+########################
+# generate-constraints #
+########################
+@psynet.command()
+@click.pass_context
+def generate_constraints(ctx):
+    """
+    Generate the constraints.txt file from requirements.txt.
+    """
+    from dallinger.command_line import (
+        generate_constraints as dallinger_generate_constraints,
+    )
+
+    log(header)
+    try:
+        ctx.invoke(dallinger_generate_constraints)
+    finally:
+        reset_console()
 
 
 ##########
