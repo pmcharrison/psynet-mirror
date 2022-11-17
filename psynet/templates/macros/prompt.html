@@ -299,7 +299,10 @@
         psynet.trial.onEvent("trialConstruct", async function() {
             await Tone.start();
             for (const i of options.instruments) {
-                LOADED_INSTRUMENTS[i] = await load_sampler(i);
+                if (i.samples) {
+                    INSTRUMENTS[i.type] = {urls: i.samples, baseUrl: ""};
+                }
+                LOADED_INSTRUMENTS[i.type] = await load_sampler(i.type);
             }
             if (options["max_num_pitches"] > 0) {
                 ACTIVE_NODES = generate_additive_nodes(options);

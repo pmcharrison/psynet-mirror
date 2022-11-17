@@ -169,7 +169,7 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
       let synthesizer = new ADDITIVE_TYPES[specs["type"]](specs)
       freqs = util.post_pad(freqs, specs["max_num_pitches"], 0) // 0 frequency signifies no output
       custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, duration, pan)
-    } else if (INST_NAMES.includes(specs["type"])) {
+    } else if (Object.keys(LOADED_INSTRUMENTS).includes(specs["type"])) {
       let instrument = LOADED_INSTRUMENTS[specs["type"]]
       instrument.triggerAttackRelease(freqs, duration, time)
     } else {

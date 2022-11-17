@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .modular_page import Prompt
 from .timeline import Event
@@ -242,22 +242,36 @@ class InstrumentTimbre(Timbre):
     required pitch. This is done by pitch-shifting the nearest pitch sample in the dictionary to the
     desired value, allowing for continuous pitch manipulation.
     For specific implementation details, see (https://github.com/Tonejs/Tone.js/blob/c313bc6/Tone/instrument/Sampler.ts#L297).
+
+    Parameters
+    ----------
+
+    type :
+        Instrument to select. This can be drawn from a list of built-in options (see below),
+        alternatively a custom instrument name can be specified, as long as a dictionary of samples
+        is provided to the samples argument.
+
+    samples:
+        An optional dictionary of samples to use for synthesis. The keys of this dictionary should be
+        note names, for example "F4", "Gb4", and so on. The values should be URLs for the sound files.
     """
 
-    def __init__(self, type):
+    def __init__(self, type: str, samples: Optional[dict] = None):
         super().__init__()
-        assert type in [
-            "piano",
-            "xylophone",
-            "violin",
-            "guitar",
-            "harpsichord",
-            "saxophone",
-            "clarinet",
-            "flute",
-            "trumpet",
-        ]
+        if samples is None:
+            assert type in [
+                "piano",
+                "xylophone",
+                "violin",
+                "guitar",
+                "harpsichord",
+                "saxophone",
+                "clarinet",
+                "flute",
+                "trumpet",
+            ]
         self["type"] = type
+        self["samples"] = samples
         self["num_octave_transpositions"] = 0
 
 
@@ -486,7 +500,7 @@ class JSSynth(Prompt):
                     t.num_octave_transpositions,
                 )
             if isinstance(t, InstrumentTimbre):
-                options["instruments"].append(t["type"])
+                options["instruments"].append(t)
 
         self.stimulus = dict(
             notes=sequence,

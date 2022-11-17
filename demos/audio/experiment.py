@@ -124,6 +124,29 @@ example_js_synth_4 = ModularPage(
     time_estimate=5,
 )
 
+host_dir = "https://s3.eu-west-1.amazonaws.com/media.pmcharrison.com/music/westerkerk-carillon-sample-library/mp3"
+
+example_js_synth_5 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "These chords are played using a custom sampler.",
+        [
+            Note(48),
+            Note(50),
+            Note(52),
+        ],
+        timbre=InstrumentTimbre(
+            type="carillon",
+            samples={
+                "C3": f"{host_dir}/36-c3.mp3",
+                "D3": f"{host_dir}/38-d3.mp3",
+                "E3": f"{host_dir}/40-e3.mp3",
+            },
+        ),
+    ),
+    time_estimate=5,
+)
+
 example_preloading = PageMaker(
     lambda assets: InfoPage(
         flask.Markup(
@@ -436,6 +459,7 @@ class Exp(psynet.experiment.Experiment):
             example_js_synth_2,
             example_js_synth_3,
             example_js_synth_4,
+            example_js_synth_5,
             example_audio_page,
             example_audio_page_1,
             example_audio_page_2,
