@@ -237,7 +237,7 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,pan){
   ampEnv.sustain = synth.sustain_amp;
   ampEnv.release = synth.release;
 
-  console.assert(synth.duration - synth.attack - synth.decay - synth.release > 0, "The sum of attack, decay and release phases cannot exceed the full duration of the tone!")
+  console.assert(synth.duration - synth.attack - synth.decay - synth.release >= 0, "The sum of attack, decay and release phases cannot exceed the full duration of the tone!")
 
   for (i = 0; i < specs["max_num_pitches"]; i++){
     freq = freqs[i]
