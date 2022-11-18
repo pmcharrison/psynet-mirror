@@ -254,9 +254,12 @@ class InstrumentTimbre(Timbre):
     samples:
         An optional dictionary of samples to use for synthesis. The keys of this dictionary should be
         note names, for example "F4", "Gb4", and so on. The values should be URLs for the sound files.
+
+    base_url:
+        An optional base_url which is prefixed to the URLs in ``samples``.
     """
 
-    def __init__(self, type: str, samples: Optional[dict] = None):
+    def __init__(self, type: str, samples: Optional[dict] = None, base_url=""):
         super().__init__()
         if samples is None:
             assert type in [
@@ -272,6 +275,7 @@ class InstrumentTimbre(Timbre):
             ]
         self["type"] = type
         self["samples"] = samples
+        self["base_url"] = base_url
         self["num_octave_transpositions"] = 0
 
 

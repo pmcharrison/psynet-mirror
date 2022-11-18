@@ -300,7 +300,7 @@
             await Tone.start();
             for (const i of options.instruments) {
                 if (i.samples) {
-                    INSTRUMENTS[i.type] = {urls: i.samples, baseUrl: ""};
+                    INSTRUMENTS[i.type] = {urls: i.samples, baseUrl: i.base_url};
                 }
                 LOADED_INSTRUMENTS[i.type] = await load_sampler(i.type);
             }
