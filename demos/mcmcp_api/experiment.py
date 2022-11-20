@@ -61,8 +61,7 @@ class CustomNode(MCMCPNode):
             proposal=self.definition["proposal"],
         )
 
-    @classmethod
-    def make_api_call(cls, current_state, proposal):
+    def make_api_call(self, current_state, proposal):
         # In a real experiment you would replace this with a call to a real API. You could write
         # something like this:
 
@@ -74,9 +73,30 @@ class CustomNode(MCMCPNode):
         #         "proposal": proposal,
         #     },
         #     # verify=False,  # Sometimes disabling SSL can be necessary if you have tricky certificate issues
-        # )
-        # return result.json()
+        # ).json()
+        # return result
 
+        # Another use case might have the API generate some media that can be accessed via a URL returned from the
+        # API response. In this case you could consider creating an ExternalAsset for this media,
+        # so that the media is properly logged within the database, and then can be included within data exports.
+
+        # from dallinger import db
+        # from psynet.asset import ExternalAsset
+        #
+        # asset = ExternalAsset(
+        #     result["url"],
+        #     label="stimulus",
+        #     parent=self,
+        # )
+        # db.session.add(asset)
+        # db.session.commit()
+        #
+        # You could then access the asset as follows:
+        # self.assets["stimulus"]
+        # self.assets["stimulus"].url
+
+        # The following code is a basic simulation that just waits a little while then returns some data.
+        # It does not actually talk to any API.
         time.sleep(0.25)
         return {
             "current_state": current_state,
