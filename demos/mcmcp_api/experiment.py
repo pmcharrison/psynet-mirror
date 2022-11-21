@@ -5,6 +5,9 @@
 ##########################################################################################
 
 import random
+import time
+
+import flask
 
 import psynet.experiment
 from psynet.consent import MainConsent
@@ -16,7 +19,11 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-from .test_imports import CustomCls  # noqa -- this is to test custom class import
+
+# This demo illustrates how one might design an MCMCP experiment that involves a call to an external API.
+# The crucial method is Trial.async_on_deploy, which defines a function that is run asynchronously
+# whenever a node is created on the web server. This function can be used to make a call to an API
+# without worrying about blocking web requests.
 
 MAX_AGE = 100
 OCCUPATIONS = ["doctor", "babysitter", "teacher"]
@@ -30,10 +37,11 @@ class CustomTrial(MCMCPTrial):
         occupation = self.context["occupation"]
         age_1 = self.first_stimulus["age"]
         age_2 = self.second_stimulus["age"]
-        prompt = (
-            f"Person A is {age_1} years old. "
+        prompt = flask.Markup(
+            f"<p>Person A is {age_1} years old. "
             f"Person B is {age_2} years old. "
-            f"Which one is the {occupation}?"
+            f"Which one is the {occupation}?</p>"
+            f"<em>API output: {self.node.var.api_response['output']}</em>"
         )
         return ModularPage(
             "mcmcp_trial",
@@ -46,6 +54,56 @@ class CustomTrial(MCMCPTrial):
 
 
 class CustomNode(MCMCPNode):
+    def async_on_deploy(self):
+        super().async_on_deploy()
+        self.var.api_response = self.make_api_call(
+            current_state=self.definition["current_state"],
+            proposal=self.definition["proposal"],
+        )
+
+    def make_api_call(self, current_state, proposal):
+        # In a real experiment you would replace this with a call to a real API. You could write
+        # something like this:
+
+        # import requests
+        # result = requests.post(
+        #     "https://my-api.org",
+        #     json={
+        #         "current_state": current_state,
+        #         "proposal": proposal,
+        #     },
+        #     # verify=False,  # Sometimes disabling SSL can be necessary if you have tricky certificate issues
+        # ).json()
+        # return result
+
+        # Another use case might have the API generate some media that can be accessed via a URL returned from the
+        # API response. In this case you could consider creating an ExternalAsset for this media,
+        # so that the media is properly logged within the database, and then can be included within data exports.
+
+        # from dallinger import db
+        # from psynet.asset import ExternalAsset
+        #
+        # asset = ExternalAsset(
+        #     result["url"],
+        #     label="stimulus",
+        #     parent=self,
+        # )
+        # db.session.add(asset)
+        # db.session.commit()
+        #
+        # You could then access the asset as follows:
+        # self.assets["stimulus"]
+        # self.assets["stimulus"].url
+
+        # The following code is a basic simulation that just waits a little while then returns some data.
+        # It does not actually talk to any API.
+        time.sleep(0.25)
+        return {
+            "current_state": current_state,
+            "proposal": proposal,
+            "output": random.choice(range(1000)),
+        }
+
     def create_initial_seed(self, experiment, participant):
         return {"age": random.randint(0, MAX_AGE)}
 
@@ -66,11 +124,8 @@ def start_nodes(participant):
     ]
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    label = "MCMCP demo experiment"
+    label = "MCMCP demo experiment (inc. API)"
 
     variables = {
         "show_abort_button": True,
@@ -96,6 +151,7 @@ class Exp(psynet.experiment.Experiment):
             fail_trials_on_participant_performance_check=True,
             recruit_mode="n_participants",
             target_n_participants=1,
+            wait_for_networks=True,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
@@ -104,3 +160,12 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
+
+    def test_experiment(self):
+        super().test_experiment()
+        time.sleep(1)  # Wait for any async processes to complete
+        nodes = CustomNode.query.all()
+        assert len(nodes) > 0
+        for n in nodes:
+            assert n.var.has("api_response")
+            assert 0 <= n.var.api_response["output"] < 1000
