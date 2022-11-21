@@ -150,6 +150,7 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     let N = pitches.length;
     let specs = {...stimulus["channels"][note["channel"]]["synth"]};
     let duration = note["duration"];
+    let volume = note["volume"];
 
     for (key in DEFAULT_PARAMS) {
       if (!(key in specs)){
@@ -168,10 +169,10 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     if (specs["type"] in ADDITIVE_TYPES) {
       let synthesizer = new ADDITIVE_TYPES[specs["type"]](specs)
       freqs = util.post_pad(freqs, specs["max_num_pitches"], 0) // 0 frequency signifies no output
-      custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, duration, pan)
+      custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, duration, pan, volume)
     } else if (Object.keys(LOADED_INSTRUMENTS).includes(specs["type"])) {
       let instrument = LOADED_INSTRUMENTS[specs["type"]]
-      instrument.triggerAttackRelease(freqs, duration, time)
+      instrument.triggerAttackRelease(freqs, duration, time, volume)
     } else {
       throw {name : "NotImplementedError", message : "Timbre type not implemented!"};
     }
@@ -228,7 +229,7 @@ util_gaussian = function(x,mu,sigma){
   return 1 / N * Math.exp(-1 * ((x - mu) ** 2) / (2 * sigma ** 2))
 }
 
-custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan){
+custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan,volume){
   var ampEnv = active_nodes["envelope"];
   ampEnv.attack = synth.attack;
   ampEnv.decay = synth.decay;
@@ -260,6 +261,10 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan)
           osc.frequency.value = curr_freq * synth.freqs[k];
         }
         gain.gain.value = sweights[j] * synth.amps[k] ;
+
+        if (volume) {
+            gain.gain.value *= volume;
+        }
 
         let panner = tone_nodes[j][k][2]
         if (pan[i]) {

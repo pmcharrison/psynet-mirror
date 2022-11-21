@@ -318,6 +318,9 @@ class Chord(dict):
         Optional panning parameter, taking values between -1 (full-left) and +1 (full-right).
         If this is provided as a list of numbers then these numbers are applied to the respective
         notes as specified in ``pitches``.
+
+    volume:
+        Optional volume parameter, taking values between 0 and 1. Passed directly to JSSynth.
     """
 
     def __init__(
@@ -327,6 +330,7 @@ class Chord(dict):
         silence: Union[float, str] = "default",
         timbre: str = "default",
         pan: Union[float, List[float]] = 0.0,
+        volume: Optional[float] = None,
     ):
         if isinstance(pan, list):
             assert len(pan) == len(pitches)
@@ -339,6 +343,7 @@ class Chord(dict):
             silence=silence,
             channel=timbre,
             pan=pan,
+            volume=volume,
         )
 
 
