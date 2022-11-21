@@ -313,6 +313,8 @@ class Chord(dict):
           and select from this dictionary by specifying an appropriate key in the ``timbre`` argument
           of the :class:`~psynet.js_synth.Chord` object. This provides a way to move between multiple timbres
           in the same sequence.
+        Applying the same logic, one may also pass a list of strings, where each element provides the timbre
+        for a different note in the chord.
 
     pan:
         Optional panning parameter, taking values between -1 (full-left) and +1 (full-right).
@@ -328,7 +330,7 @@ class Chord(dict):
         pitches: List[float],
         duration: Union[float, str] = "default",
         silence: Union[float, str] = "default",
-        timbre: str = "default",
+        timbre: Union[str, List[str]] = "default",
         pan: Union[float, List[float]] = 0.0,
         volume: Optional[float] = None,
     ):
@@ -336,6 +338,13 @@ class Chord(dict):
             assert len(pan) == len(pitches)
         else:
             pan = [pan for _ in pitches]
+
+        if isinstance(timbre, list):
+            print(timbre)
+            print(pitches)
+            assert len(timbre) == len(pitches)
+        else:
+            timbre = [timbre for _ in pitches]
 
         super().__init__(
             pitches=pitches,
