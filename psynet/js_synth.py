@@ -504,12 +504,12 @@ class JSSynth(Prompt):
 
             return x
 
-        sequence = [consolidate_chord(chord) for chord in sequence]
+        chord_sequence = [consolidate_chord(chord) for chord in sequence]
 
         channels = {key: {"synth": value} for key, value in timbre.items()}
 
         self.total_duration = 0.0
-        for chord in sequence:
+        for chord in chord_sequence:
             self.total_duration += chord["duration"] + chord["silence"]
 
         for t in timbre.values():
@@ -525,8 +525,22 @@ class JSSynth(Prompt):
             if isinstance(t, InstrumentTimbre):
                 options["instruments"].append(t)
 
+        note_sequence = []
+        for chord in chord_sequence:
+            for i, pitch in enumerate(chord["pitches"]):
+                note = chord.copy()
+                note["pitches"] = [pitch]
+
+                if isinstance(note["channel"], list):
+                    note["channel"] = note["channel"][i]
+
+                if isinstance(note["pan"], list):
+                    note["pan"] = [note["pan"][i]]
+
+                note_sequence.append(note)
+
         self.stimulus = dict(
-            notes=sequence,
+            notes=note_sequence,
             channels=channels,
         )
         self.options = options
