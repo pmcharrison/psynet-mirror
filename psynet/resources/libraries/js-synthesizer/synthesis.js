@@ -130,10 +130,7 @@ play_stimulus = function (stimulus) {
 
   for (i = 0; i < n; i ++) {
     note = note_list[i];
-    if (i < n - 1) {
-      onsets[i + 1] = onsets[i] + note["duration"] + note["silence"]; 
-    }
-    note_events = note_events.concat([{time: onsets[i], note: note_list[i]}])
+    note_events = note_events.concat([{time: note.onset, note: note_list[i]}])
   }
 
   new Tone.Part(((time, value) => {

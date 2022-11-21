@@ -526,10 +526,12 @@ class JSSynth(Prompt):
                 options["instruments"].append(t)
 
         note_sequence = []
+        onset = 0
         for chord in chord_sequence:
             for i, pitch in enumerate(chord["pitches"]):
                 note = chord.copy()
                 note["pitches"] = [pitch]
+                note["onset"] = onset
 
                 if isinstance(note["channel"], list):
                     note["channel"] = note["channel"][i]
@@ -538,6 +540,8 @@ class JSSynth(Prompt):
                     note["pan"] = [note["pan"][i]]
 
                 note_sequence.append(note)
+
+            onset += chord["duration"] + chord["silence"]
 
         self.stimulus = dict(
             notes=note_sequence,
