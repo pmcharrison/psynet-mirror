@@ -492,10 +492,15 @@ class JSSynth(Prompt):
                 x["duration"] = default_duration
             if x["silence"] == "default":
                 x["silence"] = default_silence
-            if not x["channel"] in timbre:
-                raise ValueError(
-                    f"Selected timbre ({x['channel']}) was not found in timbre list ({timbre})."
-                )
+
+            requested_channels = (
+                x["channel"] if isinstance(x["channel"], list) else [x["channel"]]
+            )
+            for requested_channel in requested_channels:
+                if requested_channel not in timbre:
+                    raise ValueError(
+                        f"Selected timbre ({requested_channel}) was not found in timbre list ({timbre})."
+                    )
 
             return x
 
