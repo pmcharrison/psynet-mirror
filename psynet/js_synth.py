@@ -332,7 +332,7 @@ class Chord(dict):
         silence: Union[float, str] = "default",
         timbre: Union[str, List[str]] = "default",
         pan: Union[float, List[float]] = 0.0,
-        volume: Optional[float] = None,
+        volume: float = 1.0,
     ):
         if isinstance(pan, list):
             assert len(pan) == len(pitches)
