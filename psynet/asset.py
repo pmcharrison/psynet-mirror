@@ -1279,31 +1279,24 @@ class ExperimentAsset(ManagedAsset):
     """
 
     def generate_host_path(self, deployment_id: str):
-        obfuscated = self.obfuscate_key(self.key)
-        return os.path.join("experiments", deployment_id, obfuscated)
+        path = self.obfuscate_key(self.key)
+        if self.extension:
+            path += self.extension
+        return os.path.join("experiments", deployment_id, path)
 
     def obfuscate_key(self, key):
         random = self.generate_uuid()
 
-        if self.is_folder:
-            base = key
-            extension = None
-        else:
-            base, extension = os.path.splitext(key)
-
         if self.obfuscate == 0:
             return key
         elif self.obfuscate == 1:
-            base += "__" + random
+            key += "__" + random
         elif self.obfuscate == 2:
-            base = "private/" + random
+            key = "private/" + random
         else:
             raise ValueError(f"Invalid value of obfuscate: {self.obfuscate}")
 
-        if self.is_folder:
-            return base
-        else:
-            return base + extension
+        return key
 
 
 class CachedAsset(ManagedAsset):
@@ -2556,16 +2549,19 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            try:
-                from .utils import get_from_config
+            if os.getenv("PSYNET_IN_DOCKER"):
+                return "/psynet-debug-storage"
+            else:
+                try:
+                    from .utils import get_from_config
 
-                return os.path.expanduser(get_from_config("debug_storage_root"))
-            except KeyError:
-                raise KeyError(
-                    "No root location was provided to DebugStorage and no value for debug_storage_root "
-                    "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
-                    "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
-                )
+                    return os.path.expanduser(get_from_config("debug_storage_root"))
+                except KeyError:
+                    raise KeyError(
+                        "No root location was provided to DebugStorage and no value for debug_storage_root "
+                        "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
+                        "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
+                    )
 
     def _ensure_root_dir_exists(self):
         from pathlib import Path
