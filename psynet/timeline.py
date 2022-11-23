@@ -11,6 +11,8 @@ from statistics import median
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import flask
+from flask.globals import current_app
+from flask.templating import _render
 import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
@@ -1087,7 +1089,13 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
         }
-        return flask.render_template_string(self.template_str, **all_template_arg)
+        app = current_app._get_current_object()  # type: ignore[attr-defined]
+        gettext, pgettext, npgettext = participant.get_translator()
+        gettext_functions = [gettext, pgettext, npgettext]
+        gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
+        app.jinja_env.globals.update(**gettext_abbr)
+        template = app.jinja_env.from_string(self.template_str)
+        return _render(app, template, all_template_arg)
 
     @property
     def define_media_requests(self):

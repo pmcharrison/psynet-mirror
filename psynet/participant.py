@@ -1,4 +1,7 @@
 # pylint: disable=attribute-defined-outside-init
+import gettext
+from os.path import abspath, dirname
+from os.path import join as join_path
 
 import json
 from smtplib import SMTPAuthenticationError
@@ -16,7 +19,7 @@ from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
 from .process import AsyncProcess
-from .utils import get_logger, organize_by_key
+from .utils import get_logger, organize_by_key, get_language
 
 logger = get_logger()
 
@@ -513,6 +516,19 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         combined = list(set(original + new))
         self.failure_tags = combined
         return self
+
+    def get_language(self):
+        if self.var.has('locale'):
+            return self.var.locale
+        else:
+            locale = get_language()
+            self.var.set('locale', locale)
+            logger.warn(f'Participant {self.id} language was not set, setting to default language of the experiment: {locale}')
+            return locale
+
+    def get_translator(self, module='psynet', localedir=join_path(abspath(dirname(__file__)), 'locales')):
+        translator = gettext.translation(module, localedir, [self.get_language()])
+        return translator.gettext, translator.pgettext, translator.npgettext
 
     def abort_info(self):
         """

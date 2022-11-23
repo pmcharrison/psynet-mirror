@@ -39,7 +39,8 @@ setuptools.setup(
         "tqdm",
         "yaspin",
         "praat-parselmouth",
-        "joblib"  # Library used for internal parallelization of for loops
+        "joblib",  # Library used for internal parallelization of for loops
+        "gettext"  # Library used for translating strings
     ],
     extras_require={
         "dev": [
