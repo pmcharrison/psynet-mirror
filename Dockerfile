@@ -50,3 +50,5 @@ RUN pip install -e ".[data]"
 WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
 COPY ./README.md README.md
+
+ENV PSYNET_IN_DOCKER=1
