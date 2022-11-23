@@ -684,7 +684,7 @@ class Trial(SQLMixinDallinger, Info):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
-        if self.awaiting_asset_deposit or self.awaiting_async_process:
+        if self.failed or self.awaiting_asset_deposit or self.awaiting_async_process:
             pass
         else:
             self.finalized = True
