@@ -1279,31 +1279,24 @@ class ExperimentAsset(ManagedAsset):
     """
 
     def generate_host_path(self, deployment_id: str):
-        obfuscated = self.obfuscate_key(self.key)
-        return os.path.join("experiments", deployment_id, obfuscated)
+        path = self.obfuscate_key(self.key)
+        if self.extension:
+            path += self.extension
+        return os.path.join("experiments", deployment_id, path)
 
     def obfuscate_key(self, key):
         random = self.generate_uuid()
 
-        if self.is_folder:
-            base = key
-            extension = None
-        else:
-            base, extension = os.path.splitext(key)
-
         if self.obfuscate == 0:
             return key
         elif self.obfuscate == 1:
-            base += "__" + random
+            key += "__" + random
         elif self.obfuscate == 2:
-            base = "private/" + random
+            key = "private/" + random
         else:
             raise ValueError(f"Invalid value of obfuscate: {self.obfuscate}")
 
-        if self.is_folder:
-            return base
-        else:
-            return base + extension
+        return key
 
 
 class CachedAsset(ManagedAsset):
