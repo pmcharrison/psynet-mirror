@@ -517,17 +517,17 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
-    def get_language(self):
+    def get_locale(self):
         if self.var.has('locale'):
             return self.var.locale
         else:
             locale = get_language()
             self.var.set('locale', locale)
-            logger.warn(f'Participant {self.id} language was not set, setting to default language of the experiment: {locale}')
+            logger.warn(f'Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}')
             return locale
 
     def get_translator(self, module='psynet', localedir=join_path(abspath(dirname(__file__)), 'locales')):
-        translator = gettext.translation(module, localedir, [self.get_language()])
+        translator = gettext.translation(module, localedir, [self.get_locale()])
         return translator.gettext, translator.pgettext, translator.npgettext
 
     def abort_info(self):
