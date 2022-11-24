@@ -2550,21 +2550,44 @@ class VideoSliderControl(Control):
 class SurveyJSControl(Control):
     """
     This control exposes the open-source SurveyJS library.
+    You can use this library to develop sophisticated questionnaires which
+    many different question types.
+
+    When a SurveyJSControl is included in a PsyNet timeline it produces a single
+    SurveyJS survey. This survey can have multiple questions and indeed multiple pages.
+    Responses to these questions are compiled together as a dictionary and saved
+    as the participant's answer, similar to other controls.
+
+    The recommended way to design a SurveyJS survey is to use their free Survey Creator tool.
+    This can be accessed from their website: https://surveyjs.io/create-free-survey.
+    You design your survey using the interactive editor.
+    Once you are done, click the "JSON Editor" tab. Copy and paste the provided JSON
+    into the ``design`` argument of your ``SurveyJSControl``. You may need to update a few details
+    to match Python syntax, for example replacing ``true`` with ``True``; your syntax highlighter
+    should flag up points that need updating. That's it!
+
     See https://surveyjs.io/ for more details.
+
+    See the survey_js demo for example usage.
 
     Parameters
     ----------
 
+    design :
+        A JSON-style specification for the survey.
+
+    bot_response :
+        Used for bot simulations; see demos for example usage.
     """
 
     def __init__(
         self,
-        json,
+        design,
         bot_response=NoArgumentProvided,
     ):
         super().__init__(bot_response)
 
-        self.json = json
+        self.design = design
 
     macro = "survey_js"
 

@@ -664,8 +664,9 @@
                 });
 
                 psynet.submit = {
-                    enable: () => $(".submit").removeAttr("disabled"),
-                    disable: () => $(".submit").attr("disabled", "disabled")
+                    // .sd-navigation__complete-btn is the complete button in SurveyJS
+                    enable: () => $(".submit, .sd-navigation__complete-btn").removeAttr("disabled"),
+                    disable: () => $(".submit, .sd-navigation__complete-btn").attr("disabled", "disabled")
                 };
 
                 psynet.response = {
