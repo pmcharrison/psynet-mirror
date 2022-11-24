@@ -40,7 +40,6 @@ before_script:
 tests:
   parallel: 10
   stage: test
-  allow_failure: true
   script:
     - docker run
       --add-host=postgres:$POSTGRES_IP
