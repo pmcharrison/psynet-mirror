@@ -211,10 +211,13 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria = []
 
         if session:
-            if request and request.path == "/launch":
+            if self.db_initialized() and request and request.path == "/launch":
                 self.on_launch()
             self.load()
         self.register_pre_deployment_routines()
+
+    def db_initialized(self):
+        return sqlalchemy.inspect(db.engine).has_table("experiment")
 
     def on_launch(self):
         if not self.setup_complete:
