@@ -1458,3 +1458,52 @@
 {% macro graphic(config) %}
     {{ graphic_(config) }}
 {% endmacro %}
+
+
+{% macro survey_js(config) %}
+    <style>
+    </style>
+
+    <div id="surveyContainer"></div>
+
+    <link href="{{ url_for('static', filename='scripts/survey-jquery/defaultV2.min.css') }}" type="text/css" rel="stylesheet">
+
+    <script>
+    function initSurvey() {
+       Survey
+        .StylesManager
+        .applyTheme("defaultV2");
+
+        const surveyJson = {
+            elements: [{
+                name: "FirstName",
+                title: "Enter your first name:",
+                type: "text"
+            }, {
+                name: "LastName",
+                title: "Enter your last name:",
+                type: "text"
+            }]
+        };
+
+        const survey = new Survey.Model(surveyJson);
+        survey.focusFirstQuestionAutomatic = false;
+
+        function submitSurveyResults (sender) {
+            const results = JSON.stringify(sender.data);
+            psynet.nextPage(results);
+        }
+
+        survey.onComplete.add(submitSurveyResults);
+
+        $(function() {
+            $("#surveyContainer").Survey({ model: survey });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", initSurvey);
+
+    </script>
+
+    {{ null(config) }}
+{% endmacro %}

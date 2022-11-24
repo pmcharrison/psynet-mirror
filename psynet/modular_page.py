@@ -2545,3 +2545,28 @@ class VideoSliderControl(Control):
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return random.uniform(0, 1)
+
+
+class SurveyJSControl(Control):
+    """
+    This control exposes the open-source SurveyJS library.
+    See https://surveyjs.io/ for more details.
+
+    Parameters
+    ----------
+
+    """
+
+    def __init__(
+        self,
+        json,
+        bot_response=NoArgumentProvided,
+    ):
+        super().__init__(bot_response)
+
+        self.json = json
+
+    macro = "survey_js"
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        raise NotImplementedError
