@@ -217,7 +217,21 @@ class Experiment(dallinger.experiment.Experiment):
         self.register_pre_deployment_routines()
 
     def db_initialized(self):
-        return sqlalchemy.inspect(db.engine).has_table("experiment")
+        tables = [
+            "experiment",
+            "info",
+            "network",
+            "node",
+            "notification",
+            "participant",
+            "question",
+            "recruitment",
+            "response",
+            "transformation",
+            "transmission",
+            "vector",
+        ]
+        return all(sqlalchemy.inspect(db.engine).has_table(table) for table in tables)
 
     def on_launch(self):
         if not self.setup_complete:
