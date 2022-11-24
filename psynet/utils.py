@@ -10,11 +10,18 @@ import os
 import re
 import sys
 import time
+from babel.support import Translations
+from flask import url_for
+from flask.globals import current_app, request
+from flask.templating import _render, Environment
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
 from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
+import gettext
+from os.path import abspath, dirname
+from os.path import join as join_path
 
 import jsonpickle
 import pexpect
@@ -491,6 +498,65 @@ def get_language():
         config.load()
     return config.get("language")
 
+
+
+def _render_with_translations(locale, template_name=None, template_string=None, all_template_arg=None):
+    """Render a template with translations applied."""
+
+    if all_template_arg is None:
+        all_template_arg = {}
+    assert [template_name, template_string].count(None) == 1, \
+        "Only one of template_name or template_string should be provided."
+
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+    gettext, pgettext, npgettext = get_translator(locale)
+    gettext_functions = [gettext, pgettext, npgettext, url_for]
+    gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
+    translation = Translations.load('translations', [locale])
+
+
+    environment = Environment(loader=app.jinja_env.loader, extensions=['jinja2.ext.i18n'], app=app)
+    environment.install_gettext_translations(translation)
+
+
+    environment.globals.update(**gettext_abbr)
+
+    if template_name:
+        template = environment.get_template(template_name)
+    else:
+        template = environment.from_string(template_string)
+    return _render(app, template, all_template_arg)
+
+def render_template_with_translations(template_name, locale=None,  **kwargs):
+    return _render_with_translations(template_name=template_name, locale=locale, all_template_arg=kwargs)
+
+def render_string_with_translations(template_string, locale=None,  **kwargs):
+    return _render_with_translations(template_string=template_string, locale=locale, all_template_arg=kwargs)
+
+def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dirname(__file__)), 'locales')):
+    if locale is None:
+        GET = request.args.to_dict()
+        possible_keys = ['assignmentId', 'workerId', 'participantId']
+        try:
+            from psynet.participant import Participant
+            if any([key in GET for key in possible_keys]):
+                if 'assignmentId' in GET:
+                    participant = Participant.query.filter_by(assignment_id=GET['assignment_id']).one()
+                elif 'workerId' in GET:
+                    participant = Participant.query.filter_by(worker_id=int(GET['worker_id'])).one()
+                elif 'participantId' in GET:
+                    participant = Participant.query.filter_by(id=GET['participant_id']).one()
+                locale = participant.var.locale
+        except:
+            pass
+    if locale is None:
+        locale = get_language()
+    try:
+        translator = gettext.translation(module, localedir, [locale])
+    except FileNotFoundError:
+        logger.warning(f'No translation file found for locale {locale}.')
+        translator = gettext.NullTranslations()
+    return translator.gettext, translator.pgettext, translator.npgettext
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
     import numpy as np

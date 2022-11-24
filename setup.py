@@ -40,6 +40,7 @@ setuptools.setup(
         "yaspin",
         "praat-parselmouth",
         "joblib",  # Library used for internal parallelization of for loops
+        "Flask-Babel",
     ],
     extras_require={
         "dev": [

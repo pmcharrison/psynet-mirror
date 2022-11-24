@@ -11,8 +11,6 @@ from statistics import median
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import flask
-from flask.globals import current_app
-from flask.templating import _render
 import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
@@ -24,6 +22,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
+from .utils import render_string_with_translations
 from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
@@ -1059,6 +1058,7 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
+        locale = participant.get_locale()
         all_template_arg = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
@@ -1088,14 +1088,11 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
+            "supported_locales": experiment.var.supported_locales,
+            "current_locale": locale,
+            "allow_switching_locale": experiment.var.allow_switching_locale,
         }
-        app = current_app._get_current_object()  # type: ignore[attr-defined]
-        gettext, pgettext, npgettext = participant.get_translator()
-        gettext_functions = [gettext, pgettext, npgettext]
-        gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
-        app.jinja_env.globals.update(**gettext_abbr)
-        template = app.jinja_env.from_string(self.template_str)
-        return _render(app, template, all_template_arg)
+        return render_string_with_translations(template_string=self.template_str, locale=locale, **all_template_arg)
 
     @property
     def define_media_requests(self):
@@ -1613,7 +1610,6 @@ class CreditEstimate:
 
             else:
                 pos += 1
-
 
 class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):
