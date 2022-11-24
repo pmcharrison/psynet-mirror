@@ -38,7 +38,7 @@ before_script:
   - service postgresql start
   - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
   - chown postgres:postgres postgres_setup.sql
-  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition-lab/PsyNet/postgres_setup.sql"'
+  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition/PsyNet/postgres_setup.sql"'
 # Install Dallinger
   - git clone --branch v9.2.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
