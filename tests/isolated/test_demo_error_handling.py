@@ -128,10 +128,10 @@ class TestExp(object):
                         timeout=5,
                     )
                     debug_server_process.expect_exact(
-                        "Traceback (most recent call last):", timeout=5
+                        "Traceback (most recent call last):", timeout=20
                     )
                     debug_server_process.expect_exact(
-                        "AssertionError: Error code 48473", timeout=5
+                        "AssertionError: Error code 48473", timeout=20
                     )
 
                 time.sleep(0.5)
@@ -152,13 +152,13 @@ class TestExp(object):
                 with log_pexpect_errors(debug_server_process):
                     debug_server_process.expect_exact(
                         f"'participant_id': 4, 'worker_id': '{participant.worker_id}', 'process_id': ",
-                        timeout=5,
+                        timeout=20,
                     )
                     debug_server_process.expect_exact(
-                        "Traceback (most recent call last):", timeout=5
+                        "Traceback (most recent call last):", timeout=20
                     )
                     debug_server_process.expect_exact(
-                        "AssertionError: Error code 73722", timeout=5
+                        "AssertionError: Error code 73722", timeout=20
                     )
 
                 time.sleep(0.5)
