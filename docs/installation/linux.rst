@@ -58,7 +58,7 @@ Install heroku client
 
 .. code-block:: bash
 
-   sudo snap install heroku --classic
+   curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
 Install Python virtualenv
 ~~~~~~~~~~~~~~~~~~~~~~~~~
