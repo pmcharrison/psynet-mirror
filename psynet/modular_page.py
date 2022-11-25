@@ -2593,3 +2593,6 @@ class SurveyJSControl(Control):
 
     def get_bot_response(self, experiment, bot, page, prompt):
         raise NotImplementedError
+
+    def format_answer(self, raw_answer, **kwargs):
+        return json.loads(raw_answer)
