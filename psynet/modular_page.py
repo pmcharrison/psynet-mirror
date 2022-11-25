@@ -2596,3 +2596,48 @@ class SurveyJSControl(Control):
 
     def format_answer(self, raw_answer, **kwargs):
         return json.loads(raw_answer)
+
+
+class MusicNotationPrompt(Prompt):
+    """
+    Displays music notation using the abcjs library by Paul Rosen and Gregory Dyke.
+    See https://www.abcjs.net/ for information about abcjs.
+    See https://abcnotation.com/ for information about ABC notation.
+
+    Parameters
+    ----------
+
+    content :
+        Content to display, in ABC notation. This will be rendered to an image.
+        See https://www.abcjs.net/abcjs-editor.html for an interactive editor.
+        See https://abcnotation.com/wiki/abc:standard:v2.1 for a detailed definition of ABC notation.
+
+    text :
+        Text to display above the score.
+
+    text_align :
+        Alignment instructions for this text.
+    """
+
+    def __init__(
+        self,
+        content: str,
+        text: Union[None, str, Markup] = None,
+        text_align: str = "left",
+    ):
+        super().__init__(text=text, text_align=text_align)
+        self.content = content
+
+    macro = "abc_notation"
+
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["promptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    triggering_event="trialStart",
+                    delay=0,
+                )
+            ]
+        )

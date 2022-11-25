@@ -972,6 +972,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/static/scripts/survey-jquery",
             ),
             (
+                resource_filename("psynet", "resources/libraries/abc-js"),
+                "/static/scripts/abc-js",
+            ),
+            (
                 resource_filename("psynet", "templates/mturk_error.html"),
                 "templates/mturk_error.html",
             ),
