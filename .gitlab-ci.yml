@@ -25,6 +25,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
+  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:v10-draft
   DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$DOCKER_TAG
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay
@@ -34,8 +35,8 @@ before_script:
   - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 }')
   - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 }')
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - docker pull $DOCKER_IMAGE || true
-  - docker build --cache-from $DOCKER_IMAGE --tag $DOCKER_IMAGE .
+  - docker pull $DOCKER_IMAGE_CACHE_FROM || true
+  - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_IMAGE .
 
 tests:
   parallel: 10
