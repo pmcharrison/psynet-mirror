@@ -93,6 +93,13 @@ class Exp(psynet.experiment.Experiment):
                 },
             ),
             time_estimate=5,
+            bot_response=lambda: {
+                "name": "Beatrix",
+                "gender": "Female",
+                "animal_preferences": ["goldfish", "dogs", "cats"],
+                "weather": "5",
+                "final_question": "Goodbye",
+            },
         ),
         DebugResponsePage(),
         SuccessfulEndPage(),
