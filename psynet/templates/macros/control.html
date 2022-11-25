@@ -1485,7 +1485,10 @@
             psynet.nextPage(results);
         }
 
-        survey.onAfterRenderPage.add(() => $(".sd-navigation__complete-btn").addClass("submit"));
+        survey.onAfterRenderPage.add(() => {
+            $(".sd-navigation__complete-btn").addClass("submit");
+            $(".sd-navigation__complete-btn").attr("disabled", true);
+        });
         survey.onComplete.add(submitSurveyResults);
 
         $(function() {
