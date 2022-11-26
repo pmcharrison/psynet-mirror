@@ -123,16 +123,18 @@ class Gender(ModularPage):
     def __init__(
         self,
         label="gender",
-        prompt="What is your gender?",
+        prompt="How do you identify yourself?",
     ):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
 
         control = RadioButtonControl(
-            ["male", "female", "other", "prefer_not_to_say"],
-            ["Male", "Female", "Other", "Prefer not to say"],
+            ["female", "male", "non_binary", "not_specified", "prefer_not_to_say"],
+            ["Female", "Male", "Non-binary", "Not specified", "I prefer not to answer"],
             name="gender",
+            show_free_text_option=True,
+            placeholder_text_free_text="Specify yourself",
         )
         super().__init__(
             self.label, self.prompt, control=control, time_estimate=self.time_estimate
