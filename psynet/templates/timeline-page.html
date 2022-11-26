@@ -224,10 +224,10 @@
                             </div>
                         {% endif %}
 
-                        {% if allow_switching_locale and supported_locales|length > 1 %}
+                        {% if allow_switching_locale and supported_language_dict|length > 1 %}
                         <div>
                             <select id="iso-language" class="form-control">
-                                {% for iso, language in supported_locales.items() %}
+                                {% for iso, language in supported_language_dict.items() %}
                                     {% if iso == current_locale %}
                                         <option value="{{ iso }}" selected>{{ language }}️</option>
                                     {% else %}
