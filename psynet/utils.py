@@ -518,7 +518,6 @@ def _render_with_translations(locale, template_name=None, template_string=None, 
     environment = Environment(loader=app.jinja_env.loader, extensions=['jinja2.ext.i18n'], app=app)
     environment.install_gettext_translations(translation)
 
-
     environment.globals.update(**gettext_abbr)
 
     if template_name:
@@ -1052,12 +1051,9 @@ def error_page(
     request_data="",
 ):
     """Render HTML for error page."""
-    from flask import make_response, render_template, request
+    from flask import make_response, request
 
     config = get_config()
-
-    if error_text is None:
-        error_text = "There has been an error and so you are unable to continue, sorry!"
 
     if participant is not None:
         hit_id = participant.hit_id
@@ -1076,8 +1072,13 @@ def error_page(
         except (ValueError, TypeError):
             participant_id = None
 
+    # TODO get participant and get translator
+
+    if error_text is None:
+        error_text = "There has been an error and so you are unable to continue, sorry!"
+
     return make_response(
-        render_template(
+        render_template_with_translations(
             "mturk_error.html",
             error_text=error_text,
             compensate=compensate,
