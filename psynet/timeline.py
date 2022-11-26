@@ -22,7 +22,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .utils import render_string_with_translations
+from .utils import render_string_with_translations, get_language_dict
 from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
