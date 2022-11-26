@@ -11,7 +11,7 @@ setuptools.setup(
     description="Utility functions for Dallinger experiments",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/computational-audition-lab/psynet",
+    url="https://gitlab.com/PsyNetDev/psynet",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

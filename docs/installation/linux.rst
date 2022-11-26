@@ -132,7 +132,7 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
 .. code-block:: bash
 
    cd ~
-   git clone git@gitlab.com:computational-audition-lab/psynet
+   git clone git@gitlab.com:PsyNetDev/psynet
    cd psynet
    pip install --editable .
 

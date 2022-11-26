@@ -144,7 +144,7 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
 .. code-block:: bash
 
    cd ~
-   git clone git@gitlab.com:computational-audition-lab/psynet
+   git clone git@gitlab.com:PsyNetDev/psynet
    cd psynet
    pip3 install --editable .
 
@@ -161,7 +161,7 @@ In order to have PsyNet work with Big Sur 11.3 macOS with the M1 chip, we advise
 .. code-block:: bash
 
    cd ~
-   git clone git@gitlab.com:computational-audition-lab/psynet
+   git clone git@gitlab.com:PsyNetDev/psynet
    cd psynet
    conda create --name psynet python=3.10 # creates a virtual environment called psynet, respond yes to prompt
    conda activate psynet

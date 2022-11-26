@@ -180,7 +180,7 @@ texinfo_documents = [
 # for info on this specification.
 html_context = {
     "display_gitlab": True, # Integrate Gitlab
-    "gitlab_user": "computational-audition-lab", # Username
+    "gitlab_user": "PsyNetDev", # Username
     "gitlab_repo": "psynet", # Repo name
     "gitlab_version": "master", # Branch to edit
     "conf_py_path": "/docs/", # Path in the checkout to the docs root
