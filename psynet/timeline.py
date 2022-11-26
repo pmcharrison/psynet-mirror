@@ -37,6 +37,7 @@ from .utils import (
     serialise,
     time_logger,
     unserialise_datetime,
+    languages
 )
 
 logger = get_logger()
@@ -1059,6 +1060,11 @@ class Page(Elt):
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
         locale = participant.get_locale()
+        language_dict = get_language_dict(locale)
+
+        # TODO precompute once
+        # supported_language_dict = {language_iso: get_language_dict(locale)[language_iso] for language_iso in experiment.var.supported_locales}
+
         all_template_arg = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
@@ -1088,7 +1094,8 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
-            "supported_locales": experiment.var.supported_locales,
+            "supported_language_dict": {iso: language_dict[iso] for iso in experiment.var.supported_locales},
+            # "supported_language_dict": supported_language_dict,
             "current_locale": locale,
             "allow_switching_locale": experiment.var.allow_switching_locale,
         }

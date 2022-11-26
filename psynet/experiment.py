@@ -444,7 +444,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
-            "supported_locales": {},
+            "supported_locales": [],
             "current_locale": get_language(),
             "allow_switching_locale": True,
         }
