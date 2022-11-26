@@ -1,0 +1,781 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:47+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: KN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0cb8\u0cb0\u0cbf\u0ca6\u0cc2\u0c97\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0cb8\u0cbe\u0ca7\u0ccd\u0caf\u0cb5\u0cbe\u0c97\u0cc1\u0cb5\u0c82\u0ca4\u0cc6
+#. \u0cac\u0ccb\u0ca8\u0cb8\u0ccd\u200c\u0ca8
+#. <strong>\u0c95\u0ca8\u0cbf\u0cb7\u0ccd\u0ca0
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>
+#. \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0c97\u0ccd\u0cb0\u0cb9\u0cbf\u0cb8\u0cac\u0cc7\u0c95\u0cc1."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"ನೀವು ಸರಿದೂಗಿಸಲು ಸಾಧ್ಯವಾಗುವಂತೆ ಬೋನಸ್‌ನ <strong>ಕನಿಷ್ಠ "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ಅನ್ನು ಸಂಗ್ರಹಿಸಬೇಕು."
+
+#. {"msgid": ["\u0cb8\u0c82\u0c9a\u0cbf\u0ca4 \u0cac\u0ccb\u0ca8\u0cb8\u0ccd",
+#. "\u0cb8\u0c82\u0c97\u0ccd\u0cb0\u0cb9\u0cb5\u0cbe\u0ca6
+#. \u0cac\u0ccb\u0ca8\u0cb8\u0ccd"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "ಸಂಚಿತ ಬೋನಸ್"
+
+#. {"msgid": ["\u0cb5\u0cbf\u0c82\u0ca1\u0ccb\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cae\u0cc1\u0c9a\u0ccd\u0c9a\u0cbf", "\u0cb5\u0cbf\u0c82\u0ca1\u0ccb
+#. \u0cae\u0cc1\u0c9a\u0ccd\u0c9a\u0cbf"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "ವಿಂಡೋವನ್ನು ಮುಚ್ಚಿ"
+
+#. {"msgid":
+#. ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0cbf\u0cb2\u0ccd\u0cb2\u0cbf\u0cb8\u0cbf",
+#. "\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cbf"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "ಪ್ರಯೋಗವನ್ನು ನಿಲ್ಲಿಸಿ"
+
+#. {"msgid": ["\u0cb8\u0c82\u0caa\u0cc2\u0cb0\u0ccd\u0ca3
+#. \u0cb8\u0cae\u0cc0\u0c95\u0ccd\u0cb7\u0cc6",
+#. "\u0cb8\u0c82\u0caa\u0cc2\u0cb0\u0ccd\u0ca3
+#. \u0cb8\u0cb0\u0ccd\u0cb5\u0cc6"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "ಸಂಪೂರ್ಣ ಸಮೀಕ್ಷೆ"
+
+#. {"msgid": ["<strong>$%(BASE_PAYMENT)s</strong> \u0ca8 \u0cae\u0cc2\u0cb2
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0c97\u0cc6
+#. \u0cb9\u0cc6\u0c9a\u0ccd\u0c9a\u0cc1\u0cb5\u0cb0\u0cbf\u0caf\u0cbe\u0c97\u0cbf
+#. \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0c95\u0cb3\u0cc6\u0ca6
+#. \u0cb8\u0cae\u0caf\u0c95\u0ccd\u0c95\u0cbe\u0c97\u0cbf
+#. \u0ca8\u0cc0\u0cb5\u0cc1 <strong>$%(BONUS)s</strong> \u0c97\u0cb3
+#. \u0cac\u0ccb\u0ca8\u0cb8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0cb5\u0cc0\u0c95\u0cb0\u0cbf\u0cb8\u0cc1\u0ca4\u0ccd\u0ca4\u0cc0\u0cb0\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"<strong>$%(BASE_PAYMENT)s</strong> ನ ಮೂಲ ಪಾವತಿಗೆ ಹೆಚ್ಚುವರಿಯಾಗಿ ನೀವು "
+"ಪ್ರಯೋಗದಲ್ಲಿ ಕಳೆದ ಸಮಯಕ್ಕಾಗಿ ನೀವು <strong>$%(BONUS)s</strong> ಗಳ ಬೋನಸ್ ಅನ್ನು "
+"ಸ್ವೀಕರಿಸುತ್ತೀರಿ."
+
+#. {"msgid": ["<strong>$%(PERFORMANCE_BONUS)s</strong> \u0ca8
+#. \u0c95\u0cbe\u0cb0\u0ccd\u0caf\u0c95\u0ccd\u0cb7\u0cae\u0ca4\u0cc6\u0caf
+#. \u0cac\u0ccb\u0ca8\u0cb8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1 \u0cb8\u0cb9
+#. \u0ca8\u0cbf\u0cae\u0c97\u0cc6
+#. \u0ca8\u0cc0\u0ca1\u0cb2\u0cbe\u0c97\u0cbf\u0ca6\u0cc6!",
+#. "\u0ca8\u0cc0\u0cb5\u0cc1 <strong>$%(PERFORMANCE_BONUS)s</strong>
+#. \u0c95\u0cbe\u0cb0\u0ccd\u0caf\u0c95\u0ccd\u0cb7\u0cae\u0ca4\u0cc6\u0caf
+#. \u0cac\u0ccb\u0ca8\u0cb8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1 \u0cb8\u0cb9
+#. \u0caa\u0ca1\u0cc6\u0ca6\u0cbf\u0ca6\u0ccd\u0ca6\u0cc0\u0cb0\u0cbf!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"<strong>$%(PERFORMANCE_BONUS)s</strong> ನ ಕಾರ್ಯಕ್ಷಮತೆಯ ಬೋನಸ್ ಅನ್ನು ಸಹ ನಿಮಗೆ "
+"ನೀಡಲಾಗಿದೆ!"
+
+#. {"msgid": ["HIT \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0cc2\u0cb0\u0ccd\u0ca3\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1
+#. \"\u0cae\u0cc1\u0c95\u0ccd\u0ca4\u0cbe\u0caf\"
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd \u0cae\u0cbe\u0ca1\u0cbf.",
+#. "\u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1 HIT
+#. \u0caa\u0cc2\u0cb0\u0ccd\u0ca3\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cb2\u0cc1
+#. \"\u0cae\u0cc1\u0c95\u0ccd\u0ca4\u0cbe\u0caf\"
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd \u0cae\u0cbe\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "HIT ಅನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ದಯವಿಟ್ಟು \"ಮುಕ್ತಾಯ\" ಕ್ಲಿಕ್ ಮಾಡಿ."
+
+#. {"msgid": ["\u0cae\u0cc1\u0c97\u0cbf\u0cb8\u0cc1",
+#. "\u0cae\u0cc1\u0c95\u0ccd\u0ca4\u0cbe\u0caf"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "ಮುಗಿಸು"
+
+#. {"msgid":
+#. ["\u0cad\u0cbe\u0c97\u0cb5\u0cb9\u0cbf\u0cb8\u0cbf\u0ca6\u0ccd\u0ca6\u0c95\u0ccd\u0c95\u0cbe\u0c97\u0cbf
+#. \u0ca7\u0ca8\u0ccd\u0caf\u0cb5\u0cbe\u0ca6\u0c97\u0cb3\u0cc1.",
+#. "\u0caa\u0cbe\u0cb2\u0ccd\u0c97\u0cca\u0c82\u0ca1\u0cbf\u0ca6\u0ccd\u0ca6\u0c95\u0ccd\u0c95\u0cbe\u0c97\u0cbf
+#. \u0ca7\u0ca8\u0ccd\u0caf\u0cb5\u0cbe\u0ca6\u0c97\u0cb3\u0cc1."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "ಭಾಗವಹಿಸಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು."
+
+#. {"msgid": ["\u0cae\u0cc1\u0c82\u0ca6\u0cc6",
+#. "\u0cae\u0cc1\u0c82\u0ca6\u0cbf\u0ca8\u0ca6\u0cc1"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "ಮುಂದೆ"
+
+#. {"msgid": ["\u0c87\u0ca6\u0cc1
+#. \u0cb9\u0cbe\u0c97\u0cb2\u0ccd\u0cb2\u0ca6\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cc6,
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c89\u0cb2\u0ccd\u0cb2\u0cc7\u0c96\u0cbf\u0cb8\u0cbf %(EMAIL)s
+#. \u0ca8\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0ca8\u0cae\u0ccd\u0cae\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cbf:",
+#. "\u0c87\u0ca6\u0cc1
+#. \u0ca8\u0cbf\u0c9c\u0cb5\u0cbe\u0c97\u0ca6\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cc6,
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c89\u0cb2\u0ccd\u0cb2\u0cc7\u0c96\u0cbf\u0cb8\u0cbf %(EMAIL)s
+#. \u0ca8\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0ca8\u0cae\u0ccd\u0cae\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cbf:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"ಇದು ಹಾಗಲ್ಲದಿದ್ದರೆ, ದಯವಿಟ್ಟು ಕೆಳಗಿನ ಮಾಹಿತಿಯನ್ನು ಉಲ್ಲೇಖಿಸಿ %(EMAIL)s ನಲ್ಲಿ "
+"ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ:"
+
+#. {"msgid": ["\u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0ca6
+#. \u0c95\u0cc1\u0cb0\u0cbf\u0ca4\u0cc1
+#. \u0cb5\u0cbf\u0c9a\u0cbe\u0cb0\u0cbf\u0cb8\u0cb2\u0cc1,
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1 %(EMAIL)s
+#. \u0ca8\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0cb8\u0c82\u0cb6\u0ccb\u0ca7\u0c95\u0cb0\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cbf
+#. \u0cae\u0ca4\u0ccd\u0ca4\u0cc1 \u0c88
+#. \u0ca6\u0ccb\u0cb7\u0c95\u0ccd\u0c95\u0cc6
+#. \u0c95\u0cbe\u0cb0\u0ca3\u0cb5\u0cc7\u0ca8\u0cc1
+#. \u0c8e\u0c82\u0cac\u0cc1\u0ca6\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb5\u0cbf\u0cb5\u0cb0\u0cbf\u0cb8\u0cbf.",
+#. "\u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0ca6
+#. \u0c95\u0cc1\u0cb0\u0cbf\u0ca4\u0cc1
+#. \u0cb5\u0cbf\u0c9a\u0cbe\u0cb0\u0cbf\u0cb8\u0cb2\u0cc1,
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1
+#. \u0cb8\u0c82\u0cb6\u0ccb\u0ca7\u0c95\u0cb0\u0ca8\u0ccd\u0ca8\u0cc1
+#. %(EMAIL)s \u0ca8\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cbf
+#. \u0cae\u0ca4\u0ccd\u0ca4\u0cc1 \u0c88
+#. \u0ca6\u0ccb\u0cb7\u0c95\u0ccd\u0c95\u0cc6
+#. \u0c95\u0cbe\u0cb0\u0ca3\u0cb5\u0cc7\u0ca8\u0cc1
+#. \u0c8e\u0c82\u0cac\u0cc1\u0ca6\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb5\u0cbf\u0cb5\u0cb0\u0cbf\u0cb8\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"ಪರಿಹಾರದ ಕುರಿತು ವಿಚಾರಿಸಲು, ದಯವಿಟ್ಟು %(EMAIL)s ನಲ್ಲಿ ಸಂಶೋಧಕರನ್ನು ಸಂಪರ್ಕಿಸಿ "
+"ಮತ್ತು ಈ ದೋಷಕ್ಕೆ ಕಾರಣವೇನು ಎಂಬುದನ್ನು ವಿವರಿಸಿ."
+
+#. {"msgid":
+#. ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cbf",
+#. "\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0cbf\u0cb2\u0ccd\u0cb2\u0cbf\u0cb8\u0cbf"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "ಪ್ರಯೋಗವನ್ನು ಸ್ಥಗಿತಗೊಳಿಸಿ"
+
+#. {"msgid":
+#. ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0cc1\u0ca8\u0cb0\u0cbe\u0cb0\u0c82\u0cad\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0ca6\u0cc6...",
+#. "\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97
+#. \u0caa\u0cc1\u0ca8\u0cb0\u0cbe\u0cb0\u0c82\u0cad\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0ca6\u0cc6..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "ಪ್ರಯೋಗವನ್ನು ಪುನರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ..."
+
+#. {"msgid":
+#. ["\u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cc1\u0cb5\u0cc1\u0ca6\u0cc1
+#. \u0cb8\u0cbe\u0ca7\u0ccd\u0caf\u0cb5\u0cbf\u0cb2\u0ccd\u0cb2.",
+#. "\u0c97\u0cb0\u0ccd\u0cad\u0caa\u0cbe\u0ca4
+#. \u0cb8\u0cbe\u0ca7\u0ccd\u0caf\u0cb5\u0cbf\u0cb2\u0ccd\u0cb2."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "ಸ್ಥಗಿತಗೊಳಿಸುವುದು ಸಾಧ್ಯವಿಲ್ಲ."
+
+#. {"msgid":
+#. ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0ca8\u0cc0\u0cb5\u0cc1 \u0c96\u0c9a\u0cbf\u0ca4\u0cb5\u0cbe\u0c97\u0cbf
+#. \u0cac\u0caf\u0cb8\u0cc1\u0cb5\u0cbf\u0cb0\u0cbe?",
+#. "\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0cbf\u0cb2\u0ccd\u0cb2\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0c96\u0c9a\u0cbf\u0ca4\u0cb5\u0cbe\u0c97\u0cbf
+#. \u0cac\u0caf\u0cb8\u0cc1\u0cb5\u0cbf\u0cb0\u0cbe?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "ಪ್ರಯೋಗವನ್ನು ಸ್ಥಗಿತಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?"
+
+#. {"msgid": ["\u0cb8\u0ccd\u0caa\u0cb7\u0ccd\u0c9f
+#. \u0cb8\u0cae\u0cc0\u0c95\u0ccd\u0cb7\u0cc6
+#. \u0cb8\u0cb2\u0ccd\u0cb2\u0cbf\u0c95\u0cc6",
+#. "\u0cb2\u0cc1\u0cb8\u0cbf\u0ca1\u0ccd \u0cb8\u0cb0\u0ccd\u0cb5\u0cc6
+#. \u0cb8\u0cb2\u0ccd\u0cb2\u0cbf\u0c95\u0cc6"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "ಸ್ಪಷ್ಟ ಸಮೀಕ್ಷೆ ಸಲ್ಲಿಕೆ"
+
+#. {"msgid":
+#. ["\u0cb8\u0cae\u0ccd\u0cae\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca4\u0cbf\u0cb0\u0cb8\u0ccd\u0c95\u0cb0\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cbf\u0ca6\u0cc6.",
+#. "\u0c92\u0caa\u0ccd\u0caa\u0cbf\u0c97\u0cc6\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca4\u0cbf\u0cb0\u0cb8\u0ccd\u0c95\u0cb0\u0cbf\u0cb8\u0cb2\u0cbe\u0caf\u0cbf\u0ca4\u0cc1."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "ಸಮ್ಮತಿಯನ್ನು ತಿರಸ್ಕರಿಸಲಾಗಿದೆ."
+
+#. {"msgid": ["\u0c85\u0ca6\u0cc1 \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0ca6
+#. \u0c85\u0c82\u0ca4\u0ccd\u0caf!",
+#. "\u0c85\u0cb2\u0ccd\u0cb2\u0cbf\u0c97\u0cc6
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97
+#. \u0cae\u0cc1\u0c97\u0cbf\u0caf\u0cbf\u0ca4\u0cc1!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "ಅದು ಪ್ರಯೋಗದ ಅಂತ್ಯ!"
+
+#. {"msgid":
+#. ["\u0ca6\u0cc1\u0cb0\u0ca6\u0cc3\u0cb7\u0ccd\u0c9f\u0cb5\u0cb6\u0cbe\u0ca4\u0ccd
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0cc1
+#. \u0cac\u0cc7\u0c97\u0ca8\u0cc6
+#. \u0c95\u0cca\u0ca8\u0cc6\u0c97\u0cca\u0cb3\u0ccd\u0cb3\u0cac\u0cc7\u0c95\u0cc1.",
+#. "\u0ca6\u0cc1\u0cb0\u0ca6\u0cc3\u0cb7\u0ccd\u0c9f\u0cb5\u0cb6\u0cbe\u0ca4\u0ccd
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0cc1
+#. \u0cae\u0cc1\u0c82\u0c9a\u0cbf\u0ca4\u0cb5\u0cbe\u0c97\u0cbf\u0caf\u0cc7
+#. \u0c95\u0cca\u0ca8\u0cc6\u0c97\u0cca\u0cb3\u0ccd\u0cb3\u0cac\u0cc7\u0c95\u0cc1."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "ದುರದೃಷ್ಟವಶಾತ್ ಪ್ರಯೋಗವು ಬೇಗನೆ ಕೊನೆಗೊಳ್ಳಬೇಕು."
+
+#. {"msgid": ["\u0ca6\u0ccb\u0cb7!", "\u0ca4\u0caa\u0ccd\u0caa\u0cc1!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "ದೋಷ!"
+
+#. {"msgid":
+#. ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0cbe\u0cb0\u0c82\u0cad\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0ca6\u0cc6...",
+#. "\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97
+#. \u0c86\u0cb0\u0c82\u0cad\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0ca6\u0cc6..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "ಪ್ರಯೋಗವನ್ನು ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ..."
+
+#. {"msgid": ["\u0cb8\u0cae\u0cb8\u0ccd\u0caf\u0cc6\u0caf
+#. \u0cb8\u0c82\u0ca6\u0cb0\u0ccd\u0cad\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf, \u0c88
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8\u0cb5\u0cc1\u0c97\u0cb3\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ca4\u0ccd\u0ca8\u0cbf\u0cb8\u0cbf:",
+#. "\u0cb8\u0cae\u0cb8\u0ccd\u0caf\u0cc6\u0caf
+#. \u0cb8\u0c82\u0ca6\u0cb0\u0ccd\u0cad\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf,
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8\u0ca6\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ca4\u0ccd\u0ca8\u0cbf\u0cb8\u0cbf:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "ಸಮಸ್ಯೆಯ ಸಂದರ್ಭದಲ್ಲಿ, ಈ ಕೆಳಗಿನವುಗಳನ್ನು ಪ್ರಯತ್ನಿಸಿ:"
+
+#. {"msgid": ["\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0cb8\u0cbf\u0ca6\u0ccd\u0ca7\u0cb0\u0cbf\u0ca6\u0ccd\u0ca6\u0cc0\u0cb0\u0cbe?",
+#. "\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0ca4\u0caf\u0cbe\u0cb0\u0cbe\u0c97\u0cbf\u0ca6\u0ccd\u0ca6\u0cc0\u0cb0\u0cbe?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "ನೀವು ಸಿದ್ಧರಿದ್ದೀರಾ?"
+
+#. {"msgid": ["\u0cac\u0ccb\u0ca8\u0cb8\u0ccd",
+#. "\u0cac\u0cca\u0ca8\u0cb8\u0ccd"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "ಬೋನಸ್"
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0cad\u0cbe\u0c97\u0cb5\u0cb9\u0cbf\u0cb8\u0cc1\u0cb5\u0cb5\u0cb0 ID
+#. \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb5\u0cbf\u0cb5\u0cb0\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cbf\u0cb2\u0ccd\u0cb2,
+#. \u0cac\u0cb9\u0cc1\u0cb6\u0c83 \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0caa\u0cb0\u0cc0\u0c95\u0ccd\u0cb7\u0cc6\u0caf
+#. \u0cb8\u0cae\u0caf\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0cac\u0ccd\u0cb0\u0ccc\u0cb8\u0cb0\u0ccd\u200c\u0c97\u0cb3\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cac\u0ca6\u0cb2\u0cbe\u0caf\u0cbf\u0cb8\u0cbf\u0ca6
+#. \u0c95\u0cbe\u0cb0\u0ca3.", "\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0caa\u0cbe\u0cb2\u0ccd\u0c97\u0cca\u0cb3\u0ccd\u0cb3\u0cc1\u0cb5\u0cb5\u0cb0
+#. ID \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb5\u0cbf\u0cb5\u0cb0\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cbf\u0cb2\u0ccd\u0cb2,
+#. \u0cac\u0cb9\u0cc1\u0cb6\u0c83 \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0caa\u0cb0\u0cc0\u0c95\u0ccd\u0cb7\u0cc6\u0caf
+#. \u0cb8\u0cae\u0caf\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0cac\u0ccd\u0cb0\u0ccc\u0cb8\u0cb0\u0ccd\u200c\u0c97\u0cb3\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cac\u0ca6\u0cb2\u0cbe\u0caf\u0cbf\u0cb8\u0cbf\u0ca6
+#. \u0c95\u0cbe\u0cb0\u0ca3 \u0c87\u0cb0\u0cac\u0cb9\u0cc1\u0ca6\u0cc1."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"ನಿಮ್ಮ ಭಾಗವಹಿಸುವವರ ID ಅನ್ನು ವಿವರಿಸಲಾಗಿಲ್ಲ, ಬಹುಶಃ ನೀವು ಪರೀಕ್ಷೆಯ ಸಮಯದಲ್ಲಿ "
+"ಬ್ರೌಸರ್‌ಗಳನ್ನು ಬದಲಾಯಿಸಿದ ಕಾರಣ."
+
+#. {"msgid": ["\u0c88 \u0cb8\u0cae\u0caf\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0c95\u0cbe\u0cb0\u0cb0\u0cc1
+#. \u0c85\u0ca8\u0cc1\u0cae\u0ca4\u0cbf\u0cb8\u0ca6 \u0c95\u0cbe\u0cb0\u0ca3
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cc1\u0cb5\u0cc1\u0ca6\u0cc1
+#. \u0cb8\u0cbe\u0ca7\u0ccd\u0caf\u0cb5\u0cbf\u0cb2\u0ccd\u0cb2!",
+#. "\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1 \u0c88
+#. \u0cb8\u0cae\u0caf\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0c85\u0ca8\u0cc1\u0cae\u0ca4\u0cbf\u0cb8\u0ca6 \u0c95\u0cbe\u0cb0\u0ca3
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cc1\u0cb5\u0cc1\u0ca6\u0cc1
+#. \u0cb8\u0cbe\u0ca7\u0ccd\u0caf\u0cb5\u0cbf\u0cb2\u0ccd\u0cb2!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"ಈ ಸಮಯದಲ್ಲಿ ಪ್ರಯೋಗಕಾರರು ಅನುಮತಿಸದ ಕಾರಣ ಪ್ರಯೋಗವನ್ನು ಸ್ಥಗಿತಗೊಳಿಸುವುದು "
+"ಸಾಧ್ಯವಿಲ್ಲ!"
+
+#. {"msgid": ["\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cc1
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd
+#. \u0cae\u0cbe\u0ca1\u0cbf\u0ca6\u0cb0\u0cc6,
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0cc1
+#. \u0cac\u0cc7\u0c97\u0ca8\u0cc6
+#. \u0c95\u0cca\u0ca8\u0cc6\u0c97\u0cca\u0cb3\u0ccd\u0cb3\u0cc1\u0ca4\u0ccd\u0ca4\u0ca6\u0cc6
+#. \u0cae\u0ca4\u0ccd\u0ca4\u0cc1 \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0c87\u0cb2\u0ccd\u0cb2\u0cbf\u0caf\u0cb5\u0cb0\u0cc6\u0c97\u0cc6
+#. \u0c97\u0cb3\u0cbf\u0cb8\u0cbf\u0ca6
+#. \u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0cb5\u0caf\u0c82\u0c9a\u0cbe\u0cb2\u0cbf\u0ca4\u0cb5\u0cbe\u0c97\u0cbf
+#. \u0ca8\u0cbf\u0cae\u0c97\u0cc6
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0ca6\u0cc6.",
+#. "\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cc1
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd
+#. \u0cae\u0cbe\u0ca1\u0cbf\u0ca6\u0cb0\u0cc6,
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0cc1
+#. \u0cae\u0cc1\u0c82\u0c9a\u0cc6\u0caf\u0cc7
+#. \u0c95\u0cca\u0ca8\u0cc6\u0c97\u0cca\u0cb3\u0ccd\u0cb3\u0cc1\u0ca4\u0ccd\u0ca4\u0ca6\u0cc6
+#. \u0cae\u0ca4\u0ccd\u0ca4\u0cc1 \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0c87\u0cb2\u0ccd\u0cb2\u0cbf\u0caf\u0cb5\u0cb0\u0cc6\u0c97\u0cc6
+#. \u0c97\u0cb3\u0cbf\u0cb8\u0cbf\u0ca6
+#. \u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0cb5\u0caf\u0c82\u0c9a\u0cbe\u0cb2\u0cbf\u0ca4\u0cb5\u0cbe\u0c97\u0cbf
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0ca6\u0cc6."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"ನೀವು ಸ್ಥಗಿತಗೊಳಿಸು ಬಟನ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿದರೆ, ಪ್ರಯೋಗವು ಬೇಗನೆ ಕೊನೆಗೊಳ್ಳುತ್ತದೆ "
+"ಮತ್ತು ನೀವು ಇಲ್ಲಿಯವರೆಗೆ ಗಳಿಸಿದ ಪರಿಹಾರವನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ನಿಮಗೆ "
+"ಪಾವತಿಸಲಾಗುತ್ತದೆ."
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0cb8\u0ccd\u0caa\u0cb7\u0ccd\u0c9f
+#. \u0cb8\u0cae\u0cc0\u0c95\u0ccd\u0cb7\u0cc6\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0cc2\u0cb0\u0ccd\u0ca3\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cb2\u0cc1,
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8 \u0cac\u0c9f\u0ca8\u0ccd
+#. \u0c85\u0ca8\u0ccd\u0ca8\u0cc1 \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd
+#. \u0cae\u0cbe\u0ca1\u0cbf.", "\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0cb2\u0cc1\u0cb8\u0cbf\u0ca1\u0ccd
+#. \u0cb8\u0cae\u0cc0\u0c95\u0ccd\u0cb7\u0cc6\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0cc2\u0cb0\u0ccd\u0ca3\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cb2\u0cc1,
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8 \u0cac\u0c9f\u0ca8\u0ccd
+#. \u0c85\u0ca8\u0ccd\u0ca8\u0cc1 \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd
+#. \u0cae\u0cbe\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr ""
+"ನಿಮ್ಮ ಸ್ಪಷ್ಟ ಸಮೀಕ್ಷೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು, ಕೆಳಗಿನ ಬಟನ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ."
+
+#. {"msgid": ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0ca6
+#. \u0c85\u0c82\u0ca4\u0ccd\u0caf.",
+#. "\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0ca6
+#. \u0cae\u0cc1\u0c95\u0ccd\u0ca4\u0cbe\u0caf."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "ಪ್ರಯೋಗದ ಅಂತ್ಯ."
+
+#. {"msgid": ["\u0c86\u0ca6\u0cbe\u0c97\u0ccd\u0caf\u0cc2,
+#. \u0ca8\u0cc0\u0cb5\u0cc1 \u0c88\u0c97\u0cbe\u0c97\u0cb2\u0cc7
+#. \u0c95\u0cb3\u0cc6\u0ca6 \u0cb8\u0cae\u0caf\u0c95\u0ccd\u0c95\u0cc6
+#. \u0c87\u0ca8\u0ccd\u0ca8\u0cc2
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0cb5\u0cc1\u0ca6\u0cc1.",
+#. "\u0c86\u0ca6\u0cbe\u0c97\u0ccd\u0caf\u0cc2, \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0c88\u0c97\u0cbe\u0c97\u0cb2\u0cc7 \u0c95\u0cb3\u0cc6\u0ca6
+#. \u0cb8\u0cae\u0caf\u0c95\u0ccd\u0c95\u0cc6 \u0ca8\u0cbf\u0cae\u0c97\u0cc6
+#. \u0c87\u0ca8\u0ccd\u0ca8\u0cc2
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0cb8\u0cb2\u0cbe\u0c97\u0cc1\u0ca4\u0ccd\u0ca4\u0ca6\u0cc6."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "ಆದಾಗ್ಯೂ, ನೀವು ಈಗಾಗಲೇ ಕಳೆದ ಸಮಯಕ್ಕೆ ಇನ್ನೂ ಪಾವತಿಸಲಾಗುವುದು."
+
+#. {"msgid": ["<strong>MTurk \u0c9c\u0cbe\u0cb9\u0cc0\u0cb0\u0cbe\u0ca4\u0cc1
+#. \u0caa\u0cc1\u0c9f\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf</strong>
+#. <strong>\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0cbf\u0cb2\u0ccd\u0cb2\u0cbf\u0cb8\u0cc1</strong>
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cac\u0cb3\u0cb8\u0cbf\u0c95\u0cca\u0c82\u0ca1\u0cc1
+#. \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cac\u0cb9\u0cc1\u0ca6\u0cc1.",
+#. "\u0ca8\u0cc0\u0cb5\u0cc1 <strong>MTurk
+#. \u0c9c\u0cbe\u0cb9\u0cc0\u0cb0\u0cbe\u0ca4\u0cc1
+#. \u0caa\u0cc1\u0c9f\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf</strong>
+#. <strong>\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cc1</strong>
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cac\u0cb3\u0cb8\u0cbf\u0c95\u0cca\u0c82\u0ca1\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cac\u0cb9\u0cc1\u0ca6\u0cc1."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"<strong>MTurk ಜಾಹೀರಾತು ಪುಟದಲ್ಲಿ</strong> <strong>ಪ್ರಯೋಗವನ್ನು "
+"ನಿಲ್ಲಿಸು</strong> ಬಟನ್ ಅನ್ನು ಬಳಸಿಕೊಂಡು ನೀವು ಪ್ರಯೋಗವನ್ನು ಸ್ಥಗಿತಗೊಳಿಸಬಹುದು."
+
+#. {"msgid": ["\u0caa\u0cc1\u0c9f\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cae\u0cb0\u0cc1\u0cb2\u0ccb\u0ca1\u0ccd \u0cae\u0cbe\u0ca1\u0cbf.",
+#. "\u0caa\u0cc1\u0c9f\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1 \u0caa\u0cc1\u0ca8\u0c83
+#. \u0cb2\u0ccb\u0ca1\u0ccd \u0cae\u0cbe\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡಿ."
+
+#. {"msgid":
+#. ["\u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cae\u0cc1\u0c82\u0ca6\u0cc1\u0cb5\u0cb0\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0cb8\u0cbf\u0ca6\u0ccd\u0ca7\u0cb0\u0cbe\u0ca6\u0cbe\u0c97
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd \u0cae\u0cbe\u0ca1\u0cbf.",
+#. "\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0caf\u0ccb\u0c97\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cae\u0cc1\u0c82\u0ca6\u0cc1\u0cb5\u0cb0\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0cb8\u0cbf\u0ca6\u0ccd\u0ca7\u0cb0\u0cbe\u0ca6\u0cbe\u0c97
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd
+#. \u0cae\u0cbe\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "ಪ್ರಯೋಗವನ್ನು ಮುಂದುವರಿಸಲು ನೀವು ಸಿದ್ಧರಾದಾಗ ಬಟನ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ."
+
+#. {"msgid": ["\u0cb8\u0cb9\u0cbe\u0caf!", "\u0cb8\u0cb9\u0cbe\u0caf
+#. \u0cae\u0cbe\u0ca1\u0cbf!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "ಸಹಾಯ!"
+
+#. {"msgid":
+#. ["\u0ca6\u0cc1\u0cb0\u0ca6\u0cc3\u0cb7\u0ccd\u0c9f\u0cb5\u0cb6\u0cbe\u0ca4\u0ccd
+#. \u0c88 \u0ca8\u0ca1\u0cb5\u0cb3\u0cbf\u0c95\u0cc6\u0caf\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0cb8\u0ccd\u0ca4\u0cc1\u0ca4
+#. \u0cac\u0cc6\u0c82\u0cac\u0cb2\u0cbf\u0ca4\u0cb5\u0cbe\u0c97\u0cbf\u0cb2\u0ccd\u0cb2.",
+#. "\u0ca6\u0cc1\u0cb0\u0ca6\u0cc3\u0cb7\u0ccd\u0c9f\u0cb5\u0cb6\u0cbe\u0ca4\u0ccd
+#. \u0c88 \u0cb5\u0cb0\u0ccd\u0ca4\u0ca8\u0cc6\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0ccd\u0cb0\u0cb8\u0ccd\u0ca4\u0cc1\u0ca4
+#. \u0cac\u0cc6\u0c82\u0cac\u0cb2\u0cbf\u0cb8\u0cc1\u0cb5\u0cc1\u0ca6\u0cbf\u0cb2\u0ccd\u0cb2."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "ದುರದೃಷ್ಟವಶಾತ್ ಈ ನಡವಳಿಕೆಯು ಪ್ರಸ್ತುತ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ."
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0caa\u0ccd\u0cb0\u0cb8\u0ccd\u0ca4\u0cc1\u0ca4
+#. \u0cb8\u0c82\u0c9a\u0cbf\u0ca4 \u0cac\u0ccb\u0ca8\u0cb8\u0ccd\u200c\u0ca8
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0ccb\u0ca1\u0cbf.", "\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0caa\u0ccd\u0cb0\u0cb8\u0ccd\u0ca4\u0cc1\u0ca4
+#. \u0cb8\u0c82\u0c97\u0ccd\u0cb0\u0cb9\u0cb5\u0cbe\u0c97\u0cbf\u0cb0\u0cc1\u0cb5
+#. \u0cac\u0ccb\u0ca8\u0cb8\u0ccd\u200c\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cc6 \u0ca8\u0ccb\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಸಂಚಿತ ಬೋನಸ್‌ನ ಕೆಳಗಿನ ಮಾಹಿತಿಯನ್ನು ನೋಡಿ."
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0cb5\u0cc0\u0c95\u0cb0\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0ca8\u0cbf\u0cae\u0c97\u0cc6
+#. \u0cb8\u0cae\u0cb8\u0ccd\u0caf\u0cc6\u0caf\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cc6
+#. \u0cae\u0cbe\u0ca4\u0ccd\u0cb0
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1
+#. \u0ca8\u0cae\u0ccd\u0cae\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cbf.",
+#. "\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0caa\u0cbe\u0cb5\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0cb5\u0cc0\u0c95\u0cb0\u0cbf\u0cb8\u0cc1\u0cb5\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0ca8\u0cbf\u0cae\u0c97\u0cc6
+#. \u0ca4\u0cca\u0c82\u0ca6\u0cb0\u0cc6\u0caf\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cc6
+#. \u0cae\u0cbe\u0ca4\u0ccd\u0cb0
+#. \u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1
+#. \u0ca8\u0cae\u0ccd\u0cae\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"ನಿಮ್ಮ ಪಾವತಿಯನ್ನು ಸ್ವೀಕರಿಸಲು ನಿಮಗೆ ಸಮಸ್ಯೆಯಿದ್ದರೆ ಮಾತ್ರ ದಯವಿಟ್ಟು ನಮ್ಮನ್ನು "
+"ಸಂಪರ್ಕಿಸಿ."
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0ca6
+#. \u0cb5\u0cbf\u0cb5\u0cb0\u0c97\u0cb3\u0cbf\u0c97\u0cbe\u0c97\u0cbf
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0ccb\u0ca1\u0cbf.", "\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0cb8\u0c82\u0cad\u0cbe\u0cb5\u0ca8\u0cc6\u0caf
+#. \u0cb5\u0cbf\u0cb5\u0cb0\u0c97\u0cb3\u0cbf\u0c97\u0cbe\u0c97\u0cbf
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0ca8\u0ccb\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "ನಿಮ್ಮ ಪರಿಹಾರದ ವಿವರಗಳಿಗಾಗಿ ಕೆಳಗಿನ ಮಾಹಿತಿಯನ್ನು ನೋಡಿ."
+
+#. {"msgid": ["\u0c92\u0cae\u0ccd\u0cae\u0cc6
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0c82\u0ca1\u0cb0\u0cc6,
+#. \u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0ca1\u0cc6\u0caf\u0cb2\u0cc1
+#. \u0ca8\u0cae\u0ccd\u0cae\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cc1\u0cb5
+#. \u0c85\u0c97\u0ca4\u0ccd\u0caf\u0cb5\u0cbf\u0cb2\u0ccd\u0cb2;",
+#. "\u0c92\u0cae\u0ccd\u0cae\u0cc6
+#. \u0cb8\u0ccd\u0ca5\u0c97\u0cbf\u0ca4\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cbf\u0ca6\u0cb0\u0cc6,
+#. \u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0ccd\u0cb5\u0cc0\u0c95\u0cb0\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0ca8\u0cae\u0ccd\u0cae\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cbf\u0cb8\u0cc1\u0cb5
+#. \u0c85\u0c97\u0ca4\u0ccd\u0caf\u0cb5\u0cbf\u0cb2\u0ccd\u0cb2;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"ಒಮ್ಮೆ ಸ್ಥಗಿತಗೊಂಡರೆ, ಪರಿಹಾರವನ್ನು ಪಡೆಯಲು ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುವ ಅಗತ್ಯವಿಲ್ಲ;"
+
+#. {"msgid": ["\u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1 \u0c88
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0cb8\u0cb9 \u0c89\u0cb2\u0ccd\u0cb2\u0cc7\u0c96\u0cbf\u0cb8\u0cbf:",
+#. "\u0ca6\u0caf\u0cb5\u0cbf\u0c9f\u0ccd\u0c9f\u0cc1 \u0c88
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0ca8\u0ccd\u0ca8\u0cc2
+#. \u0c89\u0cb2\u0ccd\u0cb2\u0cc7\u0c96\u0cbf\u0cb8\u0cbf:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "ದಯವಿಟ್ಟು ಈ ಕೆಳಗಿನ ಮಾಹಿತಿಯನ್ನು ಸಹ ಉಲ್ಲೇಖಿಸಿ:"
+
+#. {"msgid": ["\u0ca6\u0ccb\u0cb7\u0ca6
+#. \u0cb8\u0c82\u0ca6\u0cb0\u0ccd\u0cad\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0caa\u0cb0\u0cbf\u0cb9\u0cbe\u0cb0\u0cb5\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0ca1\u0cc6\u0caf\u0cb2\u0cc1 \u0cae\u0cc7\u0cb2\u0cbf\u0ca8
+#. \u0cac\u0c9f\u0ca8\u0ccd \u0c85\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd \u0cae\u0cbe\u0ca1\u0cbf.",
+#. "\u0ca6\u0ccb\u0cb7\u0ca6
+#. \u0cb8\u0c82\u0ca6\u0cb0\u0ccd\u0cad\u0ca6\u0cb2\u0ccd\u0cb2\u0cbf
+#. \u0cb8\u0cb0\u0cbf\u0ca6\u0cc2\u0c97\u0cbf\u0cb8\u0cb2\u0cc1
+#. \u0cae\u0cc7\u0cb2\u0cbf\u0ca8 \u0cac\u0c9f\u0ca8\u0ccd
+#. \u0c95\u0ccd\u0cb2\u0cbf\u0c95\u0ccd \u0cae\u0cbe\u0ca1\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "ದೋಷದ ಸಂದರ್ಭದಲ್ಲಿ ಪರಿಹಾರವನ್ನು ಪಡೆಯಲು ಮೇಲಿನ ಬಟನ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ."
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0c87\u0c82\u0c9f\u0cb0\u0ccd\u0ca8\u0cc6\u0c9f\u0ccd
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95\u0cb5\u0cc1
+#. \u0c95\u0cbe\u0cb0\u0ccd\u0caf\u0ca8\u0cbf\u0cb0\u0ccd\u0cb5\u0cb9\u0cbf\u0cb8\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0ca6\u0cc6\u0caf\u0cc7
+#. \u0c8e\u0c82\u0ca6\u0cc1
+#. \u0caa\u0cb0\u0cbf\u0cb6\u0cc0\u0cb2\u0cbf\u0cb8\u0cbf.",
+#. "\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0c87\u0c82\u0c9f\u0cb0\u0ccd\u0ca8\u0cc6\u0c9f\u0ccd
+#. \u0cb8\u0c82\u0caa\u0cb0\u0ccd\u0c95
+#. \u0c95\u0cbe\u0cb0\u0ccd\u0caf\u0ca8\u0cbf\u0cb0\u0ccd\u0cb5\u0cb9\u0cbf\u0cb8\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0ca6\u0cc6\u0caf\u0cc7
+#. \u0c8e\u0c82\u0cac\u0cc1\u0ca6\u0ca8\u0ccd\u0ca8\u0cc1
+#. \u0caa\u0cb0\u0cbf\u0cb6\u0cc0\u0cb2\u0cbf\u0cb8\u0cbf."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "ನಿಮ್ಮ ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿದೆಯೇ ಎಂದು ಪರಿಶೀಲಿಸಿ."
+
+#. {"msgid": ["\u0cae\u0cc7\u0cb2\u0cbf\u0ca8\u0cb5\u0cc1
+#. \u0cb8\u0cb9\u0cbe\u0caf
+#. \u0cae\u0cbe\u0ca1\u0ca6\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cc6, \u0c88
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0cca\u0c82\u0ca6\u0cbf\u0c97\u0cc6
+#. \u0ca8\u0cae\u0c97\u0cc6 \u0c87\u0cae\u0cc7\u0cb2\u0ccd
+#. \u0c95\u0cb3\u0cc1\u0cb9\u0cbf\u0cb8\u0cbf:",
+#. "\u0cae\u0cc7\u0cb2\u0cbf\u0ca8\u0cb5\u0cc1\u0c97\u0cb3\u0cc1
+#. \u0cb8\u0cb9\u0cbe\u0caf
+#. \u0cae\u0cbe\u0ca1\u0ca6\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cc6,
+#. \u0c95\u0cc6\u0cb3\u0c97\u0cbf\u0ca8
+#. \u0cae\u0cbe\u0cb9\u0cbf\u0ca4\u0cbf\u0caf\u0cca\u0c82\u0ca6\u0cbf\u0c97\u0cc6
+#. \u0ca8\u0cae\u0c97\u0cc6 \u0c87\u0cae\u0cc7\u0cb2\u0ccd
+#. \u0c95\u0cb3\u0cc1\u0cb9\u0cbf\u0cb8\u0cbf:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "ಮೇಲಿನವು ಸಹಾಯ ಮಾಡದಿದ್ದರೆ, ಈ ಕೆಳಗಿನ ಮಾಹಿತಿಯೊಂದಿಗೆ ನಮಗೆ ಇಮೇಲ್ ಕಳುಹಿಸಿ:"
+
+#. {"msgid": ["\u0caa\u0ccd\u0cb0\u0cb8\u0ccd\u0ca4\u0cc1\u0ca4
+#. \u0cb5\u0cc6\u0cac\u0ccd \u0caa\u0cc1\u0c9f\u0c95\u0ccd\u0c95\u0cc6
+#. \u0cb2\u0cbf\u0c82\u0c95\u0ccd;",
+#. "\u0caa\u0ccd\u0cb0\u0cb8\u0ccd\u0ca4\u0cc1\u0ca4 \u0cb5\u0cc6\u0cac\u0ccd
+#. \u0caa\u0cc1\u0c9f\u0c95\u0ccd\u0c95\u0cc6 \u0c92\u0c82\u0ca6\u0cc1
+#. \u0cb2\u0cbf\u0c82\u0c95\u0ccd;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "ಪ್ರಸ್ತುತ ವೆಬ್ ಪುಟಕ್ಕೆ ಲಿಂಕ್;"
+
+#. {"msgid": ["\u0ca8\u0cbf\u0cae\u0ccd\u0cae
+#. \u0c95\u0cc6\u0cb2\u0cb8\u0c97\u0cbe\u0cb0 ID;",
+#. "\u0ca8\u0cbf\u0cae\u0ccd\u0cae \u0cb5\u0cb0\u0ccd\u0c95\u0cb0\u0ccd
+#. \u0c90\u0ca1\u0cbf;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ನಿಮ್ಮ ಕೆಲಸಗಾರ ID;"
+
+#. {"msgid": ["\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0c85\u0ca8\u0cc1\u0cad\u0cb5\u0cbf\u0cb8\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0cb0\u0cc1\u0cb5
+#. \u0cb8\u0cae\u0cb8\u0ccd\u0caf\u0cc6.", "\u0ca8\u0cc0\u0cb5\u0cc1
+#. \u0c85\u0ca8\u0cc1\u0cad\u0cb5\u0cbf\u0cb8\u0cc1\u0ca4\u0ccd\u0ca4\u0cbf\u0cb0\u0cc1\u0cb5
+#. \u0ca4\u0cca\u0c82\u0ca6\u0cb0\u0cc6."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "ನೀವು ಅನುಭವಿಸುತ್ತಿರುವ ಸಮಸ್ಯೆ."
+
+#. {"msgid":
+#. ["\u0caa\u0cc1\u0ca8\u0cb0\u0cbe\u0cb0\u0c82\u0cad\u0cbf\u0cb8\u0cbf",
+#. "\u0cb0\u0cc6\u0cb8\u0ccd\u0caf\u0cc2\u0cae\u0ccd"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "ಪುನರಾರಂಭಿಸಿ"

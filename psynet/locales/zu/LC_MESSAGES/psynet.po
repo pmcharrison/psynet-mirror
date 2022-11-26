@@ -1,0 +1,464 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 12:02+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: ZU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Kufanele uqongelele <strong>okungenani
+#. u-$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> webhonasi ukuze ukwazi
+#. ukunxeshezelwa.", "Kufanele uqoqe <strong>okungenani
+#. u-$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> webhonasi ukuze ukwazi
+#. ukunxeshezelwa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Kufanele uqongelele <strong>okungenani "
+"u-$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> webhonasi ukuze ukwazi "
+"ukunxeshezelwa."
+
+#. {"msgid": ["Ibhonasi enqwabelene", "Ibhonasi eqoqwe"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Ibhonasi enqwabelene"
+
+#. {"msgid": ["Vala iwindi", "Vala ifasitela"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Vala iwindi"
+
+#. {"msgid": ["Yekisa ukuhlola", "Yeka ukuhlola"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Yekisa ukuhlola"
+
+#. {"msgid": ["Complete Survey", "Qedela Ucwaningo"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Complete Survey"
+
+#. {"msgid": ["Ngokungeziwe enkokhelweni yakho eyisisekelo
+#. ye-<strong>$%(BASE_PAYMENT)s</strong> uzothola ibhonasi
+#. ye-<strong>$%(BONUS)s</strong> ngesikhathi osichithe ekuhlolweni.",
+#. "Ngokungeziwe enkokhelweni yakho eyisisekelo
+#. ye-<strong>$%(BASE_PAYMENT)s</strong> uzothola ibhonasi
+#. ye-<strong>$%(BONUS)s</strong> ngesikhathi osisebenzise ekuhloleni."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Ngokungeziwe enkokhelweni yakho eyisisekelo "
+"ye-<strong>$%(BASE_PAYMENT)s</strong> uzothola ibhonasi "
+"ye-<strong>$%(BONUS)s</strong> ngesikhathi osichithe ekuhlolweni."
+
+#. {"msgid": ["Uphinde waklonyeliswa ngebhonasi yokusebenza
+#. engu-<strong>$%(PERFORMANCE_BONUS)s</strong>!", "Ubuye waklonyeliswa
+#. ngebhonasi yokusebenza engu-<strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Uphinde waklonyeliswa ngebhonasi yokusebenza "
+"engu-<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Sicela uchofoze okuthi \"Qeda\" ukuze uqedele i-HIT.", "Sicela
+#. uchofoze \"Qeda\" ukuze uqedele i-HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Sicela uchofoze okuthi \"Qeda\" ukuze uqedele i-HIT."
+
+#. {"msgid": ["Qeda", "Qedela"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Qeda"
+
+#. {"msgid": ["Siyabonga ngokubamba iqhaza.", "Ngiyabonga ngokuba
+#. nengxenye."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Siyabonga ngokubamba iqhaza."
+
+#. {"msgid": ["Olandelayo", "Okulandelayo", "Ngokulandelayo"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Olandelayo"
+
+#. {"msgid": ["Uma kungenjalo, sicela usithinte ku-%(EMAIL)s ucaphuna
+#. imininingwane elandelayo:", "Uma kungenjalo, sicela usithinte ku- %(EMAIL)s
+#. ucaphuna ulwazi olulandelayo:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Uma kungenjalo, sicela usithinte ku-%(EMAIL)s ucaphuna imininingwane "
+"elandelayo:"
+
+#. {"msgid": ["Ukuze ubuze mayelana nesinxephezelo, sicela uxhumane
+#. nomcwaningi ku-%(EMAIL)s futhi uchaze okuholele kuleli phutha.", "Ukuze
+#. ubuze mayelana nesinxephezelo, sicela uthinte umcwaningi ku-%(EMAIL)s futhi
+#. uchaze ukuthi yini eholele kuleli phutha."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Ukuze ubuze mayelana nesinxephezelo, sicela uxhumane nomcwaningi "
+"ku-%(EMAIL)s futhi uchaze okuholele kuleli phutha."
+
+#. {"msgid": ["Yehlisa Ukuhlola", "Yehlisa Isilingo"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Yehlisa Ukuhlola"
+
+#. {"msgid": ["Iqalisa kabusha ukuhlola...", "Iqalisa kabusha isilingo ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Iqalisa kabusha ukuhlola..."
+
+#. {"msgid": ["Ukukhipha isisu akunakwenzeka.", "Ukukhipha isisu akukwazi."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Ukukhipha isisu akunakwenzeka."
+
+#. {"msgid": ["Uqinisekile ukuthi ufuna ukuhoxisa isilingo?", "Ingabe
+#. uqinisekile ukuthi ufuna ukuhoxisa ukuhlolwa?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Uqinisekile ukuthi ufuna ukuhoxisa isilingo?"
+
+#. {"msgid": ["Ukuhanjiswa Kwenhlolovo kaLucid", "Ukuhanjiswa Kwenhlolovo ye-
+#. Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Ukuhanjiswa Kwenhlolovo kaLucid"
+
+#. {"msgid": ["Imvume inqatshiwe.", "Ukuvuma kwenqatshiwe."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Imvume inqatshiwe."
+
+#. {"msgid": ["Isiphetho sokuhlolwa!", "Yilokho ukuphela kokuhlolwa!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Isiphetho sokuhlolwa!"
+
+#. {"msgid": ["Ngeshwa ukuhlolwa kufanele kuphele kusenesikhathi.", "Ngeshwa
+#. ukuhlola kumele kuphele kusenesikhathi."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Ngeshwa ukuhlolwa kufanele kuphele kusenesikhathi."
+
+#. {"msgid": ["Iphutha!", "Iphutha"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Iphutha!"
+
+#. {"msgid": ["Iqala ukuhlola...", "Iqala isilingo..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Iqala ukuhlola..."
+
+#. {"msgid": ["Uma kunenkinga, zama lokhu okulandelayo:", "Uma kunenkinga,
+#. zama okulandelayo:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Uma kunenkinga, zama lokhu okulandelayo:"
+
+#. {"msgid": ["Usukulungele?", "Ingabe usulungile?", "Ulungile?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Usukulungele?"
+
+#. {"msgid": ["Ibhonasi", "ibhonasi"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Ibhonasi"
+
+#. {"msgid": ["I-ID yakho yombambi qhaza ayichazwanga, mhlawumbe ngenxa
+#. yokuthi ushintshe iziphequluli ngesikhathi sokuhlolwa.", "I-ID yakho
+#. yombambiqhaza ayichazwanga, mhlawumbe ngenxa yokuthi ushintshe iziphequluli
+#. phakathi nokuhlolwa."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"I-ID yakho yombambi qhaza ayichazwanga, mhlawumbe ngenxa yokuthi ushintshe "
+"iziphequluli ngesikhathi sokuhlolwa."
+
+#. {"msgid": ["Ukuhoxisa ukuhlolwa akunakwenzeka njengoba umhloli akakuvumeli
+#. ngalesi sikhathi!", "Ukuhoxisa ukuhlola akwenzeki ngoba umhloli akakuvumeli
+#. okwamanje!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ukuhoxisa ukuhlolwa akunakwenzeka njengoba umhloli akakuvumeli ngalesi "
+"sikhathi!"
+
+#. {"msgid": ["Uma uchofoza inkinobho ethi Khipha, ukuhlolwa kuzophela
+#. ngaphambi kwesikhathi, futhi uzokhokhelwa ngokuzenzakalelayo isinxephezelo
+#. osizuzile kuze kube manje.", "Uma uchofoza inkinobho ethi Khipha, isilingo
+#. sizophela ngaphambi kwesikhathi, futhi uzokhokhelwa ngokuzenzakalelayo
+#. isinxephezelo osizuzile kuze kube manje."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Uma uchofoza inkinobho ethi Khipha, ukuhlolwa kuzophela ngaphambi "
+"kwesikhathi, futhi uzokhokhelwa ngokuzenzakalelayo isinxephezelo osizuzile "
+"kuze kube manje."
+
+#. {"msgid": ["Ukuze uqedele inhlolovo yakho ye-Lucid, chofoza inkinobho
+#. engezansi.", "Ukuze uqedele inhlolovo yakho kaLucid, chofoza inkinobho
+#. engezansi."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Ukuze uqedele inhlolovo yakho ye-Lucid, chofoza inkinobho engezansi."
+
+#. {"msgid": ["Ukuphela kokuhlolwa.", "Ukuphela kokulinga."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Ukuphela kokuhlolwa."
+
+#. {"msgid": ["Nokho, usazokhokhelwa isikhathi osuvele usichithile.", "Kodwa-
+#. ke, usazokhokhelwa isikhathi osusichithile kakade."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Nokho, usazokhokhelwa isikhathi osuvele usichithile."
+
+#. {"msgid": ["Ungakwazi ukuhoxisa isilingo usebenzisa inkinobho
+#. <strong>Yehosha isilingo</strong> <strong>ekhasini lesikhangiso le-
+#. MTurk</strong>.", "Ungakwazi ukuhoxisa isilingo usebenzisa inkinobho ethi
+#. <strong>Yeka ukuhosha</strong> <strong>ekhasini lesikhangiso se-
+#. MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Ungakwazi ukuhoxisa isilingo usebenzisa inkinobho <strong>Yehosha "
+"isilingo</strong> <strong>ekhasini lesikhangiso le-MTurk</strong>."
+
+#. {"msgid": ["Layisha kabusha ikhasi.", "Phinde ulayishe ikhasi."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Layisha kabusha ikhasi."
+
+#. {"msgid": ["Chofoza inkinobho uma usulungele ukuqhubeka nesilingo.",
+#. "Chofoza inkinobho lapho usulungele ukuqhubeka nokuhlolwa."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Chofoza inkinobho uma usulungele ukuqhubeka nesilingo."
+
+#. {"msgid": ["Usizo!", "Siza!", "Ngisize!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Usizo!"
+
+#. {"msgid": ["Ngeshwa lokhu kuziphatha akusekelwe okwamanje.", "Ngeshwa lokhu
+#. kuziphatha okwamanje akusekelwe."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Ngeshwa lokhu kuziphatha akusekelwe okwamanje."
+
+#. {"msgid": ["Bona imininingwane engezansi ngebhonasi yakho osuyiqongelele.",
+#. "Bona imininingwane engezansi mayelana nebhonasi yakho osuyiqongelele."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Bona imininingwane engezansi ngebhonasi yakho osuyiqongelele."
+
+#. {"msgid": ["Sicela usithinte kuphela uma unenkinga yokuthola inkokhelo
+#. yakho.", "Sicela uxhumane nathi kuphela uma unenkinga yokuthola inkokhelo
+#. yakho."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "Sicela usithinte kuphela uma unenkinga yokuthola inkokhelo yakho."
+
+#. {"msgid": ["Bona imininingwane engezansi ukuze uthole imininingwane
+#. yesinxephezelo sakho.", "Bona ulwazi olungezansi ukuze uthole imininingwane
+#. yesinxephezelo sakho."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+"Bona imininingwane engezansi ukuze uthole imininingwane yesinxephezelo "
+"sakho."
+
+#. {"msgid": ["Uma sesikhishiwe, asikho isidingo sokuxhumana nathi ukuze
+#. uthole isinxephezelo;", "Uma sesikhishwe isisu, asikho isidingo sokuxhumana
+#. nathi ukuze uthole isinxephezelo;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Uma sesikhishiwe, asikho isidingo sokuxhumana nathi ukuze uthole "
+"isinxephezelo;"
+
+#. {"msgid": ["Sicela futhi ucaphune imininingwane elandelayo:", "Sicela
+#. ucaphune futhi ulwazi olulandelayo:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Sicela futhi ucaphune imininingwane elandelayo:"
+
+#. {"msgid": ["Chofoza inkinobho engenhla ukuze unxeshezelwe uma kwenzeka
+#. iphutha.", "Chofoza inkinobho engenhla ukuze unxeshezelwe uma kuba
+#. nephutha."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Chofoza inkinobho engenhla ukuze unxeshezelwe uma kwenzeka iphutha."
+
+#. {"msgid": ["Hlola ukuthi uxhumano lwakho lwe-inthanethi luyasebenza.",
+#. "Hlola ukuthi ukuxhumeka kwakho kwe-inthanethi kuyasebenza."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Hlola ukuthi uxhumano lwakho lwe-inthanethi luyasebenza."
+
+#. {"msgid": ["Uma okungenhla kungasizi, sithumele i-imeyili enolwazi
+#. olulandelayo:", "Uma lokhu okungaphezulu kungasizi, sithumele i-imeyili
+#. enolwazi olulandelayo:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "Uma okungenhla kungasizi, sithumele i-imeyili enolwazi olulandelayo:"
+
+#. {"msgid": ["Isixhumanisi sekhasi lewebhu lamanje;", "Isixhumanisi ekhasini
+#. lamanje lewebhu;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Isixhumanisi sekhasi lewebhu lamanje;"
+
+#. {"msgid": ["Umazisi Wakho Womsebenzi;", "I-ID Yakho Yomsebenzi;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Umazisi Wakho Womsebenzi;"
+
+#. {"msgid": ["Inkinga obhekene nayo.", "Inkinga ohlangabezana nayo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Inkinga obhekene nayo."
+
+#. {"msgid": ["Qalisa kabusha", "Qhubeka"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Qalisa kabusha"

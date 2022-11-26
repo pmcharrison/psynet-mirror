@@ -1,0 +1,456 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:43+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: ET\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["H\u00fcvitise saamiseks peate koguma <strong>v\u00e4hemalt
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> boonust.", "H\u00fcvitamiseks
+#. peate koguma <strong>v\u00e4hemalt
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> boonust."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Hüvitise saamiseks peate koguma <strong>vähemalt "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> boonust."
+
+#. {"msgid": ["Kogunenud boonus", "Kogunenud lisatasu"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Kogunenud boonus"
+
+#. {"msgid": ["Sulge aken", "Sule aken", "Aken sulgeda"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Sulge aken"
+
+#. {"msgid": ["Katkesta katse", "Katkestage eksperiment"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Katkesta katse"
+
+#. {"msgid": ["T\u00e4ielik uuring", "T\u00e4itke k\u00fcsitlus"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Täielik uuring"
+
+#. {"msgid": ["Lisaks p\u00f5himaksele <strong>$%(BASE_PAYMENT)s</strong>
+#. saate katsele kulutatud aja eest boonust summas
+#. <strong>$%(BONUS)s</strong>.", "Lisaks <strong>$%(BASE_PAYMENT)s</strong>
+#. suurusele p\u00f5himaksele saate katsele kulutatud aja eest boonust summas
+#. <strong>$%(BONUS)s</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Lisaks põhimaksele <strong>$%(BASE_PAYMENT)s</strong> saate katsele "
+"kulutatud aja eest boonust summas <strong>$%(BONUS)s</strong>."
+
+#. {"msgid": ["Teile on antud ka <strong>$%(PERFORMANCE_BONUS)s</strong>
+#. suurune tulemusboonus!", "Olete saanud ka
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> suuruse tulemusboonuse!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Teile on antud ka <strong>$%(PERFORMANCE_BONUS)s</strong> suurune "
+"tulemusboonus!"
+
+#. {"msgid": ["HIT-i l\u00f5petamiseks kl\u00f5psake nuppu \"L\u00f5peta\".",
+#. "HIT-i l\u00f5puleviimiseks kl\u00f5psake \"L\u00f5peta\"."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "HIT-i lõpetamiseks klõpsake nuppu \"Lõpeta\"."
+
+#. {"msgid": ["L\u00f5petama", "L\u00f5peta", "Valmis"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Lõpetama"
+
+#. {"msgid": ["T\u00e4name osalemast.", "Ait\u00e4h, et osalesid."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Täname osalemast."
+
+#. {"msgid": ["Edasi", "J\u00e4rgmiseks"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Edasi"
+
+#. {"msgid": ["Kui see nii ei ole, v\u00f5tke meiega \u00fchendust aadressil
+#. %(EMAIL)s, tsiteerides j\u00e4rgmist teavet:", "Kui see pole nii,
+#. v\u00f5tke meiega \u00fchendust aadressil %(EMAIL)s, tsiteerides
+#. j\u00e4rgmist teavet:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Kui see nii ei ole, võtke meiega ühendust aadressil %(EMAIL)s, tsiteerides "
+"järgmist teavet:"
+
+#. {"msgid": ["H\u00fcvitise kohta k\u00fcsimiseks v\u00f5tke \u00fchendust
+#. uurijaga aadressil %(EMAIL)s ja kirjeldage, mis selle veani viis.",
+#. "H\u00fcvitise kohta k\u00fcsimiseks v\u00f5tke \u00fchendust teadlasega
+#. aadressil %(EMAIL)s ja kirjeldage, mis selle t\u00f5rkeni viis."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Hüvitise kohta küsimiseks võtke ühendust uurijaga aadressil %(EMAIL)s ja "
+"kirjeldage, mis selle veani viis."
+
+#. {"msgid": ["Katkesta katse", "Katkestage eksperiment"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Katkesta katse"
+
+#. {"msgid": ["Katse j\u00e4tkamine ...", "Eksperimendi j\u00e4tkamine..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Katse jätkamine ..."
+
+#. {"msgid": ["Katkestamine pole v\u00f5imalik.", "Katkestada ei ole
+#. v\u00f5imalik."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Katkestamine pole võimalik."
+
+#. {"msgid": ["Kas olete kindel, et soovite katse katkestada?", "Kas soovite
+#. katse kindlasti katkestada?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Kas olete kindel, et soovite katse katkestada?"
+
+#. {"msgid": ["Lucidi uuringu esitamine", "Lucidi k\u00fcsitluse esitamine"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucidi uuringu esitamine"
+
+#. {"msgid": ["N\u00f5usolek l\u00fckati tagasi.", "N\u00f5usolek keelduti."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Nõusolek lükati tagasi."
+
+#. {"msgid": ["See on katse l\u00f5pp!", "Sellega eksperiment l\u00f5ppes!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "See on katse lõpp!"
+
+#. {"msgid": ["Kahjuks peab katse l\u00f5ppema varakult.", "Kahjuks peab
+#. eksperiment varakult l\u00f5ppema."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Kahjuks peab katse lõppema varakult."
+
+#. {"msgid": ["Viga!", "T\u00f5rge!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Viga!"
+
+#. {"msgid": ["Katse alustamine...", "Eksperimendi alustamine ..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Katse alustamine..."
+
+#. {"msgid": ["Probleemi korral proovige j\u00e4rgmist.", "Probleemi
+#. ilmnemisel proovige j\u00e4rgmist."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Probleemi korral proovige järgmist."
+
+#. {"msgid": ["Oled sa valmis?", "Kas olete valmis?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Oled sa valmis?"
+
+#. {"msgid": ["Boonus", "boonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Boonus"
+
+#. {"msgid": ["Teie osaleja ID on m\u00e4\u00e4ramata, v\u00f5ib-olla
+#. seet\u00f5ttu, et vahetasite testi ajal brauserit.", "Teie osaleja ID on
+#. m\u00e4\u00e4ratlemata, v\u00f5ib-olla sellep\u00e4rast, et vahetasite
+#. testi ajal brauserit."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Teie osaleja ID on määramata, võib-olla seetõttu, et vahetasite testi ajal "
+"brauserit."
+
+#. {"msgid": ["Katse katkestamine ei ole v\u00f5imalik, kuna katsetaja ei luba
+#. seda praegu!", "Katse katkestamine ei ole v\u00f5imalik, kuna katsetaja
+#. seda praegu ei luba!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Katse katkestamine ei ole võimalik, kuna katsetaja ei luba seda praegu!"
+
+#. {"msgid": ["Kui kl\u00f5psate nuppu Katkesta, l\u00f5peb katse varem ja
+#. teile makstakse automaatselt v\u00e4lja seni teenitud h\u00fcvitis.", "Kui
+#. kl\u00f5psate nupul Katkesta, l\u00f5peb katse ennet\u00e4htaegselt ja
+#. teile makstakse automaatselt v\u00e4lja seni teenitud h\u00fcvitis."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Kui klõpsate nuppu Katkesta, lõpeb katse varem ja teile makstakse "
+"automaatselt välja seni teenitud hüvitis."
+
+#. {"msgid": ["Lucidi uuringu l\u00f5petamiseks kl\u00f5psake alloleval
+#. nupul.", "Lucidi k\u00fcsitluse l\u00f5petamiseks kl\u00f5psake alloleval
+#. nupul."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Lucidi uuringu lõpetamiseks klõpsake alloleval nupul."
+
+#. {"msgid": ["Eksperimendi l\u00f5pp.", "Katse l\u00f5pp."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Eksperimendi lõpp."
+
+#. {"msgid": ["Siiski makstakse teile ikkagi juba kulutatud aja eest.",
+#. "Sellegipoolest makstakse teile juba veedetud aja eest."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Siiski makstakse teile ikkagi juba kulutatud aja eest."
+
+#. {"msgid": ["V\u00f5imalik, et saate katse katkestada, kasutades nuppu
+#. <strong>Katkesta katse</strong> <strong>MTurki reklaamilehel</strong>.",
+#. "V\u00f5imalik, et saate katse katkestada, kasutades <strong>MTurki
+#. reklaamilehel</strong> olevat nuppu <strong>Katkesta katse</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Võimalik, et saate katse katkestada, kasutades nuppu <strong>Katkesta "
+"katse</strong> <strong>MTurki reklaamilehel</strong>."
+
+#. {"msgid": ["Laadi leht uuesti.", "Laadige lehek\u00fclg uuesti."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Laadi leht uuesti."
+
+#. {"msgid": ["Kui olete katse j\u00e4tkamiseks valmis, kl\u00f5psake nuppu.",
+#. "Kl\u00f5psake nuppu, kui olete katse j\u00e4tkamiseks valmis."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Kui olete katse jätkamiseks valmis, klõpsake nuppu."
+
+#. {"msgid": ["Aidake!", "Abi!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Aidake!"
+
+#. {"msgid": ["Kahjuks seda k\u00e4itumist praegu ei toetata.", "Kahjuks ei
+#. toetata seda k\u00e4itumist praegu."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Kahjuks seda käitumist praegu ei toetata."
+
+#. {"msgid": ["Vaadake allpool teavet oma hetkel kogutud boonuse kohta.",
+#. "Vaadake allpool teavet oma praegu kogutud boonuse kohta."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Vaadake allpool teavet oma hetkel kogutud boonuse kohta."
+
+#. {"msgid": ["V\u00f5tke meiega \u00fchendust ainult siis, kui teil on
+#. probleeme makse k\u00e4ttesaamisega.", "Palun v\u00f5tke meiega
+#. \u00fchendust ainult siis, kui teil on makse k\u00e4ttesaamisega
+#. probleeme."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Võtke meiega ühendust ainult siis, kui teil on probleeme makse "
+"kättesaamisega."
+
+#. {"msgid": ["H\u00fcvitise \u00fcksikasjade kohta vaadake allolevat
+#. teavet.", "Oma h\u00fcvitise \u00fcksikasjade saamiseks vaadake allolevat
+#. teavet."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Hüvitise üksikasjade kohta vaadake allolevat teavet."
+
+#. {"msgid": ["P\u00e4rast katkestamist ei pea h\u00fcvitise saamiseks meiega
+#. \u00fchendust v\u00f5tma;", "P\u00e4rast katkestamist ei ole h\u00fcvitise
+#. saamiseks enam vaja meiega \u00fchendust v\u00f5tta;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "Pärast katkestamist ei pea hüvitise saamiseks meiega ühendust võtma;"
+
+#. {"msgid": ["Palun tsiteerida ka j\u00e4rgmist teavet:", "Tsiteerige ka
+#. j\u00e4rgmist teavet:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Palun tsiteerida ka järgmist teavet:"
+
+#. {"msgid": ["Vea korral h\u00fcvitise saamiseks kl\u00f5psake
+#. \u00fclaltoodud nuppu.", "Vea korral kompensatsiooni saamiseks
+#. kl\u00f5psake \u00fclaltoodud nuppu."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Vea korral hüvitise saamiseks klõpsake ülaltoodud nuppu."
+
+#. {"msgid": ["Kontrollige, kas teie Interneti-\u00fchendus
+#. t\u00f6\u00f6tab.", "Kontrollige, kas Interneti-\u00fchendus
+#. t\u00f6\u00f6tab."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Kontrollige, kas teie Interneti-ühendus töötab."
+
+#. {"msgid": ["Kui \u00fclaltoodu ei aita, saatke meile e-kiri j\u00e4rgmise
+#. teabega:", "Kui \u00fclaltoodu ei aita, saatke meile j\u00e4rgmise teabega
+#. e-kiri:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "Kui ülaltoodu ei aita, saatke meile e-kiri järgmise teabega:"
+
+#. {"msgid": ["link praegusele veebilehele;", "link aktiivsele veebilehele;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "link praegusele veebilehele;"
+
+#. {"msgid": ["teie t\u00f6\u00f6taja ID;", "Teie t\u00f6\u00f6taja ID"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "teie töötaja ID;"
+
+#. {"msgid": ["Probleem, mida kogete.", "Probleem, millega te kokku
+#. puutute."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Probleem, mida kogete."
+
+#. {"msgid": ["J\u00e4tka", "J\u00e4tkata"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Jätka"

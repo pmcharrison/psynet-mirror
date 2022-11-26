@@ -1,0 +1,458 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:27+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: NY\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Muyenera kudziunjikira <strong>osachepera
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ya bonasi kuti mutha
+#. kulipidwa.", "Mukuyenera kudziunjikira <strong>osachepera
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ya bonasi kuti
+#. mudzalipidwe."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Muyenera kudziunjikira <strong>osachepera "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ya bonasi kuti mutha "
+"kulipidwa."
+
+#. {"msgid": ["Anasonkhanitsa bonasi", "Bonasi anasonkhanitsa"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Anasonkhanitsa bonasi"
+
+#. {"msgid": ["Tsekani zenera", "Tsekani zeno"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Tsekani zenera"
+
+#. {"msgid": ["Chotsani kuyesa", "Lekani kuyesa"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Chotsani kuyesa"
+
+#. {"msgid": ["Kafukufuku Wathunthu", "Full Survey"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Kafukufuku Wathunthu"
+
+#. {"msgid": ["Kuwonjezera pa malipiro anu oyambirira a
+#. <strong>$%(BASE_PAYMENT)s</strong> mudzalandira bonasi ya
+#. <strong>$%(BONUS)s</strong> pa nthawi yomwe mudakhala mukuyesa.",
+#. "Kuphatikiza pa malipiro anu oyambira <strong>$%(BASE_PAYMENT)s</strong>
+#. mudzalandira bonasi ya <strong>$%(BONUS)s</strong> pa nthawi yomwe
+#. mudakhala poyesera."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Kuwonjezera pa malipiro anu oyambirira a <strong>$%(BASE_PAYMENT)s</strong> "
+"mudzalandira bonasi ya <strong>$%(BONUS)s</strong> pa nthawi yomwe mudakhala"
+" mukuyesa."
+
+#. {"msgid": ["Mwapatsidwanso bonasi yakuchita
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Mwapatsidwanso bonasi yochita
+#. bwino <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Mwapatsidwanso bonasi yakuchita <strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Chonde dinani \"Malizani\" kuti mumalize HIT.", "Chonde dinani
+#. \"Malizani\" kuti mumalize kuHITIKA."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Chonde dinani \"Malizani\" kuti mumalize HIT."
+
+#. {"msgid": ["Malizitsani", "Kumaliza"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Malizitsani"
+
+#. {"msgid": ["Zikomo potenga nawo gawo.", "Zikomo chifukwa chotenga nawo
+#. mbali."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Zikomo potenga nawo gawo."
+
+#. {"msgid": ["Ena", "Kenako", "Chotsatira"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Ena"
+
+#. {"msgid": ["Ngati sizili choncho, chonde titumizireni pa %(EMAIL)s potchula
+#. izi:", "Ngati sizili choncho, chonde titumizireni pa %(EMAIL)s potchula
+#. mfundo zotsatirazi:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "Ngati sizili choncho, chonde titumizireni pa %(EMAIL)s potchula izi:"
+
+#. {"msgid": ["Kuti mudziwe za chipukuta misozi, chonde funsani wofufuza pa
+#. %(EMAIL)s ndikufotokozera chomwe chapangitsa kuti izi zikhale zolakwika.",
+#. "Kuti mudziwe za chipukuta misozi, chonde funsani wofufuzayo pa %(EMAIL)s
+#. ndikufotokozera chomwe chapangitsa kuti izi zikhale zovuta."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Kuti mudziwe za chipukuta misozi, chonde funsani wofufuza pa %(EMAIL)s "
+"ndikufotokozera chomwe chapangitsa kuti izi zikhale zolakwika."
+
+#. {"msgid": ["Chotsani Kuyesa", "Chotsani Choyesera"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Chotsani Kuyesa"
+
+#. {"msgid": ["Kuyambiranso kuyesa...", "Ikuyambiranso kuyesa ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Kuyambiranso kuyesa..."
+
+#. {"msgid": ["Kuchotsa mimba sikutheka.", "Kuchotsa mimba sizingatheke."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Kuchotsa mimba sikutheka."
+
+#. {"msgid": ["Mukutsimikiza kuti mukufuna kusiya kuyesa?", "Kodi
+#. mukutsimikiza kuti mukufuna kusiya kuyesako?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Mukutsimikiza kuti mukufuna kusiya kuyesa?"
+
+#. {"msgid": ["Lucid Survey Kugonjera", "Kugonjera kwa Lucid Survey"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid Survey Kugonjera"
+
+#. {"msgid": ["Chilolezo chinakanidwa.", "Kuvomera kudakanidwa."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Chilolezo chinakanidwa."
+
+#. {"msgid": ["Ndiko kutha kwa kuyesa!", "Ndiwo mapeto a kuyesa!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Ndiko kutha kwa kuyesa!"
+
+#. {"msgid": ["Tsoka ilo kuyesa kuyenera kutha msanga.", "Tsoka ilo, kuyesaku
+#. kuyenera kutha msanga."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Tsoka ilo kuyesa kuyenera kutha msanga."
+
+#. {"msgid": ["Zolakwika!", "Zolakwa!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Zolakwika!"
+
+#. {"msgid": ["Kuyamba kuyesa...", "Kuyambitsa kuyesa..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Kuyamba kuyesa..."
+
+#. {"msgid": ["Pakavuta, yesani zotsatirazi:", "Pakavuta, yesani kutsatira
+#. zotsatirazi:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Pakavuta, yesani zotsatirazi:"
+
+#. {"msgid": ["Mwakonzeka?", "Kodi mwakonzeka?", "Kodi ndinu okonzeka?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Mwakonzeka?"
+
+#. {"msgid": ["Bonasi", "bonasi"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonasi"
+
+#. {"msgid": ["Chidziwitso cha otenga nawo mbali sichidziwika, mwina chifukwa
+#. mudasintha asakatuli panthawi ya mayeso.", "Chidziwitso cha otenga nawo
+#. mbali sichidziwika, mwina chifukwa mudasintha asakatuli panthawi
+#. yoyeserera."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Chidziwitso cha otenga nawo mbali sichidziwika, mwina chifukwa mudasintha "
+"asakatuli panthawi ya mayeso."
+
+#. {"msgid": ["Kuchotsa kuyesa sikutheka chifukwa woyesera sakulola
+#. panthawiyi!", "Kuchotsa kuyesa sikungatheke chifukwa woyesera sakulola
+#. pakali pano!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr "Kuchotsa kuyesa sikutheka chifukwa woyesera sakulola panthawiyi!"
+
+#. {"msgid": ["Mukadina batani la Chotsani, kuyesako kutha msanga, ndipo
+#. mudzalipidwa zokha zomwe mwapeza mpaka pano.", "Mukadina batani la
+#. Chotsani, kuyesako kutha msanga, ndipo mudzalipidwa basi chipukuta misozi
+#. chomwe mwapeza mpaka pano."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Mukadina batani la Chotsani, kuyesako kutha msanga, ndipo mudzalipidwa zokha"
+" zomwe mwapeza mpaka pano."
+
+#. {"msgid": ["Kuti mumalize Kafukufuku wanu wa Lucid, dinani batani
+#. pansipa.", "Kuti mumalize Kafukufuku wanu wa Lucid, dinani batani lomwe
+#. lili pansipa."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Kuti mumalize Kafukufuku wanu wa Lucid, dinani batani pansipa."
+
+#. {"msgid": ["Kutha kwa kuyesa.", "Mapeto akuyesera."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Kutha kwa kuyesa."
+
+#. {"msgid": ["Komabe, mudzalipidwabe pa nthawi yomwe mudakhala kale.",
+#. "Komabe, mudzalipidwabe chifukwa cha nthawi yomwe mudakhala kale."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Komabe, mudzalipidwabe pa nthawi yomwe mudakhala kale."
+
+#. {"msgid": ["Mutha kusiya kuyesa pogwiritsa ntchito batani la
+#. <strong>Abortion</strong> <strong>pa tsamba la malonda la MTurk</strong>.",
+#. "Mutha kuletsa kuyesa pogwiritsa ntchito batani la
+#. <strong>Abortion</strong> <strong>patsamba la malonda la MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Mutha kusiya kuyesa pogwiritsa ntchito batani la <strong>Abortion</strong> "
+"<strong>pa tsamba la malonda la MTurk</strong>."
+
+#. {"msgid": ["Tsitsaninso tsambali.", "Kwezaninso tsambali."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Tsitsaninso tsambali."
+
+#. {"msgid": ["Dinani batani pamene mwakonzeka kupitiriza kuyesa.", "Dinani
+#. batani mukakonzeka kupitiliza kuyesa."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Dinani batani pamene mwakonzeka kupitiriza kuyesa."
+
+#. {"msgid": ["Thandizeni!", "Thandizani!", "Chithandizo!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Thandizeni!"
+
+#. {"msgid": ["Tsoka ilo khalidweli silikuthandizidwa pano.", "Tsoka ilo,
+#. khalidweli silinagwiritsidwe ntchito pano."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Tsoka ilo khalidweli silikuthandizidwa pano."
+
+#. {"msgid": ["Onani pansipa zambiri za bonasi yomwe mwapeza pano.", "Onani
+#. m'munsimu zambiri za bonasi yomwe mwapeza panopa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Onani pansipa zambiri za bonasi yomwe mwapeza pano."
+
+#. {"msgid": ["Chonde tingolumikizanani nafe ngati muli ndi vuto kulandira
+#. malipiro anu.", "Chonde tingolumikizanani nafe ngati muli ndi vuto
+#. kulandira ndalama zanu."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Chonde tingolumikizanani nafe ngati muli ndi vuto kulandira malipiro anu."
+
+#. {"msgid": ["Onani zambiri pansipa kuti mumve zambiri za chipukuta misozi
+#. chanu.", "Onani zambiri pansipa kuti mudziwe zambiri za chipukuta
+#. misozi."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Onani zambiri pansipa kuti mumve zambiri za chipukuta misozi chanu."
+
+#. {"msgid": ["Akangochotsa mimba, palibe chifukwa cholumikizana nafe kuti
+#. tilandire chipukuta misozi;", "Akangochotsedwa mimba, palibe chifukwa
+#. cholankhulana nafe kuti tilandire chipukuta misozi;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Akangochotsa mimba, palibe chifukwa cholumikizana nafe kuti tilandire "
+"chipukuta misozi;"
+
+#. {"msgid": ["Chonde tchulaninso izi:", "Chonde tchulaninso mfundo
+#. zotsatirazi:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Chonde tchulaninso izi:"
+
+#. {"msgid": ["Dinani batani lomwe lili pamwambapa kuti mulipidwe ngati
+#. pachitika cholakwika.", "Dinani batani lomwe lili pamwambapa kuti mulipidwe
+#. pakagwa vuto."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Dinani batani lomwe lili pamwambapa kuti mulipidwe ngati pachitika "
+"cholakwika."
+
+#. {"msgid": ["Onetsetsani kuti intaneti yanu ikugwira ntchito.", "Chongani
+#. ngati intaneti yanu ikugwira ntchito."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Onetsetsani kuti intaneti yanu ikugwira ntchito."
+
+#. {"msgid": ["Ngati zomwe zili pamwambazi sizikuthandizani, titumizireni
+#. imelo yokhala ndi izi:", "Ngati zomwe zili pamwambazi sizikuthandizani,
+#. titumizireni imelo ndi izi:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Ngati zomwe zili pamwambazi sizikuthandizani, titumizireni imelo yokhala ndi"
+" izi:"
+
+#. {"msgid": ["Ulalo wopita patsamba lapano;", "Ulalo watsamba lawebusayiti
+#. lomwe lilipo;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Ulalo wopita patsamba lapano;"
+
+#. {"msgid": ["ID Yanu Yantchito;", "ID Yanu Yogwirira Ntchito;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ID Yanu Yantchito;"
+
+#. {"msgid": ["Vuto lomwe mukukumana nalo.", "Vuto mukukumana nalo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Vuto lomwe mukukumana nalo."
+
+#. {"msgid": ["Pitilizani", "Yambitsaninso", "Yambiraninso"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Pitilizani"

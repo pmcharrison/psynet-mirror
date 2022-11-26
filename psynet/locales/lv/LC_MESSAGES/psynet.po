@@ -1,0 +1,493 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:52+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: LV\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Lai sa\u0146emtu kompens\u0101ciju, jums ir j\u0101uzkr\u0101j
+#. <strong>vismaz $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusa.", "Lai
+#. var\u0113tu sa\u0146emt kompens\u0101ciju, jums ir j\u0101uzkr\u0101j
+#. <strong>vismaz $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Lai saņemtu kompensāciju, jums ir jāuzkrāj <strong>vismaz "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusa."
+
+#. {"msgid": ["Uzkr\u0101tais bonuss", "Uzkr\u0101t\u0101 pr\u0113mija"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Uzkrātais bonuss"
+
+#. {"msgid": ["Aizver logu", "Aiztaisi logu", "Aizveriet logu", "Aizv\u0113rt
+#. logu"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Aizver logu"
+
+#. {"msgid": ["P\u0101rtraukt eksperimentu", "P\u0101rtrauciet eksperimentu"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Pārtraukt eksperimentu"
+
+#. {"msgid": ["Pabeigt aptauju", "Aizpildiet aptauju"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Pabeigt aptauju"
+
+#. {"msgid": ["Papildus pamata maks\u0101jumam
+#. <strong>$%(BASE_PAYMENT)s</strong> j\u016bs sa\u0146emsiet bonusu
+#. <strong>$%(BONUS)s</strong> apm\u0113r\u0101 par eksperiment\u0101
+#. pavad\u012bto laiku.", "Papildus pamatmaks\u0101jumam
+#. <strong>$%(BASE_PAYMENT)s</strong> j\u016bs sa\u0146emsiet bonusu
+#. <strong>$%(BONUS)s</strong> par eksperiment\u0101 pavad\u012bto laiku."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Papildus pamata maksājumam <strong>$%(BASE_PAYMENT)s</strong> jūs saņemsiet "
+"bonusu <strong>$%(BONUS)s</strong> apmērā par eksperimentā pavadīto laiku."
+
+#. {"msgid": ["Jums ir ar\u012b pie\u0161\u0137irts darb\u012bbas bonuss
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> apm\u0113r\u0101!", "Jums ir
+#. ar\u012b pie\u0161\u0137irts veiktsp\u0113jas bonuss
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> apm\u0113r\u0101!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Jums ir arī piešķirts darbības bonuss "
+"<strong>$%(PERFORMANCE_BONUS)s</strong> apmērā!"
+
+#. {"msgid": ["L\u016bdzu, noklik\u0161\u0137iniet uz \"Pabeigt\", lai
+#. pabeigtu HIT.", "Lai pabeigtu HIT, l\u016bdzu, noklik\u0161\u0137iniet uz
+#. \"Pabeigt\"."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Lūdzu, noklikšķiniet uz \"Pabeigt\", lai pabeigtu HIT."
+
+#. {"msgid": ["Pabeigt", "Finish"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Pabeigt"
+
+#. {"msgid": ["Paldies, ka piedal\u012bj\u0101ties.", "Paldies par
+#. dal\u012bbu."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Paldies, ka piedalījāties."
+
+#. {"msgid": ["N\u0101kamais", "T\u0101l\u0101k"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Nākamais"
+
+#. {"msgid": ["Ja tas t\u0101 nav, l\u016bdzu, sazinieties ar mums uz
+#. %(EMAIL)s, nor\u0101dot \u0161\u0101du inform\u0101ciju:", "Ja tas t\u0101
+#. nav, l\u016bdzu, sazinieties ar mums pa e-pasta adresi %(EMAIL)s,
+#. nor\u0101dot \u0161\u0101du inform\u0101ciju:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Ja tas tā nav, lūdzu, sazinieties ar mums uz %(EMAIL)s, norādot šādu "
+"informāciju:"
+
+#. {"msgid": ["Lai uzzin\u0101tu par kompens\u0101ciju, l\u016bdzu,
+#. sazinieties ar p\u0113tnieku pa e-pastu %(EMAIL)s un aprakstiet, kas
+#. izrais\u012bja \u0161o k\u013c\u016bdu.", "Lai uzzin\u0101tu par
+#. kompens\u0101ciju, l\u016bdzu, sazinieties ar p\u0113tnieku, izmantojot
+#. e-pasta adresi %(EMAIL)s, un aprakstiet, kas izrais\u012bja \u0161o
+#. k\u013c\u016bdu."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Lai uzzinātu par kompensāciju, lūdzu, sazinieties ar pētnieku pa e-pastu "
+"%(EMAIL)s un aprakstiet, kas izraisīja šo kļūdu."
+
+#. {"msgid": ["P\u0101rtraukt eksperimentu", "Eksperimenta
+#. p\u0101rtrauk\u0161ana"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Pārtraukt eksperimentu"
+
+#. {"msgid": ["Eksperimenta ats\u0101k\u0161ana...", "Ats\u0101k
+#. eksperimentu..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Eksperimenta atsākšana..."
+
+#. {"msgid": ["P\u0101rtrauk\u0161ana nav iesp\u0113jama.", "Aborts nav
+#. iesp\u0113jams."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Pārtraukšana nav iespējama."
+
+#. {"msgid": ["Vai tie\u0161\u0101m v\u0113laties p\u0101rtraukt
+#. eksperimentu?", "Vai tie\u0161\u0101m v\u0113laties p\u0101rtraukt \u0161o
+#. eksperimentu?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Vai tiešām vēlaties pārtraukt eksperimentu?"
+
+#. {"msgid": ["Lucid aptaujas iesnieg\u0161ana", "Lucid Survey
+#. iesnieg\u0161ana"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid aptaujas iesniegšana"
+
+#. {"msgid": ["Piekri\u0161ana tika noraid\u012bta.", "Piekri\u0161ana tika
+#. atteikta."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Piekrišana tika noraidīta."
+
+#. {"msgid": ["Ar to eksperiments beidzas!", "Ar to eksperiments ir
+#. beigusies!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Ar to eksperiments beidzas!"
+
+#. {"msgid": ["Diem\u017e\u0113l eksperimentam ir j\u0101beidzas agri.",
+#. "Diem\u017e\u0113l eksperiments j\u0101beidz agri."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Diemžēl eksperimentam ir jābeidzas agri."
+
+#. {"msgid": ["K\u013c\u016bda!", "K\u013c\u016bda"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Kļūda!"
+
+#. {"msgid": ["S\u0101k eksperimentu...", "Notiek eksperimenta
+#. s\u0101k\u0161ana..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Sāk eksperimentu..."
+
+#. {"msgid": ["Ja rodas probl\u0113ma, izm\u0113\u0123iniet t\u0101l\u0101k
+#. nor\u0101d\u012bt\u0101s darb\u012bbas.", "Probl\u0113mas
+#. gad\u012bjum\u0101 m\u0113\u0123iniet veikt \u0161\u0101das
+#. darb\u012bbas:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Ja rodas problēma, izmēģiniet tālāk norādītās darbības."
+
+#. {"msgid": ["Vai tu esi gatavs?", "Vai esat gatavs?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Vai tu esi gatavs?"
+
+#. {"msgid": ["Bonuss", "Bonusu"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonuss"
+
+#. {"msgid": ["J\u016bsu dal\u012bbnieka\u00a0ID nav defin\u0113ts,
+#. iesp\u0113jams, t\u0101p\u0113c, ka p\u0101rbaudes laik\u0101
+#. main\u012bj\u0101t p\u0101rl\u016bkprogrammu.", "J\u016bsu dal\u012bbnieka
+#. ID nav defin\u0113ts, iesp\u0113jams, t\u0101p\u0113c, ka testa laik\u0101
+#. main\u012bj\u0101t p\u0101rl\u016bkprogrammu."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Jūsu dalībnieka ID nav definēts, iespējams, tāpēc, ka pārbaudes laikā "
+"mainījāt pārlūkprogrammu."
+
+#. {"msgid": ["Eksperimenta p\u0101rtrauk\u0161ana nav iesp\u0113jama, jo
+#. eksperiment\u0113t\u0101js \u0161obr\u012bd to ne\u013cauj!", "Eksperimenta
+#. p\u0101rtrauk\u0161ana nav iesp\u0113jama, jo eksperiment\u0113t\u0101js
+#. pa\u0161laik to neat\u013cauj!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Eksperimenta pārtraukšana nav iespējama, jo eksperimentētājs šobrīd to "
+"neļauj!"
+
+#. {"msgid": ["Ja noklik\u0161\u0137in\u0101siet uz pogas P\u0101rtraukt,
+#. eksperiments beigsies priek\u0161laic\u012bgi un jums autom\u0101tiski tiks
+#. izmaks\u0101ta l\u012bdz \u0161im nopeln\u012bt\u0101 kompens\u0101cija.",
+#. "Ja noklik\u0161\u0137in\u0101sit uz pogas P\u0101rtraukt, eksperiments
+#. beigsies priek\u0161laic\u012bgi, un jums tiks autom\u0101tiski
+#. izmaks\u0101ta l\u012bdz \u0161im nopeln\u012bt\u0101 kompens\u0101cija."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Ja noklikšķināsiet uz pogas Pārtraukt, eksperiments beigsies priekšlaicīgi "
+"un jums automātiski tiks izmaksāta līdz šim nopelnītā kompensācija."
+
+#. {"msgid": ["Lai pabeigtu Lucid aptauju, noklik\u0161\u0137iniet uz
+#. t\u0101l\u0101k eso\u0161\u0101s pogas.", "Lai pabeigtu Lucid Survey,
+#. noklik\u0161\u0137iniet uz t\u0101l\u0101k eso\u0161\u0101s pogas."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Lai pabeigtu Lucid aptauju, noklikšķiniet uz tālāk esošās pogas."
+
+#. {"msgid": ["Eksperimenta beigas.", "Eksperimenta nosl\u0113gums."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Eksperimenta beigas."
+
+#. {"msgid": ["Tom\u0113r jums joproj\u0101m tiks samaks\u0101ts par jau
+#. pavad\u012bto laiku.", "Tom\u0113r jums joproj\u0101m maks\u0101s par jau
+#. pavad\u012bto laiku."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Tomēr jums joprojām tiks samaksāts par jau pavadīto laiku."
+
+#. {"msgid": ["Iesp\u0113jams, varat p\u0101rtraukt eksperimentu, izmantojot
+#. pogu <strong>P\u0101rtraukt eksperimentu</strong> <strong>MTurk
+#. rekl\u0101mu lap\u0101</strong>.", "Eksperimentu var p\u0101rtraukt,
+#. izmantojot pogu <strong>P\u0101rtraukt eksperimentu</strong> <strong>MTurk
+#. rekl\u0101mu lap\u0101</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Iespējams, varat pārtraukt eksperimentu, izmantojot pogu <strong>Pārtraukt "
+"eksperimentu</strong> <strong>MTurk reklāmu lapā</strong>."
+
+#. {"msgid": ["P\u0101rl\u0101d\u0113t lapu.", "Atk\u0101rtoti
+#. iel\u0101d\u0113jiet lapu."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Pārlādēt lapu."
+
+#. {"msgid": ["Noklik\u0161\u0137iniet uz pogas, kad esat gatavs turpin\u0101t
+#. eksperimentu.", "Kad esat gatavs turpin\u0101t eksperimentu,
+#. noklik\u0161\u0137iniet uz pogas."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Noklikšķiniet uz pogas, kad esat gatavs turpināt eksperimentu."
+
+#. {"msgid": ["Pal\u012bdziet!", "Pal\u012bdz\u012bba!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Palīdziet!"
+
+#. {"msgid": ["Diem\u017e\u0113l \u0161\u012b r\u012bc\u012bba pa\u0161laik
+#. netiek atbalst\u012bta.", "Diem\u017e\u0113l \u0161\u012b uzved\u012bba
+#. pa\u0161laik netiek atbalst\u012bta."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Diemžēl šī rīcība pašlaik netiek atbalstīta."
+
+#. {"msgid": ["Skatiet zem\u0101k inform\u0101ciju par savu pa\u0161laik
+#. uzkr\u0101to bonusu.", "Zem\u0101k skatiet inform\u0101ciju par j\u016bsu
+#. pa\u0161laik uzkr\u0101to bonusu."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Skatiet zemāk informāciju par savu pašlaik uzkrāto bonusu."
+
+#. {"msgid": ["L\u016bdzu, sazinieties ar mums tikai tad, ja jums ir
+#. probl\u0113mas ar maks\u0101juma sa\u0146em\u0161anu.", "L\u016bdzu,
+#. sazinieties ar mums tikai tad, ja jums ir gr\u016bt\u012bbas sa\u0146emt
+#. maks\u0101jumu."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Lūdzu, sazinieties ar mums tikai tad, ja jums ir problēmas ar maksājuma "
+"saņemšanu."
+
+#. {"msgid": ["S\u012bk\u0101ku inform\u0101ciju par kompens\u0101ciju skatiet
+#. t\u0101l\u0101k sniegtaj\u0101 inform\u0101cij\u0101.", "Skatiet
+#. t\u0101l\u0101k sniegto inform\u0101ciju, lai ieg\u016btu s\u012bk\u0101ku
+#. inform\u0101ciju par j\u016bsu kompens\u0101ciju."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+"Sīkāku informāciju par kompensāciju skatiet tālāk sniegtajā informācijā."
+
+#. {"msgid": ["P\u0113c aborta nav j\u0101sazin\u0101s ar mums, lai
+#. sa\u0146emtu kompens\u0101ciju;", "P\u0113c aborta nav nepiecie\u0161ams
+#. sazin\u0101ties ar mums, lai sa\u0146emtu kompens\u0101ciju;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "Pēc aborta nav jāsazinās ar mums, lai saņemtu kompensāciju;"
+
+#. {"msgid": ["L\u016bdzu, cit\u0113jiet ar\u012b \u0161\u0101du
+#. inform\u0101ciju:", "L\u016bdzu, nosauciet ar\u012b \u0161\u0101du
+#. inform\u0101ciju:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Lūdzu, citējiet arī šādu informāciju:"
+
+#. {"msgid": ["Noklik\u0161\u0137iniet uz iepriek\u0161 eso\u0161\u0101s
+#. pogas, lai k\u013c\u016bdas gad\u012bjum\u0101 sa\u0146emtu
+#. atl\u012bdz\u012bbu.", "Noklik\u0161\u0137iniet uz augst\u0101k
+#. eso\u0161\u0101s pogas, lai k\u013c\u016bdas gad\u012bjum\u0101
+#. sa\u0146emtu kompens\u0101ciju."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Noklikšķiniet uz iepriekš esošās pogas, lai kļūdas gadījumā saņemtu "
+"atlīdzību."
+
+#. {"msgid": ["P\u0101rbaudiet, vai interneta savienojums darbojas.",
+#. "P\u0101rbaudiet, vai darbojas j\u016bsu interneta savienojums."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Pārbaudiet, vai interneta savienojums darbojas."
+
+#. {"msgid": ["Ja iepriek\u0161min\u0113tais nepal\u012bdz, nos\u016btiet mums
+#. e-pastu ar \u0161\u0101du inform\u0101ciju:", "Ja
+#. iepriek\u0161min\u0113tais nepal\u012bdz, nos\u016btiet mums e-pasta
+#. zi\u0146ojumu ar \u0161\u0101du inform\u0101ciju:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Ja iepriekšminētais nepalīdz, nosūtiet mums e-pastu ar šādu informāciju:"
+
+#. {"msgid": ["Saite uz pa\u0161reiz\u0113jo t\u012bmek\u013ca lapu;", "Saite
+#. uz pa\u0161reiz\u0113jo Web lapu;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Saite uz pašreizējo tīmekļa lapu;"
+
+#. {"msgid": ["J\u016bsu darbinieka ID;", "J\u016bsu darba
+#. \u0146\u0113m\u0113ja ID;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Jūsu darbinieka ID;"
+
+#. {"msgid": ["Probl\u0113ma, ar kuru j\u016bs saskaraties.", "Probl\u0113ma,
+#. ar kuru saskaras."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Problēma, ar kuru jūs saskaraties."
+
+#. {"msgid": ["Turpin\u0101t", "Ats\u0101kt", "Resume"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Turpināt"

@@ -1,0 +1,634 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:25+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: AR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\u0627\u0644\u0645\u0643\u0627\u0641\u0623\u0629
+#. \u0627\u0644\u0645\u062a\u0631\u0627\u0643\u0645\u0629",
+#. "\u0645\u0643\u0627\u0641\u0623\u0629
+#. \u062a\u0631\u0627\u0643\u0645\u064a\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "المكافأة المتراكمة"
+
+#. {"msgid": ["\u0623\u063a\u0644\u0642
+#. \u0627\u0644\u0646\u0627\u0641\u0630\u0629",
+#. "\u0625\u063a\u0644\u0627\u0642
+#. \u0627\u0644\u0646\u0627\u0641\u0630\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "أغلق النافذة"
+
+#. {"msgid": ["\u0625\u062c\u0647\u0627\u0636
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629",
+#. "\u0625\u062d\u0628\u0627\u0637 \u062a\u062c\u0631\u0628\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "إجهاض التجربة"
+
+#. {"msgid": ["\u0645\u0633\u062d \u0643\u0627\u0645\u0644",
+#. "\u0627\u0633\u062a\u0628\u064a\u0627\u0646 \u0643\u0627\u0645\u0644"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "مسح كامل"
+
+#. {"msgid": ["\u0627\u0644\u0631\u062c\u0627\u0621
+#. \u0627\u0644\u0646\u0642\u0631 \u0641\u0648\u0642
+#. \"\u0625\u0646\u0647\u0627\u0621\" \u0644\u0625\u0643\u0645\u0627\u0644
+#. HIT.", "\u0627\u0644\u0631\u062c\u0627\u0621 \u0627\u0644\u0646\u0642\u0631
+#. \u0641\u0648\u0642 \"\u0625\u0646\u0647\u0627\u0621\"
+#. \u0644\u0625\u0643\u0645\u0627\u0644
+#. \u0627\u0644\u0636\u0631\u0628\u0629."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "الرجاء النقر فوق \"إنهاء\" لإكمال HIT."
+
+#. {"msgid": ["\u0625\u0646\u0647\u0627\u0621", "\u064a\u0646\u0647\u064a",
+#. "\u0627\u0644\u0646\u0647\u0627\u064a\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "إنهاء"
+
+#. {"msgid": ["\u0634\u0643\u0631\u0627 \u0644\u0643 \u0639\u0644\u0649
+#. \u0627\u0644\u0645\u0634\u0627\u0631\u0643\u0629.",
+#. "\u0634\u0643\u0631\u0627 \u0644\u0643
+#. \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "شكرا لك على المشاركة."
+
+#. {"msgid": ["\u0627\u0644\u062a\u0627\u0644\u064a",
+#. "\u0627\u0644\u062a\u0627\u0644\u0649", "\u0628\u0639\u062f
+#. \u0630\u0644\u0643"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "التالي"
+
+#. {"msgid": ["\u0625\u062d\u0628\u0627\u0637
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629",
+#. "\u0625\u062c\u0647\u0627\u0636
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "إحباط التجربة"
+
+#. {"msgid": ["\u062c\u0627\u0631\u064d
+#. \u0627\u0633\u062a\u0626\u0646\u0627\u0641
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629 ...",
+#. "\u0627\u0633\u062a\u0626\u0646\u0627\u0641
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629 ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "جارٍ استئناف التجربة ..."
+
+#. {"msgid": ["\u0627\u0644\u0625\u062c\u0647\u0627\u0636 \u063a\u064a\u0631
+#. \u0645\u0645\u0643\u0646.", "\u0644\u0627 \u064a\u0645\u0643\u0646
+#. \u0627\u0644\u0625\u062c\u0647\u0627\u0636."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "الإجهاض غير ممكن."
+
+#. {"msgid": ["\u0647\u0644 \u0623\u0646\u062a \u0645\u062a\u0623\u0643\u062f
+#. \u0623\u0646\u0643 \u062a\u0631\u064a\u062f \u0625\u062c\u0647\u0627\u0636
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629\u061f", "\u0647\u0644
+#. \u0623\u0646\u062a \u0645\u062a\u0623\u0643\u062f \u0623\u0646\u0643
+#. \u062a\u0631\u064a\u062f \u0625\u062c\u0647\u0627\u0636 \u0647\u0630\u0647
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629\u061f"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "هل أنت متأكد أنك تريد إجهاض التجربة؟"
+
+#. {"msgid": ["\u062a\u0642\u062f\u064a\u0645 \u0645\u0633\u062d
+#. \u0648\u0627\u0636\u062d", "\u062a\u0642\u062f\u064a\u0645
+#. \u0627\u0633\u062a\u0628\u064a\u0627\u0646
+#. \u0644\u0648\u0633\u064a\u062f"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "تقديم مسح واضح"
+
+#. {"msgid": ["\u062a\u0645 \u0631\u0641\u0636
+#. \u0627\u0644\u0645\u0648\u0627\u0641\u0642\u0629.",
+#. "\u0631\u064f\u0641\u0636\u062a
+#. \u0627\u0644\u0645\u0648\u0627\u0641\u0642\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "تم رفض الموافقة."
+
+#. {"msgid": ["\u0647\u0630\u0647 \u0646\u0647\u0627\u064a\u0629
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629!", "\u0647\u0630\u0647
+#. \u0647\u064a \u0646\u0647\u0627\u064a\u0629
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "هذه نهاية التجربة!"
+
+#. {"msgid": ["\u0644\u0633\u0648\u0621 \u0627\u0644\u062d\u0638 \u060c
+#. \u064a\u062c\u0628 \u0623\u0646 \u062a\u0646\u062a\u0647\u064a
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u0645\u0628\u0643\u0631\u064b\u0627.", "\u0644\u0644\u0623\u0633\u0641
+#. \u064a\u062c\u0628 \u0623\u0646 \u062a\u0646\u062a\u0647\u064a
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629 \u0641\u064a \u0648\u0642\u062a
+#. \u0645\u0628\u0643\u0631."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "لسوء الحظ ، يجب أن تنتهي التجربة مبكرًا."
+
+#. {"msgid": ["\u062e\u0637\u0623!", "\u0627\u0644\u062e\u0637\u0623!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "خطأ!"
+
+#. {"msgid": ["\u0628\u062f\u0621 \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. ...", "\u062c\u0627\u0631\u064d \u0628\u062f\u0621
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629\u2026"]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "بدء التجربة ..."
+
+#. {"msgid": ["\u0641\u064a \u062d\u0627\u0644\u0629 \u0648\u062c\u0648\u062f
+#. \u0645\u0634\u0643\u0644\u0629 \u060c \u062c\u0631\u0628 \u0645\u0627
+#. \u064a\u0644\u064a:", "\u0641\u064a \u062d\u0627\u0644\u0629
+#. \u0648\u062c\u0648\u062f \u0645\u0634\u0643\u0644\u0629 \u060c
+#. \u062d\u0627\u0648\u0644 \u0627\u0644\u0642\u064a\u0627\u0645
+#. \u0628\u0645\u0627 \u064a\u0644\u064a:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "في حالة وجود مشكلة ، جرب ما يلي:"
+
+#. {"msgid": ["\u0647\u0644 \u0623\u0646\u062a
+#. \u062c\u0627\u0647\u0632\u061f", "\u0647\u0644 \u0623\u0646\u062a
+#. \u0645\u0633\u062a\u0639\u062f\u061f", "\u0647\u0644 \u0627\u0646\u062a
+#. \u062c\u0627\u0647\u0632", "\u0647\u0644 \u0627\u0646\u062a
+#. \u0645\u0633\u062a\u0639\u062f"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "هل أنت جاهز؟"
+
+#. {"msgid": ["\u0639\u0644\u0627\u0648\u0629",
+#. "\u0645\u0643\u0627\u0641\u0623\u0629"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "علاوة"
+
+#. {"msgid": ["\u0645\u0639\u0631\u0641
+#. \u0627\u0644\u0645\u0634\u0627\u0631\u0643 \u0627\u0644\u062e\u0627\u0635
+#. \u0628\u0643 \u063a\u064a\u0631 \u0645\u062d\u062f\u062f \u060c
+#. \u0631\u0628\u0645\u0627 \u0644\u0623\u0646\u0643 \u0642\u0645\u062a
+#. \u0628\u062a\u0628\u062f\u064a\u0644
+#. \u0627\u0644\u0645\u0633\u062a\u0639\u0631\u0636\u0627\u062a
+#. \u0623\u062b\u0646\u0627\u0621
+#. \u0627\u0644\u0627\u062e\u062a\u0628\u0627\u0631.",
+#. "\u0645\u0639\u0631\u0641 \u0627\u0644\u0645\u0634\u0627\u0631\u0643
+#. \u0627\u0644\u062e\u0627\u0635 \u0628\u0643 \u063a\u064a\u0631
+#. \u0645\u062d\u062f\u062f \u060c \u0631\u0628\u0645\u0627
+#. \u0644\u0623\u0646\u0643 \u0628\u062f\u0644\u062a
+#. \u0627\u0644\u0645\u0633\u062a\u0639\u0631\u0636\u0627\u062a
+#. \u0623\u062b\u0646\u0627\u0621
+#. \u0627\u0644\u0627\u062e\u062a\u0628\u0627\u0631."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"معرف المشارك الخاص بك غير محدد ، ربما لأنك قمت بتبديل المستعرضات أثناء "
+"الاختبار."
+
+#. {"msgid": ["\u0644\u0627 \u064a\u0645\u0643\u0646
+#. \u0625\u062c\u0647\u0627\u0636 \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u0644\u0623\u0646 \u0627\u0644\u0645\u062c\u0631\u0628 \u0644\u0627
+#. \u064a\u0633\u0645\u062d \u0628\u0630\u0644\u0643 \u0641\u064a
+#. \u0627\u0644\u0648\u0642\u062a \u0627\u0644\u062d\u0627\u0644\u064a!",
+#. "\u0625\u062c\u0647\u0627\u0636 \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u063a\u064a\u0631 \u0645\u0645\u0643\u0646 \u0644\u0623\u0646
+#. \u0627\u0644\u0645\u062c\u0631\u0628 \u0644\u0627 \u064a\u0633\u0645\u062d
+#. \u0628\u0630\u0644\u0643 \u0641\u064a \u0627\u0644\u0648\u0642\u062a
+#. \u0627\u0644\u062d\u0627\u0644\u064a!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr "لا يمكن إجهاض التجربة لأن المجرب لا يسمح بذلك في الوقت الحالي!"
+
+#. {"msgid": ["\u0625\u0630\u0627 \u0642\u0645\u062a
+#. \u0628\u0627\u0644\u0646\u0642\u0631 \u0641\u0648\u0642
+#. \u0627\u0644\u0632\u0631 \"\u0625\u0644\u063a\u0627\u0621\" \u060c
+#. \u0641\u0633\u062a\u0646\u062a\u0647\u064a
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u0645\u0628\u0643\u0631\u064b\u0627 \u060c \u0648\u0633\u064a\u062a\u0645
+#. \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627 \u062f\u0641\u0639
+#. \u0627\u0644\u062a\u0639\u0648\u064a\u0636 \u0627\u0644\u0630\u064a
+#. \u062d\u0635\u0644\u062a \u0639\u0644\u064a\u0647 \u062d\u062a\u0649
+#. \u0627\u0644\u0622\u0646.", "\u0625\u0630\u0627 \u0642\u0645\u062a
+#. \u0628\u0627\u0644\u0646\u0642\u0631 \u0641\u0648\u0642
+#. \u0627\u0644\u0632\u0631 \"\u0625\u0644\u063a\u0627\u0621\" \u060c
+#. \u0641\u0633\u062a\u0646\u062a\u0647\u064a
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u0645\u0628\u0643\u0631\u064b\u0627 \u060c \u0648\u0633\u064a\u062a\u0645
+#. \u062a\u0644\u0642\u0627\u0626\u064a\u064b\u0627 \u062f\u0641\u0639
+#. \u0627\u0644\u062a\u0639\u0648\u064a\u0636 \u0627\u0644\u0630\u064a
+#. \u0643\u0633\u0628\u062a\u0647 \u062d\u062a\u0649
+#. \u0627\u0644\u0622\u0646."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"إذا قمت بالنقر فوق الزر \"إلغاء\" ، فستنتهي التجربة مبكرًا ، وسيتم تلقائيًا "
+"دفع التعويض الذي حصلت عليه حتى الآن."
+
+#. {"msgid": ["\u0644\u0625\u0643\u0645\u0627\u0644
+#. \u0627\u0633\u062a\u0628\u064a\u0627\u0646 Lucid
+#. \u0627\u0644\u062e\u0627\u0635 \u0628\u0643 \u060c \u0627\u0646\u0642\u0631
+#. \u0641\u0648\u0642 \u0627\u0644\u0632\u0631
+#. \u0623\u062f\u0646\u0627\u0647.", "\u0644\u0625\u0643\u0645\u0627\u0644
+#. \u0627\u0633\u062a\u0628\u064a\u0627\u0646 Lucid \u060c
+#. \u0627\u0646\u0642\u0631 \u0641\u0648\u0642 \u0627\u0644\u0632\u0631
+#. \u0623\u062f\u0646\u0627\u0647."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "لإكمال استبيان Lucid الخاص بك ، انقر فوق الزر أدناه."
+
+#. {"msgid": ["\u0646\u0647\u0627\u064a\u0629
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629.",
+#. "\u0646\u0647\u0627\u064a\u0629
+#. \u0627\u0644\u0627\u062e\u062a\u0628\u0627\u0631."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "نهاية التجربة."
+
+#. {"msgid": ["\u0648\u0645\u0639 \u0630\u0644\u0643 \u060c
+#. \u0633\u062a\u0633\u062a\u0645\u0631 \u0641\u064a
+#. \u0627\u0644\u062f\u0641\u0639 \u0645\u0642\u0627\u0628\u0644
+#. \u0627\u0644\u0648\u0642\u062a \u0627\u0644\u0630\u064a
+#. \u0642\u0636\u064a\u062a\u0647 \u0628\u0627\u0644\u0641\u0639\u0644.",
+#. "\u0648\u0645\u0639 \u0630\u0644\u0643 \u060c \u0633\u062a\u0638\u0644
+#. \u062a\u062f\u0641\u0639 \u0644\u0643 \u0645\u0642\u0627\u0628\u0644
+#. \u0627\u0644\u0648\u0642\u062a \u0627\u0644\u0630\u064a
+#. \u0642\u0636\u064a\u062a\u0647 \u0628\u0627\u0644\u0641\u0639\u0644."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "ومع ذلك ، ستستمر في الدفع مقابل الوقت الذي قضيته بالفعل."
+
+#. {"msgid": ["\u0642\u062f \u062a\u062a\u0645\u0643\u0646 \u0645\u0646
+#. \u0625\u062c\u0647\u0627\u0636 \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u0628\u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0627\u0644\u0632\u0631
+#. <strong> \u0625\u062d\u0628\u0627\u0637
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629 </ strong> <strong> \u0641\u064a
+#. \u0635\u0641\u062d\u0629 \u0625\u0639\u0644\u0627\u0646\u0627\u062a MTurk
+#. </strong>.", "\u0642\u062f \u062a\u062a\u0645\u0643\u0646 \u0645\u0646
+#. \u0625\u062c\u0647\u0627\u0636 \u0627\u0644\u062a\u062c\u0631\u0628\u0629
+#. \u0628\u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0627\u0644\u0632\u0631
+#. <strong> \u0625\u062d\u0628\u0627\u0637
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629 </ strong> <strong>
+#. \u0639\u0644\u0649 \u0635\u0641\u062d\u0629
+#. \u0625\u0639\u0644\u0627\u0646\u0627\u062a MTurk </strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"قد تتمكن من إجهاض التجربة باستخدام الزر <strong> إحباط التجربة </ strong> "
+"<strong> في صفحة إعلانات MTurk </strong>."
+
+#. {"msgid": ["\u062e\u0630 \u0627\u0644\u0645\u062e\u0627\u0637\u0631.
+#. \u0644\u0627 \u0634\u064a\u0621 \u064a\u0645\u0643\u0646 \u0623\u0646
+#. \u064a\u062d\u0644 \u0645\u062d\u0644
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629.",
+#. "\u0625\u0639\u0627\u062f\u0629 \u062a\u062d\u0645\u064a\u0644
+#. \u0627\u0644\u0635\u0641\u062d\u0629.", "\u0623\u0639\u062f
+#. \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0641\u062d\u0629.",
+#. "\u0642\u0645 \u0628\u0625\u0639\u0627\u062f\u0629
+#. \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0641\u062d\u0629."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "خذ المخاطر. لا شيء يمكن أن يحل محل التجربة."
+
+#. {"msgid": ["\u0627\u0646\u0642\u0631 \u0641\u0648\u0642
+#. \u0627\u0644\u0632\u0631 \u0639\u0646\u062f\u0645\u0627
+#. \u062a\u0643\u0648\u0646 \u0645\u0633\u062a\u0639\u062f\u064b\u0627
+#. \u0644\u0645\u062a\u0627\u0628\u0639\u0629
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629.", "\u0627\u0646\u0642\u0631
+#. \u0641\u0648\u0642 \u0627\u0644\u0632\u0631 \u0639\u0646\u062f\u0645\u0627
+#. \u062a\u0643\u0648\u0646 \u062c\u0627\u0647\u0632\u064b\u0627
+#. \u0644\u0645\u0648\u0627\u0635\u0644\u0629
+#. \u0627\u0644\u062a\u062c\u0631\u0628\u0629."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "انقر فوق الزر عندما تكون مستعدًا لمتابعة التجربة."
+
+#. {"msgid": ["\u0645\u0633\u0627\u0639\u062f\u0629!", "\u0627\u0644\u0649
+#. \u0627\u0644\u0645\u0633\u0627\u0639\u062f\u0629!",
+#. "\u0633\u0627\u0639\u062f!", "\u064a\u0633\u0627\u0639\u062f!",
+#. "\u0633\u0627\u0639\u062f\u0648\u0646\u064a!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "مساعدة!"
+
+#. {"msgid": ["\u0644\u0644\u0623\u0633\u0641 \u0647\u0630\u0627
+#. \u0627\u0644\u0633\u0644\u0648\u0643 \u063a\u064a\u0631
+#. \u0645\u062f\u0639\u0648\u0645 \u062d\u0627\u0644\u064a\u064b\u0627.",
+#. "\u0644\u0644\u0623\u0633\u0641 \u0647\u0630\u0627
+#. \u0627\u0644\u0633\u0644\u0648\u0643 \u063a\u064a\u0631
+#. \u0645\u0639\u062a\u0645\u062f \u062d\u0627\u0644\u064a\u064b\u0627."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "للأسف هذا السلوك غير مدعوم حاليًا."
+
+#. {"msgid": ["\u0627\u0646\u0638\u0631 \u0623\u062f\u0646\u0627\u0647
+#. \u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0639\u0646
+#. \u0645\u0643\u0627\u0641\u0623\u062a\u0643
+#. \u0627\u0644\u0645\u062a\u0631\u0627\u0643\u0645\u0629
+#. \u062d\u0627\u0644\u064a\u064b\u0627.", "\u0627\u0646\u0638\u0631
+#. \u0623\u062f\u0646\u0627\u0647
+#. \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u062d\u0648\u0644
+#. \u0627\u0644\u0645\u0643\u0627\u0641\u0623\u0629
+#. \u0627\u0644\u0645\u062a\u0631\u0627\u0643\u0645\u0629
+#. \u0627\u0644\u062e\u0627\u0635\u0629 \u0628\u0643
+#. \u062d\u0627\u0644\u064a\u0627."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "انظر أدناه معلومات عن مكافأتك المتراكمة حاليًا."
+
+#. {"msgid": ["\u064a\u0631\u062c\u0649
+#. \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u0646\u0627
+#. \u0641\u0642\u0637 \u0625\u0630\u0627 \u0643\u0646\u062a
+#. \u062a\u0648\u0627\u062c\u0647 \u0645\u0634\u0643\u0644\u0629 \u0641\u064a
+#. \u062a\u0644\u0642\u064a \u062f\u0641\u0639\u062a\u0643.",
+#. "\u064a\u0631\u062c\u0649 \u0627\u0644\u0627\u062a\u0635\u0627\u0644
+#. \u0628\u0646\u0627 \u0641\u0642\u0637 \u0625\u0630\u0627
+#. \u0648\u0627\u062c\u0647\u062a\u0643 \u0645\u0634\u0643\u0644\u0629
+#. \u0641\u064a \u0627\u0633\u062a\u0644\u0627\u0645
+#. \u062f\u0641\u0639\u062a\u0643."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "يرجى الاتصال بنا فقط إذا كنت تواجه مشكلة في تلقي دفعتك."
+
+#. {"msgid": ["\u0627\u0646\u0638\u0631
+#. \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a
+#. \u0623\u062f\u0646\u0627\u0647 \u0644\u0644\u062d\u0635\u0648\u0644
+#. \u0639\u0644\u0649 \u062a\u0641\u0627\u0635\u064a\u0644
+#. \u0627\u0644\u062a\u0639\u0648\u064a\u0636 \u0627\u0644\u062e\u0627\u0635
+#. \u0628\u0643.", "\u0631\u0627\u062c\u0639
+#. \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a
+#. \u0623\u062f\u0646\u0627\u0647 \u0644\u0644\u062d\u0635\u0648\u0644
+#. \u0639\u0644\u0649 \u062a\u0641\u0627\u0635\u064a\u0644
+#. \u062a\u0639\u0648\u064a\u0636\u0643."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "انظر المعلومات أدناه للحصول على تفاصيل التعويض الخاص بك."
+
+#. {"msgid": ["\u0628\u0645\u062c\u0631\u062f
+#. \u0627\u0644\u0625\u062c\u0647\u0627\u0636 \u060c \u0644\u064a\u0633\u062a
+#. \u0647\u0646\u0627\u0643 \u062d\u0627\u062c\u0629
+#. \u0644\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u0646\u0627
+#. \u0644\u0644\u062d\u0635\u0648\u0644 \u0639\u0644\u0649
+#. \u0627\u0644\u062a\u0639\u0648\u064a\u0636 \u061b",
+#. "\u0628\u0645\u062c\u0631\u062f \u0627\u0644\u0625\u062c\u0647\u0627\u0636
+#. \u060c \u0644\u0627 \u062f\u0627\u0639\u064a
+#. \u0644\u0644\u062a\u0648\u0627\u0635\u0644 \u0645\u0639\u0646\u0627
+#. \u0644\u0644\u062d\u0635\u0648\u0644 \u0639\u0644\u0649
+#. \u0627\u0644\u062a\u0639\u0648\u064a\u0636 \u061b"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "بمجرد الإجهاض ، ليست هناك حاجة للاتصال بنا للحصول على التعويض ؛"
+
+#. {"msgid": ["\u064a\u0631\u062c\u0649 \u0623\u064a\u0636\u064b\u0627
+#. \u0627\u0642\u062a\u0628\u0627\u0633
+#. \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a
+#. \u0627\u0644\u062a\u0627\u0644\u064a\u0629:", "\u064a\u0631\u062c\u0649
+#. \u0623\u064a\u0636\u064b\u0627
+#. \u0627\u0644\u0627\u0633\u062a\u0634\u0647\u0627\u062f
+#. \u0628\u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a
+#. \u0627\u0644\u062a\u0627\u0644\u064a\u0629:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "يرجى أيضًا اقتباس المعلومات التالية:"
+
+#. {"msgid": ["\u0627\u0646\u0642\u0631 \u0641\u0648\u0642
+#. \u0627\u0644\u0632\u0631 \u0623\u0639\u0644\u0627\u0647
+#. \u0644\u0644\u062a\u0639\u0648\u064a\u0636 \u0641\u064a
+#. \u062d\u0627\u0644\u0629 \u062d\u062f\u0648\u062b \u062e\u0637\u0623.",
+#. "\u0627\u0646\u0642\u0631 \u0641\u0648\u0642 \u0627\u0644\u0632\u0631
+#. \u0623\u0639\u0644\u0627\u0647 \u0644\u064a\u062a\u0645
+#. \u062a\u0639\u0648\u064a\u0636\u0647 \u0641\u064a \u062d\u0627\u0644\u0629
+#. \u062d\u062f\u0648\u062b \u062e\u0637\u0623."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "انقر فوق الزر أعلاه للتعويض في حالة حدوث خطأ."
+
+#. {"msgid": ["\u062a\u062d\u0642\u0642 \u0645\u0646 \u0623\u0646
+#. \u0627\u062a\u0635\u0627\u0644\u0643
+#. \u0628\u0627\u0644\u0625\u0646\u062a\u0631\u0646\u062a
+#. \u064a\u0639\u0645\u0644.", "\u062a\u0623\u0643\u062f \u0645\u0646
+#. \u0623\u0646 \u0627\u062a\u0635\u0627\u0644
+#. \u0627\u0644\u0625\u0646\u062a\u0631\u0646\u062a
+#. \u0627\u0644\u062e\u0627\u0635 \u0628\u0643 \u064a\u0639\u0645\u0644."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "تحقق من أن اتصالك بالإنترنت يعمل."
+
+#. {"msgid": ["\u0625\u0630\u0627 \u0644\u0645 \u064a\u0633\u0627\u0639\u062f
+#. \u0645\u0627 \u0648\u0631\u062f \u0623\u0639\u0644\u0627\u0647 \u060c
+#. \u0641\u0623\u0631\u0633\u0644 \u0625\u0644\u064a\u0646\u0627
+#. \u0628\u0631\u064a\u062f\u064b\u0627
+#. \u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a\u064b\u0627
+#. \u0628\u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a
+#. \u0627\u0644\u062a\u0627\u0644\u064a\u0629:", "\u0625\u0630\u0627
+#. \u0644\u0645 \u064a\u0633\u0627\u0639\u062f \u0645\u0627 \u0648\u0631\u062f
+#. \u0623\u0639\u0644\u0627\u0647 \u060c \u0641\u0623\u0631\u0633\u0644
+#. \u0625\u0644\u064a\u0646\u0627 \u0631\u0633\u0627\u0644\u0629
+#. \u0628\u0631\u064a\u062f \u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a
+#. \u0628\u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a
+#. \u0627\u0644\u062a\u0627\u0644\u064a\u0629:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"إذا لم يساعد ما ورد أعلاه ، فأرسل إلينا بريدًا إلكترونيًا بالمعلومات "
+"التالية:"
+
+#. {"msgid": ["\u0627\u0631\u062a\u0628\u0627\u0637 \u0625\u0644\u0649
+#. \u0635\u0641\u062d\u0629 \u0627\u0644\u0648\u064a\u0628
+#. \u0627\u0644\u062d\u0627\u0644\u064a\u0629 \u061b",
+#. "\u0631\u0627\u0628\u0637 \u0644\u0635\u0641\u062d\u0629
+#. \u0627\u0644\u0648\u064a\u0628 \u0627\u0644\u062d\u0627\u0644\u064a\u0629
+#. \u061b"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "ارتباط إلى صفحة الويب الحالية ؛"
+
+#. {"msgid": ["\u0645\u0639\u0631\u0641 \u0627\u0644\u0639\u0627\u0645\u0644
+#. \u0627\u0644\u062e\u0627\u0635 \u0628\u0643 \u061b",
+#. "\u0645\u0639\u0631\u0641 \u0627\u0644\u0639\u0627\u0645\u0644
+#. \u0627\u0644\u062e\u0627\u0635 \u0628\u0643."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "معرف العامل الخاص بك ؛"
+
+#. {"msgid": ["\u0627\u0644\u0645\u0634\u0643\u0644\u0629
+#. \u0627\u0644\u062a\u064a \u062a\u0648\u0627\u062c\u0647\u0647\u0627.",
+#. "\u0627\u0644\u0645\u0634\u0643\u0644\u0629 \u0627\u0644\u062a\u064a
+#. \u062a\u0639\u0627\u0646\u064a \u0645\u0646\u0647\u0627."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "المشكلة التي تواجهها."
+
+#. {"msgid": ["\u0633\u064a\u0631\u0629 \u0630\u0627\u062a\u064a\u0629",
+#. "\u0627\u0633\u062a\u0626\u0646\u0641",
+#. "\u0627\u0633\u062a\u0626\u0646\u0627\u0641",
+#. "\u0627\u0644\u0627\u0633\u062a\u0626\u0646\u0627\u0641"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "سيرة ذاتية"
+
+#. "\"\\\"\\\\\\\"\\\\\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+
+#. "\"\\\"\\\\\\\"\\\\\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+
+#. "\"\\\"\\\\\\\"\\\\\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+
+#. "\"\\\"\\\\\\\"\\\\\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+
+#. "\"\\\"\\\\\\\"\\\\\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""

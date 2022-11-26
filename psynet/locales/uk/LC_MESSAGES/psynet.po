@@ -1,0 +1,774 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 12:00+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: UK\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\u0412\u0438 \u043f\u043e\u0432\u0438\u043d\u043d\u0456
+#. \u043d\u0430\u043a\u043e\u043f\u0438\u0447\u0438\u0442\u0438
+#. <strong>\u0449\u043e\u043d\u0430\u0439\u043c\u0435\u043d\u0448\u0435
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>
+#. \u0431\u043e\u043d\u0443\u0441\u0443, \u0449\u043e\u0431
+#. \u043c\u0430\u0442\u0438
+#. \u043c\u043e\u0436\u043b\u0438\u0432\u0456\u0441\u0442\u044c
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e.",
+#. "\u0412\u0438 \u043f\u043e\u0432\u0438\u043d\u043d\u0456
+#. \u043d\u0430\u043a\u043e\u043f\u0438\u0447\u0438\u0442\u0438
+#. <strong>\u043f\u0440\u0438\u043d\u0430\u0439\u043c\u043d\u0456
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>
+#. \u0431\u043e\u043d\u0443\u0441\u0443, \u0449\u043e\u0431
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Ви повинні накопичити <strong>щонайменше "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> бонусу, щоб мати можливість "
+"отримати компенсацію."
+
+#. {"msgid":
+#. ["\u041d\u0430\u043a\u043e\u043f\u0438\u0447\u0435\u043d\u0438\u0439
+#. \u0431\u043e\u043d\u0443\u0441",
+#. "\u041d\u0430\u043a\u043e\u043f\u0438\u0447\u0435\u043d\u0430
+#. \u043f\u0440\u0435\u043c\u0456\u044f"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Накопичений бонус"
+
+#. {"msgid": ["\u0417\u0430\u043a\u0440\u0438\u0442\u0438
+#. \u0432\u0456\u043a\u043d\u043e",
+#. "\u0417\u0430\u043a\u0440\u0438\u0442\u0435
+#. \u0432\u0456\u043a\u043d\u043e",
+#. "\u0417\u0430\u043a\u0440\u0438\u0439\u0442\u0435
+#. \u0432\u0456\u043a\u043d\u043e"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Закрити вікно"
+
+#. {"msgid": ["\u041f\u0435\u0440\u0435\u0440\u0432\u0430\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442",
+#. "\u041f\u0440\u0438\u043f\u0438\u043d\u0438\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Перервати експеримент"
+
+#. {"msgid": ["\u041f\u043e\u0432\u043d\u0435
+#. \u043e\u043f\u0438\u0442\u0443\u0432\u0430\u043d\u043d\u044f",
+#. "\u041f\u043e\u0432\u043d\u0438\u0439 \u043e\u0433\u043b\u044f\u0434"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Повне опитування"
+
+#. {"msgid": ["\u041d\u0430 \u0434\u043e\u0434\u0430\u0442\u043e\u043a
+#. \u0434\u043e \u043e\u0441\u043d\u043e\u0432\u043d\u043e\u0433\u043e
+#. \u043f\u043b\u0430\u0442\u0435\u0436\u0443 \u0432
+#. \u0440\u043e\u0437\u043c\u0456\u0440\u0456
+#. <strong>$%(BASE_PAYMENT)s</strong> \u0432\u0438
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u0454\u0442\u0435
+#. \u0431\u043e\u043d\u0443\u0441 \u0443
+#. \u0440\u043e\u0437\u043c\u0456\u0440\u0456 <strong>$%(BONUS)s</strong>
+#. \u0437\u0430 \u0447\u0430\u0441,
+#. \u0432\u0438\u0442\u0440\u0430\u0447\u0435\u043d\u0438\u0439 \u043d\u0430
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442.",
+#. "\u041e\u043a\u0440\u0456\u043c
+#. \u043e\u0441\u043d\u043e\u0432\u043d\u043e\u0433\u043e
+#. \u043f\u043b\u0430\u0442\u0435\u0436\u0443 \u0432
+#. \u0440\u043e\u0437\u043c\u0456\u0440\u0456
+#. <strong>$%(BASE_PAYMENT)s</strong>, \u0432\u0438
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u0454\u0442\u0435
+#. \u0431\u043e\u043d\u0443\u0441 \u0443
+#. \u0440\u043e\u0437\u043c\u0456\u0440\u0456 <strong>$%(BONUS)s</strong>
+#. \u0437\u0430 \u0447\u0430\u0441, \u044f\u043a\u0438\u0439 \u0432\u0438
+#. \u0432\u0438\u0442\u0440\u0430\u0442\u0438\u043b\u0438 \u043d\u0430
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"На додаток до основного платежу в розмірі <strong>$%(BASE_PAYMENT)s</strong>"
+" ви отримаєте бонус у розмірі <strong>$%(BONUS)s</strong> за час, витрачений"
+" на експеримент."
+
+#. {"msgid": ["\u0412\u0438 \u0442\u0430\u043a\u043e\u0436
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u043b\u0438
+#. \u0431\u043e\u043d\u0443\u0441 \u0437\u0430
+#. \u0435\u0444\u0435\u043a\u0442\u0438\u0432\u043d\u0456\u0441\u0442\u044c
+#. \u0443 \u0440\u043e\u0437\u043c\u0456\u0440\u0456
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Ви також отримали бонус за ефективність у розмірі "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["\u041d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u00ab\u0413\u043e\u0442\u043e\u0432\u043e\u00bb, \u0449\u043e\u0431
+#. \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0438 HIT.",
+#. "\u0411\u0443\u0434\u044c \u043b\u0430\u0441\u043a\u0430,
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u00ab\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0438\u00bb,
+#. \u0449\u043e\u0431 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0438
+#. HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Натисніть «Готово», щоб завершити HIT."
+
+#. {"msgid": ["\u0417\u0430\u043a\u0456\u043d\u0447\u0438\u0442\u0438",
+#. "\u0413\u043e\u0442\u043e\u0432\u043e"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Закінчити"
+
+#. {"msgid": ["\u0414\u044f\u043a\u0443\u0454\u043c\u043e \u0437\u0430
+#. \u0443\u0447\u0430\u0441\u0442\u044c.", "\u0414\u044f\u043a\u0443\u044e,
+#. \u0449\u043e \u0432\u0437\u044f\u043b\u0438
+#. \u0443\u0447\u0430\u0441\u0442\u044c."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Дякуємо за участь."
+
+#. {"msgid": ["\u0414\u0430\u043b\u0456", "\u0434\u0430\u043b\u0456"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Далі"
+
+#. {"msgid": ["\u042f\u043a\u0449\u043e \u0446\u0435 \u043d\u0435
+#. \u0442\u0430\u043a,
+#. \u0437\u0432\u2019\u044f\u0436\u0456\u0442\u044c\u0441\u044f \u0437
+#. \u043d\u0430\u043c\u0438 \u0437\u0430
+#. \u0430\u0434\u0440\u0435\u0441\u043e\u044e %(EMAIL)s,
+#. \u043d\u0430\u0432\u0456\u0432\u0448\u0438 \u0442\u0430\u043a\u0443
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e:",
+#. "\u042f\u043a\u0449\u043e \u0446\u0435 \u043d\u0435 \u0442\u0430\u043a,
+#. \u0431\u0443\u0434\u044c \u043b\u0430\u0441\u043a\u0430,
+#. \u0437\u0432\u2019\u044f\u0436\u0456\u0442\u044c\u0441\u044f \u0437
+#. \u043d\u0430\u043c\u0438 \u0437\u0430
+#. \u0430\u0434\u0440\u0435\u0441\u043e\u044e %(EMAIL)s,
+#. \u043d\u0430\u0432\u0456\u0432\u0448\u0438
+#. \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0443
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Якщо це не так, зв’яжіться з нами за адресою %(EMAIL)s, навівши таку "
+"інформацію:"
+
+#. {"msgid": ["\u0429\u043e\u0431
+#. \u0434\u0456\u0437\u043d\u0430\u0442\u0438\u0441\u044f \u043f\u0440\u043e
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e,
+#. \u0437\u0432\u2019\u044f\u0436\u0456\u0442\u044c\u0441\u044f \u0437
+#. \u0434\u043e\u0441\u043b\u0456\u0434\u043d\u0438\u043a\u043e\u043c
+#. \u0437\u0430 \u0430\u0434\u0440\u0435\u0441\u043e\u044e %(EMAIL)s \u0456
+#. \u043e\u043f\u0438\u0448\u0456\u0442\u044c, \u0449\u043e
+#. \u043f\u0440\u0438\u0437\u0432\u0435\u043b\u043e \u0434\u043e
+#. \u0446\u0456\u0454\u0457 \u043f\u043e\u043c\u0438\u043b\u043a\u0438.",
+#. "\u0429\u043e\u0431 \u0437\u0430\u043f\u0438\u0442\u0430\u0442\u0438
+#. \u043f\u0440\u043e
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e,
+#. \u0431\u0443\u0434\u044c \u043b\u0430\u0441\u043a\u0430,
+#. \u0437\u0432\u2019\u044f\u0436\u0456\u0442\u044c\u0441\u044f \u0437
+#. \u0434\u043e\u0441\u043b\u0456\u0434\u043d\u0438\u043a\u043e\u043c
+#. \u0437\u0430 \u0430\u0434\u0440\u0435\u0441\u043e\u044e %(EMAIL)s \u0456
+#. \u043e\u043f\u0438\u0448\u0456\u0442\u044c, \u0449\u043e
+#. \u043f\u0440\u0438\u0437\u0432\u0435\u043b\u043e \u0434\u043e
+#. \u0446\u0456\u0454\u0457 \u043f\u043e\u043c\u0438\u043b\u043a\u0438."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Щоб дізнатися про компенсацію, зв’яжіться з дослідником за адресою %(EMAIL)s"
+" і опишіть, що призвело до цієї помилки."
+
+#. {"msgid": ["\u041f\u0435\u0440\u0435\u0440\u0432\u0430\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442",
+#. "\u041f\u0440\u0438\u043f\u0438\u043d\u0438\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Перервати експеримент"
+
+#. {"msgid":
+#. ["\u0412\u0456\u0434\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443...",
+#. "\u0412\u0456\u0434\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443\u2026"]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Відновлення експерименту..."
+
+#. {"msgid":
+#. ["\u041f\u0435\u0440\u0435\u0440\u0438\u0432\u0430\u043d\u043d\u044f
+#. \u043d\u0435\u043c\u043e\u0436\u043b\u0438\u0432\u043e.",
+#. "\u041f\u0435\u0440\u0435\u0440\u0432\u0430\u0442\u0438 \u043d\u0435
+#. \u043c\u043e\u0436\u043d\u0430."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Переривання неможливо."
+
+#. {"msgid": ["\u0412\u0438 \u0432\u043f\u0435\u0432\u043d\u0435\u043d\u0456,
+#. \u0449\u043e \u0431\u0430\u0436\u0430\u0454\u0442\u0435
+#. \u043f\u0435\u0440\u0435\u0440\u0432\u0430\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442?",
+#. "\u0412\u0438 \u0432\u043f\u0435\u0432\u043d\u0435\u043d\u0456,
+#. \u0449\u043e \u0445\u043e\u0447\u0435\u0442\u0435
+#. \u043f\u0440\u0438\u043f\u0438\u043d\u0438\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ви впевнені, що бажаєте перервати експеримент?"
+
+#. {"msgid": ["\u041f\u043e\u0434\u0430\u043d\u043d\u044f Lucid Survey",
+#. "\u041d\u0430\u0434\u0441\u0438\u043b\u0430\u043d\u043d\u044f
+#. \u043e\u043f\u0438\u0442\u0443\u0432\u0430\u043d\u043d\u044f Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Подання Lucid Survey"
+
+#. {"msgid": ["\u0417\u0433\u043e\u0434\u0443
+#. \u0432\u0456\u0434\u0445\u0438\u043b\u0435\u043d\u043e.",
+#. "\u0417\u0433\u043e\u0434\u0430 \u0431\u0443\u043b\u0430
+#. \u0432\u0456\u0434\u0445\u0438\u043b\u0435\u043d\u0430."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Згоду відхилено."
+
+#. {"msgid": ["\u041e\u0441\u044c \u0456 \u043a\u0456\u043d\u0435\u0446\u044c
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443!",
+#. "\u041d\u0430 \u0446\u044c\u043e\u043c\u0443
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442
+#. \u0437\u0430\u043a\u0456\u043d\u0447\u0438\u0432\u0441\u044f!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Ось і кінець експерименту!"
+
+#. {"msgid": ["\u041d\u0430 \u0436\u0430\u043b\u044c,
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442
+#. \u043c\u0430\u0454
+#. \u0437\u0430\u043a\u0456\u043d\u0447\u0438\u0442\u0438\u0441\u044f
+#. \u0440\u0430\u043d\u0456\u0448\u0435.", "\u041d\u0430
+#. \u0436\u0430\u043b\u044c,
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442
+#. \u043c\u0430\u0454 \u0431\u0443\u0442\u0438
+#. \u0437\u0430\u043a\u0456\u043d\u0447\u0435\u043d\u043e
+#. \u0440\u0430\u043d\u0456\u0448\u0435."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "На жаль, експеримент має закінчитися раніше."
+
+#. {"msgid": ["\u041f\u043e\u043c\u0438\u043b\u043a\u0430!",
+#. "\u043f\u043e\u043c\u0438\u043b\u043a\u0430"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Помилка!"
+
+#. {"msgid": ["\u041f\u043e\u0447\u0430\u0442\u043e\u043a
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443...",
+#. "\u0417\u0430\u043f\u0443\u0441\u043a
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Початок експерименту..."
+
+#. {"msgid": ["\u0423 \u0440\u0430\u0437\u0456
+#. \u0432\u0438\u043d\u0438\u043a\u043d\u0435\u043d\u043d\u044f
+#. \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0438
+#. \u0441\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435
+#. \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0435:",
+#. "\u042f\u043a\u0449\u043e \u0432\u0438\u043d\u0438\u043a\u043b\u0430
+#. \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0430,
+#. \u0441\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435
+#. \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0435:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "У разі виникнення проблеми спробуйте наступне:"
+
+#. {"msgid": ["\u0412\u0438 \u0433\u043e\u0442\u043e\u0432\u0456?",
+#. "\u0442\u0438 \u0433\u043e\u0442\u043e\u0432\u0438\u0439"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Ви готові?"
+
+#. {"msgid": ["\u0411\u043e\u043d\u0443\u0441",
+#. "\u0431\u043e\u043d\u0443\u0441"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Бонус"
+
+#. {"msgid": ["\u0412\u0430\u0448
+#. \u0456\u0434\u0435\u043d\u0442\u0438\u0444\u0456\u043a\u0430\u0442\u043e\u0440
+#. \u0443\u0447\u0430\u0441\u043d\u0438\u043a\u0430 \u043d\u0435
+#. \u0432\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043e,
+#. \u043c\u043e\u0436\u043b\u0438\u0432\u043e, \u0447\u0435\u0440\u0435\u0437
+#. \u0442\u0435, \u0449\u043e \u0432\u0438
+#. \u0437\u043c\u0456\u043d\u0438\u043b\u0438
+#. \u0431\u0440\u0430\u0443\u0437\u0435\u0440 \u043f\u0456\u0434
+#. \u0447\u0430\u0441 \u0442\u0435\u0441\u0442\u0443.", "\u0412\u0430\u0448
+#. \u0456\u0434\u0435\u043d\u0442\u0438\u0444\u0456\u043a\u0430\u0442\u043e\u0440
+#. \u0443\u0447\u0430\u0441\u043d\u0438\u043a\u0430 \u043d\u0435
+#. \u0432\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043e,
+#. \u043c\u043e\u0436\u043b\u0438\u0432\u043e, \u0447\u0435\u0440\u0435\u0437
+#. \u0442\u0435, \u0449\u043e \u0432\u0438
+#. \u043f\u0435\u0440\u0435\u043c\u0438\u043a\u0430\u043b\u0438
+#. \u0432\u0435\u0431-\u043f\u0435\u0440\u0435\u0433\u043b\u044f\u0434\u0430\u0447
+#. \u043f\u0456\u0434 \u0447\u0430\u0441 \u0442\u0435\u0441\u0442\u0443."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Ваш ідентифікатор учасника не визначено, можливо, через те, що ви змінили "
+"браузер під час тесту."
+
+#. {"msgid":
+#. ["\u041f\u0435\u0440\u0435\u0440\u0438\u0432\u0430\u043d\u043d\u044f
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443
+#. \u043d\u0435\u043c\u043e\u0436\u043b\u0438\u0432\u0435,
+#. \u043e\u0441\u043a\u0456\u043b\u044c\u043a\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0430\u0442\u043e\u0440
+#. \u043d\u0435 \u0434\u043e\u0437\u0432\u043e\u043b\u044f\u0454 \u0446\u0435
+#. \u043d\u0430\u0440\u0430\u0437\u0456!",
+#. "\u041f\u0435\u0440\u0435\u0440\u0438\u0432\u0430\u043d\u043d\u044f
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443
+#. \u043d\u0435\u043c\u043e\u0436\u043b\u0438\u0432\u0435,
+#. \u043e\u0441\u043a\u0456\u043b\u044c\u043a\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0430\u0442\u043e\u0440
+#. \u043d\u0435 \u0434\u043e\u0437\u0432\u043e\u043b\u044f\u0454
+#. \u0446\u044c\u043e\u0433\u043e \u0432 \u0434\u0430\u043d\u0438\u0439
+#. \u043c\u043e\u043c\u0435\u043d\u0442!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Переривання експерименту неможливе, оскільки експериментатор не дозволяє це "
+"наразі!"
+
+#. {"msgid": ["\u042f\u043a\u0449\u043e \u0432\u0438
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0435\u0442\u0435
+#. \u043a\u043d\u043e\u043f\u043a\u0443
+#. \u00ab\u0421\u043a\u0430\u0441\u0443\u0432\u0430\u0442\u0438\u00bb,
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442
+#. \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c\u0441\u044f
+#. \u0440\u0430\u043d\u0456\u0448\u0435, \u0456 \u0432\u0430\u043c
+#. \u0431\u0443\u0434\u0435
+#. \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e
+#. \u0432\u0438\u043f\u043b\u0430\u0447\u0435\u043d\u043e
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e,
+#. \u044f\u043a\u0443 \u0432\u0438
+#. \u0437\u0430\u0440\u043e\u0431\u0438\u043b\u0438 \u043d\u0430
+#. \u0446\u0435\u0439 \u043c\u043e\u043c\u0435\u043d\u0442.",
+#. "\u042f\u043a\u0449\u043e \u0432\u0438
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0435\u0442\u0435
+#. \u043a\u043d\u043e\u043f\u043a\u0443
+#. \u00ab\u0421\u043a\u0430\u0441\u0443\u0432\u0430\u0442\u0438\u00bb,
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442
+#. \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c\u0441\u044f
+#. \u0434\u043e\u0441\u0442\u0440\u043e\u043a\u043e\u0432\u043e, \u0456
+#. \u0432\u0430\u043c \u0431\u0443\u0434\u0435
+#. \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e
+#. \u0432\u0438\u043f\u043b\u0430\u0447\u0435\u043d\u043e
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e,
+#. \u044f\u043a\u0443 \u0432\u0438
+#. \u0437\u0430\u0440\u043e\u0431\u0438\u043b\u0438 \u0434\u043e
+#. \u0446\u044c\u043e\u0433\u043e \u0447\u0430\u0441\u0443."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Якщо ви натиснете кнопку «Скасувати», експеримент завершиться раніше, і вам "
+"буде автоматично виплачено компенсацію, яку ви заробили на цей момент."
+
+#. {"msgid": ["\u0429\u043e\u0431
+#. \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0438
+#. \u043e\u043f\u0438\u0442\u0443\u0432\u0430\u043d\u043d\u044f Lucid,
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u043a\u043d\u043e\u043f\u043a\u0443 \u043d\u0438\u0436\u0447\u0435.",
+#. "\u0429\u043e\u0431 \u043f\u0440\u043e\u0439\u0442\u0438
+#. \u043e\u043f\u0438\u0442\u0443\u0432\u0430\u043d\u043d\u044f Lucid,
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u043a\u043d\u043e\u043f\u043a\u0443 \u043d\u0438\u0436\u0447\u0435."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Щоб завершити опитування Lucid, натисніть кнопку нижче."
+
+#. {"msgid": ["\u041a\u0456\u043d\u0435\u0446\u044c
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442\u0443.",
+#. "\u041a\u0456\u043d\u0435\u0446\u044c
+#. \u0434\u043e\u0441\u043b\u0456\u0434\u0443."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Кінець експерименту."
+
+#. {"msgid": ["\u041e\u0434\u043d\u0430\u043a \u0432\u0438 \u0432\u0441\u0435
+#. \u043e\u0434\u043d\u043e
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u0454\u0442\u0435
+#. \u0433\u0440\u043e\u0448\u0456 \u0437\u0430
+#. \u0432\u0438\u0442\u0440\u0430\u0447\u0435\u043d\u0438\u0439
+#. \u0447\u0430\u0441.", "\u041e\u0434\u043d\u0430\u043a \u0432\u0430\u043c
+#. \u0432\u0441\u0435 \u043e\u0434\u043d\u043e \u0431\u0443\u0434\u0435
+#. \u0432\u0438\u043f\u043b\u0430\u0447\u0435\u043d\u043e \u0447\u0430\u0441,
+#. \u044f\u043a\u0438\u0439 \u0432\u0438 \u0432\u0436\u0435
+#. \u0432\u0438\u0442\u0440\u0430\u0442\u0438\u043b\u0438."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Однак ви все одно отримаєте гроші за витрачений час."
+
+#. {"msgid": ["\u0412\u0438 \u043c\u043e\u0436\u0435\u0442\u0435
+#. \u043f\u0435\u0440\u0435\u0440\u0432\u0430\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442,
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0443\u0432\u0448\u0438
+#. \u043a\u043d\u043e\u043f\u043a\u0443
+#. <strong>\u041f\u0440\u0438\u043f\u0438\u043d\u0438\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442</strong>
+#. <strong>\u043d\u0430 \u0441\u0442\u043e\u0440\u0456\u043d\u0446\u0456
+#. \u0440\u0435\u043a\u043b\u0430\u043c\u0438 MTurk</strong>.", "\u0412\u0438
+#. \u043c\u043e\u0436\u0435\u0442\u0435
+#. \u0441\u043a\u0430\u0441\u0443\u0432\u0430\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442,
+#. \u043d\u0430\u0442\u0438\u0441\u043d\u0443\u0432\u0448\u0438
+#. \u043a\u043d\u043e\u043f\u043a\u0443
+#. <strong>\u0421\u043a\u0430\u0441\u0443\u0432\u0430\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442</strong>
+#. <strong>\u043d\u0430 \u0441\u0442\u043e\u0440\u0456\u043d\u0446\u0456
+#. \u0440\u0435\u043a\u043b\u0430\u043c\u0438 MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Ви можете перервати експеримент, натиснувши кнопку <strong>Припинити "
+"експеримент</strong> <strong>на сторінці реклами MTurk</strong>."
+
+#. {"msgid":
+#. ["\u041f\u0435\u0440\u0435\u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0442\u0435
+#. \u0441\u0442\u043e\u0440\u0456\u043d\u043a\u0443.",
+#. "\u041e\u043d\u043e\u0432\u0456\u0442\u044c
+#. \u0441\u0442\u043e\u0440\u0456\u043d\u043a\u0443."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Перезавантажте сторінку."
+
+#. {"msgid": ["\u041d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u043a\u043d\u043e\u043f\u043a\u0443, \u043a\u043e\u043b\u0438
+#. \u0431\u0443\u0434\u0435\u0442\u0435 \u0433\u043e\u0442\u043e\u0432\u0456
+#. \u043f\u0440\u043e\u0434\u043e\u0432\u0436\u0438\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442.",
+#. "\u041d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u043a\u043d\u043e\u043f\u043a\u0443, \u043a\u043e\u043b\u0438 \u0432\u0438
+#. \u0431\u0443\u0434\u0435\u0442\u0435 \u0433\u043e\u0442\u043e\u0432\u0456
+#. \u043f\u0440\u043e\u0434\u043e\u0432\u0436\u0438\u0442\u0438
+#. \u0435\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Натисніть кнопку, коли будете готові продовжити експеримент."
+
+#. {"msgid": ["\u0414\u043e\u043f\u043e\u043c\u043e\u0436\u0456\u0442\u044c!",
+#. "\u0434\u043e\u043f\u043e\u043c\u043e\u0433\u0430!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Допоможіть!"
+
+#. {"msgid": ["\u041d\u0430 \u0436\u0430\u043b\u044c, \u0446\u044f
+#. \u043f\u043e\u0432\u0435\u0434\u0456\u043d\u043a\u0430
+#. \u043d\u0430\u0440\u0430\u0437\u0456 \u043d\u0435
+#. \u043f\u0456\u0434\u0442\u0440\u0438\u043c\u0443\u0454\u0442\u044c\u0441\u044f.",
+#. "\u041d\u0430 \u0436\u0430\u043b\u044c,
+#. \u043d\u0430\u0440\u0430\u0437\u0456 \u0442\u0430\u043a\u0430
+#. \u043f\u043e\u0432\u0435\u0434\u0456\u043d\u043a\u0430 \u043d\u0435
+#. \u043f\u0456\u0434\u0442\u0440\u0438\u043c\u0443\u0454\u0442\u044c\u0441\u044f."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "На жаль, ця поведінка наразі не підтримується."
+
+#. {"msgid": ["\u041d\u0438\u0436\u0447\u0435
+#. \u043d\u0430\u0432\u0435\u0434\u0435\u043d\u043e
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e
+#. \u043f\u0440\u043e
+#. \u043d\u0430\u043a\u043e\u043f\u0438\u0447\u0435\u043d\u0438\u0439
+#. \u0431\u043e\u043d\u0443\u0441.", "\u041d\u0438\u0436\u0447\u0435
+#. \u043d\u0430\u0432\u0435\u0434\u0435\u043d\u043e
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e
+#. \u043f\u0440\u043e \u0432\u0430\u0448
+#. \u043f\u043e\u0442\u043e\u0447\u043d\u0438\u0439
+#. \u043d\u0430\u043a\u043e\u043f\u0438\u0447\u0435\u043d\u0438\u0439
+#. \u0431\u043e\u043d\u0443\u0441."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Нижче наведено інформацію про накопичений бонус."
+
+#. {"msgid": ["\u0417\u0432\u2019\u044f\u0436\u0456\u0442\u044c\u0441\u044f
+#. \u0437 \u043d\u0430\u043c\u0438, \u043b\u0438\u0448\u0435
+#. \u044f\u043a\u0449\u043e \u0443 \u0432\u0430\u0441
+#. \u0432\u0438\u043d\u0438\u043a\u043b\u0438
+#. \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0438 \u0437
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u043d\u043d\u044f\u043c
+#. \u043f\u043b\u0430\u0442\u0435\u0436\u0443.", "\u0411\u0443\u0434\u044c
+#. \u043b\u0430\u0441\u043a\u0430,
+#. \u0437\u0432\u2019\u044f\u0436\u0456\u0442\u044c\u0441\u044f \u0437
+#. \u043d\u0430\u043c\u0438, \u043b\u0438\u0448\u0435 \u044f\u043a\u0449\u043e
+#. \u0443 \u0432\u0430\u0441
+#. \u0432\u0438\u043d\u0438\u043a\u043d\u0443\u0442\u044c
+#. \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0438 \u0437
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u043d\u043d\u044f\u043c
+#. \u043f\u043b\u0430\u0442\u0435\u0436\u0443."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Зв’яжіться з нами, лише якщо у вас виникли проблеми з отриманням платежу."
+
+#. {"msgid":
+#. ["\u041f\u0435\u0440\u0435\u0433\u043b\u044f\u043d\u044c\u0442\u0435
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e
+#. \u043d\u0438\u0436\u0447\u0435, \u0449\u043e\u0431
+#. \u0434\u0456\u0437\u043d\u0430\u0442\u0438\u0441\u044f \u043f\u0440\u043e
+#. \u0441\u0432\u043e\u044e
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e.",
+#. "\u041f\u043e\u0434\u0440\u043e\u0431\u0438\u0446\u0456
+#. \u0432\u0430\u0448\u043e\u0457
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u0457
+#. \u0434\u0438\u0432. \u0443
+#. \u043d\u0430\u0432\u0435\u0434\u0435\u043d\u0456\u0439
+#. \u043d\u0438\u0436\u0447\u0435
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u0457."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Перегляньте інформацію нижче, щоб дізнатися про свою компенсацію."
+
+#. {"msgid": ["\u041f\u0456\u0441\u043b\u044f
+#. \u043f\u0435\u0440\u0435\u0440\u0438\u0432\u0430\u043d\u043d\u044f
+#. \u043d\u0435 \u043f\u043e\u0442\u0440\u0456\u0431\u043d\u043e
+#. \u0437\u0432\u0435\u0440\u0442\u0430\u0442\u0438\u0441\u044f \u0434\u043e
+#. \u043d\u0430\u0441, \u0449\u043e\u0431
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e;",
+#. "\u041f\u0456\u0441\u043b\u044f
+#. \u043f\u0435\u0440\u0435\u0440\u0438\u0432\u0430\u043d\u043d\u044f
+#. \u043d\u0435 \u043f\u043e\u0442\u0440\u0456\u0431\u043d\u043e
+#. \u0437\u0432\u2019\u044f\u0437\u0443\u0432\u0430\u0442\u0438\u0441\u044f
+#. \u0437 \u043d\u0430\u043c\u0438 \u0434\u043b\u044f
+#. \u043e\u0442\u0440\u0438\u043c\u0430\u043d\u043d\u044f
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u0457;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Після переривання не потрібно звертатися до нас, щоб отримати компенсацію;"
+
+#. {"msgid": ["\u0411\u0443\u0434\u044c \u043b\u0430\u0441\u043a\u0430,
+#. \u0442\u0430\u043a\u043e\u0436
+#. \u043d\u0430\u0432\u0435\u0434\u0456\u0442\u044c \u0442\u0430\u043a\u0443
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e:",
+#. "\u041f\u0440\u043e\u0441\u0438\u043c\u043e \u0442\u0430\u043a\u043e\u0436
+#. \u043d\u0430\u0434\u0430\u0442\u0438
+#. \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0443
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u044e:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Будь ласка, також наведіть таку інформацію:"
+
+#. {"msgid": ["\u041d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u043a\u043d\u043e\u043f\u043a\u0443 \u0432\u0438\u0449\u0435,
+#. \u0449\u043e\u0431 \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e \u0432
+#. \u0440\u0430\u0437\u0456 \u043f\u043e\u043c\u0438\u043b\u043a\u0438.",
+#. "\u041d\u0430\u0442\u0438\u0441\u043d\u0456\u0442\u044c
+#. \u043a\u043d\u043e\u043f\u043a\u0443 \u0432\u0438\u0449\u0435,
+#. \u0449\u043e\u0431 \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438
+#. \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0430\u0446\u0456\u044e \u0443
+#. \u0432\u0438\u043f\u0430\u0434\u043a\u0443
+#. \u043f\u043e\u043c\u0438\u043b\u043a\u0438."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Натисніть кнопку вище, щоб отримати компенсацію в разі помилки."
+
+#. {"msgid": ["\u041f\u0435\u0440\u0435\u0432\u0456\u0440\u0442\u0435,
+#. \u0447\u0438 \u043f\u0440\u0430\u0446\u044e\u0454 \u0432\u0430\u0448\u0435
+#. \u043f\u0456\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u043d\u044f
+#. \u0434\u043e \u0406\u043d\u0442\u0435\u0440\u043d\u0435\u0442\u0443.",
+#. "\u041f\u0435\u0440\u0435\u0432\u0456\u0440\u0442\u0435, \u0447\u0438
+#. \u043f\u0440\u0430\u0446\u044e\u0454 \u0432\u0430\u0448\u0435
+#. \u0456\u043d\u0442\u0435\u0440\u043d\u0435\u0442-\u0437\u2019\u0454\u0434\u043d\u0430\u043d\u043d\u044f."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Перевірте, чи працює ваше підключення до Інтернету."
+
+#. {"msgid": ["\u042f\u043a\u0449\u043e
+#. \u0432\u0438\u0449\u0435\u0432\u043a\u0430\u0437\u0430\u043d\u0435
+#. \u043d\u0435 \u0434\u043e\u043f\u043e\u043c\u043e\u0433\u043b\u043e,
+#. \u043d\u0430\u0434\u0456\u0448\u043b\u0456\u0442\u044c \u043d\u0430\u043c
+#. \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0438\u0439
+#. \u043b\u0438\u0441\u0442 \u0456\u0437 \u0442\u0430\u043a\u043e\u044e
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u0454\u044e:",
+#. "\u042f\u043a\u0449\u043e \u043d\u0430\u0432\u0435\u0434\u0435\u043d\u0456
+#. \u0432\u0438\u0449\u0435 \u0434\u0456\u0457 \u043d\u0435
+#. \u0434\u043e\u043f\u043e\u043c\u043e\u0433\u043b\u0438,
+#. \u043d\u0430\u0434\u0456\u0448\u043b\u0456\u0442\u044c \u043d\u0430\u043c
+#. \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0438\u0439
+#. \u043b\u0438\u0441\u0442 \u0456\u0437 \u0442\u0430\u043a\u043e\u044e
+#. \u0456\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0456\u0454\u044e:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Якщо вищевказане не допомогло, надішліть нам електронний лист із такою "
+"інформацією:"
+
+#. {"msgid": ["\u041f\u043e\u0441\u0438\u043b\u0430\u043d\u043d\u044f
+#. \u043d\u0430 \u043f\u043e\u0442\u043e\u0447\u043d\u0443
+#. \u0432\u0435\u0431-\u0441\u0442\u043e\u0440\u0456\u043d\u043a\u0443;",
+#. "\u041f\u043e\u0441\u0438\u043b\u0430\u043d\u043d\u044f \u043d\u0430
+#. \u043f\u043e\u0442\u043e\u0447\u043d\u0443
+#. \u0441\u0442\u043e\u0440\u0456\u043d\u043a\u0443 \u0432
+#. \u0406\u043d\u0442\u0435\u0440\u043d\u0435\u0442\u0456;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Посилання на поточну веб-сторінку;"
+
+#. {"msgid": ["\u0412\u0430\u0448\u0435 \u0440\u043e\u0431\u043e\u0447\u0435
+#. \u043f\u043e\u0441\u0432\u0456\u0434\u0447\u0435\u043d\u043d\u044f;",
+#. "\u0412\u0430\u0448 \u0440\u043e\u0431\u043e\u0447\u0438\u0439
+#. \u0456\u0434\u0435\u043d\u0442\u0438\u0444\u0456\u043a\u0430\u0442\u043e\u0440;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Ваше робоче посвідчення;"
+
+#. {"msgid": ["\u041f\u0440\u043e\u0431\u043b\u0435\u043c\u0430,
+#. \u044f\u043a\u0443 \u0432\u0438
+#. \u0432\u0456\u0434\u0447\u0443\u0432\u0430\u0454\u0442\u0435.",
+#. "\u041f\u0440\u043e\u0431\u043b\u0435\u043c\u0430, \u0437
+#. \u044f\u043a\u043e\u044e \u0432\u0438
+#. \u0437\u0456\u0442\u043a\u043d\u0443\u043b\u0438\u0441\u044f."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Проблема, яку ви відчуваєте."
+
+#. {"msgid": ["\u0420\u0435\u0437\u044e\u043c\u0435"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Резюме"

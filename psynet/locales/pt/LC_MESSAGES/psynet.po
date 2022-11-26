@@ -1,0 +1,477 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:55+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: PT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Voc\u00ea deve acumular <strong>pelo menos
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de b\u00f4nus para poder ser
+#. compensado.", "Voc\u00ea tem que acumular <strong>pelo menos
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de b\u00f4nus para ser
+#. compensado."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Você deve acumular <strong>pelo menos "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bônus para poder ser "
+"compensado."
+
+#. {"msgid": ["B\u00f4nus acumulado", "b\u00f4nus acumulado"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Bônus acumulado"
+
+#. {"msgid": ["Janela fechada", "Fechar janela", "Fechar a janela"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Janela fechada"
+
+#. {"msgid": ["Abortar experimento", "Interromper experimento"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Abortar experimento"
+
+#. {"msgid": ["Pesquisa completa", "Question\u00e1rio completo"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Pesquisa completa"
+
+#. {"msgid": ["Al\u00e9m de seu pagamento base de
+#. <strong>$%(BASE_PAYMENT)s</strong>, voc\u00ea receber\u00e1 um b\u00f4nus
+#. de <strong>$%(BONUS)s</strong> pelo tempo gasto no experimento.",
+#. "Al\u00e9m de seu pagamento base de <strong>$%(BASE_PAYMENT)s</strong>,
+#. voc\u00ea receber\u00e1 um b\u00f4nus de <strong>$%(BONUS)s</strong> pelo
+#. tempo que passou no experimento."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Além de seu pagamento base de <strong>$%(BASE_PAYMENT)s</strong>, você "
+"receberá um bônus de <strong>$%(BONUS)s</strong> pelo tempo gasto no "
+"experimento."
+
+#. {"msgid": ["Voc\u00ea tamb\u00e9m recebeu um b\u00f4nus de desempenho de
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Voc\u00ea tamb\u00e9m ganhou um
+#. b\u00f4nus por desempenho de <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Você também recebeu um bônus de desempenho de "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Clique em \"Concluir\" para concluir o HIT.", "Por favor,
+#. clique em \"Finish\" para concluir o HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Clique em \"Concluir\" para concluir o HIT."
+
+#. {"msgid": ["Terminar", "Final", "Finalizar", "Acabamento"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Terminar"
+
+#. {"msgid": ["Obrigado por participar.", "Obrigado por fazer parte."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Obrigado por participar."
+
+#. {"msgid": ["Pr\u00f3ximo", "Seguinte", "Next", "Avan\u00e7ar"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Próximo"
+
+#. {"msgid": ["Se n\u00e3o for esse o caso, entre em contato conosco em
+#. %(EMAIL)s citando as seguintes informa\u00e7\u00f5es:", "Se este n\u00e3o
+#. for o caso, entre em contato conosco em %(EMAIL)s citando as seguintes
+#. informa\u00e7\u00f5es:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Se não for esse o caso, entre em contato conosco em %(EMAIL)s citando as "
+"seguintes informações:"
+
+#. {"msgid": ["Para obter informa\u00e7\u00f5es sobre compensa\u00e7\u00e3o,
+#. entre em contato com o pesquisador em %(EMAIL)s e descreva o que levou a
+#. esse erro.", "Para obter informa\u00e7\u00f5es sobre a
+#. compensa\u00e7\u00e3o, entre em contato com o pesquisador em %(EMAIL)se
+#. descreva o que levou a esse erro."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Para obter informações sobre compensação, entre em contato com o pesquisador"
+" em %(EMAIL)s e descreva o que levou a esse erro."
+
+#. {"msgid": ["Abortar experimento", "Abortar a experi\u00eancia"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Abortar experimento"
+
+#. {"msgid": ["Retomando o experimento...", "Retomando a
+#. experi\u00eancia..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Retomando o experimento..."
+
+#. {"msgid": ["Abortar n\u00e3o \u00e9 poss\u00edvel.", "N\u00e3o \u00e9
+#. poss\u00edvel abortar."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Abortar não é possível."
+
+#. {"msgid": ["Tem certeza de que deseja abortar o experimento?", "Tem certeza
+#. de que deseja interromper o experimento?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Tem certeza de que deseja abortar o experimento?"
+
+#. {"msgid": ["Submiss\u00e3o Lucid Survey", "Envio de pesquisa l\u00facida"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Submissão Lucid Survey"
+
+#. {"msgid": ["O consentimento foi rejeitado.", "O consentimento foi
+#. negado."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "O consentimento foi rejeitado."
+
+#. {"msgid": ["Esse \u00e9 o fim do experimento!", "\u00c9 o fim do
+#. experimento!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Esse é o fim do experimento!"
+
+#. {"msgid": ["Infelizmente, o experimento deve terminar mais cedo.",
+#. "Infelizmente, a experi\u00eancia deve terminar cedo."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Infelizmente, o experimento deve terminar mais cedo."
+
+#. {"msgid": ["Erro!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Erro!"
+
+#. {"msgid": ["Iniciando experimento...", "Iniciando a experi\u00eancia..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Iniciando experimento..."
+
+#. {"msgid": ["Em caso de problema, tente o seguinte:", "Em caso de problema,
+#. experimente o seguinte:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Em caso de problema, tente o seguinte:"
+
+#. {"msgid": ["Voc\u00ea est\u00e1 pronto?", "Voc\u00ea est\u00e1
+#. preparado?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Você está pronto?"
+
+#. {"msgid": ["B\u00f4nus", "B\u00f3nus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bônus"
+
+#. {"msgid": ["Seu ID de participante est\u00e1 indefinido, talvez porque
+#. voc\u00ea trocou de navegador durante o teste.", "Seu ID de participante
+#. est\u00e1 indefinido, talvez porque voc\u00ea tenha trocado de navegador
+#. durante o teste."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Seu ID de participante está indefinido, talvez porque você trocou de "
+"navegador durante o teste."
+
+#. {"msgid": ["Abortar o experimento n\u00e3o \u00e9 poss\u00edvel porque o
+#. experimentador n\u00e3o permite isso neste momento!", "Abortar o
+#. experimento n\u00e3o \u00e9 poss\u00edvel, pois o experimentador n\u00e3o
+#. permite isso no momento!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Abortar o experimento não é possível porque o experimentador não permite "
+"isso neste momento!"
+
+#. {"msgid": ["Se voc\u00ea clicar no bot\u00e3o Abortar, o experimento
+#. terminar\u00e1 mais cedo e voc\u00ea receber\u00e1 automaticamente a
+#. compensa\u00e7\u00e3o que ganhou at\u00e9 agora.", "Se voc\u00ea clicar no
+#. bot\u00e3o Abortar, o experimento ser\u00e1 encerrado antecipadamente e
+#. voc\u00ea receber\u00e1 automaticamente a compensa\u00e7\u00e3o que ganhou
+#. at\u00e9 agora."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Se você clicar no botão Abortar, o experimento terminará mais cedo e você "
+"receberá automaticamente a compensação que ganhou até agora."
+
+#. {"msgid": ["Para preencher sua Lucid Survey, clique no bot\u00e3o abaixo.",
+#. "Para preencher sua pesquisa Lucid, clique no bot\u00e3o abaixo."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Para preencher sua Lucid Survey, clique no botão abaixo."
+
+#. {"msgid": ["Fim do experimento.", "Fim da experi\u00eancia."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Fim do experimento."
+
+#. {"msgid": ["No entanto, voc\u00ea ainda ser\u00e1 pago pelo tempo que
+#. j\u00e1 gastou.", "No entanto, voc\u00ea ainda ser\u00e1 pago pelo tempo
+#. gasto."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "No entanto, você ainda será pago pelo tempo que já gastou."
+
+#. {"msgid": ["Voc\u00ea pode abortar a experi\u00eancia usando o bot\u00e3o
+#. <strong>Abortar experi\u00eancia</strong> <strong>na p\u00e1gina de
+#. an\u00fancios MTurk</strong>.", "Voc\u00ea pode abortar o experimento
+#. usando o bot\u00e3o <strong>Abortar experimento</strong> <strong>na
+#. p\u00e1gina de an\u00fancios do MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Você pode abortar a experiência usando o botão <strong>Abortar "
+"experiência</strong> <strong>na página de anúncios MTurk</strong>."
+
+#. {"msgid": ["Recarregue a p\u00e1gina.", "Atualize a p\u00e1gina."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Recarregue a página."
+
+#. {"msgid": ["Clique no bot\u00e3o quando estiver pronto para continuar a
+#. experi\u00eancia.", "Clique no bot\u00e3o quando voc\u00ea estiver pronto
+#. para continuar o experimento."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Clique no botão quando estiver pronto para continuar a experiência."
+
+#. {"msgid": ["Ajuda!", "Ajudar!", "Socorro!", "Socorro."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Ajuda!"
+
+#. {"msgid": ["Infelizmente, esse comportamento n\u00e3o \u00e9 suportado no
+#. momento.", "Infelizmente, esse comportamento n\u00e3o \u00e9
+#. compat\u00edvel no momento."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Infelizmente, esse comportamento não é suportado no momento."
+
+#. {"msgid": ["Veja abaixo as informa\u00e7\u00f5es sobre o seu b\u00f4nus
+#. acumulado atualmente.", "Veja abaixo informa\u00e7\u00f5es sobre seu
+#. b\u00f4nus acumulado atualmente."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Veja abaixo as informações sobre o seu bônus acumulado atualmente."
+
+#. {"msgid": ["Por favor, entre em contato conosco apenas se tiver problemas
+#. para receber seu pagamento.", "Entre em contato conosco apenas se tiver
+#. problemas para receber seu pagamento."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Por favor, entre em contato conosco apenas se tiver problemas para receber "
+"seu pagamento."
+
+#. {"msgid": ["Veja as informa\u00e7\u00f5es abaixo para detalhes de sua
+#. compensa\u00e7\u00e3o.", "Consulte as informa\u00e7\u00f5es abaixo para
+#. obter detalhes sobre sua remunera\u00e7\u00e3o."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Veja as informações abaixo para detalhes de sua compensação."
+
+#. {"msgid": ["Uma vez abortado, n\u00e3o h\u00e1 necessidade de entrar em
+#. contato conosco para receber a compensa\u00e7\u00e3o;", "Uma vez abortado,
+#. n\u00e3o h\u00e1 necessidade de nos contatar para receber a
+#. indeniza\u00e7\u00e3o;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Uma vez abortado, não há necessidade de entrar em contato conosco para "
+"receber a compensação;"
+
+#. {"msgid": ["Cite tamb\u00e9m as seguintes informa\u00e7\u00f5es:", "Cite
+#. tamb\u00e9m as informa\u00e7\u00f5es a seguir:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Cite também as seguintes informações:"
+
+#. {"msgid": ["Clique no bot\u00e3o acima para ser compensado em caso de
+#. erro.", "Clique no bot\u00e3o acima para ser ressarcido em caso de erro."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Clique no botão acima para ser compensado em caso de erro."
+
+#. {"msgid": ["Verifique se sua conex\u00e3o com a internet est\u00e1
+#. funcionando.", "Verifique se a sua conex\u00e3o com a Internet est\u00e1
+#. funcionando."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Verifique se sua conexão com a internet está funcionando."
+
+#. {"msgid": ["Se o acima n\u00e3o ajudar, envie-nos um e-mail com as
+#. seguintes informa\u00e7\u00f5es:", "Se as informa\u00e7\u00f5es acima
+#. n\u00e3o ajudarem, envie-nos um e-mail com as seguintes
+#. informa\u00e7\u00f5es:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Se o acima não ajudar, envie-nos um e-mail com as seguintes informações:"
+
+#. {"msgid": ["Um link para a p\u00e1gina da web atual;", "Um link para a
+#. p\u00e1gina atual da web;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Um link para a página da web atual;"
+
+#. {"msgid": ["Seu ID de trabalhador;", "Sua ID de trabalhador;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Seu ID de trabalhador;"
+
+#. {"msgid": ["O problema que voc\u00ea est\u00e1 enfrentando.", "O problema
+#. que voc\u00ea est\u00e1 tendo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "O problema que você está enfrentando."
+
+#. {"msgid": ["Retomar", "Curr\u00edculo"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Retomar"

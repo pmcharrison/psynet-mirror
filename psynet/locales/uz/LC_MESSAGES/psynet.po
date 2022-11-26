@@ -1,0 +1,462 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 12:01+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: UZ\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Kompensatsiya olish uchun <strong>kamida
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> to\u2018plashingiz kerak.",
+#. "Kompensatsiya olish uchun siz <strong>kamida
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> miqdorida bonus
+#. to\u2018plashingiz kerak."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Kompensatsiya olish uchun <strong>kamida "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> to‘plashingiz kerak."
+
+#. {"msgid": ["Yig'ilgan bonus", "To'plangan bonus"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Yig'ilgan bonus"
+
+#. {"msgid": ["Oynani yoping", "Deraza yopish"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Oynani yoping"
+
+#. {"msgid": ["Tajribani to'xtatish", "Eksperimentni to'xtatish"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Tajribani to'xtatish"
+
+#. {"msgid": ["To'liq so'rov", "To\u02bbliq so\u02bbrovnoma"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "To'liq so'rov"
+
+#. {"msgid": ["Tajribada sarflagan vaqtingiz uchun
+#. <strong>$%(BASE_PAYMENT)s</strong> miqdoridagi asosiy to\u02bblovingizga
+#. qo\u02bbshimcha ravishda <strong>$%(BONUS)s</strong> bonus olasiz.",
+#. "Tajribada sarflagan vaqtingiz uchun <strong>$%(BASE_PAYMENT)s</strong>
+#. asosiy to\u02bblovingizga qo\u02bbshimcha ravishda
+#. <strong>$%(BONUS)s</strong> bonus olasiz."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Tajribada sarflagan vaqtingiz uchun <strong>$%(BASE_PAYMENT)s</strong> "
+"miqdoridagi asosiy toʻlovingizga qoʻshimcha ravishda "
+"<strong>$%(BONUS)s</strong> bonus olasiz."
+
+#. {"msgid": ["Sizga <strong>$%(PERFORMANCE_BONUS)s</strong> unumdorlik bonusi
+#. ham berildi!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Sizga <strong>$%(PERFORMANCE_BONUS)s</strong> unumdorlik bonusi ham berildi!"
+
+#. {"msgid": ["XITni yakunlash uchun \u201cFinish\u201d tugmasini bosing.",
+#. "Iltimos, HITni yakunlash uchun \"Finish\" tugmasini bosing."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "XITni yakunlash uchun “Finish” tugmasini bosing."
+
+#. {"msgid": ["Tugatish", "Bajar"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Tugatish"
+
+#. {"msgid": ["Ishtirok etganingiz uchun tashakkur.", "Ishtirok qilganingiz
+#. uchun rahmat."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Ishtirok etganingiz uchun tashakkur."
+
+#. {"msgid": ["Keyingisi", "Keyingi"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Keyingisi"
+
+#. {"msgid": ["Agar bunday bo\u02bblmasa, quyidagi ma\u02bclumotlarni
+#. keltirgan holda %(EMAIL)s manzili orqali biz bilan bog\u02bblaning:", "Agar
+#. bunday bo'lmasa, iltimos, quyidagi ma'lumotlarni keltirgan holda %(EMAIL)s
+#. manzili orqali biz bilan bog'laning:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Agar bunday boʻlmasa, quyidagi maʼlumotlarni keltirgan holda %(EMAIL)s "
+"manzili orqali biz bilan bogʻlaning:"
+
+#. {"msgid": ["Kompensatsiya haqida so\u02bbrash uchun %(EMAIL)s manzili
+#. orqali tadqiqotchi bilan bog\u02bblaning va bu xatoga nima sabab
+#. bo\u02bblganini tasvirlab bering.", "Kompensatsiya haqida so\u02bbrash
+#. uchun %(EMAIL)s manzili orqali tadqiqotchi bilan bog\u02bblaning va bu
+#. xatoga nima sabab bo\u02bblganini tavsiflang."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Kompensatsiya haqida soʻrash uchun %(EMAIL)s manzili orqali tadqiqotchi "
+"bilan bogʻlaning va bu xatoga nima sabab boʻlganini tasvirlab bering."
+
+#. {"msgid": ["Tajribani to'xtatish", "Tajribani bekor qilish"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Tajribani to'xtatish"
+
+#. {"msgid": ["Tajriba davom ettirilmoqda...", "Tajriba davom etmoqda..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Tajriba davom ettirilmoqda..."
+
+#. {"msgid": ["Abort qilish mumkin emas.", "To'xtatish mumkin emas."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Abort qilish mumkin emas."
+
+#. {"msgid": ["Haqiqatan ham tajribani bekor qilmoqchimisiz?", "Tajribani
+#. to\u2018xtatmoqchimisiz?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Haqiqatan ham tajribani bekor qilmoqchimisiz?"
+
+#. {"msgid": ["Aniq so'rovnoma topshirish", "Aniq so'rovnoma taqdim etish"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Aniq so'rovnoma topshirish"
+
+#. {"msgid": ["Rozilik rad etildi.", "Rozilik rad qilindi."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Rozilik rad etildi."
+
+#. {"msgid": ["Bu tajribaning oxiri!", "Tajriba shu bilan tugadi!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Bu tajribaning oxiri!"
+
+#. {"msgid": ["Afsuski, tajriba erta tugashi kerak.", "Afsuski, eksperiment
+#. erta yakunlanishi kerak."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Afsuski, tajriba erta tugashi kerak."
+
+#. {"msgid": ["Xato!", "Xatolik!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Xato!"
+
+#. {"msgid": ["Tajriba boshlanmoqda...", "Eksperiment boshlanmoqda..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Tajriba boshlanmoqda..."
+
+#. {"msgid": ["Muammo bo'lsa, quyidagilarni sinab ko'ring:", "Muammo yuzaga
+#. kelgan taqdirda, quyidagilarni sinab ko'ring:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Muammo bo'lsa, quyidagilarni sinab ko'ring:"
+
+#. {"msgid": ["Tayyormisiz?", "Siz tayyormisiz?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Tayyormisiz?"
+
+#. {"msgid": ["Bonus", "bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["Ishtirokchi identifikatoringiz aniqlanmagan, ehtimol siz test
+#. paytida brauzerni almashtirgansiz.", "Ishtirokchi identifikatoringiz
+#. aniqlanmagan, ehtimol sinov paytida brauzerni almashtirganingiz uchun."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Ishtirokchi identifikatoringiz aniqlanmagan, ehtimol siz test paytida "
+"brauzerni almashtirgansiz."
+
+#. {"msgid": ["Tajribani bekor qilish mumkin emas, chunki eksperimentator
+#. hozir bunga ruxsat bermaydi!", "Eksperimentni bekor qilish mumkin emas,
+#. chunki eksperimentator hozir bunga ruxsat bermayapti!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Tajribani bekor qilish mumkin emas, chunki eksperimentator hozir bunga "
+"ruxsat bermaydi!"
+
+#. {"msgid": ["Agar \u201cBekor qilish\u201d tugmasini bossangiz, tajriba
+#. muddatidan oldin tugaydi va sizga shu paytgacha ishlagan tovoningiz
+#. avtomatik ravishda to\u02bblanadi.", "Agar \u201cBekor qilish\u201d
+#. tugmasini bossangiz, tajriba muddatidan oldin tugaydi va sizga shu
+#. paytgacha ishlagan tovon puli avtomatik ravishda to\u2018lanadi."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Agar “Bekor qilish” tugmasini bossangiz, tajriba muddatidan oldin tugaydi va"
+" sizga shu paytgacha ishlagan tovoningiz avtomatik ravishda toʻlanadi."
+
+#. {"msgid": ["Aniq so'rovingizni yakunlash uchun quyidagi tugmani bosing.",
+#. "Aniq so'rovnomangizni to'ldirish uchun quyidagi tugmani bosing."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Aniq so'rovingizni yakunlash uchun quyidagi tugmani bosing."
+
+#. {"msgid": ["Tajribaning oxiri.", "Eksperiment yakuni."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Tajribaning oxiri."
+
+#. {"msgid": ["Biroq, siz hali ham o'tkazgan vaqtingiz uchun to'lanadi.",
+#. "Biroq, siz o'tkazgan vaqtingiz uchun hali ham to'lanadi."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Biroq, siz hali ham o'tkazgan vaqtingiz uchun to'lanadi."
+
+#. {"msgid": ["Siz eksperimentni <strong>MTurk reklama sahifasi</strong>dagi
+#. <strong>Tajribani bekor qilish</strong> tugmasi yordamida bekor qilishingiz
+#. mumkin.", "Tajribani to'xtatishingiz mumkin <strong>Tajribani
+#. to'xtatish</strong> tugmasi <strong>MTurk reklama sahifasi</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Siz eksperimentni <strong>MTurk reklama sahifasi</strong>dagi "
+"<strong>Tajribani bekor qilish</strong> tugmasi yordamida bekor qilishingiz "
+"mumkin."
+
+#. {"msgid": ["Sahifani qayta yuklang.", "Sahifani qaytadan yuklang."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Sahifani qayta yuklang."
+
+#. {"msgid": ["Tajribani davom ettirishga tayyor bo'lgach, tugmani bosing.",
+#. "Tajribani davom ettirishga tayyor bo\u02bblganingizda tugmani bosing."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Tajribani davom ettirishga tayyor bo'lgach, tugmani bosing."
+
+#. {"msgid": ["Yordam bering!", "Yordam!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Yordam bering!"
+
+#. {"msgid": ["Afsuski, bu harakat hozircha qo\u2018llab-quvvatlanmaydi.",
+#. "Afsuski, bu xatti-harakat hozirda qo'llab-quvvatlanmaydi."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Afsuski, bu harakat hozircha qo‘llab-quvvatlanmaydi."
+
+#. {"msgid": ["Hozirda to'plangan bonusingiz haqidagi ma'lumotlarni quyida
+#. ko'ring.", "Hozirda to'plangan bonusingiz haqidagi ma'lumotni quyida
+#. ko'ring."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Hozirda to'plangan bonusingiz haqidagi ma'lumotlarni quyida ko'ring."
+
+#. {"msgid": ["Iltimos, faqat to'lovni qabul qilishda muammoga duch kelsangiz,
+#. biz bilan bog'laning.", "Iltimos, faqat to\u02bblovni olishda muammoga duch
+#. kelsangiz, biz bilan bog\u02bblaning."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Iltimos, faqat to'lovni qabul qilishda muammoga duch kelsangiz, biz bilan "
+"bog'laning."
+
+#. {"msgid": ["Kompensatsiya tafsilotlari uchun quyidagi ma'lumotlarni
+#. ko'ring.", "Sizning kompensatsiyangiz tafsilotlari uchun quyidagi
+#. ma'lumotlarni ko'ring."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Kompensatsiya tafsilotlari uchun quyidagi ma'lumotlarni ko'ring."
+
+#. {"msgid": ["Abortdan so'ng, kompensatsiya olish uchun biz bilan
+#. bog'lanishning hojati yo'q;", "Abortdan keyin tovon olish uchun biz bilan
+#. bog'lanishning hojati yo'q;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Abortdan so'ng, kompensatsiya olish uchun biz bilan bog'lanishning hojati "
+"yo'q;"
+
+#. {"msgid": ["Iltimos, quyidagi ma'lumotlarni ham keltiring:", "Iltimos,
+#. shuningdek, quyidagi ma'lumotlarni keltiring:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Iltimos, quyidagi ma'lumotlarni ham keltiring:"
+
+#. {"msgid": ["Xato bo'lsa kompensatsiya olish uchun yuqoridagi tugmani
+#. bosing.", "Xatolik yuzaga kelgan taqdirda kompensatsiya olish uchun
+#. yuqoridagi tugmani bosing."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Xato bo'lsa kompensatsiya olish uchun yuqoridagi tugmani bosing."
+
+#. {"msgid": ["Internet aloqangiz ishlayotganligini tekshiring.", "Internetga
+#. ulanishingiz ishlayotganligini tekshiring."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Internet aloqangiz ishlayotganligini tekshiring."
+
+#. {"msgid": ["Agar yuqoridagilar yordam bermasa, bizga quyidagi ma'lumotlarni
+#. elektron pochta orqali yuboring:", "Agar yuqorida aytilganlar yordam
+#. bermasa, bizga quyidagi ma'lumotlar bilan elektron pochta xabarini
+#. yuboring:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Agar yuqoridagilar yordam bermasa, bizga quyidagi ma'lumotlarni elektron "
+"pochta orqali yuboring:"
+
+#. {"msgid": ["Joriy veb-sahifaga havola;", "Hozirgi veb-sahifaga havola;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Joriy veb-sahifaga havola;"
+
+#. {"msgid": ["Sizning ishchi identifikatoringiz;", "Sizning ishchi ID;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Sizning ishchi identifikatoringiz;"
+
+#. {"msgid": ["Siz boshdan kechirayotgan muammo.", "Siz duch kelgan muammo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Siz boshdan kechirayotgan muammo."
+
+#. {"msgid": ["Rezyume; qayta boshlash", "Davom etish", "Rezyume"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Rezyume; qayta boshlash"

@@ -1,0 +1,3110 @@
+#
+msgid ""
+msgstr ""
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. {"msgid": ["Afganistan", "Afghaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:574
+#, fuzzy
+msgctxt "country_name"
+msgid "Afghanistan"
+msgstr "Afganistan"
+
+#. {"msgid": ["Albani\u00eb", "Albanees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:575
+#, fuzzy
+msgctxt "country_name"
+msgid "Albania"
+msgstr "Albanië"
+
+#. {"msgid": ["Algerije"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:576
+#, fuzzy
+msgctxt "country_name"
+msgid "Algeria"
+msgstr "Algerije"
+
+#. {"msgid": ["Amerikaans Samoa", "Amerikaans-Samoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:577
+#, fuzzy
+msgctxt "country_name"
+msgid "American Samoa"
+msgstr "Amerikaans Samoa"
+
+#. {"msgid": ["Andorra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:578
+#, fuzzy
+msgctxt "country_name"
+msgid "Andorra"
+msgstr "Andorra"
+
+#. {"msgid": ["Angola", "Angolees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:579
+#, fuzzy
+msgctxt "country_name"
+msgid "Angola"
+msgstr "Angola"
+
+#. {"msgid": ["Anguilla", "Anguille"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:580
+#, fuzzy
+msgctxt "country_name"
+msgid "Anguilla"
+msgstr "Anguilla"
+
+#. {"msgid": ["Antarctica", "Antartica"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:581
+#, fuzzy
+msgctxt "country_name"
+msgid "Antarctica"
+msgstr "Antarctica"
+
+#. {"msgid": ["Antigua en Barbuda", "Antigua & Barbuda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:582
+#, fuzzy
+msgctxt "country_name"
+msgid "Antigua and Barbuda"
+msgstr "Antigua en Barbuda"
+
+#. {"msgid": ["Argentini\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:583
+#, fuzzy
+msgctxt "country_name"
+msgid "Argentina"
+msgstr "Argentinië"
+
+#. {"msgid": ["Armeni\u00eb", "Armenie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:584
+#, fuzzy
+msgctxt "country_name"
+msgid "Armenia"
+msgstr "Armenië"
+
+#. {"msgid": ["Aruba", "Arubina"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:585
+#, fuzzy
+msgctxt "country_name"
+msgid "Aruba"
+msgstr "Aruba"
+
+#. {"msgid": ["Australi\u00eb", "Australische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:586
+#, fuzzy
+msgctxt "country_name"
+msgid "Australia"
+msgstr "Australië"
+
+#. {"msgid": ["Oostenrijk", "Oostenrijkse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:587
+#, fuzzy
+msgctxt "country_name"
+msgid "Austria"
+msgstr "Oostenrijk"
+
+#. {"msgid": ["Azerbeidzjan", "Azerbaijan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:588
+#, fuzzy
+msgctxt "country_name"
+msgid "Azerbaijan"
+msgstr "Azerbeidzjan"
+
+#. {"msgid": ["Bahamas", "Bahama's", "Bahama\u2019s"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:589
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahamas"
+msgstr "Bahamas"
+
+#. {"msgid": ["Bahrein", "bahrein"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:590
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahrain"
+msgstr "Bahrein"
+
+#. {"msgid": ["Bangladesh", "bangladesh"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:591
+#, fuzzy
+msgctxt "country_name"
+msgid "Bangladesh"
+msgstr "Bangladesh"
+
+#. {"msgid": ["Barbados"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:592
+#, fuzzy
+msgctxt "country_name"
+msgid "Barbados"
+msgstr "Barbados"
+
+#. {"msgid": ["Wit-Rusland", "Belarus"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:593
+#, fuzzy
+msgctxt "country_name"
+msgid "Belarus"
+msgstr "Wit-Rusland"
+
+#. {"msgid": ["Belgi\u00eb", "belgie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:594
+#, fuzzy
+msgctxt "country_name"
+msgid "Belgium"
+msgstr "België"
+
+#. {"msgid": ["Belize", "belize"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:595
+#, fuzzy
+msgctxt "country_name"
+msgid "Belize"
+msgstr "Belize"
+
+#. {"msgid": ["Benin", "Benijn"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:596
+#, fuzzy
+msgctxt "country_name"
+msgid "Benin"
+msgstr "Benin"
+
+#. {"msgid": ["Bermuda", "bermuda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:597
+#, fuzzy
+msgctxt "country_name"
+msgid "Bermuda"
+msgstr "Bermuda"
+
+#. {"msgid": ["Bhutan", "Bhutaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:598
+#, fuzzy
+msgctxt "country_name"
+msgid "Bhutan"
+msgstr "Bhutan"
+
+#. {"msgid": ["Bolivia, Plurinationale Staat van", "Bolivi\u00eb,
+#. plurinationale staat van"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:599
+#, fuzzy
+msgctxt "country_name"
+msgid "Bolivia, Plurinational State of"
+msgstr "Bolivia, Plurinationale Staat van"
+
+#. {"msgid": ["Bonaire, Sint Eustatius en Saba", "Bonaire, Sint-Eustatius en
+#. Saba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:600
+#, fuzzy
+msgctxt "country_name"
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "Bonaire, Sint Eustatius en Saba"
+
+#. {"msgid": ["Bosni\u00eb-Herzegovina", "Bosni\u00eb en Herzegovina"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:601
+#, fuzzy
+msgctxt "country_name"
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnië-Herzegovina"
+
+#. {"msgid": ["Botswana", "Botswaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:602
+#, fuzzy
+msgctxt "country_name"
+msgid "Botswana"
+msgstr "Botswana"
+
+#. {"msgid": ["Bouvet eiland", "het Bouvet-eiland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:603
+#, fuzzy
+msgctxt "country_name"
+msgid "Bouvet Island"
+msgstr "Bouvet eiland"
+
+#. {"msgid": ["Brazili\u00eb", "Brazilie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:604
+#, fuzzy
+msgctxt "country_name"
+msgid "Brazil"
+msgstr "Brazilië"
+
+#. {"msgid": ["Brits-Indisch oceaan gebied", "Brits Indische
+#. Oceaanterritorium", "Brits territorium in de Indische Oceaan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:605
+#, fuzzy
+msgctxt "country_name"
+msgid "British Indian Ocean Territory"
+msgstr "Brits-Indisch oceaan gebied"
+
+#. {"msgid": ["Brunei Darussalam", "Bruneise Darussalam"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:606
+#, fuzzy
+msgctxt "country_name"
+msgid "Brunei Darussalam"
+msgstr "Brunei Darussalam"
+
+#. {"msgid": ["Bulgarije", "Bulgaars"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:607
+#, fuzzy
+msgctxt "country_name"
+msgid "Bulgaria"
+msgstr "Bulgarije"
+
+#. {"msgid": ["Burkina Faso", "Burkinese Faso"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:608
+#, fuzzy
+msgctxt "country_name"
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
+#. {"msgid": ["Burundi", "Boeroenda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:609
+#, fuzzy
+msgctxt "country_name"
+msgid "Burundi"
+msgstr "Burundi"
+
+#. {"msgid": ["Kaapverdi\u00eb", "Kaapverdische eilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:610
+#, fuzzy
+msgctxt "country_name"
+msgid "Cabo Verde"
+msgstr "Kaapverdië"
+
+#. {"msgid": ["Cambodja"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:611
+#, fuzzy
+msgctxt "country_name"
+msgid "Cambodia"
+msgstr "Cambodja"
+
+#. {"msgid": ["Kameroen", "kameroen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:612
+#, fuzzy
+msgctxt "country_name"
+msgid "Cameroon"
+msgstr "Kameroen"
+
+#. {"msgid": ["Canada", "kanada"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:613
+#, fuzzy
+msgctxt "country_name"
+msgid "Canada"
+msgstr "Canada"
+
+#. {"msgid": ["Kaaiman Eilanden", "Cayman eilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:614
+#, fuzzy
+msgctxt "country_name"
+msgid "Cayman Islands"
+msgstr "Kaaiman Eilanden"
+
+#. {"msgid": ["Centraal Afrikaanse Republiek", "Centraalafrikaanse
+#. Republiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:615
+#, fuzzy
+msgctxt "country_name"
+msgid "Central African Republic"
+msgstr "Centraal Afrikaanse Republiek"
+
+#. {"msgid": ["Tsjaad", "Tsjaaad"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:616
+#, fuzzy
+msgctxt "country_name"
+msgid "Chad"
+msgstr "Tsjaad"
+
+#. {"msgid": ["Chili"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:617
+#, fuzzy
+msgctxt "country_name"
+msgid "Chile"
+msgstr "Chili"
+
+#. {"msgid": ["China", "Chinees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:618
+#, fuzzy
+msgctxt "country_name"
+msgid "China"
+msgstr "China"
+
+#. {"msgid": ["Kersteiland", "Kerstmis eiland", "Kerst eiland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:619
+#, fuzzy
+msgctxt "country_name"
+msgid "Christmas Island"
+msgstr "Kersteiland"
+
+#. {"msgid": ["Cocos (Keeling) Eilanden", "Cocos-eilanden (Keeling)."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:620
+#, fuzzy
+msgctxt "country_name"
+msgid "Cocos (Keeling) Islands"
+msgstr "Cocos (Keeling) Eilanden"
+
+#. {"msgid": ["Colombia", "Colombi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:621
+#, fuzzy
+msgctxt "country_name"
+msgid "Colombia"
+msgstr "Colombia"
+
+#. {"msgid": ["Comoren", "de Comoren"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:622
+#, fuzzy
+msgctxt "country_name"
+msgid "Comoros"
+msgstr "Comoren"
+
+#. {"msgid": ["Congo", "Kongo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:623
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo"
+msgstr "Congo"
+
+#. {"msgid": ["Congo, de Democratische Republiek van de", "Congo, de
+#. Democratische Republiek der"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:624
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo, The Democratic Republic of the"
+msgstr "Congo, de Democratische Republiek van de"
+
+#. {"msgid": ["Cook Eilanden", "Cookeilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:625
+#, fuzzy
+msgctxt "country_name"
+msgid "Cook Islands"
+msgstr "Cook Eilanden"
+
+#. {"msgid": ["Costa Rica", "CostaRicaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:626
+#, fuzzy
+msgctxt "country_name"
+msgid "Costa Rica"
+msgstr "Costa Rica"
+
+#. {"msgid": ["Kroati\u00eb", "Kroatisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:627
+#, fuzzy
+msgctxt "country_name"
+msgid "Croatia"
+msgstr "Kroatië"
+
+#. {"msgid": ["Cuba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:628
+#, fuzzy
+msgctxt "country_name"
+msgid "Cuba"
+msgstr "Cuba"
+
+#. {"msgid": ["Curacao", "Cura\u00e7ao"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:629
+#, fuzzy
+msgctxt "country_name"
+msgid "Curaçao"
+msgstr "Curacao"
+
+#. {"msgid": ["Cyprus", "Cypriotische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:630
+#, fuzzy
+msgctxt "country_name"
+msgid "Cyprus"
+msgstr "Cyprus"
+
+#. {"msgid": ["Tsjechi\u00eb", "Tsjechie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:631
+#, fuzzy
+msgctxt "country_name"
+msgid "Czechia"
+msgstr "Tsjechië"
+
+#. {"msgid": ["Ivoorkust", "Ivoorkust,"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:632
+#, fuzzy
+msgctxt "country_name"
+msgid "Côte d'Ivoire"
+msgstr "Ivoorkust"
+
+#. {"msgid": ["Denemarken"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:633
+#, fuzzy
+msgctxt "country_name"
+msgid "Denmark"
+msgstr "Denemarken"
+
+#. {"msgid": ["Djibouti", "Djiboutiaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:634
+#, fuzzy
+msgctxt "country_name"
+msgid "Djibouti"
+msgstr "Djibouti"
+
+#. {"msgid": ["Dominica", "Dominicaanse Republiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:635
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominica"
+msgstr "Dominica"
+
+#. {"msgid": ["Dominicaanse Republiek", "Dominikaanse Republiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:636
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominican Republic"
+msgstr "Dominicaanse Republiek"
+
+#. {"msgid": ["Ecuador", "Equador"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:637
+#, fuzzy
+msgctxt "country_name"
+msgid "Ecuador"
+msgstr "Ecuador"
+
+#. {"msgid": ["Egypte", "Egypt"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:638
+#, fuzzy
+msgctxt "country_name"
+msgid "Egypt"
+msgstr "Egypte"
+
+#. {"msgid": ["El Salvador", "Salvador"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:639
+#, fuzzy
+msgctxt "country_name"
+msgid "El Salvador"
+msgstr "El Salvador"
+
+#. {"msgid": ["Equatoriaal-Guinea", "Equatoriaal Guinea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:640
+#, fuzzy
+msgctxt "country_name"
+msgid "Equatorial Guinea"
+msgstr "Equatoriaal-Guinea"
+
+#. {"msgid": ["Eritrea", "eritrea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:641
+#, fuzzy
+msgctxt "country_name"
+msgid "Eritrea"
+msgstr "Eritrea"
+
+#. {"msgid": ["Estland", "Estlands"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:642
+#, fuzzy
+msgctxt "country_name"
+msgid "Estonia"
+msgstr "Estland"
+
+#. {"msgid": ["Swatini", "Zweeds"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:643
+#, fuzzy
+msgctxt "country_name"
+msgid "Eswatini"
+msgstr "Swatini"
+
+#. {"msgid": ["Ethiopi\u00eb", "Ethiopie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:644
+#, fuzzy
+msgctxt "country_name"
+msgid "Ethiopia"
+msgstr "Ethiopië"
+
+#. {"msgid": ["Falklandeilanden (Malvinas)", "Falkland Eilanden (Malvinas)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:645
+#, fuzzy
+msgctxt "country_name"
+msgid "Falkland Islands (Malvinas)"
+msgstr "Falklandeilanden (Malvinas)"
+
+#. {"msgid": ["Faer\u00f6er Eilanden", "Faer\u00f6er"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:646
+#, fuzzy
+msgctxt "country_name"
+msgid "Faroe Islands"
+msgstr "Faeröer Eilanden"
+
+#. {"msgid": ["Fiji", "fidji"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:647
+#, fuzzy
+msgctxt "country_name"
+msgid "Fiji"
+msgstr "Fiji"
+
+#. {"msgid": ["Finland", "Fins"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:648
+#, fuzzy
+msgctxt "country_name"
+msgid "Finland"
+msgstr "Finland"
+
+#. {"msgid": ["Frankrijk", "Frans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:649
+#, fuzzy
+msgctxt "country_name"
+msgid "France"
+msgstr "Frankrijk"
+
+#. {"msgid": ["Frans-Guyana", "Frans Guiana"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:650
+#, fuzzy
+msgctxt "country_name"
+msgid "French Guiana"
+msgstr "Frans-Guyana"
+
+#. {"msgid": ["Frans-Polynesi\u00eb", "frans polynesi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:651
+#, fuzzy
+msgctxt "country_name"
+msgid "French Polynesia"
+msgstr "Frans-Polynesië"
+
+#. {"msgid": ["Franse zuidelijke gebieden", "Franse Zuidelijke Territoria"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:652
+#, fuzzy
+msgctxt "country_name"
+msgid "French Southern Territories"
+msgstr "Franse zuidelijke gebieden"
+
+#. {"msgid": ["Gabon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:653
+#, fuzzy
+msgctxt "country_name"
+msgid "Gabon"
+msgstr "Gabon"
+
+#. {"msgid": ["Gambia", "Gambiaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:654
+#, fuzzy
+msgctxt "country_name"
+msgid "Gambia"
+msgstr "Gambia"
+
+#. {"msgid": ["Georgi\u00eb", "Georgia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:655
+#, fuzzy
+msgctxt "country_name"
+msgid "Georgia"
+msgstr "Georgië"
+
+#. {"msgid": ["Duitsland", "Duits"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:656
+#, fuzzy
+msgctxt "country_name"
+msgid "Germany"
+msgstr "Duitsland"
+
+#. {"msgid": ["Ghana", "Ghane", "Ghanees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:657
+#, fuzzy
+msgctxt "country_name"
+msgid "Ghana"
+msgstr "Ghana"
+
+#. {"msgid": ["Gibraltar", "Gitartaren"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:658
+#, fuzzy
+msgctxt "country_name"
+msgid "Gibraltar"
+msgstr "Gibraltar"
+
+#. {"msgid": ["Griekenland", "Grieks"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:659
+#, fuzzy
+msgctxt "country_name"
+msgid "Greece"
+msgstr "Griekenland"
+
+#. {"msgid": ["Groenland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:660
+#, fuzzy
+msgctxt "country_name"
+msgid "Greenland"
+msgstr "Groenland"
+
+#. {"msgid": ["Grenada", "Granada"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:661
+#, fuzzy
+msgctxt "country_name"
+msgid "Grenada"
+msgstr "Grenada"
+
+#. {"msgid": ["Guadeloupe", "Guadaloupe"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:662
+#, fuzzy
+msgctxt "country_name"
+msgid "Guadeloupe"
+msgstr "Guadeloupe"
+
+#. {"msgid": ["Guam", "Gom"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:663
+#, fuzzy
+msgctxt "country_name"
+msgid "Guam"
+msgstr "Guam"
+
+#. {"msgid": ["Guatemala", "Guatamala", "Guatemalteeks"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:664
+#, fuzzy
+msgctxt "country_name"
+msgid "Guatemala"
+msgstr "Guatemala"
+
+#. {"msgid": ["Guernsey", "Guersey"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:665
+#, fuzzy
+msgctxt "country_name"
+msgid "Guernsey"
+msgstr "Guernsey"
+
+#. {"msgid": ["Guinea", "Guinee"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:666
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea"
+msgstr "Guinea"
+
+#. {"msgid": ["Guinee-Bissau", "Guinea-Bissau"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:667
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea-Bissau"
+msgstr "Guinee-Bissau"
+
+#. {"msgid": ["Guyana", "Guiana"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:668
+#, fuzzy
+msgctxt "country_name"
+msgid "Guyana"
+msgstr "Guyana"
+
+#. {"msgid": ["Ha\u00efti", "Ha\u00eftien"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:669
+#, fuzzy
+msgctxt "country_name"
+msgid "Haiti"
+msgstr "Haïti"
+
+#. {"msgid": ["Heard-eiland en McDonald-eilanden", "Heard- en McDonald-
+#. eilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:670
+#, fuzzy
+msgctxt "country_name"
+msgid "Heard Island and McDonald Islands"
+msgstr "Heard-eiland en McDonald-eilanden"
+
+#. {"msgid": ["Heilige Stoel (staat Vaticaanstad)", "Heilige Stoel
+#. (Vaticaanstadstaat)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:671
+#, fuzzy
+msgctxt "country_name"
+msgid "Holy See (Vatican City State)"
+msgstr "Heilige Stoel (staat Vaticaanstad)"
+
+#. {"msgid": ["Honduras", "Hondures"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:672
+#, fuzzy
+msgctxt "country_name"
+msgid "Honduras"
+msgstr "Honduras"
+
+#. {"msgid": ["Hongkong", "Peking"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:673
+#, fuzzy
+msgctxt "country_name"
+msgid "Hong Kong"
+msgstr "Hongkong"
+
+#. {"msgid": ["Hongarije", "Hongaarse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:674
+#, fuzzy
+msgctxt "country_name"
+msgid "Hungary"
+msgstr "Hongarije"
+
+#. {"msgid": ["IJsland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:675
+#, fuzzy
+msgctxt "country_name"
+msgid "Iceland"
+msgstr "IJsland"
+
+#. {"msgid": ["Indi\u00eb", "India"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:676
+#, fuzzy
+msgctxt "country_name"
+msgid "India"
+msgstr "Indië"
+
+#. {"msgid": ["Indonesi\u00eb", "Indonesisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:677
+#, fuzzy
+msgctxt "country_name"
+msgid "Indonesia"
+msgstr "Indonesië"
+
+#. {"msgid": ["Iran, Islamitische Republiek", "Iran, Islamitische Republiek
+#. van"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:678
+#, fuzzy
+msgctxt "country_name"
+msgid "Iran, Islamic Republic of"
+msgstr "Iran, Islamitische Republiek"
+
+#. {"msgid": ["Irak", "Iran"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:679
+#, fuzzy
+msgctxt "country_name"
+msgid "Iraq"
+msgstr "Irak"
+
+#. {"msgid": ["Ierland", "Ierse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:680
+#, fuzzy
+msgctxt "country_name"
+msgid "Ireland"
+msgstr "Ierland"
+
+#. {"msgid": ["Eiland Man", "het eiland Man"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:681
+#, fuzzy
+msgctxt "country_name"
+msgid "Isle of Man"
+msgstr "Eiland Man"
+
+#. {"msgid": ["Isra\u00ebl", "Israel"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:682
+#, fuzzy
+msgctxt "country_name"
+msgid "Israel"
+msgstr "Israël"
+
+#. {"msgid": ["Itali\u00eb", "Italiaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:683
+#, fuzzy
+msgctxt "country_name"
+msgid "Italy"
+msgstr "Italië"
+
+#. {"msgid": ["Jamaica", "Jamama"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:684
+#, fuzzy
+msgctxt "country_name"
+msgid "Jamaica"
+msgstr "Jamaica"
+
+#. {"msgid": ["Japan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:685
+#, fuzzy
+msgctxt "country_name"
+msgid "Japan"
+msgstr "Japan"
+
+#. {"msgid": ["Jersey", "Trui"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:686
+#, fuzzy
+msgctxt "country_name"
+msgid "Jersey"
+msgstr "Jersey"
+
+#. {"msgid": ["Jordani\u00eb", "Jordaan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:687
+#, fuzzy
+msgctxt "country_name"
+msgid "Jordan"
+msgstr "Jordanië"
+
+#. {"msgid": ["Kazachstan", "Kazakstan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:688
+#, fuzzy
+msgctxt "country_name"
+msgid "Kazakhstan"
+msgstr "Kazachstan"
+
+#. {"msgid": ["Kenia", "Kenya"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:689
+#, fuzzy
+msgctxt "country_name"
+msgid "Kenya"
+msgstr "Kenia"
+
+#. {"msgid": ["Kiribati", "Kiribat"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:690
+#, fuzzy
+msgctxt "country_name"
+msgid "Kiribati"
+msgstr "Kiribati"
+
+#. {"msgid": ["Korea, Democratische Volksrepubliek", "Zuid-Korea,
+#. Democratische Volksrepubliek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:691
+#, fuzzy
+msgctxt "country_name"
+msgid "Korea, Democratic People's Republic of"
+msgstr "Korea, Democratische Volksrepubliek"
+
+#. {"msgid": ["Korea, republiek van", "Korea, Republiek", "Zuid-Korea,
+#. Republiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:692
+#, fuzzy
+msgctxt "country_name"
+msgid "Korea, Republic of"
+msgstr "Korea, republiek van"
+
+#. {"msgid": ["Koeweit", "Kuweit"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:693
+#, fuzzy
+msgctxt "country_name"
+msgid "Kuwait"
+msgstr "Koeweit"
+
+#. {"msgid": ["Kirgizi\u00eb", "Kirgizstan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:694
+#, fuzzy
+msgctxt "country_name"
+msgid "Kyrgyzstan"
+msgstr "Kirgizië"
+
+#. {"msgid": ["Lao Democratische Volksrepubliek", "Democratische
+#. Volksrepubliek Laos", "Laotiaanse Democratische Volksrepubliek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:695
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao People's Democratic Republic"
+msgstr "Lao Democratische Volksrepubliek"
+
+#. {"msgid": ["Letland", "Litouwen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:696
+#, fuzzy
+msgctxt "country_name"
+msgid "Latvia"
+msgstr "Letland"
+
+#. {"msgid": ["Libanon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:697
+#, fuzzy
+msgctxt "country_name"
+msgid "Lebanon"
+msgstr "Libanon"
+
+#. {"msgid": ["Lesotho"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:698
+#, fuzzy
+msgctxt "country_name"
+msgid "Lesotho"
+msgstr "Lesotho"
+
+#. {"msgid": ["Liberia", "Libi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:699
+#, fuzzy
+msgctxt "country_name"
+msgid "Liberia"
+msgstr "Liberia"
+
+#. {"msgid": ["Libi\u00eb", "Libye"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:700
+#, fuzzy
+msgctxt "country_name"
+msgid "Libya"
+msgstr "Libië"
+
+#. {"msgid": ["Liechtenstein"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:701
+#, fuzzy
+msgctxt "country_name"
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
+
+#. {"msgid": ["Litouwen", "Letland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:702
+#, fuzzy
+msgctxt "country_name"
+msgid "Lithuania"
+msgstr "Litouwen"
+
+#. {"msgid": ["Luxemburg", "Luxembourg"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:703
+#, fuzzy
+msgctxt "country_name"
+msgid "Luxembourg"
+msgstr "Luxemburg"
+
+#. {"msgid": ["Macau", "macao"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:704
+#, fuzzy
+msgctxt "country_name"
+msgid "Macao"
+msgstr "Macau"
+
+#. {"msgid": ["Madagascar", "Madagaskar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:705
+#, fuzzy
+msgctxt "country_name"
+msgid "Madagascar"
+msgstr "Madagascar"
+
+#. {"msgid": ["Malawi", "Malawi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:706
+#, fuzzy
+msgctxt "country_name"
+msgid "Malawi"
+msgstr "Malawi"
+
+#. {"msgid": ["Maleisi\u00eb", "Maleisie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:707
+#, fuzzy
+msgctxt "country_name"
+msgid "Malaysia"
+msgstr "Maleisië"
+
+#. {"msgid": ["Maldiven", "Malediven"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:708
+#, fuzzy
+msgctxt "country_name"
+msgid "Maldives"
+msgstr "Maldiven"
+
+#. {"msgid": ["Mali", "mali\u00ebn"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:709
+#, fuzzy
+msgctxt "country_name"
+msgid "Mali"
+msgstr "Mali"
+
+#. {"msgid": ["Malta", "Maltese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:710
+#, fuzzy
+msgctxt "country_name"
+msgid "Malta"
+msgstr "Malta"
+
+#. {"msgid": ["Marshall eilanden", "Marshalleilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:711
+#, fuzzy
+msgctxt "country_name"
+msgid "Marshall Islands"
+msgstr "Marshall eilanden"
+
+#. {"msgid": ["Martinique", "Martiniek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:712
+#, fuzzy
+msgctxt "country_name"
+msgid "Martinique"
+msgstr "Martinique"
+
+#. {"msgid": ["Mauritani\u00eb", "Mauretani\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:713
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritania"
+msgstr "Mauritanië"
+
+#. {"msgid": ["Mauritius", "Mauritani\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:714
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritius"
+msgstr "Mauritius"
+
+#. {"msgid": ["Mayotte", "mayo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:715
+#, fuzzy
+msgctxt "country_name"
+msgid "Mayotte"
+msgstr "Mayotte"
+
+#. {"msgid": ["Mexico", "Mexicaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:716
+#, fuzzy
+msgctxt "country_name"
+msgid "Mexico"
+msgstr "Mexico"
+
+#. {"msgid": ["Micronesi\u00eb, Federale Staten van", "Micronesi\u00eb,
+#. federale staten van"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:717
+#, fuzzy
+msgctxt "country_name"
+msgid "Micronesia, Federated States of"
+msgstr "Micronesië, Federale Staten van"
+
+#. {"msgid": ["Moldavi\u00eb, Republiek", "Moldavi\u00eb, Republiek van"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:718
+#, fuzzy
+msgctxt "country_name"
+msgid "Moldova, Republic of"
+msgstr "Moldavië, Republiek"
+
+#. {"msgid": ["Monaco", "Monarch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:719
+#, fuzzy
+msgctxt "country_name"
+msgid "Monaco"
+msgstr "Monaco"
+
+#. {"msgid": ["Mongoli\u00eb", "Mongolie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:720
+#, fuzzy
+msgctxt "country_name"
+msgid "Mongolia"
+msgstr "Mongolië"
+
+#. {"msgid": ["Montenegro", "Montenegrijnen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:721
+#, fuzzy
+msgctxt "country_name"
+msgid "Montenegro"
+msgstr "Montenegro"
+
+#. {"msgid": ["Montserrat", "Bergen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:722
+#, fuzzy
+msgctxt "country_name"
+msgid "Montserrat"
+msgstr "Montserrat"
+
+#. {"msgid": ["Marokko", "Marokkaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:723
+#, fuzzy
+msgctxt "country_name"
+msgid "Morocco"
+msgstr "Marokko"
+
+#. {"msgid": ["Mozambique", "mozambique"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:724
+#, fuzzy
+msgctxt "country_name"
+msgid "Mozambique"
+msgstr "Mozambique"
+
+#. {"msgid": ["Myanmar", "Birma"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:725
+#, fuzzy
+msgctxt "country_name"
+msgid "Myanmar"
+msgstr "Myanmar"
+
+#. {"msgid": ["Namibi\u00eb", "Namibie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:726
+#, fuzzy
+msgctxt "country_name"
+msgid "Namibia"
+msgstr "Namibië"
+
+#. {"msgid": ["Nauru", "nauru"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:727
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#. {"msgid": ["Nepal", "Nepalees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:728
+#, fuzzy
+msgctxt "country_name"
+msgid "Nepal"
+msgstr "Nepal"
+
+#. {"msgid": ["Nederland", "Nederlands"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:729
+#, fuzzy
+msgctxt "country_name"
+msgid "Netherlands"
+msgstr "Nederland"
+
+#. {"msgid": ["Nieuw-Caledoni\u00eb", "Nieuw Caledoni\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:730
+#, fuzzy
+msgctxt "country_name"
+msgid "New Caledonia"
+msgstr "Nieuw-Caledonië"
+
+#. {"msgid": ["Nieuw-Zeeland", "Nieuw Zeeland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:731
+#, fuzzy
+msgctxt "country_name"
+msgid "New Zealand"
+msgstr "Nieuw-Zeeland"
+
+#. {"msgid": ["Nicaragua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:732
+#, fuzzy
+msgctxt "country_name"
+msgid "Nicaragua"
+msgstr "Nicaragua"
+
+#. {"msgid": ["Niger", "Nigeriaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:733
+#, fuzzy
+msgctxt "country_name"
+msgid "Niger"
+msgstr "Niger"
+
+#. {"msgid": ["Niger", "nigeria"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:734
+#, fuzzy
+msgctxt "country_name"
+msgid "Nigeria"
+msgstr "Niger"
+
+#. {"msgid": ["Niue", "Nieuw"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:735
+#, fuzzy
+msgctxt "country_name"
+msgid "Niue"
+msgstr "Niue"
+
+#. {"msgid": ["Norfolk eiland", "het Norfolk-eiland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:736
+#, fuzzy
+msgctxt "country_name"
+msgid "Norfolk Island"
+msgstr "Norfolk eiland"
+
+#. {"msgid": ["Noord-Macedoni\u00eb", "Macedoni\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:737
+#, fuzzy
+msgctxt "country_name"
+msgid "North Macedonia"
+msgstr "Noord-Macedonië"
+
+#. {"msgid": ["noordelijke Mariana eilanden", "Noordelijke Marianen Eilanden",
+#. "Noordelijke Marianen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:738
+#, fuzzy
+msgctxt "country_name"
+msgid "Northern Mariana Islands"
+msgstr "noordelijke Mariana eilanden"
+
+#. {"msgid": ["Noorwegen", "Noorse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:739
+#, fuzzy
+msgctxt "country_name"
+msgid "Norway"
+msgstr "Noorwegen"
+
+#. {"msgid": ["Oman", "Omaan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:740
+#, fuzzy
+msgctxt "country_name"
+msgid "Oman"
+msgstr "Oman"
+
+#. {"msgid": ["Pakistan", "Pakistaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:741
+#, fuzzy
+msgctxt "country_name"
+msgid "Pakistan"
+msgstr "Pakistan"
+
+#. {"msgid": ["Palau", "Paleis"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:742
+#, fuzzy
+msgctxt "country_name"
+msgid "Palau"
+msgstr "Palau"
+
+#. {"msgid": ["Palestina, staat van", "Palestina, deelstaat"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:743
+#, fuzzy
+msgctxt "country_name"
+msgid "Palestine, State of"
+msgstr "Palestina, staat van"
+
+#. {"msgid": ["Panama", "Panamees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:744
+#, fuzzy
+msgctxt "country_name"
+msgid "Panama"
+msgstr "Panama"
+
+#. {"msgid": ["Papoea-Nieuw-Guinea", "Papua Nieuw Guinea", "Papoea Nieuw
+#. Guinea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:745
+#, fuzzy
+msgctxt "country_name"
+msgid "Papua New Guinea"
+msgstr "Papoea-Nieuw-Guinea"
+
+#. {"msgid": ["Paraguay", "Paraguaya"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:746
+#, fuzzy
+msgctxt "country_name"
+msgid "Paraguay"
+msgstr "Paraguay"
+
+#. {"msgid": ["Peru"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:747
+#, fuzzy
+msgctxt "country_name"
+msgid "Peru"
+msgstr "Peru"
+
+#. {"msgid": ["Filippijnen", "Philipijnen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:748
+#, fuzzy
+msgctxt "country_name"
+msgid "Philippines"
+msgstr "Filippijnen"
+
+#. {"msgid": ["Pitcairn", "pitcairn"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:749
+#, fuzzy
+msgctxt "country_name"
+msgid "Pitcairn"
+msgstr "Pitcairn"
+
+#. {"msgid": ["Polen", "Poolse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:750
+#, fuzzy
+msgctxt "country_name"
+msgid "Poland"
+msgstr "Polen"
+
+#. {"msgid": ["Portugal", "Portugees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:751
+#, fuzzy
+msgctxt "country_name"
+msgid "Portugal"
+msgstr "Portugal"
+
+#. {"msgid": ["Puerto Rico", "Porto-Rico"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:752
+#, fuzzy
+msgctxt "country_name"
+msgid "Puerto Rico"
+msgstr "Puerto Rico"
+
+#. {"msgid": ["Katar", "Quatar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:753
+#, fuzzy
+msgctxt "country_name"
+msgid "Qatar"
+msgstr "Katar"
+
+#. {"msgid": ["Roemeni\u00eb", "Roemeens"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:754
+#, fuzzy
+msgctxt "country_name"
+msgid "Romania"
+msgstr "Roemenië"
+
+#. {"msgid": ["Russische Federatie", "Rusland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:755
+#, fuzzy
+msgctxt "country_name"
+msgid "Russian Federation"
+msgstr "Russische Federatie"
+
+#. {"msgid": ["Rwanda", "Rwandese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:756
+#, fuzzy
+msgctxt "country_name"
+msgid "Rwanda"
+msgstr "Rwanda"
+
+#. {"msgid": ["Bijeenkomst", "R\u00e9union", "re\u00fcnie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:757
+#, fuzzy
+msgctxt "country_name"
+msgid "Réunion"
+msgstr "Bijeenkomst"
+
+#. {"msgid": ["Sint-Bartholomeus", "Saint Barth\u00e9lemy", "Saint-
+#. Barth\u00e9lemy"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:758
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Barthélemy"
+msgstr "Sint-Bartholomeus"
+
+#. {"msgid": ["Sint-Helena, Ascension en Tristan da Cunha", "Sint Helena,
+#. Hemelvaart en Tristan da Cunha"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:759
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "Sint-Helena, Ascension en Tristan da Cunha"
+
+#. {"msgid": ["Saint Kitts en Nevis", "St. Kitts en Nevis"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:760
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Kitts and Nevis"
+msgstr "Saint Kitts en Nevis"
+
+#. {"msgid": ["Sint Lucia", "Heilige Lucia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:761
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Lucia"
+msgstr "Sint Lucia"
+
+#. {"msgid": ["Sint Maarten (Frans deel)", "Saint Martin (Frans deel)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:762
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Martin (French part)"
+msgstr "Sint Maarten (Frans deel)"
+
+#. {"msgid": ["Saint-Pierre en Miquelon", "St. Pierre en Miquelon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:763
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Pierre and Miquelon"
+msgstr "Saint-Pierre en Miquelon"
+
+#. {"msgid": ["Saint Vincent en de Grenadines", "Sint-Vincentius en de
+#. Grenadines"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:764
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Vincent and the Grenadines"
+msgstr "Saint Vincent en de Grenadines"
+
+#. {"msgid": ["Samoa", "samoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:765
+#, fuzzy
+msgctxt "country_name"
+msgid "Samoa"
+msgstr "Samoa"
+
+#. {"msgid": ["San Marino", "San Marinus"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:766
+#, fuzzy
+msgctxt "country_name"
+msgid "San Marino"
+msgstr "San Marino"
+
+#. {"msgid": ["Sao Tom\u00e9 en Principe", "Sao Tome en Principe"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:767
+#, fuzzy
+msgctxt "country_name"
+msgid "Sao Tome and Principe"
+msgstr "Sao Tomé en Principe"
+
+#. {"msgid": ["Saoedi-Arabi\u00eb", "Saudi Arabi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:768
+#, fuzzy
+msgctxt "country_name"
+msgid "Saudi Arabia"
+msgstr "Saoedi-Arabië"
+
+#. {"msgid": ["Senegal", "Senegalees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:769
+#, fuzzy
+msgctxt "country_name"
+msgid "Senegal"
+msgstr "Senegal"
+
+#. {"msgid": ["Servi\u00eb", "Servie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:770
+#, fuzzy
+msgctxt "country_name"
+msgid "Serbia"
+msgstr "Servië"
+
+#. {"msgid": ["Seychellen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:771
+#, fuzzy
+msgctxt "country_name"
+msgid "Seychelles"
+msgstr "Seychellen"
+
+#. {"msgid": ["Sierra Leone", "Si\u00ebrra Leone"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:772
+#, fuzzy
+msgctxt "country_name"
+msgid "Sierra Leone"
+msgstr "Sierra Leone"
+
+#. {"msgid": ["Singapore", "Singaporees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:773
+#, fuzzy
+msgctxt "country_name"
+msgid "Singapore"
+msgstr "Singapore"
+
+#. {"msgid": ["Sint Maarten (Nederlands deel)", "Sint Maarten (Nederlands
+#. gedeelte)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:774
+#, fuzzy
+msgctxt "country_name"
+msgid "Sint Maarten (Dutch part)"
+msgstr "Sint Maarten (Nederlands deel)"
+
+#. {"msgid": ["Slowakije", "Vlaanderen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:775
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovakia"
+msgstr "Slowakije"
+
+#. {"msgid": ["Sloveni\u00eb", "Servi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:776
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovenia"
+msgstr "Slovenië"
+
+#. {"msgid": ["Solomon eilanden", "Salomonseilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:777
+#, fuzzy
+msgctxt "country_name"
+msgid "Solomon Islands"
+msgstr "Solomon eilanden"
+
+#. {"msgid": ["Somali\u00eb", "Somalie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:778
+#, fuzzy
+msgctxt "country_name"
+msgid "Somalia"
+msgstr "Somalië"
+
+#. {"msgid": ["Zuid-Afrika", "Zuid Afrika"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:779
+#, fuzzy
+msgctxt "country_name"
+msgid "South Africa"
+msgstr "Zuid-Afrika"
+
+#. {"msgid": ["Zuid-Georgia en de Zuidelijke Sandwicheilanden", "Zuid-Georgia
+#. en de Zuid-Sandwicheilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:780
+#, fuzzy
+msgctxt "country_name"
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "Zuid-Georgia en de Zuidelijke Sandwicheilanden"
+
+#. {"msgid": ["Zuid Soedan", "Zuid-Soedan", "Zuid-Sudan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:781
+#, fuzzy
+msgctxt "country_name"
+msgid "South Sudan"
+msgstr "Zuid Soedan"
+
+#. {"msgid": ["Spanje", "Spaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:782
+#, fuzzy
+msgctxt "country_name"
+msgid "Spain"
+msgstr "Spanje"
+
+#. {"msgid": ["Sri Lanka", "Srilankaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:783
+#, fuzzy
+msgctxt "country_name"
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
+
+#. {"msgid": ["Soedan", "Sudan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:784
+#, fuzzy
+msgctxt "country_name"
+msgid "Sudan"
+msgstr "Soedan"
+
+#. {"msgid": ["Surinaams", "Surinamer"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:785
+#, fuzzy
+msgctxt "country_name"
+msgid "Suriname"
+msgstr "Surinaams"
+
+#. {"msgid": ["Spitsbergen en Jan Mayen", "Svalbard en Jan Mayen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:786
+#, fuzzy
+msgctxt "country_name"
+msgid "Svalbard and Jan Mayen"
+msgstr "Spitsbergen en Jan Mayen"
+
+#. {"msgid": ["Zweden", "Zweedse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:787
+#, fuzzy
+msgctxt "country_name"
+msgid "Sweden"
+msgstr "Zweden"
+
+#. {"msgid": ["Zwitserland", "Zwitserse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:788
+#, fuzzy
+msgctxt "country_name"
+msgid "Switzerland"
+msgstr "Zwitserland"
+
+#. {"msgid": ["Syrische Arabische Republiek", "Arabische Republiek
+#. Syri\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:789
+#, fuzzy
+msgctxt "country_name"
+msgid "Syrian Arab Republic"
+msgstr "Syrische Arabische Republiek"
+
+#. {"msgid": ["Taiwan, provincie China", "Taiwan, Provincie van China"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:790
+#, fuzzy
+msgctxt "country_name"
+msgid "Taiwan, Province of China"
+msgstr "Taiwan, provincie China"
+
+#. {"msgid": ["Tadzjikistan", "Tadjikistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:791
+#, fuzzy
+msgctxt "country_name"
+msgid "Tajikistan"
+msgstr "Tadzjikistan"
+
+#. {"msgid": ["Tanzania, Verenigde Republiek van", "Tanzania, Verenigde
+#. Republiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:792
+#, fuzzy
+msgctxt "country_name"
+msgid "Tanzania, United Republic of"
+msgstr "Tanzania, Verenigde Republiek van"
+
+#. {"msgid": ["Thailand", "Thail"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:793
+#, fuzzy
+msgctxt "country_name"
+msgid "Thailand"
+msgstr "Thailand"
+
+#. {"msgid": ["Oost-Timor", "Timor Leste"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:794
+#, fuzzy
+msgctxt "country_name"
+msgid "Timor-Leste"
+msgstr "Oost-Timor"
+
+#. {"msgid": ["Gaan", "Togo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:795
+#, fuzzy
+msgctxt "country_name"
+msgid "Togo"
+msgstr "Gaan"
+
+#. {"msgid": ["Tokelau", "Tokelav"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
+#, fuzzy
+msgctxt "country_name"
+msgid "Tokelau"
+msgstr "Tokelau"
+
+#. {"msgid": ["Tonga", "Tongaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:797
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#. {"msgid": ["Trinidad en Tobago", "Trinidad & Tobago"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:798
+#, fuzzy
+msgctxt "country_name"
+msgid "Trinidad and Tobago"
+msgstr "Trinidad en Tobago"
+
+#. {"msgid": ["Tunesi\u00eb", "Tunesische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:799
+#, fuzzy
+msgctxt "country_name"
+msgid "Tunisia"
+msgstr "Tunesië"
+
+#. {"msgid": ["Kalkoen", "Turkije"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:800
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkey"
+msgstr "Kalkoen"
+
+#. {"msgid": ["Turkmenistan", "Turkmeense"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:801
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkmenistan"
+msgstr "Turkmenistan"
+
+#. {"msgid": ["Turks- en Caicoseilanden", "Turks en Caicos Eilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:802
+#, fuzzy
+msgctxt "country_name"
+msgid "Turks and Caicos Islands"
+msgstr "Turks- en Caicoseilanden"
+
+#. {"msgid": ["Tuvalu", "Toevalu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:803
+#, fuzzy
+msgctxt "country_name"
+msgid "Tuvalu"
+msgstr "Tuvalu"
+
+#. {"msgid": ["Oeganda", "Uganda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:804
+#, fuzzy
+msgctxt "country_name"
+msgid "Uganda"
+msgstr "Oeganda"
+
+#. {"msgid": ["Oekra\u00efne", "de Oekra\u00efne"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:805
+#, fuzzy
+msgctxt "country_name"
+msgid "Ukraine"
+msgstr "Oekraïne"
+
+#. {"msgid": ["Verenigde Arabische Emiraten"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:806
+#, fuzzy
+msgctxt "country_name"
+msgid "United Arab Emirates"
+msgstr "Verenigde Arabische Emiraten"
+
+#. {"msgid": ["Verenigd Koninkrijk", "Verenigd Koningkrijk", "Engeland"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:807
+#, fuzzy
+msgctxt "country_name"
+msgid "United Kingdom"
+msgstr "Verenigd Koninkrijk"
+
+#. {"msgid": ["Verenigde Staten"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:808
+#, fuzzy
+msgctxt "country_name"
+msgid "United States"
+msgstr "Verenigde Staten"
+
+#. {"msgid": ["Kleine afgelegen eilanden van de Verenigde Staten",
+#. "Amerikaanse ondergeschikte afgelegen eilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:809
+#, fuzzy
+msgctxt "country_name"
+msgid "United States Minor Outlying Islands"
+msgstr "Kleine afgelegen eilanden van de Verenigde Staten"
+
+#. {"msgid": ["Uruguay", "Uruguayaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:810
+#, fuzzy
+msgctxt "country_name"
+msgid "Uruguay"
+msgstr "Uruguay"
+
+#. {"msgid": ["Oezbekistan", "Uzbekistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:811
+#, fuzzy
+msgctxt "country_name"
+msgid "Uzbekistan"
+msgstr "Oezbekistan"
+
+#. {"msgid": ["Vanuatu", "vanuatu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:812
+#, fuzzy
+msgctxt "country_name"
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+#. {"msgid": ["Venezuela, Bolivariaanse Republiek", "Venezuela, de
+#. Bolivariaanse Republiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:813
+#, fuzzy
+msgctxt "country_name"
+msgid "Venezuela, Bolivarian Republic of"
+msgstr "Venezuela, Bolivariaanse Republiek"
+
+#. {"msgid": ["Vietnam", "Vietnamese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:814
+#, fuzzy
+msgctxt "country_name"
+msgid "Viet Nam"
+msgstr "Vietnam"
+
+#. {"msgid": ["Maagdeneilanden, Brits", "Britse Maagdeneilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:815
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands, British"
+msgstr "Maagdeneilanden, Brits"
+
+#. {"msgid": ["Maagdeneilanden, VS", "Amerikaanse Maagdeneilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:816
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands, U.S."
+msgstr "Maagdeneilanden, VS"
+
+#. {"msgid": ["Wallis en Futuna", "Wallis en Futun"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:817
+#, fuzzy
+msgctxt "country_name"
+msgid "Wallis and Futuna"
+msgstr "Wallis en Futuna"
+
+#. {"msgid": ["Westelijke Sahara", "de Westelijke Sahara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:818
+#, fuzzy
+msgctxt "country_name"
+msgid "Western Sahara"
+msgstr "Westelijke Sahara"
+
+#. {"msgid": ["Jemen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:819
+#, fuzzy
+msgctxt "country_name"
+msgid "Yemen"
+msgstr "Jemen"
+
+#. {"msgid": ["Zambia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:820
+#, fuzzy
+msgctxt "country_name"
+msgid "Zambia"
+msgstr "Zambia"
+
+#. {"msgid": ["Zimbabwe", "Zimbabwaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:821
+#, fuzzy
+msgctxt "country_name"
+msgid "Zimbabwe"
+msgstr "Zimbabwe"
+
+#. {"msgid": ["Aland-eilanden", "\u00c5land-eilanden", "\u00c5lands
+#. Eilanden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:822
+#, fuzzy
+msgctxt "country_name"
+msgid "Åland Islands"
+msgstr "Aland-eilanden"
+
+#. {"msgid": ["Abchazisch", "Abchazi\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:836
+#, fuzzy
+msgctxt "language_name"
+msgid "Abkhazian"
+msgstr "Abchazisch"
+
+#. {"msgid": ["Ver weg", "ver"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:837
+#, fuzzy
+msgctxt "language_name"
+msgid "Afar"
+msgstr "Ver weg"
+
+#. {"msgid": ["Afrikaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:838
+#, fuzzy
+msgctxt "language_name"
+msgid "Afrikaans"
+msgstr "Afrikaans"
+
+#. {"msgid": ["Akan", "Akkan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:839
+#, fuzzy
+msgctxt "language_name"
+msgid "Akan"
+msgstr "Akan"
+
+#. {"msgid": ["Albanees", "Albanese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:840
+#, fuzzy
+msgctxt "language_name"
+msgid "Albanian"
+msgstr "Albanees"
+
+#. {"msgid": ["Amhaars", "Amharisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:841
+#, fuzzy
+msgctxt "language_name"
+msgid "Amharic"
+msgstr "Amhaars"
+
+#. {"msgid": ["Arabisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:842
+#, fuzzy
+msgctxt "language_name"
+msgid "Arabic"
+msgstr "Arabisch"
+
+#. {"msgid": ["Aragonees", "Aragonese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:843
+#, fuzzy
+msgctxt "language_name"
+msgid "Aragonese"
+msgstr "Aragonees"
+
+#. {"msgid": ["Armeens"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:844
+#, fuzzy
+msgctxt "language_name"
+msgid "Armenian"
+msgstr "Armeens"
+
+#. {"msgid": ["Assamees", "Assamese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:845
+#, fuzzy
+msgctxt "language_name"
+msgid "Assamese"
+msgstr "Assamees"
+
+#. {"msgid": ["Avarisch", "Avarik"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:846
+#, fuzzy
+msgctxt "language_name"
+msgid "Avaric"
+msgstr "Avarisch"
+
+#. {"msgid": ["Avestisch", "Avistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:847
+#, fuzzy
+msgctxt "language_name"
+msgid "Avestan"
+msgstr "Avestisch"
+
+#. {"msgid": ["Aymara", "aymara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:848
+#, fuzzy
+msgctxt "language_name"
+msgid "Aymara"
+msgstr "Aymara"
+
+#. {"msgid": ["Azerbeidzjaans", "Azerbeidzjaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:849
+#, fuzzy
+msgctxt "language_name"
+msgid "Azerbaijani"
+msgstr "Azerbeidzjaans"
+
+#. {"msgid": ["Bambara", "Babara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:850
+#, fuzzy
+msgctxt "language_name"
+msgid "Bambara"
+msgstr "Bambara"
+
+#. {"msgid": ["Bashkir", "Basjkir", "Basjkiers"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:851
+#, fuzzy
+msgctxt "language_name"
+msgid "Bashkir"
+msgstr "Bashkir"
+
+#. {"msgid": ["baskisch", "Baskische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:852
+#, fuzzy
+msgctxt "language_name"
+msgid "Basque"
+msgstr "baskisch"
+
+#. {"msgid": ["Wit-Russisch", "Witrussisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:853
+#, fuzzy
+msgctxt "language_name"
+msgid "Belarusian"
+msgstr "Wit-Russisch"
+
+#. {"msgid": ["Bengaals", "Bengalees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:854
+#, fuzzy
+msgctxt "language_name"
+msgid "Bengali"
+msgstr "Bengaals"
+
+#. {"msgid": ["bislama", "Bislam"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:855
+#, fuzzy
+msgctxt "language_name"
+msgid "Bislama"
+msgstr "bislama"
+
+#. {"msgid": ["Bosnisch", "Bosnische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:856
+#, fuzzy
+msgctxt "language_name"
+msgid "Bosnian"
+msgstr "Bosnisch"
+
+#. {"msgid": ["Breton", "Bretons"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:857
+#, fuzzy
+msgctxt "language_name"
+msgid "Breton"
+msgstr "Breton"
+
+#. {"msgid": ["Bulgaars", "bulgaars"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:858
+#, fuzzy
+msgctxt "language_name"
+msgid "Bulgarian"
+msgstr "Bulgaars"
+
+#. {"msgid": ["Birmees", "Birmaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:859
+#, fuzzy
+msgctxt "language_name"
+msgid "Burmese"
+msgstr "Birmees"
+
+#. {"msgid": ["Catalaans", "Catalaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:860
+#, fuzzy
+msgctxt "language_name"
+msgid "Catalan"
+msgstr "Catalaans"
+
+#. {"msgid": ["Centrale Khmer", "Centraal-Kmer"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:861
+#, fuzzy
+msgctxt "language_name"
+msgid "Central Khmer"
+msgstr "Centrale Khmer"
+
+#. {"msgid": ["Chamorro", "chamorro"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:862
+#, fuzzy
+msgctxt "language_name"
+msgid "Chamorro"
+msgstr "Chamorro"
+
+#. {"msgid": ["Tsjetsjeens", "Tsjetsjisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:863
+#, fuzzy
+msgctxt "language_name"
+msgid "Chechen"
+msgstr "Tsjetsjeens"
+
+#. {"msgid": ["Chinese", "Chinees", "Chinezen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:864
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:865
+#, fuzzy
+msgctxt "language_name"
+msgid "Chinese"
+msgstr "Chinese"
+
+#. {"msgid": ["Kerkslavisch", "Kerkelijk Slavisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:866
+#, fuzzy
+msgctxt "language_name"
+msgid "Church Slavic"
+msgstr "Kerkslavisch"
+
+#. {"msgid": ["Tsjoevasj", "Chuvash"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:867
+#, fuzzy
+msgctxt "language_name"
+msgid "Chuvash"
+msgstr "Tsjoevasj"
+
+#. {"msgid": ["Cornisch", "Cornwall"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:868
+#, fuzzy
+msgctxt "language_name"
+msgid "Cornish"
+msgstr "Cornisch"
+
+#. {"msgid": ["Corsicaans", "Corsicaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:869
+#, fuzzy
+msgctxt "language_name"
+msgid "Corsican"
+msgstr "Corsicaans"
+
+#. {"msgid": ["Cree", "Kreeft"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:870
+#, fuzzy
+msgctxt "language_name"
+msgid "Cree"
+msgstr "Cree"
+
+#. {"msgid": ["Kroatisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:871
+#, fuzzy
+msgctxt "language_name"
+msgid "Croatian"
+msgstr "Kroatisch"
+
+#. {"msgid": ["Cebuano", "cebuaan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:872
+#, fuzzy
+msgctxt "language_name"
+msgid "Cebuano"
+msgstr "Cebuano"
+
+#. {"msgid": ["Tsjechisch", "tsjechisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:873
+#, fuzzy
+msgctxt "language_name"
+msgid "Czech"
+msgstr "Tsjechisch"
+
+#. {"msgid": ["Deens"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:874
+#, fuzzy
+msgctxt "language_name"
+msgid "Danish"
+msgstr "Deens"
+
+#. {"msgid": ["Dhivehi", "dhivehi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:875
+#, fuzzy
+msgctxt "language_name"
+msgid "Dhivehi"
+msgstr "Dhivehi"
+
+#. {"msgid": ["Nederlands", "Nederlanders"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:876
+#, fuzzy
+msgctxt "language_name"
+msgid "Dutch"
+msgstr "Nederlands"
+
+#. {"msgid": ["Dzongkha", "Dzongha"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:877
+#, fuzzy
+msgctxt "language_name"
+msgid "Dzongkha"
+msgstr "Dzongkha"
+
+#. {"msgid": ["Engels", "Nederlands"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:878
+#, fuzzy
+msgctxt "language_name"
+msgid "English"
+msgstr "Engels"
+
+#. {"msgid": ["Esperanto", "Esperant"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:879
+#, fuzzy
+msgctxt "language_name"
+msgid "Esperanto"
+msgstr "Esperanto"
+
+#. {"msgid": ["Ests", "Estlands"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:880
+#, fuzzy
+msgctxt "language_name"
+msgid "Estonian"
+msgstr "Ests"
+
+#. {"msgid": ["Ooi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:881
+#, fuzzy
+msgctxt "language_name"
+msgid "Ewe"
+msgstr "Ooi"
+
+#. {"msgid": ["Faer\u00f6ers", "Faer\u00f6er"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:882
+#, fuzzy
+msgctxt "language_name"
+msgid "Faroese"
+msgstr "Faeröers"
+
+#. {"msgid": ["Fijisch", "Fiji"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:883
+#, fuzzy
+msgctxt "language_name"
+msgid "Fijian"
+msgstr "Fijisch"
+
+#. {"msgid": ["Fins", "Finse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:884
+#, fuzzy
+msgctxt "language_name"
+msgid "Finnish"
+msgstr "Fins"
+
+#. {"msgid": ["Frans", "het Frans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:885
+#, fuzzy
+msgctxt "language_name"
+msgid "French"
+msgstr "Frans"
+
+#. {"msgid": ["Fula", "Fulah"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:886
+#, fuzzy
+msgctxt "language_name"
+msgid "Fulah"
+msgstr "Fula"
+
+#. {"msgid": ["Galicisch", "Galicische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:887
+#, fuzzy
+msgctxt "language_name"
+msgid "Galician"
+msgstr "Galicisch"
+
+#. {"msgid": ["Ganda", "Gananda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:888
+#, fuzzy
+msgctxt "language_name"
+msgid "Ganda"
+msgstr "Ganda"
+
+#. {"msgid": ["Georgisch", "Georgi\u00ebr"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:889
+#, fuzzy
+msgctxt "language_name"
+msgid "Georgian"
+msgstr "Georgisch"
+
+#. {"msgid": ["Duits", "Duitse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:890
+#, fuzzy
+msgctxt "language_name"
+msgid "German"
+msgstr "Duits"
+
+#. {"msgid": ["Gotisch", "Gotiek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:891
+#, fuzzy
+msgctxt "language_name"
+msgid "Gothic"
+msgstr "Gotisch"
+
+#. {"msgid": ["Guarani", "guaran\u00ed"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:892
+#, fuzzy
+msgctxt "language_name"
+msgid "Guarani"
+msgstr "Guarani"
+
+#. {"msgid": ["Gujarati", "Gujarat"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:893
+#, fuzzy
+msgctxt "language_name"
+msgid "Gujarati"
+msgstr "Gujarati"
+
+#. {"msgid": ["Ha\u00eftiaans", "Ha\u00eftiaan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:894
+#, fuzzy
+msgctxt "language_name"
+msgid "Haitian"
+msgstr "Haïtiaans"
+
+#. {"msgid": ["huis", "Hausa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:895
+#, fuzzy
+msgctxt "language_name"
+msgid "Hausa"
+msgstr "huis"
+
+#. {"msgid": ["Hawaiiaans", "hawa\u00efaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:896
+#, fuzzy
+msgctxt "language_name"
+msgid "Hawaiian"
+msgstr "Hawaiiaans"
+
+#. {"msgid": ["Hebreeuws", "Hebree\u00ebr"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:897
+#, fuzzy
+msgctxt "language_name"
+msgid "Hebrew"
+msgstr "Hebreeuws"
+
+#. {"msgid": ["Herero", "hiero"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:898
+#, fuzzy
+msgctxt "language_name"
+msgid "Herero"
+msgstr "Herero"
+
+#. {"msgid": ["Hindi", "Hindoestaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:899
+#, fuzzy
+msgctxt "language_name"
+msgid "Hindi"
+msgstr "Hindi"
+
+#. {"msgid": ["Hiri Motu", "Hoi Motu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:900
+#, fuzzy
+msgctxt "language_name"
+msgid "Hiri Motu"
+msgstr "Hiri Motu"
+
+#. {"msgid": ["Hmong", "hmong"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:901
+#, fuzzy
+msgctxt "language_name"
+msgid "Hmong"
+msgstr "Hmong"
+
+#. {"msgid": ["Hongaars"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:902
+#, fuzzy
+msgctxt "language_name"
+msgid "Hungarian"
+msgstr "Hongaars"
+
+#. {"msgid": ["IJslands"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:903
+#, fuzzy
+msgctxt "language_name"
+msgid "Icelandic"
+msgstr "IJslands"
+
+#. {"msgid": ["Ik doe", "Ik wil", "Ido", "ikdo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:904
+#, fuzzy
+msgctxt "language_name"
+msgid "Ido"
+msgstr "Ik doe"
+
+#. {"msgid": ["Igbo", "Ibo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:905
+#, fuzzy
+msgctxt "language_name"
+msgid "Igbo"
+msgstr "Igbo"
+
+#. {"msgid": ["Indonesisch", "Indonesi\u00ebr"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:906
+#, fuzzy
+msgctxt "language_name"
+msgid "Indonesian"
+msgstr "Indonesisch"
+
+#. {"msgid": ["Interlingua (Internationale Vereniging voor Hulptalen)",
+#. "Interlingua (internationale hulptaalvereniging)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:907
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingua (International Auxiliary Language Association)"
+msgstr "Interlingua (Internationale Vereniging voor Hulptalen)"
+
+#. {"msgid": ["Tussentaal", "Interlingue"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:908
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingue"
+msgstr "Tussentaal"
+
+#. {"msgid": ["Inktitut", "Ingebed"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:909
+#, fuzzy
+msgctxt "language_name"
+msgid "Inuktitut"
+msgstr "Inktitut"
+
+#. {"msgid": ["Inupiaq", "inupiaq"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:910
+#, fuzzy
+msgctxt "language_name"
+msgid "Inupiaq"
+msgstr "Inupiaq"
+
+#. {"msgid": ["Iers", "Ierse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:911
+#, fuzzy
+msgctxt "language_name"
+msgid "Irish"
+msgstr "Iers"
+
+#. {"msgid": ["Italiaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:912
+#, fuzzy
+msgctxt "language_name"
+msgid "Italian"
+msgstr "Italiaans"
+
+#. {"msgid": ["Japans", "Japanse", "Japanner"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:913
+#, fuzzy
+msgctxt "language_name"
+msgid "Japanese"
+msgstr "Japans"
+
+#. {"msgid": ["Javaans", "Javanen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:914
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:915
+#, fuzzy
+msgctxt "language_name"
+msgid "Javanese"
+msgstr "Javaans"
+
+#. {"msgid": ["Kalaallisut", "Kalaallisoet"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:916
+#, fuzzy
+msgctxt "language_name"
+msgid "Kalaallisut"
+msgstr "Kalaallisut"
+
+#. {"msgid": ["Kannada", "kannada"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:917
+#, fuzzy
+msgctxt "language_name"
+msgid "Kannada"
+msgstr "Kannada"
+
+#. {"msgid": ["Kanuri", "Kanoeri"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:918
+#, fuzzy
+msgctxt "language_name"
+msgid "Kanuri"
+msgstr "Kanuri"
+
+#. {"msgid": ["Kashmiri", "Kasjmier"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:919
+#, fuzzy
+msgctxt "language_name"
+msgid "Kashmiri"
+msgstr "Kashmiri"
+
+#. {"msgid": ["Kazachs", "Kazak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:920
+#, fuzzy
+msgctxt "language_name"
+msgid "Kazakh"
+msgstr "Kazachs"
+
+#. {"msgid": ["Kikuyu", "kikyu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:921
+#, fuzzy
+msgctxt "language_name"
+msgid "Kikuyu"
+msgstr "Kikuyu"
+
+#. {"msgid": ["Kinyarwanda", "Kinarwanda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:922
+#, fuzzy
+msgctxt "language_name"
+msgid "Kinyarwanda"
+msgstr "Kinyarwanda"
+
+#. {"msgid": ["Kirgizisch", "Kirghiz"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:923
+#, fuzzy
+msgctxt "language_name"
+msgid "Kirghiz"
+msgstr "Kirgizisch"
+
+#. {"msgid": ["Komi", "komie"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:924
+#, fuzzy
+msgctxt "language_name"
+msgid "Komi"
+msgstr "Komi"
+
+#. {"msgid": ["Kongo", "kongo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:925
+#, fuzzy
+msgctxt "language_name"
+msgid "Kongo"
+msgstr "Kongo"
+
+#. {"msgid": ["Koreaans", "Koreaanse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:926
+#, fuzzy
+msgctxt "language_name"
+msgid "Korean"
+msgstr "Koreaans"
+
+#. {"msgid": ["Kuanyama", "Kwanyama"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:927
+#, fuzzy
+msgctxt "language_name"
+msgid "Kuanyama"
+msgstr "Kuanyama"
+
+#. {"msgid": ["Koerdisch", "Koerdische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
+#, fuzzy
+msgctxt "language_name"
+msgid "Kurdish"
+msgstr "Koerdisch"
+
+#. {"msgid": ["Laotiaans", "lao"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:929
+#, fuzzy
+msgctxt "language_name"
+msgid "Lao"
+msgstr "Laotiaans"
+
+#. {"msgid": ["Latijns", "Latijn", "Latijnse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:930
+#, fuzzy
+msgctxt "language_name"
+msgid "Latin"
+msgstr "Latijns"
+
+#. {"msgid": ["Lets", "Letse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:931
+#, fuzzy
+msgctxt "language_name"
+msgid "Latvian"
+msgstr "Lets"
+
+#. {"msgid": ["Limburgs", "Limburger"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:932
+#, fuzzy
+msgctxt "language_name"
+msgid "Limburgan"
+msgstr "Limburgs"
+
+#. {"msgid": ["Lingala", "lingala"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:933
+#, fuzzy
+msgctxt "language_name"
+msgid "Lingala"
+msgstr "Lingala"
+
+#. {"msgid": ["Litouws"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:934
+#, fuzzy
+msgctxt "language_name"
+msgid "Lithuanian"
+msgstr "Litouws"
+
+#. {"msgid": ["Luba-Katanga", "Luba - Katanga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:935
+#, fuzzy
+msgctxt "language_name"
+msgid "Luba-Katanga"
+msgstr "Luba-Katanga"
+
+#. {"msgid": ["Luxemburgs", "Luxembourgish"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:936
+#, fuzzy
+msgctxt "language_name"
+msgid "Luxembourgish"
+msgstr "Luxemburgs"
+
+#. {"msgid": ["Macedonisch", "Macedonische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:937
+#, fuzzy
+msgctxt "language_name"
+msgid "Macedonian"
+msgstr "Macedonisch"
+
+#. {"msgid": ["Madagaskar-", "Madagaskar", "Malagasi", "Malagassisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:938
+#, fuzzy
+msgctxt "language_name"
+msgid "Malagasy"
+msgstr "Madagaskar-"
+
+#. {"msgid": ["Maleis (macrotaal)", "Maleis (makrotaal)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:939
+#, fuzzy
+msgctxt "language_name"
+msgid "Malay (macrolanguage)"
+msgstr "Maleis (macrotaal)"
+
+#. {"msgid": ["Malayalam", "Maleisisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:940
+#, fuzzy
+msgctxt "language_name"
+msgid "Malayalam"
+msgstr "Malayalam"
+
+#. {"msgid": ["Maltees", "Maltezer"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:941
+#, fuzzy
+msgctxt "language_name"
+msgid "Maltese"
+msgstr "Maltees"
+
+#. {"msgid": ["Manx", "manx"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:942
+#, fuzzy
+msgctxt "language_name"
+msgid "Manx"
+msgstr "Manx"
+
+#. {"msgid": ["Maori-", "Maori"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:943
+#, fuzzy
+msgctxt "language_name"
+msgid "Maori"
+msgstr "Maori-"
+
+#. {"msgid": ["Marathi", "marathi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:944
+#, fuzzy
+msgctxt "language_name"
+msgid "Marathi"
+msgstr "Marathi"
+
+#. {"msgid": ["Marshallees", "Marshallese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:945
+#, fuzzy
+msgctxt "language_name"
+msgid "Marshallese"
+msgstr "Marshallees"
+
+#. {"msgid": ["Nieuwgrieks (1453-)", "Modern Grieks (1453-)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:946
+#, fuzzy
+msgctxt "language_name"
+msgid "Modern Greek (1453-)"
+msgstr "Nieuwgrieks (1453-)"
+
+#. {"msgid": ["Mongools", "Mongolisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
+#, fuzzy
+msgctxt "language_name"
+msgid "Mongolian"
+msgstr "Mongools"
+
+#. {"msgid": ["Nauru", "nauru"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:948
+#, fuzzy
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#. {"msgid": ["Navajo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:949
+#, fuzzy
+msgctxt "language_name"
+msgid "Navajo"
+msgstr "Navajo"
+
+#. {"msgid": ["Ndonga", "Ndong"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:950
+#, fuzzy
+msgctxt "language_name"
+msgid "Ndonga"
+msgstr "Ndonga"
+
+#. {"msgid": ["Nepalees (macrotaal)", "nepalees"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:951
+#, fuzzy
+msgctxt "language_name"
+msgid "Nepali (macrolanguage)"
+msgstr "Nepalees (macrotaal)"
+
+#. {"msgid": ["Noord Ndebele", "noorden Ndebele"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:952
+#, fuzzy
+msgctxt "language_name"
+msgid "North Ndebele"
+msgstr "Noord Ndebele"
+
+#. {"msgid": ["Noordelijke Sami", "Noord-Samisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:953
+#, fuzzy
+msgctxt "language_name"
+msgid "Northern Sami"
+msgstr "Noordelijke Sami"
+
+#. {"msgid": ["Noors", "Noorse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:954
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian"
+msgstr "Noors"
+
+#. {"msgid": ["Noorse Bokmal", "Noors Bokm\u00e5l"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:955
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Bokmål"
+msgstr "Noorse Bokmal"
+
+#. {"msgid": ["Noorse Nynorsk", "het Noorse Nynorsk"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:956
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Nynorsk"
+msgstr "Noorse Nynorsk"
+
+#. {"msgid": ["Nyanja", "Njanja"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:957
+#, fuzzy
+msgctxt "language_name"
+msgid "Nyanja"
+msgstr "Nyanja"
+
+#. {"msgid": ["Occitaans (na 1500)", "Occitaans (post 1500)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:958
+#, fuzzy
+msgctxt "language_name"
+msgid "Occitan (post 1500)"
+msgstr "Occitaans (na 1500)"
+
+#. {"msgid": ["Ojibwa", "Ojiba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:959
+#, fuzzy
+msgctxt "language_name"
+msgid "Ojibwa"
+msgstr "Ojibwa"
+
+#. {"msgid": ["Oriya (macrotaal)", "Oriya (makrotaal)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:960
+#, fuzzy
+msgctxt "language_name"
+msgid "Oriya (macrolanguage)"
+msgstr "Oriya (macrotaal)"
+
+#. {"msgid": ["Oromo", "oromo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:961
+#, fuzzy
+msgctxt "language_name"
+msgid "Oromo"
+msgstr "Oromo"
+
+#. {"msgid": ["Ossetisch", "Ossetische"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:962
+#, fuzzy
+msgctxt "language_name"
+msgid "Ossetian"
+msgstr "Ossetisch"
+
+#. {"msgid": ["Pali", "pali"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:963
+#, fuzzy
+msgctxt "language_name"
+msgid "Pali"
+msgstr "Pali"
+
+#. {"msgid": ["Panjabi", "panjabi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:964
+#, fuzzy
+msgctxt "language_name"
+msgid "Panjabi"
+msgstr "Panjabi"
+
+#. {"msgid": ["Perzisch", "Pers"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:965
+#, fuzzy
+msgctxt "language_name"
+msgid "Persian"
+msgstr "Perzisch"
+
+#. {"msgid": ["Pools", "Poolse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:966
+#, fuzzy
+msgctxt "language_name"
+msgid "Polish"
+msgstr "Pools"
+
+#. {"msgid": ["Portugees", "Portugese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:967
+#, fuzzy
+msgctxt "language_name"
+msgid "Portuguese"
+msgstr "Portugees"
+
+#. {"msgid": ["Duwen naar", "Druk op"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:968
+#, fuzzy
+msgctxt "language_name"
+msgid "Pushto"
+msgstr "Duwen naar"
+
+#. {"msgid": ["Quechua", "quechua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:969
+#, fuzzy
+msgctxt "language_name"
+msgid "Quechua"
+msgstr "Quechua"
+
+#. {"msgid": ["Roemeense", "Roemeens", "Roemeen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:970
+#, fuzzy
+msgctxt "language_name"
+msgid "Romanian"
+msgstr "Roemeense"
+
+#. {"msgid": ["Reto-Romaans", "Romeins"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:971
+#, fuzzy
+msgctxt "language_name"
+msgid "Romansh"
+msgstr "Reto-Romaans"
+
+#. {"msgid": ["Rundi", "Rund"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:972
+#, fuzzy
+msgctxt "language_name"
+msgid "Rundi"
+msgstr "Rundi"
+
+#. {"msgid": ["Russisch", "Rus"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:973
+#, fuzzy
+msgctxt "language_name"
+msgid "Russian"
+msgstr "Russisch"
+
+#. {"msgid": ["Samoaans", "Samoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:974
+#, fuzzy
+msgctxt "language_name"
+msgid "Samoan"
+msgstr "Samoaans"
+
+#. {"msgid": ["Sango", "sango"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:975
+#, fuzzy
+msgctxt "language_name"
+msgid "Sango"
+msgstr "Sango"
+
+#. {"msgid": ["Sanskriet-", "Sanskriet", "Sanskrit"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:976
+#, fuzzy
+msgctxt "language_name"
+msgid "Sanskrit"
+msgstr "Sanskriet-"
+
+#. {"msgid": ["Sardijns", "Sardinisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:977
+#, fuzzy
+msgctxt "language_name"
+msgid "Sardinian"
+msgstr "Sardijns"
+
+#. {"msgid": ["Schots-Gaelisch", "Schots Gaelic"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:978
+#, fuzzy
+msgctxt "language_name"
+msgid "Scottish Gaelic"
+msgstr "Schots-Gaelisch"
+
+#. {"msgid": ["Servisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:979
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbian"
+msgstr "Servisch"
+
+#. {"msgid": ["Servo-Kroatisch", "Servisch-Kroatisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:980
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbo-Croatian"
+msgstr "Servo-Kroatisch"
+
+#. {"msgid": ["Shona", "shona"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:981
+#, fuzzy
+msgctxt "language_name"
+msgid "Shona"
+msgstr "Shona"
+
+#. {"msgid": ["Sichuan Yi", "Sichuan Ji"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:982
+#, fuzzy
+msgctxt "language_name"
+msgid "Sichuan Yi"
+msgstr "Sichuan Yi"
+
+#. {"msgid": ["Sindhi", "Sindh"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:983
+#, fuzzy
+msgctxt "language_name"
+msgid "Sindhi"
+msgstr "Sindhi"
+
+#. {"msgid": ["Singalees", "Sinhala"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:984
+#, fuzzy
+msgctxt "language_name"
+msgid "Sinhala"
+msgstr "Singalees"
+
+#. {"msgid": ["Slowaaks", "slovaaks"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:985
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovak"
+msgstr "Slowaaks"
+
+#. {"msgid": ["Sloveens", "Sloveense"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:986
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovenian"
+msgstr "Sloveens"
+
+#. {"msgid": ["Somalisch", "Somali\u00ebr"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:987
+#, fuzzy
+msgctxt "language_name"
+msgid "Somali"
+msgstr "Somalisch"
+
+#. {"msgid": ["Zuid-Ndebele", "zuiden Ndebele"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:988
+#, fuzzy
+msgctxt "language_name"
+msgid "South Ndebele"
+msgstr "Zuid-Ndebele"
+
+#. {"msgid": ["Zuid-Sotho", "zuidelijk Sotho"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:989
+#, fuzzy
+msgctxt "language_name"
+msgid "Southern Sotho"
+msgstr "Zuid-Sotho"
+
+#. {"msgid": ["Spaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:990
+#, fuzzy
+msgctxt "language_name"
+msgid "Spanish"
+msgstr "Spaans"
+
+#. {"msgid": ["Sundanees", "Sundanese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:991
+#, fuzzy
+msgctxt "language_name"
+msgid "Sundanese"
+msgstr "Sundanees"
+
+#. {"msgid": ["Swahili (macrotaal)", "Swahili (makrotaal)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:992
+#, fuzzy
+msgctxt "language_name"
+msgid "Swahili (macrolanguage)"
+msgstr "Swahili (macrotaal)"
+
+#. {"msgid": ["Swati", "Swahi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:993
+#, fuzzy
+msgctxt "language_name"
+msgid "Swati"
+msgstr "Swati"
+
+#. {"msgid": ["Zweeds", "Zweedse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:994
+#, fuzzy
+msgctxt "language_name"
+msgid "Swedish"
+msgstr "Zweeds"
+
+#. {"msgid": ["Taiwanees", "Taiwanese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:995
+#, fuzzy
+msgctxt "language_name"
+msgid "Taiwanese"
+msgstr "Taiwanees"
+
+#. {"msgid": ["Tagalog", "Tagaloog"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:996
+#, fuzzy
+msgctxt "language_name"
+msgid "Tagalog"
+msgstr "Tagalog"
+
+#. {"msgid": ["Tahitiaans", "Tahitiaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:997
+#, fuzzy
+msgctxt "language_name"
+msgid "Tahitian"
+msgstr "Tahitiaans"
+
+#. {"msgid": ["Tadzjieks", "Tadzjikistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:998
+#, fuzzy
+msgctxt "language_name"
+msgid "Tajik"
+msgstr "Tadzjieks"
+
+#. {"msgid": ["Tamil", "Tamil-"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:999
+#, fuzzy
+msgctxt "language_name"
+msgid "Tamil"
+msgstr "Tamil"
+
+#. {"msgid": ["Tataars", "Tataar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1000
+#, fuzzy
+msgctxt "language_name"
+msgid "Tatar"
+msgstr "Tataars"
+
+#. {"msgid": ["Telugu", "Teluga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1001
+#, fuzzy
+msgctxt "language_name"
+msgid "Telugu"
+msgstr "Telugu"
+
+#. {"msgid": ["Thais", "Thaise"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1002
+#, fuzzy
+msgctxt "language_name"
+msgid "Thai"
+msgstr "Thais"
+
+#. {"msgid": ["Tibetaans", "tibetaans"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1003
+#, fuzzy
+msgctxt "language_name"
+msgid "Tibetan"
+msgstr "Tibetaans"
+
+#. {"msgid": ["Tigrinja", "Tigrinya"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1004
+#, fuzzy
+msgctxt "language_name"
+msgid "Tigrinya"
+msgstr "Tigrinja"
+
+#. {"msgid": ["Tonga (Tonga-eilanden)", "Tonga (Tonga Eilanden)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1005
+#, fuzzy
+msgctxt "language_name"
+msgid "Tonga (Tonga Islands)"
+msgstr "Tonga (Tonga-eilanden)"
+
+#. {"msgid": ["Tsonga", "tsonga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1006
+#, fuzzy
+msgctxt "language_name"
+msgid "Tsonga"
+msgstr "Tsonga"
+
+#. {"msgid": ["Tswana", "Tswaana"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1007
+#, fuzzy
+msgctxt "language_name"
+msgid "Tswana"
+msgstr "Tswana"
+
+#. {"msgid": ["Turks", "turken"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1008
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkish"
+msgstr "Turks"
+
+#. {"msgid": ["Turkmeens", "Turkmeense"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1009
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkmen"
+msgstr "Turkmeens"
+
+#. {"msgid": ["Twee", "Twi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1010
+#, fuzzy
+msgctxt "language_name"
+msgid "Twi"
+msgstr "Twee"
+
+#. {"msgid": ["Oeigoers", "Uighur"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1011
+#, fuzzy
+msgctxt "language_name"
+msgid "Uighur"
+msgstr "Oeigoers"
+
+#. {"msgid": ["Oekra\u00efens", "Oekra\u00efner"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1012
+#, fuzzy
+msgctxt "language_name"
+msgid "Ukrainian"
+msgstr "Oekraïens"
+
+#. {"msgid": ["Urdu", "Oeder"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1013
+#, fuzzy
+msgctxt "language_name"
+msgid "Urdu"
+msgstr "Urdu"
+
+#. {"msgid": ["Oezbeeks", "Oezbeekse"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1014
+#, fuzzy
+msgctxt "language_name"
+msgid "Uzbek"
+msgstr "Oezbeeks"
+
+#. {"msgid": ["Venda", "verkoop"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1015
+#, fuzzy
+msgctxt "language_name"
+msgid "Venda"
+msgstr "Venda"
+
+#. {"msgid": ["Vietnamees", "Vietnamese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1016
+#, fuzzy
+msgctxt "language_name"
+msgid "Vietnamese"
+msgstr "Vietnamees"
+
+#. {"msgid": ["Volap\u00fck", "volapuk"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1017
+#, fuzzy
+msgctxt "language_name"
+msgid "Volapük"
+msgstr "Volapük"
+
+#. {"msgid": ["Waals", "Walloni\u00eb"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1018
+#, fuzzy
+msgctxt "language_name"
+msgid "Walloon"
+msgstr "Waals"
+
+#. {"msgid": ["Wels", "Welshe"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1019
+#, fuzzy
+msgctxt "language_name"
+msgid "Welsh"
+msgstr "Wels"
+
+#. {"msgid": ["West-Armeens", "Westers Armeens"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1020
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Armenian"
+msgstr "West-Armeens"
+
+#. {"msgid": ["Westfries", "Westers Fries"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1021
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Frisian"
+msgstr "Westfries"
+
+#. {"msgid": ["Wolof", "wolven"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1022
+#, fuzzy
+msgctxt "language_name"
+msgid "Wolof"
+msgstr "Wolof"
+
+#. {"msgid": ["Xhosa", "xhosa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1023
+#, fuzzy
+msgctxt "language_name"
+msgid "Xhosa"
+msgstr "Xhosa"
+
+#. {"msgid": ["Jiddisch", "Yiddisch"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1024
+#, fuzzy
+msgctxt "language_name"
+msgid "Yiddish"
+msgstr "Jiddisch"
+
+#. {"msgid": ["Joruba", "joruba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1025
+#, fuzzy
+msgctxt "language_name"
+msgid "Yoruba"
+msgstr "Joruba"
+
+#. {"msgid": ["Zhuang", "zhuang"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1026
+#, fuzzy
+msgctxt "language_name"
+msgid "Zhuang"
+msgstr "Zhuang"
+
+#. {"msgid": ["Zoeloe", "Zulu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1027
+#, fuzzy
+msgctxt "language_name"
+msgid "Zulu"
+msgstr "Zoeloe"

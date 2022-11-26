@@ -1,0 +1,481 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 12:00+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: TR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["birikmi\u015f ikramiye", "Birikmi\u015f bonus"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "birikmiş ikramiye"
+
+#. {"msgid": ["Pencereyi kapat", "Pencereyi kapat\u0131n"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Pencereyi kapat"
+
+#. {"msgid": ["Denemeyi iptal et", "Denemeyi durdur"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Denemeyi iptal et"
+
+#. {"msgid": ["Anketi tamamla", "Anketi tamamlay\u0131n", "Eksiksiz Anket"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Anketi tamamla"
+
+#. {"msgid": ["Ayr\u0131ca size <strong>$%(PERFORMANCE_BONUS)s</strong>
+#. performans bonusu da verildi!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Ayrıca size <strong>$%(PERFORMANCE_BONUS)s</strong> performans bonusu da "
+"verildi!"
+
+#. {"msgid": ["HIT'i tamamlamak i\u00e7in l\u00fctfen \"Bitir\"e
+#. t\u0131klay\u0131n.", "HIT'i tamamlamak i\u00e7in l\u00fctfen \"Bitir\"
+#. d\u00fc\u011fmesini t\u0131klay\u0131n."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "HIT'i tamamlamak için lütfen \"Bitir\"e tıklayın."
+
+#. {"msgid": ["Biti\u015f", "Son", "Sona ermek", "bitirmek"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Bitiş"
+
+#. {"msgid": ["Kat\u0131ld\u0131\u011f\u0131n\u0131z i\u00e7in
+#. te\u015fekk\u00fcr ederiz.", "Kat\u0131ld\u0131\u011f\u0131n\u0131z
+#. i\u00e7in te\u015fekk\u00fcrler."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Katıldığınız için teşekkür ederiz."
+
+#. {"msgid": ["Sonraki", "ileri"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Sonraki"
+
+#. {"msgid": ["Durum b\u00f6yle de\u011filse, l\u00fctfen
+#. a\u015fa\u011f\u0131daki bilgileri al\u0131nt\u0131layarak %(EMAIL)s
+#. adresinden bizimle ileti\u015fime ge\u00e7in:", "Aksi takdirde, l\u00fctfen
+#. a\u015fa\u011f\u0131daki bilgileri al\u0131nt\u0131layarak %(EMAIL)s
+#. adresinden bizimle ileti\u015fime ge\u00e7in:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Durum böyle değilse, lütfen aşağıdaki bilgileri alıntılayarak %(EMAIL)s "
+"adresinden bizimle iletişime geçin:"
+
+#. {"msgid": ["Tazminat hakk\u0131nda bilgi almak i\u00e7in l\u00fctfen
+#. %(EMAIL)s adresinden ara\u015ft\u0131rmac\u0131yla ileti\u015fime
+#. ge\u00e7in ve bu hataya neyin yol a\u00e7t\u0131\u011f\u0131n\u0131
+#. a\u00e7\u0131klay\u0131n.", "Tazminat hakk\u0131nda bilgi almak i\u00e7in
+#. l\u00fctfen %(EMAIL)s adresinden ara\u015ft\u0131rmac\u0131yla
+#. ileti\u015fime ge\u00e7in ve bu hataya neyin sebep oldu\u011funu
+#. a\u00e7\u0131klay\u0131n."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Tazminat hakkında bilgi almak için lütfen %(EMAIL)s adresinden "
+"araştırmacıyla iletişime geçin ve bu hataya neyin yol açtığını açıklayın."
+
+#. {"msgid": ["Denemeyi \u0130ptal Et", "Deneyi Durdur"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Denemeyi İptal Et"
+
+#. {"msgid": ["Deneme devam ediyor...", "Deneme
+#. s\u00fcrd\u00fcr\u00fcl\u00fcyor..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Deneme devam ediyor..."
+
+#. {"msgid": ["\u0130ptal m\u00fcmk\u00fcn de\u011fil.", "Durdurmak
+#. m\u00fcmk\u00fcn de\u011fil."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "İptal mümkün değil."
+
+#. {"msgid": ["Deneyi iptal etmek istedi\u011finizden emin misiniz?", "Deneyi
+#. durdurmak istedi\u011finizden emin misiniz?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Deneyi iptal etmek istediğinizden emin misiniz?"
+
+#. {"msgid": ["Lucid Anket G\u00f6nderimi", "Berrak Anket G\u00f6nderimi"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid Anket Gönderimi"
+
+#. {"msgid": ["Onay reddedildi.", "\u0130zin reddedildi."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Onay reddedildi."
+
+#. {"msgid": ["Bu, deneyin sonu!", "Deneyin sonu budur!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Bu, deneyin sonu!"
+
+#. {"msgid": ["Ne yaz\u0131k ki deney erken bitmeli.", "Maalesef deney erken
+#. bitmeli."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Ne yazık ki deney erken bitmeli."
+
+#. {"msgid": ["Hata!", "hata"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Hata!"
+
+#. {"msgid": ["Deneme ba\u015flat\u0131l\u0131yor...", "Deneme
+#. ba\u015flat\u0131l\u0131yor\u2026"]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Deneme başlatılıyor..."
+
+#. {"msgid": ["Bir sorun olmas\u0131 durumunda, a\u015fa\u011f\u0131dakileri
+#. deneyin:", "Bir sorun olmas\u0131 durumunda a\u015fa\u011f\u0131dakini
+#. deneyin:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Bir sorun olması durumunda, aşağıdakileri deneyin:"
+
+#. {"msgid": ["Haz\u0131r m\u0131s\u0131n?", "haz\u0131r m\u0131s\u0131n"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Hazır mısın?"
+
+#. {"msgid": ["Bonus", "ikramiye"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["Kat\u0131l\u0131mc\u0131 kimli\u011finiz, muhtemelen test
+#. s\u0131ras\u0131nda taray\u0131c\u0131 de\u011fi\u015ftirdi\u011finiz
+#. i\u00e7in tan\u0131mlanmam\u0131\u015ft\u0131r.", "Muhtemelen test
+#. s\u0131ras\u0131nda taray\u0131c\u0131 de\u011fi\u015ftirdi\u011finiz
+#. i\u00e7in kat\u0131l\u0131mc\u0131 kimli\u011finiz
+#. tan\u0131mlanmam\u0131\u015ft\u0131r."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Katılımcı kimliğiniz, muhtemelen test sırasında tarayıcı değiştirdiğiniz "
+"için tanımlanmamıştır."
+
+#. {"msgid": ["Deneyi yapan ki\u015fi \u015fu anda izin vermedi\u011finden
+#. deneyi iptal etmek m\u00fcmk\u00fcn de\u011fil!", "Deneyi yapan ki\u015fi
+#. \u015fu anda buna izin vermedi\u011fi i\u00e7in deneyi iptal etmek
+#. m\u00fcmk\u00fcn de\u011fil!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Deneyi yapan kişi şu anda izin vermediğinden deneyi iptal etmek mümkün "
+"değil!"
+
+#. {"msgid": ["\u0130ptal d\u00fc\u011fmesine t\u0131klarsan\u0131z, deneme
+#. erken sona erecek ve \u015fimdiye kadar kazand\u0131\u011f\u0131n\u0131z
+#. tazminat size otomatik olarak \u00f6denecektir.", "\u0130ptal
+#. d\u00fc\u011fmesine t\u0131klarsan\u0131z, deneme erken sona erecek ve o
+#. ana kadar kazand\u0131\u011f\u0131n\u0131z tazminat otomatik olarak size
+#. \u00f6denecektir."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"İptal düğmesine tıklarsanız, deneme erken sona erecek ve şimdiye kadar "
+"kazandığınız tazminat size otomatik olarak ödenecektir."
+
+#. {"msgid": ["Lucid Anketinizi tamamlamak i\u00e7in a\u015fa\u011f\u0131daki
+#. d\u00fc\u011fmeyi t\u0131klay\u0131n.", "Lucid Survey'inizi tamamlamak
+#. i\u00e7in a\u015fa\u011f\u0131daki d\u00fc\u011fmeyi t\u0131klay\u0131n."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Lucid Anketinizi tamamlamak için aşağıdaki düğmeyi tıklayın."
+
+#. {"msgid": ["Deneyin sonu.", "Denemenin sonu."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Deneyin sonu."
+
+#. {"msgid": ["Ancak, yine de harcad\u0131\u011f\u0131n\u0131z s\u00fcre
+#. i\u00e7in size \u00f6deme yap\u0131lacakt\u0131r.", "Ancak, yine de zaten
+#. harcad\u0131\u011f\u0131n\u0131z s\u00fcre i\u00e7in \u00f6deme
+#. alacaks\u0131n\u0131z."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Ancak, yine de harcadığınız süre için size ödeme yapılacaktır."
+
+#. {"msgid": ["<strong>MTurk reklam sayfas\u0131ndaki</strong>
+#. <strong>Denemeyi iptal et</strong> d\u00fc\u011fmesini kullanarak denemeyi
+#. iptal edebilirsiniz.", "<strong>MTurk reklam sayfas\u0131nda</strong>
+#. <strong>Denemeyi iptal et</strong> d\u00fc\u011fmesini kullanarak denemeyi
+#. iptal edebilirsiniz."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"<strong>MTurk reklam sayfasındaki</strong> <strong>Denemeyi iptal "
+"et</strong> düğmesini kullanarak denemeyi iptal edebilirsiniz."
+
+#. {"msgid": ["Sayfay\u0131 yenile.", "Sayfay\u0131 yeniden y\u00fckleyin.",
+#. "Sayfay\u0131 tekrar y\u00fckleyin."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Sayfayı yenile."
+
+#. {"msgid": ["Deneye devam etmeye haz\u0131r oldu\u011funuzda
+#. d\u00fc\u011fmeyi t\u0131klay\u0131n.", "Deneye devam etmek i\u00e7in
+#. haz\u0131r oldu\u011funuzda d\u00fc\u011fmeyi t\u0131klay\u0131n."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Deneye devam etmeye hazır olduğunuzda düğmeyi tıklayın."
+
+#. {"msgid": ["Yard\u0131m!", "Yard\u0131m etmek!", "Yard\u0131m et!",
+#. "Yard\u0131m Edin!", "Yard\u0131mc\u0131!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Yardım!"
+
+#. {"msgid": ["Ne yaz\u0131k ki bu davran\u0131\u015f \u015fu anda
+#. desteklenmiyor.", "Maalesef bu davran\u0131\u015f \u015fu anda
+#. desteklenmemektedir."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Ne yazık ki bu davranış şu anda desteklenmiyor."
+
+#. "\"\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+
+#. "\"\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+
+#. {"msgid": ["\u015eu anda birikmi\u015f bonusunuzla ilgili
+#. a\u015fa\u011f\u0131daki bilgilere bak\u0131n.", "\u015eu anda
+#. birikmi\u015f bonusunuz hakk\u0131nda a\u015fa\u011f\u0131daki bilgilere
+#. bak\u0131n."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Şu anda birikmiş bonusunuzla ilgili aşağıdaki bilgilere bakın."
+
+#. {"msgid": ["L\u00fctfen sadece \u00f6demenizi almakta sorun
+#. ya\u015f\u0131yorsan\u0131z bizimle ileti\u015fime ge\u00e7in.",
+#. "L\u00fctfen sadece \u00f6demenizi alma konusunda sorun
+#. ya\u015f\u0131yorsan\u0131z bizimle ileti\u015fime ge\u00e7in."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Lütfen sadece ödemenizi almakta sorun yaşıyorsanız bizimle iletişime geçin."
+
+#. {"msgid": ["Tazminat\u0131n\u0131z\u0131n ayr\u0131nt\u0131lar\u0131
+#. i\u00e7in a\u015fa\u011f\u0131daki bilgilere bak\u0131n.",
+#. "Tazminat\u0131n\u0131z\u0131n detaylar\u0131 i\u00e7in
+#. a\u015fa\u011f\u0131daki bilgilere bak\u0131n\u0131z."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Tazminatınızın ayrıntıları için aşağıdaki bilgilere bakın."
+
+#. {"msgid": ["\u0130ptal edildikten sonra, tazminat\u0131 almak i\u00e7in
+#. bizimle ileti\u015fime ge\u00e7menize gerek yoktur;", "\u0130ptal
+#. edildikten sonra tazminat\u0131 almak i\u00e7in bizimle ileti\u015fime
+#. ge\u00e7meniz gerekmez;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"İptal edildikten sonra, tazminatı almak için bizimle iletişime geçmenize "
+"gerek yoktur;"
+
+#. {"msgid": ["L\u00fctfen a\u015fa\u011f\u0131daki bilgileri de
+#. al\u0131nt\u0131lay\u0131n\u0131z:", "L\u00fctfen a\u015fa\u011f\u0131daki
+#. bilgileri de aktar\u0131n:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Lütfen aşağıdaki bilgileri de alıntılayınız:"
+
+#. {"msgid": ["Bir hata durumunda telafi edilmek i\u00e7in yukar\u0131daki
+#. d\u00fc\u011fmeyi t\u0131klay\u0131n.", "Bir hata durumunda telafi edilmesi
+#. i\u00e7in yukar\u0131daki d\u00fc\u011fmeye t\u0131klay\u0131n."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Bir hata durumunda telafi edilmek için yukarıdaki düğmeyi tıklayın."
+
+#. {"msgid": ["\u0130nternet ba\u011flant\u0131n\u0131z\u0131n
+#. \u00e7al\u0131\u015ft\u0131\u011f\u0131n\u0131 kontrol edin.",
+#. "\u0130nternet ba\u011flant\u0131n\u0131z\u0131n
+#. \u00e7al\u0131\u015f\u0131p
+#. \u00e7al\u0131\u015fmad\u0131\u011f\u0131n\u0131 kontrol ediniz."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "İnternet bağlantınızın çalıştığını kontrol edin."
+
+#. {"msgid": ["Yukar\u0131dakiler yard\u0131mc\u0131 olmazsa, bize
+#. a\u015fa\u011f\u0131daki bilgileri i\u00e7eren bir e-posta g\u00f6nderin:",
+#. "Yukar\u0131dakiler yard\u0131mc\u0131 olmazsa, a\u015fa\u011f\u0131daki
+#. bilgileri i\u00e7eren bir e-posta g\u00f6nderin:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Yukarıdakiler yardımcı olmazsa, bize aşağıdaki bilgileri içeren bir e-posta "
+"gönderin:"
+
+#. {"msgid": ["Ge\u00e7erli web sayfas\u0131na bir ba\u011flant\u0131;",
+#. "Mevcut web sayfas\u0131na ba\u011flant\u0131;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Geçerli web sayfasına bir bağlantı;"
+
+#. {"msgid": ["\u00c7al\u0131\u015fan Kimli\u011finiz;",
+#. "\u00c7al\u0131\u015fan Kimlik Numaran\u0131z;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Çalışan Kimliğiniz;"
+
+#. {"msgid": ["Ya\u015fad\u0131\u011f\u0131n\u0131z sorun.",
+#. "Ya\u015fad\u0131\u011f\u0131n problem."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Yaşadığınız sorun."
+
+#. {"msgid": ["S\u00fcrd\u00fcrmek", "Devam et", "Devam", "\u00d6z
+#. ge\u00e7mi\u015f", "\u00d6zge\u00e7mi\u015f"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Sürdürmek"

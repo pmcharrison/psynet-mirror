@@ -1,0 +1,465 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 12:01+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: CY\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Mae'n rhaid i chi gronni <strong>o leiaf
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> o fonws er mwyn gallu cael
+#. iawndal.", "Mae'n rhaid i chi gronni <strong>o leiaf
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> o fonws er mwyn gallu cael
+#. eich digolledu."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Mae'n rhaid i chi gronni <strong>o leiaf "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> o fonws er mwyn gallu cael "
+"iawndal."
+
+#. {"msgid": ["Bonws cronedig", "Bonws cronnus"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Bonws cronedig"
+
+#. {"msgid": ["Caewch y ffenestr", "Cau'r ffenestr"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Caewch y ffenestr"
+
+#. {"msgid": ["Erthylu arbrawf", "Erthylu arbrofi"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Erthylu arbrawf"
+
+#. {"msgid": ["Cwblhau Arolwg", "Arolwg wedi'i Gwblhau"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Cwblhau Arolwg"
+
+#. {"msgid": ["Yn ogystal \u00e2'ch taliad sylfaenol o
+#. <strong>$%(BASE_PAYMENT)s</strong> byddwch yn derbyn bonws o
+#. <strong>$%(BONUS)s</strong> am yr amser a dreuliwyd gennych ar yr
+#. arbrawf.", "Yn ogystal \u00e2'ch taliad sylfaenol o
+#. <strong>$%(BASE_PAYMENT)s</strong> byddwch yn derbyn bonws o
+#. <strong>$%(BONUS)s</strong> am yr amser y gwnaethoch dreulio ar yr
+#. arbrawf."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Yn ogystal â'ch taliad sylfaenol o <strong>$%(BASE_PAYMENT)s</strong> "
+"byddwch yn derbyn bonws o <strong>$%(BONUS)s</strong> am yr amser a "
+"dreuliwyd gennych ar yr arbrawf."
+
+#. {"msgid": ["Rydych hefyd wedi derbyn bonws perfformiad o
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Rydych chi hefyd wedi cael
+#. bonws perfformiad o <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Rydych hefyd wedi derbyn bonws perfformiad o "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Cliciwch \"Gorffen\" i gwblhau'r HIT.", "Cliciwch ar
+#. \"Gorffen\" i gwblhau'r HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Cliciwch \"Gorffen\" i gwblhau'r HIT."
+
+#. {"msgid": ["Gorffen", "Diwedd"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Gorffen"
+
+#. {"msgid": ["Diolch am gymryd rhan.", "Diolch i chi am gymryd rhan."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Diolch am gymryd rhan."
+
+#. {"msgid": ["Nesaf", "Yn nesaf"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Nesaf"
+
+#. {"msgid": ["Os nad yw hyn yn wir, cysylltwch \u00e2 ni yn %(EMAIL)s gan
+#. ddyfynnu'r wybodaeth ganlynol:", "Os nad yw hyn yn wir, cysylltwch \u00e2
+#. ni ar %(EMAIL)s gan ddyfynnu'r wybodaeth a ganlyn:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Os nad yw hyn yn wir, cysylltwch â ni yn %(EMAIL)s gan ddyfynnu'r wybodaeth "
+"ganlynol:"
+
+#. {"msgid": ["I holi am iawndal, cysylltwch \u00e2'r ymchwilydd yn %(EMAIL)s
+#. a disgrifiwch beth arweiniodd at y gwall hwn.", "I wneud ymholiadau am
+#. iawndal, cysylltwch \u00e2'r ymchwilydd yn %(EMAIL)s a disgrifiwch beth
+#. arweiniodd at y gwall hwn."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"I holi am iawndal, cysylltwch â'r ymchwilydd yn %(EMAIL)s a disgrifiwch beth"
+" arweiniodd at y gwall hwn."
+
+#. {"msgid": ["Erthylu Arbrawf", "Arbrawf Erthylu"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Erthylu Arbrawf"
+
+#. {"msgid": ["Arbrawf ailddechrau...", "Ailddechrau arbrawf ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Arbrawf ailddechrau..."
+
+#. {"msgid": ["Nid yw erthylu yn bosibl.", "Erthylu ddim yn bosib."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Nid yw erthylu yn bosibl."
+
+#. {"msgid": ["Ydych chi'n si\u0175r eich bod am erthylu'r arbrawf?", "Ydych
+#. chi'n si\u0175r eich bod am roi'r gorau i'r arbrawf?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ydych chi'n siŵr eich bod am erthylu'r arbrawf?"
+
+#. {"msgid": ["Cyflwyniad Arolwg Lucid", "Cais Arolwg Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Cyflwyniad Arolwg Lucid"
+
+#. {"msgid": ["Gwrthodwyd caniat\u00e2d.", "Cafodd caniat\u00e2d ei wrthod."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Gwrthodwyd caniatâd."
+
+#. {"msgid": ["Dyna ddiwedd yr arbrawf!", "Dyna diwedd ar yr arbrawf!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Dyna ddiwedd yr arbrawf!"
+
+#. {"msgid": ["Yn anffodus rhaid i'r arbrawf ddod i ben yn gynnar.", "Yn
+#. anffodus, mae'n rhaid i'r arbrawf ddod i ben yn gynnar."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Yn anffodus rhaid i'r arbrawf ddod i ben yn gynnar."
+
+#. {"msgid": ["Gwall!", "Camgymeriad!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Gwall!"
+
+#. {"msgid": ["Dechrau arbrawf...", "Cychwyn arbrawf..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Dechrau arbrawf..."
+
+#. {"msgid": ["Mewn achos o broblem, rhowch gynnig ar y canlynol:", "Mewn
+#. achos o broblem, ceisiwch y canlynol:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Mewn achos o broblem, rhowch gynnig ar y canlynol:"
+
+#. {"msgid": ["Wyt ti'n Barod?", "Ydych chi'n barod?", "A ydych yn barod?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Wyt ti'n Barod?"
+
+#. {"msgid": ["Bonws", "Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonws"
+
+#. {"msgid": ["Nid yw eich ID cyfranogwr wedi'i ddiffinio, efallai oherwydd
+#. ichi newid porwyr yn ystod y prawf.", "Nid yw eich ID cyfranogwr wedi'i
+#. ddiffinio, efallai oherwydd eich bod wedi newid porwyr yn ystod y prawf."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Nid yw eich ID cyfranogwr wedi'i ddiffinio, efallai oherwydd ichi newid "
+"porwyr yn ystod y prawf."
+
+#. {"msgid": ["Nid yw'n bosibl rhoi'r gorau i'r arbrawf gan nad yw'r arbrofwr
+#. yn caniat\u00e1u hynny ar hyn o bryd!", "Nid yw rhoi'r gorau i'r arbrawf yn
+#. bosibl gan nad yw'r arbrofwr yn caniat\u00e1u hynny ar hyn o bryd!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Nid yw'n bosibl rhoi'r gorau i'r arbrawf gan nad yw'r arbrofwr yn caniatáu "
+"hynny ar hyn o bryd!"
+
+#. {"msgid": ["Os cliciwch y botwm Erthylu, bydd yr arbrawf yn dod i ben yn
+#. gynnar, a byddwch yn cael yr iawndal yr ydych wedi'i ennill hyd yn hyn yn
+#. awtomatig.", "Os byddwch yn clicio ar y botwm Erthylu, bydd yr arbrawf yn
+#. dod i ben yn gynnar, a byddwch yn cael eich talu'n awtomatig yr iawndal yr
+#. ydych wedi'i ennill hyd yn hyn."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Os cliciwch y botwm Erthylu, bydd yr arbrawf yn dod i ben yn gynnar, a "
+"byddwch yn cael yr iawndal yr ydych wedi'i ennill hyd yn hyn yn awtomatig."
+
+#. {"msgid": ["I gwblhau eich Arolwg Lucid, cliciwch y botwm isod.", "I
+#. gwblhau'ch Arolwg Lucid, cliciwch ar y botwm isod."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "I gwblhau eich Arolwg Lucid, cliciwch y botwm isod."
+
+#. {"msgid": ["Diwedd yr arbrawf.", "Diwedd arbrofi."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Diwedd yr arbrawf."
+
+#. {"msgid": ["Fodd bynnag, byddwch yn dal i gael eich talu am yr amser a
+#. dreuliwyd gennych eisoes.", "Fodd bynnag, byddwch yn dal i gael eich talu
+#. am yr amser y gwnaethoch ei dreulio eisoes."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Fodd bynnag, byddwch yn dal i gael eich talu am yr amser a dreuliwyd gennych"
+" eisoes."
+
+#. {"msgid": ["Mae'n bosib y gallwch chi erthylu'r arbrawf gan ddefnyddio'r
+#. botwm <strong>Abortio arbrawf</strong> <strong>ar dudalen hysbysebu
+#. MTurk</strong>.", "Mae'n bosib y byddwch yn gallu erthylu'r arbrawf drwy
+#. ddefnyddio'r botwm <strong>Abortio arbrawf</strong> <strong>ar dudalen
+#. hysbysebu MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Mae'n bosib y gallwch chi erthylu'r arbrawf gan ddefnyddio'r botwm "
+"<strong>Abortio arbrawf</strong> <strong>ar dudalen hysbysebu "
+"MTurk</strong>."
+
+#. {"msgid": ["Ail-lwythwch y dudalen.", "Ail-lwytho'r dudalen."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Ail-lwythwch y dudalen."
+
+#. {"msgid": ["Cliciwch y botwm pan fyddwch chi'n barod i barhau \u00e2'r
+#. arbrawf.", "Cliciwch ar y botwm pan fyddwch yn barod i barhau \u00e2'r
+#. arbrawf."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Cliciwch y botwm pan fyddwch chi'n barod i barhau â'r arbrawf."
+
+#. {"msgid": ["Help!", "Cymorth!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Help!"
+
+#. {"msgid": ["Yn anffodus nid yw'r ymddygiad hwn yn cael ei gefnogi ar hyn o
+#. bryd.", "Yn anffodus, ni chefnogir yr ymddygiad hwn ar hyn o bryd."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Yn anffodus nid yw'r ymddygiad hwn yn cael ei gefnogi ar hyn o bryd."
+
+#. {"msgid": ["Gweler isod wybodaeth am eich bonws cronedig ar hyn o bryd.",
+#. "Gweler isod wybodaeth am eich bonws cronedig presennol."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Gweler isod wybodaeth am eich bonws cronedig ar hyn o bryd."
+
+#. {"msgid": ["Cysylltwch \u00e2 ni dim ond os ydych chi'n cael trafferth
+#. derbyn eich taliad.", "Cysylltwch \u00e2 ni dim ond os ydych chi'n cael
+#. trafferth cael eich taliad."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Cysylltwch â ni dim ond os ydych chi'n cael trafferth derbyn eich taliad."
+
+#. {"msgid": ["Gweler y wybodaeth isod am fanylion eich iawndal.", "Gweler y
+#. wybodaeth isod i gael manylion am eich iawndal."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Gweler y wybodaeth isod am fanylion eich iawndal."
+
+#. {"msgid": ["Unwaith y byddwn wedi'i erthylu, nid oes angen cysylltu \u00e2
+#. ni i dderbyn yr iawndal;", "Unwaith y byddwn wedi rhoi'r gorau iddi, nid
+#. oes angen cysylltu \u00e2 ni i dderbyn yr iawndal;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Unwaith y byddwn wedi'i erthylu, nid oes angen cysylltu â ni i dderbyn yr "
+"iawndal;"
+
+#. {"msgid": ["Dyfynnwch y wybodaeth ganlynol hefyd:", "Dyfynnwch y wybodaeth
+#. ganlynol hefyd os gwelwch yn dda:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Dyfynnwch y wybodaeth ganlynol hefyd:"
+
+#. {"msgid": ["Cliciwch ar y botwm uchod i gael iawndal rhag ofn y bydd
+#. gwall.", "Cliciwch y botwm uchod i gael eich digolledu rhag ofn y bydd
+#. gwall."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Cliciwch ar y botwm uchod i gael iawndal rhag ofn y bydd gwall."
+
+#. {"msgid": ["Gwiriwch fod eich cysylltiad rhyngrwyd yn gweithio.", "Gwiriwch
+#. a yw'ch cysylltiad rhyngrwyd yn gweithio."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Gwiriwch fod eich cysylltiad rhyngrwyd yn gweithio."
+
+#. {"msgid": ["Os nad yw'r uchod yn helpu, anfonwch e-bost atom gyda'r
+#. wybodaeth ganlynol:", "Os nad yw'r uchod yn helpu, anfonwch e-bost atom yn
+#. cynnwys y wybodaeth ganlynol:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Os nad yw'r uchod yn helpu, anfonwch e-bost atom gyda'r wybodaeth ganlynol:"
+
+#. {"msgid": ["Dolen i'r dudalen we gyfredol;", "Dolen i'r dudalen we
+#. bresennol;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Dolen i'r dudalen we gyfredol;"
+
+#. {"msgid": ["Eich ID Gweithiwr;", "Eich Rhif Adnabod Gweithiwr;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Eich ID Gweithiwr;"
+
+#. {"msgid": ["Y broblem rydych chi'n ei chael.", "Y broblem yr ydych yn ei
+#. chael."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Y broblem rydych chi'n ei chael."
+
+#. {"msgid": ["Ail-ddechrau", "Ailgydio"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Ail-ddechrau"

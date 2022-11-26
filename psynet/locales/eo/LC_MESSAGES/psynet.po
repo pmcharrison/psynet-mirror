@@ -1,0 +1,465 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:43+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: EO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Vi devas amasigi <strong>almena\u016d
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> da bonuso por povi esti
+#. kompensita.", "Vi devas akumuli <strong>almena\u016d
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> da bonuso por povi esti
+#. kompensita."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Vi devas amasigi <strong>almenaŭ "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> da bonuso por povi esti "
+"kompensita."
+
+#. {"msgid": ["Amasigita bonuso", "Amasigita gratifiko"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Amasigita bonuso"
+
+#. {"msgid": ["Fermu fenestron", "Fermi la fenestron"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Fermu fenestron"
+
+#. {"msgid": ["\u0108esigi eksperimenton", "\u0108esu eksperimenton"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Ĉesigi eksperimenton"
+
+#. {"msgid": ["Kompleta Enketo", "Plena Enketo"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Kompleta Enketo"
+
+#. {"msgid": ["Krom via baza pago de <strong>$%(BASE_PAYMENT)s</strong> vi
+#. ricevos gratifikon de <strong>$%(BONUS)s</strong> por la tempo, kiun vi
+#. pasigis por la eksperimento.", "Aldone al via baza pago de
+#. <strong>$%(BASE_PAYMENT)s</strong> vi ricevos gratifikon de
+#. <strong>$%(BONUS)s</strong> por la tempo, kiun vi pasigis por la
+#. eksperimento."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Krom via baza pago de <strong>$%(BASE_PAYMENT)s</strong> vi ricevos "
+"gratifikon de <strong>$%(BONUS)s</strong> por la tempo, kiun vi pasigis por "
+"la eksperimento."
+
+#. {"msgid": ["Vi anka\u016d ricevis rendimentan bonuson de
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Vi anka\u016d ricevis
+#. rendimentan gratifikon de <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Vi ankaŭ ricevis rendimentan bonuson de "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Bonvolu klaki \"Fini\" por kompletigi la HIT.", "Bonvolu
+#. alklaki \"Finigi\" por kompletigi la HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Bonvolu klaki \"Fini\" por kompletigi la HIT."
+
+#. {"msgid": ["Finu", "Fini\u011du"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Finu"
+
+#. {"msgid": ["Dankon pro partopreno.", "Dankon pro la partopreno."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Dankon pro partopreno."
+
+#. {"msgid": ["Poste", "Sekva"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Poste"
+
+#. {"msgid": ["Se \u0109i tio ne estas la kazo, bonvolu kontakti nin \u0109e
+#. %(EMAIL)s citante la jenajn informojn:", "Se \u0109i tio ne estas la kazo,
+#. bonvolu kontakti nin \u0109e %(EMAIL)s citante la sekvajn informojn:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Se ĉi tio ne estas la kazo, bonvolu kontakti nin ĉe %(EMAIL)s citante la "
+"jenajn informojn:"
+
+#. {"msgid": ["Por demandi pri kompenso, bonvolu kontakti la esploriston
+#. \u0109e %(EMAIL)s kaj priskribi kio ka\u016dzis \u0109i tiun eraron.", "Por
+#. demandi pri kompenso, bonvolu kontakti la esploriston \u0109e %(EMAIL)s kaj
+#. priskribi tion, kio ka\u016dzis \u0109i tiun eraron."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Por demandi pri kompenso, bonvolu kontakti la esploriston ĉe %(EMAIL)s kaj "
+"priskribi kio kaŭzis ĉi tiun eraron."
+
+#. {"msgid": ["\u0108esu Eksperimenton", "\u0108esigi Eksperimenton"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Ĉesu Eksperimenton"
+
+#. {"msgid": ["Rekomencante eksperimenton...", "Rekomencante la
+#. eksperimenton..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Rekomencante eksperimenton..."
+
+#. {"msgid": ["Aborti ne eblas.", "Ne eblas aborti."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Aborti ne eblas."
+
+#. {"msgid": ["\u0108u vi certas, ke vi volas \u0109esigi la eksperimenton?",
+#. "\u0108u vi certas, ke vi volas interrompi la eksperimenton?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ĉu vi certas, ke vi volas ĉesigi la eksperimenton?"
+
+#. {"msgid": ["Lucid Survey Submission", "Brila Enketo-Submeta\u0135o"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid Survey Submission"
+
+#. {"msgid": ["Konsento estis malakceptita.", "Konsento estis rifuzita."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Konsento estis malakceptita."
+
+#. {"msgid": ["Jen la fino de la eksperimento!", "Tio estas la fino de la
+#. eksperimento!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Jen la fino de la eksperimento!"
+
+#. {"msgid": ["Beda\u016drinde la eksperimento devas fini\u011di frue.",
+#. "Beda\u016drinde la eksperimento devas frue fini\u011di."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Bedaŭrinde la eksperimento devas finiĝi frue."
+
+#. {"msgid": ["Eraro!", "eraro"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Eraro!"
+
+#. {"msgid": ["Komencante eksperimenton...", "Komencante la
+#. eksperimenton..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Komencante eksperimenton..."
+
+#. {"msgid": ["En kazo de problemo, provu la jenon:", "En kazo de problemo,
+#. provu la sekvajn:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "En kazo de problemo, provu la jenon:"
+
+#. {"msgid": ["\u0108u vi pretas?", "\u0108u vi estas preta?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Ĉu vi pretas?"
+
+#. {"msgid": ["Gratifiko", "Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Gratifiko"
+
+#. {"msgid": ["Via partoprenanto ID estas nedifinita, eble \u0109ar vi
+#. \u015dan\u011dis retumilon dum la testo.", "Via partoprenanto-identigilo
+#. estas nedifinita, eble \u0109ar vi \u015dan\u011dis retumilon dum la
+#. testo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Via partoprenanto ID estas nedifinita, eble ĉar vi ŝanĝis retumilon dum la "
+"testo."
+
+#. {"msgid": ["\u0108esigi la eksperimenton ne eblas \u0109ar la
+#. eksperimentanto ne permesas \u011din \u0109i-momente!", "\u0108esigi la
+#. eksperimenton ne eblas, \u0109ar la eksperimentanto ne permesas \u011din
+#. nuntempe!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ĉesigi la eksperimenton ne eblas ĉar la eksperimentanto ne permesas ĝin ĉi-"
+"momente!"
+
+#. {"msgid": ["Se vi alklakas la butonon \u0108esi, la eksperimento
+#. fini\u011dos frue, kaj vi a\u016dtomate pagos la kompenson, kiun vi gajnis
+#. \u011dis nun.", "Se vi alklakas la butonon \u0108esi, la eksperimento
+#. fini\u011dos frue, kaj vi estos a\u016dtomate pagita la kompenson, kiun vi
+#. gajnis \u011dis nun."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Se vi alklakas la butonon Ĉesi, la eksperimento finiĝos frue, kaj vi "
+"aŭtomate pagos la kompenson, kiun vi gajnis ĝis nun."
+
+#. {"msgid": ["Por kompletigi vian Lucid Enketon, alklaku la suban butonon.",
+#. "Por kompletigi vian Lucid Survey, klaku la suban butonon."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Por kompletigi vian Lucid Enketon, alklaku la suban butonon."
+
+#. {"msgid": ["Fino de eksperimento.", "Fini\u011do de la eksperimento."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Fino de eksperimento."
+
+#. {"msgid": ["Tamen, vi ankora\u016d estos pagita por la tempo, kiun vi jam
+#. pasigis.", "Tamen vi ankora\u016d estos pagita pro la tempo, kiun vi jam
+#. pasigis."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Tamen, vi ankoraŭ estos pagita por la tempo, kiun vi jam pasigis."
+
+#. {"msgid": ["Vi eble povos \u0109esigi la eksperimenton per la butono
+#. <strong>\u0108eligi eksperimenton</strong> <strong>en la reklampa\u011do de
+#. MTurk</strong>.", "Vi eble povos \u0109esigi la eksperimenton uzante la
+#. butonon <strong>\u0108esigi eksperimenton</strong> <strong>en la
+#. reklampa\u011do de MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Vi eble povos ĉesigi la eksperimenton per la butono <strong>Ĉeligi "
+"eksperimenton</strong> <strong>en la reklampaĝo de MTurk</strong>."
+
+#. {"msgid": ["Re\u015dargi la pa\u011don.", "Re\u015dar\u011du la
+#. pa\u011don."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Reŝargi la paĝon."
+
+#. {"msgid": ["Alklaku la butonon kiam vi pretas da\u016drigi la
+#. eksperimenton.", "Klaku la butonon kiam vi estas preta da\u016drigi la
+#. eksperimenton."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Alklaku la butonon kiam vi pretas daŭrigi la eksperimenton."
+
+#. {"msgid": ["Helpu!", "Helpon!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Helpu!"
+
+#. {"msgid": ["Beda\u016drinde \u0109i tiu konduto ne estas nuntempe
+#. subtenata.", "Beda\u016drinde \u0109i tiu konduto nuntempe ne estas
+#. subtenata."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Bedaŭrinde ĉi tiu konduto ne estas nuntempe subtenata."
+
+#. {"msgid": ["Vidu sube informojn pri via akumulita gratifiko.", "Vidu sube
+#. informojn pri via akumulita bonuso."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Vidu sube informojn pri via akumulita gratifiko."
+
+#. {"msgid": ["Bonvolu kontakti nin nur se vi havas problemojn por ricevi vian
+#. pagon.", "Bonvolu kontakti nin nur se vi havas problemon ricevi vian
+#. pagon."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Bonvolu kontakti nin nur se vi havas problemojn por ricevi vian pagon."
+
+#. {"msgid": ["Vidu la informojn sube por detaloj pri via kompenso.", "Vidu la
+#. informojn malsupre por detaloj de via kompenso."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Vidu la informojn sube por detaloj pri via kompenso."
+
+#. {"msgid": ["Unufoje abortite, ne necesas kontakti nin por ricevi la
+#. kompenson;", "Fojo abortita, ne necesas kontakti nin por ricevi la
+#. kompenson;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "Unufoje abortite, ne necesas kontakti nin por ricevi la kompenson;"
+
+#. {"msgid": ["Bonvolu anka\u016d citi la sekvajn informojn:", "Bonvolu citi
+#. anka\u016d la jenajn informojn:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Bonvolu ankaŭ citi la sekvajn informojn:"
+
+#. {"msgid": ["Alklaku la supran butonon por esti kompensita en kazo de
+#. eraro.", "Alklaku la supran butonon por esti kompensita kaze de eraro."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Alklaku la supran butonon por esti kompensita en kazo de eraro."
+
+#. {"msgid": ["Kontrolu, ke via interreta konekto funkcias.", "Kontrolu, ke
+#. via retkonekto funkcias."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Kontrolu, ke via interreta konekto funkcias."
+
+#. {"msgid": ["Se la \u0109i-supra ne helpas, sendu al ni retmesa\u011don kun
+#. la sekvaj informoj:", "Se la \u0109i-supra ne helpas, sendu al ni
+#. retpo\u015dton kun la sekvaj informoj:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Se la ĉi-supra ne helpas, sendu al ni retmesaĝon kun la sekvaj informoj:"
+
+#. {"msgid": ["Ligilo al la nuna retpa\u011do;", "Ligo al la aktuala
+#. retpa\u011do;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Ligilo al la nuna retpaĝo;"
+
+#. {"msgid": ["Via Laboristo ID;", "Via Laboristo-identigilo;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Via Laboristo ID;"
+
+#. {"msgid": ["La problemo, kiun vi spertas.", "La problemo, kiun vi
+#. travivas."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "La problemo, kiun vi spertas."
+
+#. {"msgid": ["Rekomenci", "Resumo"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Rekomenci"

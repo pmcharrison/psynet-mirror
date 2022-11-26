@@ -1,0 +1,4236 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 14:42+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\ubcf4\uc0c1\uc744 \ubc1b\uc73c\ub824\uba74
+#. <strong>\uc801\uc5b4\ub3c4
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>\uc758
+#. \ubcf4\ub108\uc2a4\ub97c \uc801\ub9bd\ud574\uc57c \ud569\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"보상을 받으려면 <strong>적어도 $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>의 보너스를 "
+"적립해야 합니다."
+
+#. {"msgid": ["\ub204\uc801 \ubcf4\ub108\uc2a4", "\ub204\uc801
+#. \uc0c1\uc5ec\uae08"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "누적 보너스"
+
+#. {"msgid": ["\ucc3d \ub2eb\uae30", "\uc708\ub3c4\uc6b0 \ub2eb\uae30"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "창 닫기"
+
+#. {"msgid": ["\uc2e4\ud5d8 \uc911\ub2e8", "\uc2e4\ud5d8
+#. \uc911\ub2e8\ud558\uae30"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "실험 중단"
+
+#. {"msgid": ["\uc124\ubb38 \uc870\uc0ac \uc644\ub8cc", "\uc644\uc804\ud55c
+#. \uc124\ubb38 \uc870\uc0ac"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "설문 조사 완료"
+
+#. {"msgid": ["<strong>$%(BASE_PAYMENT)s</strong>\uc758 \uae30\ubcf8
+#. \uc9c0\ubd88\uae08 \uc678\uc5d0 \uc2e4\ud5d8\uc5d0 \uc18c\uc694\ud55c
+#. \uc2dc\uac04\uc5d0 \ub300\ud574 <strong>$%(BONUS)s</strong>\uc758
+#. \ubcf4\ub108\uc2a4\ub97c \ubc1b\uac8c \ub429\ub2c8\ub2e4.",
+#. "<strong>$%(BASE_PAYMENT)s</strong>\uc758 \uae30\ubcf8 \uc9c0\uae09\uc561
+#. \uc678\uc5d0\ub3c4 \uc2e4\ud5d8\uc5d0 \uc18c\uc694\ud55c \uc2dc\uac04\uc5d0
+#. \ub300\ud574 <strong>$%(BONUS)s</strong>\uc758 \ubcf4\ub108\uc2a4\ub97c
+#. \ubc1b\uac8c \ub429\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"<strong>$%(BASE_PAYMENT)s</strong>의 기본 지불금 외에 실험에 소요한 시간에 대해 "
+"<strong>$%(BONUS)s</strong>의 보너스를 받게 됩니다."
+
+#. {"msgid": ["\ub610\ud55c <strong>$%(PERFORMANCE_BONUS)s</strong>\uc758
+#. \uc131\uacfc \ubcf4\ub108\uc2a4\ub97c \ubc1b\uc558\uc2b5\ub2c8\ub2e4!",
+#. "\ub610\ud55c <strong>$%(PERFORMANCE_BONUS)s</strong>\uc758 \uc2e4\uc801
+#. \ubcf4\ub108\uc2a4\ub3c4 \ubc1b\uc558\uc2b5\ub2c8\ub2e4!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr "또한 <strong>$%(PERFORMANCE_BONUS)s</strong>의 성과 보너스를 받았습니다!"
+
+#. {"msgid": ["HIT\ub97c \uc644\ub8cc\ud558\ub824\uba74 \"\ub9c8\uce68\"\uc744
+#. \ud074\ub9ad\ud558\uc2ed\uc2dc\uc624.", "\"\ub9c8\uce68\"\uc744
+#. \ud074\ub9ad\ud558\uc5ec HIT\ub97c \uc644\ub8cc\ud558\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "HIT를 완료하려면 \"마침\"을 클릭하십시오."
+
+#. {"msgid": ["\ub9c8\uce58\ub2e4", "\ub9c8\uac10", "\ub05d",
+#. "\ub05d\ub0b4\ub2e4", "\ubc84\ub9ac\ub2e4"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "마치다"
+
+#. {"msgid": ["\ucc38\uc5ec\ud574 \uc8fc\uc154\uc11c
+#. \uac10\uc0ac\ud569\ub2c8\ub2e4.", "\ucc38\uac00\ud574\uc8fc\uc154\uc11c
+#. \uac10\uc0ac\ud569\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "참여해 주셔서 감사합니다."
+
+#. {"msgid": ["\ub2e4\uc74c", "\ub2e4\uc74c \uac83", "\uac00\uc7a5
+#. \uac00\uae4c\uc6b4", "Next"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "다음"
+
+#. {"msgid": ["\uadf8\ub807\uc9c0 \uc54a\uc740 \uacbd\uc6b0 \ub2e4\uc74c
+#. \uc815\ubcf4\ub97c \uc778\uc6a9\ud558\uc5ec %(EMAIL)s\ub85c
+#. \ubb38\uc758\ud558\uc2ed\uc2dc\uc624.", "\uadf8\ub807\uc9c0 \uc54a\uc740
+#. \uacbd\uc6b0 \ub2e4\uc74c \uc815\ubcf4\ub97c \uc778\uc6a9\ud558\uc5ec
+#. %(EMAIL)s\ub85c \ubb38\uc758\ud574 \uc8fc\uc138\uc694."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "그렇지 않은 경우 다음 정보를 인용하여 %(EMAIL)s로 문의하십시오."
+
+#. {"msgid": ["\ubcf4\uc0c1\uc5d0 \ub300\ud574 \ubb38\uc758\ud558\ub824\uba74
+#. %(EMAIL)s\ub85c \uc5f0\uad6c\uc6d0\uc5d0\uac8c \uc5f0\ub77d\ud558\uc5ec
+#. \uc774 \uc624\ub958\uc758 \uc6d0\uc778\uc744
+#. \uc124\uba85\ud558\uc138\uc694.", "\ubcf4\uc0c1\uc5d0 \ub300\ud574
+#. \ubb38\uc758\ud558\ub824\uba74 %(EMAIL)s\ub85c
+#. \uc5f0\uad6c\uc6d0\uc5d0\uac8c \uc5f0\ub77d\ud558\uc5ec \uc774
+#. \uc624\ub958\uac00 \ubc1c\uc0dd\ud55c \uc774\uc720\ub97c
+#. \uc124\uba85\ud558\uc138\uc694."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr "보상에 대해 문의하려면 %(EMAIL)s로 연구원에게 연락하여 이 오류의 원인을 설명하세요."
+
+#. {"msgid": ["\uc2e4\ud5d8 \uc911\ub2e8", "\uc2e4\ud5d8\uc744
+#. \uc911\ub2e8\ud558\ub2e4"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "실험 중단"
+
+#. {"msgid": ["\uc2e4\ud5d8 \uc7ac\uac1c \uc911...", "\uc2e4\ud5d8\uc744
+#. \uc7ac\uac1c\ud558\ub294 \uc911 ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "실험 재개 중..."
+
+#. {"msgid": ["\uc911\ub2e8\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.",
+#. "\uc911\ub2e8 \ubd88\uac00."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "중단할 수 없습니다."
+
+#. {"msgid": ["\uc2e4\ud5d8\uc790\uac00 \ud604\uc7ac \uc2e4\ud5d8\uc744
+#. \ud5c8\uc6a9\ud558\uc9c0 \uc54a\uae30 \ub54c\ubb38\uc5d0 \uc2e4\ud5d8\uc744
+#. \uc911\ub2e8\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4!",
+#. "\uc2e4\ud5d8\uc790\uac00 \ud604\uc7ac \ud5c8\uc6a9\ud558\uc9c0
+#. \uc54a\uc73c\ubbc0\ub85c \uc2e4\ud5d8\uc744 \uc911\ub2e8\ud560 \uc218
+#. \uc5c6\uc2b5\ub2c8\ub2e4!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr "실험자가 현재 실험을 허용하지 않기 때문에 실험을 중단할 수 없습니다!"
+
+#. {"msgid": ["\ud604\uc7ac \ub204\uc801\ub41c \ubcf4\ub108\uc2a4\uc5d0
+#. \ub300\ud55c \uc815\ubcf4\ub294 \uc544\ub798\ub97c
+#. \ucc38\uc870\ud558\uc2ed\uc2dc\uc624.", "\ud604\uc7ac \ub204\uc801\ub41c
+#. \ubcf4\ub108\uc2a4\uc5d0 \ub300\ud55c \uc544\ub798 \uc815\ubcf4\ub97c
+#. \ucc38\uc870\ud558\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "현재 누적된 보너스에 대한 정보는 아래를 참조하십시오."
+
+#. {"msgid": ["\uc2e4\ud5d8\uc744
+#. \uc911\ub2e8\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?", "\uc815\ub9d0\ub85c
+#. \uc2e4\ud5d8\uc744 \uc911\ub2e8\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "실험을 중단하시겠습니까?"
+
+#. {"msgid": ["Abort \ubc84\ud2bc\uc744 \ud074\ub9ad\ud558\uba74
+#. \uc2e4\ud5d8\uc774 \uc870\uae30 \uc885\ub8cc\ub418\uba70,
+#. \uc9c0\uae08\uae4c\uc9c0 \ud68d\ub4dd\ud55c \ubcf4\uc0c1\uc740
+#. \uc790\ub3d9\uc73c\ub85c \uc9c0\uae09\ub429\ub2c8\ub2e4.", "\uc911\ub2e8
+#. \ubc84\ud2bc\uc744 \ud074\ub9ad\ud558\uba74 \uc2e4\ud5d8\uc774 \uc870\uae30
+#. \uc885\ub8cc\ub418\uba70, \uc9c0\uae08\uae4c\uc9c0 \ud68d\ub4dd\ud55c
+#. \ubcf4\uc0c1\uc740 \uc790\ub3d9\uc73c\ub85c
+#. \uc9c0\uae09\ub429\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr "Abort 버튼을 클릭하면 실험이 조기 종료되며, 지금까지 획득한 보상은 자동으로 지급됩니다."
+
+#. {"msgid": ["\uc9c0\ubd88\uc744 \ubc1b\ub294 \ub370 \ubb38\uc81c\uac00
+#. \uc788\ub294 \uacbd\uc6b0\uc5d0\ub9cc \uc800\ud76c\uc5d0\uac8c
+#. \uc5f0\ub77d\ud558\uc2ed\uc2dc\uc624.", "\uacb0\uc81c\ub97c \ubc1b\ub294
+#. \ub370 \ubb38\uc81c\uac00 \uc788\ub294 \uacbd\uc6b0\uc5d0\ub9cc
+#. \ubb38\uc758\ud574 \uc8fc\uc138\uc694."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "지불을 받는 데 문제가 있는 경우에만 저희에게 연락하십시오."
+
+#. {"msgid": ["\ubcf4\uc0c1\uc5d0 \ub300\ud55c \uc790\uc138\ud55c
+#. \ub0b4\uc6a9\uc740 \uc544\ub798 \uc815\ubcf4\ub97c
+#. \ucc38\uc870\ud558\uc2ed\uc2dc\uc624.", "\uadc0\ud558\uc758
+#. \ubcf4\uc0c1\uc5d0 \ub300\ud55c \uc790\uc138\ud55c \ub0b4\uc6a9\uc740
+#. \uc544\ub798 \uc815\ubcf4\ub97c \ucc38\uc870\ud558\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "보상에 대한 자세한 내용은 아래 정보를 참조하십시오."
+
+#. {"msgid": ["\uba85\ucf8c\ud55c \uc124\ubb38 \uc870\uc0ac \uc81c\ucd9c",
+#. "\uba85\ub8cc\ud55c \uc124\ubb38\uc870\uc0ac \uc81c\ucd9c"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "명쾌한 설문 조사 제출"
+
+#. {"msgid": ["Lucid Survey\ub97c \uc644\ub8cc\ud558\ub824\uba74 \uc544\ub798
+#. \ubc84\ud2bc\uc744 \ud074\ub9ad\ud558\uc138\uc694.", "\uc790\uac01
+#. \uc124\ubb38 \uc870\uc0ac\ub97c \uc644\ub8cc\ud558\ub824\uba74 \uc544\ub798
+#. \ubc84\ud2bc\uc744 \ud074\ub9ad\ud558\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Lucid Survey를 완료하려면 아래 버튼을 클릭하세요."
+
+#. {"msgid": ["\ub3d9\uc758\uac00
+#. \uac70\ubd80\ub418\uc5c8\uc2b5\ub2c8\ub2e4.", "\ub3d9\uc758\uac00
+#. \uac70\ubd80\ub428."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "동의가 거부되었습니다."
+
+#. {"msgid": ["\uc2e4\ud5d8 \uc885\ub8cc.", "\uc2e4\ud5d8\uc758 \ub05d."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "실험 종료."
+
+#. {"msgid": ["\uc774\uac83\uc73c\ub85c \uc2e4\ud5d8 \ub05d!",
+#. "\uc774\ub807\uac8c \ud574\uc11c \uc2e4\ud5d8\uc774
+#. \ub05d\ub0ac\uc2b5\ub2c8\ub2e4!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "이것으로 실험 끝!"
+
+#. {"msgid": ["\ubd88\ud589\ud788\ub3c4 \uc2e4\ud5d8\uc740 \uc77c\ucc0d
+#. \ub05d\ub098\uc57c \ud569\ub2c8\ub2e4.", "\uc548\ud0c0\uae5d\uac8c\ub3c4
+#. \uc2e4\ud5d8\uc740 \uc77c\ucc0d \ub05d\ub098\uc57c \ud569\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "불행히도 실험은 일찍 끝나야 합니다."
+
+#. {"msgid": ["\uadf8\ub7ec\ub098 \uc774\ubbf8 \uc0ac\uc6a9\ud55c
+#. \uc2dc\uac04\uc5d0 \ub300\ud574\uc11c\ub294 \uc5ec\uc804\ud788
+#. \uc9c0\uae09\ub429\ub2c8\ub2e4.", "\uadf8\ub7ec\ub098 \uc774\ubbf8
+#. \uc18c\ube44\ud55c \uc2dc\uac04\uc5d0 \ub300\ud574\uc11c\ub294
+#. \uacc4\uc18d\ud574\uc11c \uc9c0\uae09\ub429\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "그러나 이미 사용한 시간에 대해서는 여전히 지급됩니다."
+
+#. {"msgid": ["\uc624\ub958!", "\uc5d0\ub7ec!", "\uc624\ucc28!",
+#. "\uc798\ubabb!", "\uacfc\uc2e4!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "오류!"
+
+#. {"msgid": ["<strong>MTurk \uad11\uace0
+#. \ud398\uc774\uc9c0</strong>\uc5d0\uc11c <strong>\uc2e4\ud5d8
+#. \uc911\ub2e8</strong> \ubc84\ud2bc\uc744 \uc0ac\uc6a9\ud558\uc5ec
+#. \uc2e4\ud5d8\uc744 \uc911\ub2e8\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.",
+#. "<strong>MTurk \uad11\uace0 \ud398\uc774\uc9c0</strong>\uc5d0 \uc788\ub294
+#. <strong>\uc2e4\ud5d8 \uc911\ub2e8</strong> \ubc84\ud2bc\uc744
+#. \uc0ac\uc6a9\ud558\uc5ec \uc2e4\ud5d8\uc744 \uc911\ub2e8\ud560 \uc218
+#. \uc788\uc2b5\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"<strong>MTurk 광고 페이지</strong>에서 <strong>실험 중단</strong> 버튼을 사용하여 실험을 중단할 수 "
+"있습니다."
+
+#. {"msgid": ["\uc911\ub2e8\ub418\uba74 \ubcf4\uc0c1\uc744 \ubc1b\uae30
+#. \uc704\ud574 \ub2f9\uc0ac\uc5d0 \uc5f0\ub77d\ud560 \ud544\uc694\uac00
+#. \uc5c6\uc2b5\ub2c8\ub2e4.", "\uc77c\ub2e8 \uc911\ub2e8\ub418\uba74
+#. \ubcf4\uc0c1\uc744 \ubc1b\uae30 \uc704\ud574 \uc800\ud76c\uc5d0\uac8c
+#. \uc5f0\ub77d\ud560 \ud544\uc694\uac00 \uc5c6\uc2b5\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "중단되면 보상을 받기 위해 당사에 연락할 필요가 없습니다."
+
+#. {"msgid": ["\ub2e4\uc74c \uc815\ubcf4\ub3c4
+#. \uc778\uc6a9\ud558\uc2ed\uc2dc\uc624.", "\ub610\ud55c \ub2e4\uc74c
+#. \uc815\ubcf4\ub97c \uc778\uc6a9\ud558\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "다음 정보도 인용하십시오."
+
+#. {"msgid": ["\uc624\ub958 \ubc1c\uc0dd \uc2dc \uc704 \ubc84\ud2bc\uc744
+#. \ud074\ub9ad\ud558\uc2dc\uba74 \ubcf4\uc0c1\ub429\ub2c8\ub2e4.",
+#. "\uc624\ub958 \ubc1c\uc0dd \uc2dc \uc704 \ubc84\ud2bc\uc744
+#. \ud074\ub9ad\ud558\uc2dc\uba74 \ubcf4\uc0c1\uc774
+#. \uac00\ub2a5\ud569\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "오류 발생 시 위 버튼을 클릭하시면 보상됩니다."
+
+#. {"msgid": ["\uc2e4\ud5d8 \uc2dc\uc791...", "\uc2e4\ud5d8\uc744
+#. \uc2dc\uc791\ud558\ub294 \uc911..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "실험 시작..."
+
+#. {"msgid": ["\ubb38\uc81c\uac00 \uc788\ub294 \uacbd\uc6b0 \ub2e4\uc74c\uc744
+#. \uc2dc\ub3c4\ud558\uc2ed\uc2dc\uc624.", "\ubb38\uc81c\uac00
+#. \ubc1c\uc0dd\ud558\uba74 \ub2e4\uc74c\uc744 \uc2dc\ub3c4\ud574
+#. \ubcf4\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "문제가 있는 경우 다음을 시도하십시오."
+
+#. {"msgid": ["\ud398\uc774\uc9c0\ub97c
+#. \uc0c8\ub85c\uace0\uce68\ud558\uc138\uc694.", "\ud398\uc774\uc9c0\ub97c
+#. \ub2e4\uc2dc \ub85c\ub4dc\ud569\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "페이지를 새로고침하세요."
+
+#. {"msgid": ["\uc778\ud130\ub137 \uc5f0\uacb0\uc774
+#. \uc791\ub3d9\ud558\ub294\uc9c0 \ud655\uc778\ud558\uc2ed\uc2dc\uc624.",
+#. "\uc778\ud130\ub137 \uc5f0\uacb0\uc774 \uc791\ub3d9\ud558\ub294\uc9c0
+#. \ud655\uc778\ud569\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "인터넷 연결이 작동하는지 확인하십시오."
+
+#. {"msgid": ["\uc704\uc758 \ubc29\ubc95\uc774 \ub3c4\uc6c0\uc774 \ub418\uc9c0
+#. \uc54a\uc73c\uba74 \ub2e4\uc74c \uc815\ubcf4\ub97c \ud3ec\ud568\ud558\uc5ec
+#. \uc774\uba54\uc77c\uc744 \ubcf4\ub0b4\uc8fc\uc2ed\uc2dc\uc624.",
+#. "\uc704\uc758 \ubc29\ubc95\uc774 \ub3c4\uc6c0\uc774 \ub418\uc9c0
+#. \uc54a\uc73c\uba74 \ub2e4\uc74c \uc815\ubcf4\ub97c \uc774\uba54\uc77c\ub85c
+#. \ubcf4\ub0b4\uc8fc\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "위의 방법이 도움이 되지 않으면 다음 정보를 포함하여 이메일을 보내주십시오."
+
+#. {"msgid": ["\ud604\uc7ac \uc6f9 \ud398\uc774\uc9c0\uc5d0 \ub300\ud55c
+#. \ub9c1\ud06c", "\ud604\uc7ac \uc6f9 \ud398\uc774\uc9c0\uc5d0 \ub300\ud55c
+#. \ub9c1\ud06c\uc785\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "현재 웹 페이지에 대한 링크"
+
+#. {"msgid": ["\uadc0\ud558\uc758 \uadfc\ub85c\uc790 ID", "\uadc0\ud558\uc758
+#. \uc791\uc5c5\uc790 ID"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "귀하의 근로자 ID"
+
+#. {"msgid": ["\ub2f9\uc2e0\uc774 \uacaa\uace0 \uc788\ub294 \ubb38\uc81c.",
+#. "\uacaa\uace0 \uc788\ub294 \ubb38\uc81c\uc785\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "당신이 겪고 있는 문제."
+
+#. {"msgid": ["\uc900\ube44 \ub418\uc5c8\ub098\uc694?", "\uc900\ube44
+#. \ub418\uc168\ub098\uc694?", "\uc900\ube44\ub410\uc5b4?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "준비 되었나요?"
+
+#. {"msgid": ["\uc2e4\ud5d8\uc744 \uacc4\uc18d\ud560 \uc900\ube44\uac00
+#. \ub418\uba74 \ubc84\ud2bc\uc744 \ud074\ub9ad\ud569\ub2c8\ub2e4.",
+#. "\uc2e4\ud5d8\uc744 \uacc4\uc18d\ud560 \uc900\ube44\uac00 \ub418\uba74
+#. \ubc84\ud2bc\uc744 \ud074\ub9ad\ud558\uc2ed\uc2dc\uc624."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "실험을 계속할 준비가 되면 버튼을 클릭합니다."
+
+#. {"msgid": ["\uc774\ub825\uc11c", "\uc7ac\uac1c\ud558\ub2e4",
+#. "\uac1c\uc694", "\uc7ac\uac1c"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "이력서"
+
+#. {"msgid": ["\ubcf4\ub108\uc2a4", "\uc7a5\ub824\uae08", "\ucd94\uac00"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "보너스"
+
+#. {"msgid": ["\ub3d5\ub2e4!", "\ub3c4\uc6c0!", "\ub3c4\uc640
+#. \uc8fc\uc138\uc694!", "\ud611\uc870!", "\uce58\ub8cc!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "돕다!"
+
+#. {"msgid": ["\ud14c\uc2a4\ud2b8 \uc911\uc5d0 \ube0c\ub77c\uc6b0\uc800\ub97c
+#. \uc804\ud658\ud588\uae30 \ub54c\ubb38\uc5d0 \ucc38\uac00\uc790 ID\uac00
+#. \uc815\uc758\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4.",
+#. "\ucc38\uac00\uc790 ID\uac00 \uc815\uc758\ub418\uc9c0
+#. \uc54a\uc558\uc2b5\ub2c8\ub2e4. \uc544\ub9c8\ub3c4 \ud14c\uc2a4\ud2b8
+#. \uc911\uc5d0 \ube0c\ub77c\uc6b0\uc800\ub97c \uc804\ud658\ud588\uae30
+#. \ub54c\ubb38\uc77c \uac83\uc785\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr "테스트 중에 브라우저를 전환했기 때문에 참가자 ID가 정의되지 않았습니다."
+
+#. {"msgid": ["\uc548\ud0c0\uae5d\uac8c\ub3c4 \uc774 \ub3d9\uc791\uc740
+#. \ud604\uc7ac \uc9c0\uc6d0\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.",
+#. "\ubd88\ud589\ud788\ub3c4 \uc774 \ub3d9\uc791\uc740 \ud604\uc7ac
+#. \uc9c0\uc6d0\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "안타깝게도 이 동작은 현재 지원되지 않습니다."
+
+#. {"msgid": ["\uc544\ud504\uac00\ub2c8\uc2a4\ud0c4", "\uc544\ud504\uac04"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:585
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:585
+#, fuzzy
+msgctxt "country_name"
+msgid "Afghanistan"
+msgstr "아프가니스탄"
+
+#. {"msgid": ["\uc54c\ubc14\ub2c8\uc544", "\uc54c\ubc14\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:586
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:586
+#, fuzzy
+msgctxt "country_name"
+msgid "Albania"
+msgstr "알바니아"
+
+#. {"msgid": ["\uc54c\uc81c\ub9ac", "\uc54c\uc81c\ub9ac\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:587
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:587
+#, fuzzy
+msgctxt "country_name"
+msgid "Algeria"
+msgstr "알제리"
+
+#. {"msgid": ["\ubbf8\uad6d\ub839 \uc0ac\ubaa8\uc544",
+#. "\uc544\uba54\ub9ac\uce78\uc0ac\ubaa8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:588
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:588
+#, fuzzy
+msgctxt "country_name"
+msgid "American Samoa"
+msgstr "미국령 사모아"
+
+#. {"msgid": ["\uc548\ub3c4\ub77c", "Andorra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:589
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:589
+#, fuzzy
+msgctxt "country_name"
+msgid "Andorra"
+msgstr "안도라"
+
+#. {"msgid": ["\uc559\uace8\ub77c", "\uc559\uace0\ub77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:590
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:590
+#, fuzzy
+msgctxt "country_name"
+msgid "Angola"
+msgstr "앙골라"
+
+#. {"msgid": ["\uc575\uadc8\ub77c", "\uc559\uadc8\ub77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:591
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:591
+#, fuzzy
+msgctxt "country_name"
+msgid "Anguilla"
+msgstr "앵귈라"
+
+#. {"msgid": ["\ub0a8\uadf9 \ub300\ub959", "\ub0a8\uadf9"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:592
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:592
+#, fuzzy
+msgctxt "country_name"
+msgid "Antarctica"
+msgstr "남극 대륙"
+
+#. {"msgid": ["\uc564\ud2f0\uac00 \ubc14\ubd80\ub2e4",
+#. "\uc548\ud2f0\uad6c\uc544\uc640 \ubc14\ubd80\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:593
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:593
+#, fuzzy
+msgctxt "country_name"
+msgid "Antigua and Barbuda"
+msgstr "앤티가 바부다"
+
+#. {"msgid": ["\uc544\ub974\ud5e8\ud2f0\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:594
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:594
+#, fuzzy
+msgctxt "country_name"
+msgid "Argentina"
+msgstr "아르헨티나"
+
+#. {"msgid": ["\uc544\ub974\uba54\ub2c8\uc544",
+#. "\uc544\ub974\ud5e8\ud2f0\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:595
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:595
+#, fuzzy
+msgctxt "country_name"
+msgid "Armenia"
+msgstr "아르메니아"
+
+#. {"msgid": ["\uc544\ub8e8\ubc14", "Aruba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:596
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:596
+#, fuzzy
+msgctxt "country_name"
+msgid "Aruba"
+msgstr "아루바"
+
+#. {"msgid": ["\ud638\uc8fc", "\uc624\uc2a4\ud2b8\ub808\uc77c\ub9ac\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:597
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:597
+#, fuzzy
+msgctxt "country_name"
+msgid "Australia"
+msgstr "호주"
+
+#. {"msgid": ["\uc624\uc2a4\ud2b8\ub9ac\uc544", "\ud638\uc8fc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:598
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:598
+#, fuzzy
+msgctxt "country_name"
+msgid "Austria"
+msgstr "오스트리아"
+
+#. {"msgid": ["\uc544\uc81c\ub974\ubc14\uc774\uc794",
+#. "\uc544\uc81c\ub974\ubc14"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:599
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:599
+#, fuzzy
+msgctxt "country_name"
+msgid "Azerbaijan"
+msgstr "아제르바이잔"
+
+#. {"msgid": ["\ubc14\ud558\ub9c8", "\ubc14\ud558"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:600
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:600
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahamas"
+msgstr "바하마"
+
+#. {"msgid": ["\ubc14\ub808\uc778", "\ubc14\ub77c\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:601
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:601
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahrain"
+msgstr "바레인"
+
+#. {"msgid": ["\ubc29\uae00\ub77c\ub370\uc2dc",
+#. "\ubc29\uae00\ub808\ub370\uc2dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:602
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:602
+#, fuzzy
+msgctxt "country_name"
+msgid "Bangladesh"
+msgstr "방글라데시"
+
+#. {"msgid": ["\ubc14\ubca0\uc774\ub3c4\uc2a4", "\ubc14\ubc14\ub3c4\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:603
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:603
+#, fuzzy
+msgctxt "country_name"
+msgid "Barbados"
+msgstr "바베이도스"
+
+#. {"msgid": ["\ubca8\ub77c\ub8e8\uc2a4", "\ubca8\ub85c\ub8e8\uc2dc",
+#. "\ubca8\ub77c\ub8e8\uc2a4\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:604
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:604
+#, fuzzy
+msgctxt "country_name"
+msgid "Belarus"
+msgstr "벨라루스"
+
+#. {"msgid": ["\ubca8\uae30\uc5d0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:605
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:605
+#, fuzzy
+msgctxt "country_name"
+msgid "Belgium"
+msgstr "벨기에"
+
+#. {"msgid": ["\ubca8\ub9ac\uc988", "\ubca8\ub9ac\uc81c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:606
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:606
+#, fuzzy
+msgctxt "country_name"
+msgid "Belize"
+msgstr "벨리즈"
+
+#. {"msgid": ["\ubca0\ub0c9", "\ubca0\ub2cc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:607
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:607
+#, fuzzy
+msgctxt "country_name"
+msgid "Benin"
+msgstr "베냉"
+
+#. {"msgid": ["\ubc84\ubba4\ub2e4", "\ubca0\ub974\ubba4\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:608
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:608
+#, fuzzy
+msgctxt "country_name"
+msgid "Bermuda"
+msgstr "버뮤다"
+
+#. {"msgid": ["\ubd80\ud0c4", "\ubd80 \ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:609
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:609
+#, fuzzy
+msgctxt "country_name"
+msgid "Bhutan"
+msgstr "부탄"
+
+#. {"msgid": ["\ubcfc\ub9ac\ube44\uc544, \ub2e4\uad6d\uc801 \uad6d\uac00",
+#. "\ub2e4\uad6d\uc801 \uad6d\uac00 \ubcfc\ub9ac\ube44\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:610
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:610
+#, fuzzy
+msgctxt "country_name"
+msgid "Bolivia, Plurinational State of"
+msgstr "볼리비아, 다국적 국가"
+
+#. {"msgid": ["\ubcf4\ub124\ub974, \uc2e0\ud2b8
+#. \uc720\uc2a4\ud0c0\ud2f0\uc6b0\uc2a4, \uc0ac\ubc14", "\ubcf4\ub124\ub974,
+#. \uc2e0\ud2b8\uc678\uc2a4\ud0c0\ud2f0\uc6b0\uc2a4, \uc0ac\ubc14"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:611
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:611
+#, fuzzy
+msgctxt "country_name"
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "보네르, 신트 유스타티우스, 사바"
+
+#. {"msgid": ["\ubcf4\uc2a4\ub2c8\uc544 \ud5e4\ub974\uccb4\uace0\ube44\ub098",
+#. "\ubcf4\uc2a4\ub2c8\uc544\ud5e4\ub974\uccb4\ucf54\ube44\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:612
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:612
+#, fuzzy
+msgctxt "country_name"
+msgid "Bosnia and Herzegovina"
+msgstr "보스니아 헤르체고비나"
+
+#. {"msgid": ["\ubcf4\uce20\uc640\ub098", "\ubcf4\uce20\uc640\uc640"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:613
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:613
+#, fuzzy
+msgctxt "country_name"
+msgid "Botswana"
+msgstr "보츠와나"
+
+#. {"msgid": ["\ubd80\ubca0 \uc12c", "\ubd80\ubca0 \uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:614
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:614
+#, fuzzy
+msgctxt "country_name"
+msgid "Bouvet Island"
+msgstr "부베 섬"
+
+#. {"msgid": ["\ube0c\ub77c\uc9c8", "\ube0c\ub77c\uc9c8 \uc18c\ubc29\ubaa9"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:615
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:615
+#, fuzzy
+msgctxt "country_name"
+msgid "Brazil"
+msgstr "브라질"
+
+#. {"msgid": ["\uc601\uad6d\ub839 \uc778\ub3c4\uc591 \uc9c0\uc5ed",
+#. "\uc601\uad6d \uc778\ub3c4\uc591 \uc601\ud1a0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:616
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:616
+#, fuzzy
+msgctxt "country_name"
+msgid "British Indian Ocean Territory"
+msgstr "영국령 인도양 지역"
+
+#. {"msgid": ["\ube0c\ub8e8\ub098\uc774 \ub2e4\ub8e8\uc0b4\ub78c",
+#. "\ube0c\ub8e8\ub098\uc774"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:617
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:617
+#, fuzzy
+msgctxt "country_name"
+msgid "Brunei Darussalam"
+msgstr "브루나이 다루살람"
+
+#. {"msgid": ["\ubd88\uac00\ub9ac\uc544", "\ubd88\uac00"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:618
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:618
+#, fuzzy
+msgctxt "country_name"
+msgid "Bulgaria"
+msgstr "불가리아"
+
+#. {"msgid": ["\ubd80\ud0a4 \ub098 \ud30c\uc18c",
+#. "\ubd80\ub974\ud0a4\ub098\ud30c\uc18c", "\ubd80\ub974 \ud0a4\ub098
+#. \ud30c\uc18c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:619
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:619
+#, fuzzy
+msgctxt "country_name"
+msgid "Burkina Faso"
+msgstr "부키 나 파소"
+
+#. {"msgid": ["\ubd80\ub8ec\ub514", "\ube0c\ub8ec\ub514\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:620
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:620
+#, fuzzy
+msgctxt "country_name"
+msgid "Burundi"
+msgstr "부룬디"
+
+#. {"msgid": ["\uce74\ubcf4 \ubca0\ub974\ub370",
+#. "\uce74\ubcf4\ubca0\ub974\ub370"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:621
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:621
+#, fuzzy
+msgctxt "country_name"
+msgid "Cabo Verde"
+msgstr "카보 베르데"
+
+#. {"msgid": ["\uce84\ubcf4\ub514\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:622
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:622
+#, fuzzy
+msgctxt "country_name"
+msgid "Cambodia"
+msgstr "캄보디아"
+
+#. {"msgid": ["\uce74\uba54\ub8ec", "\uce74\uba54\ub860"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:623
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:623
+#, fuzzy
+msgctxt "country_name"
+msgid "Cameroon"
+msgstr "카메룬"
+
+#. {"msgid": ["\uce90\ub098\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:624
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:624
+#, fuzzy
+msgctxt "country_name"
+msgid "Canada"
+msgstr "캐나다"
+
+#. {"msgid": ["\ucf00\uc774\ub9e8 \uc81c\ub3c4", "\ucf00\uc774\ub9cc
+#. \uad70\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:625
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:625
+#, fuzzy
+msgctxt "country_name"
+msgid "Cayman Islands"
+msgstr "케이맨 제도"
+
+#. {"msgid": ["\uc911\uc559 \uc544\ud504\ub9ac\uce74 \uacf5\ud654\uad6d",
+#. "\uc911\uc559\uc544\ud504\ub9ac\uce74\uacf5\ud654\uad6d",
+#. "\uc911\uc559\uc544\ud504\ub9ac\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:626
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:626
+#, fuzzy
+msgctxt "country_name"
+msgid "Central African Republic"
+msgstr "중앙 아프리카 공화국"
+
+#. {"msgid": ["\ucc28\ub4dc", "\ucc9c\uacf5 \ubd80\uc2a4\ub7ec\uae30",
+#. "\ucc28\ub4dc \ud638", "Chad"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:627
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:627
+#, fuzzy
+msgctxt "country_name"
+msgid "Chad"
+msgstr "차드"
+
+#. {"msgid": ["\uce60\ub808", "\uce60"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:628
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:628
+#, fuzzy
+msgctxt "country_name"
+msgid "Chile"
+msgstr "칠레"
+
+#. {"msgid": ["\uc911\uad6d", "\uc790\uae30", "\uc0ac\uae30",
+#. "\uae30\ub098\ud53c", "\uc911"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:629
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:629
+#, fuzzy
+msgctxt "country_name"
+msgid "China"
+msgstr "중국"
+
+#. {"msgid": ["\ud06c\ub9ac\uc2a4\ub9c8\uc2a4 \uc12c",
+#. "\ud06c\ub9ac\uc2a4\ub9c8\uc2a4 \uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:630
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:630
+#, fuzzy
+msgctxt "country_name"
+msgid "Christmas Island"
+msgstr "크리스마스 섬"
+
+#. {"msgid": ["\ucf54\ucf54\uc2a4(\ud0ac\ub9c1) \uc81c\ub3c4",
+#. "\ucf54\ucf54\uc2a4 (\ud0ac\ub9c1)\uc81c\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:631
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:631
+#, fuzzy
+msgctxt "country_name"
+msgid "Cocos (Keeling) Islands"
+msgstr "코코스(킬링) 제도"
+
+#. {"msgid": ["\ucf5c\ub86c\ube44\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:632
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:632
+#, fuzzy
+msgctxt "country_name"
+msgid "Colombia"
+msgstr "콜롬비아"
+
+#. {"msgid": ["\ucf54\ubaa8\ub85c", "\ucf54\ubaa8\ub7ec\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:633
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:633
+#, fuzzy
+msgctxt "country_name"
+msgid "Comoros"
+msgstr "코모로"
+
+#. {"msgid": ["\ucf69\uace0", "\ucf69\ucf54"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:634
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:634
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo"
+msgstr "콩고"
+
+#. {"msgid": ["\ucf69\uace0 \ubbfc\uc8fc \uacf5\ud654\uad6d",
+#. "\ucf69\uace0\ubbfc\uc8fc\uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:635
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:635
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo, The Democratic Republic of the"
+msgstr "콩고 민주 공화국"
+
+#. {"msgid": ["\ucfe1 \uc81c\ub3c4", "\ucfe1 \uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:636
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:636
+#, fuzzy
+msgctxt "country_name"
+msgid "Cook Islands"
+msgstr "쿡 제도"
+
+#. {"msgid": ["\ucf54\uc2a4\ud0c0\ub9ac\uce74", "\ucf54\uc2a4\ud0c0
+#. \ub9ac\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:637
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:637
+#, fuzzy
+msgctxt "country_name"
+msgid "Costa Rica"
+msgstr "코스타리카"
+
+#. {"msgid": ["\ud06c\ub85c\uc544\ud2f0\uc544", "\ud06c\ub85c\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:638
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:638
+#, fuzzy
+msgctxt "country_name"
+msgid "Croatia"
+msgstr "크로아티아"
+
+#. {"msgid": ["\ucfe0\ubc14", "\ud050\ube0c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:639
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:639
+#, fuzzy
+msgctxt "country_name"
+msgid "Cuba"
+msgstr "쿠바"
+
+#. {"msgid": ["\ud034\ub77c\uc18c", "\ucfe0\ub77c\uc0ac\uc624"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:640
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:640
+#, fuzzy
+msgctxt "country_name"
+msgid "Curaçao"
+msgstr "퀴라소"
+
+#. {"msgid": ["\ud0a4\ud504\ub85c\uc2a4", "\uc0ac\uc774 \ud504\ub7ec\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:641
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:641
+#, fuzzy
+msgctxt "country_name"
+msgid "Cyprus"
+msgstr "키프로스"
+
+#. {"msgid": ["\uccb4\ucf54"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:642
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:642
+#, fuzzy
+msgctxt "country_name"
+msgid "Czechia"
+msgstr "체코"
+
+#. {"msgid": ["\ucf54\ud2b8\ub514\ubd80\uc544\ub974",
+#. "\ucf54\ud2b8\ub514\ubd10\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:643
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:643
+#, fuzzy
+msgctxt "country_name"
+msgid "Côte d'Ivoire"
+msgstr "코트디부아르"
+
+#. {"msgid": ["\ub374\ub9c8\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:644
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:644
+#, fuzzy
+msgctxt "country_name"
+msgid "Denmark"
+msgstr "덴마크"
+
+#. {"msgid": ["\uc9c0\ubd80\ud2f0", "\uc9c0\ubd80 \ud2f0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:645
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:645
+#, fuzzy
+msgctxt "country_name"
+msgid "Djibouti"
+msgstr "지부티"
+
+#. {"msgid": ["\ub3c4\ubbf8\ub2c8\uce74", "Dominica"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:646
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:646
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominica"
+msgstr "도미니카"
+
+#. {"msgid": ["\ub3c4\ubbf8\ub2c8\uce74 \uacf5\ud654\uad6d",
+#. "\ub3c4\ubbf8\ub2c8\uce74\uacf5"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:647
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:647
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominican Republic"
+msgstr "도미니카 공화국"
+
+#. {"msgid": ["\uc5d0\ucf70\ub3c4\ub974", "\uc5d0\uacfc\ub3c4\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:648
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:648
+#, fuzzy
+msgctxt "country_name"
+msgid "Ecuador"
+msgstr "에콰도르"
+
+#. {"msgid": ["\uc774\uc9d1\ud2b8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:649
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:649
+#, fuzzy
+msgctxt "country_name"
+msgid "Egypt"
+msgstr "이집트"
+
+#. {"msgid": ["\uc5d8\uc0b4\ubc14\ub3c4\ub974", "\uc5d8
+#. \uc0b4\ubc14\ub3c4\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:650
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:650
+#, fuzzy
+msgctxt "country_name"
+msgid "El Salvador"
+msgstr "엘살바도르"
+
+#. {"msgid": ["\uc801\ub3c4 \uae30\ub2c8", "\uc801\ub3c4\uae30\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:651
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:651
+#, fuzzy
+msgctxt "country_name"
+msgid "Equatorial Guinea"
+msgstr "적도 기니"
+
+#. {"msgid": ["\uc5d0\ub9ac\ud2b8\ub808\uc544",
+#. "\uc5d0\ub9ac\ud2b8\ub9ac\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:652
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:652
+#, fuzzy
+msgctxt "country_name"
+msgid "Eritrea"
+msgstr "에리트레아"
+
+#. {"msgid": ["\uc5d0\uc2a4\ud1a0\ub2c8\uc544",
+#. "\uc5d0\uc2a4\ud2b8\ub85c\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:653
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:653
+#, fuzzy
+msgctxt "country_name"
+msgid "Estonia"
+msgstr "에스토니아"
+
+#. {"msgid": ["\uc5d0\uc2a4\uc640\ud2f0\ub2c8",
+#. "\uc5d0\uc2a4\uc640\ud2f0\ub2c8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:654
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:654
+#, fuzzy
+msgctxt "country_name"
+msgid "Eswatini"
+msgstr "에스와티니"
+
+#. {"msgid": ["\uc5d0\ud2f0\uc624\ud53c\uc544",
+#. "\uc774\ub514\uc624\ud53c\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:655
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:655
+#, fuzzy
+msgctxt "country_name"
+msgid "Ethiopia"
+msgstr "에티오피아"
+
+#. {"msgid": ["\ud3ec\ud074\ub79c\ub4dc
+#. \uc81c\ub3c4(\ub9d0\ube44\ub098\uc2a4)", "\ud3ec\ud074\ub79c\ub4dc
+#. \uc81c\ub3c4 (Malvinas)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:656
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:656
+#, fuzzy
+msgctxt "country_name"
+msgid "Falkland Islands (Malvinas)"
+msgstr "포클랜드 제도(말비나스)"
+
+#. {"msgid": ["\ud398\ub85c \uc81c\ub3c4", "\ud398\ub85c
+#. \uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:657
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:657
+#, fuzzy
+msgctxt "country_name"
+msgid "Faroe Islands"
+msgstr "페로 제도"
+
+#. {"msgid": ["\ud53c\uc9c0", "Fiji"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:658
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:658
+#, fuzzy
+msgctxt "country_name"
+msgid "Fiji"
+msgstr "피지"
+
+#. {"msgid": ["\ud540\ub780\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:659
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:659
+#, fuzzy
+msgctxt "country_name"
+msgid "Finland"
+msgstr "핀란드"
+
+#. {"msgid": ["\ud504\ub791\uc2a4", "\ubd88", "\ud504\ub791\uc2a4\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:660
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:660
+#, fuzzy
+msgctxt "country_name"
+msgid "France"
+msgstr "프랑스"
+
+#. {"msgid": ["\ud504\ub791\uc2a4\ub839 \uae30\uc544\ub098",
+#. "\ud504\ub791\uc2a4 \uae30\uc544\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:661
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:661
+#, fuzzy
+msgctxt "country_name"
+msgid "French Guiana"
+msgstr "프랑스령 기아나"
+
+#. {"msgid": ["\ud504\ub791\uc2a4 \ub839
+#. \ud3f4\ub9ac\ub124\uc2dc\uc544\uc758", "\ud504\ub791\uc2a4\ub839
+#. \ud3f4\ub9ac\ub124\uc2dc\uc544", "\ud504\ub80c\uce58
+#. \ud3f4\ub9ac\ub124\uc2dc\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:662
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:662
+#, fuzzy
+msgctxt "country_name"
+msgid "French Polynesia"
+msgstr "프랑스 령 폴리네시아의"
+
+#. {"msgid": ["\ud504\ub791\uc2a4 \ub0a8\ubd80 \uc601\ud1a0",
+#. "\ud504\ub791\uc2a4\ub839 \ub0a8\ubd80 \uc9c0\uc5ed"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:663
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:663
+#, fuzzy
+msgctxt "country_name"
+msgid "French Southern Territories"
+msgstr "프랑스 남부 영토"
+
+#. {"msgid": ["\uac00\ubd09", "\uac00\ubcf4\ub2c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:664
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:664
+#, fuzzy
+msgctxt "country_name"
+msgid "Gabon"
+msgstr "가봉"
+
+#. {"msgid": ["\uac10\ube44\uc544", "\uac10\ube44\uc544 \uac15",
+#. "\uc7a0\ube44\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:665
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:665
+#, fuzzy
+msgctxt "country_name"
+msgid "Gambia"
+msgstr "감비아"
+
+#. {"msgid": ["\uadf8\ub8e8\uc9c0\uc57c", "\uc870\uc9c0\uc544 \uc8fc",
+#. "\uc5ec\uc790 \uc774\ub984", "\uc870\uc9c0\uc544", "\uc8e0\uc8e0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:666
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:666
+#, fuzzy
+msgctxt "country_name"
+msgid "Georgia"
+msgstr "그루지야"
+
+#. {"msgid": ["\ub3c5\uc77c", "\ub3c5\uc77c\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:667
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:667
+#, fuzzy
+msgctxt "country_name"
+msgid "Germany"
+msgstr "독일"
+
+#. {"msgid": ["\uac00\ub098", "\uac00 \ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:668
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:668
+#, fuzzy
+msgctxt "country_name"
+msgid "Ghana"
+msgstr "가나"
+
+#. {"msgid": ["\uc9c0\ube0c\ub864\ud130", "\uacac\uace0\ud55c \uc694\uc0c8",
+#. "\uc9c0\ube0c\ub784\ud0c0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:669
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:669
+#, fuzzy
+msgctxt "country_name"
+msgid "Gibraltar"
+msgstr "지브롤터"
+
+#. {"msgid": ["\uadf8\ub9ac\uc2a4", "\uadf8\ub9ac\uc2a4\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:670
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:670
+#, fuzzy
+msgctxt "country_name"
+msgid "Greece"
+msgstr "그리스"
+
+#. {"msgid": ["\uadf8\ub9b0\ub780\ub4dc", "\uadf8\ub9b0 \ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:671
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:671
+#, fuzzy
+msgctxt "country_name"
+msgid "Greenland"
+msgstr "그린란드"
+
+#. {"msgid": ["\uadf8\ub808\ub098\ub2e4", "\uadf8\ub77c\ub098\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:672
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:672
+#, fuzzy
+msgctxt "country_name"
+msgid "Grenada"
+msgstr "그레나다"
+
+#. {"msgid": ["\uacfc\ub4e4\ub8e8\ud504", "\uacfc\ub2ec\ub8e8\ud504"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:673
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:673
+#, fuzzy
+msgctxt "country_name"
+msgid "Guadeloupe"
+msgstr "과들루프"
+
+#. {"msgid": ["\uad0c", "Guam"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:674
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:674
+#, fuzzy
+msgctxt "country_name"
+msgid "Guam"
+msgstr "괌"
+
+#. {"msgid": ["\uacfc\ud14c\ub9d0\ub77c", "\uacfc\ud14c\ub9d0\ub77c\ub294"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:675
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:675
+#, fuzzy
+msgctxt "country_name"
+msgid "Guatemala"
+msgstr "과테말라"
+
+#. {"msgid": ["\uac74\uc9c0", "\uac74\uc9c0 \uc12c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:676
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:676
+#, fuzzy
+msgctxt "country_name"
+msgid "Guernsey"
+msgstr "건지"
+
+#. {"msgid": ["\uae30\ub2c8", "\ubfd4\ub2ed", "\uae30\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:677
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:677
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea"
+msgstr "기니"
+
+#. {"msgid": ["\uae30\ub2c8\ube44\uc0ac\uc6b0", "\uae30\ub2c8\ube44\uc18c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:678
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:678
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea-Bissau"
+msgstr "기니비사우"
+
+#. {"msgid": ["\uac00\uc774\uc544\ub098", "\uae30\uc544\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:679
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:679
+#, fuzzy
+msgctxt "country_name"
+msgid "Guyana"
+msgstr "가이아나"
+
+#. {"msgid": ["\uc544\uc774\ud2f0", "\uc544\uc774\ud2f0 \uc12c",
+#. "\ud558\uc774\ud2f0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:680
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:680
+#, fuzzy
+msgctxt "country_name"
+msgid "Haiti"
+msgstr "아이티"
+
+#. {"msgid": ["\ud5c8\ub4dc \uc12c\uacfc \ub9e5\ub3c4\ub0a0\ub4dc
+#. \uc81c\ub3c4", "\ud5c8\ub4dc\uc12c\uacfc \ub9e5\ub3c4\ub110\ub4dc
+#. \uc81c\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:681
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:681
+#, fuzzy
+msgctxt "country_name"
+msgid "Heard Island and McDonald Islands"
+msgstr "허드 섬과 맥도날드 제도"
+
+#. {"msgid": ["\uad50\ud669\uccad(\ubc14\ud2f0\uce78 \uc2dc\uad6d)",
+#. "\uc131\uc88c(\ubc14\ud2f0\uce78 \uc2dc\uad6d)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:682
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:682
+#, fuzzy
+msgctxt "country_name"
+msgid "Holy See (Vatican City State)"
+msgstr "교황청(바티칸 시국)"
+
+#. {"msgid": ["\uc628\ub450\ub77c\uc2a4", "\ud63c\ub450\ub77c\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:683
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:683
+#, fuzzy
+msgctxt "country_name"
+msgid "Honduras"
+msgstr "온두라스"
+
+#. {"msgid": ["\ud64d\ucf69", "\ud64d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:684
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:684
+#, fuzzy
+msgctxt "country_name"
+msgid "Hong Kong"
+msgstr "홍콩"
+
+#. {"msgid": ["\ud5dd\uac00\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:685
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:685
+#, fuzzy
+msgctxt "country_name"
+msgid "Hungary"
+msgstr "헝가리"
+
+#. {"msgid": ["\uc544\uc774\uc2ac\ub780\ub4dc", "\uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:686
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:686
+#, fuzzy
+msgctxt "country_name"
+msgid "Iceland"
+msgstr "아이슬란드"
+
+#. {"msgid": ["\uc778\ub3c4", "\ub300\ud55c\ubbfc\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:687
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:687
+#, fuzzy
+msgctxt "country_name"
+msgid "India"
+msgstr "인도"
+
+#. {"msgid": ["\uc778\ub3c4\ub124\uc2dc\uc544",
+#. "\uc778\ub3c4\ub124\uc2dc\uc544 \uacf5\ud654\uad6d", "\uc778\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:688
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:688
+#, fuzzy
+msgctxt "country_name"
+msgid "Indonesia"
+msgstr "인도네시아"
+
+#. {"msgid": ["\uc774\ub780, \uc774\uc2ac\ub78c \uacf5\ud654\uad6d",
+#. "\uc774\ub780 \uc774\uc2ac\ub78c\uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:689
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:689
+#, fuzzy
+msgctxt "country_name"
+msgid "Iran, Islamic Republic of"
+msgstr "이란, 이슬람 공화국"
+
+#. {"msgid": ["\uc774\ub77c\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:690
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:690
+#, fuzzy
+msgctxt "country_name"
+msgid "Iraq"
+msgstr "이라크"
+
+#. {"msgid": ["\uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:691
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:691
+#, fuzzy
+msgctxt "country_name"
+msgid "Ireland"
+msgstr "아일랜드"
+
+#. {"msgid": ["\ub9e8 \uc12c", "\uc544\uc77c \uc624\ube0c \ub9e8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:692
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:692
+#, fuzzy
+msgctxt "country_name"
+msgid "Isle of Man"
+msgstr "맨 섬"
+
+#. {"msgid": ["\uc774\uc2a4\ub77c\uc5d8", "\uc774\uc2a4\ub77c\uc5d8
+#. \uc0ac\ub78c", "\uc774\uc2a4\ub77c\uc5d8 \uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:693
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:693
+#, fuzzy
+msgctxt "country_name"
+msgid "Israel"
+msgstr "이스라엘"
+
+#. {"msgid": ["\uc774\ud0c8\ub9ac\uc544", "\uc774\ud0c8\ub9ac\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:694
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:694
+#, fuzzy
+msgctxt "country_name"
+msgid "Italy"
+msgstr "이탈리아"
+
+#. {"msgid": ["\uc790\uba54\uc774\uce74", "\uc790\ub9c8\uc774\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:695
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:695
+#, fuzzy
+msgctxt "country_name"
+msgid "Jamaica"
+msgstr "자메이카"
+
+#. {"msgid": ["\uc77c\ubcf8", "\uc63b", "\uc63b\uce60", "\uce60\uae30",
+#. "\uc77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:696
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:696
+#, fuzzy
+msgctxt "country_name"
+msgid "Japan"
+msgstr "일본"
+
+#. {"msgid": ["\uc800\uc9c0", "\uc800\uc9c0 \uc12c", "\uc720\ub2c8\ud3fc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:697
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:697
+#, fuzzy
+msgctxt "country_name"
+msgid "Jersey"
+msgstr "저지"
+
+#. {"msgid": ["\uc694\ub974\ub2e8", "Jordan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:698
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:698
+#, fuzzy
+msgctxt "country_name"
+msgid "Jordan"
+msgstr "요르단"
+
+#. {"msgid": ["\uce74\uc790\ud750\uc2a4\ud0c4", "\uce74\uc791\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:699
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:699
+#, fuzzy
+msgctxt "country_name"
+msgid "Kazakhstan"
+msgstr "카자흐스탄"
+
+#. {"msgid": ["\ucf00\ub0d0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:700
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:700
+#, fuzzy
+msgctxt "country_name"
+msgid "Kenya"
+msgstr "케냐"
+
+#. {"msgid": ["\ud0a4\ub9ac\ubc14\uc2dc", "\ud0a4\ub9ac\ubc14\ud2f0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:701
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:701
+#, fuzzy
+msgctxt "country_name"
+msgid "Kiribati"
+msgstr "키리바시"
+
+#. {"msgid":
+#. ["\uc870\uc120\ubbfc\uc8fc\uc8fc\uc758\uc778\ubbfc\uacf5\ud654\uad6d",
+#. "\ub300\ud55c\ubbfc\uad6d,
+#. \uc870\uc120\ubbfc\uc8fc\uc8fc\uc758\uc778\ubbfc\uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:702
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:702
+#, fuzzy
+msgctxt "country_name"
+msgid "Korea, Democratic People's Republic of"
+msgstr "조선민주주의인민공화국"
+
+#. {"msgid": ["\ub300\ud55c\ubbfc\uad6d", "\ud55c\uad6d, \uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:703
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:703
+#, fuzzy
+msgctxt "country_name"
+msgid "Korea, Republic of"
+msgstr "대한민국"
+
+#. {"msgid": ["\ucfe0\uc6e8\uc774\ud2b8", "Kuwait"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:704
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:704
+#, fuzzy
+msgctxt "country_name"
+msgid "Kuwait"
+msgstr "쿠웨이트"
+
+#. {"msgid": ["\ud0a4\ub974\uae30\uc2a4\uc2a4\ud0c4",
+#. "\ud0a4\ub974\ud0a4\uc988\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:705
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:705
+#, fuzzy
+msgctxt "country_name"
+msgid "Kyrgyzstan"
+msgstr "키르기스스탄"
+
+#. {"msgid": ["\ub77c\uc624 \uc778\ubbfc \ubbfc\uc8fc \uacf5\ud654\uad6d",
+#. "\ub77c\uc624\uc778\ubbfc\ubbfc\uc8fc\uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:706
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:706
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao People's Democratic Republic"
+msgstr "라오 인민 민주 공화국"
+
+#. {"msgid": ["\ub77c\ud2b8\ube44\uc544", "Latvia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:707
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:707
+#, fuzzy
+msgctxt "country_name"
+msgid "Latvia"
+msgstr "라트비아"
+
+#. {"msgid": ["\ub808\ubc14\ub17c", "\ub808\ubc14\ub10c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:708
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:708
+#, fuzzy
+msgctxt "country_name"
+msgid "Lebanon"
+msgstr "레바논"
+
+#. {"msgid": ["\ub808\uc18c\ud1a0", "\ub808\uc18c\ud1a0\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:709
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:709
+#, fuzzy
+msgctxt "country_name"
+msgid "Lesotho"
+msgstr "레소토"
+
+#. {"msgid": ["\ub77c\uc774\ubca0\ub9ac\uc544", "\ub9ac\ubca0\ub9ac\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:710
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:710
+#, fuzzy
+msgctxt "country_name"
+msgid "Liberia"
+msgstr "라이베리아"
+
+#. {"msgid": ["\ub9ac\ube44\uc544", "\ub9ac\ubc14"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:711
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:711
+#, fuzzy
+msgctxt "country_name"
+msgid "Libya"
+msgstr "리비아"
+
+#. {"msgid": ["\ub9ac\ud788\ud150\uc288\ud0c0\uc778",
+#. "\ub9ac\ud788\ud150\uc26c\ud0c0\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:712
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:712
+#, fuzzy
+msgctxt "country_name"
+msgid "Liechtenstein"
+msgstr "리히텐슈타인"
+
+#. {"msgid": ["\ub9ac\ud22c\uc544\ub2c8\uc544",
+#. "\ub9ac\ud29c\uc544\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:713
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:713
+#, fuzzy
+msgctxt "country_name"
+msgid "Lithuania"
+msgstr "리투아니아"
+
+#. {"msgid": ["\ub8e9\uc148\ubd80\ub974\ud06c", "\ub93d\uc0c1\ubd80\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:714
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:714
+#, fuzzy
+msgctxt "country_name"
+msgid "Luxembourg"
+msgstr "룩셈부르크"
+
+#. {"msgid": ["\ub9c8\uce74\uc624", "\ud64d\ucf69"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:715
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:715
+#, fuzzy
+msgctxt "country_name"
+msgid "Macao"
+msgstr "마카오"
+
+#. {"msgid": ["\ub9c8\ub2e4\uac00\uc2a4\uce74\ub974",
+#. "\ub9c8\ub2e4\uce74\uc2a4\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:716
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:716
+#, fuzzy
+msgctxt "country_name"
+msgid "Madagascar"
+msgstr "마다가스카르"
+
+#. {"msgid": ["\ub9d0\ub77c\uc704", "\ub9c8\ub77c\uc704"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:717
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:717
+#, fuzzy
+msgctxt "country_name"
+msgid "Malawi"
+msgstr "말라위"
+
+#. {"msgid": ["\ub9d0\ub808\uc774\uc2dc\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:718
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:718
+#, fuzzy
+msgctxt "country_name"
+msgid "Malaysia"
+msgstr "말레이시아"
+
+#. {"msgid": ["\ubab0\ub514\ube0c", "\ubab0\ub514\ud504"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:719
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:719
+#, fuzzy
+msgctxt "country_name"
+msgid "Maldives"
+msgstr "몰디브"
+
+#. {"msgid": ["\ub9d0\ub9ac", "\ub9d0\ub9ac\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:720
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:720
+#, fuzzy
+msgctxt "country_name"
+msgid "Mali"
+msgstr "말리"
+
+#. {"msgid": ["\ubab0\ud0c0", "Malta"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:721
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:721
+#, fuzzy
+msgctxt "country_name"
+msgid "Malta"
+msgstr "몰타"
+
+#. {"msgid": ["\ub9c8\uc15c \uc81c\ub3c4", "\ub9c8\uc0ec\uad70\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:722
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:722
+#, fuzzy
+msgctxt "country_name"
+msgid "Marshall Islands"
+msgstr "마셜 제도"
+
+#. {"msgid": ["\ub9c8\ub974\ud2f0\ub2c8\ud06c", "\ub9d0\ud2f0\ub2c8\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:723
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:723
+#, fuzzy
+msgctxt "country_name"
+msgid "Martinique"
+msgstr "마르티니크"
+
+#. {"msgid": ["\ubaa8\ub9ac\ud0c0\ub2c8", "\ubaa8\ub9ac\ud0c0\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:724
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:724
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritania"
+msgstr "모리타니"
+
+#. {"msgid": ["\ubaa8\ub9ac\uc154\uc2a4", "\ubaa8\ub9ac\uc2dc\uc5b4\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:725
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:725
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritius"
+msgstr "모리셔스"
+
+#. {"msgid": ["\ub9c8\uc694\ud2b8", "\ub9c8\uc694\ud14c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:726
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:726
+#, fuzzy
+msgctxt "country_name"
+msgid "Mayotte"
+msgstr "마요트"
+
+#. {"msgid": ["\uba55\uc2dc\ucf54"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:727
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:727
+#, fuzzy
+msgctxt "country_name"
+msgid "Mexico"
+msgstr "멕시코"
+
+#. {"msgid": ["\ubbf8\ud06c\ub85c\ub124\uc2dc\uc544 \uc5f0\ubc29",
+#. "\ubbf8\ud06c\ub85c\ub124\uc2dc\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:728
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:728
+#, fuzzy
+msgctxt "country_name"
+msgid "Micronesia, Federated States of"
+msgstr "미크로네시아 연방"
+
+#. {"msgid": ["\ubab0\ub3c4\ubc14 \uacf5\ud654\uad6d", "\ubab0\ub3c4\ubc14"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:729
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:729
+#, fuzzy
+msgctxt "country_name"
+msgid "Moldova, Republic of"
+msgstr "몰도바 공화국"
+
+#. {"msgid": ["\ubaa8\ub098\ucf54", "Monaco"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:730
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:730
+#, fuzzy
+msgctxt "country_name"
+msgid "Monaco"
+msgstr "모나코"
+
+#. {"msgid": ["\ubabd\uace8\ub9ac\uc544", "\ubabd\uace0 \uacf5\ud654\uad6d",
+#. "\ubabd\uace8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:731
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:731
+#, fuzzy
+msgctxt "country_name"
+msgid "Mongolia"
+msgstr "몽골리아"
+
+#. {"msgid": ["\ubaac\ud14c\ub124\uadf8\ub85c", "Montenegro"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:732
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:732
+#, fuzzy
+msgctxt "country_name"
+msgid "Montenegro"
+msgstr "몬테네그로"
+
+#. {"msgid": ["\ubaac\uc138\ub77c\ud2b8", "\ubaac\ud2b8\uc138\ub7ab"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:733
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:733
+#, fuzzy
+msgctxt "country_name"
+msgid "Montserrat"
+msgstr "몬세라트"
+
+#. {"msgid": ["\ubaa8\ub85c\ucf54", "\ubaa8\ub85c\ucf54 \uac00\uc8fd"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:734
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:734
+#, fuzzy
+msgctxt "country_name"
+msgid "Morocco"
+msgstr "모로코"
+
+#. {"msgid": ["\ubaa8\uc7a0\ube44\ud06c", "\ubaa8 \uc7a0\ube44\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:735
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:735
+#, fuzzy
+msgctxt "country_name"
+msgid "Mozambique"
+msgstr "모잠비크"
+
+#. {"msgid": ["\ubbf8\uc580\ub9c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:736
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:736
+#, fuzzy
+msgctxt "country_name"
+msgid "Myanmar"
+msgstr "미얀마"
+
+#. {"msgid": ["\ub098\ubbf8\ube44\uc544", "Namibia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:737
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:737
+#, fuzzy
+msgctxt "country_name"
+msgid "Namibia"
+msgstr "나미비아"
+
+#. {"msgid": ["\ub098\uc6b0\ub8e8", "\ub098\uc6b0\ub8e8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:738
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:738
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "나우루"
+
+#. {"msgid": ["\ub124\ud314"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:739
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:739
+#, fuzzy
+msgctxt "country_name"
+msgid "Nepal"
+msgstr "네팔"
+
+#. {"msgid": ["\ub124\ub35c\ub780\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:740
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:740
+#, fuzzy
+msgctxt "country_name"
+msgid "Netherlands"
+msgstr "네덜란드"
+
+#. {"msgid": ["\ub274 \uce7c\ub808\ub3c4\ub2c8\uc544",
+#. "\ub274\uce7c\ub808\ub3c4\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:741
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:741
+#, fuzzy
+msgctxt "country_name"
+msgid "New Caledonia"
+msgstr "뉴 칼레도니아"
+
+#. {"msgid": ["\ub274\uc9c8\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:742
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:742
+#, fuzzy
+msgctxt "country_name"
+msgid "New Zealand"
+msgstr "뉴질랜드"
+
+#. {"msgid": ["\ub2c8\uce74\ub77c\uacfc", "\ub2c8\uce74\ub77c\uad6c\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:743
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:743
+#, fuzzy
+msgctxt "country_name"
+msgid "Nicaragua"
+msgstr "니카라과"
+
+#. {"msgid": ["\ub2c8\uc81c\ub974", "\ub098\uc774\uc81c\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:744
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:744
+#, fuzzy
+msgctxt "country_name"
+msgid "Niger"
+msgstr "니제르"
+
+#. {"msgid": ["\ub098\uc774\uc9c0\ub9ac\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:745
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:745
+#, fuzzy
+msgctxt "country_name"
+msgid "Nigeria"
+msgstr "나이지리아"
+
+#. {"msgid": ["\ub2c8\uc6b0\uc5d0", "Niue"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:746
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:746
+#, fuzzy
+msgctxt "country_name"
+msgid "Niue"
+msgstr "니우에"
+
+#. {"msgid": ["\ub178\ud37d \uc12c", "\ub178\ud37d \uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:747
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:747
+#, fuzzy
+msgctxt "country_name"
+msgid "Norfolk Island"
+msgstr "노퍽 섬"
+
+#. {"msgid": ["\ubd81 \ub9c8\ucf00\ub3c4\ub2c8\uc544",
+#. "\ubd81\ub9c8\ucf00\ub3c4\ub2c8\uc544", "\ub9c8\ucf00\ub3c4\ub2c8\uc544
+#. \ubd81\ubd80"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:748
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:748
+#, fuzzy
+msgctxt "country_name"
+msgid "North Macedonia"
+msgstr "북 마케도니아"
+
+#. {"msgid": ["\ubd81\ub9c8\ub9ac\uc544\ub098 \uc81c\ub3c4", "\ubd81
+#. \ub9c8\ub9ac\uc544\ub098 \uad70\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:749
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:749
+#, fuzzy
+msgctxt "country_name"
+msgid "Northern Mariana Islands"
+msgstr "북마리아나 제도"
+
+#. {"msgid": ["\ub178\ub974\uc6e8\uc774", "\ubd81\uc720\ub7fd"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:750
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:750
+#, fuzzy
+msgctxt "country_name"
+msgid "Norway"
+msgstr "노르웨이"
+
+#. {"msgid": ["\uc624\ub9cc", "\uc624\ub9cc\uc758"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:751
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:751
+#, fuzzy
+msgctxt "country_name"
+msgid "Oman"
+msgstr "오만"
+
+#. {"msgid": ["\ud30c\ud0a4\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:752
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:752
+#, fuzzy
+msgctxt "country_name"
+msgid "Pakistan"
+msgstr "파키스탄"
+
+#. {"msgid": ["\ud314\ub77c\uc6b0", "Palau"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:753
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:753
+#, fuzzy
+msgctxt "country_name"
+msgid "Palau"
+msgstr "팔라우"
+
+#. {"msgid": ["\ud314\ub808\uc2a4\ud0c0\uc778",
+#. "\ud314\ub808\uc2a4\ud0c0\uc778, \uad6d\uac00"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:754
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:754
+#, fuzzy
+msgctxt "country_name"
+msgid "Palestine, State of"
+msgstr "팔레스타인"
+
+#. {"msgid": ["\ud30c\ub098\ub9c8", "\ud30c \ub098\ub9c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:755
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:755
+#, fuzzy
+msgctxt "country_name"
+msgid "Panama"
+msgstr "파나마"
+
+#. {"msgid": ["\ud30c\ud478\uc544 \ub274\uae30\ub2c8",
+#. "\ud30c\ud478\uc544\ub274\uae30\ub2c8", "\ud30c\ud478\uc544
+#. \ub274\uae30\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:756
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:756
+#, fuzzy
+msgctxt "country_name"
+msgid "Papua New Guinea"
+msgstr "파푸아 뉴기니"
+
+#. {"msgid": ["\ud30c\ub77c\uacfc\uc774", "\ud30c\ub77c\uacfc\uc774 \uac15",
+#. "\ub9c8\ud14c\ucc28", "Paraguay"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:757
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:757
+#, fuzzy
+msgctxt "country_name"
+msgid "Paraguay"
+msgstr "파라과이"
+
+#. {"msgid": ["\ud398\ub8e8", "\ud398\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:758
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:758
+#, fuzzy
+msgctxt "country_name"
+msgid "Peru"
+msgstr "페루"
+
+#. {"msgid": ["\ud544\ub9ac\ud540 \uc81c\ub3c4", "\ud544\ub9ac\ud540"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:759
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:759
+#, fuzzy
+msgctxt "country_name"
+msgid "Philippines"
+msgstr "필리핀 제도"
+
+#. {"msgid": ["\ud54f\ucf00\uc5b8", "\ud53c\ud2b8\ucf00\uc5b8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:760
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:760
+#, fuzzy
+msgctxt "country_name"
+msgid "Pitcairn"
+msgstr "핏케언"
+
+#. {"msgid": ["\ud3f4\ub780\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:761
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:761
+#, fuzzy
+msgctxt "country_name"
+msgid "Poland"
+msgstr "폴란드"
+
+#. {"msgid": ["\ud3ec\ub974\ud22c\uac08"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:762
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:762
+#, fuzzy
+msgctxt "country_name"
+msgid "Portugal"
+msgstr "포르투갈"
+
+#. {"msgid": ["\ud478\uc5d0\ub974\ud1a0 \ub9ac\ucf54",
+#. "\ud478\uc5d0\ub974\ud1a0\ub9ac\ucf54"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:763
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:763
+#, fuzzy
+msgctxt "country_name"
+msgid "Puerto Rico"
+msgstr "푸에르토 리코"
+
+#. {"msgid": ["\uce74\ud0c0\ub974", "\uce74\ud0c0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:764
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:764
+#, fuzzy
+msgctxt "country_name"
+msgid "Qatar"
+msgstr "카타르"
+
+#. {"msgid": ["\ub8e8\ub9c8\ub2c8\uc544", "\ub85c\ub9c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:765
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:765
+#, fuzzy
+msgctxt "country_name"
+msgid "Romania"
+msgstr "루마니아"
+
+#. {"msgid": ["\ub7ec\uc2dc\uc544 \uc5f0\ubc29", "\ub7ec\uc2dc\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:766
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:766
+#, fuzzy
+msgctxt "country_name"
+msgid "Russian Federation"
+msgstr "러시아 연방"
+
+#. {"msgid": ["\ub974\uc644\ub2e4", "\ub974 \uc644\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:767
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:767
+#, fuzzy
+msgctxt "country_name"
+msgid "Rwanda"
+msgstr "르완다"
+
+#. {"msgid": ["\uc7ac\uacb0\ud569", "\uce5c\ubaa9\ud68c",
+#. "\ub808\uc704\ub2c8\uc639", "\ub9ac\uc720\ub2c8\uc628"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:768
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:768
+#, fuzzy
+msgctxt "country_name"
+msgid "Réunion"
+msgstr "재결합"
+
+#. {"msgid": ["\uc0dd\ubc14\ub974\ud154\ub808\ubbf8", "\uc138\uc778\ud2b8
+#. \ubc14\ub974\ud154\ub808\ubbf8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:769
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:769
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Barthélemy"
+msgstr "생바르텔레미"
+
+#. {"msgid": ["\uc138\uc778\ud2b8 \ud5ec\ub808\ub098, \uc2b9\ucc9c \ubc0f
+#. \ud2b8\ub9ac\uc2a4\ud0c4 \ub2e4 \ucfe0\ub0d0",
+#. "\uc138\uc778\ud2b8\ud5ec\ub808\ub098 \uc5b4\uc13c\uc158
+#. \ud2b8\ub9ac\uc2a4\ud0c4\ub2e4\ucfe0\ub0d0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:770
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:770
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "세인트 헬레나, 승천 및 트리스탄 다 쿠냐"
+
+#. {"msgid": ["\uc138\uc778\ud2b8 \ud0a4\uce20 \ub124\ube44\uc2a4",
+#. "\uc138\uc778\ud2b8\ud0a4\uce20\ub124\ube44\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:771
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:771
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Kitts and Nevis"
+msgstr "세인트 키츠 네비스"
+
+#. {"msgid": ["\uc138\uc778\ud2b8\ub8e8\uc2dc\uc544", "\uc131
+#. \ub8e8\uc2dc\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:772
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:772
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Lucia"
+msgstr "세인트루시아"
+
+#. {"msgid": ["\uc138\uc778\ud2b8 \ub9c8\ud2f4(\ud504\ub791\uc2a4\uc5b4
+#. \ubd80\ubd84)", "Saint Martin (\ud504\ub791\uc2a4\uc5b4 \ubd80\ubd84)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:773
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:773
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Martin (French part)"
+msgstr "세인트 마틴(프랑스어 부분)"
+
+#. {"msgid": ["\uc0dd \ud53c\uc5d0\ub974 \ubbf8\ud074\ub871",
+#. "\uc138\uc778\ud2b8 \ud53c\uc5d0\ub974 \ubbf8\ud074\ub871"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:774
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:774
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Pierre and Miquelon"
+msgstr "생 피에르 미클롱"
+
+#. {"msgid": ["\uc138\uc778\ud2b8 \ube48\uc13c\ud2b8
+#. \uadf8\ub808\ub098\ub518",
+#. "\uc138\uc778\ud2b8\ube48\uc13c\ud2b8\uadf8\ub808\ub098\ub518"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:775
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:775
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Vincent and the Grenadines"
+msgstr "세인트 빈센트 그레나딘"
+
+#. {"msgid": ["\uc0ac\ubaa8\uc544", "\uc0ac\ubaa8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:776
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:776
+#, fuzzy
+msgctxt "country_name"
+msgid "Samoa"
+msgstr "사모아"
+
+#. {"msgid": ["\uc0b0 \ub9c8\ub9ac\ub178", "\uc0b0\ub9c8\ub9ac\ub178", "San
+#. Marino"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:777
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:777
+#, fuzzy
+msgctxt "country_name"
+msgid "San Marino"
+msgstr "산 마리노"
+
+#. {"msgid": ["\uc0c1\ud22c\uba54 \ud504\ub9b0\uc2dc\ud398",
+#. "\uc0c1\ud22c\uba54\ud504\ub9b0\uc2dc\ud398"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:778
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:778
+#, fuzzy
+msgctxt "country_name"
+msgid "Sao Tome and Principe"
+msgstr "상투메 프린시페"
+
+#. {"msgid": ["\uc0ac\uc6b0\ub514 \uc544\ub77c\ube44\uc544",
+#. "\uc0ac\uc6b0\ub514\uc544\ub77c\ube44\uc544", "\uc0ac\uc6b0\ub514"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:779
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:779
+#, fuzzy
+msgctxt "country_name"
+msgid "Saudi Arabia"
+msgstr "사우디 아라비아"
+
+#. {"msgid": ["\uc138\ub124\uac08", "\uc138\ub124 \uac08"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:780
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:780
+#, fuzzy
+msgctxt "country_name"
+msgid "Senegal"
+msgstr "세네갈"
+
+#. {"msgid": ["\uc138\ub974\ube44\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:781
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:781
+#, fuzzy
+msgctxt "country_name"
+msgid "Serbia"
+msgstr "세르비아"
+
+#. {"msgid": ["\uc138\uc774\uc178", "\uc138\uc774\uc258"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:782
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:782
+#, fuzzy
+msgctxt "country_name"
+msgid "Seychelles"
+msgstr "세이셸"
+
+#. {"msgid": ["\uc2dc\uc5d0\ub77c\ub9ac\uc628", "\uc2dc\uc5d0\ub77c
+#. \ub9ac\uc628"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:783
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:783
+#, fuzzy
+msgctxt "country_name"
+msgid "Sierra Leone"
+msgstr "시에라리온"
+
+#. {"msgid": ["\uc2f1\uac00\ud3ec\ub974", "\uc2f1\uac00\ud3f4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:784
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:784
+#, fuzzy
+msgctxt "country_name"
+msgid "Singapore"
+msgstr "싱가포르"
+
+#. {"msgid": ["\uc2e0\ud2b8\ub9c8\ub974\ud134(\ub124\ub35c\ub780\ub4dc\uc5b4
+#. \ubd80\ubd84)",
+#. "\uc2e0\ud2b8\ub9c8\ub974\ud150(\ub124\ub35c\ub780\ub4dc\uc5b4)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:785
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:785
+#, fuzzy
+msgctxt "country_name"
+msgid "Sint Maarten (Dutch part)"
+msgstr "신트마르턴(네덜란드어 부분)"
+
+#. {"msgid": ["\uc2ac\ub85c\ubc14\ud0a4\uc544", "\uccb4\ucf54"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:786
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:786
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovakia"
+msgstr "슬로바키아"
+
+#. {"msgid": ["\uc2ac\ub85c\ubca0\ub2c8\uc544",
+#. "\uc2ac\ub85c\ubc14\ud0a4\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:787
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:787
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovenia"
+msgstr "슬로베니아"
+
+#. {"msgid": ["\uc194\ub85c\ubaac \uc81c\ub3c4", "\uc194\ub85c\ubaac
+#. \uc544\uc77c\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:788
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:788
+#, fuzzy
+msgctxt "country_name"
+msgid "Solomon Islands"
+msgstr "솔로몬 제도"
+
+#. {"msgid": ["\uc18c\ub9d0\ub9ac\uc544", "\uc18c \ub9d0\ub9ac\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:789
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:789
+#, fuzzy
+msgctxt "country_name"
+msgid "Somalia"
+msgstr "소말리아"
+
+#. {"msgid": ["\ub0a8\uc544\ud504\ub9ac\uce74",
+#. "\ub0a8\uc544\ud504\ub9ac\uce74\uacf5\ud654\uad6d", "\ub0a8\uc544\uacf5"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:790
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:790
+#, fuzzy
+msgctxt "country_name"
+msgid "South Africa"
+msgstr "남아프리카"
+
+#. {"msgid": ["\uc0ac\uc6b0\uc2a4 \uc870\uc9c0\uc544 \ubc0f \uc0ac\uc6b0\uc2a4
+#. \uc0cc\ub4dc\uc704\uce58 \uc81c\ub3c4",
+#. "\uc0ac\uc6b0\uc2a4\uc870\uc9c0\uc544
+#. \uc0ac\uc6b0\uc2a4\uc0cc\ub4dc\uc704\uce58 \uc81c\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:791
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:791
+#, fuzzy
+msgctxt "country_name"
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "사우스 조지아 및 사우스 샌드위치 제도"
+
+#. {"msgid": ["\ub0a8 \uc218\ub2e8", "\ub0a8\uc218\ub2e8", "\ub0a8\ubd80
+#. \uc218\ub2e8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:792
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:792
+#, fuzzy
+msgctxt "country_name"
+msgid "South Sudan"
+msgstr "남 수단"
+
+#. {"msgid": ["\uc2a4\ud398\uc778", "\uc2a4\ud398\uc778\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:793
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:793
+#, fuzzy
+msgctxt "country_name"
+msgid "Spain"
+msgstr "스페인"
+
+#. {"msgid": ["\uc2a4\ub9ac\ub791\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:794
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:794
+#, fuzzy
+msgctxt "country_name"
+msgid "Sri Lanka"
+msgstr "스리랑카"
+
+#. {"msgid": ["\uc218\ub2e8", "\ub9e4\uccb4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:795
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:795
+#, fuzzy
+msgctxt "country_name"
+msgid "Sudan"
+msgstr "수단"
+
+#. {"msgid": ["\uc218\ub9ac\ub0a8", "\ubcf4\uc218"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
+#, fuzzy
+msgctxt "country_name"
+msgid "Suriname"
+msgstr "수리남"
+
+#. {"msgid": ["\uc2a4\ubc1c\ubc14\ub974\uc640 \uc580\ub9c8\uc60c
+#. \uc81c\ub3c4", "\uc2a4\ubc1c\ubc14\ub974\uc640 \uc580\ub9c8\uc60c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:797
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:797
+#, fuzzy
+msgctxt "country_name"
+msgid "Svalbard and Jan Mayen"
+msgstr "스발바르와 얀마옌 제도"
+
+#. {"msgid": ["\uc2a4\uc6e8\ub374", "\uc2a4\uc704\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:798
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:798
+#, fuzzy
+msgctxt "country_name"
+msgid "Sweden"
+msgstr "스웨덴"
+
+#. {"msgid": ["\uc2a4\uc704\uc2a4", "\uc2a4\uc704"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:799
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:799
+#, fuzzy
+msgctxt "country_name"
+msgid "Switzerland"
+msgstr "스위스"
+
+#. {"msgid": ["\uc2dc\ub9ac\uc544 \uc544\ub78d \uacf5\ud654\uad6d",
+#. "\uc2dc\ub9ac\uc544\uc544\ub78d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:800
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:800
+#, fuzzy
+msgctxt "country_name"
+msgid "Syrian Arab Republic"
+msgstr "시리아 아랍 공화국"
+
+#. {"msgid": ["\ub300\ub9cc, \uc911\uad6d", "\ub300\ub9cc,
+#. \uc911\ud654\uc778\ubbfc\uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:801
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:801
+#, fuzzy
+msgctxt "country_name"
+msgid "Taiwan, Province of China"
+msgstr "대만, 중국"
+
+#. {"msgid": ["\ud0c0\uc9c0\ud0a4\uc2a4\ud0c4",
+#. "\ud0c0\uc9c1\ud0a4\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:802
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:802
+#, fuzzy
+msgctxt "country_name"
+msgid "Tajikistan"
+msgstr "타지키스탄"
+
+#. {"msgid": ["\ud0c4\uc790\ub2c8\uc544 \uacf5\ud654\uad6d",
+#. "\ud0c4\uc790\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:803
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:803
+#, fuzzy
+msgctxt "country_name"
+msgid "Tanzania, United Republic of"
+msgstr "탄자니아 공화국"
+
+#. {"msgid": ["\ud0dc\uad6d", "\ud0c0\uc774\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:804
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:804
+#, fuzzy
+msgctxt "country_name"
+msgid "Thailand"
+msgstr "태국"
+
+#. {"msgid": ["\ub3d9\ud2f0\ubaa8\ub974", "\ub3d9 \ud2f0\ubaa8\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:805
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:805
+#, fuzzy
+msgctxt "country_name"
+msgid "Timor-Leste"
+msgstr "동티모르"
+
+#. {"msgid": ["\ud1a0\uace0", "\uac00\ub2e4", "Togo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:806
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:806
+#, fuzzy
+msgctxt "country_name"
+msgid "Togo"
+msgstr "토고"
+
+#. {"msgid": ["\ud1a0\ucf08\ub77c\uc6b0", "Tokelau"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:807
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:807
+#, fuzzy
+msgctxt "country_name"
+msgid "Tokelau"
+msgstr "토켈라우"
+
+#. {"msgid": ["\ud1b5\uac00", "\uc774\ub95c \ub9c8\ucc28", "\ud1a4\uac00"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:808
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:808
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "통가"
+
+#. {"msgid": ["\ud2b8\ub9ac\ub2c8\ub2e4\ub4dc \ud1a0\ubc14\uace0",
+#. "\ud2b8\ub9ac\ub2c8\ub2e4\ub4dc\ud1a0\ubc14\uace0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:809
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:809
+#, fuzzy
+msgctxt "country_name"
+msgid "Trinidad and Tobago"
+msgstr "트리니다드 토바고"
+
+#. {"msgid": ["\ud280\ub2c8\uc9c0", "\ud29c\ub2c8\uc9c0\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:810
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:810
+#, fuzzy
+msgctxt "country_name"
+msgid "Tunisia"
+msgstr "튀니지"
+
+#. {"msgid": ["\uce60\uba74\uc870", "\ud130\ud0a4", "\uc2e4\ud328",
+#. "\uc2e4\ud328\uc791", "\ud2c0\ub9b0 \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:811
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:811
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkey"
+msgstr "칠면조"
+
+#. {"msgid": ["\ud22c\ub974\ud06c\uba54\ub2c8\uc2a4\ud0c4",
+#. "\ud22c\ub974\ud06c \uba54\ub2c8\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:812
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:812
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkmenistan"
+msgstr "투르크메니스탄"
+
+#. {"msgid": ["\ud130\ud06c\uc2a4 \ucf00\uc774\ucee4\uc2a4 \uc81c\ub3c4",
+#. "\ud130\ud06c\uc2a4\ucf00\uc774\ucee4\uc2a4 \uc81c\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:813
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:813
+#, fuzzy
+msgctxt "country_name"
+msgid "Turks and Caicos Islands"
+msgstr "터크스 케이커스 제도"
+
+#. {"msgid": ["\ud22c\ubc1c\ub8e8", "\ud22c\ubc14\ub8e8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:814
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:814
+#, fuzzy
+msgctxt "country_name"
+msgid "Tuvalu"
+msgstr "투발루"
+
+#. {"msgid": ["\uc6b0\uac04\ub2e4", "\uc6b0\uac11\ub2c8\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:815
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:815
+#, fuzzy
+msgctxt "country_name"
+msgid "Uganda"
+msgstr "우간다"
+
+#. {"msgid": ["\uc6b0\ud06c\ub77c\uc774\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:816
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:816
+#, fuzzy
+msgctxt "country_name"
+msgid "Ukraine"
+msgstr "우크라이나"
+
+#. {"msgid": ["\uc544\ub78d \uc5d0\ubbf8\ub9ac\ud2b8",
+#. "\uc544\ub78d\uc5d0\ubbf8\ub9ac\ud2b8", "\uc544\ub78d
+#. \uc5d0\ubbf8\ub808\uc774\ud2b8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:817
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:817
+#, fuzzy
+msgctxt "country_name"
+msgid "United Arab Emirates"
+msgstr "아랍 에미리트"
+
+#. {"msgid": ["\uc601\uad6d", "\uc789\uae00\ub79c\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:818
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:818
+#, fuzzy
+msgctxt "country_name"
+msgid "United Kingdom"
+msgstr "영국"
+
+#. {"msgid": ["\ubbf8\uad6d", "\uc544\uba54\ub9ac\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:819
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:819
+#, fuzzy
+msgctxt "country_name"
+msgid "United States"
+msgstr "미국"
+
+#. {"msgid": ["\ubbf8\uad6d\ub839 \uad70\uc18c \uc81c\ub3c4",
+#. "\ubbf8\ud569\uc911\uad6d \uad70\uc18c \uc678\uacfd \uc81c\ub3c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:820
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:820
+#, fuzzy
+msgctxt "country_name"
+msgid "United States Minor Outlying Islands"
+msgstr "미국령 군소 제도"
+
+#. {"msgid": ["\uc6b0\ub8e8\uacfc\uc774", "Uruguay"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:821
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:821
+#, fuzzy
+msgctxt "country_name"
+msgid "Uruguay"
+msgstr "우루과이"
+
+#. {"msgid": ["\uc6b0\uc988\ubca0\ud0a4\uc2a4\ud0c4", "\uc6b0\uc988\ubca1"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:822
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:822
+#, fuzzy
+msgctxt "country_name"
+msgid "Uzbekistan"
+msgstr "우즈베키스탄"
+
+#. {"msgid": ["\ubc14\ub204\uc544\ud22c", "\ubc14\ub098\ud22c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:823
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:823
+#, fuzzy
+msgctxt "country_name"
+msgid "Vanuatu"
+msgstr "바누아투"
+
+#. {"msgid": ["\ubca0\ub124\uc218\uc5d8\ub77c, \ubcfc\ub9ac\ubc14\ub9ac\uc548
+#. \uacf5\ud654\uad6d", "\ubca0\ub124\uc218\uc5d8\ub77c,
+#. \ubcfc\ub9ac\ubc14\ub974 \uacf5\ud654\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:824
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:824
+#, fuzzy
+msgctxt "country_name"
+msgid "Venezuela, Bolivarian Republic of"
+msgstr "베네수엘라, 볼리바리안 공화국"
+
+#. {"msgid": ["\ubca0\ud2b8\ub0a8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:825
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:825
+#, fuzzy
+msgctxt "country_name"
+msgid "Viet Nam"
+msgstr "베트남"
+
+#. {"msgid": ["\uc601\uad6d\ub839 \ubc84\uc9c4\uc544\uc77c\ub79c\ub4dc",
+#. "\ubc84\uc9c4 \uc544\uc77c\ub79c\ub4dc, \uc601\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:826
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:826
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands, British"
+msgstr "영국령 버진아일랜드"
+
+#. {"msgid": ["\ubbf8\uad6d\ub839 \ubc84\uc9c4\uc544\uc77c\ub79c\ub4dc",
+#. "\ubc84\uc9c4 \uc544\uc77c\ub79c\ub4dc, \ubbf8\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:827
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:827
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands, U.S."
+msgstr "미국령 버진아일랜드"
+
+#. {"msgid": ["\uc6d4\ub9ac\uc2a4 \ud478\ud22c\ub098", "\uc648\ub9ac\uc2a4
+#. \ud4cc\ud280\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:828
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:828
+#, fuzzy
+msgctxt "country_name"
+msgid "Wallis and Futuna"
+msgstr "월리스 푸투나"
+
+#. {"msgid": ["\uc11c\ubd80 \uc0ac\ud558\ub77c", "\uc11c\uc0ac\ud558\ub77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:829
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:829
+#, fuzzy
+msgctxt "country_name"
+msgid "Western Sahara"
+msgstr "서부 사하라"
+
+#. {"msgid": ["\uc608\uba58", "\uc608\uba58 \uc544\ub78d \uacf5\ud654\uad6d",
+#. "\uc608\uba58 \uc778\ubbfc \uacf5\ud654\uad6d", "\uc608\ucee8\ub300"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:830
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:830
+#, fuzzy
+msgctxt "country_name"
+msgid "Yemen"
+msgstr "예멘"
+
+#. {"msgid": ["\uc7a0\ube44\uc544", "\uc7a0\ubc14"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:831
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:831
+#, fuzzy
+msgctxt "country_name"
+msgid "Zambia"
+msgstr "잠비아"
+
+#. {"msgid": ["\uc9d0\ubc14\ube0c\uc6e8", "\uc9d0\ubc14\ube0c\uc6e8\uc774"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:832
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:832
+#, fuzzy
+msgctxt "country_name"
+msgid "Zimbabwe"
+msgstr "짐바브웨"
+
+#. {"msgid": ["\uc62c\ub780\ub4dc \uc81c\ub3c4", "\uc62c\ub780\ub4dc \uc12c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:833
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:833
+#, fuzzy
+msgctxt "country_name"
+msgid "Åland Islands"
+msgstr "올란드 제도"
+
+#. {"msgid": ["\uc555\ud558\uc9c0\uc57c\uc778", "\uc555\ud558\uc9c0\uc57c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:847
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:847
+#, fuzzy
+msgctxt "language_name"
+msgid "Abkhazian"
+msgstr "압하지야인"
+
+#. {"msgid": ["\uba40\ub9ac", "\uc544\ud30c\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:848
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:848
+#, fuzzy
+msgctxt "language_name"
+msgid "Afar"
+msgstr "멀리"
+
+#. {"msgid": ["\uc544\ud504\ub9ac\uce74 \uc5b4",
+#. "\uc544\ud504\ub9ac\uce78\uc2a4\uc5b4", "\uc544\ud504\ub9ac\uce74\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:849
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:849
+#, fuzzy
+msgctxt "language_name"
+msgid "Afrikaans"
+msgstr "아프리카 어"
+
+#. {"msgid": ["\uc544\uce78", "Akan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:850
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:850
+#, fuzzy
+msgctxt "language_name"
+msgid "Akan"
+msgstr "아칸"
+
+#. {"msgid": ["\uc54c\ubc14\ub2c8\uc544", "\uc54c\ubc14\ub2c8\uc544
+#. \uc0ac\ub78c", "\uc54c\ubc14\ub2c8\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:851
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:851
+#, fuzzy
+msgctxt "language_name"
+msgid "Albanian"
+msgstr "알바니아"
+
+#. {"msgid": ["\uc554\ud558\ub77c\uc5b4", "\uc554\ud558\ub9ad"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:852
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:852
+#, fuzzy
+msgctxt "language_name"
+msgid "Amharic"
+msgstr "암하라어"
+
+#. {"msgid": ["\uc544\ub77c\ube44\uc544 \ub9d0", "\uc544\ub78d\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:853
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:853
+#, fuzzy
+msgctxt "language_name"
+msgid "Arabic"
+msgstr "아라비아 말"
+
+#. {"msgid": ["\uc544\ub77c\uace4\uc5b4", "\uc544\ub77c\uace4\uc758"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:854
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:854
+#, fuzzy
+msgctxt "language_name"
+msgid "Aragonese"
+msgstr "아라곤어"
+
+#. {"msgid": ["\uc544\ub974\uba54\ub2c8\uc544 \uc0ac\ub78c",
+#. "\uc544\ub974\uba54\ub2c8\uc544\uc5b4", "\uc544\ub974\uba54\ub2c8\uc548"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:855
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:855
+#, fuzzy
+msgctxt "language_name"
+msgid "Armenian"
+msgstr "아르메니아 사람"
+
+#. {"msgid": ["\uc544\uc308\uc5b4", "\uc544\uc0bc\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:856
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:856
+#, fuzzy
+msgctxt "language_name"
+msgid "Assamese"
+msgstr "아쌈어"
+
+#. {"msgid": ["Avaric", "\uc544\ubc14\ub9ad"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:857
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:857
+#, fuzzy
+msgctxt "language_name"
+msgid "Avaric"
+msgstr "Avaric"
+
+#. {"msgid": ["\uc544\ubca0\uc2a4\ud0c4", "\uc544\ubca0\uc2a4\ud0c0\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:858
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:858
+#, fuzzy
+msgctxt "language_name"
+msgid "Avestan"
+msgstr "아베스탄"
+
+#. {"msgid": ["\uc544\uc774\ub9c8\ub77c\uc5b4", "Aymara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:859
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:859
+#, fuzzy
+msgctxt "language_name"
+msgid "Aymara"
+msgstr "아이마라어"
+
+#. {"msgid": ["\uc544\uc81c\ub974\ubc14\uc774\uc794",
+#. "\uc544\uc81c\ub974\ubc14\uc774\uc794\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:860
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:860
+#, fuzzy
+msgctxt "language_name"
+msgid "Azerbaijani"
+msgstr "아제르바이잔"
+
+#. {"msgid": ["\ubc24\ubc14\ub77c", "\ubc40\ubc14\ub77c\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:861
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:861
+#, fuzzy
+msgctxt "language_name"
+msgid "Bambara"
+msgstr "밤바라"
+
+#. {"msgid": ["\ubc14\uc2dc\ud0a4\ub974", "\ubc14\uc26c\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:862
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:862
+#, fuzzy
+msgctxt "language_name"
+msgid "Bashkir"
+msgstr "바시키르"
+
+#. {"msgid": ["\ubc14\uc2a4\ud06c \uc0ac\ub78c", "\ubc14\uc2a4\ud06c\uc5b4",
+#. "\ubc14\uc2a4\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:863
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:863
+#, fuzzy
+msgctxt "language_name"
+msgid "Basque"
+msgstr "바스크 사람"
+
+#. {"msgid": ["\ubca8\ub77c\ub8e8\uc2a4\uc5b4", "\ubca8\ub85c\ub8e8\uc2dc
+#. \uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:864
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:864
+#, fuzzy
+msgctxt "language_name"
+msgid "Belarusian"
+msgstr "벨라루스어"
+
+#. {"msgid": ["\ubcb5\uace8 \uc0ac\ub78c", "\ubcb5\uace8\uc5b4",
+#. "\ubcb5\uac08\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:865
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:865
+#, fuzzy
+msgctxt "language_name"
+msgid "Bengali"
+msgstr "벵골 사람"
+
+#. {"msgid": ["\ube44\uc2ac\ub77c\ub9c8\uc5b4",
+#. "\ube44\uc2a4\uc2ac\ub77c\ub9c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:866
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:866
+#, fuzzy
+msgctxt "language_name"
+msgid "Bislama"
+msgstr "비슬라마어"
+
+#. {"msgid": ["\ubcf4\uc2a4\ub2c8\uc544\uc5b4", "\ubcf4\uc2a4\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:867
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:867
+#, fuzzy
+msgctxt "language_name"
+msgid "Bosnian"
+msgstr "보스니아어"
+
+#. {"msgid": ["\ube0c\ub974\ud0c0\ub274\uc5b4", "\ube0c\ub9ac\ud2bc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:868
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:868
+#, fuzzy
+msgctxt "language_name"
+msgid "Breton"
+msgstr "브르타뉴어"
+
+#. {"msgid": ["\ubd88\uac00\ub9ac\uc544 \uc0ac\ub78c",
+#. "\ubd88\uac00\ub9ac\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:869
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:869
+#, fuzzy
+msgctxt "language_name"
+msgid "Bulgarian"
+msgstr "불가리아 사람"
+
+#. {"msgid": ["\ubc84\ub9c8 \uc0ac\ub78c", "\ubc84\ub9c8 \ub9d0",
+#. "\ubc84\ub9c8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:870
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:870
+#, fuzzy
+msgctxt "language_name"
+msgid "Burmese"
+msgstr "버마 사람"
+
+#. {"msgid": ["\uce74\ud0c8\ub85c\ub2c8\uc544 \uc0ac\ub78c",
+#. "\uce74\ud0c8\ub85c\ub2c8\uc544\uc5b4", "\uce74\ud0c8\ub8e8\ub0d0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:871
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:871
+#, fuzzy
+msgctxt "language_name"
+msgid "Catalan"
+msgstr "카탈로니아 사람"
+
+#. {"msgid": ["\uc911\ubd80 \ud06c\uba54\ub974", "\ud06c\uba54\ub974
+#. \uc911\ubd80"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:872
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:872
+#, fuzzy
+msgctxt "language_name"
+msgid "Central Khmer"
+msgstr "중부 크메르"
+
+#. {"msgid": ["\ucc28\ubaa8\ub85c\uc5b4", "\ucc28\ubaa8\ub85c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:873
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:873
+#, fuzzy
+msgctxt "language_name"
+msgid "Chamorro"
+msgstr "차모로어"
+
+#. {"msgid": ["\uccb4\uccb8", "\uccb4\uccb8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:874
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:874
+#, fuzzy
+msgctxt "language_name"
+msgid "Chechen"
+msgstr "체첸"
+
+#. {"msgid": ["\uc911\uad6d\uc778", "\uc911\uad6d\uc5b4",
+#. "\uc911\uad6d\uc758", "\uc911\uad6d\ub9d0", "\uc911\uad6d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:875
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:876
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:875
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:876
+#, fuzzy
+msgctxt "language_name"
+msgid "Chinese"
+msgstr "중국인"
+
+#. {"msgid": ["\uad50\ud68c \uc2ac\ub77c\ube0c\uc5b4", "\uc2ac\ub77c\ube0c
+#. \uad50\ud68c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:877
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:877
+#, fuzzy
+msgctxt "language_name"
+msgid "Church Slavic"
+msgstr "교회 슬라브어"
+
+#. {"msgid": ["\ucd94\ubc14\uc2dc", "\ucd94\ubc14\uc26c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:878
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:878
+#, fuzzy
+msgctxt "language_name"
+msgid "Chuvash"
+msgstr "추바시"
+
+#. {"msgid": ["\ucf58\uc6d4 \ub9d0", "\ucf58\uc6d4\uc5b4",
+#. "\ucf54\ub2c8\uc26c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:879
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:879
+#, fuzzy
+msgctxt "language_name"
+msgid "Cornish"
+msgstr "콘월 말"
+
+#. {"msgid": ["\ucf54\ub974\uc2dc\uce74\uc5b4", "\ucf54\ub974\uc2dc\uce74
+#. \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:880
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:880
+#, fuzzy
+msgctxt "language_name"
+msgid "Corsican"
+msgstr "코르시카어"
+
+#. {"msgid": ["\ud06c\ub9ac\uc5b4", "\ud06c\ub9ac \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:881
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:881
+#, fuzzy
+msgctxt "language_name"
+msgid "Cree"
+msgstr "크리어"
+
+#. {"msgid": ["\ud06c\ub85c\uc544\ud2f0\uc544\uc5b4",
+#. "\ud06c\ub85c\uc544\ud2f0\uc544 \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:882
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:882
+#, fuzzy
+msgctxt "language_name"
+msgid "Croatian"
+msgstr "크로아티아어"
+
+#. {"msgid": ["\uc138\ubd80\uc544\ub178\uc5b4", "\uc138\ubd80 \uc544\ub178"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:883
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:883
+#, fuzzy
+msgctxt "language_name"
+msgid "Cebuano"
+msgstr "세부아노어"
+
+#. {"msgid": ["\uccb4\ucf54 \uc0ac\ub78c", "\uccb4\ucf54\uc5b4",
+#. "\uccb4\ucf54"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:884
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:884
+#, fuzzy
+msgctxt "language_name"
+msgid "Czech"
+msgstr "체코 사람"
+
+#. {"msgid": ["\ub374\ub9c8\ud06c \ub9d0", "\ub374\ub9c8\ud06c\uc5b4",
+#. "\ub374\ub9c8\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:885
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:885
+#, fuzzy
+msgctxt "language_name"
+msgid "Danish"
+msgstr "덴마크 말"
+
+#. {"msgid": ["\ub514\ubca0\ud788\uc5b4", "Dhivehi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:886
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:886
+#, fuzzy
+msgctxt "language_name"
+msgid "Dhivehi"
+msgstr "디베히어"
+
+#. {"msgid": ["\ub124\ub35c\ub780\ub4dc \uc0ac\ub78c",
+#. "\ub124\ub35c\ub780\ub4dc \uad6d\ubbfc", "\ub124\ub35c\ub780\ub4dc \ub9d0",
+#. "\ub124\ub35c\ub780\ub4dc\uc5b4", "\ub124\ub378\ub780\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:887
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:887
+#, fuzzy
+msgctxt "language_name"
+msgid "Dutch"
+msgstr "네덜란드 사람"
+
+#. {"msgid": ["\uc885\uce74\uc5b4", "\uc885\uce74"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:888
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:888
+#, fuzzy
+msgctxt "language_name"
+msgid "Dzongkha"
+msgstr "종카어"
+
+#. {"msgid": ["\uc601\uc5b4", "\ud55c\uad6d\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:889
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:889
+#, fuzzy
+msgctxt "language_name"
+msgid "English"
+msgstr "영어"
+
+#. {"msgid": ["\uc5d0\uc2a4\ud398\ub780\ud1a0 \ub9d0",
+#. "\uc5d0\uc2a4\ud398\ub780\ud1a0\uc5b4", "\uc5d0\uc2a4\ud398\ub780\ud1a0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:890
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:890
+#, fuzzy
+msgctxt "language_name"
+msgid "Esperanto"
+msgstr "에스페란토 말"
+
+#. {"msgid": ["\uc5d0\uc2a4\ud1a0\ub2c8\uc544 \uc0ac\ub78c",
+#. "\uc5d0\uc2a4\ud1a0\ub2c8\uc544 \ub9d0",
+#. "\uc5d0\uc2a4\ud1a0\ub2c8\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:891
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:891
+#, fuzzy
+msgctxt "language_name"
+msgid "Estonian"
+msgstr "에스토니아 사람"
+
+#. {"msgid": ["\uc554\uc591", "\uc5d0\uc6e8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:892
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:892
+#, fuzzy
+msgctxt "language_name"
+msgid "Ewe"
+msgstr "암양"
+
+#. {"msgid": ["\ud398\ub85c\uc5b4", "\ud398\ub85c \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:893
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:893
+#, fuzzy
+msgctxt "language_name"
+msgid "Faroese"
+msgstr "페로어"
+
+#. {"msgid": ["\ud53c\uc9c0\uc5b4", "\ud53c\uc9c0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:894
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:894
+#, fuzzy
+msgctxt "language_name"
+msgid "Fijian"
+msgstr "피지어"
+
+#. {"msgid": ["\ud540\ub780\ub4dc\uc5b4", "\ud540\ub780\ub4dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:895
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:895
+#, fuzzy
+msgctxt "language_name"
+msgid "Finnish"
+msgstr "핀란드어"
+
+#. {"msgid": ["\ud504\ub791\uc2a4 \uad6d\ubbfc", "\ud504\ub791\uc2a4\uc5b4",
+#. "\ubd88\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:896
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:896
+#, fuzzy
+msgctxt "language_name"
+msgid "French"
+msgstr "프랑스 국민"
+
+#. {"msgid": ["\ud480\ub77c", "\ud478\ub77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:897
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:897
+#, fuzzy
+msgctxt "language_name"
+msgid "Fulah"
+msgstr "풀라"
+
+#. {"msgid": ["\uac08\ub9ac\uc2dc\uc544\uc5b4", "\uac08\ub9ac\uc2dc\uc548"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:898
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:898
+#, fuzzy
+msgctxt "language_name"
+msgid "Galician"
+msgstr "갈리시아어"
+
+#. {"msgid": ["\uac04\ub2e4", "\uac04\ub2e4\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:899
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:899
+#, fuzzy
+msgctxt "language_name"
+msgid "Ganda"
+msgstr "간다"
+
+#. {"msgid": ["\uc870\ub974\uc9c0\uc544 \uc8fc \uc0ac\ub78c",
+#. "\uadf8\ub8e8\uc9c0\uc57c \uc0ac\ub78c", "\uc870\uc9c0\uc544\uc5b4",
+#. "\uadf8\ub8e8\uc9c0\uc57c \uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:900
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:900
+#, fuzzy
+msgctxt "language_name"
+msgid "Georgian"
+msgstr "조르지아 주 사람"
+
+#. {"msgid": ["\ub3c5\uc77c \uc0ac\ub78c", "\ub3c5\uc77c \ub9d0",
+#. "\ub3c5\uc77c \ubb34\uc6a9", "\ub3c5\uc77c\uc5b4", "\ub3c5\uc77c\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:901
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:901
+#, fuzzy
+msgctxt "language_name"
+msgid "German"
+msgstr "독일 사람"
+
+#. {"msgid": ["\uace0\ub515", "\uace0\ud2b8 \uc778\uc758", "\uace0\ub515
+#. \uc591\uc2dd"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:902
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:902
+#, fuzzy
+msgctxt "language_name"
+msgid "Gothic"
+msgstr "고딕"
+
+#. {"msgid": ["\uacfc\ub77c\ub2c8\uc5b4", "\uad6c\uc544\ub77c\ub2c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:903
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:903
+#, fuzzy
+msgctxt "language_name"
+msgid "Guarani"
+msgstr "과라니어"
+
+#. {"msgid": ["\uad6c\uc790\ub77c\ud2b8\uc5b4", "\uad6c\uc790\ub77c\ud2b8
+#. \uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:904
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:904
+#, fuzzy
+msgctxt "language_name"
+msgid "Gujarati"
+msgstr "구자라트어"
+
+#. {"msgid": ["\uc544\uc774\ud2f0 \uc12c \uc0ac\ub78c",
+#. "\uc544\uc774\ud2f0\uc5b4", "\uc544\uc774\ud2f0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:905
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:905
+#, fuzzy
+msgctxt "language_name"
+msgid "Haitian"
+msgstr "아이티 섬 사람"
+
+#. {"msgid": ["\ud558\uc6b0\uc0ac\uc5b4", "\ud558\uc6b0\uc0ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:906
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:906
+#, fuzzy
+msgctxt "language_name"
+msgid "Hausa"
+msgstr "하우사어"
+
+#. {"msgid": ["\ud558\uc640\uc774\uc548", "\ud558\uc640\uc774\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:907
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:907
+#, fuzzy
+msgctxt "language_name"
+msgid "Hawaiian"
+msgstr "하와이안"
+
+#. {"msgid": ["\ud5e4\ube0c\ub77c\uc774 \uc0ac\ub78c", "\uace0\ub300
+#. \ud5e4\ube0c\ub77c\uc774\uc5b4", "\uc54c \uc218 \uc5c6\ub294 \ub9d0",
+#. "\ud788\ube0c\ub9ac\uc5b4", "\ud788\ube0c\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:908
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:908
+#, fuzzy
+msgctxt "language_name"
+msgid "Hebrew"
+msgstr "헤브라이 사람"
+
+#. {"msgid": ["\ud5e4\ub808\ub85c", "Herero"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:909
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:909
+#, fuzzy
+msgctxt "language_name"
+msgid "Herero"
+msgstr "헤레로"
+
+#. {"msgid": ["\ud78c\ub514 \uc5b4", "\ud78c\ub514\uc5b4", "\ud78c\ub450"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:910
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:910
+#, fuzzy
+msgctxt "language_name"
+msgid "Hindi"
+msgstr "힌디 어"
+
+#. {"msgid": ["\ubaa8\ud22c \ud788\ub9ac", "\ud788\ub9ac\ubaa8\ud22c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:911
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:911
+#, fuzzy
+msgctxt "language_name"
+msgid "Hiri Motu"
+msgstr "모투 히리"
+
+#. {"msgid": ["\ubabd\uc871", "\ud750\ubabd"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:912
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:912
+#, fuzzy
+msgctxt "language_name"
+msgid "Hmong"
+msgstr "몽족"
+
+#. {"msgid": ["\ud5dd\uac00\ub9ac \uc778", "\ud5dd\uac00\ub9ac\uc5b4",
+#. "\ud5dd\uac00\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:913
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:913
+#, fuzzy
+msgctxt "language_name"
+msgid "Hungarian"
+msgstr "헝가리 인"
+
+#. {"msgid": ["\uc544\uc774\uc2ac\ub780\ub4dc\uc5b4",
+#. "\uc544\uc774\uc2ac\ub780\ub4dc \ub9d0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:914
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:914
+#, fuzzy
+msgctxt "language_name"
+msgid "Icelandic"
+msgstr "아이슬란드어"
+
+#. {"msgid": ["\uadf8\ub798\uc694", "\uadf8\ub807\ub2e4",
+#. "\ub098\ub294\ud55c\ub2e4", "\uc774\ub3c4", "Ido"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:915
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:915
+#, fuzzy
+msgctxt "language_name"
+msgid "Ido"
+msgstr "그래요"
+
+#. {"msgid": ["\uc774\uadf8\ubcf4\uc5b4", "\uc774\ubcf4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:916
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:916
+#, fuzzy
+msgctxt "language_name"
+msgid "Igbo"
+msgstr "이그보어"
+
+#. {"msgid": ["\uc778\ub3c4\ub124\uc2dc\uc544 \uc778",
+#. "\uc778\ub3c4\ub124\uc2dc\uc544\uc5b4", "\uc778\ub3c4\ub124\uc2dc\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:917
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:917
+#, fuzzy
+msgctxt "language_name"
+msgid "Indonesian"
+msgstr "인도네시아 인"
+
+#. {"msgid": ["Interlingua(\uad6d\uc81c \ubcf4\uc870 \uc5b8\uc5b4
+#. \ud611\ud68c)", "\uc778\ud130\ub9c1\uad6c\uc544(Interlingua)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:918
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:918
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingua (International Auxiliary Language Association)"
+msgstr "Interlingua(국제 보조 언어 협회)"
+
+#. {"msgid": ["\uc778\ud130\ub9c1\uadf8", "Interlingue"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:919
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:919
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingue"
+msgstr "인터링그"
+
+#. {"msgid": ["\uc774\ub204\uc774\ud2b8\uc5b4",
+#. "\uc774\ub205\ud2f0\ud22c\ud2b8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:920
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:920
+#, fuzzy
+msgctxt "language_name"
+msgid "Inuktitut"
+msgstr "이누이트어"
+
+#. {"msgid": ["\uc774\ub204\ud53c\uc544\ud06c", "\uc774\ub204\ud53d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:921
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:921
+#, fuzzy
+msgctxt "language_name"
+msgid "Inupiaq"
+msgstr "이누피아크"
+
+#. {"msgid": ["\uc544\uc77c\ub79c\ub4dc\uc758", "\uc544\uc77c\ub79c\ub4dc",
+#. "\uc544\uc77c\ub79c\ub4dc\uc5b4", "\uc544\uc774\ub9ac\uc26c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:922
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:922
+#, fuzzy
+msgctxt "language_name"
+msgid "Irish"
+msgstr "아일랜드의"
+
+#. {"msgid": ["\uc774\ud0c8\ub9ac\uc544 \uc0ac\ub78c",
+#. "\uc774\ud0c8\ub9ac\uc544\uc5b4", "\uc774\ud0dc\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:923
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:923
+#, fuzzy
+msgctxt "language_name"
+msgid "Italian"
+msgstr "이탈리아 사람"
+
+#. {"msgid": ["\uc77c\ubcf8\uc5b4", "\uc77c\ubcf8\uc778", "\uc77c\ubcf8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:924
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:924
+#, fuzzy
+msgctxt "language_name"
+msgid "Japanese"
+msgstr "일본어"
+
+#. {"msgid": ["\uc790\ubc14\uc5b4", "\uc790\ubc14 \uc12c \uc0ac\ub78c",
+#. "Javanese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:925
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:926
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:925
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:926
+#, fuzzy
+msgctxt "language_name"
+msgid "Javanese"
+msgstr "자바어"
+
+#. {"msgid": ["\uce7c\ub77c\uc54c\ub9ac\uc218\ud2b8",
+#. "\uae54\ub784\ub9ac\uc218\ud2b8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:927
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:927
+#, fuzzy
+msgctxt "language_name"
+msgid "Kalaallisut"
+msgstr "칼라알리수트"
+
+#. {"msgid": ["\uce78\ub098\ub2e4\uc5b4", "\uce78\ub098\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
+#, fuzzy
+msgctxt "language_name"
+msgid "Kannada"
+msgstr "칸나다어"
+
+#. {"msgid": ["\uce74\ub204\ub9ac", "\uac00\ub204\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:929
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:929
+#, fuzzy
+msgctxt "language_name"
+msgid "Kanuri"
+msgstr "카누리"
+
+#. {"msgid": ["\uce74\uc2dc\ubbf8\ub974 \ub9d0", "\uce74\uc2dc\ubbf8\ub974
+#. \uc0ac\ub78c", "\uce74\uc288\ubbf8\ub974\uc5b4",
+#. "\uce74\uc288\ubbf8\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:930
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:930
+#, fuzzy
+msgctxt "language_name"
+msgid "Kashmiri"
+msgstr "카시미르 말"
+
+#. {"msgid": ["\uce74\uc790\ud750\uc5b4", "\uce74\uc790\ud750\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:931
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:931
+#, fuzzy
+msgctxt "language_name"
+msgid "Kazakh"
+msgstr "카자흐어"
+
+#. {"msgid": ["\ud0a4\ucfe0\uc720", "\uae30\ucfe0\uc720\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:932
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:932
+#, fuzzy
+msgctxt "language_name"
+msgid "Kikuyu"
+msgstr "키쿠유"
+
+#. {"msgid": ["\ud0a4\ub0d0\ub974\uc644\ub2e4\uc5b4",
+#. "\ud0a4\ub0d0\uc644\ub2e4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:933
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:933
+#, fuzzy
+msgctxt "language_name"
+msgid "Kinyarwanda"
+msgstr "키냐르완다어"
+
+#. {"msgid": ["\ud0a4\ub974\uae30\uc988 \uc0ac\ub78c",
+#. "\ud0a4\ub974\uae30\uc988 \ub9d0", "\ud0a4\ub974\uae30\uc988",
+#. "\ud0a4\ub974\uae30\uc2a4\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:934
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:934
+#, fuzzy
+msgctxt "language_name"
+msgid "Kirghiz"
+msgstr "키르기즈 사람"
+
+#. {"msgid": ["\ucf54\ubbf8", "\ucf64"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:935
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:935
+#, fuzzy
+msgctxt "language_name"
+msgid "Komi"
+msgstr "코미"
+
+#. {"msgid": ["\ucf69\uace0", "\uace4\uace0\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:936
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:936
+#, fuzzy
+msgctxt "language_name"
+msgid "Kongo"
+msgstr "콩고"
+
+#. {"msgid": ["\ud55c\uad6d\uc778", "\ud55c\uad6d\uc5b4",
+#. "\ud55c\uad6d\uc758", "\ud55c\uae00"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:937
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:937
+#, fuzzy
+msgctxt "language_name"
+msgid "Korean"
+msgstr "한국인"
+
+#. {"msgid": ["\ucfe0\uc548\uc57c\ub9c8", "\ucf74\uc57c\ub9c8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:938
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:938
+#, fuzzy
+msgctxt "language_name"
+msgid "Kuanyama"
+msgstr "쿠안야마"
+
+#. {"msgid": ["\ucfe0\ub974\ub4dc\uc5b4", "\ucfe0\ub974\ub4dc\uc871"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:939
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:939
+#, fuzzy
+msgctxt "language_name"
+msgid "Kurdish"
+msgstr "쿠르드어"
+
+#. {"msgid": ["\ub77c\uc624\uc2a4", "\ub77c\uc624\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:940
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:940
+#, fuzzy
+msgctxt "language_name"
+msgid "Lao"
+msgstr "라오스"
+
+#. {"msgid": ["\ub77c\ud2f4\uc5b4", "\ub77c\ud2f4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:941
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:941
+#, fuzzy
+msgctxt "language_name"
+msgid "Latin"
+msgstr "라틴어"
+
+#. {"msgid": ["\ub77c\ud2b8\ube44\uc544 \uc0ac\ub78c",
+#. "\ub77c\ud2b8\ube44\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:942
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:942
+#, fuzzy
+msgctxt "language_name"
+msgid "Latvian"
+msgstr "라트비아 사람"
+
+#. {"msgid": ["\ub9bc\ubd80\ub974\uac04", "\ub9bc\ubd80\ub974\uac15"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:943
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:943
+#, fuzzy
+msgctxt "language_name"
+msgid "Limburgan"
+msgstr "림부르간"
+
+#. {"msgid": ["\ub9c1\uac08\ub77c", "\ub9b0\uac08\ub77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:944
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:944
+#, fuzzy
+msgctxt "language_name"
+msgid "Lingala"
+msgstr "링갈라"
+
+#. {"msgid": ["\ub9ac\ud22c\uc544\ub2c8\uc544 \uc0ac\ub78c",
+#. "\ub9ac\ud22c\uc544\ub2c8\uc544\uc5b4", "\ub9ac\ud22c\uc544\ub2c8\uc544"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:945
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:945
+#, fuzzy
+msgctxt "language_name"
+msgid "Lithuanian"
+msgstr "리투아니아 사람"
+
+#. {"msgid": ["\ub8e8\ubc14-\uce74\ud0d5\uac00", "Luba-Katanga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:946
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:946
+#, fuzzy
+msgctxt "language_name"
+msgid "Luba-Katanga"
+msgstr "루바-카탕가"
+
+#. {"msgid": ["\ub8e9\uc148\ubd80\ub974\ud06c\uc5b4",
+#. "\ub8e9\uc148\ubd80\ub974\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
+#, fuzzy
+msgctxt "language_name"
+msgid "Luxembourgish"
+msgstr "룩셈부르크어"
+
+#. {"msgid": ["\ub9c8\ucf00\ub3c4\ub2c8\uc544 \uc5b4",
+#. "\ub9c8\ucf00\ub3c4\ub2c8\uc544 \uc778",
+#. "\ub9c8\ucf00\ub3c4\ub2c8\uc544\uc5b4",
+#. "\ub9c8\ucf00\ub3c4\ub2c8\uc544\uc758"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:948
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:948
+#, fuzzy
+msgctxt "language_name"
+msgid "Macedonian"
+msgstr "마케도니아 어"
+
+#. {"msgid": ["\ub9c8\ub2e4\uac00\uc2a4\uce74\ub974 \uc0ac\ub78c",
+#. "\ub9c8\ub2e4\uac00\uc2a4\uce74\ub974\uc5b4", "\ub9d0\ub77c\uac00\uc2dc"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:949
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:949
+#, fuzzy
+msgctxt "language_name"
+msgid "Malagasy"
+msgstr "마다가스카르 사람"
+
+#. {"msgid": ["\ub9d0\ub808\uc774\uc5b4(\ub300\ud654\uc5b4)",
+#. "\ub9d0\ub808\uc774\uc5b4(\uac70\uc2dc\uc5b8\uc5b4)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:950
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:950
+#, fuzzy
+msgctxt "language_name"
+msgid "Malay (macrolanguage)"
+msgstr "말레이어(대화어)"
+
+#. {"msgid": ["\ub9d0\ub77c\uc584\ub78c\uc5b4",
+#. "\ub9d0\ub808\uc774\uc2dc\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:951
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:951
+#, fuzzy
+msgctxt "language_name"
+msgid "Malayalam"
+msgstr "말라얄람어"
+
+#. {"msgid": ["\ubab0\ud2f0\uc988", "\ubab0\ud0c0 \uc0ac\ub78c", "\ubab0\ud0c0
+#. \uc5b4", "\ubab0\ud0c0\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:952
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:952
+#, fuzzy
+msgctxt "language_name"
+msgid "Maltese"
+msgstr "몰티즈"
+
+#. {"msgid": ["\ub9e8 \uc12c \uc0ac\ub78c", "\ub9f9\ud06c\uc2a4",
+#. "\ub9e8\uc2a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:953
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:953
+#, fuzzy
+msgctxt "language_name"
+msgid "Manx"
+msgstr "맨 섬 사람"
+
+#. {"msgid": ["\ub9c8\uc624\ub9ac\uc871", "\ub9c8\uc624\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:954
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:954
+#, fuzzy
+msgctxt "language_name"
+msgid "Maori"
+msgstr "마오리족"
+
+#. {"msgid": ["\ub9c8\ub77c\ud2f0\uc5b4", "\ub9c8\ub77c\ud0c0\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:955
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:955
+#, fuzzy
+msgctxt "language_name"
+msgid "Marathi"
+msgstr "마라티어"
+
+#. {"msgid": ["\ub9c8\uc15c\uc5b4", "\ub9c8\uc0ec\ub9ac\uc988"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:956
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:956
+#, fuzzy
+msgctxt "language_name"
+msgid "Marshallese"
+msgstr "마셜어"
+
+#. {"msgid": ["\ud604\ub300 \uadf8\ub9ac\uc2a4\uc5b4(1453-)", "\ud604\ub300
+#. \uadf8\ub9ac\uc2a4(1453-)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:957
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:957
+#, fuzzy
+msgctxt "language_name"
+msgid "Modern Greek (1453-)"
+msgstr "현대 그리스어(1453-)"
+
+#. {"msgid": ["\ubabd\uace0 \uc5b4", "\ubabd\uace8\uc5b4",
+#. "\ubabd\uace0\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:958
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:958
+#, fuzzy
+msgctxt "language_name"
+msgid "Mongolian"
+msgstr "몽고 어"
+
+#. {"msgid": ["\ub098\uc6b0\ub8e8", "\ub098\uc6b0\ub8e8\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:959
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:959
+#, fuzzy
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "나우루"
+
+#. {"msgid": ["\ub098\ubc14\ud638\uc5b4", "\ub098\ubc14\ud638"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:960
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:960
+#, fuzzy
+msgctxt "language_name"
+msgid "Navajo"
+msgstr "나바호어"
+
+#. {"msgid": ["\uc740\ub3d9\uac00", "Ndonga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:961
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:961
+#, fuzzy
+msgctxt "language_name"
+msgid "Ndonga"
+msgstr "은동가"
+
+#. {"msgid": ["\ub124\ud314\uc5b4(\ub300\ud654\uc5b4)",
+#. "\ub124\ud314\uc5b4(\uac70\uc2dc\uc5b4)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:962
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:962
+#, fuzzy
+msgctxt "language_name"
+msgid "Nepali (macrolanguage)"
+msgstr "네팔어(대화어)"
+
+#. {"msgid": ["\ub178\uc2a4 \uc740\ub370\ubca8\ub808",
+#. "\ubd81\uc740\ub370\ubca8\ub808"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:963
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:963
+#, fuzzy
+msgctxt "language_name"
+msgid "North Ndebele"
+msgstr "노스 은데벨레"
+
+#. {"msgid": ["\ubd81\ubd80 \uc0ac\ubbf8", "\ub178\ub358 \uc0ac\ubbf8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:964
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:964
+#, fuzzy
+msgctxt "language_name"
+msgid "Northern Sami"
+msgstr "북부 사미"
+
+#. {"msgid": ["\ub178\ub974\uc6e8\uc774 \uc778", "\ub178\ub974\uc6e8\uc774
+#. \uc778\uc758", "\ub178\ub974\uc6e8\uc774\uc5b4", "\ub178\ub974\uc6e8\uc774
+#. \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:965
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:965
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian"
+msgstr "노르웨이 인"
+
+#. {"msgid": ["\ub178\ub974\uc6e8\uc774 \ubcf4\ud06c\ubab0",
+#. "\ub178\ub974\uc6e8\uc774\uc5b4 \ubcf5\ubab0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:966
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:966
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Bokmål"
+msgstr "노르웨이 보크몰"
+
+#. {"msgid": ["\ub178\ub974\uc6e8\uc774 \ub258\ub178\ub974\uc2a4\ud06c",
+#. "\ub178\ub974\uc6e8\uc774 \ub2c8\ub178\ub974\uc2a4\ud06c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:967
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:967
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Nynorsk"
+msgstr "노르웨이 뉘노르스크"
+
+#. {"msgid": ["\ub0e5\uc790", "Nyanja"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:968
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:968
+#, fuzzy
+msgctxt "language_name"
+msgid "Nyanja"
+msgstr "냥자"
+
+#. {"msgid": ["\uc625\uc2dc\ud0c4(1500\ub144 \uc774\ud6c4)",
+#. "\uc624\ud06c(1500\ub144 \uc774\ud6c4)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:969
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:969
+#, fuzzy
+msgctxt "language_name"
+msgid "Occitan (post 1500)"
+msgstr "옥시탄(1500년 이후)"
+
+#. {"msgid": ["\uc624\uc9c0\ube0c\uc640", "\uc624\uc9c0\ubdb8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:970
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:970
+#, fuzzy
+msgctxt "language_name"
+msgid "Ojibwa"
+msgstr "오지브와"
+
+#. {"msgid": ["\uc624\ub9ac\uc57c\uc5b4(\uac70\uc2dc\uc5b4)",
+#. "\uc624\ub9ac\uc57c\uc5b4(\ub300\ud654\uc5b4)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:971
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:971
+#, fuzzy
+msgctxt "language_name"
+msgid "Oriya (macrolanguage)"
+msgstr "오리야어(거시어)"
+
+#. {"msgid": ["\uc624\ub85c\ubaa8\uc5b4", "\uc624 \ub85c\ubaa8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:972
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:972
+#, fuzzy
+msgctxt "language_name"
+msgid "Oromo"
+msgstr "오로모어"
+
+#. {"msgid": ["\uc624\uc138\ud2b8\uc5b4", "\uc624\uc138\ud2f0\uc544\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:973
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:973
+#, fuzzy
+msgctxt "language_name"
+msgid "Ossetian"
+msgstr "오세트어"
+
+#. {"msgid": ["\ud314\ub9ac \uc5b4", "\ube68\ub9ac\uc5b4", "\ud314\ub9ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:974
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:974
+#, fuzzy
+msgctxt "language_name"
+msgid "Pali"
+msgstr "팔리 어"
+
+#. {"msgid": ["\ube64\uc790\ube44", "\ud310\uc7a1\uc774"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:975
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:975
+#, fuzzy
+msgctxt "language_name"
+msgid "Panjabi"
+msgstr "빤자비"
+
+#. {"msgid": ["\ud398\ub974\uc2dc\uc544 \uc778",
+#. "\ud398\ub974\uc2dc\uc544\uc5b4", "\ud398\ub974\uc2dc\uc548"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:976
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:976
+#, fuzzy
+msgctxt "language_name"
+msgid "Persian"
+msgstr "페르시아 인"
+
+#. {"msgid": ["\uad11\ud0dd", "\ub2e6\ub294 \uac00\ub8e8", "\ud3f4\ub780\ub4dc
+#. \uc5b4", "\ub2e6\ub2e4", "\uae38"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:977
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:977
+#, fuzzy
+msgctxt "language_name"
+msgid "Polish"
+msgstr "광택"
+
+#. {"msgid": ["\ud3ec\ub974\ud22c\uac08 \uc778", "\ud3ec\ub974\ud22c\uac08
+#. \uc5b4", "\ud3ec\ub974\ud22c\uac08 \uc778\uc758",
+#. "\ud3ec\ub974\ud22c\uac08\uc5b4", "\ud3ec\ub8e8\ud22c\uac08"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:978
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:978
+#, fuzzy
+msgctxt "language_name"
+msgid "Portuguese"
+msgstr "포르투갈 인"
+
+#. {"msgid": ["\ud478\uc26c\ud1a0", "\ud478\uc288\ud1a0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:979
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:979
+#, fuzzy
+msgctxt "language_name"
+msgid "Pushto"
+msgstr "푸쉬토"
+
+#. {"msgid": ["\ucf00\ucd94\uc544\uc5b4", "\ucf00 \ucd94\uc544 \uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:980
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:980
+#, fuzzy
+msgctxt "language_name"
+msgid "Quechua"
+msgstr "케추아어"
+
+#. {"msgid": ["\ub8e8\ub9c8\ub2c8\uc544 \uc0ac\ub78c",
+#. "\ub8e8\ub9c8\ub2c8\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:981
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:981
+#, fuzzy
+msgctxt "language_name"
+msgid "Romanian"
+msgstr "루마니아 사람"
+
+#. {"msgid": ["\ub85c\ub9cc\uc2dc\uc5b4", "\ub85c\ub9dd\uc288"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:982
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:982
+#, fuzzy
+msgctxt "language_name"
+msgid "Romansh"
+msgstr "로만시어"
+
+#. {"msgid": ["\ub8ec\ub514", "Rundi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:983
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:983
+#, fuzzy
+msgctxt "language_name"
+msgid "Rundi"
+msgstr "룬디"
+
+#. {"msgid": ["\ub7ec\uc2dc\uc544\uc778", "\ub7ec\uc2dc\uc544 \ub9d0",
+#. "\ub7ec\uc2dc\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:984
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:984
+#, fuzzy
+msgctxt "language_name"
+msgid "Russian"
+msgstr "러시아인"
+
+#. {"msgid": ["\uc0ac\ubaa8\uc544\uc5b4", "\uc0ac\ubaa8\uc544 \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:985
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:985
+#, fuzzy
+msgctxt "language_name"
+msgid "Samoan"
+msgstr "사모아어"
+
+#. {"msgid": ["\uc0b0\uace0", "Sango"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:986
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:986
+#, fuzzy
+msgctxt "language_name"
+msgid "Sango"
+msgstr "산고"
+
+#. {"msgid": ["\uc0b0\uc2a4\ud06c\ub9ac\ud2b8",
+#. "\uc0b0\uc2a4\ud06c\ub9ac\ud2b8\uc5b4", "Sanskrit"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:987
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:987
+#, fuzzy
+msgctxt "language_name"
+msgid "Sanskrit"
+msgstr "산스크리트"
+
+#. {"msgid": ["\uc0ac\ub974\ub514\ub2c8\uc544 \uc0ac\ub78c",
+#. "\uc0ac\ub974\ub370\ub0d0\uc5b4", "\uc0ac\ub974\ub514\ub2c8\uc544\uc2dd"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:988
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:988
+#, fuzzy
+msgctxt "language_name"
+msgid "Sardinian"
+msgstr "사르디니아 사람"
+
+#. {"msgid": ["\uc2a4\ucf54\ud2c0\ub79c\ub4dc \uac8c\uc77c\uc5b4",
+#. "\uc2a4\ucf54\ud2c0\ub79c\ub4dc \uac8c\uc77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:989
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:989
+#, fuzzy
+msgctxt "language_name"
+msgid "Scottish Gaelic"
+msgstr "스코틀랜드 게일어"
+
+#. {"msgid": ["\uc138\ub974\ube44\uc544 \uc0ac\ub78c",
+#. "\uc138\ub974\ube44\uc544 \ub9d0", "\uc138\ub974\ube44\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:990
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:990
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbian"
+msgstr "세르비아 사람"
+
+#. {"msgid": ["\uc138\ub974\ubcf4\ud06c\ub85c\uc544\ud2f0\uc544\uc5b4",
+#. "\uc138\ub974\ubcf4\ud06c\ub85c\uc544\ud2f0\uc548"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:991
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:991
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbo-Croatian"
+msgstr "세르보크로아티아어"
+
+#. {"msgid": ["\uc1fc\ub098\uc5b4", "\uc1fc\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:992
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:992
+#, fuzzy
+msgctxt "language_name"
+msgid "Shona"
+msgstr "쇼나어"
+
+#. {"msgid": ["\uc4f0\ucd28 \uc774", "\uc774 \uc4f0\ucd28"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:993
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:993
+#, fuzzy
+msgctxt "language_name"
+msgid "Sichuan Yi"
+msgstr "쓰촨 이"
+
+#. {"msgid": ["\uc2e0\ub514\uc5b4", "\uc2e0\ub514"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:994
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:994
+#, fuzzy
+msgctxt "language_name"
+msgid "Sindhi"
+msgstr "신디어"
+
+#. {"msgid": ["\uc2f1\ud560\ub77c\uc5b4", "\uc2e0\ud560\ub77c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:995
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:995
+#, fuzzy
+msgctxt "language_name"
+msgid "Sinhala"
+msgstr "싱할라어"
+
+#. {"msgid": ["\uc2ac\ub85c\ubc14\ud0a4\uc544 \uc0ac\ub78c",
+#. "\uc2ac\ub85c\ubc14\ud0a4\uc544 \ub9d0",
+#. "\uc2ac\ub85c\ubc14\ud0a4\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:996
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:996
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovak"
+msgstr "슬로바키아 사람"
+
+#. {"msgid": ["\uc2ac\ub85c\ubca0\ub2c8\uc544",
+#. "\uc2ac\ub85c\ubca0\ub2c8\uc544 \uc0ac\ub78c",
+#. "\uc2ac\ub85c\ubca0\ub2c8\uc544 \ub9d0",
+#. "\uc2ac\ub85c\ubca0\ub2c8\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:997
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:997
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovenian"
+msgstr "슬로베니아"
+
+#. {"msgid": ["\uc18c\ub9d0\ub9ac", "\uc18c\ub9d0\ub9ac\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:998
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:998
+#, fuzzy
+msgctxt "language_name"
+msgid "Somali"
+msgstr "소말리"
+
+#. {"msgid": ["\uc0ac\uc6b0\uc2a4 \uc740\ub370\ubca8\ub808",
+#. "\ub0a8\uc740\ub370\ubca8\ub808"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:999
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:999
+#, fuzzy
+msgctxt "language_name"
+msgid "South Ndebele"
+msgstr "사우스 은데벨레"
+
+#. {"msgid": ["\ub0a8\ubd80 \uc18c\ud1a0", "\uc11c\ub358 \uc18c\ud1a0\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1000
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1000
+#, fuzzy
+msgctxt "language_name"
+msgid "Southern Sotho"
+msgstr "남부 소토"
+
+#. {"msgid": ["\uc2a4\ud398\uc778\uc758", "\uc2a4\ud398\uc778 \uc0ac\ub78c",
+#. "\uc2a4\ud398\uc778 \ub9d0", "\uc2a4\ud398\uc778 \ud48d\uc758",
+#. "\uc2a4\ud398\uc778\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1001
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1001
+#, fuzzy
+msgctxt "language_name"
+msgid "Spanish"
+msgstr "스페인의"
+
+#. {"msgid": ["\uc21c\ub2e4\uc5b4", "\uc21c\ub2e4\uc2dd"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1002
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1002
+#, fuzzy
+msgctxt "language_name"
+msgid "Sundanese"
+msgstr "순다어"
+
+#. {"msgid": ["\uc2a4\uc640\ud790\ub9ac\uc5b4(\ub300\ud654\uc5b4)",
+#. "\uc2a4\uc640\ud790\ub9ac\uc5b4(\uac70\ub300 \uc5b8\uc5b4)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1003
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1003
+#, fuzzy
+msgctxt "language_name"
+msgid "Swahili (macrolanguage)"
+msgstr "스와힐리어(대화어)"
+
+#. {"msgid": ["\uc2a4\uc640\ud2f0\uc5b4", "Swati"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1004
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1004
+#, fuzzy
+msgctxt "language_name"
+msgid "Swati"
+msgstr "스와티어"
+
+#. {"msgid": ["\uc2a4\uc6e8\ub374\uc5b4", "\uc2a4\uc6e8\ub374 \uc778",
+#. "\uc2a4\uc6e8\ub374 \uc778\uc758", "\uc2a4\uc6e8\ub374"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1005
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1005
+#, fuzzy
+msgctxt "language_name"
+msgid "Swedish"
+msgstr "스웨덴어"
+
+#. {"msgid": ["\ub300\ub9cc\uc778", "\ub300\ub9cc \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1006
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1006
+#, fuzzy
+msgctxt "language_name"
+msgid "Taiwanese"
+msgstr "대만인"
+
+#. {"msgid": ["\ud0c0\uac08\ub85c\uadf8\uc5b4", "\ub530\uac08\ub85c\uadf8"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1007
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1007
+#, fuzzy
+msgctxt "language_name"
+msgid "Tagalog"
+msgstr "타갈로그어"
+
+#. {"msgid": ["\ud0c0\ud788\ud2f0\uc5b4", "\ud0c0\ud788\ud2f0 \uc0ac\ub78c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1008
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1008
+#, fuzzy
+msgctxt "language_name"
+msgid "Tahitian"
+msgstr "타히티어"
+
+#. {"msgid": ["\ud0c0\uc9c1", "\ud0c0\uc9c0\ud06c\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1009
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1009
+#, fuzzy
+msgctxt "language_name"
+msgid "Tajik"
+msgstr "타직"
+
+#. {"msgid": ["\ud0c0\ubc00 \uc0ac\ub78c", "\ud0c0\ubc00 \ub9d0",
+#. "\ud0c0\ubc00 \ubb38\uc790", "\ud0c0\ubc00\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1010
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1010
+#, fuzzy
+msgctxt "language_name"
+msgid "Tamil"
+msgstr "타밀 사람"
+
+#. {"msgid": ["\ud0c0\ud0c0\ub974\uc5b4", "\ud0c0\ub974\ud0c0\ub974"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1011
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1011
+#, fuzzy
+msgctxt "language_name"
+msgid "Tatar"
+msgstr "타타르어"
+
+#. {"msgid": ["\ud154\ub8e8\uad6c\uc5b4", "Telugu\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1012
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1012
+#, fuzzy
+msgctxt "language_name"
+msgid "Telugu"
+msgstr "텔루구어"
+
+#. {"msgid": ["\ud0dc\uad6d\uc5b4", "\ud0c0\uc774\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1013
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1013
+#, fuzzy
+msgctxt "language_name"
+msgid "Thai"
+msgstr "태국어"
+
+#. {"msgid": ["\ud2f0\ubca0\ud2b8\uc5b4", "\ud2f0\ubcb3\uc778"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1014
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1014
+#, fuzzy
+msgctxt "language_name"
+msgid "Tibetan"
+msgstr "티베트어"
+
+#. {"msgid": ["\ud2f0\uadf8\ub9ac\ub0d0", "Tigrinya"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1015
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1015
+#, fuzzy
+msgctxt "language_name"
+msgid "Tigrinya"
+msgstr "티그리냐"
+
+#. {"msgid": ["\ud1b5\uac00(\ud1b5\uac00 \uc81c\ub3c4)",
+#. "\ud1b5\uac00(\ud1b5\uac00 \uc12c)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1016
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1016
+#, fuzzy
+msgctxt "language_name"
+msgid "Tonga (Tonga Islands)"
+msgstr "통가(통가 제도)"
+
+#. {"msgid": ["\ucd1d\uac00\uc5b4", "\ud1b5\uac00\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1017
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1017
+#, fuzzy
+msgctxt "language_name"
+msgid "Tsonga"
+msgstr "총가어"
+
+#. {"msgid": ["\uce20\uc640\ub098\uc5b4", "\uce20\uc640\ub098"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1018
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1018
+#, fuzzy
+msgctxt "language_name"
+msgid "Tswana"
+msgstr "츠와나어"
+
+#. {"msgid": ["\ud130\ud0a4\uc5b4", "\ud130\ud0a4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1019
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1019
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkish"
+msgstr "터키어"
+
+#. {"msgid": ["\ud22c\ub974\ud06c\uba58 \ub9d0",
+#. "\ud22c\ub974\ud06c\uba58\uc5b4",
+#. "\ud22c\ub974\ud06c\uba54\ub2c8\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1020
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1020
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkmen"
+msgstr "투르크멘 말"
+
+#. {"msgid": ["\ud2b8\uc640\uc774", "\ud2b8\uc704"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1021
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1021
+#, fuzzy
+msgctxt "language_name"
+msgid "Twi"
+msgstr "트와이"
+
+#. {"msgid": ["\uc704\uad6c\ub974", "\uc704\uad6c\ub974\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1022
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1022
+#, fuzzy
+msgctxt "language_name"
+msgid "Uighur"
+msgstr "위구르"
+
+#. {"msgid": ["\uc6b0\ud06c\ub77c\uc774\ub098 \uc778",
+#. "\uc6b0\ud06c\ub77c\uc774\ub098 \ub9d0", "\uc6b0\ud06c\ub77c\uc774\ub098
+#. \uc0ac\ub78c", "\uc6b0\ud06c\ub77c\uc774\ub098\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1023
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1023
+#, fuzzy
+msgctxt "language_name"
+msgid "Ukrainian"
+msgstr "우크라이나 인"
+
+#. {"msgid": ["\uc6b0\ub974\ub450\uc5b4", "\uc6b0\ub974\ub450"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1024
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1024
+#, fuzzy
+msgctxt "language_name"
+msgid "Urdu"
+msgstr "우르두어"
+
+#. {"msgid": ["\uc6b0\uc988\ubca1", "\uc6b0\uc988\ubca0\ud0a4\uc2a4\ud0c4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1025
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1025
+#, fuzzy
+msgctxt "language_name"
+msgid "Uzbek"
+msgstr "우즈벡"
+
+#. {"msgid": ["\ubca4\ub2e4", "Venda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1026
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1026
+#, fuzzy
+msgctxt "language_name"
+msgid "Venda"
+msgstr "벤다"
+
+#. {"msgid": ["\ubca0\ud2b8\ub0a8\uc5b4", "\ubca0\ud2b8\ub0a8 \uc0ac\ub78c",
+#. "\ubca0\ud2b8\ub0a8 \ub9d0"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1027
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1027
+#, fuzzy
+msgctxt "language_name"
+msgid "Vietnamese"
+msgstr "베트남어"
+
+#. {"msgid": ["\ubcfc\ub77c\ud4cc\ud06c", "\ubcfc\ub77c\ud37d"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1028
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1028
+#, fuzzy
+msgctxt "language_name"
+msgid "Volapük"
+msgstr "볼라퓌크"
+
+#. {"msgid": ["\uc648\ub860 \uc0ac\ub78c", "\uc648\ub860 \ub9d0",
+#. "\uc648\ub8ec", "\uc648\ub871"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1029
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1029
+#, fuzzy
+msgctxt "language_name"
+msgid "Walloon"
+msgstr "왈론 사람"
+
+#. {"msgid": ["\uc6e8\uc77c\uc2a4 \ub9d0", "\uc6e8\uc77c\uc2a4 \uc0ac\ub78c",
+#. "\uc6e8\uc77c\uc2a4\uc5b4", "\uc6e8\uc77c\uc988"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1030
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1030
+#, fuzzy
+msgctxt "language_name"
+msgid "Welsh"
+msgstr "웨일스 말"
+
+#. {"msgid": ["\uc11c\ubd80 \uc544\ub974\uba54\ub2c8\uc544\uc5b4",
+#. "\uc11c\uc544\ub974\uba54\ub2c8\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1031
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1031
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Armenian"
+msgstr "서부 아르메니아어"
+
+#. {"msgid": ["\uc11c\ubd80 \ud504\ub9ac\uc9c0\uc544\uc5b4",
+#. "\uc11c\ud504\ub9ac\uc9c0\uc544\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1032
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1032
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Frisian"
+msgstr "서부 프리지아어"
+
+#. {"msgid": ["\uc6d4\ub85c\ud504", "\uc6b8\ub85c\ud504\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1033
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1033
+#, fuzzy
+msgctxt "language_name"
+msgid "Wolof"
+msgstr "월로프"
+
+#. {"msgid": ["\ucf54\uc0ac\uc5b4", "\ud638\uc0ac"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1034
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1034
+#, fuzzy
+msgctxt "language_name"
+msgid "Xhosa"
+msgstr "코사어"
+
+#. {"msgid": ["\uc774\ub514\uc2dc\uc5b4", "\uc774\ub514\uc26c"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1035
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1035
+#, fuzzy
+msgctxt "language_name"
+msgid "Yiddish"
+msgstr "이디시어"
+
+#. {"msgid": ["\uc694\ub8e8\ubc14\uc5b4", "\uc694\ub8e8\ubc14"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1036
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1036
+#, fuzzy
+msgctxt "language_name"
+msgid "Yoruba"
+msgstr "요루바어"
+
+#. {"msgid": ["\uc7a5", "\uc8a1\uc5b4"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1037
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1037
+#, fuzzy
+msgctxt "language_name"
+msgid "Zhuang"
+msgstr "장"
+
+#. {"msgid": ["\uc904\ub8e8 \uc871", "\uc904\ub8e8 \uc0ac\ub78c",
+#. "\uc904\ub8e8 \ub9d0", "\uc904\ub8e8\uc5b4", "\uc904\ub8e8\uc871"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1038
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1038
+#, fuzzy
+msgctxt "language_name"
+msgid "Zulu"
+msgstr "줄루 족"

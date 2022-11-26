@@ -1,0 +1,533 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 12:01+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: VI\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["B\u1ea1n ph\u1ea3i t\u00edch l\u0169y <strong>\u00edt nh\u1ea5t
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ti\u1ec1n th\u01b0\u1edfng
+#. \u0111\u1ec3 c\u00f3 th\u1ec3 \u0111\u01b0\u1ee3c b\u1ed3i
+#. th\u01b0\u1eddng.", "B\u1ea1n ph\u1ea3i t\u00edch l\u0169y <strong>\u00edt
+#. nh\u1ea5t $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ti\u1ec1n
+#. th\u01b0\u1edfng th\u00ec m\u1edbi c\u00f3 th\u1ec3 \u0111\u01b0\u1ee3c
+#. tr\u1ea3 th\u01b0\u1edfng."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Bạn phải tích lũy <strong>ít nhất "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> tiền thưởng để có thể được bồi"
+" thường."
+
+#. {"msgid": ["ti\u1ec1n th\u01b0\u1edfng t\u00edch l\u0169y", "t\u00edch
+#. l\u0169y ti\u1ec1n th\u01b0\u1edfng"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "tiền thưởng tích lũy"
+
+#. {"msgid": ["\u0110\u00f3ng c\u1eeda s\u1ed5", "c\u1eeda s\u1ed5
+#. \u0111\u00f3ng"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Đóng cửa sổ"
+
+#. {"msgid": ["h\u1ee7y th\u1eed nghi\u1ec7m", "H\u1ee7y b\u1ecf th\u1eed
+#. nghi\u1ec7m"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "hủy thử nghiệm"
+
+#. {"msgid": ["Ho\u00e0n t\u1ea5t kh\u1ea3o s\u00e1t", "Ho\u00e0n th\u00e0nh
+#. kh\u1ea3o s\u00e1t", "ho\u00e0n th\u00e0nh cu\u1ed9c kh\u1ea3o s\u00e1t"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Hoàn tất khảo sát"
+
+#. {"msgid": ["Ngo\u00e0i kho\u1ea3n thanh to\u00e1n c\u01a1 s\u1edf
+#. <strong>$%(BASE_PAYMENT)s</strong>, b\u1ea1n s\u1ebd nh\u1eadn
+#. \u0111\u01b0\u1ee3c kho\u1ea3n ti\u1ec1n th\u01b0\u1edfng
+#. <strong>$%(BONUS)s</strong> cho th\u1eddi gian b\u1ea1n d\u00e0nh cho
+#. th\u1eed nghi\u1ec7m.", "Ngo\u00e0i kho\u1ea3n thanh to\u00e1n c\u01a1
+#. b\u1ea3n l\u00e0 <strong>$%(BASE_PAYMENT)s</strong>, b\u1ea1n s\u1ebd
+#. nh\u1eadn \u0111\u01b0\u1ee3c kho\u1ea3n ti\u1ec1n th\u01b0\u1edfng l\u00e0
+#. <strong>$%(BONUS)s</strong> cho th\u1eddi gian b\u1ea1n \u0111\u00e3
+#. d\u00e0nh cho th\u1eed nghi\u1ec7m."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Ngoài khoản thanh toán cơ sở <strong>$%(BASE_PAYMENT)s</strong>, bạn sẽ nhận"
+" được khoản tiền thưởng <strong>$%(BONUS)s</strong> cho thời gian bạn dành "
+"cho thử nghiệm."
+
+#. {"msgid": ["B\u1ea1n c\u0169ng \u0111\u00e3 \u0111\u01b0\u1ee3c
+#. th\u01b0\u1edfng ph\u1ea7n th\u01b0\u1edfng hi\u1ec7u su\u1ea5t
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "B\u1ea1n c\u0169ng \u0111\u00e3
+#. \u0111\u01b0\u1ee3c th\u01b0\u1edfng hi\u1ec7u su\u1ea5t
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Bạn cũng đã được thưởng phần thưởng hiệu suất "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Vui l\u00f2ng b\u1ea5m \"Finish\" \u0111\u1ec3 ho\u00e0n
+#. th\u00e0nh HIT.", "Vui l\u00f2ng nh\u1ea5p v\u00e0o \"Ho\u00e0n
+#. th\u00e0nh\" \u0111\u1ec3 ho\u00e0n th\u00e0nh HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Vui lòng bấm \"Finish\" để hoàn thành HIT."
+
+#. {"msgid": ["K\u1ebft th\u00fac", "Ho\u00e0n th\u00e0nh", "K\u1ebft
+#. li\u1ec5u", "\u0110\u00edch"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Kết thúc"
+
+#. {"msgid": ["C\u1ea3m \u01a1n b\u1ea1n \u0111\u00e3 tham gia.", "C\u1ea3m
+#. \u01a1n v\u00ec \u0111\u00e3 tham gia."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Cảm ơn bạn đã tham gia."
+
+#. {"msgid": ["Ti\u1ebfp theo", "K\u1ebf ti\u1ebfp", "B\u00ean c\u1ea1nh"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Tiếp theo"
+
+#. {"msgid": ["N\u1ebfu \u0111\u00e2y kh\u00f4ng ph\u1ea3i l\u00e0
+#. tr\u01b0\u1eddng h\u1ee3p, vui l\u00f2ng li\u00ean h\u1ec7 v\u1edbi
+#. ch\u00fang t\u00f4i t\u1ea1i %(EMAIL)s tr\u00edch d\u1eabn th\u00f4ng tin
+#. sau:", "N\u1ebfu kh\u00f4ng ph\u1ea3i nh\u01b0 v\u1eady, vui l\u00f2ng
+#. li\u00ean h\u1ec7 v\u1edbi ch\u00fang t\u00f4i theo \u0111\u1ecba ch\u1ec9
+#. %(EMAIL)s tr\u00edch d\u1eabn th\u00f4ng tin sau:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Nếu đây không phải là trường hợp, vui lòng liên hệ với chúng tôi tại "
+"%(EMAIL)s trích dẫn thông tin sau:"
+
+#. {"msgid": ["\u0110\u1ec3 h\u1ecfi v\u1ec1 b\u1ed3i th\u01b0\u1eddng, vui
+#. l\u00f2ng li\u00ean h\u1ec7 v\u1edbi nh\u00e0 nghi\u00ean c\u1ee9u t\u1ea1i
+#. %(EMAIL)s v\u00e0 m\u00f4 t\u1ea3 nguy\u00ean nh\u00e2n d\u1eabn
+#. \u0111\u1ebfn l\u1ed7i n\u00e0y.", "\u0110\u1ec3 h\u1ecfi v\u1ec1
+#. kho\u1ea3n b\u1ed3i th\u01b0\u1eddng, vui l\u00f2ng li\u00ean h\u1ec7
+#. v\u1edbi nh\u00e0 nghi\u00ean c\u1ee9u t\u1ea1i %(EMAIL)s v\u00e0 m\u00f4
+#. t\u1ea3 nguy\u00ean nh\u00e2n d\u1eabn \u0111\u1ebfn l\u1ed7i n\u00e0y."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Để hỏi về bồi thường, vui lòng liên hệ với nhà nghiên cứu tại %(EMAIL)s và "
+"mô tả nguyên nhân dẫn đến lỗi này."
+
+#. {"msgid": ["H\u1ee7y b\u1ecf th\u1eed nghi\u1ec7m", "H\u1ee7y th\u1eed
+#. nghi\u1ec7m"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Hủy bỏ thử nghiệm"
+
+#. {"msgid": ["\u0110ang ti\u1ebfp t\u1ee5c th\u1eed nghi\u1ec7m...",
+#. "Ti\u1ebfp t\u1ee5c th\u1eed nghi\u1ec7m ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Đang tiếp tục thử nghiệm..."
+
+#. {"msgid": ["H\u1ee7y b\u1ecf l\u00e0 kh\u00f4ng th\u1ec3.", "Kh\u00f4ng
+#. th\u1ec3 h\u1ee7y b\u1ecf."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Hủy bỏ là không thể."
+
+#. {"msgid": ["B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n h\u1ee7y
+#. th\u1eed nghi\u1ec7m kh\u00f4ng?", "B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn
+#. mu\u1ed1n h\u1ee7y b\u1ecf th\u1eed nghi\u1ec7m?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Bạn có chắc chắn muốn hủy thử nghiệm không?"
+
+#. {"msgid": ["G\u1eedi kh\u1ea3o s\u00e1t s\u00e1ng su\u1ed1t", "\u0110\u1ec7
+#. tr\u00ecnh kh\u1ea3o s\u00e1t Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Gửi khảo sát sáng suốt"
+
+#. {"msgid": ["S\u1ef1 \u0111\u1ed3ng \u00fd \u0111\u00e3 b\u1ecb t\u1eeb
+#. ch\u1ed1i.", "Ch\u1ea5p thu\u1eadn \u0111\u00e3 b\u1ecb t\u1eeb
+#. ch\u1ed1i."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Sự đồng ý đã bị từ chối."
+
+#. {"msgid": ["Th\u1ebf l\u00e0 h\u1ebft th\u00ed nghi\u1ec7m!", "\u0110\u00f3
+#. l\u00e0 k\u1ebft th\u00fac c\u1ee7a th\u1eed nghi\u1ec7m!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Thế là hết thí nghiệm!"
+
+#. {"msgid": ["R\u1ea5t ti\u1ebfc th\u00ed nghi\u1ec7m ph\u1ea3i k\u1ebft
+#. th\u00fac s\u1edbm.", "\u0110\u00e1ng ti\u1ebfc l\u00e0 cu\u1ed9c th\u1eed
+#. nghi\u1ec7m ph\u1ea3i k\u1ebft th\u00fac s\u1edbm."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Rất tiếc thí nghiệm phải kết thúc sớm."
+
+#. {"msgid": ["L\u1ed7i!", "Sai l\u1ea7m!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Lỗi!"
+
+#. {"msgid": ["B\u1eaft \u0111\u1ea7u th\u1eed nghi\u1ec7m...", "\u0110ang
+#. b\u1eaft \u0111\u1ea7u th\u00ed nghi\u1ec7m..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Bắt đầu thử nghiệm..."
+
+#. {"msgid": ["Trong tr\u01b0\u1eddng h\u1ee3p c\u00f3 v\u1ea5n \u0111\u1ec1,
+#. h\u00e3y th\u1eed nh\u01b0 sau:", "Trong tr\u01b0\u1eddng h\u1ee3p x\u1ea3y
+#. ra s\u1ef1 c\u1ed1, h\u00e3y th\u1eed c\u00e1c c\u00e1ch sau:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Trong trường hợp có vấn đề, hãy thử như sau:"
+
+#. {"msgid": ["B\u1ea1n \u0111\u00e3 s\u1eb5n s\u00e0ng ch\u01b0a?", "B\u1ea1n
+#. s\u1eb5n s\u00e0ng ch\u01b0a?", "b\u1ea1n \u0111\u00e3 s\u1eb5n
+#. s\u00e0ng?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Bạn đã sẵn sàng chưa?"
+
+#. {"msgid": ["Th\u01b0\u1edfng", "T\u0103\u0323ng kem", "ti\u1ec1n
+#. th\u01b0\u1edfng"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Thưởng"
+
+#. {"msgid": ["ID ng\u01b0\u1eddi tham gia c\u1ee7a b\u1ea1n kh\u00f4ng
+#. \u0111\u01b0\u1ee3c x\u00e1c \u0111\u1ecbnh, c\u00f3 th\u1ec3 do b\u1ea1n
+#. \u0111\u00e3 chuy\u1ec3n \u0111\u1ed5i tr\u00ecnh duy\u1ec7t trong qu\u00e1
+#. tr\u00ecnh th\u1eed nghi\u1ec7m.", "ID ng\u01b0\u1eddi tham gia c\u1ee7a
+#. b\u1ea1n kh\u00f4ng \u0111\u01b0\u1ee3c x\u00e1c \u0111\u1ecbnh, c\u00f3
+#. th\u1ec3 do b\u1ea1n \u0111\u00e3 chuy\u1ec3n tr\u00ecnh duy\u1ec7t trong
+#. qu\u00e1 tr\u00ecnh ki\u1ec3m tra."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"ID người tham gia của bạn không được xác định, có thể do bạn đã chuyển đổi "
+"trình duyệt trong quá trình thử nghiệm."
+
+#. {"msgid": ["Kh\u00f4ng th\u1ec3 h\u1ee7y b\u1ecf th\u1eed nghi\u1ec7m
+#. v\u00ec ng\u01b0\u1eddi th\u1eed nghi\u1ec7m kh\u00f4ng cho ph\u00e9p
+#. v\u00e0o l\u00fac n\u00e0y!", "Vi\u1ec7c h\u1ee7y b\u1ecf th\u1eed
+#. nghi\u1ec7m l\u00e0 kh\u00f4ng th\u1ec3 v\u00ec ng\u01b0\u1eddi th\u1eed
+#. nghi\u1ec7m kh\u00f4ng cho ph\u00e9p v\u00e0o l\u00fac n\u00e0y!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Không thể hủy bỏ thử nghiệm vì người thử nghiệm không cho phép vào lúc này!"
+
+#. {"msgid": ["N\u1ebfu b\u1ea1n nh\u1ea5p v\u00e0o n\u00fat H\u1ee7y b\u1ecf,
+#. th\u1eed nghi\u1ec7m s\u1ebd k\u1ebft th\u00fac s\u1edbm v\u00e0 b\u1ea1n
+#. s\u1ebd t\u1ef1 \u0111\u1ed9ng \u0111\u01b0\u1ee3c tr\u1ea3 kho\u1ea3n
+#. th\u00f9 lao m\u00e0 b\u1ea1n \u0111\u00e3 ki\u1ebfm \u0111\u01b0\u1ee3c
+#. cho \u0111\u1ebfn nay.", "N\u1ebfu b\u1ea1n nh\u1ea5p v\u00e0o n\u00fat
+#. H\u1ee7y b\u1ecf, th\u1eed nghi\u1ec7m s\u1ebd k\u1ebft th\u00fac s\u1edbm
+#. v\u00e0 b\u1ea1n s\u1ebd t\u1ef1 \u0111\u1ed9ng \u0111\u01b0\u1ee3c
+#. tr\u1ea3 kho\u1ea3n th\u00f9 lao m\u00e0 b\u1ea1n \u0111\u00e3 ki\u1ebfm
+#. \u0111\u01b0\u1ee3c cho \u0111\u1ebfn th\u1eddi \u0111i\u1ec3m n\u00e0y."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Nếu bạn nhấp vào nút Hủy bỏ, thử nghiệm sẽ kết thúc sớm và bạn sẽ tự động "
+"được trả khoản thù lao mà bạn đã kiếm được cho đến nay."
+
+#. {"msgid": ["\u0110\u1ec3 ho\u00e0n th\u00e0nh Kh\u1ea3o s\u00e1t Lucid
+#. c\u1ee7a b\u1ea1n, h\u00e3y nh\u1ea5p v\u00e0o n\u00fat b\u00ean
+#. d\u01b0\u1edbi.", "\u0110\u1ec3 ho\u00e0n th\u00e0nh Kh\u1ea3o s\u00e1t
+#. s\u00e1ng su\u1ed1t c\u1ee7a b\u1ea1n, nh\u1ea5p v\u00e0o n\u00fat b\u00ean
+#. d\u01b0\u1edbi."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Để hoàn thành Khảo sát Lucid của bạn, hãy nhấp vào nút bên dưới."
+
+#. {"msgid": ["K\u1ebft th\u00fac th\u00ed nghi\u1ec7m.", "K\u1ebft th\u00fac
+#. th\u1ef1c nghi\u1ec7m."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Kết thúc thí nghiệm."
+
+#. {"msgid": ["Tuy nhi\u00ean, b\u1ea1n v\u1eabn s\u1ebd \u0111\u01b0\u1ee3c
+#. tr\u1ea3 ti\u1ec1n cho th\u1eddi gian b\u1ea1n \u0111\u00e3 b\u1ecf ra.",
+#. "Tuy nhi\u00ean, b\u1ea1n v\u1eabn s\u1ebd \u0111\u01b0\u1ee3c tr\u1ea3
+#. ti\u1ec1n cho kho\u1ea3ng th\u1eddi gian b\u1ea1n \u0111\u00e3 b\u1ecf
+#. ra."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Tuy nhiên, bạn vẫn sẽ được trả tiền cho thời gian bạn đã bỏ ra."
+
+#. {"msgid": ["B\u1ea1n c\u00f3 th\u1ec3 h\u1ee7y b\u1ecf th\u1eed nghi\u1ec7m
+#. b\u1eb1ng n\u00fat <strong>H\u1ee7y th\u1eed nghi\u1ec7m</strong>
+#. <strong>tr\u00ean trang qu\u1ea3ng c\u00e1o MTurk</strong>.", "B\u1ea1n
+#. c\u00f3 th\u1ec3 h\u1ee7y th\u1eed nghi\u1ec7m b\u1eb1ng c\u00e1ch s\u1eed
+#. d\u1ee5ng n\u00fat <strong>H\u1ee7y th\u1eed nghi\u1ec7m</strong>
+#. <strong>tr\u00ean trang qu\u1ea3ng c\u00e1o MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Bạn có thể hủy bỏ thử nghiệm bằng nút <strong>Hủy thử nghiệm</strong> "
+"<strong>trên trang quảng cáo MTurk</strong>."
+
+#. {"msgid": ["T\u1ea3i l\u1ea1i trang.", "N\u1ea1p l\u1ea1i trang."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Tải lại trang."
+
+#. {"msgid": ["Nh\u1ea5p v\u00e0o n\u00fat khi b\u1ea1n \u0111\u00e3 s\u1eb5n
+#. s\u00e0ng ti\u1ebfp t\u1ee5c th\u1eed nghi\u1ec7m.", "H\u00e3y nh\u1ea5p
+#. v\u00e0o n\u00fat khi b\u1ea1n \u0111\u00e3 s\u1eb5n s\u00e0ng ti\u1ebfp
+#. t\u1ee5c th\u1eed nghi\u1ec7m."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Nhấp vào nút khi bạn đã sẵn sàng tiếp tục thử nghiệm."
+
+#. {"msgid": ["C\u1ee9u gi\u00fap!", "Tr\u1ee3 gi\u00fap!", "Gi\u00fap!",
+#. "Gi\u00fap \u0111\u1ee1!", "S\u1ef1 gi\u00fap \u0111\u1ee1!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Cứu giúp!"
+
+#. {"msgid": ["Th\u1eadt kh\u00f4ng may, h\u00e0nh vi n\u00e0y hi\u1ec7n
+#. kh\u00f4ng \u0111\u01b0\u1ee3c h\u1ed7 tr\u1ee3.", "R\u1ea5t ti\u1ebfc,
+#. hi\u1ec7n t\u1ea1i h\u00e0nh vi n\u00e0y kh\u00f4ng \u0111\u01b0\u1ee3c
+#. h\u1ed7 tr\u1ee3."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Thật không may, hành vi này hiện không được hỗ trợ."
+
+#. {"msgid": ["Xem th\u00f4ng tin b\u00ean d\u01b0\u1edbi v\u1ec1 ti\u1ec1n
+#. th\u01b0\u1edfng t\u00edch l\u0169y hi\u1ec7n t\u1ea1i c\u1ee7a b\u1ea1n.",
+#. "Xem th\u00f4ng tin b\u00ean d\u01b0\u1edbi v\u1ec1 ti\u1ec1n
+#. th\u01b0\u1edfng hi\u1ec7n t\u1ea1i t\u00edch l\u0169y c\u1ee7a
+#. b\u1ea1n."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Xem thông tin bên dưới về tiền thưởng tích lũy hiện tại của bạn."
+
+#. {"msgid": ["Vui l\u00f2ng ch\u1ec9 li\u00ean h\u1ec7 v\u1edbi ch\u00fang
+#. t\u00f4i n\u1ebfu b\u1ea1n g\u1eb7p s\u1ef1 c\u1ed1 khi nh\u1eadn
+#. kho\u1ea3n thanh to\u00e1n c\u1ee7a m\u00ecnh.", "Vui l\u00f2ng ch\u1ec9
+#. li\u00ean h\u1ec7 v\u1edbi ch\u00fang t\u00f4i n\u1ebfu b\u1ea1n g\u1eb7p
+#. kh\u00f3 kh\u0103n khi nh\u1eadn thanh to\u00e1n."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Vui lòng chỉ liên hệ với chúng tôi nếu bạn gặp sự cố khi nhận khoản thanh "
+"toán của mình."
+
+#. {"msgid": ["Xem th\u00f4ng tin b\u00ean d\u01b0\u1edbi \u0111\u1ec3
+#. bi\u1ebft chi ti\u1ebft v\u1ec1 kho\u1ea3n b\u1ed3i th\u01b0\u1eddng
+#. c\u1ee7a b\u1ea1n.", "Xem th\u00f4ng tin d\u01b0\u1edbi \u0111\u00e2y
+#. \u0111\u1ec3 bi\u1ebft chi ti\u1ebft v\u1ec1 b\u1ed3i th\u01b0\u1eddng
+#. c\u1ee7a b\u1ea1n."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Xem thông tin bên dưới để biết chi tiết về khoản bồi thường của bạn."
+
+#. {"msgid": ["Sau khi ph\u00e1 thai, kh\u00f4ng c\u1ea7n li\u00ean h\u1ec7
+#. v\u1edbi ch\u00fang t\u00f4i \u0111\u1ec3 nh\u1eadn ti\u1ec1n b\u1ed3i
+#. th\u01b0\u1eddng;", "M\u1ed9t khi \u0111\u00e3 h\u1ee7y b\u1ecf, kh\u00f4ng
+#. c\u1ea7n ph\u1ea3i li\u00ean h\u1ec7 v\u1edbi ch\u00fang t\u00f4i
+#. \u0111\u1ec3 nh\u1eadn ti\u1ec1n b\u1ed3i th\u01b0\u1eddng;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Sau khi phá thai, không cần liên hệ với chúng tôi để nhận tiền bồi thường;"
+
+#. {"msgid": ["C\u0169ng xin tr\u00edch d\u1eabn c\u00e1c th\u00f4ng tin
+#. sau:", "C\u0169ng xin tr\u00edch d\u1eabn nh\u1eefng th\u00f4ng tin sau
+#. \u0111\u00e2y:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Cũng xin trích dẫn các thông tin sau:"
+
+#. {"msgid": ["B\u1ea5m v\u00e0o n\u00fat tr\u00ean \u0111\u1ec3
+#. \u0111\u01b0\u1ee3c \u0111\u1ec1n b\u00f9 khi c\u00f3 l\u1ed7i.",
+#. "Nh\u1ea5n v\u00e0o n\u00fat tr\u00ean \u0111\u1ec3 \u0111\u01b0\u1ee3c
+#. \u0111\u1ec1n b\u00f9 n\u1ebfu c\u00f3 l\u1ed7i."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Bấm vào nút trên để được đền bù khi có lỗi."
+
+#. {"msgid": ["Ki\u1ec3m tra xem k\u1ebft n\u1ed1i internet c\u1ee7a b\u1ea1n
+#. c\u00f3 ho\u1ea1t \u0111\u1ed9ng kh\u00f4ng.", "Ki\u1ec3m tra xem k\u1ebft
+#. n\u1ed1i internet c\u1ee7a b\u1ea1n \u0111ang ho\u1ea1t \u0111\u1ed9ng."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Kiểm tra xem kết nối internet của bạn có hoạt động không."
+
+#. {"msgid": ["N\u1ebfu nh\u1eefng \u0111i\u1ec1u tr\u00ean kh\u00f4ng
+#. h\u1eefu \u00edch, h\u00e3y g\u1eedi email cho ch\u00fang t\u00f4i v\u1edbi
+#. th\u00f4ng tin sau:", "N\u1ebfu nh\u1eefng \u0111i\u1ec1u tr\u00ean
+#. kh\u00f4ng gi\u00fap \u0111\u01b0\u1ee3c g\u00ec, h\u00e3y g\u1eedi email
+#. cho ch\u00fang t\u00f4i v\u1edbi c\u00e1c th\u00f4ng tin sau:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Nếu những điều trên không hữu ích, hãy gửi email cho chúng tôi với thông tin"
+" sau:"
+
+#. {"msgid": ["M\u1ed9t li\u00ean k\u1ebft \u0111\u1ebfn trang web hi\u1ec7n
+#. t\u1ea1i;", "Li\u00ean k\u1ebft t\u1edbi trang web hi\u1ec7n t\u1ea1i;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Một liên kết đến trang web hiện tại;"
+
+#. {"msgid": ["ID nh\u00e2n vi\u00ean c\u1ee7a b\u1ea1n;", "M\u00e3 s\u1ed1
+#. c\u00f4ng nh\u00e2n c\u1ee7a b\u1ea1n;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ID nhân viên của bạn;"
+
+#. {"msgid": ["V\u1ea5n \u0111\u1ec1 b\u1ea1n \u0111ang g\u1eb7p ph\u1ea3i.",
+#. "S\u1ef1 c\u1ed1 m\u00e0 b\u1ea1n \u0111ang g\u1eb7p ph\u1ea3i."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Vấn đề bạn đang gặp phải."
+
+#. {"msgid": ["S\u01a1 y\u1ebfu l\u00fd l\u1ecbch", "Ti\u1ebfp t\u1ee5c",
+#. "B\u1ea3n t\u00f3m t\u1eaft", "Chi\u1ebfm l\u1ea1i"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Sơ yếu lý lịch"

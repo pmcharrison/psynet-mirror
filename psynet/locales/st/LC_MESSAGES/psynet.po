@@ -1,0 +1,467 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:57+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: ST\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["U tlameha ho bokella <strong>bonyane
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ea bonase hore o tle o tsebe
+#. ho lefuoa.", "U tlameha ho bokella <strong>bonyane
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ea bonase hore o tle o tsebe
+#. ho fumana mat\u0161eliso."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"U tlameha ho bokella <strong>bonyane "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ea bonase hore o tle o tsebe "
+"ho lefuoa."
+
+#. {"msgid": ["Bonus e bokelletsoeng", "Bonus e bokeletseng"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Bonus e bokelletsoeng"
+
+#. {"msgid": ["Koala fensetere", "Kwala fensetere"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Koala fensetere"
+
+#. {"msgid": ["Tlosa teko", "Hlakola liteko"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Tlosa teko"
+
+#. {"msgid": ["Patlisiso e Feletseng", "Liphuputso Tse Feletseng"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Patlisiso e Feletseng"
+
+#. {"msgid": ["Ntle le tefo ea hau ea mantlha ea
+#. <strong>$%(BASE_PAYMENT)s</strong> u tla fumana bonase ea
+#. <strong>$%(BONUS)s</strong> bakeng sa nako eo u e sebelisitseng tekong.",
+#. "Ntle le tefo ea hau ea mantlha ea <strong>$%(BASE_PAYMENT)s</strong> u tla
+#. fumana bonase ea <strong>$%(BONUS)s</strong> bakeng sa nako eo u e qetileng
+#. tekong."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Ntle le tefo ea hau ea mantlha ea <strong>$%(BASE_PAYMENT)s</strong> u tla "
+"fumana bonase ea <strong>$%(BONUS)s</strong> bakeng sa nako eo u e "
+"sebelisitseng tekong."
+
+#. {"msgid": ["Hape u filoe bonus ea ts'ebetso ea
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Hape u filoe moputso oa bonase
+#. ea t\u0161ebetso ea <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Hape u filoe bonus ea ts'ebetso ea <strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Ka kopo, tobetsa \"Finish\" ho phethela HIT.", "Ka kopo,
+#. tobetsa \"Finish\" ho tlatsa HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Ka kopo, tobetsa \"Finish\" ho phethela HIT."
+
+#. {"msgid": ["Qetella", "Qeta"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Qetella"
+
+#. {"msgid": ["Kea leboha ha u nkile karolo.", "Kea le leboha ka ho nka
+#. karolo."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Kea leboha ha u nkile karolo."
+
+#. {"msgid": ["E 'ngoe", "E latelang", "E hlahlamang"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "E 'ngoe"
+
+#. {"msgid": ["Haeba ho se joalo, ka kopo ikopanye le rona ho %(EMAIL)s u
+#. qotsa lintlha tse latelang:", "Ha ho se joalo, ka kopo ikopanye le rona ho
+#. %(EMAIL)s u qotsa lintlha tse latelang:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Haeba ho se joalo, ka kopo ikopanye le rona ho %(EMAIL)s u qotsa lintlha tse"
+" latelang:"
+
+#. {"msgid": ["Ho tseba ka mats'eliso, ka kopo ikopanye le mofuputsi ho
+#. %(EMAIL)s 'me u hlalose se bakileng phoso ena.", "Ho tseba ka mats'eliso,
+#. ka kopo ikopanye le mofuputsi ho %(EMAIL)s 'me u hlalose hore na ke eng e
+#. lebisitseng phosong ena."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Ho tseba ka mats'eliso, ka kopo ikopanye le mofuputsi ho %(EMAIL)s 'me u "
+"hlalose se bakileng phoso ena."
+
+#. {"msgid": ["Tlosa Teko", "Hlakola Teko"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Tlosa Teko"
+
+#. {"msgid": ["E qala liteko hape...", "E tsoela pele ho etsa liteko ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "E qala liteko hape..."
+
+#. {"msgid": ["Ho nt\u0161a mpa ha ho khonehe.", "Ho nt\u0161a mpa ho ke ke ha
+#. khoneha."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Ho ntša mpa ha ho khonehe."
+
+#. {"msgid": ["Na ehlile u batla ho hlakola teko?", "A na u na le bonnete ba
+#. hore u batla ho felisa teko?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Na ehlile u batla ho hlakola teko?"
+
+#. {"msgid": ["Tlhahiso ea Patlisiso ea Lucid", "Phatlalatso ea Lipatlisiso
+#. tsa Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Tlhahiso ea Patlisiso ea Lucid"
+
+#. {"msgid": ["Tumello e ile ea hanoa.", "Tumellano e ile ea hanoa."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Tumello e ile ea hanoa."
+
+#. {"msgid": ["Ke pheletso ea teko!", "Ke pheletso ya teko eo!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Ke pheletso ea teko!"
+
+#. {"msgid": ["Ka bomalimabe teko e tlameha ho fela kapele.", "Ka bomalimabe,
+#. teko e tlameha ho fela pele ho nako."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Ka bomalimabe teko e tlameha ho fela kapele."
+
+#. {"msgid": ["Phoso!", "Bothata!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Phoso!"
+
+#. {"msgid": ["E qala teko...", "E qala ho etsa liteko..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "E qala teko..."
+
+#. {"msgid": ["Ha ho na le bothata, leka tse latelang:", "Ha ho na le bothata,
+#. leka ho etsa tse latelang:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Ha ho na le bothata, leka tse latelang:"
+
+#. {"msgid": ["A na u lokile?", "Na u se u loketse?", "A na u se u
+#. itokisitse?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "A na u lokile?"
+
+#. {"msgid": ["Bonase", "Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonase"
+
+#. {"msgid": ["ID ea monkakarolo oa hau ha e hlalosoe, mohlomong hobane u
+#. fetotse libatli nakong ea tlhahlobo.", "ID ea motho ea nkang karolo ha e
+#. hlalosoe, mohlomong hobane u fetotse libatli nakong ea tlhahlobo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"ID ea monkakarolo oa hau ha e hlalosoe, mohlomong hobane u fetotse libatli "
+"nakong ea tlhahlobo."
+
+#. {"msgid": ["Ho felisa teko ha ho khonehe kaha motho ea lekang ha a e
+#. lumelle ka nako ena!", "Ho tlosa teko ha ho khonehe kaha motho ea lekang ha
+#. a lumelle hona joale!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ho felisa teko ha ho khonehe kaha motho ea lekang ha a e lumelle ka nako "
+"ena!"
+
+#. {"msgid": ["Haeba o tobetsa konopo ea Aboha, teko e tla fela pele ho nako,
+#. 'me u tla lefshoa ka bohona mat\u0161eliso ao u a fumaneng ho fihlela
+#. joale.", "Haeba o tobetsa konopo ea Aboha, teko e tla fela pele ho nako,
+#. 'me u tla lefshoa ka bo eona mats'eliso ao u seng u a fumane ho fihlela
+#. joale."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Haeba o tobetsa konopo ea Aboha, teko e tla fela pele ho nako, 'me u tla "
+"lefshoa ka bohona matšeliso ao u a fumaneng ho fihlela joale."
+
+#. {"msgid": ["Ho phethela Patlisiso ea hau ea Lucid, tobetsa konopo e ka
+#. tlase.", "Ho phethela Phuputso ea hau ea Lucid, tobetsa konopo e ka
+#. tlase."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Ho phethela Patlisiso ea hau ea Lucid, tobetsa konopo e ka tlase."
+
+#. {"msgid": ["Qetello ya teko.", "Qetellong ea liteko."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Qetello ya teko."
+
+#. {"msgid": ["Leha ho le joalo, u ntse u tla lefshoa bakeng sa nako eo u e
+#. sebelisitseng.", "Leha ho le joalo, u ntse u tla lefshoa bakeng sa nako eo
+#. u e qetileng u se u ntse u e sebelisa."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Leha ho le joalo, u ntse u tla lefshoa bakeng sa nako eo u e sebelisitseng."
+
+#. {"msgid": ["U ka khona ho hlakola teko eo u sebelisa konopo ea
+#. <strong>Abort Abortion</strong> <strong>leqepheng la papatso la
+#. MTurk</strong>.", "U ka khona ho hlakola teko eo ka ho sebelisa konopo ea
+#. <strong>Abort Abortion</strong> <strong>leqepheng la papatso la
+#. MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"U ka khona ho hlakola teko eo u sebelisa konopo ea <strong>Abort "
+"Abortion</strong> <strong>leqepheng la papatso la MTurk</strong>."
+
+#. {"msgid": ["Kenya leqephe hape.", "Khutlisetsa leqephe hape."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Kenya leqephe hape."
+
+#. {"msgid": ["Tobetsa konopo ha u se u loketse ho tsoela pele ka teko.",
+#. "Tobetsa konopo ha o se o loketse ho nt\u0161etsa pele teko."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Tobetsa konopo ha u se u loketse ho tsoela pele ka teko."
+
+#. {"msgid": ["Thusa!", "Thusang!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Thusa!"
+
+#. {"msgid": ["Ka bomalimabe, mokhoa ona ha o sebetse hajoale.", "Ka
+#. bomalimabe, mokhoa ona ha o sa t\u0161ehetsoa hajoale."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Ka bomalimabe, mokhoa ona ha o sebetse hajoale."
+
+#. {"msgid": ["Sheba lintlha tse ka tlase mabapi le bonase ea hau e
+#. bokelletsoeng hajoale.", "Sheba lintlha tse ka tlase mabapi le bonase ea
+#. hau eo u e bokeletseng hajoale."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr ""
+"Sheba lintlha tse ka tlase mabapi le bonase ea hau e bokelletsoeng hajoale."
+
+#. {"msgid": ["Ka kopo, ikopanye le rona ha feela u na le bothata ba ho fumana
+#. tefo ea hau.", "Ka kopo, ikopanye le rona feela haeba u na le bothata ba ho
+#. fumana tefo ea hau."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Ka kopo, ikopanye le rona ha feela u na le bothata ba ho fumana tefo ea hau."
+
+#. {"msgid": ["Sheba lintlha tse ka tlase bakeng sa lintlha tsa mat\u0161eliso
+#. a hau.", "Sheba lintlha tse ka tlase bakeng sa lintlha tse mabapi le
+#. mat\u0161eliso a hau."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Sheba lintlha tse ka tlase bakeng sa lintlha tsa matšeliso a hau."
+
+#. {"msgid": ["Hang ha e nt\u0161oa, ha ho hlokahale hore u iteanye le rona ho
+#. fumana mat\u0161eliso;", "Hang ha e nt\u0161oa, ha ho na lebaka la ho
+#. ikopanya le rona ho fumana mat\u0161eliso;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Hang ha e ntšoa, ha ho hlokahale hore u iteanye le rona ho fumana matšeliso;"
+
+#. {"msgid": ["Ka kopo, qotsa lintlha tse latelang:", "Hape ka kopo qotsa
+#. lintlha tse latelang:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Ka kopo, qotsa lintlha tse latelang:"
+
+#. {"msgid": ["Tobetsa konopo e ka holimo hore o lefelle haeba phoso e
+#. hlaha.", "Tobetsa konopo e ka holimo hore o lefelle haeba phoso e ka ba
+#. teng."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Tobetsa konopo e ka holimo hore o lefelle haeba phoso e hlaha."
+
+#. {"msgid": ["Sheba hore na khokahanyo ea hau ea Marang-rang e ea sebetsa.",
+#. "Hlahloba hore na khokahanyo ea hau ea Marang-rang e ea sebetsa."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Sheba hore na khokahanyo ea hau ea Marang-rang e ea sebetsa."
+
+#. {"msgid": ["Haeba lintlha tse ka holimo li sa thuse, re romelle lengolo-
+#. tsoibila le nang le lintlha tse latelang:", "Haeba lintlha tse ka holimo li
+#. sa thuse, re romelle imeile e nang le lintlha tse latelang:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Haeba lintlha tse ka holimo li sa thuse, re romelle lengolo-tsoibila le nang"
+" le lintlha tse latelang:"
+
+#. {"msgid": ["Khokahano ea leqephe la hajoale la tepo;", "Khokahano ea
+#. leqephe la tepo la hajoale;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Khokahano ea leqephe la hajoale la tepo;"
+
+#. {"msgid": ["ID ea hau ea Basebetsi;", "ID ea hau ea mosebelisi;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ID ea hau ea Basebetsi;"
+
+#. {"msgid": ["Bothata boo o nang le bona.", "Mathata ao o nang le ona."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Bothata boo o nang le bona."
+
+#. {"msgid": ["Lethathamo la tsebo tsa hau", "Qala hape", "Tsoela pele"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Lethathamo la tsebo tsa hau"

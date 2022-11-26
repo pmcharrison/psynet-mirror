@@ -1,0 +1,489 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:52+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: LB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Dir musst <strong>op d'mannst
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> Bonus sammelen fir
+#. kompens\u00e9iert ze ginn.", "Dir musst <strong>op d'mannst
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> u Bonus sammele fir
+#. kompens\u00e9iert ze ginn."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Dir musst <strong>op d'mannst $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> "
+"Bonus sammelen fir kompenséiert ze ginn."
+
+#. {"msgid": ["Accumul\u00e9ierten Bonus", "Akkumul\u00e9iert Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Accumuléierten Bonus"
+
+#. {"msgid": ["F\u00ebnster zoumaachen", "Zoumaachen F\u00ebnster"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Fënster zoumaachen"
+
+#. {"msgid": ["Experiment ofbriechen", "Ofbriechen Experiment"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Experiment ofbriechen"
+
+#. {"msgid": ["Komplett \u00cbmfro", "\u00cbmfro komplett"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Komplett Ëmfro"
+
+#. {"msgid": ["Zous\u00e4tzlech zu \u00c4rer Basisbezuelung vun
+#. <strong>$%(BASE_PAYMENT)s</strong> kritt Dir e Bonus vun
+#. <strong>$%(BONUS)s</strong> fir d\u00e9i Z\u00e4it d\u00e9i Dir um
+#. Experiment verbr\u00e9ngt.", "Zous\u00e4tzlech zu \u00c4rer Basisbezuelung
+#. vun <strong>$%(BASE_PAYMENT)s</strong> kritt Dir e Bonus vun
+#. <strong>$%(BONUS)s</strong> fir d\u00e9i Z\u00e4it d\u00e9i Dir um
+#. Experiment verbruecht hutt."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Zousätzlech zu Ärer Basisbezuelung vun <strong>$%(BASE_PAYMENT)s</strong> "
+"kritt Dir e Bonus vun <strong>$%(BONUS)s</strong> fir déi Zäit déi Dir um "
+"Experiment verbréngt."
+
+#. {"msgid": ["Dir hutt och e Leeschtungsbonus vun
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> ausgezeechent!", "Dir hutt och e
+#. Leeschtungsbonus vun <strong>$%(PERFORMANCE_BONUS)s</strong> kritt!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Dir hutt och e Leeschtungsbonus vun <strong>$%(PERFORMANCE_BONUS)s</strong> "
+"ausgezeechent!"
+
+#. {"msgid": ["Klickt w.e.g. \"Finish\" fir den HIT ofzeschl\u00e9issen.",
+#. "Klickt w.e.g. \"Finish\" fir den HIT ze komplet\u00e9ieren."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Klickt w.e.g. \"Finish\" fir den HIT ofzeschléissen."
+
+#. {"msgid": ["F\u00e4erdeg", "Ofschloss"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Fäerdeg"
+
+#. {"msgid": ["Merci fir matzemaachen.", "Merci fir d'H\u00ebllef."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Merci fir matzemaachen."
+
+#. {"msgid": ["N\u00e4chst", "Next"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Nächst"
+
+#. {"msgid": ["Wann dat net de Fall ass, kontakt\u00e9iert eis w.e.g. op
+#. %(EMAIL)s mat der folgender Informatioun:", "Wann dat net de Fall ass, da
+#. kontakt\u00e9iert eis w.e.g. op %(EMAIL)s mat de folgenden
+#. Informatioune:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Wann dat net de Fall ass, kontaktéiert eis w.e.g. op %(EMAIL)s mat der "
+"folgender Informatioun:"
+
+#. {"msgid": ["Fir d'Entschiedegung ze froen, kontakt\u00e9iert w.e.g. de
+#. Fuerscher um %(EMAIL)s a beschreift wat zu d\u00ebsem Feeler gefouert
+#. huet.", "Fir iwwer Entschiedegung ze froen, kontakt\u00e9iert w.e.g. de
+#. Fuerscher um %(EMAIL)s a beschreiwt wat zu d\u00ebsem Feeler gefouert
+#. huet."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Fir d'Entschiedegung ze froen, kontaktéiert w.e.g. de Fuerscher um %(EMAIL)s"
+" a beschreift wat zu dësem Feeler gefouert huet."
+
+#. {"msgid": ["Experiment ofbriechen", "Ofbriechen Experiment"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Experiment ofbriechen"
+
+#. {"msgid": ["Experiment er\u00ebmfannen ...", "D'Experimenter weidergoen
+#. ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Experiment erëmfannen ..."
+
+#. {"msgid": ["Ofbriechen net m\u00e9iglech.", "Ofdreiwung net
+#. m\u00e9iglech."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Ofbriechen net méiglech."
+
+#. {"msgid": ["Sidd Dir s\u00e9cher datt Dir d'Experiment ofbriechen
+#. w\u00ebllt?", "Sidd Dir s\u00e9cher, datt Dir den Experiment ofbriechen
+#. w\u00ebllt?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Sidd Dir sécher datt Dir d'Experiment ofbriechen wëllt?"
+
+#. {"msgid": ["Lucid Survey Soumissioun", "Lucid \u00cbmfro Soumissioun"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid Survey Soumissioun"
+
+#. {"msgid": ["Zoust\u00ebmmung gouf refus\u00e9iert.", "D'Zoust\u00ebmmung
+#. gouf verworf."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Zoustëmmung gouf refuséiert."
+
+#. {"msgid": ["Dat ass d'Enn vum Experiment!", "Dat ass d'Enn vun der
+#. Experiment!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Dat ass d'Enn vum Experiment!"
+
+#. {"msgid": ["Leider muss d'Experiment fr\u00e9i ophalen.", "Leider muss
+#. d'Experiment fr\u00e9i fr\u00e9i ophalen."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Leider muss d'Experiment fréi ophalen."
+
+#. {"msgid": ["Feeler!", "Error!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Feeler!"
+
+#. {"msgid": ["Experiment starten ...", "Experiment unzef\u00e4nken ..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Experiment starten ..."
+
+#. {"msgid": ["Am Fall vun engem Problem, prob\u00e9iert d\u00e9i folgend:",
+#. "Am Fall vun engem Problem, prob\u00e9iert de folgende:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Am Fall vun engem Problem, probéiert déi folgend:"
+
+#. {"msgid": ["Bass du f\u00e4erdeg?", "Bass de prett?", "Sidd Dir prett?",
+#. "Sidd Dir f\u00e4erdeg?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Bass du fäerdeg?"
+
+#. {"msgid": ["Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["\u00c4r Participant ID ass net defin\u00e9iert, vl\u00e4icht
+#. well Dir de Browser w\u00e4rend dem Test gewiesselt hutt.", "\u00c4r
+#. Participant ID ass ondefin\u00e9iert, vl\u00e4icht well Dir de Browser
+#. w\u00e4hrend dem Test gewiesselt hutt."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Är Participant ID ass net definéiert, vläicht well Dir de Browser wärend dem"
+" Test gewiesselt hutt."
+
+#. {"msgid": ["Den Experiment ofbriechen ass net m\u00e9iglech well den
+#. Experimenter et zu d\u00ebser Z\u00e4it net erlaabt!", "Den Experiment
+#. ofbriechen ass net m\u00e9iglech, well den Experimenter et zu d\u00ebsem
+#. Z\u00e4itpunkt net erlaabt!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Den Experiment ofbriechen ass net méiglech well den Experimenter et zu dëser"
+" Zäit net erlaabt!"
+
+#. {"msgid": ["Wann Dir op de Kn\u00e4ppchen Ofbriechen klickt, w\u00e4ert
+#. d'Experiment fr\u00e9i ophalen, an Dir kritt automatesch d'Entschiedegung
+#. bezuelt, d\u00e9i Dir bis elo verd\u00e9ngt hutt.", "Wann Dir op de
+#. Kn\u00e4ppchen Ofbriechen klickt, g\u00ebtt d'Experiment fr\u00e9i op en
+#. Enn, an Dir w\u00e4ert automatesch d'Entschiedegung bezuelt ginn, d\u00e9i
+#. Dir bis elo verd\u00e9ngt hutt."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Wann Dir op de Knäppchen Ofbriechen klickt, wäert d'Experiment fréi ophalen,"
+" an Dir kritt automatesch d'Entschiedegung bezuelt, déi Dir bis elo verdéngt"
+" hutt."
+
+#. {"msgid": ["Fir \u00c4r Lucid Survey ofzeschl\u00e9issen, klickt op de
+#. Kn\u00e4ppchen hei \u00ebnnen.", "Fir \u00c4r Lucid \u00cbmfro
+#. ofzeschl\u00e9issen, klickt op de Kn\u00e4ppchen hei dr\u00ebnner."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Fir Är Lucid Survey ofzeschléissen, klickt op de Knäppchen hei ënnen."
+
+#. {"msgid": ["Enn vum Experiment.", "Schluss vum Experiment."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Enn vum Experiment."
+
+#. {"msgid": ["W\u00e9i och \u00ebmmer, Dir w\u00e4ert \u00ebmmer nach bezuelt
+#. ginn fir d\u00e9i Z\u00e4it d\u00e9i Dir scho verbruecht hutt.", "Dir
+#. w\u00e4ert awer \u00ebmmer nach bezuelt ginn fir d\u00e9i Z\u00e4it
+#. d\u00e9i Dir scho verbruecht hutt."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Wéi och ëmmer, Dir wäert ëmmer nach bezuelt ginn fir déi Zäit déi Dir scho "
+"verbruecht hutt."
+
+#. {"msgid": ["Dir k\u00ebnnt vl\u00e4icht den Experiment ofbriechen andeems
+#. Dir den <strong>Experiment ofbriechen</strong> Kn\u00e4ppchen <strong>op
+#. der MTurk Annonce S\u00e4it</strong> benotzt.", "Dir k\u00ebnnt
+#. vl\u00e4icht d'Experiment ofbriechen andeems Dir de <strong>Experiment
+#. ofbriechen</strong> Kn\u00e4ppchen <strong>op der MTurk Annonce
+#. S\u00e4it</strong> benotzt."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Dir kënnt vläicht den Experiment ofbriechen andeems Dir den "
+"<strong>Experiment ofbriechen</strong> Knäppchen <strong>op der MTurk "
+"Annonce Säit</strong> benotzt."
+
+#. {"msgid": ["Lued d'S\u00e4it nei.", "Lued d'S\u00e4it erof."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Lued d'Säit nei."
+
+#. {"msgid": ["Klickt op de Kn\u00e4ppchen wann Dir prett sidd fir den
+#. Experiment weiderzemaachen.", "Klickt op de Kn\u00e4ppchen wann Dir bereet
+#. sidd d'Experiment weiderzemaachen."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr ""
+"Klickt op de Knäppchen wann Dir prett sidd fir den Experiment "
+"weiderzemaachen."
+
+#. {"msgid": ["H\u00ebllef!", "H\u00ebllefen!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Hëllef!"
+
+#. {"msgid": ["Leider g\u00ebtt d\u00ebst Verhalen de Moment net
+#. \u00ebnnerst\u00ebtzt.", "Leider g\u00ebtt d\u00ebst Verhalen momentan net
+#. \u00ebnnerst\u00ebtzt."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Leider gëtt dëst Verhalen de Moment net ënnerstëtzt."
+
+#. {"msgid": ["Gesinn \u00ebnnert Informatiounen iwwert \u00c4r aktuell
+#. cumul\u00e9ierten Bonus.", "Gesinn \u00ebnnendr\u00ebnner Informatiounen
+#. iwwert \u00c4r momentan cumul\u00e9ierten Bonus."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Gesinn ënnert Informatiounen iwwert Är aktuell cumuléierten Bonus."
+
+#. {"msgid": ["W.e.g. kontakt\u00e9iert eis n\u00ebmmen wann Dir Probleemer
+#. hutt \u00c4r Bezuelung ze kr\u00e9ien.", "Kontakt\u00e9iert eis w.e.g.
+#. n\u00ebmmen wann Dir Problemer hutt \u00c4r Bezuelung ze kr\u00e9ien."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"W.e.g. kontaktéiert eis nëmmen wann Dir Probleemer hutt Är Bezuelung ze "
+"kréien."
+
+#. {"msgid": ["Kuckt d'Informatioun hei \u00ebnnen fir Detailer iwwer \u00c4r
+#. Entschiedegung.", "Gesinn d'Informatioun hei \u00ebnnendr\u00ebnner fir
+#. Detailer vun \u00c4rer Entschiedegung."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Kuckt d'Informatioun hei ënnen fir Detailer iwwer Är Entschiedegung."
+
+#. {"msgid": ["Eemol ofgebrach ass et net n\u00e9ideg eis ze
+#. kontakt\u00e9ieren fir d'Entschiedegung ze kr\u00e9ien;", "Eemol ofgebrach,
+#. et ass net n\u00e9ideg eis ze kontakt\u00e9ieren fir d'Entschiedegung ze
+#. kr\u00e9ien;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Eemol ofgebrach ass et net néideg eis ze kontaktéieren fir d'Entschiedegung "
+"ze kréien;"
+
+#. {"msgid": ["Zit\u00e9iert w.e.g. och d\u00e9i folgend Informatioun:", "Gitt
+#. w.e.g. och d\u00e9i folgend Informatioun un:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Zitéiert w.e.g. och déi folgend Informatioun:"
+
+#. {"msgid": ["Klickt op de Kn\u00e4ppchen hei uewen fir am Fall vun engem
+#. Feeler kompens\u00e9iert ze ginn.", "Klickt op de Kn\u00e4ppchen uewe fir
+#. kompens\u00e9iert ze ginn am Fall vun engem Feeler."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Klickt op de Knäppchen hei uewen fir am Fall vun engem Feeler kompenséiert "
+"ze ginn."
+
+#. {"msgid": ["Kontroll\u00e9iert datt \u00c4r Internetverbindung
+#. funktionn\u00e9iert.", "Kontroll\u00e9ieren, datt \u00c4r
+#. Internetverbindung funktionn\u00e9iert."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Kontrolléiert datt Är Internetverbindung funktionnéiert."
+
+#. {"msgid": ["Wann dat uewe net h\u00eblleft, sch\u00e9ckt eis eng E-Mail mat
+#. folgender Informatioun:", "Wann dat uewe net h\u00eblleft, sch\u00e9ckt eis
+#. eng E-Mail mat de folgenden Informatiounen:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Wann dat uewe net hëlleft, schéckt eis eng E-Mail mat folgender "
+"Informatioun:"
+
+#. {"msgid": ["E Link op d\u00e9i aktuell Webs\u00e4it;", "E Link op d'aktuell
+#. Webs\u00e4it;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "E Link op déi aktuell Websäit;"
+
+#. {"msgid": ["\u00c4r Aarbechter ID;", "\u00c4ren Aarbechter ID;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Är Aarbechter ID;"
+
+#. {"msgid": ["De Problem deen Dir erliewt.", "De Problem deen Dir hutt."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "De Problem deen Dir erliewt."
+
+#. {"msgid": ["Liewenslaf", "Resum\u00e9", "Weiderf\u00e9ieren"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Liewenslaf"

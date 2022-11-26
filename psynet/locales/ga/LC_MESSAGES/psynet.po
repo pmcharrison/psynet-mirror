@@ -1,0 +1,492 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:46+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: GA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Caithfidh t\u00fa
+#. <strong>$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bh\u00f3nas ar a
+#. laghad a charnadh le go mbeidh t\u00fa in ann c\u00faiteamh a fh\u00e1il.",
+#. "N\u00ed m\u00f3r duit
+#. <strong>$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bh\u00f3nas ar a
+#. laghad a charnadh le bheith in ann c\u00faiteamh a fh\u00e1il."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Caithfidh tú <strong>$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bhónas"
+" ar a laghad a charnadh le go mbeidh tú in ann cúiteamh a fháil."
+
+#. {"msgid": ["B\u00f3nas carntha", "B\u00f3nas carnach"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Bónas carntha"
+
+#. {"msgid": ["D\u00fan an fhuinneog", "D\u00fan fuinneoige"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Dún an fhuinneog"
+
+#. {"msgid": ["Tobscoir turgnamh", "Tobscoir triail"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Tobscoir turgnamh"
+
+#. {"msgid": ["Suirbh\u00e9 Cr\u00edochnaithe", "Cr\u00edochnaigh
+#. Suirbh\u00e9"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Suirbhé Críochnaithe"
+
+#. {"msgid": ["Chomh maith le do bhun\u00edoca\u00edocht
+#. <strong>$%(BASE_PAYMENT)s</strong> gheobhaidh t\u00fa b\u00f3nas de
+#. <strong>$%(BONUS)s</strong> as an am a chaith t\u00fa ar an turgnamh.",
+#. "Chomh maith le do bhun\u00edoca\u00edocht
+#. <strong>$%(BASE_PAYMENT)s</strong> gheobhaidh t\u00fa b\u00f3nas de
+#. <strong>$%(BONUS)s</strong> as an tr\u00e9imhse ama a chaith t\u00fa ar an
+#. turgnamh."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Chomh maith le do bhuníocaíocht <strong>$%(BASE_PAYMENT)s</strong> "
+"gheobhaidh tú bónas de <strong>$%(BONUS)s</strong> as an am a chaith tú ar "
+"an turgnamh."
+
+#. {"msgid": ["Bronnadh b\u00f3nas feidhm\u00edochta
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> ort freisin!", "Chomh maith leis
+#. sin, bronnadh b\u00f3nas feidhm\u00edochta
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> ort!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Bronnadh bónas feidhmíochta <strong>$%(PERFORMANCE_BONUS)s</strong> ort "
+"freisin!"
+
+#. {"msgid": ["Clice\u00e1il \"Cr\u00edochnaigh\" chun an HIT a
+#. chr\u00edochn\u00fa.", "Clice\u00e1il \"Cr\u00edochnaigh\" le do thoil chun
+#. an HIT a chomhl\u00e1n\u00fa."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Cliceáil \"Críochnaigh\" chun an HIT a chríochnú."
+
+#. {"msgid": ["Cr\u00edochnaigh", "Cr\u00edoch"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Críochnaigh"
+
+#. {"msgid": ["Go raibh maith agat as p\u00e1irt a ghlacadh.", "Go raibh maith
+#. agat as a bheith p\u00e1irteach."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Go raibh maith agat as páirt a ghlacadh."
+
+#. {"msgid": ["Ar aghaidh", "Next"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Ar aghaidh"
+
+#. {"msgid": ["Mura bhfuil s\u00e9 seo amhlaidh, d\u00e9an teagmh\u00e1il linn
+#. ag %(EMAIL)s agus an t-eolas seo a leanas \u00e1 lua agat:", "Murab \u00e9
+#. seo an c\u00e1s, d\u00e9an teagmh\u00e1il linn ag %(EMAIL)s agus an t-eolas
+#. seo a leanas \u00e1 lua:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Mura bhfuil sé seo amhlaidh, déan teagmháil linn ag %(EMAIL)s agus an "
+"t-eolas seo a leanas á lua agat:"
+
+#. {"msgid": ["Chun fiosr\u00fa a dh\u00e9anamh faoi ch\u00faiteamh, d\u00e9an
+#. teagmh\u00e1il leis an taighdeoir ag %(EMAIL)s le do thoil agus d\u00e9an
+#. cur s\u00edos ar cad ba ch\u00fais leis an earr\u00e1id seo.", "Chun
+#. fiosr\u00fach\u00e1n a dh\u00e9anamh maidir le c\u00faiteamh, d\u00e9an
+#. teagmh\u00e1il leis an taighdeoir ag %(EMAIL)s le do thoil agus cuir
+#. s\u00edos ar cad ba ch\u00fais leis an earr\u00e1id seo."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Chun fiosrú a dhéanamh faoi chúiteamh, déan teagmháil leis an taighdeoir ag "
+"%(EMAIL)s le do thoil agus déan cur síos ar cad ba chúis leis an earráid "
+"seo."
+
+#. {"msgid": ["Tobscoireadh Turgnamh", "Turgnamh Ginmhilleadh"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Tobscoireadh Turgnamh"
+
+#. {"msgid": ["Turgnamh \u00e1 atos\u00fa ...", "Turgnamh ag tos\u00fa
+#. ar\u00eds ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Turgnamh á atosú ..."
+
+#. {"msgid": ["N\u00ed f\u00e9idir ginmhilleadh.", "N\u00ed f\u00e9idir
+#. deireadh a chur leis."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Ní féidir ginmhilleadh."
+
+#. {"msgid": ["An bhfuil t\u00fa cinnte gur mhaith leat deireadh a chur leis
+#. an turgnamh?", "An bhfuil t\u00fa cinnte gur mian leat an turgnamh a
+#. scor?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "An bhfuil tú cinnte gur mhaith leat deireadh a chur leis an turgnamh?"
+
+#. {"msgid": ["Aighneacht Suirbh\u00e9 Lucid", "Aighneacht
+#. Suirbh\u00e9ireachta Shoil\u00e9ir"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Aighneacht Suirbhé Lucid"
+
+#. {"msgid": ["Di\u00falta\u00edodh do thoili\u00fa.", "Di\u00falta\u00edodh
+#. toili\u00fa."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Diúltaíodh do thoiliú."
+
+#. {"msgid": ["Sin deireadh an turgnaimh!", "Sin deireadh leis an turgnamh!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Sin deireadh an turgnaimh!"
+
+#. {"msgid": ["Ar an drochuair n\u00ed m\u00f3r don turgnamh
+#. cr\u00edochn\u00fa go luath.", "Ar an drochuair n\u00ed m\u00f3r deireadh a
+#. chur leis an turgnamh go luath."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Ar an drochuair ní mór don turgnamh críochnú go luath."
+
+#. {"msgid": ["Earr\u00e1id!", "Earr\u00e1id !"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Earráid!"
+
+#. {"msgid": ["Ag tos\u00fa turgnamh...", "Turgnamh \u00e1 thos\u00fa..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Ag tosú turgnamh..."
+
+#. {"msgid": ["I gc\u00e1s fadhb, bain triail as na ruda\u00ed seo a leanas:",
+#. "I gc\u00e1s fadhb, d\u00e9an iarracht na ruda\u00ed seo a leanas:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "I gcás fadhb, bain triail as na rudaí seo a leanas:"
+
+#. {"msgid": ["An bhfuil t\u00fa r\u00e9idh?", "Bhfuil t\u00fa r\u00e9idh?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "An bhfuil tú réidh?"
+
+#. {"msgid": ["B\u00f3nas", "b\u00f3nais"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bónas"
+
+#. {"msgid": ["T\u00e1 d'aitheantas rannph\u00e1irt\u00ed neamhshainithe,
+#. b'fh\u00e9idir toisc gur athraigh t\u00fa brabhs\u00e1laithe le linn na
+#. t\u00e1st\u00e1la.", "N\u00edl d'aitheantas rannph\u00e1irt\u00ed sainithe,
+#. b'fh\u00e9idir toisc gur athraigh t\u00fa brabhs\u00e1laithe le linn na
+#. t\u00e1st\u00e1la."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Tá d'aitheantas rannpháirtí neamhshainithe, b'fhéidir toisc gur athraigh tú "
+"brabhsálaithe le linn na tástála."
+
+#. {"msgid": ["N\u00ed f\u00e9idir deireadh a chur leis an turgnamh mar
+#. n\u00ed cheada\u00edonn an turgnamh faoi l\u00e1thair \u00e9!", "N\u00ed
+#. f\u00e9idir deireadh a chur leis an turgnamh mar n\u00ed cheada\u00edonn an
+#. turgnamh ag an am seo \u00e9!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ní féidir deireadh a chur leis an turgnamh mar ní cheadaíonn an turgnamh "
+"faoi láthair é!"
+
+#. {"msgid": ["M\u00e1 chlice\u00e1lann t\u00fa an cnaipe Tobscoir, cuirfear
+#. deireadh leis an turgnamh go luath, agus \u00edocfar an c\u00faiteamh
+#. at\u00e1 tuillte agat go dt\u00ed seo leat go huathoibr\u00edoch.",
+#. "M\u00e1 chlice\u00e1lann t\u00fa an cnaipe Tobscoir, tiocfaidh deireadh
+#. leis an turgnamh go luath, agus \u00edocfar an c\u00faiteamh at\u00e1
+#. tuillte agat go dt\u00ed seo go huathoibr\u00edoch leat."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Má chliceálann tú an cnaipe Tobscoir, cuirfear deireadh leis an turgnamh go "
+"luath, agus íocfar an cúiteamh atá tuillte agat go dtí seo leat go "
+"huathoibríoch."
+
+#. {"msgid": ["Chun do Shuirbh\u00e9 Lucid a chomhl\u00e1n\u00fa,
+#. clice\u00e1il ar an gcnaipe th\u00edos.", "Clice\u00e1il ar an gcnaipe
+#. th\u00edos chun do Shuirbh\u00e9 Lucid a chomhl\u00e1n\u00fa."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Chun do Shuirbhé Lucid a chomhlánú, cliceáil ar an gcnaipe thíos."
+
+#. {"msgid": ["Deireadh an turgnaimh.", "Cr\u00edoch turgnaimh."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Deireadh an turgnaimh."
+
+#. {"msgid": ["Mar sin f\u00e9in, \u00edocfar t\u00fa f\u00f3s as an am a
+#. chaith t\u00fa cheana f\u00e9in.", "Mar sin f\u00e9in, beidh t\u00fa
+#. f\u00f3s le h\u00edoc as an am a chaith t\u00fa cheana f\u00e9in."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Mar sin féin, íocfar tú fós as an am a chaith tú cheana féin."
+
+#. {"msgid": ["Seans go mbeidh t\u00fa in ann deireadh a chur leis an turgnamh
+#. leis an gcnaipe <strong>Abort experiment</strong> <strong>ar leathanach
+#. f\u00f3gra\u00ed MTurk</strong>.", "Seans go mbeidh t\u00fa in ann an
+#. turgnamh a threascairt leis an gcnaipe <strong>Abort experiment</strong>
+#. <strong>ar an leathanach f\u00f3gra\u00ed MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Seans go mbeidh tú in ann deireadh a chur leis an turgnamh leis an gcnaipe "
+"<strong>Abort experiment</strong> <strong>ar leathanach fógraí "
+"MTurk</strong>."
+
+#. {"msgid": ["Athl\u00f3d\u00e1il an leathanach.", "\u00cdosl\u00f3d\u00e1il
+#. an leathanach ar\u00eds."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Athlódáil an leathanach."
+
+#. {"msgid": ["Clice\u00e1il an cnaipe nuair at\u00e1 t\u00fa r\u00e9idh chun
+#. lean\u00faint leis an turgnamh.", "Clice\u00e1il an cnaipe nuair a bheidh
+#. t\u00fa r\u00e9idh chun lean\u00faint ar aghaidh leis an turgnamh."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Cliceáil an cnaipe nuair atá tú réidh chun leanúint leis an turgnamh."
+
+#. {"msgid": ["Cabhr\u00fa!", "Cabhair!", "Cuidigh!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Cabhrú!"
+
+#. {"msgid": ["Ar an drochuair n\u00ed thaca\u00edtear leis an iompar seo faoi
+#. l\u00e1thair.", "Faraor n\u00ed thaca\u00edtear leis an iompar seo faoi
+#. l\u00e1thair."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Ar an drochuair ní thacaítear leis an iompar seo faoi láthair."
+
+#. {"msgid": ["F\u00e9ach th\u00edos faisn\u00e9is ar do bh\u00f3nas carntha
+#. faoi l\u00e1thair.", "F\u00e9ach th\u00edos an t-eolas ar do bh\u00f3nas
+#. carntha faoi l\u00e1thair."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Féach thíos faisnéis ar do bhónas carntha faoi láthair."
+
+#. {"msgid": ["N\u00e1 d\u00e9an teagmh\u00e1il linn ach amh\u00e1in m\u00e1
+#. bh\u00edonn deacracht agat d\u2019\u00edoca\u00edocht a fh\u00e1il.",
+#. "N\u00e1 d\u00e9an teagmh\u00e1il linn le do thoil ach amh\u00e1in m\u00e1
+#. t\u00e1 deacracht agat d\u2019\u00edoca\u00edocht a fh\u00e1il."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Ná déan teagmháil linn ach amháin má bhíonn deacracht agat d’íocaíocht a "
+"fháil."
+
+#. {"msgid": ["F\u00e9ach an t-eolas th\u00edos le haghaidh sonra\u00ed faoi
+#. do ch\u00faiteamh.", "F\u00e9ach an t-eolas th\u00edos chun sonra\u00ed a
+#. fh\u00e1il faoi do ch\u00faiteamh."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Féach an t-eolas thíos le haghaidh sonraí faoi do chúiteamh."
+
+#. {"msgid": ["Nuair a chuirtear deireadh leis, n\u00ed g\u00e1 dul i
+#. dteagmh\u00e1il linn chun an c\u00faiteamh a fh\u00e1il;", "Nuair a
+#. chuirtear deireadh leis, n\u00ed g\u00e1 teagmh\u00e1il a dh\u00e9anamh
+#. linn chun c\u00faiteamh a fh\u00e1il;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Nuair a chuirtear deireadh leis, ní gá dul i dteagmháil linn chun an "
+"cúiteamh a fháil;"
+
+#. {"msgid": ["Luaigh an fhaisn\u00e9is seo a leanas freisin:", "Luaigh
+#. freisin an t-eolas seo a leanas:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Luaigh an fhaisnéis seo a leanas freisin:"
+
+#. {"msgid": ["Clice\u00e1il ar an gcnaipe thuas chun c\u00faiteamh a
+#. fh\u00e1il i gc\u00e1s earr\u00e1ide.", "Clice\u00e1il an cnaipe thuas le
+#. c\u00faiteamh a fh\u00e1il i gc\u00e1s earr\u00e1ide."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Cliceáil ar an gcnaipe thuas chun cúiteamh a fháil i gcás earráide."
+
+#. {"msgid": ["Seice\u00e1il go bhfuil do nasc idirl\u00edn ag obair.",
+#. "Cinntigh go bhfuil do nasc idirl\u00edn ag obair."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Seiceáil go bhfuil do nasc idirlín ag obair."
+
+#. {"msgid": ["Mura gcuid\u00edonn an m\u00e9id thuas, seol r\u00edomhphost
+#. chugainn leis an eolas seo a leanas:", "Mura gcabhra\u00edonn an m\u00e9id
+#. thuas, seol r\u00edomhphost chugainn leis an bhfaisn\u00e9is seo a
+#. leanas:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Mura gcuidíonn an méid thuas, seol ríomhphost chugainn leis an eolas seo a "
+"leanas:"
+
+#. {"msgid": ["Nasc chuig an leathanach gr\u00e9as\u00e1in reatha;", "Nasc go
+#. dt\u00ed an leathanach gr\u00e9as\u00e1in reatha;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Nasc chuig an leathanach gréasáin reatha;"
+
+#. {"msgid": ["D'Aitheantas Oibr\u00ed;", "D'Aitheantas Oibrithe;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "D'Aitheantas Oibrí;"
+
+#. {"msgid": ["An fhadhb at\u00e1 agat.", "An fhadhb a bhfuil t\u00fa ag
+#. fulaingt."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "An fhadhb atá agat."
+
+#. {"msgid": ["Atosaigh", "Lean"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Atosaigh"

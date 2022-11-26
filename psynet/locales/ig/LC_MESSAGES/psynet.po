@@ -1,0 +1,475 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:46+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: IG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\u1eca ga-akwak\u1ecdba <strong>opekata mpe
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> nke ego iji nwee ike
+#. \u1ecbkw\u1ee5 \u1ee5gw\u1ecd.", "\u1eca ga-akpak\u1ecdba
+#. ego<strong>opekata mpe $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> nke
+#. ego ka e wee nwee ike \u1ecbkw\u1ee5 \u1ee5gw\u1ecd."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Ị ga-akwakọba <strong>opekata mpe "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> nke ego iji nwee ike ịkwụ "
+"ụgwọ."
+
+#. {"msgid": ["Mkpok\u1ecdta ego", "Mgbak\u1ecd ego"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Mkpokọta ego"
+
+#. {"msgid": ["Mechie windo", "Mechie mpio"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Mechie windo"
+
+#. {"msgid": ["Kw\u1ee5s\u1ecb nnwale", "Wep\u1ee5 nnwale"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Kwụsị nnwale"
+
+#. {"msgid": ["Nnyocha zuru ezu", "Nyocha zuru oke"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Nnyocha zuru ezu"
+
+#. {"msgid": ["Na mgbakwunye na nkw\u1ee5nye \u1ee5gw\u1ecd g\u1ecb nke
+#. <strong>$%(BASE_PAYMENT)s</strong>\u1ecb ga-enweta ego nke
+#. <strong>$%(BONUS)s</strong> maka oge \u1ecb n\u1ecdr\u1ecd na nnwale
+#. ah\u1ee5.", "Na mgbakwunye na \u1ecbkw\u1ee5 \u1ee5gw\u1ecd isi g\u1ecb nke
+#. <strong>$%(BASE_PAYMENT)s</strong>\u1ecb ga-anata ego nke
+#. <strong>$%(BONUS)s</strong> maka oge \u1ecb n\u1ecdr\u1ecd na nnwale
+#. ah\u1ee5."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Na mgbakwunye na nkwụnye ụgwọ gị nke <strong>$%(BASE_PAYMENT)s</strong>ị ga-"
+"enweta ego nke <strong>$%(BONUS)s</strong> maka oge ị nọrọ na nnwale ahụ."
+
+#. {"msgid": ["Enyerela g\u1ecb ego nr\u1ee5 \u1ecdr\u1ee5 nke
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr "Enyerela gị ego nrụ ọrụ nke <strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Biko p\u1ecba \"Mechaa\" iji mechaa HIT.", "Biko p\u1ecba
+#. \"N'ikpeaz\u1ee5\" ka mezue HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Biko pịa \"Mechaa\" iji mechaa HIT."
+
+#. {"msgid": ["Mechaa", "Mechachaa"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Mechaa"
+
+#. {"msgid": ["Daal\u1ee5 maka ikere \u00f2k\u00e8.", "Daal\u1ee5 maka
+#. isonye."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Daalụ maka ikere òkè."
+
+#. {"msgid": ["Osote", "Na-esote", "\u1eccz\u1ecd"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Osote"
+
+#. {"msgid": ["\u1ecc b\u1ee5r\u1ee5 na nke a ab\u1ee5gh\u1ecb ikpe, biko
+#. kp\u1ecdt\u1ee5r\u1ee5 any\u1ecb na %(EMAIL)s na-ehota ozi nd\u1ecb a:",
+#. "\u1ecc b\u1ee5r\u1ee5 na \u1ecd b\u1ee5gh\u1ecb otu a, biko
+#. kp\u1ecdt\u1ee5r\u1ee5 any\u1ecb na %(EMAIL)s na-ehota ozi nd\u1ecb a:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Ọ bụrụ na nke a abụghị ikpe, biko kpọtụrụ anyị na %(EMAIL)s na-ehota ozi ndị"
+" a:"
+
+#. {"msgid": ["Iji j\u1ee5\u1ecd maka nkw\u1ee5ghachi \u1ee5gw\u1ecd, biko
+#. kp\u1ecdt\u1ee5r\u1ee5 onye nyocha ah\u1ee5 na %(EMAIL)s wee k\u1ecdwaa ihe
+#. butere njehie a.", "Iji j\u1ee5\u1ecd maka nkw\u1ee5ghachi \u1ee5gw\u1ecd,
+#. biko kp\u1ecdt\u1ee5r\u1ee5 onye nyocha ah\u1ee5 na %(EMAIL)s wee
+#. k\u1ecdwaa ihe butere mperi a."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Iji jụọ maka nkwụghachi ụgwọ, biko kpọtụrụ onye nyocha ahụ na %(EMAIL)s wee "
+"kọwaa ihe butere njehie a."
+
+#. {"msgid": ["Wep\u1ee5 nnwale", "Kw\u1ee5s\u1ecb nnwale"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Wepụ nnwale"
+
+#. {"msgid": ["Na-amaliteghachi nnwale...", "Maliteghar\u1ecba nnwale..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Na-amaliteghachi nnwale..."
+
+#. {"msgid": ["Ime ime agagh\u1ecb ekwe omume.", "Ime ime enwegh\u1ecb ike."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Ime ime agaghị ekwe omume."
+
+#. {"msgid": ["\u1eca ji n'aka na \u1ecbch\u1ecdr\u1ecd \u1ecbkw\u1ee5s\u1ecb
+#. nnwale ah\u1ee5?", "\u1eca ji n'aka na \u1ecb ch\u1ecdr\u1ecd ime ka nnwale
+#. ah\u1ee5 kw\u1ee5s\u1ecb?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ị ji n'aka na ịchọrọ ịkwụsị nnwale ahụ?"
+
+#. {"msgid": ["Ntinye nyocha Lucid", "Mbubata nyocha nke Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Ntinye nyocha Lucid"
+
+#. {"msgid": ["Aj\u1ee5j\u1ee5 nkwenye.", "A j\u1ee5r\u1ee5 nkwenye."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Ajụjụ nkwenye."
+
+#. {"msgid": ["Nke ah\u1ee5 b\u1ee5 njedebe nke nnwale!", "Nke ah\u1ee5
+#. b\u1ee5 njedebe nnwale ah\u1ee5!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Nke ahụ bụ njedebe nke nnwale!"
+
+#. {"msgid": ["\u1ecc d\u1ecb nwute na nnwale ah\u1ee5 ga-
+#. akw\u1ee5s\u1ecbr\u1ecbr\u1ecb n'isi.", "\u1ecc d\u1ecb nwute na nnwale
+#. ah\u1ee5 ga-akw\u1ee5s\u1ecb n'isi."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Ọ dị nwute na nnwale ahụ ga-akwụsịrịrị n'isi."
+
+#. {"msgid": ["Njehie!", "Erro!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Njehie!"
+
+#. {"msgid": ["Malite nnwale...", "Na-amalite nnwale..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Malite nnwale..."
+
+#. {"msgid": ["\u1ecc b\u1ee5r\u1ee5 na \u1ecb nwere nsogbu, nwaa ihe nd\u1ecb
+#. a:", "\u1ecc b\u1ee5r\u1ee5 na \u1ecb nwere nsogbu, gbal\u1ecba ihe
+#. nd\u1ecb a:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Ọ bụrụ na ị nwere nsogbu, nwaa ihe ndị a:"
+
+#. {"msgid": ["\u1eca d\u1ecbla njikere?", "\u1eca d\u1ecb njikere?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Ị dịla njikere?"
+
+#. {"msgid": ["Dashi", "Ego"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Dashi"
+
+#. {"msgid": ["Ak\u1ecdwap\u1ee5tagh\u1ecb ID onye so na ya, ikekwe n'ihi na
+#. \u1ecb gbanwere ihe nch\u1ecdghar\u1ecb n'oge ule ah\u1ee5.",
+#. "Ak\u1ecdwap\u1ee5tagh\u1ecb NJ onye so na ya, ikekwe n'ihi na \u1ecb
+#. gbanwere ihe nch\u1ecdghar\u1ecb n'oge ule."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Akọwapụtaghị ID onye so na ya, ikekwe n'ihi na ị gbanwere ihe nchọgharị "
+"n'oge ule ahụ."
+
+#. {"msgid": ["Imebi nnwale ah\u1ee5 agagh\u1ecb ekwe omume n'ihi na onye
+#. nyocha anagh\u1ecb ekwe ya n'oge a!", "Imebi nnwale agagh\u1ecb ekwe omume
+#. n'ihi na onye na-eme nnwale anagh\u1ecb ekwe ya n'oge a!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Imebi nnwale ahụ agaghị ekwe omume n'ihi na onye nyocha anaghị ekwe ya n'oge"
+" a!"
+
+#. {"msgid": ["\u1ecc b\u1ee5r\u1ee5 na \u1ecb p\u1ecba b\u1ecdt\u1ecbn\u1ee5
+#. Ime, nnwale ah\u1ee5 ga-akw\u1ee5s\u1ecb n'isi \u1ee5t\u1ee5t\u1ee5, a ga-
+#. akw\u1ee5kwa g\u1ecb \u1ee5gw\u1ecd \u1ecdr\u1ee5 \u1ecb nwetara ugbu a
+#. ozugbo.", "\u1ecc b\u1ee5r\u1ee5 na \u1ecb p\u1ecba b\u1ecdt\u1ecbn\u1ee5
+#. Ab\u1ecdt, nnwale ah\u1ee5 ga-akw\u1ee5s\u1ecb n'isi \u1ee5t\u1ee5t\u1ee5,
+#. a ga-akw\u1ee5 g\u1ecb \u1ee5gw\u1ecd ozugbo \u1ecb nwetara \u1ee5gw\u1ecd
+#. \u1ecdr\u1ee5."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Ọ bụrụ na ị pịa bọtịnụ Ime, nnwale ahụ ga-akwụsị n'isi ụtụtụ, a ga-akwụkwa "
+"gị ụgwọ ọrụ ị nwetara ugbu a ozugbo."
+
+#. {"msgid": ["Iji mezue nyocha Lucid g\u1ecb, p\u1ecba b\u1ecdt\u1ecbn\u1ee5
+#. d\u1ecb n'okpuru.", "Iji mechaa nyocha Lucid g\u1ecb, p\u1ecba
+#. b\u1ecdt\u1ecbn\u1ee5 d\u1ecb n'okpuru."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Iji mezue nyocha Lucid gị, pịa bọtịnụ dị n'okpuru."
+
+#. {"msgid": ["\u1eccgw\u1ee5gw\u1ee5 nnwale.", "Ngwucha nnwale."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Ọgwụgwụ nnwale."
+
+#. {"msgid": ["Agbanyegh\u1ecb, a ka ga-akw\u1ee5 g\u1ecb \u1ee5gw\u1ecd maka
+#. oge \u1ecb n\u1ecdr\u1ecdla.", "Agbanyegh\u1ecb, a ga-akw\u1ee5 g\u1ecb
+#. \u1ee5gw\u1ecd maka oge \u1ecb n\u1ecdr\u1ecdla."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Agbanyeghị, a ka ga-akwụ gị ụgwọ maka oge ị nọrọla."
+
+#. {"msgid": ["\u1eca nwere ike ime ka nnwale ah\u1ee5 kw\u1ee5s\u1ecb site na
+#. iji b\u1ecdt\u1ecbn\u1ee5<strong>Abort
+#. nnwale</strong>b\u1ecdt\u1ecbn\u1ee5<strong>na ibe mgbasa ozi
+#. MTurk</strong>.", "\u1eca nwere ike \u1ecbmebi nnwale ah\u1ee5 site na iji
+#. b\u1ecdt\u1ecbn\u1ee5<strong>Abort nnwale</strong>b\u1ecdt\u1ecbn\u1ee5
+#. <strong>na ibe mgbasa ozi MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Ị nwere ike ime ka nnwale ahụ kwụsị site na iji bọtịnụ<strong>Abort "
+"nnwale</strong>bọtịnụ<strong>na ibe mgbasa ozi MTurk</strong>."
+
+#. {"msgid": ["Bughar\u1ecba ibe ah\u1ee5.", "Tinyeghar\u1ecba ibe
+#. ah\u1ee5."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Bugharịa ibe ahụ."
+
+#. {"msgid": ["P\u1ecba b\u1ecdt\u1ecbn\u1ee5 ah\u1ee5 mgbe \u1ecb d\u1ecb
+#. njikere \u1ecbga n'ihu nnwale ah\u1ee5.", "P\u1ecba b\u1ecdt\u1ecbn\u1ee5
+#. mgbe \u1ecb d\u1ecb njikere \u1ecbga n'ihu nnwale."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Pịa bọtịnụ ahụ mgbe ị dị njikere ịga n'ihu nnwale ahụ."
+
+#. {"msgid": ["Enyemaka!", "Nyere!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Enyemaka!"
+
+#. {"msgid": ["\u1ecc d\u1ecb nwute na anagh\u1ecb akwado omume a ugbu a.", "O
+#. di nwute na akwadoghi omume a ugbua."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Ọ dị nwute na anaghị akwado omume a ugbu a."
+
+#. {"msgid": ["Lee ozi n'okpuru maka ego \u1ecb na-akpak\u1ecdba ugbu a.",
+#. "H\u1ee5 ozi n'okpuru maka ego ego \u1ecb na-akpak\u1ecdba ugbu a."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Lee ozi n'okpuru maka ego ị na-akpakọba ugbu a."
+
+#. {"msgid": ["Biko kp\u1ecdt\u1ee5r\u1ee5 any\u1ecb naan\u1ecb ma \u1ecd
+#. b\u1ee5r\u1ee5 na \u1ecb nwere nsogbu \u1ecbnata \u1ee5gw\u1ecd g\u1ecb.",
+#. "Biko kp\u1ecdt\u1ee5r\u1ee5 any\u1ecb naan\u1ecb ma \u1ecd b\u1ee5r\u1ee5
+#. na \u1ecb na-enwe nsogbu \u1ecbnata \u1ee5gw\u1ecd g\u1ecb."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "Biko kpọtụrụ anyị naanị ma ọ bụrụ na ị nwere nsogbu ịnata ụgwọ gị."
+
+#. {"msgid": ["Lee ozi n'okpuru maka nk\u1ecdwa nke \u1ee5gw\u1ecd g\u1ecb.",
+#. "H\u1ee5 ozi d\u1ecb n'okpuru maka nk\u1ecdwa nke \u1ee5gw\u1ecd
+#. \u1ecdr\u1ee5 g\u1ecb."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Lee ozi n'okpuru maka nkọwa nke ụgwọ gị."
+
+#. {"msgid": ["Ozugbo agbap\u1ee5r\u1ee5, \u1ecd d\u1ecbgh\u1ecb mkpa
+#. \u1ecbkp\u1ecdt\u1ee5r\u1ee5 any\u1ecb iji nweta \u1ee5gw\u1ecd
+#. \u1ecdr\u1ee5;", "Ozugbo a kw\u1ee5s\u1ecbr\u1ecb ime, \u1ecd
+#. d\u1ecbgh\u1ecb mkpa \u1ecbkp\u1ecdt\u1ee5r\u1ee5 any\u1ecb ka any\u1ecb
+#. nweta \u1ee5gw\u1ecd \u1ecdr\u1ee5;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "Ozugbo agbapụrụ, ọ dịghị mkpa ịkpọtụrụ anyị iji nweta ụgwọ ọrụ;"
+
+#. {"msgid": ["Biko kwup\u1ee5takwa ozi nd\u1ecb a:", "Biko g\u1ee5kwaa ozi
+#. nd\u1ecb a:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Biko kwupụtakwa ozi ndị a:"
+
+#. {"msgid": ["P\u1ecba b\u1ecdt\u1ecbn\u1ee5 d\u1ecb n'elu ka \u1ecb
+#. kw\u1ee5\u1ecd \u1ee5gw\u1ecd maka njehie.", "P\u1ecba
+#. b\u1ecdt\u1ecbn\u1ee5 d\u1ecb n'elu ka a kw\u1ee5\u1ecd g\u1ecb
+#. \u1ee5gw\u1ecd ma \u1ecd b\u1ee5r\u1ee5 na emezigh\u1ecb emezi."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Pịa bọtịnụ dị n'elu ka ị kwụọ ụgwọ maka njehie."
+
+#. {"msgid": ["Lelee na njik\u1ecd \u1ecbntanet\u1ecb g\u1ecb na-ar\u1ee5
+#. \u1ecdr\u1ee5.", "Lelee na njik\u1ecd \u1ecantanet\u1ecb na-ar\u1ee5
+#. \u1ecdr\u1ee5."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Lelee na njikọ ịntanetị gị na-arụ ọrụ."
+
+#. {"msgid": ["\u1ecc b\u1ee5r\u1ee5 na nke a d\u1ecb n'elu anagh\u1ecb enyere
+#. aka, zitere any\u1ecb ozi-e nwere ozi nd\u1ecb a:", "\u1ecc b\u1ee5r\u1ee5
+#. na ihe nd\u1ecb a d\u1ecb n'elu anagh\u1ecb enyere aka, zitere any\u1ecb
+#. email nwere ozi nd\u1ecb a:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Ọ bụrụ na nke a dị n'elu anaghị enyere aka, zitere anyị ozi-e nwere ozi ndị "
+"a:"
+
+#. {"msgid": ["Njik\u1ecd na ibe weeb\u1ee5 d\u1ecb ugbu a;", "Njik\u1ecd na
+#. ibe weeb\u1ee5 nke d\u1ecb ugbu a;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Njikọ na ibe weebụ dị ugbu a;"
+
+#. {"msgid": ["NJ onye \u1ecdr\u1ee5 g\u1ecb;", "NJ onye \u1ecdr\u1ee5;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "NJ onye ọrụ gị;"
+
+#. {"msgid": ["Nsogbu \u1ecb na-enwe.", "Nsogbu nke \u1ecb na-enwe."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Nsogbu ị na-enwe."
+
+#. {"msgid": ["maliteghachi", "Malite"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "maliteghachi"

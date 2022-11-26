@@ -1,0 +1,848 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:45+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: EL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\u03a0\u03c1\u03ad\u03c0\u03b5\u03b9 \u03bd\u03b1
+#. \u03c3\u03c5\u03b3\u03ba\u03b5\u03bd\u03c4\u03c1\u03ce\u03c3\u03b5\u03c4\u03b5
+#. <strong>\u03c4\u03bf\u03c5\u03bb\u03ac\u03c7\u03b9\u03c3\u03c4\u03bf\u03bd
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>
+#. \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2 \u03b3\u03b9\u03b1 \u03bd\u03b1
+#. \u03bc\u03c0\u03bf\u03c1\u03ad\u03c3\u03b5\u03c4\u03b5 \u03bd\u03b1
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03b9\u03c9\u03b8\u03b5\u03af\u03c4\u03b5."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Πρέπει να συγκεντρώσετε <strong>τουλάχιστον "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> μπόνους για να μπορέσετε να "
+"αποζημιωθείτε."
+
+#. {"msgid":
+#. ["\u03a3\u03c5\u03c3\u03c3\u03c9\u03c1\u03b5\u03c5\u03bc\u03ad\u03bd\u03bf
+#. \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2",
+#. "\u03a3\u03c5\u03b3\u03ba\u03b5\u03bd\u03c4\u03c1\u03c9\u03bc\u03ad\u03bd\u03bf
+#. \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Συσσωρευμένο μπόνους"
+
+#. {"msgid": ["\u039a\u03bb\u03b5\u03af\u03c3\u03b5 \u03c4\u03bf
+#. \u03c0\u03b1\u03c1\u03ac\u03b8\u03c5\u03c1\u03bf",
+#. "\u039a\u03bb\u03b5\u03af\u03c3\u03b9\u03bc\u03bf
+#. \u03c0\u03b1\u03c1\u03b1\u03b8\u03cd\u03c1\u03bf\u03c5",
+#. "\u039a\u03bb\u03b5\u03af\u03c3\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b1\u03c1\u03ac\u03b8\u03c5\u03c1\u03bf"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Κλείσε το παράθυρο"
+
+#. {"msgid": ["\u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2",
+#. "\u039c\u03b1\u03c4\u03b1\u03b9\u03ce\u03c3\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Ακύρωση πειράματος"
+
+#. {"msgid": ["\u03a0\u03bb\u03ae\u03c1\u03b7\u03c2
+#. \u0388\u03c1\u03b5\u03c5\u03bd\u03b1",
+#. "\u039f\u03bb\u03bf\u03ba\u03bb\u03b7\u03c1\u03c9\u03bc\u03ad\u03bd\u03b7
+#. \u03ad\u03c1\u03b5\u03c5\u03bd\u03b1"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Πλήρης Έρευνα"
+
+#. {"msgid": ["\u0395\u03ba\u03c4\u03cc\u03c2 \u03b1\u03c0\u03cc \u03c4\u03b7
+#. \u03b2\u03b1\u03c3\u03b9\u03ba\u03ae \u03c3\u03b1\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03c9\u03bc\u03ae \u03c4\u03c9\u03bd
+#. <strong>$%(BASE_PAYMENT)s</strong>, \u03b8\u03b1
+#. \u03bb\u03ac\u03b2\u03b5\u03c4\u03b5 \u03ad\u03bd\u03b1
+#. \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2 \u03cd\u03c8\u03bf\u03c5\u03c2
+#. <strong>$%(BONUS)s</strong> \u03b3\u03b9\u03b1 \u03c4\u03bf
+#. \u03c7\u03c1\u03cc\u03bd\u03bf \u03c0\u03bf\u03c5
+#. \u03b1\u03c6\u03b9\u03b5\u03c1\u03ce\u03c3\u03b1\u03c4\u03b5
+#. \u03c3\u03c4\u03bf \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1.",
+#. "\u0395\u03ba\u03c4\u03cc\u03c2 \u03b1\u03c0\u03cc \u03c4\u03b7
+#. \u03b2\u03b1\u03c3\u03b9\u03ba\u03ae \u03c3\u03b1\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03c9\u03bc\u03ae \u03c4\u03c9\u03bd
+#. <strong>$%(BASE_PAYMENT)s</strong>, \u03b8\u03b1
+#. \u03bb\u03ac\u03b2\u03b5\u03c4\u03b5 \u03ad\u03bd\u03b1
+#. \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2 <strong>$%(BONUS)s</strong>
+#. \u03b3\u03b9\u03b1 \u03c4\u03bf \u03c7\u03c1\u03cc\u03bd\u03bf
+#. \u03c0\u03bf\u03c5
+#. \u03b1\u03c6\u03b9\u03b5\u03c1\u03ce\u03c3\u03b1\u03c4\u03b5
+#. \u03c3\u03c4\u03bf \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Εκτός από τη βασική σας πληρωμή των <strong>$%(BASE_PAYMENT)s</strong>, θα "
+"λάβετε ένα μπόνους ύψους <strong>$%(BONUS)s</strong> για το χρόνο που "
+"αφιερώσατε στο πείραμα."
+
+#. {"msgid": ["\u0388\u03c7\u03b5\u03c4\u03b5
+#. \u03b5\u03c0\u03af\u03c3\u03b7\u03c2
+#. \u03b1\u03c0\u03bf\u03bd\u03b5\u03bc\u03b7\u03b8\u03b5\u03af
+#. \u03ad\u03bd\u03b1 \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2
+#. \u03b1\u03c0\u03cc\u03b4\u03bf\u03c3\u03b7\u03c2
+#. \u03cd\u03c8\u03bf\u03c5\u03c2 <strong>$%(PERFORMANCE_BONUS)s</strong>!",
+#. "\u03a3\u03b1\u03c2 \u03ad\u03c7\u03b5\u03b9
+#. \u03b1\u03c0\u03bf\u03bd\u03b5\u03bc\u03b7\u03b8\u03b5\u03af
+#. \u03b5\u03c0\u03af\u03c3\u03b7\u03c2 \u03ad\u03bd\u03b1
+#. \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2
+#. \u03b1\u03c0\u03cc\u03b4\u03bf\u03c3\u03b7\u03c2
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Έχετε επίσης απονεμηθεί ένα μπόνους απόδοσης ύψους "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["\u039a\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba
+#. \u03c3\u03c4\u03bf \"\u03a4\u03ad\u03bb\u03bf\u03c2\" \u03b3\u03b9\u03b1
+#. \u03bd\u03b1
+#. \u03bf\u03bb\u03bf\u03ba\u03bb\u03b7\u03c1\u03ce\u03c3\u03b5\u03c4\u03b5
+#. \u03c4\u03bf HIT.", "\u03a0\u03b1\u03c1\u03b1\u03ba\u03b1\u03bb\u03ce
+#. \u03ba\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \"\u03a4\u03ad\u03bb\u03bf\u03c2\" \u03b3\u03b9\u03b1 \u03bd\u03b1
+#. \u03bf\u03bb\u03bf\u03ba\u03bb\u03b7\u03c1\u03ce\u03c3\u03b5\u03c4\u03b5
+#. \u03c4\u03bf HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Κάντε κλικ στο \"Τέλος\" για να ολοκληρώσετε το HIT."
+
+#. {"msgid": ["\u03a6\u03b9\u03bd\u03af\u03c1\u03b9\u03c3\u03bc\u03b1",
+#. "\u03a4\u03ad\u03bb\u03bf\u03c2",
+#. "\u0395\u03c0\u03b5\u03be\u03b5\u03c1\u03b3\u03b1\u03c3\u03af\u03b1",
+#. "\u03a4\u03b5\u03bb\u03b5\u03b9\u03ce\u03bd\u03c9",
+#. "\u03a0\u03b5\u03c1\u03b1\u03c4\u03ce"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Φινίρισμα"
+
+#. {"msgid": ["\u03a3\u03b1\u03c2
+#. \u03b5\u03c5\u03c7\u03b1\u03c1\u03b9\u03c3\u03c4\u03bf\u03cd\u03bc\u03b5
+#. \u03b3\u03b9\u03b1 \u03c4\u03b7
+#. \u03c3\u03c5\u03bc\u03bc\u03b5\u03c4\u03bf\u03c7\u03ae
+#. \u03c3\u03b1\u03c2.",
+#. "\u0395\u03c5\u03c7\u03b1\u03c1\u03b9\u03c3\u03c4\u03ce \u03c0\u03bf\u03c5
+#. \u03bb\u03ac\u03b2\u03b1\u03c4\u03b5 \u03bc\u03ad\u03c1\u03bf\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Σας ευχαριστούμε για τη συμμετοχή σας."
+
+#. {"msgid": ["\u0395\u03c0\u03cc\u03bc\u03b5\u03bd\u03bf",
+#. "\u03b5\u03c0\u03cc\u03bc\u03b5\u03bd\u03bf\u03c2",
+#. "\u0395\u03c0\u03b5\u03b9\u03c4\u03b1",
+#. "\u03a0\u03c1\u03bf\u03c3\u03b5\u03c7\u03ae\u03c2",
+#. "\u03a0\u03bb\u03b7\u03c3\u03b9\u03ad\u03c3\u03c4\u03b5\u03c1\u03bf\u03c2"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Επόμενο"
+
+#. {"msgid": ["\u0395\u03ac\u03bd \u03b4\u03b5\u03bd
+#. \u03c3\u03c5\u03bc\u03b2\u03b1\u03af\u03bd\u03b5\u03b9
+#. \u03b1\u03c5\u03c4\u03cc,
+#. \u03b5\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03c4\u03b5
+#. \u03bc\u03b1\u03b6\u03af \u03bc\u03b1\u03c2 \u03c3\u03c4\u03bf %(EMAIL)s
+#. \u03b1\u03bd\u03b1\u03c6\u03ad\u03c1\u03bf\u03bd\u03c4\u03b1\u03c2
+#. \u03c4\u03b9\u03c2 \u03b1\u03ba\u03cc\u03bb\u03bf\u03c5\u03b8\u03b5\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2:",
+#. "\u0395\u03ac\u03bd \u03b1\u03c5\u03c4\u03cc \u03b4\u03b5\u03bd
+#. \u03c3\u03c5\u03bc\u03b2\u03b1\u03af\u03bd\u03b5\u03b9,
+#. \u03b5\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03c4\u03b5
+#. \u03bc\u03b1\u03b6\u03af \u03bc\u03b1\u03c2 \u03c3\u03c4\u03bf %(EMAIL)s
+#. \u03b1\u03bd\u03b1\u03c6\u03ad\u03c1\u03bf\u03bd\u03c4\u03b1\u03c2
+#. \u03c4\u03b9\u03c2 \u03b1\u03ba\u03cc\u03bb\u03bf\u03c5\u03b8\u03b5\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Εάν δεν συμβαίνει αυτό, επικοινωνήστε μαζί μας στο %(EMAIL)s αναφέροντας τις"
+" ακόλουθες πληροφορίες:"
+
+#. {"msgid": ["\u0393\u03b9\u03b1 \u03bd\u03b1
+#. \u03c1\u03c9\u03c4\u03ae\u03c3\u03b5\u03c4\u03b5
+#. \u03c3\u03c7\u03b5\u03c4\u03b9\u03ba\u03ac \u03bc\u03b5 \u03c4\u03b7\u03bd
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7,
+#. \u03b5\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03c4\u03b5
+#. \u03bc\u03b5 \u03c4\u03bf\u03bd
+#. \u03b5\u03c1\u03b5\u03c5\u03bd\u03b7\u03c4\u03ae \u03c3\u03c4\u03bf
+#. %(EMAIL)s \u03ba\u03b1\u03b9
+#. \u03c0\u03b5\u03c1\u03b9\u03b3\u03c1\u03ac\u03c8\u03c4\u03b5 \u03c4\u03b9
+#. \u03bf\u03b4\u03ae\u03b3\u03b7\u03c3\u03b5 \u03c3\u03b5
+#. \u03b1\u03c5\u03c4\u03cc \u03c4\u03bf
+#. \u03c3\u03c6\u03ac\u03bb\u03bc\u03b1.", "\u0393\u03b9\u03b1 \u03bd\u03b1
+#. \u03b6\u03b7\u03c4\u03ae\u03c3\u03b5\u03c4\u03b5
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7,
+#. \u03b5\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03c4\u03b5
+#. \u03bc\u03b5 \u03c4\u03bf\u03bd
+#. \u03b5\u03c1\u03b5\u03c5\u03bd\u03b7\u03c4\u03ae \u03c3\u03c4\u03bf
+#. %(EMAIL)s \u03ba\u03b1\u03b9
+#. \u03c0\u03b5\u03c1\u03b9\u03b3\u03c1\u03ac\u03c8\u03c4\u03b5 \u03c4\u03b9
+#. \u03bf\u03b4\u03ae\u03b3\u03b7\u03c3\u03b5 \u03c3\u03b5
+#. \u03b1\u03c5\u03c4\u03cc \u03c4\u03bf
+#. \u03c3\u03c6\u03ac\u03bb\u03bc\u03b1."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Για να ρωτήσετε σχετικά με την αποζημίωση, επικοινωνήστε με τον ερευνητή στο"
+" %(EMAIL)s και περιγράψτε τι οδήγησε σε αυτό το σφάλμα."
+
+#. {"msgid": ["\u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2",
+#. "\u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7
+#. \u03a0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Ακύρωση πειράματος"
+
+#. {"msgid": ["\u03a3\u03c5\u03bd\u03ad\u03c7\u03b9\u03c3\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2...",
+#. "\u03a3\u03c5\u03bd\u03ad\u03c7\u03b9\u03c3\u03b7 \u03c4\u03bf\u03c5
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2\u2026"]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Συνέχιση πειράματος..."
+
+#. {"msgid": ["\u0397 \u03b1\u03c0\u03bf\u03b2\u03bf\u03bb\u03ae
+#. \u03b4\u03b5\u03bd \u03b5\u03af\u03bd\u03b1\u03b9
+#. \u03b4\u03c5\u03bd\u03b1\u03c4\u03ae.", "\u0394\u03b5\u03bd
+#. \u03b5\u03af\u03bd\u03b1\u03b9 \u03b4\u03c5\u03bd\u03b1\u03c4\u03ae \u03b7
+#. \u03bc\u03b1\u03c4\u03b1\u03af\u03c9\u03c3\u03b7."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Η αποβολή δεν είναι δυνατή."
+
+#. {"msgid": ["\u0395\u03af\u03c3\u03c4\u03b5
+#. \u03b2\u03ad\u03b2\u03b1\u03b9\u03bf\u03b9 \u03cc\u03c4\u03b9
+#. \u03b8\u03ad\u03bb\u03b5\u03c4\u03b5 \u03bd\u03b1
+#. \u03bc\u03b1\u03c4\u03b1\u03b9\u03ce\u03c3\u03b5\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1;",
+#. "\u0395\u03af\u03c3\u03c4\u03b5
+#. \u03c3\u03af\u03b3\u03bf\u03c5\u03c1\u03bf\u03b9 \u03cc\u03c4\u03b9
+#. \u03b8\u03ad\u03bb\u03b5\u03c4\u03b5 \u03bd\u03b1
+#. \u03bc\u03b1\u03c4\u03b1\u03b9\u03ce\u03c3\u03b5\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1;"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Είστε βέβαιοι ότι θέλετε να ματαιώσετε το πείραμα;"
+
+#. {"msgid": ["\u0394\u03b9\u03b1\u03c5\u03b3\u03ae\u03c2
+#. \u03a5\u03c0\u03bf\u03b2\u03bf\u03bb\u03ae
+#. \u0388\u03c1\u03b5\u03c5\u03bd\u03b1\u03c2",
+#. "\u03a5\u03c0\u03bf\u03b2\u03bf\u03bb\u03ae
+#. \u03b4\u03b9\u03b1\u03c5\u03b3\u03bf\u03cd\u03c2
+#. \u03ad\u03c1\u03b5\u03c5\u03bd\u03b1\u03c2"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Διαυγής Υποβολή Έρευνας"
+
+#. {"msgid": ["\u0397
+#. \u03c3\u03c5\u03b3\u03ba\u03b1\u03c4\u03ac\u03b8\u03b5\u03c3\u03b7
+#. \u03b1\u03c0\u03bf\u03c1\u03c1\u03af\u03c6\u03b8\u03b7\u03ba\u03b5.",
+#. "\u0391\u03c0\u03bf\u03c1\u03c1\u03af\u03c6\u03b8\u03b7\u03ba\u03b5 \u03b7
+#. \u03c3\u03c5\u03b3\u03ba\u03b1\u03c4\u03ac\u03b8\u03b5\u03c3\u03b7."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Η συγκατάθεση απορρίφθηκε."
+
+#. {"msgid": ["\u0391\u03c5\u03c4\u03cc \u03b5\u03af\u03bd\u03b1\u03b9
+#. \u03c4\u03bf \u03c4\u03ad\u03bb\u03bf\u03c2 \u03c4\u03bf\u03c5
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2!",
+#. "\u0395\u03b4\u03ce \u03c4\u03b5\u03bb\u03b5\u03b9\u03ce\u03bd\u03b5\u03b9
+#. \u03c4\u03bf \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Αυτό είναι το τέλος του πειράματος!"
+
+#. {"msgid": ["\u0394\u03c5\u03c3\u03c4\u03c5\u03c7\u03ce\u03c2 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1
+#. \u03c0\u03c1\u03ad\u03c0\u03b5\u03b9 \u03bd\u03b1
+#. \u03c4\u03b5\u03bb\u03b5\u03b9\u03ce\u03c3\u03b5\u03b9
+#. \u03bd\u03c9\u03c1\u03af\u03c2.",
+#. "\u0394\u03c5\u03c3\u03c4\u03c5\u03c7\u03ce\u03c2 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1
+#. \u03c0\u03c1\u03ad\u03c0\u03b5\u03b9 \u03bd\u03b1
+#. \u03c4\u03b5\u03bb\u03b5\u03b9\u03ce\u03c3\u03b5\u03b9
+#. \u03bd\u03c9\u03c1\u03af\u03c4\u03b5\u03c1\u03b1."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Δυστυχώς το πείραμα πρέπει να τελειώσει νωρίς."
+
+#. {"msgid": ["\u039b\u03ac\u03b8\u03bf\u03c2!",
+#. "\u03a3\u03c6\u03ac\u03bb\u03bc\u03b1!", "\u03a0\u03bb\u03ac\u03bd\u03b7!",
+#. "\u03a0\u03b1\u03c1\u03cc\u03c1\u03b1\u03bc\u03b1!", "Error!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Λάθος!"
+
+#. {"msgid": ["\u0388\u03bd\u03b1\u03c1\u03be\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2...",
+#. "\u0388\u03bd\u03b1\u03c1\u03be\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03b1\u03bc\u03ac\u03c4\u03c9\u03bd\u2026"]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Έναρξη πειράματος..."
+
+#. {"msgid": ["\u03a3\u03b5
+#. \u03c0\u03b5\u03c1\u03af\u03c0\u03c4\u03c9\u03c3\u03b7
+#. \u03c0\u03c1\u03bf\u03b2\u03bb\u03ae\u03bc\u03b1\u03c4\u03bf\u03c2,
+#. \u03b4\u03bf\u03ba\u03b9\u03bc\u03ac\u03c3\u03c4\u03b5 \u03c4\u03b1
+#. \u03b5\u03be\u03ae\u03c2:", "\u03a3\u03b5
+#. \u03c0\u03b5\u03c1\u03af\u03c0\u03c4\u03c9\u03c3\u03b7
+#. \u03c0\u03c1\u03bf\u03b2\u03bb\u03ae\u03bc\u03b1\u03c4\u03bf\u03c2,
+#. \u03b4\u03bf\u03ba\u03b9\u03bc\u03ac\u03c3\u03c4\u03b5 \u03c4\u03b1
+#. \u03b1\u03ba\u03cc\u03bb\u03bf\u03c5\u03b8\u03b1:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Σε περίπτωση προβλήματος, δοκιμάστε τα εξής:"
+
+#. {"msgid": ["\u0395\u03af\u03c3\u03b1\u03b9
+#. \u03ad\u03c4\u03bf\u03b9\u03bc\u03bf\u03c2?",
+#. "\u0395\u03af\u03c3\u03c4\u03b5
+#. \u03ad\u03c4\u03bf\u03b9\u03bc\u03bf\u03b9;",
+#. "\u03b5\u03af\u03c3\u03b1\u03b9
+#. \u03ad\u03c4\u03bf\u03b9\u03bc\u03bf\u03c2;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Είσαι έτοιμος?"
+
+#. {"msgid": ["\u0394\u03ce\u03c1\u03bf",
+#. "\u0395\u03c0\u03b9\u03c7\u03bf\u03c1\u03ae\u03b3\u03b7\u03bc\u03b1",
+#. "\u039c\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2", "Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Δώρο"
+
+#. {"msgid": ["\u03a4\u03bf
+#. \u03b1\u03bd\u03b1\u03b3\u03bd\u03c9\u03c1\u03b9\u03c3\u03c4\u03b9\u03ba\u03cc
+#. \u03c4\u03bf\u03c5
+#. \u03c3\u03c5\u03bc\u03bc\u03b5\u03c4\u03ad\u03c7\u03bf\u03bd\u03c4\u03bf\u03c2
+#. \u03b4\u03b5\u03bd \u03ad\u03c7\u03b5\u03b9
+#. \u03ba\u03b1\u03b8\u03bf\u03c1\u03b9\u03c3\u03c4\u03b5\u03af,
+#. \u03af\u03c3\u03c9\u03c2 \u03b5\u03c0\u03b5\u03b9\u03b4\u03ae
+#. \u03b1\u03bb\u03bb\u03ac\u03be\u03b1\u03c4\u03b5
+#. \u03c0\u03c1\u03cc\u03b3\u03c1\u03b1\u03bc\u03bc\u03b1
+#. \u03c0\u03b5\u03c1\u03b9\u03ae\u03b3\u03b7\u03c3\u03b7\u03c2
+#. \u03ba\u03b1\u03c4\u03ac \u03c4\u03b7
+#. \u03b4\u03b9\u03ac\u03c1\u03ba\u03b5\u03b9\u03b1 \u03c4\u03b7\u03c2
+#. \u03b4\u03bf\u03ba\u03b9\u03bc\u03ae\u03c2.", "\u03a4\u03bf
+#. \u03b1\u03bd\u03b1\u03b3\u03bd\u03c9\u03c1\u03b9\u03c3\u03c4\u03b9\u03ba\u03cc
+#. \u03c3\u03c5\u03bc\u03bc\u03b5\u03c4\u03b5\u03c7\u03cc\u03bd\u03c4\u03c9\u03bd
+#. \u03c3\u03b1\u03c2 \u03b4\u03b5\u03bd \u03b5\u03af\u03bd\u03b1\u03b9
+#. \u03ba\u03b1\u03b8\u03bf\u03c1\u03b9\u03c3\u03bc\u03ad\u03bd\u03bf,
+#. \u03af\u03c3\u03c9\u03c2 \u03b5\u03c0\u03b5\u03b9\u03b4\u03ae
+#. \u03b1\u03bb\u03bb\u03ac\u03be\u03b1\u03c4\u03b5
+#. \u03c0\u03c1\u03cc\u03b3\u03c1\u03b1\u03bc\u03bc\u03b1
+#. \u03c0\u03b5\u03c1\u03b9\u03ae\u03b3\u03b7\u03c3\u03b7\u03c2
+#. \u03ba\u03b1\u03c4\u03ac \u03c4\u03b7
+#. \u03b4\u03b9\u03ac\u03c1\u03ba\u03b5\u03b9\u03b1 \u03c4\u03b7\u03c2
+#. \u03b4\u03bf\u03ba\u03b9\u03bc\u03ae\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Το αναγνωριστικό του συμμετέχοντος δεν έχει καθοριστεί, ίσως επειδή αλλάξατε"
+" πρόγραμμα περιήγησης κατά τη διάρκεια της δοκιμής."
+
+#. {"msgid": ["\u0397 \u03bc\u03b1\u03c4\u03b1\u03af\u03c9\u03c3\u03b7
+#. \u03c4\u03bf\u03c5
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2
+#. \u03b4\u03b5\u03bd \u03b5\u03af\u03bd\u03b1\u03b9
+#. \u03b4\u03c5\u03bd\u03b1\u03c4\u03ae \u03ba\u03b1\u03b8\u03ce\u03c2 \u03bf
+#. \u03c0\u03b5\u03b9\u03c1\u03b1\u03bc\u03b1\u03c4\u03b9\u03c3\u03c4\u03ae\u03c2
+#. \u03b4\u03b5\u03bd \u03c4\u03bf
+#. \u03b5\u03c0\u03b9\u03c4\u03c1\u03ad\u03c0\u03b5\u03b9
+#. \u03b1\u03c5\u03c4\u03ae\u03bd \u03c4\u03b7
+#. \u03c3\u03c4\u03b9\u03b3\u03bc\u03ae!", "\u0397
+#. \u03bc\u03b1\u03c4\u03b1\u03af\u03c9\u03c3\u03b7 \u03c4\u03bf\u03c5
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2
+#. \u03b4\u03b5\u03bd \u03b5\u03af\u03bd\u03b1\u03b9
+#. \u03b4\u03c5\u03bd\u03b1\u03c4\u03ae, \u03ba\u03b1\u03b8\u03ce\u03c2 \u03bf
+#. \u03c0\u03b5\u03b9\u03c1\u03b1\u03bc\u03b1\u03c4\u03b9\u03c3\u03c4\u03ae\u03c2
+#. \u03b4\u03b5\u03bd \u03c4\u03bf
+#. \u03b5\u03c0\u03b9\u03c4\u03c1\u03ad\u03c0\u03b5\u03b9
+#. \u03b1\u03c5\u03c4\u03ae \u03c4\u03b7
+#. \u03c3\u03c4\u03b9\u03b3\u03bc\u03ae!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Η ματαίωση του πειράματος δεν είναι δυνατή καθώς ο πειραματιστής δεν το "
+"επιτρέπει αυτήν τη στιγμή!"
+
+#. {"msgid": ["\u0395\u03ac\u03bd \u03ba\u03ac\u03bd\u03b5\u03c4\u03b5
+#. \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af
+#. \u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7, \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1 \u03b8\u03b1
+#. \u03c4\u03b5\u03bb\u03b5\u03b9\u03ce\u03c3\u03b5\u03b9
+#. \u03bd\u03c9\u03c1\u03af\u03c2 \u03ba\u03b1\u03b9 \u03b8\u03b1
+#. \u03bb\u03ac\u03b2\u03b5\u03c4\u03b5
+#. \u03b1\u03c5\u03c4\u03cc\u03bc\u03b1\u03c4\u03b1 \u03c4\u03b7\u03bd
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7
+#. \u03c0\u03bf\u03c5 \u03ad\u03c7\u03b5\u03c4\u03b5
+#. \u03ba\u03b5\u03c1\u03b4\u03af\u03c3\u03b5\u03b9
+#. \u03bc\u03ad\u03c7\u03c1\u03b9 \u03c4\u03ce\u03c1\u03b1.",
+#. "\u0395\u03ac\u03bd \u03ba\u03ac\u03bd\u03b5\u03c4\u03b5
+#. \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af
+#. \u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7, \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1 \u03b8\u03b1
+#. \u03c4\u03b5\u03bb\u03b5\u03b9\u03ce\u03c3\u03b5\u03b9
+#. \u03bd\u03c9\u03c1\u03af\u03c2 \u03ba\u03b1\u03b9 \u03b8\u03b1
+#. \u03c3\u03b1\u03c2
+#. \u03ba\u03b1\u03c4\u03b1\u03b2\u03bb\u03b7\u03b8\u03b5\u03af
+#. \u03b1\u03c5\u03c4\u03cc\u03bc\u03b1\u03c4\u03b1 \u03b7
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7
+#. \u03c0\u03bf\u03c5 \u03ad\u03c7\u03b5\u03c4\u03b5
+#. \u03ba\u03b5\u03c1\u03b4\u03af\u03c3\u03b5\u03b9
+#. \u03bc\u03ad\u03c7\u03c1\u03b9
+#. \u03c3\u03c4\u03b9\u03b3\u03bc\u03ae\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Εάν κάνετε κλικ στο κουμπί Ακύρωση, το πείραμα θα τελειώσει νωρίς και θα "
+"λάβετε αυτόματα την αποζημίωση που έχετε κερδίσει μέχρι τώρα."
+
+#. {"msgid": ["\u0393\u03b9\u03b1 \u03bd\u03b1
+#. \u03bf\u03bb\u03bf\u03ba\u03bb\u03b7\u03c1\u03ce\u03c3\u03b5\u03c4\u03b5
+#. \u03c4\u03b7\u03bd \u0388\u03c1\u03b5\u03c5\u03bd\u03b1 Lucid,
+#. \u03ba\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af.", "\u0393\u03b9\u03b1 \u03bd\u03b1
+#. \u03bf\u03bb\u03bf\u03ba\u03bb\u03b7\u03c1\u03ce\u03c3\u03b5\u03c4\u03b5
+#. \u03c4\u03b7\u03bd \u0388\u03c1\u03b5\u03c5\u03bd\u03b1
+#. \u0394\u03b9\u03b1\u03c5\u03b3\u03ce\u03bd \u03c3\u03b1\u03c2,
+#. \u03ba\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Για να ολοκληρώσετε την Έρευνα Lucid, κάντε κλικ στο παρακάτω κουμπί."
+
+#. {"msgid": ["\u03a4\u03ad\u03bb\u03bf\u03c2
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2.",
+#. "\u039b\u03ae\u03be\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Τέλος πειράματος."
+
+#. {"msgid": ["\u03a9\u03c3\u03c4\u03cc\u03c3\u03bf, \u03b8\u03b1
+#. \u03b5\u03be\u03b1\u03ba\u03bf\u03bb\u03bf\u03c5\u03b8\u03b5\u03af\u03c4\u03b5
+#. \u03bd\u03b1 \u03c0\u03bb\u03b7\u03c1\u03ce\u03bd\u03b5\u03c3\u03c4\u03b5
+#. \u03b3\u03b9\u03b1 \u03c4\u03bf \u03c7\u03c1\u03cc\u03bd\u03bf
+#. \u03c0\u03bf\u03c5 \u03ad\u03c7\u03b5\u03c4\u03b5 \u03ae\u03b4\u03b7
+#. \u03be\u03bf\u03b4\u03ad\u03c8\u03b5\u03b9.",
+#. "\u03a9\u03c3\u03c4\u03cc\u03c3\u03bf, \u03b8\u03b1
+#. \u03c3\u03c5\u03bd\u03b5\u03c7\u03af\u03c3\u03b5\u03c4\u03b5 \u03bd\u03b1
+#. \u03c0\u03bb\u03b7\u03c1\u03ce\u03bd\u03b5\u03c3\u03c4\u03b5
+#. \u03b3\u03b9\u03b1 \u03c4\u03bf \u03c7\u03c1\u03cc\u03bd\u03bf
+#. \u03c0\u03bf\u03c5 \u03ad\u03c7\u03b5\u03c4\u03b5 \u03ae\u03b4\u03b7
+#. \u03be\u03bf\u03b4\u03ad\u03c8\u03b5\u03b9."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Ωστόσο, θα εξακολουθείτε να πληρώνεστε για το χρόνο που έχετε ήδη ξοδέψει."
+
+#. {"msgid": ["\u038a\u03c3\u03c9\u03c2
+#. \u03bc\u03c0\u03bf\u03c1\u03b5\u03af\u03c4\u03b5 \u03bd\u03b1
+#. \u03bc\u03b1\u03c4\u03b1\u03b9\u03ce\u03c3\u03b5\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1
+#. \u03c7\u03c1\u03b7\u03c3\u03b9\u03bc\u03bf\u03c0\u03bf\u03b9\u03ce\u03bd\u03c4\u03b1\u03c2
+#. \u03c4\u03bf \u03ba\u03bf\u03c5\u03bc\u03c0\u03af
+#. <strong>\u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2</strong>
+#. <strong>\u03c3\u03c4\u03b7 \u03c3\u03b5\u03bb\u03af\u03b4\u03b1
+#. \u03b4\u03b9\u03b1\u03c6\u03ae\u03bc\u03b9\u03c3\u03b7\u03c2
+#. MTurk</strong>.", "\u0395\u03bd\u03b4\u03ad\u03c7\u03b5\u03c4\u03b1\u03b9
+#. \u03bd\u03b1 \u03bc\u03c0\u03bf\u03c1\u03b5\u03af\u03c4\u03b5 \u03bd\u03b1
+#. \u03bc\u03b1\u03c4\u03b1\u03b9\u03ce\u03c3\u03b5\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1
+#. \u03c7\u03c1\u03b7\u03c3\u03b9\u03bc\u03bf\u03c0\u03bf\u03b9\u03ce\u03bd\u03c4\u03b1\u03c2
+#. \u03c4\u03bf \u03ba\u03bf\u03c5\u03bc\u03c0\u03af
+#. <strong>\u0391\u03ba\u03cd\u03c1\u03c9\u03c3\u03b7
+#. \u03c0\u03b5\u03b9\u03c1\u03ac\u03bc\u03b1\u03c4\u03bf\u03c2</strong>
+#. <strong>\u03c3\u03c4\u03b7 \u03c3\u03b5\u03bb\u03af\u03b4\u03b1
+#. \u03b4\u03b9\u03b1\u03c6\u03b7\u03bc\u03af\u03c3\u03b5\u03c9\u03bd
+#. MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Ίσως μπορείτε να ματαιώσετε το πείραμα χρησιμοποιώντας το κουμπί "
+"<strong>Ακύρωση πειράματος</strong> <strong>στη σελίδα διαφήμισης "
+"MTurk</strong>."
+
+#. {"msgid":
+#. ["\u0395\u03c0\u03b1\u03bd\u03b1\u03c6\u03cc\u03c1\u03c4\u03c9\u03c3\u03b7
+#. \u03c4\u03b7\u03c2 \u03c3\u03b5\u03bb\u03af\u03b4\u03b1\u03c2.",
+#. "\u03a6\u03bf\u03c1\u03c4\u03ce\u03c3\u03c4\u03b5 \u03be\u03b1\u03bd\u03ac
+#. \u03c4\u03b7 \u03c3\u03b5\u03bb\u03af\u03b4\u03b1."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Επαναφόρτωση της σελίδας."
+
+#. {"msgid": ["\u039a\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba
+#. \u03c3\u03c4\u03bf \u03ba\u03bf\u03c5\u03bc\u03c0\u03af
+#. \u03cc\u03c4\u03b1\u03bd \u03b5\u03af\u03c3\u03c4\u03b5
+#. \u03ad\u03c4\u03bf\u03b9\u03bc\u03bf\u03b9 \u03bd\u03b1
+#. \u03c3\u03c5\u03bd\u03b5\u03c7\u03af\u03c3\u03b5\u03c4\u03b5 \u03c4\u03bf
+#. \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1.", "\u038c\u03c4\u03b1\u03bd
+#. \u03b5\u03af\u03c3\u03c4\u03b5 \u03ad\u03c4\u03bf\u03b9\u03bc\u03bf\u03b9
+#. \u03bd\u03b1 \u03c3\u03c5\u03bd\u03b5\u03c7\u03af\u03c3\u03b5\u03c4\u03b5
+#. \u03c4\u03bf \u03c0\u03b5\u03af\u03c1\u03b1\u03bc\u03b1,
+#. \u03ba\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Κάντε κλικ στο κουμπί όταν είστε έτοιμοι να συνεχίσετε το πείραμα."
+
+#. {"msgid": ["\u0392\u03bf\u03ae\u03b8\u03b5\u03b9\u03b1!",
+#. "\u0392\u03bf\u03b7\u03b8\u03ce!", "\u0391\u03c1\u03c9\u03b3\u03ae!",
+#. "\u0392\u03bf\u03b7\u03b8\u03cc\u03c2!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Βοήθεια!"
+
+#. {"msgid": ["\u0394\u03c5\u03c3\u03c4\u03c5\u03c7\u03ce\u03c2
+#. \u03b1\u03c5\u03c4\u03ae \u03b7
+#. \u03c3\u03c5\u03bc\u03c0\u03b5\u03c1\u03b9\u03c6\u03bf\u03c1\u03ac
+#. \u03b4\u03b5\u03bd
+#. \u03c5\u03c0\u03bf\u03c3\u03c4\u03b7\u03c1\u03af\u03b6\u03b5\u03c4\u03b1\u03b9
+#. \u03b1\u03c5\u03c4\u03ae\u03bd \u03c4\u03b7
+#. \u03c3\u03c4\u03b9\u03b3\u03bc\u03ae.",
+#. "\u0394\u03c5\u03c3\u03c4\u03c5\u03c7\u03ce\u03c2 \u03b1\u03c5\u03c4\u03ae
+#. \u03b7 \u03c3\u03c5\u03bc\u03c0\u03b5\u03c1\u03b9\u03c6\u03bf\u03c1\u03ac
+#. \u03b4\u03b5\u03bd
+#. \u03c5\u03c0\u03bf\u03c3\u03c4\u03b7\u03c1\u03af\u03b6\u03b5\u03c4\u03b1\u03b9
+#. \u03c0\u03c1\u03bf\u03c2 \u03c4\u03bf \u03c0\u03b1\u03c1\u03cc\u03bd."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Δυστυχώς αυτή η συμπεριφορά δεν υποστηρίζεται αυτήν τη στιγμή."
+
+#. {"msgid": ["\u0394\u03b5\u03af\u03c4\u03b5
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2
+#. \u03c3\u03c7\u03b5\u03c4\u03b9\u03ba\u03ac \u03bc\u03b5 \u03c4\u03bf
+#. \u03b5\u03c0\u03af\u03b4\u03bf\u03bc\u03b1 \u03c0\u03bf\u03c5
+#. \u03ad\u03c7\u03b5\u03c4\u03b5
+#. \u03c3\u03c5\u03b3\u03ba\u03b5\u03bd\u03c4\u03c1\u03ce\u03c3\u03b5\u03b9
+#. \u03b1\u03c5\u03c4\u03ae\u03bd \u03c4\u03b7
+#. \u03c3\u03c4\u03b9\u03b3\u03bc\u03ae.", "\u0394\u03b5\u03af\u03c4\u03b5
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2
+#. \u03b3\u03b9\u03b1 \u03c4\u03bf \u03bc\u03c0\u03cc\u03bd\u03bf\u03c5\u03c2
+#. \u03c0\u03bf\u03c5 \u03ad\u03c7\u03b5\u03c4\u03b5
+#. \u03c3\u03c5\u03c3\u03c3\u03c9\u03c1\u03b5\u03cd\u03c3\u03b5\u03b9
+#. \u03b1\u03c5\u03c4\u03ae\u03bd \u03c4\u03b7
+#. \u03c3\u03c4\u03b9\u03b3\u03bc\u03ae."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr ""
+"Δείτε παρακάτω πληροφορίες σχετικά με το επίδομα που έχετε συγκεντρώσει "
+"αυτήν τη στιγμή."
+
+#. {"msgid":
+#. ["\u0395\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03c4\u03b5
+#. \u03bc\u03b1\u03b6\u03af \u03bc\u03b1\u03c2 \u03bc\u03cc\u03bd\u03bf
+#. \u03b5\u03ac\u03bd
+#. \u03b1\u03bd\u03c4\u03b9\u03bc\u03b5\u03c4\u03c9\u03c0\u03af\u03b6\u03b5\u03c4\u03b5
+#. \u03c0\u03c1\u03bf\u03b2\u03bb\u03ae\u03bc\u03b1\u03c4\u03b1 \u03bc\u03b5
+#. \u03c4\u03b7 \u03bb\u03ae\u03c8\u03b7 \u03c4\u03b7\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03c9\u03bc\u03ae\u03c2 \u03c3\u03b1\u03c2.",
+#. "\u0395\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03c4\u03b5
+#. \u03bc\u03b1\u03b6\u03af \u03bc\u03b1\u03c2 \u03bc\u03cc\u03bd\u03bf
+#. \u03b5\u03ac\u03bd
+#. \u03b1\u03bd\u03c4\u03b9\u03bc\u03b5\u03c4\u03c9\u03c0\u03af\u03b6\u03b5\u03c4\u03b5
+#. \u03c0\u03c1\u03cc\u03b2\u03bb\u03b7\u03bc\u03b1 \u03bc\u03b5
+#. \u03c4\u03b7\u03bd \u03c0\u03b1\u03c1\u03b1\u03bb\u03b1\u03b2\u03ae
+#. \u03c4\u03b7\u03c2 \u03c0\u03bb\u03b7\u03c1\u03c9\u03bc\u03ae\u03c2
+#. \u03c3\u03b1\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Επικοινωνήστε μαζί μας μόνο εάν αντιμετωπίζετε προβλήματα με τη λήψη της "
+"πληρωμής σας."
+
+#. {"msgid": ["\u0394\u03b5\u03af\u03c4\u03b5 \u03c4\u03b9\u03c2
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2
+#. \u03b3\u03b9\u03b1
+#. \u03bb\u03b5\u03c0\u03c4\u03bf\u03bc\u03ad\u03c1\u03b5\u03b9\u03b5\u03c2
+#. \u03c3\u03c7\u03b5\u03c4\u03b9\u03ba\u03ac \u03bc\u03b5 \u03c4\u03b7\u03bd
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03ae
+#. \u03c3\u03b1\u03c2.", "\u0394\u03b5\u03af\u03c4\u03b5 \u03c4\u03b9\u03c2
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2
+#. \u03b3\u03b9\u03b1
+#. \u03bb\u03b5\u03c0\u03c4\u03bf\u03bc\u03ad\u03c1\u03b5\u03b9\u03b5\u03c2
+#. \u03c4\u03b7\u03c2
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03ae\u03c2
+#. \u03c3\u03b1\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+"Δείτε τις παρακάτω πληροφορίες για λεπτομέρειες σχετικά με την αποζημίωσή "
+"σας."
+
+#. {"msgid": ["\u039c\u03b5\u03c4\u03ac \u03c4\u03b7\u03bd
+#. \u03b1\u03c0\u03bf\u03b2\u03bf\u03bb\u03ae, \u03b4\u03b5\u03bd
+#. \u03c7\u03c1\u03b5\u03b9\u03ac\u03b6\u03b5\u03c4\u03b1\u03b9 \u03bd\u03b1
+#. \u03b5\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03b5\u03c4\u03b5
+#. \u03bc\u03b1\u03b6\u03af \u03bc\u03b1\u03c2 \u03b3\u03b9\u03b1 \u03bd\u03b1
+#. \u03bb\u03ac\u03b2\u03b5\u03c4\u03b5 \u03c4\u03b7\u03bd
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7.",
+#. "\u0391\u03c6\u03bf\u03cd
+#. \u03b1\u03c0\u03bf\u03b2\u03bb\u03b7\u03b8\u03b5\u03af, \u03b4\u03b5\u03bd
+#. \u03c7\u03c1\u03b5\u03b9\u03ac\u03b6\u03b5\u03c4\u03b1\u03b9 \u03bd\u03b1
+#. \u03b5\u03c0\u03b9\u03ba\u03bf\u03b9\u03bd\u03c9\u03bd\u03ae\u03c3\u03b5\u03c4\u03b5
+#. \u03bc\u03b1\u03b6\u03af \u03bc\u03b1\u03c2 \u03b3\u03b9\u03b1 \u03bd\u03b1
+#. \u03bb\u03ac\u03b2\u03b5\u03c4\u03b5 \u03c4\u03b7\u03bd
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Μετά την αποβολή, δεν χρειάζεται να επικοινωνήσετε μαζί μας για να λάβετε "
+"την αποζημίωση."
+
+#. {"msgid": ["\u0391\u03bd\u03b1\u03c6\u03ad\u03c1\u03b5\u03c4\u03b5
+#. \u03b5\u03c0\u03af\u03c3\u03b7\u03c2 \u03c4\u03b9\u03c2
+#. \u03b1\u03ba\u03cc\u03bb\u03bf\u03c5\u03b8\u03b5\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2:",
+#. "\u03a0\u03b1\u03c1\u03b1\u03ba\u03b1\u03bb\u03bf\u03cd\u03bc\u03b5
+#. \u03b5\u03c0\u03af\u03c3\u03b7\u03c2 \u03bd\u03b1
+#. \u03b1\u03bd\u03b1\u03c6\u03ad\u03c1\u03b5\u03c4\u03b5 \u03c4\u03b9\u03c2
+#. \u03b1\u03ba\u03cc\u03bb\u03bf\u03c5\u03b8\u03b5\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Αναφέρετε επίσης τις ακόλουθες πληροφορίες:"
+
+#. {"msgid": ["\u039a\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba
+#. \u03c3\u03c4\u03bf \u03c0\u03b1\u03c1\u03b1\u03c0\u03ac\u03bd\u03c9
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af \u03b3\u03b9\u03b1 \u03bd\u03b1
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03b9\u03c9\u03b8\u03b5\u03af\u03c4\u03b5
+#. \u03c3\u03b5 \u03c0\u03b5\u03c1\u03af\u03c0\u03c4\u03c9\u03c3\u03b7
+#. \u03c3\u03c6\u03ac\u03bb\u03bc\u03b1\u03c4\u03bf\u03c2.",
+#. "\u039a\u03ac\u03bd\u03c4\u03b5 \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf
+#. \u03c0\u03b1\u03c1\u03b1\u03c0\u03ac\u03bd\u03c9
+#. \u03ba\u03bf\u03c5\u03bc\u03c0\u03af \u03b3\u03b9\u03b1 \u03bd\u03b1
+#. \u03bb\u03ac\u03b2\u03b5\u03c4\u03b5
+#. \u03b1\u03c0\u03bf\u03b6\u03b7\u03bc\u03af\u03c9\u03c3\u03b7 \u03c3\u03b5
+#. \u03c0\u03b5\u03c1\u03af\u03c0\u03c4\u03c9\u03c3\u03b7
+#. \u03c3\u03c6\u03ac\u03bb\u03bc\u03b1\u03c4\u03bf\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Κάντε κλικ στο παραπάνω κουμπί για να αποζημιωθείτε σε περίπτωση σφάλματος."
+
+#. {"msgid": ["\u0395\u03bb\u03ad\u03b3\u03be\u03c4\u03b5 \u03cc\u03c4\u03b9
+#. \u03b7 \u03c3\u03cd\u03bd\u03b4\u03b5\u03c3\u03ae \u03c3\u03b1\u03c2
+#. \u03c3\u03c4\u03bf \u0394\u03b9\u03b1\u03b4\u03af\u03ba\u03c4\u03c5\u03bf
+#. \u03bb\u03b5\u03b9\u03c4\u03bf\u03c5\u03c1\u03b3\u03b5\u03af.",
+#. "\u0392\u03b5\u03b2\u03b1\u03b9\u03c9\u03b8\u03b5\u03af\u03c4\u03b5
+#. \u03cc\u03c4\u03b9 \u03b7 \u03c3\u03cd\u03bd\u03b4\u03b5\u03c3\u03ae
+#. \u03c3\u03b1\u03c2 \u03c3\u03c4\u03bf
+#. \u03b4\u03b9\u03b1\u03b4\u03af\u03ba\u03c4\u03c5\u03bf
+#. \u03bb\u03b5\u03b9\u03c4\u03bf\u03c5\u03c1\u03b3\u03b5\u03af."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Ελέγξτε ότι η σύνδεσή σας στο Διαδίκτυο λειτουργεί."
+
+#. {"msgid": ["\u0395\u03ac\u03bd \u03c4\u03b1
+#. \u03c0\u03b1\u03c1\u03b1\u03c0\u03ac\u03bd\u03c9 \u03b4\u03b5\u03bd
+#. \u03b2\u03bf\u03b7\u03b8\u03ae\u03c3\u03bf\u03c5\u03bd,
+#. \u03c3\u03c4\u03b5\u03af\u03bb\u03c4\u03b5 \u03bc\u03b1\u03c2
+#. \u03ad\u03bd\u03b1 email \u03bc\u03b5 \u03c4\u03b9\u03c2
+#. \u03b1\u03ba\u03cc\u03bb\u03bf\u03c5\u03b8\u03b5\u03c2
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2:",
+#. "\u0395\u03ac\u03bd \u03c4\u03b1
+#. \u03c0\u03b1\u03c1\u03b1\u03c0\u03ac\u03bd\u03c9 \u03b4\u03b5\u03bd
+#. \u03b2\u03bf\u03b7\u03b8\u03ae\u03c3\u03bf\u03c5\u03bd,
+#. \u03c3\u03c4\u03b5\u03af\u03bb\u03c4\u03b5 \u03bc\u03b1\u03c2
+#. \u03ad\u03bd\u03b1 email \u03bc\u03b5 \u03c4\u03b9\u03c2
+#. \u03c0\u03b1\u03c1\u03b1\u03ba\u03ac\u03c4\u03c9
+#. \u03c0\u03bb\u03b7\u03c1\u03bf\u03c6\u03bf\u03c1\u03af\u03b5\u03c2:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Εάν τα παραπάνω δεν βοηθήσουν, στείλτε μας ένα email με τις ακόλουθες "
+"πληροφορίες:"
+
+#. {"msgid": ["\u0388\u03bd\u03b1\u03c2
+#. \u03c3\u03cd\u03bd\u03b4\u03b5\u03c3\u03bc\u03bf\u03c2
+#. \u03c0\u03c1\u03bf\u03c2 \u03c4\u03b7\u03bd
+#. \u03c4\u03c1\u03ad\u03c7\u03bf\u03c5\u03c3\u03b1
+#. \u03b9\u03c3\u03c4\u03bf\u03c3\u03b5\u03bb\u03af\u03b4\u03b1.",
+#. "\u03a3\u03cd\u03bd\u03b4\u03b5\u03c3\u03bc\u03bf\u03c2
+#. \u03c0\u03c1\u03bf\u03c2 \u03c4\u03b7\u03bd
+#. \u03c4\u03c1\u03ad\u03c7\u03bf\u03c5\u03c3\u03b1
+#. \u03b9\u03c3\u03c4\u03bf\u03c3\u03b5\u03bb\u03af\u03b4\u03b1."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Ένας σύνδεσμος προς την τρέχουσα ιστοσελίδα."
+
+#. {"msgid": ["\u0397 \u03c4\u03b1\u03c5\u03c4\u03cc\u03c4\u03b7\u03c4\u03b1
+#. \u03b5\u03c1\u03b3\u03b1\u03b6\u03bf\u03bc\u03ad\u03bd\u03bf\u03c5
+#. \u03c3\u03b1\u03c2.", "\u03a4\u03bf
+#. \u03b1\u03bd\u03b1\u03b3\u03bd\u03c9\u03c1\u03b9\u03c3\u03c4\u03b9\u03ba\u03cc
+#. \u03b5\u03c1\u03b3\u03b1\u03b6\u03bf\u03bc\u03ad\u03bd\u03bf\u03c5
+#. \u03c3\u03b1\u03c2."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Η ταυτότητα εργαζομένου σας."
+
+#. {"msgid": ["\u03a4\u03bf \u03c0\u03c1\u03cc\u03b2\u03bb\u03b7\u03bc\u03b1
+#. \u03c0\u03bf\u03c5
+#. \u03b1\u03bd\u03c4\u03b9\u03bc\u03b5\u03c4\u03c9\u03c0\u03af\u03b6\u03b5\u03c4\u03b5.",
+#. "\u03a4\u03bf \u03c0\u03c1\u03cc\u03b2\u03bb\u03b7\u03bc\u03b1
+#. \u03c0\u03bf\u03c5
+#. \u03b1\u03bd\u03c4\u03b9\u03bc\u03b5\u03c4\u03c9\u03c0\u03af\u03b6\u03b5\u03b9\u03c2"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Το πρόβλημα που αντιμετωπίζετε."
+
+#. {"msgid": ["\u0392\u0399\u039f\u0393\u03a1\u0391\u03a6\u0399\u039a\u039f",
+#. "\u03a0\u03b5\u03c1\u03af\u03bb\u03b7\u03c8\u03b7",
+#. "\u0392\u03b9\u03bf\u03b3\u03c1\u03b1\u03c6\u03af\u03ba\u03bf
+#. \u03c3\u03b7\u03bc\u03b5\u03af\u03c9\u03bc\u03b1",
+#. "\u0391\u03bd\u03b1\u03ba\u03b5\u03c6\u03b1\u03bb\u03b1\u03af\u03c9\u03c3\u03b7",
+#. "\u0391\u03bd\u03b1\u03bb\u03b1\u03bc\u03b2\u03ac\u03bd\u03c9"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "ΒΙΟΓΡΑΦΙΚΟ"

@@ -1,0 +1,478 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:53+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: MT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Int trid takkumula<strong>mill-inqas
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ta 'bonus biex tkun tista'
+#. ti\u0121i kkumpensat.", "Trid takkumula<strong>mill-inqas
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ta' bonus biex tkun tista'
+#. ti\u0121i kkumpensat."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Int trid takkumula<strong>mill-inqas "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ta 'bonus biex tkun tista' "
+"tiġi kkumpensat."
+
+#. {"msgid": ["Bonus akkumulat", "bonus akkumulat"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Bonus akkumulat"
+
+#. {"msgid": ["Ag\u0127laq it-tieqa", "Ag\u0127laq tieqa"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Agħlaq it-tieqa"
+
+#. {"msgid": ["Aborta l-esperiment", "Abort esperiment"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Aborta l-esperiment"
+
+#. {"msgid": ["Tlesti St\u0127arri\u0121", "St\u0127arri\u0121 Imlesta"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Tlesti Stħarriġ"
+
+#. {"msgid": ["Minbarra l-\u0127las ba\u017ci tieg\u0127ek ta'
+#. <strong>$%(BASE_PAYMENT)s</strong> inti tir\u010bievi bonus ta'
+#. <strong>$%(BONUS)s</strong> g\u0127a\u017c-\u017cmien li qattajt fl-
+#. esperiment.", "Minbarra l-pagament ba\u017ci tieg\u0127ek ta'
+#. <strong>$%(BASE_PAYMENT)s</strong> inti tir\u010bievi bonus ta'
+#. <strong>$%(BONUS)s</strong> g\u0127a\u017c-\u017cmien li qattajt fl-
+#. esperiment."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Minbarra l-ħlas bażi tiegħek ta' <strong>$%(BASE_PAYMENT)s</strong> inti "
+"tirċievi bonus ta' <strong>$%(BONUS)s</strong> għaż-żmien li qattajt fl-"
+"esperiment."
+
+#. {"msgid": ["Int ing\u0127atat ukoll bonus ta' prestazzjoni ta'
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Int ukoll ing\u0127atat bonus
+#. ta' prestazzjoni ta' <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Int ingħatat ukoll bonus ta' prestazzjoni ta' "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Jekk jog\u0127\u0121bok ikklikkja \"Finish\" biex tlesti
+#. l-HIT.", "Jekk jog\u0127\u0121bok ikklikkja \"Tlesti\" biex tlesti
+#. l-HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Jekk jogħġbok ikklikkja \"Finish\" biex tlesti l-HIT."
+
+#. {"msgid": ["Temm", "Finish"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Temm"
+
+#. {"msgid": ["Grazzi talli \u0127adt sehem.", "Grazzi li \u0127adt sehem."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Grazzi talli ħadt sehem."
+
+#. {"msgid": ["Li jmiss", "Sussegwentement"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Li jmiss"
+
+#. {"msgid": ["Jekk dan mhux il-ka\u017c, jekk jog\u0127\u0121bok
+#. ikkuntattjana fuq %(EMAIL)s billi tikkwota l-informazzjoni li \u0121ejja:",
+#. "Jekk dan ma jkunx il-ka\u017c, jekk jog\u0127\u0121bok ikkuntattjana fuq
+#. %(EMAIL)s billi tikkwota l-informazzjoni li \u0121ejja:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Jekk dan mhux il-każ, jekk jogħġbok ikkuntattjana fuq %(EMAIL)s billi "
+"tikkwota l-informazzjoni li ġejja:"
+
+#. {"msgid": ["Biex tistaqsi dwar il-kumpens, jekk jog\u0127\u0121bok
+#. ikkuntattja lir-ri\u010berkatur fuq %(EMAIL)s u ddeskrivi x'wassal
+#. g\u0127al dan l-i\u017cball.", "Biex tistaqsi dwar kumpens, jekk
+#. jog\u0127\u0121bok ikkuntattja lir-ri\u010berkatur f'%(EMAIL)s u ddeskrivi
+#. x'wassal g\u0127al dan l-i\u017cball."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Biex tistaqsi dwar il-kumpens, jekk jogħġbok ikkuntattja lir-riċerkatur fuq "
+"%(EMAIL)s u ddeskrivi x'wassal għal dan l-iżball."
+
+#. {"msgid": ["Aborta l-Esperiment", "Abbort Esperiment"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Aborta l-Esperiment"
+
+#. {"msgid": ["Jkompli l-esperiment...", "Jibda l-esperiment..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Jkompli l-esperiment..."
+
+#. {"msgid": ["L-abort mhux possibbli.", "Abort mhux possibbli."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "L-abort mhux possibbli."
+
+#. {"msgid": ["Int \u017cgur li trid t\u0127assar l-esperiment?", "\u017bgur
+#. li trid tabortixxi l-esperiment?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Int żgur li trid tħassar l-esperiment?"
+
+#. {"msgid": ["Sottomissjoni ta' St\u0127arri\u0121 Lucid", "Sottomissjoni
+#. Lucid St\u0127arri\u0121"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Sottomissjoni ta' Stħarriġ Lucid"
+
+#. {"msgid": ["Il-kunsens \u0121ie mi\u010b\u0127ud.", "Il-kunsens \u0121ie
+#. rrifjutat."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Il-kunsens ġie miċħud."
+
+#. {"msgid": ["Dak hu t-tmiem tal-esperiment!", "Dak hu tmiem l-esperiment!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Dak hu t-tmiem tal-esperiment!"
+
+#. {"msgid": ["Sfortunatament l-esperiment irid jintemm kmieni.",
+#. "Sfortunatament l-esperiment g\u0127andu jispi\u010b\u010ba kmieni."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Sfortunatament l-esperiment irid jintemm kmieni."
+
+#. {"msgid": ["\u017bball!", "Error!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Żball!"
+
+#. {"msgid": ["Nibda l-esperiment...", "Nibdew esperiment..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Nibda l-esperiment..."
+
+#. {"msgid": ["F'ka\u017c ta' problema, ipprova dan li \u0121ej:", "Fil-
+#. ka\u017c ta' problema, ipprova dan li \u0121ej:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "F'każ ta' problema, ipprova dan li ġej:"
+
+#. {"msgid": ["Lest?", "Inti lest?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Lest?"
+
+#. {"msgid": ["Bonus", "bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["L-ID tal-parte\u010bipant tieg\u0127ek mhix definita, forsi
+#. g\u0127ax bdilt il-browser waqt it-test.", "L-ID tal-parte\u010bipant
+#. tieg\u0127ek mhix definita, forsi min\u0127abba li bdejt il-browsers waqt
+#. it-test."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"L-ID tal-parteċipant tiegħek mhix definita, forsi għax bdilt il-browser waqt"
+" it-test."
+
+#. {"msgid": ["L-abort tal-esperiment mhuwiex possibbli peress li
+#. l-esperimentatur ma jippermettix dan il-\u0127in!", "L-abort tal-esperiment
+#. mhuwiex possibbli peress li l-esperimentatur ma jippermettihx f'dan
+#. il-\u0127in!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"L-abort tal-esperiment mhuwiex possibbli peress li l-esperimentatur ma "
+"jippermettix dan il-ħin!"
+
+#. {"msgid": ["Jekk tikklikkja l-buttuna Abort, l-esperiment jintemm kmieni, u
+#. tit\u0127allas awtomatikament il-kumpens li tkun qlajt s'issa.", "Jekk
+#. tikklikkja fuq il-buttuna Aborta, l-esperiment jintemm kmieni, u
+#. tit\u0127allas awtomatikament il-kumpens li tkun qlajt s'issa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Jekk tikklikkja l-buttuna Abort, l-esperiment jintemm kmieni, u titħallas "
+"awtomatikament il-kumpens li tkun qlajt s'issa."
+
+#. {"msgid": ["Biex tlesti l-Ist\u0127arri\u0121 Lucid tieg\u0127ek, ikklikkja
+#. l-buttuna hawn ta\u0127t.", "Biex tlesti l-Ist\u0127arri\u0121 Lucid
+#. tieg\u0127ek, ikklikkja fuq il-buttuna hawn ta\u0127t."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Biex tlesti l-Istħarriġ Lucid tiegħek, ikklikkja l-buttuna hawn taħt."
+
+#. {"msgid": ["Tmiem tal-esperiment.", "Tmiem ta' l-esperiment."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Tmiem tal-esperiment."
+
+#. {"msgid": ["Madankollu, xorta tit\u0127allas g\u0127a\u017c-\u017cmien li
+#. qattajt di\u0121\u00e0.", "Madankollu, inti xorta tit\u0127allas
+#. g\u0127a\u017c-\u017cmien li qattajt di\u0121\u00e0."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Madankollu, xorta titħallas għaż-żmien li qattajt diġà."
+
+#. {"msgid": ["Inti tista 'tkun kapa\u010bi abort l-esperiment billi tu\u017ca
+#. l-<strong>Aborta esperiment</strong> buttuna <strong>fuq il-pa\u0121na tar-
+#. reklami MTurk</strong>.", "Inti tista 'tkun kapa\u010bi tabortixxi
+#. l-esperiment billi tu\u017ca l-<strong>Aborta l-esperiment</strong> buttuna
+#. <strong>fuq il-pa\u0121na tar-reklami MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Inti tista 'tkun kapaċi abort l-esperiment billi tuża l-<strong>Aborta "
+"esperiment</strong> buttuna <strong>fuq il-paġna tar-reklami MTurk</strong>."
+
+#. {"msgid": ["Reload il-pa\u0121na.", "Er\u0121a' tag\u0127bija
+#. l-pa\u0121na."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Reload il-paġna."
+
+#. {"msgid": ["Ikklikkja l-buttuna meta tkun lest biex tkompli l-esperiment.",
+#. "Ikklikkja fuq il-buttuna meta tkun lest li tkompli l-esperiment."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Ikklikkja l-buttuna meta tkun lest biex tkompli l-esperiment."
+
+#. {"msgid": ["G\u0127ajnuna!", "G\u0127in!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Għajnuna!"
+
+#. {"msgid": ["Sfortunatament din l-im\u0121ieba b\u0127alissa mhix
+#. appo\u0121\u0121jata.", "Sfortunatament din l-im\u0121ieba b\u0127alissa
+#. mhix sostnuta."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Sfortunatament din l-imġieba bħalissa mhix appoġġjata."
+
+#. {"msgid": ["Ara hawn ta\u0127t l-informazzjoni dwar il-bonus akkumulat
+#. b\u0127alissa tieg\u0127ek.", "Ara hawn ta\u0127t informazzjoni dwar il-
+#. bonus akkumulat tieg\u0127ek b\u0127alissa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr ""
+"Ara hawn taħt l-informazzjoni dwar il-bonus akkumulat bħalissa tiegħek."
+
+#. {"msgid": ["Jekk jog\u0127\u0121bok ikkuntattjana biss jekk ikollok
+#. problemi biex tir\u010bievi l-\u0127las tieg\u0127ek.", "Jekk
+#. jog\u0127\u0121bok ikkuntattjana biss jekk g\u0127andek problemi biex
+#. tir\u010bievi l-pagament tieg\u0127ek."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Jekk jogħġbok ikkuntattjana biss jekk ikollok problemi biex tirċievi l-ħlas "
+"tiegħek."
+
+#. {"msgid": ["Ara l-informazzjoni hawn ta\u0127t g\u0127ad-dettalji tal-
+#. kumpens tieg\u0127ek.", "Ara l-informazzjoni hawn ta\u0127t g\u0127al
+#. dettalji dwar il-kumpens tieg\u0127ek."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Ara l-informazzjoni hawn taħt għad-dettalji tal-kumpens tiegħek."
+
+#. {"msgid": ["Ladarba abort, m'hemmx g\u0127alfejn tikkuntattjana biex
+#. tir\u010bievi l-kumpens;", "Ladarba abort, m'hemmx b\u017conn li
+#. tikkuntattjana biex nir\u010bievu l-kumpens;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Ladarba abort, m'hemmx għalfejn tikkuntattjana biex tirċievi l-kumpens;"
+
+#. {"msgid": ["Jekk jog\u0127\u0121bok ikkwota wkoll l-informazzjoni li
+#. \u0121ejja:", "Jekk jog\u0127\u0121bok ikkwota wkoll it-tag\u0127rif li
+#. \u0121ej:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Jekk jogħġbok ikkwota wkoll l-informazzjoni li ġejja:"
+
+#. {"msgid": ["Ikklikkja l-buttuna ta' hawn fuq biex ti\u0121i kkumpensat
+#. f'ka\u017c ta' \u017cball.", "Ikklikkja fuq il-buttuna ta' hawn fuq biex
+#. tkun ikkumpensat f'ka\u017c ta' \u017cball."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Ikklikkja l-buttuna ta' hawn fuq biex tiġi kkumpensat f'każ ta' żball."
+
+#. {"msgid": ["I\u010b\u010bekkja li l-konnessjoni tal-internet tieg\u0127ek
+#. qed ta\u0127dem.", "I\u010b\u010bekkja li l-konnessjoni tal-internet
+#. tieg\u0127ek tkun qed ta\u0127dem."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Iċċekkja li l-konnessjoni tal-internet tiegħek qed taħdem."
+
+#. {"msgid": ["Jekk dan ta' hawn fuq ma jg\u0127inx, ibg\u0127atilna email bl-
+#. informazzjoni li \u0121ejja:", "Jekk dan t\u2019hawn fuq ma jg\u0127inx,
+#. ibg\u0127atilna email bl-informazzjoni li \u0121ejja:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Jekk dan ta' hawn fuq ma jgħinx, ibgħatilna email bl-informazzjoni li ġejja:"
+
+#. {"msgid": ["Link g\u0127all-pa\u0121na tal-web attwali;", "Link g\u0127all-
+#. pa\u0121na web kurrenti;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Link għall-paġna tal-web attwali;"
+
+#. {"msgid": ["L-ID tal-\u0126addiem tieg\u0127ek;", "ID tal-\u0126addiem
+#. Tieg\u0127ek;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "L-ID tal-Ħaddiem tiegħek;"
+
+#. {"msgid": ["Il-problema li qed tesperjenza.", "Il-problema qed
+#. tesperjenza."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Il-problema li qed tesperjenza."
+
+#. {"msgid": ["Kompli", "Ibda", "Ibda mill-\u0121did"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Kompli"

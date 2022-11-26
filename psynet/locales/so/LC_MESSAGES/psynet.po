@@ -1,0 +1,462 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:58+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: SO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Waa inaad urursataa <strong>ugu yaraan
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>oo gunno ah si aad awood ugu
+#. yeelato in magdhow loo helo.", "Waa inaad urursataa <strong>ugu yaraan
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>oo gunno ah si aad awood ugu
+#. yeelatid in magdhowga loo helo."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Waa inaad urursataa <strong>ugu yaraan "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>oo gunno ah si aad awood ugu "
+"yeelato in magdhow loo helo."
+
+#. {"msgid": ["Gunno urursan", "Gunnada urursan"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Gunno urursan"
+
+#. {"msgid": ["Xir daaqadda", "Xidh daaqada"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Xir daaqadda"
+
+#. {"msgid": ["Iska rid tijaabada", "Jooji tijaabada"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Iska rid tijaabada"
+
+#. {"msgid": ["Sahan Dhamaystiran", "Sahan dhammaystiran"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Sahan Dhamaystiran"
+
+#. {"msgid": ["Marka laga soo tago lacag-bixinta aasaasiga ah ee
+#. <strong>$%(BASE_PAYMENT)s</strong> waxaad heli doontaa gunno
+#. <strong>$%(BONUS)s</strong>wakhti aad ku bixisay tijaabada."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Marka laga soo tago lacag-bixinta aasaasiga ah ee "
+"<strong>$%(BASE_PAYMENT)s</strong> waxaad heli doontaa gunno "
+"<strong>$%(BONUS)s</strong>wakhti aad ku bixisay tijaabada."
+
+#. {"msgid": ["Fadlan dhagsii \"Finish\" si aad u dhamaystirto HIT.", "Fadlan
+#. dhagsii \"Dhamee\" si aad u buuxiso HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Fadlan dhagsii \"Finish\" si aad u dhamaystirto HIT."
+
+#. {"msgid": ["dhame", "Dhamaystir"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "dhame"
+
+#. {"msgid": ["Waad ku mahadsan tahay ka qayb qaadashada", "Waad ku mahadsan
+#. tahay ka qaybqaadashada."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Waad ku mahadsan tahay ka qayb qaadashada"
+
+#. {"msgid": ["Xiga", "Marka xigta"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Xiga"
+
+#. {"msgid": ["Haddi aanay taasi arinku ahayn, fadlan nagala soo xidhiidh
+#. %(EMAIL)s adiga oo xiganaya macluumaadka soo socda:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Haddi aanay taasi arinku ahayn, fadlan nagala soo xidhiidh %(EMAIL)s adiga "
+"oo xiganaya macluumaadka soo socda:"
+
+#. {"msgid": ["Si aad wax uga waydiiso magdhow, fadlan kala xidhiidh cilmi-
+#. baadhaha %(EMAIL)s oo sharax waxa keenay khaladkan.", "Si aad wax uga
+#. waydiiso magdhowga, fadlan kala xidhiidh cilmi-baaraha %(EMAIL)s oo sharax
+#. waxa keenay khaladkan."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Si aad wax uga waydiiso magdhow, fadlan kala xidhiidh cilmi-baadhaha "
+"%(EMAIL)s oo sharax waxa keenay khaladkan."
+
+#. {"msgid": ["Tijaabada Soo rididda", "Tijaabada iska soo rididda"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Tijaabada Soo rididda"
+
+#. {"msgid": ["Dib u bilaabaya tijaabada...", "Dib u bilaabida tijaabada"]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Dib u bilaabaya tijaabada..."
+
+#. {"msgid": ["Soo rididdu ma suurtowdo.", "Ilmo iska soo rididu suurtagal
+#. maaha."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Soo rididdu ma suurtowdo."
+
+#. {"msgid": ["Ma hubtaa inaad doonayso inaad iska soo riddo tijaabada?", "Ma
+#. hubtaa inaad rabto inaad iska riddo tijaabada?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ma hubtaa inaad doonayso inaad iska soo riddo tijaabada?"
+
+#. {"msgid": ["Soo gudbinta Sahanka Lucid", "Soo Gudbinta Lucid Survey"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Soo gudbinta Sahanka Lucid"
+
+#. {"msgid": ["Oggolaanshaha waa la diiday", "Ogolaanshaha waa la diiday."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Oggolaanshaha waa la diiday"
+
+#. {"msgid": ["Taasi waa dhamaadka tijaabada!", "Taasi waa dhammaatay
+#. tijaabada!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Taasi waa dhamaadka tijaabada!"
+
+#. {"msgid": ["Nasiib darro tijaabadu waa inay goor hore dhammaanaysaa.",
+#. "Nasiib darro tijaabadu waa in ay goor hore dhammaato."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Nasiib darro tijaabadu waa inay goor hore dhammaanaysaa."
+
+#. {"msgid": ["Khalad!", "Qalad"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Khalad!"
+
+#. {"msgid": ["Bilaabida tijaabada...", "Bilaabida tijaabada"]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Bilaabida tijaabada..."
+
+#. {"msgid": ["Haddii ay dhibaato dhacdo, isku day waxyaabaha soo socda:",
+#. "Haddii ay dhibaato dhacdo, isku day kuwa soo socda:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Haddii ay dhibaato dhacdo, isku day waxyaabaha soo socda:"
+
+#. {"msgid": ["Diyaar ma u tahay?", "diyaar ma tahay"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Diyaar ma u tahay?"
+
+#. {"msgid": ["Gunnada", "Gunno"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Gunnada"
+
+#. {"msgid": ["Aqoonsigaaga ka qaybqaataha lama qeexin, laga yaabee sababta oo
+#. ah waxaad bedeshay daalacashada inta lagu jiro baaritaanka.", "Aqoonsigaaga
+#. ka qaybqaataha lama qeexin, laga yaabee sababta oo ah waxaad beddeshay
+#. daalacashada inta lagu jiro tijaabada."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Aqoonsigaaga ka qaybqaataha lama qeexin, laga yaabee sababta oo ah waxaad "
+"bedeshay daalacashada inta lagu jiro baaritaanka."
+
+#. {"msgid": ["Soo rididda tijaabadu suurtagal maaha maadaama tijaabiyaha aanu
+#. ogolayn wakhtigan!", "Soo rididda tijaabada suurtogal ma aha maadaama
+#. tijaabiyaha aanu ogolayn wakhtigan!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Soo rididda tijaabadu suurtagal maaha maadaama tijaabiyaha aanu ogolayn "
+"wakhtigan!"
+
+#. {"msgid": ["Haddii aad gujiso badhanka Soo rididda, tijaabadu waxay
+#. dhammaan doontaa goor hore, waxaana si toos ah lagu siin doonaa magdhowga
+#. aad kasbatay ilaa hadda.", "Haddii aad gujiso badhanka Soo rididda,
+#. tijaabadu waxay dhammaan doontaa goor hore, waxaana si toos ah lagu siin
+#. doonaa magdhowga aad shaqeysatay ilaa hadda."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Haddii aad gujiso badhanka Soo rididda, tijaabadu waxay dhammaan doontaa "
+"goor hore, waxaana si toos ah lagu siin doonaa magdhowga aad kasbatay ilaa "
+"hadda."
+
+#. {"msgid": ["Si aad u dhammaystirto Sahankaaga Lucid, dhagsii badhanka
+#. hoose.", "Si aad u buuxiso Sahankaaga Lucid, dhagsii badhanka hoose."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Si aad u dhammaystirto Sahankaaga Lucid, dhagsii badhanka hoose."
+
+#. {"msgid": ["Dhamaadka tijaabada", "Dhammaadka tijaabada."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Dhamaadka tijaabada"
+
+#. {"msgid": ["Si kastaba ha ahaatee, weli waxa lagu siin doonaa wakhtiga aad
+#. hore u qaadatay.", "Si kastaba ha ahaatee, wali waxa lagu siin doonaa
+#. wakhtiga aad hore u bixisay."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Si kastaba ha ahaatee, weli waxa lagu siin doonaa wakhtiga aad hore u "
+"qaadatay."
+
+#. {"msgid": ["Waxa laga yaabaa inaad awoodo inaad iska soo riddo tijaabada
+#. adigoo isticmaalaya<strong>Tijaabada Abort</strong>badhanka<strong>ee ku
+#. yaal bogga xayeysiiska MTurk</strong>.", "Waxa laga yaabaa inaad awoodo
+#. inaad iska soo riddo tijaabada adoo isticmaalaya<strong>Tijaabada
+#. Abort</strong>badhanka<strong>ee ku yaal bogga MTurk ad</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Waxa laga yaabaa inaad awoodo inaad iska soo riddo tijaabada adigoo "
+"isticmaalaya<strong>Tijaabada Abort</strong>badhanka<strong>ee ku yaal bogga"
+" xayeysiiska MTurk</strong>."
+
+#. {"msgid": ["Dib u soo rog bogga", "Dib u soo deji bogga"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Dib u soo rog bogga"
+
+#. {"msgid": ["Guji badhanka marka aad diyaar u tahay inaad sii wadato
+#. tijaabada", "Guji badhanka markaad diyaar u tahay inaad sii wadato
+#. tijaabada"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Guji badhanka marka aad diyaar u tahay inaad sii wadato tijaabada"
+
+#. {"msgid": ["I caawi!", "Caawin!", "Caawinta!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "I caawi!"
+
+#. {"msgid": ["Nasiib darro dhaqankan hadda lama taageero.", "Nasiib darro
+#. hab-dhaqankan hadda lama taageero."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Nasiib darro dhaqankan hadda lama taageero."
+
+#. "\"\\\"\\\"\""
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+
+#. {"msgid": ["Hoos ka eeg macluumaadka gunnadaada hadda urursatay.", "Hoos ka
+#. eeg macluumaadka gunnadaada hadda ururtay"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Hoos ka eeg macluumaadka gunnadaada hadda urursatay."
+
+#. {"msgid": ["Fadlan nala soo xidhiidh kaliya haddii ay dhibaato kaa haysato
+#. helitaanka lacagtaada.", "Fadlan nala soo xidhiidh oo keliya haddii ay
+#. dhibaato kaa haysato helitaanka lacag bixintaada."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Fadlan nala soo xidhiidh kaliya haddii ay dhibaato kaa haysato helitaanka "
+"lacagtaada."
+
+#. {"msgid": ["Faahfaahinta magdhowgaaga ka eeg macluumaadka hoose.",
+#. "Faahfaahinta magdhawga ka eeg macluumaadka hoose."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Faahfaahinta magdhowgaaga ka eeg macluumaadka hoose."
+
+#. {"msgid": ["Marka la soo rido, looma baahna in nala soo xiriiro si aan u
+#. helno magdhowga;", "Marka la soo rido, looma baahna in nalala soo xiriiro
+#. si aan u helno magdhow;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Marka la soo rido, looma baahna in nala soo xiriiro si aan u helno "
+"magdhowga;"
+
+#. {"msgid": ["Fadlan sidoo kale xigasho macluumaadka soo socda:", "Fadlan
+#. sidoo kale xigasho macluumaadkan:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Fadlan sidoo kale xigasho macluumaadka soo socda:"
+
+#. {"msgid": ["Guji badhanka sare si aad magdhow u hesho haddii ay dhacdo
+#. qalad.", "Guji badhanka sare si aad magdhow u hesho haddii ay dhacdo
+#. khalad"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Guji badhanka sare si aad magdhow u hesho haddii ay dhacdo qalad."
+
+#. {"msgid": ["Hubi in xidhiidhkaaga internetku shaqaynayo.", "Hubi in
+#. xidhiidhkaaga intarneetku uu shaqaynayo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Hubi in xidhiidhkaaga internetku shaqaynayo."
+
+#. {"msgid": ["Haddii tan sare ku caawin waydo, noo soo dir iimayl wata
+#. macluumaadkan soo socda:", "Haddii tan sare ku caawin waydo, noogu soo dir
+#. iimayl wata macluumaadka soo socda:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Haddii tan sare ku caawin waydo, noo soo dir iimayl wata macluumaadkan soo "
+"socda:"
+
+#. {"msgid": ["Isku xirka bogga shabakadda ee hadda;", "Isku xirka bogga
+#. internetka ee hadda;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Isku xirka bogga shabakadda ee hadda;"
+
+#. {"msgid": ["Aqoonsiga Shaqaalahaaga;", "Aqoonsigaaga Shaqaallaha;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Aqoonsiga Shaqaalahaaga;"
+
+#. {"msgid": ["Dhibaatada aad la kulanto", "Dhibka aad la kulanto"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Dhibaatada aad la kulanto"
+
+#. {"msgid": ["Dib u bilaw", "Dib u bilow"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Dib u bilaw"

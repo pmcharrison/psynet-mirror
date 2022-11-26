@@ -1,0 +1,497 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:56+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: RO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Trebuie s\u0103 acumula\u021bi <strong>cel pu\u021bin
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> din bonus pentru a putea fi
+#. compensat.", "Pentru a putea fi compensat, trebuie s\u0103 acumula\u021bi
+#. <strong>cel pu\u021bin %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de
+#. bonus."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Trebuie să acumulați <strong>cel puțin "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> din bonus pentru a putea fi "
+"compensat."
+
+#. {"msgid": ["Bonus acumulat", "Bonusul cumulat"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Bonus acumulat"
+
+#. {"msgid": ["Fereastr\u0103 \u00eenchis\u0103", "Inchide fereastra",
+#. "\u00cenchide fereastra", "\u00cenchide\u021bi fereastra"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Fereastră închisă"
+
+#. {"msgid": ["Anula\u021bi experimentul", "Renun\u021b\u0103 la experiment"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Anulați experimentul"
+
+#. {"msgid": ["Sondaj complet", "Chestionar complet"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Sondaj complet"
+
+#. {"msgid": ["Pe l\u00e2ng\u0103 plata de baz\u0103 de
+#. <strong>$%(BASE_PAYMENT)s</strong>, ve\u021bi primi un bonus de
+#. <strong>$%(BONUS)s</strong> pentru timpul petrecut experimentului.",
+#. "\u00cen plus fa\u021b\u0103 de plata de baz\u0103 de
+#. <strong>$%(BASE_PAYMENT)s</strong>, ve\u021bi primi un bonus de
+#. <strong>$%(BONUS)s</strong> pentru timpul petrecut \u00een experiment."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Pe lângă plata de bază de <strong>$%(BASE_PAYMENT)s</strong>, veți primi un "
+"bonus de <strong>$%(BONUS)s</strong> pentru timpul petrecut experimentului."
+
+#. {"msgid": ["De asemenea, a\u021bi primit un bonus de performan\u021b\u0103
+#. de <strong>$%(PERFORMANCE_BONUS)s</strong>!", "A\u021bi primit, de
+#. asemenea, un bonus de performan\u021b\u0103 de
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"De asemenea, ați primit un bonus de performanță de "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["V\u0103 rug\u0103m s\u0103 face\u021bi clic pe
+#. \u201eFinish\u201d pentru a finaliza HIT.", "Da\u021bi clic pe
+#. \u201eFinalizare\u201d pentru a finaliza HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Vă rugăm să faceți clic pe „Finish” pentru a finaliza HIT."
+
+#. {"msgid": ["finalizarea", "sfarsit", "Termina", "Termin\u0103",
+#. "Termina\u021bi"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "finalizarea"
+
+#. {"msgid": ["V\u0103 mul\u021bumim pentru participare.", "V\u0103
+#. mul\u021bumim c\u0103 a\u021bi luat parte."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Vă mulțumim pentru participare."
+
+#. {"msgid": ["Urm\u0103torul", "Urm\u0103tor \u2192", "urm\u0103toare",
+#. "\u00cen continuare", "Urmeaz\u0103"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Următorul"
+
+#. {"msgid": ["Dac\u0103 nu este cazul, v\u0103 rug\u0103m s\u0103 ne
+#. contacta\u021bi la %(EMAIL)s, indic\u00e2nd urm\u0103toarele
+#. informa\u021bii:", "\u00cen cazul \u00een care nu este cazul, v\u0103
+#. rug\u0103m s\u0103 ne contacta\u021bi la %(EMAIL)s, furniz\u00e2nd
+#. urm\u0103toarele informa\u021bii:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Dacă nu este cazul, vă rugăm să ne contactați la %(EMAIL)s, indicând "
+"următoarele informații:"
+
+#. {"msgid": ["Pentru a \u00eentreba despre compensa\u021bie, contacta\u021bi
+#. cercet\u0103torul la %(EMAIL)s \u0219i descrie\u021bi ce a dus la
+#. aceast\u0103 eroare.", "Pentru a \u00eentreba despre compensa\u021bie,
+#. v\u0103 rug\u0103m s\u0103 contacta\u021bi cercet\u0103torul la %(EMAIL)s
+#. \u0219i s\u0103 descrie\u021bi ce a dus la aceast\u0103 eroare."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Pentru a întreba despre compensație, contactați cercetătorul la %(EMAIL)s și"
+" descrieți ce a dus la această eroare."
+
+#. {"msgid": ["Anula\u021bi experimentul", "Renun\u021b\u0103 la experiment"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Anulați experimentul"
+
+#. {"msgid": ["Se reia experimentul...", "Reluarea experimentului..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Se reia experimentul..."
+
+#. {"msgid": ["Avortul nu este posibil.", "Avortarea nu este posibil\u0103."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Avortul nu este posibil."
+
+#. {"msgid": ["Sigur dori\u021bi s\u0103 anula\u021bi experimentul?",
+#. "Sunte\u021bi sigur c\u0103 dori\u021bi s\u0103 renun\u021ba\u021bi la
+#. experiment?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Sigur doriți să anulați experimentul?"
+
+#. {"msgid": ["Trimitere de sondaj lucid", "Trimitere de anchet\u0103
+#. lucid\u0103"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Trimitere de sondaj lucid"
+
+#. {"msgid": ["Consim\u021b\u0103m\u00e2ntul a fost respins.", "A fost respins
+#. consim\u021b\u0103m\u00e2ntul."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Consimțământul a fost respins."
+
+#. {"msgid": ["Acesta este sf\u00e2r\u0219itul experimentului!", "Acesta este
+#. finalul experimentului!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Acesta este sfârșitul experimentului!"
+
+#. {"msgid": ["Din p\u0103cate, experimentul trebuie s\u0103 se \u00eencheie
+#. mai devreme.", "Din nefericire, experimentul trebuie s\u0103 se
+#. \u00eencheie mai devreme."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Din păcate, experimentul trebuie să se încheie mai devreme."
+
+#. {"msgid": ["Eroare!", "Eroare !"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Eroare!"
+
+#. {"msgid": ["Se \u00eencepe experimentul...", "\u00cencepem
+#. experimentul..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Se începe experimentul..."
+
+#. {"msgid": ["\u00cen cazul unei probleme, \u00eencerca\u021bi
+#. urm\u0103toarele:", "\u00cen caz de problem\u0103, \u00eencearc\u0103
+#. urm\u0103toarele:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "În cazul unei probleme, încercați următoarele:"
+
+#. {"msgid": ["Sunte\u0163i gata?", "E\u015fti gata?", "E\u0219ti gata?",
+#. "E\u0219ti preg\u0103tit?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Sunteţi gata?"
+
+#. {"msgid": ["Prim\u0103", "Un bonus", "Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Primă"
+
+#. {"msgid": ["ID-ul dvs. de participant este nedefinit, probabil pentru
+#. c\u0103 a\u021bi schimbat browserul \u00een timpul testului.", "ID-ul
+#. dumneavoastr\u0103 de participant este nedefinit, probabil pentru c\u0103
+#. a\u021bi schimbat browserul \u00een timpul testului."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"ID-ul dvs. de participant este nedefinit, probabil pentru că ați schimbat "
+"browserul în timpul testului."
+
+#. {"msgid": ["Avortarea experimentului nu este posibil\u0103, deoarece
+#. experimentatorul nu o permite \u00een acest moment!", "Avortarea
+#. experimentului nu este posibil\u0103, deoarece experimentatorul nu permite
+#. acest lucru \u00een acest moment!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Avortarea experimentului nu este posibilă, deoarece experimentatorul nu o "
+"permite în acest moment!"
+
+#. {"msgid": ["Dac\u0103 face\u021bi clic pe butonul Anulare, experimentul se
+#. va \u00eencheia mai devreme \u0219i vi se va pl\u0103ti automat
+#. compensa\u021bia pe care a\u021bi c\u00e2\u0219tigat-o p\u00e2n\u0103
+#. acum.", "Dac\u0103 da\u021bi clic pe butonul Anula\u021bi, experimentul se
+#. va \u00eencheia mai devreme \u0219i vi se va pl\u0103ti automat
+#. compensa\u021bia pe care a\u021bi c\u00e2\u0219tigat-o p\u00e2n\u0103
+#. acum."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Dacă faceți clic pe butonul Anulare, experimentul se va încheia mai devreme "
+"și vi se va plăti automat compensația pe care ați câștigat-o până acum."
+
+#. {"msgid": ["Pentru a finaliza ancheta Lucid, face\u021bi clic pe butonul de
+#. mai jos.", "Pentru a finaliza Sondajul Lucid, face\u021bi clic pe butonul
+#. de mai jos."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Pentru a finaliza ancheta Lucid, faceți clic pe butonul de mai jos."
+
+#. {"msgid": ["Sf\u00e2r\u0219itul experimentului.", "Sfarsitul
+#. experimentului."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Sfârșitul experimentului."
+
+#. {"msgid": ["Cu toate acestea, ve\u021bi fi pl\u0103tit \u00een continuare
+#. pentru timpul petrecut deja.", "Cu toate acestea, ve\u021bi fi \u00een
+#. continuare pl\u0103tit pentru timpul petrecut deja."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Cu toate acestea, veți fi plătit în continuare pentru timpul petrecut deja."
+
+#. {"msgid": ["Este posibil s\u0103 pute\u021bi anula experimentul
+#. utiliz\u00e2nd butonul <strong>Anula\u021bi experimentul</strong>
+#. <strong>de pe pagina de anun\u021buri MTurk</strong>.", "Este posibil
+#. s\u0103 pute\u021bi anula experimentul folosind butonul
+#. <strong>Anula\u021bi experimentul</strong> <strong>din pagina de
+#. anun\u021buri MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Este posibil să puteți anula experimentul utilizând butonul <strong>Anulați "
+"experimentul</strong> <strong>de pe pagina de anunțuri MTurk</strong>."
+
+#. {"msgid": ["Re\u00eenc\u0103rca\u021bi pagina.", "Re\u00eencarc\u0103
+#. pagina."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Reîncărcați pagina."
+
+#. {"msgid": ["Face\u021bi clic pe butonul c\u00e2nd sunte\u021bi gata s\u0103
+#. continua\u021bi experimentul.", "Face\u021bi clic pe butonul atunci
+#. c\u00e2nd sunte\u021bi gata s\u0103 continua\u021bi experimentul."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Faceți clic pe butonul când sunteți gata să continuați experimentul."
+
+#. {"msgid": ["Ajutor!", "Ajuta!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Ajutor!"
+
+#. {"msgid": ["Din p\u0103cate, acest comportament nu este acceptat \u00een
+#. prezent.", "Din nefericire, acest comportament nu este acceptat \u00een
+#. prezent."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Din păcate, acest comportament nu este acceptat în prezent."
+
+#. {"msgid": ["Vede\u021bi mai jos informa\u021bii despre bonusul acumulat
+#. \u00een prezent.", "Vezi mai jos informa\u021biile despre bonusul acumulat
+#. \u00een prezent."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Vedeți mai jos informații despre bonusul acumulat în prezent."
+
+#. {"msgid": ["V\u0103 rug\u0103m s\u0103 ne contacta\u021bi numai dac\u0103
+#. ave\u021bi probleme la primirea pl\u0103\u021bii.", "V\u0103 rug\u0103m
+#. s\u0103 ne contacta\u021bi doar dac\u0103 \u00eent\u00e2mpina\u021bi
+#. probleme la primirea pl\u0103\u021bii."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Vă rugăm să ne contactați numai dacă aveți probleme la primirea plății."
+
+#. {"msgid": ["Consulta\u021bi informa\u021biile de mai jos pentru detalii
+#. despre compensa\u021bia dvs.", "Consulta\u021bi informa\u021biile de mai
+#. jos pentru detalii cu privire la compensa\u021bia dvs."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+"Consultați informațiile de mai jos pentru detalii despre compensația dvs."
+
+#. {"msgid": ["Odat\u0103 avortat, nu este nevoie s\u0103 ne contacta\u021bi
+#. pentru a primi compensa\u021bia;", "Odat\u0103 avortat, nu este nevoie
+#. s\u0103 ne contacta\u021bi pentru a primi desp\u0103gubirea;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Odată avortat, nu este nevoie să ne contactați pentru a primi compensația;"
+
+#. {"msgid": ["De asemenea, v\u0103 rug\u0103m s\u0103 cita\u021bi
+#. urm\u0103toarele informa\u021bii:", "V\u0103 rug\u0103m s\u0103
+#. cita\u021bi, de asemenea, urm\u0103toarele informa\u021bii:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "De asemenea, vă rugăm să citați următoarele informații:"
+
+#. {"msgid": ["Face\u021bi clic pe butonul de mai sus pentru a fi compensat
+#. \u00een cazul unei erori.", "Da\u021bi clic pe butonul de mai sus pentru a
+#. fi compensat \u00een caz de eroare."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Faceți clic pe butonul de mai sus pentru a fi compensat în cazul unei erori."
+
+#. {"msgid": ["Verifica\u021bi dac\u0103 conexiunea dvs. la internet
+#. func\u021bioneaz\u0103.", "Verifica\u021bi dac\u0103 conexiunea
+#. dumneavoastr\u0103 la internet func\u021bioneaz\u0103."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Verificați dacă conexiunea dvs. la internet funcționează."
+
+#. {"msgid": ["Dac\u0103 cele de mai sus nu ajut\u0103, trimite\u021bi-ne un
+#. e-mail cu urm\u0103toarele informa\u021bii:", "\u00cen cazul \u00een care
+#. cele de mai sus nu ajut\u0103, trimite\u021bi-ne un e-mail cu
+#. urm\u0103toarele informa\u021bii:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Dacă cele de mai sus nu ajută, trimiteți-ne un e-mail cu următoarele "
+"informații:"
+
+#. {"msgid": ["Un link c\u0103tre pagina web curent\u0103;", "Un link
+#. c\u0103tre pagina web actual\u0103;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Un link către pagina web curentă;"
+
+#. {"msgid": ["ID-ul dvs. de lucr\u0103tor;", "ID-ul dumneavoastr\u0103 de
+#. lucr\u0103tor;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ID-ul dvs. de lucrător;"
+
+#. {"msgid": ["Problema pe care o \u00eent\u00e2mpina\u021bi.", "Problema cu
+#. care te confrun\u021bi."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Problema pe care o întâmpinați."
+
+#. {"msgid": ["Relua", "Rezumat", "Curriculum vitae", "Relua\u021bi",
+#. "Reluarea"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Relua"

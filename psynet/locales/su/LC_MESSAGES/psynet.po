@@ -1,0 +1,466 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:59+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: SU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Anjeun kudu ngumpulkeun <strong>sahenteuna
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonus pikeun bisa
+#. dikompensasi."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Anjeun kudu ngumpulkeun <strong>sahenteuna "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonus pikeun bisa "
+"dikompensasi."
+
+#. {"msgid": ["bonus akumulasi", "Akumulasi bonus"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "bonus akumulasi"
+
+#. {"msgid": ["Tutup jandela", "Tutupkeun jandela"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Tutup jandela"
+
+#. {"msgid": ["Abort percobaan", "Ngabatalkeun percobaan"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Abort percobaan"
+
+#. {"msgid": ["Survey lengkep", "Lengkep Survey"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Survey lengkep"
+
+#. {"msgid": ["Salaku tambahan tina pangmayaran dasar anjeun
+#. <strong>$%(BASE_PAYMENT)s</strong> anjeun bakal nampi bonus
+#. <strong>$%(BONUS)s</strong> kanggo waktos anjeun ny\u00e9\u00e9pkeun
+#. percobaan.", "Salaku tambahan tina pangmayaran dasar anjeun
+#. <strong>$%(BASE_PAYMENT)s</strong> anjeun bakal nampi bonus
+#. <strong>$%(BONUS)s</strong> kanggo waktos anu anjeun lakukeun dina
+#. percobaan."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Salaku tambahan tina pangmayaran dasar anjeun "
+"<strong>$%(BASE_PAYMENT)s</strong> anjeun bakal nampi bonus "
+"<strong>$%(BONUS)s</strong> kanggo waktos anjeun nyéépkeun percobaan."
+
+#. {"msgid": ["Anjeun oge geus dileler bonus kinerja
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Anjeun og\u00e9 parantos
+#. dil\u00e9l\u00e9r bonus pagelaran
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Anjeun oge geus dileler bonus kinerja "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["Mangga klik \"Rengse\" pikeun ngalengkepan HIT.", "Mangga klik
+#. \"Rengse\" pikeun ngarengsekeun HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Mangga klik \"Rengse\" pikeun ngalengkepan HIT."
+
+#. {"msgid": ["B\u00e9r\u00e9s", "Rengse"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Bérés"
+
+#. {"msgid": ["Hatur nuhun pikeun ilubiung.", "Hatur nuhun tos nyandak
+#. bagian."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Hatur nuhun pikeun ilubiung."
+
+#. {"msgid": ["Teras", "Salajengna", "Hareupeunana"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Teras"
+
+#. {"msgid": ["Upami ieu san\u00e9s masalahna, mangga ngahubungi kami di
+#. %(EMAIL)s kutipan inpormasi ieu:", "Upami ieu san\u00e9s masalahna, mangga
+#. ngahubungi kami di %(EMAIL)s kalayan ngadugikeun inpormasi ieu:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Upami ieu sanés masalahna, mangga ngahubungi kami di %(EMAIL)s kutipan "
+"inpormasi ieu:"
+
+#. {"msgid": ["Pikeun naroskeun ngeunaan kompensasi, mangga ngahubungi
+#. panalungtik di %(EMAIL)s sareng terangkeun naon anu nyababkeun kasalahan
+#. ieu.", "Pikeun naroskeun ngeunaan santunan, mangga ngahubungi panalungtik
+#. di %(EMAIL)s sareng ngajelaskeun naon anu nyababkeun kasalahan ieu."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Pikeun naroskeun ngeunaan kompensasi, mangga ngahubungi panalungtik di "
+"%(EMAIL)s sareng terangkeun naon anu nyababkeun kasalahan ieu."
+
+#. {"msgid": ["Abort \u00c9ksp\u00e9rim\u00e9n", "Ngabolaykeun Percobaan"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Abort Ékspérimén"
+
+#. {"msgid": ["Neruskeun percobaan ...", "Neruskeun deui percobaan..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Neruskeun percobaan ..."
+
+#. {"msgid": ["Aborting teu mungkin.", "Ngagugurkeun teu mungkin."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Aborting teu mungkin."
+
+#. {"msgid": ["Naha anjeun yakin r\u00e9k ngabolaykeun
+#. \u00e9ksp\u00e9rim\u00e9n?", "Naha anjeun yakin hoyong ngabolaykeun
+#. percobaan?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Naha anjeun yakin rék ngabolaykeun ékspérimén?"
+
+#. {"msgid": ["Kaluman Survey Lucid", "Pangiriman Survey Lucid"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Kaluman Survey Lucid"
+
+#. {"msgid": ["Idin ditolak.", "Ijab kabul ditolak."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Idin ditolak."
+
+#. {"msgid": ["\u00c9ta tungtung percobaan!", "\u00c9ta tungtung
+#. \u00e9ksp\u00e9rim\u00e9n!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Éta tungtung percobaan!"
+
+#. {"msgid": ["Hanjakal percobaan kudu mungkas mimiti.", "Hanjakal
+#. \u00e9ksp\u00e9rim\u00e9n kudu ditungtungan awal."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Hanjakal percobaan kudu mungkas mimiti."
+
+#. {"msgid": ["Kasalahan!", "Salah!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Kasalahan!"
+
+#. {"msgid": ["Ngamimitian \u00e9ksp\u00e9rim\u00e9n...", "Ngamimitian
+#. percobaan ..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Ngamimitian ékspérimén..."
+
+#. {"msgid": ["Upami aya masalah, cobian ieu:", "Upami aya masalah, cobian
+#. l\u00e9ngkah-l\u00e9ngkah ieu:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Upami aya masalah, cobian ieu:"
+
+#. {"msgid": ["Anjeun siap?", "Dupi anjeun siap?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Anjeun siap?"
+
+#. {"msgid": ["Bonus", "Bonusan"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["ID pamilon anjeun teu ditangtukeun, meureun kusabab anjeun
+#. ngalihkeun panyungsi salami t\u00e9s.", "ID pamilon anjeun teu
+#. ditangtukeun, meureun ku sabab anjeun ngalihkeun panyungsi salami ujian."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"ID pamilon anjeun teu ditangtukeun, meureun kusabab anjeun ngalihkeun "
+"panyungsi salami tés."
+
+#. {"msgid": ["Ngabolaykeun \u00e9ksp\u00e9rim\u00e9n teu mungkin sabab
+#. panyidik henteu ngijinkeun dina waktos ayeuna!", "Ngabolaykeun
+#. \u00e9ksp\u00e9rim\u00e9n teu mungkin sabab pang\u00e9p\u00e9sm\u00e9n
+#. henteu ngijinkeun \u00e9ta dina waktos ayeuna!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ngabolaykeun ékspérimén teu mungkin sabab panyidik henteu ngijinkeun dina "
+"waktos ayeuna!"
+
+#. {"msgid": ["Lamun klik tombol Abort, percobaan bakal mungkas mimiti, jeung
+#. anjeun bakal otomatis dibayar santunan anjeun geus earned jadi jauh.",
+#. "Lamun anjeun klik tombol Abort, percobaan bakal mungkas mimiti, jeung
+#. anjeun bakal otomatis dibayar santunan geus earned jadi jauh."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Lamun klik tombol Abort, percobaan bakal mungkas mimiti, jeung anjeun bakal "
+"otomatis dibayar santunan anjeun geus earned jadi jauh."
+
+#. {"msgid": ["Pikeun ngalengkepan Survey Lucid anjeun, klik tombol di
+#. handap.", "Pikeun ngalengkepan Survei Lucid anjeun, klik tombol di handap
+#. ieu."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Pikeun ngalengkepan Survey Lucid anjeun, klik tombol di handap."
+
+#. {"msgid": ["Tungtung percobaan.", "Tungtung \u00e9ksp\u00e9rim\u00e9n."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Tungtung percobaan."
+
+#. {"msgid": ["Najan kitu, anjeun bakal tetep dibayar pikeun waktos Anjeun
+#. spent geus.", "Najan kitu, anjeun masih bakal dibayar pikeun waktos Anjeun
+#. spent geus."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Najan kitu, anjeun bakal tetep dibayar pikeun waktos Anjeun spent geus."
+
+#. {"msgid": ["Anjeun tiasa ngabatalkeun percobaan nganggo tombol
+#. <strong>Batalkeun percobaan</strong> <strong>dina kaca iklan
+#. MTurk</strong>.", "Anjeun tiasa ngabatalkeun \u00e9ksp\u00e9rim\u00e9n
+#. nganggo tombol <strong>Batalkeun \u00e9ksp\u00e9rim\u00e9n</strong>
+#. <strong>dina halaman iklan MTurk</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Anjeun tiasa ngabatalkeun percobaan nganggo tombol <strong>Batalkeun "
+"percobaan</strong> <strong>dina kaca iklan MTurk</strong>."
+
+#. {"msgid": ["Muat deui kaca.", "Muat ulang kaca."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Muat deui kaca."
+
+#. {"msgid": ["Penc\u00e9t tombol nalika anjeun siap neruskeun
+#. \u00e9ksp\u00e9rim\u00e9n.", "Klik tombol nalika anjeun siap neruskeun
+#. percobaan."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Pencét tombol nalika anjeun siap neruskeun ékspérimén."
+
+#. {"msgid": ["Tulung!", "Pitulung!", "Bantuan!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Tulung!"
+
+#. {"msgid": ["Hanjakal, kabiasaan ieu ayeuna teu dirojong.", "Hanjakal,
+#. kabiasaan ieu teu ayeuna didukung."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Hanjakal, kabiasaan ieu ayeuna teu dirojong."
+
+#. {"msgid": ["Tempo di handap informasi dina bonus ayeuna akumulasi Anjeun.",
+#. "Tempo inpo di handap dina bonus ayeuna akumulasi anjeun."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Tempo di handap informasi dina bonus ayeuna akumulasi Anjeun."
+
+#. {"msgid": ["Punten ngan ukur ngahubungi kami upami anjeun gaduh masalah
+#. nampi pamayaran anjeun.", "Punten ngan ukur ngahubungi kami upami anjeun
+#. ngagaduhan masalah nampi pamayaran."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Punten ngan ukur ngahubungi kami upami anjeun gaduh masalah nampi pamayaran "
+"anjeun."
+
+#. {"msgid": ["Tingali inpormasi di handap pikeun detil ngeunaan kompensasi
+#. anjeun.", "Tempo inpo di handap pikeun detil santunan Anjeun."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Tingali inpormasi di handap pikeun detil ngeunaan kompensasi anjeun."
+
+#. {"msgid": ["Sakali aborted, teu perlu ngahubungan kami pikeun nampa
+#. santunan;", "Sakali aborted, aya teu kudu ngahubungan kami pikeun nampa
+#. santunan nu;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "Sakali aborted, teu perlu ngahubungan kami pikeun nampa santunan;"
+
+#. {"msgid": ["Punten petik og\u00e9 inpormasi ieu:", "Mangga og\u00e9 cutatan
+#. informasi di handap ieu:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Punten petik ogé inpormasi ieu:"
+
+#. {"msgid": ["Penc\u00e9t tombol di luhur pikeun ngimbangan upami aya
+#. kasalahan.", "Klik tombol di luhur pikeun dikompensasi bisi aya
+#. kasalahan."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Pencét tombol di luhur pikeun ngimbangan upami aya kasalahan."
+
+#. {"msgid": ["Pariksa y\u00e9n sambungan intern\u00e9t anjeun jalan.",
+#. "Pariksa yen sambungan intern\u00e9t anjeun berpungsi."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Pariksa yén sambungan internét anjeun jalan."
+
+#. {"msgid": ["Upami di luhur henteu ngabantosan, kirimkeun email ka kami
+#. kalayan inpormasi ieu:", "Upami hal di luhur henteu ngabantosan, kirimkeun
+#. kami email sareng inpormasi ieu:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Upami di luhur henteu ngabantosan, kirimkeun email ka kami kalayan inpormasi"
+" ieu:"
+
+#. {"msgid": ["Tautan ka halaman w\u00e9b ayeuna;", "Tumbu ka kaca web
+#. ayeuna;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Tautan ka halaman wéb ayeuna;"
+
+#. {"msgid": ["ID Pagawe anjeun;", "ID Gaw\u00e9 anjeun;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ID Pagawe anjeun;"
+
+#. {"msgid": ["Masalah anu anjeun alami.", "Masalah anu anjeun pikahoyong."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Masalah anu anjeun alami."
+
+#. {"msgid": ["CV", "neruskeun deui", "Neruskeun"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "CV"

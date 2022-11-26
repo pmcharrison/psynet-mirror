@@ -1,0 +1,508 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:46+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: IS\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["\u00de\u00fa \u00fearft a\u00f0 safna <strong>a\u00f0 minnsta
+#. kosti $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> af b\u00f3nus til
+#. a\u00f0 geta fengi\u00f0 b\u00e6tur.", "\u00de\u00fa ver\u00f0ur a\u00f0
+#. safna <strong>a\u00f0 minnsta kosti
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> af b\u00f3nus til a\u00f0
+#. f\u00e1 b\u00e6tur."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Þú þarft að safna <strong>að minnsta kosti "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> af bónus til að geta fengið "
+"bætur."
+
+#. {"msgid": ["Uppsafna\u00f0ur b\u00f3nus", "Upps\u00f6fnu\u00f0
+#. b\u00f3nus"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Uppsafnaður bónus"
+
+#. {"msgid": ["Loka\u00f0u glugganum", "Loka glugga"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Lokaðu glugganum"
+
+#. {"msgid": ["H\u00e6tta tilraun", "H\u00e6tta vi\u00f0 tilraun"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Hætta tilraun"
+
+#. {"msgid": ["Lj\u00faka k\u00f6nnun", "Lj\u00faktu vi\u00f0 k\u00f6nnun"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Ljúka könnun"
+
+#. {"msgid": ["Til vi\u00f0b\u00f3tar vi\u00f0 grunngrei\u00f0sluna
+#. \u00fe\u00edna upp \u00e1 <strong>$%(BASE_PAYMENT)s</strong>
+#. f\u00e6r\u00f0u <strong>$%(BONUS)s</strong> b\u00f3nus fyrir \u00feann
+#. t\u00edma sem \u00fe\u00fa eyddir \u00ed tilraunina.", "Auk
+#. grunngrei\u00f0slu \u00feinnar upp \u00e1
+#. <strong>$%(BASE_PAYMENT)s</strong> f\u00e6r\u00f0u b\u00f3nus upp \u00e1
+#. <strong>$%(BONUS)s</strong> fyrir \u00feann t\u00edma sem \u00fe\u00fa
+#. eyddir \u00ed tilraunina."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Til viðbótar við grunngreiðsluna þína upp á "
+"<strong>$%(BASE_PAYMENT)s</strong> færðu <strong>$%(BONUS)s</strong> bónus "
+"fyrir þann tíma sem þú eyddir í tilraunina."
+
+#. {"msgid": ["\u00de\u00fa hefur l\u00edka fengi\u00f0
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> \u00e1rangursb\u00f3nus!",
+#. "\u00de\u00fa hefur l\u00edka fengi\u00f0
+#. <strong>$%(PERFORMANCE_BONUS)s</strong> \u00ed
+#. frammist\u00f6\u00f0ub\u00f3nus!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Þú hefur líka fengið <strong>$%(PERFORMANCE_BONUS)s</strong> árangursbónus!"
+
+#. {"msgid": ["Vinsamlega smelltu \u00e1 \"Lj\u00faka\" til a\u00f0 kl\u00e1ra
+#. HIT.", "Vinsamlega smelltu \u00e1 \u201eLj\u00faka\u201c til a\u00f0
+#. kl\u00e1ra HITi\u00f0."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Vinsamlega smelltu á \"Ljúka\" til að klára HIT."
+
+#. {"msgid": ["Kl\u00e1ra", "Enda", "Lj\u00faktu"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Klára"
+
+#. {"msgid": ["\u00deakka \u00fe\u00e9r fyrir a\u00f0 taka \u00fe\u00e1tt.",
+#. "Takk fyrir \u00fe\u00e1ttt\u00f6kuna."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Þakka þér fyrir að taka þátt."
+
+#. {"msgid": ["N\u00e6st", "N\u00e6sta"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Næst"
+
+#. {"msgid": ["Ef \u00feetta er ekki raunin, vinsamlegast haf\u00f0u samband
+#. vi\u00f0 okkur \u00ed %(EMAIL)s og vitni\u00f0 \u00ed eftirfarandi
+#. uppl\u00fdsingar:", "Ef \u00feetta er ekki raunin, vinsamlegast haf\u00f0u
+#. samband vi\u00f0 okkur \u00e1 %(EMAIL)s og vitna\u00f0u \u00ed eftirfarandi
+#. uppl\u00fdsingar:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Ef þetta er ekki raunin, vinsamlegast hafðu samband við okkur í %(EMAIL)s og"
+" vitnið í eftirfarandi upplýsingar:"
+
+#. {"msgid": ["Til a\u00f0 spyrjast fyrir um b\u00e6tur, vinsamlegast
+#. haf\u00f0u samband vi\u00f0 rannsakandann \u00ed %(EMAIL)s og
+#. l\u00fdsi\u00f0 \u00fev\u00ed hva\u00f0 leiddi til \u00feessarar villu.",
+#. "Til a\u00f0 spyrjast fyrir um ska\u00f0ab\u00e6tur, vinsamlegast
+#. haf\u00f0u samband vi\u00f0 rannsakandann \u00ed %(EMAIL)s og l\u00fdstu
+#. \u00fev\u00ed hva\u00f0 leiddi til \u00feessarar villu."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Til að spyrjast fyrir um bætur, vinsamlegast hafðu samband við rannsakandann"
+" í %(EMAIL)s og lýsið því hvað leiddi til þessarar villu."
+
+#. {"msgid": ["H\u00e6tta tilraun", "H\u00e6tta vi\u00f0 tilraun"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Hætta tilraun"
+
+#. {"msgid": ["Hefjum tilraun aftur...", "Byrjar tilraun..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Hefjum tilraun aftur..."
+
+#. {"msgid": ["Ekki h\u00e6gt a\u00f0 h\u00e6tta.", "Ekki m\u00f6gulegt
+#. a\u00f0 h\u00e6tta."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Ekki hægt að hætta."
+
+#. {"msgid": ["Ertu viss um a\u00f0 \u00fe\u00fa viljir h\u00e6tta vi\u00f0
+#. tilraunina?", "Ertu viss um a\u00f0 \u00fe\u00fa viljir st\u00f6\u00f0va
+#. tilraunina?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ertu viss um að þú viljir hætta við tilraunina?"
+
+#. {"msgid": ["Sk\u00fdr k\u00f6nnun skil", "Skilningur \u00e1 sk\u00fdrum
+#. k\u00f6nnunum"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Skýr könnun skil"
+
+#. {"msgid": ["Sam\u00feykki var hafna\u00f0.", "Sam\u00feykki var
+#. v\u00edsa\u00f0 fr\u00e1."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Samþykki var hafnað."
+
+#. {"msgid": ["\u00dear me\u00f0 er tilrauninni loki\u00f0!", "\u00dear
+#. me\u00f0 l\u00fdkur tilrauninni!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Þar með er tilrauninni lokið!"
+
+#. {"msgid": ["\u00dev\u00ed mi\u00f0ur ver\u00f0ur tilrauninni a\u00f0
+#. lj\u00faka snemma.", "Tilrauninni ver\u00f0ur \u00fev\u00ed mi\u00f0ur
+#. a\u00f0 lj\u00faka snemma."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Því miður verður tilrauninni að ljúka snemma."
+
+#. {"msgid": ["Villa!", "villa!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Villa!"
+
+#. {"msgid": ["Byrjar tilraun...", "Er a\u00f0 hefja tilraun..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Byrjar tilraun..."
+
+#. {"msgid": ["Ef vandam\u00e1l koma upp, reyndu eftirfarandi:", "Reyndu
+#. eftirfarandi ef vandam\u00e1l koma upp:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Ef vandamál koma upp, reyndu eftirfarandi:"
+
+#. {"msgid": ["Ert \u00fe\u00fa tilb\u00fainn?", "Ertu tilb\u00fainn?", "Ertu
+#. kl\u00e1r?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Ert þú tilbúinn?"
+
+#. {"msgid": ["B\u00f3nus", "b\u00f3nus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bónus"
+
+#. {"msgid": ["Au\u00f0kenni \u00fe\u00e1tttakanda \u00fe\u00edns er
+#. \u00f3skilgreint, kannski vegna \u00feess a\u00f0 \u00fe\u00fa skiptir um
+#. vafra me\u00f0an \u00e1 pr\u00f3finu st\u00f3\u00f0.", "Au\u00f0kenni
+#. \u00fe\u00e1tttakanda \u00fe\u00edns er \u00f3skilgreint, ef til vill vegna
+#. \u00feess a\u00f0 \u00fe\u00fa skiptir um vafra me\u00f0an \u00e1
+#. pr\u00f3finu st\u00f3\u00f0."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Auðkenni þátttakanda þíns er óskilgreint, kannski vegna þess að þú skiptir "
+"um vafra meðan á prófinu stóð."
+
+#. {"msgid": ["Ekki er h\u00e6gt a\u00f0 h\u00e6tta vi\u00f0 tilraunina
+#. \u00fear sem tilraunama\u00f0urinn leyfir \u00fea\u00f0 ekki eins og er!",
+#. "\u00dea\u00f0 er ekki h\u00e6gt a\u00f0 h\u00e6tta vi\u00f0 tilraunina
+#. \u00fear sem tilraunama\u00f0urinn leyfir \u00fea\u00f0 ekki \u00e1
+#. \u00feessum t\u00edma!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ekki er hægt að hætta við tilraunina þar sem tilraunamaðurinn leyfir það "
+"ekki eins og er!"
+
+#. {"msgid": ["Ef \u00fe\u00fa smellir \u00e1 H\u00e6tta vi\u00f0 hnappinn
+#. l\u00fdkur tilrauninni snemma og \u00fe\u00fa f\u00e6r\u00f0
+#. sj\u00e1lfkrafa greiddar b\u00e6tur sem \u00fe\u00fa hefur unni\u00f0
+#. \u00fe\u00e9r inn hinga\u00f0 til.", "Ef \u00fe\u00fa smellir \u00e1
+#. H\u00e6tta vi\u00f0 hnappinn l\u00fdkur tilrauninni snemma og \u00fe\u00e9r
+#. f\u00e6r\u00f0u sj\u00e1lfkrafa greiddar b\u00e6turnar sem \u00fe\u00fa
+#. hefur unni\u00f0 \u00fe\u00e9r inn hinga\u00f0 til."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Ef þú smellir á Hætta við hnappinn lýkur tilrauninni snemma og þú færð "
+"sjálfkrafa greiddar bætur sem þú hefur unnið þér inn hingað til."
+
+#. {"msgid": ["Smelltu \u00e1 hnappinn h\u00e9r a\u00f0 ne\u00f0an til a\u00f0
+#. lj\u00faka sk\u00fdru k\u00f6nnuninni \u00feinni.", "Smelltu \u00e1
+#. hnappinn h\u00e9r a\u00f0 ne\u00f0an til a\u00f0 lj\u00faka vi\u00f0
+#. sk\u00fdra k\u00f6nnunina \u00fe\u00edna."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Smelltu á hnappinn hér að neðan til að ljúka skýru könnuninni þinni."
+
+#. {"msgid": ["Lok tilraunar.", "Lok tilraunarinnar."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Lok tilraunar."
+
+#. {"msgid": ["Hins vegar f\u00e6r\u00f0u samt greitt fyrir \u00feann
+#. t\u00edma sem \u00fe\u00fa eyddir \u00feegar.", "Hins vegar f\u00e6r\u00f0u
+#. samt greitt fyrir \u00feann t\u00edma sem \u00fe\u00fa hefur \u00feegar
+#. eytt."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Hins vegar færðu samt greitt fyrir þann tíma sem þú eyddir þegar."
+
+#. {"msgid": ["\u00de\u00fa g\u00e6tir hugsanlega st\u00f6\u00f0va\u00f0
+#. tilraunina me\u00f0 \u00fev\u00ed a\u00f0 nota <strong>H\u00e6tta vi\u00f0
+#. tilraun</strong> hnappinn <strong>\u00e1 MTurk
+#. augl\u00fdsingas\u00ed\u00f0unni</strong>.", "\u00de\u00fa g\u00e6tir
+#. h\u00e6tt vi\u00f0 tilraunina me\u00f0 \u00fev\u00ed a\u00f0 nota
+#. <strong>H\u00e6tta vi\u00f0 tilraun</strong> hnappinn <strong>\u00e1 MTurk
+#. augl\u00fdsingas\u00ed\u00f0unni</strong>."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Þú gætir hugsanlega stöðvað tilraunina með því að nota <strong>Hætta við "
+"tilraun</strong> hnappinn <strong>á MTurk auglýsingasíðunni</strong>."
+
+#. {"msgid": ["Endurhla\u00f0a s\u00ed\u00f0una.", "Endurhladdu
+#. s\u00ed\u00f0una."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Endurhlaða síðuna."
+
+#. {"msgid": ["Smelltu \u00e1 hnappinn \u00feegar \u00fe\u00fa ert
+#. tilb\u00fainn til a\u00f0 halda tilrauninni \u00e1fram.", "Smelltu \u00e1
+#. hnappinn \u00feegar \u00fe\u00fa ert tilb\u00fainn a\u00f0 halda \u00e1fram
+#. tilrauninni."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr ""
+"Smelltu á hnappinn þegar þú ert tilbúinn til að halda tilrauninni áfram."
+
+#. {"msgid": ["Hj\u00e1lp!", "A\u00f0sto\u00f0!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Hjálp!"
+
+#. {"msgid": ["\u00dev\u00ed mi\u00f0ur er \u00feessi heg\u00f0un ekki studd
+#. eins og er.", "\u00dev\u00ed mi\u00f0ur er \u00feessi heg\u00f0un ekki
+#. studd \u00ed augnablikinu."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Því miður er þessi hegðun ekki studd eins og er."
+
+#. {"msgid": ["Sj\u00e1 uppl\u00fdsingar h\u00e9r a\u00f0 ne\u00f0an um
+#. uppsafna\u00f0an b\u00f3nus \u00feinn.", "Sj\u00e1\u00f0u h\u00e9r a\u00f0
+#. ne\u00f0an uppl\u00fdsingar um uppsafna\u00f0an b\u00f3nus \u00feinn."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Sjá upplýsingar hér að neðan um uppsafnaðan bónus þinn."
+
+#. {"msgid": ["Vinsamlegast haf\u00f0u a\u00f0eins samband vi\u00f0 okkur ef
+#. \u00fe\u00fa \u00e1tt \u00ed vandr\u00e6\u00f0um me\u00f0 a\u00f0 f\u00e1
+#. grei\u00f0sluna \u00fe\u00edna.", "Vinsamlegast haf\u00f0u a\u00f0eins
+#. samband vi\u00f0 okkur ef \u00fe\u00fa \u00e1tt \u00ed vandr\u00e6\u00f0um
+#. me\u00f0 a\u00f0 taka \u00e1 m\u00f3ti grei\u00f0slunni \u00feinni."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Vinsamlegast hafðu aðeins samband við okkur ef þú átt í vandræðum með að fá "
+"greiðsluna þína."
+
+#. {"msgid": ["Sj\u00e1 uppl\u00fdsingarnar h\u00e9r a\u00f0 ne\u00f0an til
+#. a\u00f0 f\u00e1 uppl\u00fdsingar um b\u00e6turnar \u00fe\u00ednar.",
+#. "Sj\u00e1 uppl\u00fdsingarnar h\u00e9r a\u00f0 ne\u00f0an til a\u00f0
+#. f\u00e1 n\u00e1nari uppl\u00fdsingar um b\u00e6tur \u00fe\u00ednar."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+"Sjá upplýsingarnar hér að neðan til að fá upplýsingar um bæturnar þínar."
+
+#. {"msgid": ["\u00deegar \u00fea\u00f0 hefur veri\u00f0 h\u00e6tt er engin
+#. \u00fe\u00f6rf \u00e1 a\u00f0 hafa samband vi\u00f0 okkur til a\u00f0
+#. f\u00e1 b\u00e6turnar;", "\u00deegar b\u00fai\u00f0 er a\u00f0 h\u00e6tta
+#. er engin \u00fe\u00f6rf \u00e1 a\u00f0 hafa samband vi\u00f0 okkur til
+#. a\u00f0 f\u00e1 b\u00e6turnar;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Þegar það hefur verið hætt er engin þörf á að hafa samband við okkur til að "
+"fá bæturnar;"
+
+#. {"msgid": ["Vinsamlegast vitni\u00f0 einnig \u00ed eftirfarandi
+#. uppl\u00fdsingar:", "Vinsamlega vitni\u00f0 l\u00edka \u00ed eftirfarandi
+#. uppl\u00fdsingar:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Vinsamlegast vitnið einnig í eftirfarandi upplýsingar:"
+
+#. {"msgid": ["Smelltu \u00e1 hnappinn h\u00e9r a\u00f0 ofan til a\u00f0
+#. f\u00e1 b\u00e6tur ef villur koma upp.", "Smelltu \u00e1 hnappinn h\u00e9r
+#. a\u00f0 ofan til a\u00f0 f\u00e1 b\u00e6tur ef upp koma villur."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Smelltu á hnappinn hér að ofan til að fá bætur ef villur koma upp."
+
+#. {"msgid": ["Athuga\u00f0u hvort nettengingin \u00fe\u00edn virki.", "Gakktu
+#. \u00far skugga um a\u00f0 nettengingin \u00fe\u00edn virki."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Athugaðu hvort nettengingin þín virki."
+
+#. {"msgid": ["Ef ofangreint hj\u00e1lpar ekki, sendu okkur
+#. t\u00f6lvup\u00f3st me\u00f0 eftirfarandi uppl\u00fdsingum:", "Ef
+#. ofangreint hj\u00e1lpar ekki skaltu senda okkur t\u00f6lvup\u00f3st
+#. me\u00f0 eftirfarandi uppl\u00fdsingum:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Ef ofangreint hjálpar ekki, sendu okkur tölvupóst með eftirfarandi "
+"upplýsingum:"
+
+#. {"msgid": ["Tengill \u00e1 n\u00faverandi vefs\u00ed\u00f0u;", "Hlekkur
+#. \u00e1 n\u00faverandi vefs\u00ed\u00f0u;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Tengill á núverandi vefsíðu;"
+
+#. {"msgid": ["Starfsmannsau\u00f0kenni \u00feitt;", "Au\u00f0kenni
+#. starfsmanna;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Starfsmannsauðkenni þitt;"
+
+#. {"msgid": ["Vandam\u00e1li\u00f0 sem \u00fe\u00fa ert a\u00f0 upplifa.",
+#. "Vandam\u00e1li\u00f0 sem \u00fe\u00fa ert a\u00f0 gl\u00edma vi\u00f0."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Vandamálið sem þú ert að upplifa."
+
+#. {"msgid": ["Halda \u00e1fram", "Ferilskr\u00e1"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Halda áfram"

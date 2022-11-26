@@ -1,0 +1,3510 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:26+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: EU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Hobari <strong>gutxienez
+#. %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> pilatu behar dituzu
+#. konpentsatu ahal izateko.", "Hobari <strong>gutxienez
+#. %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> metatu behar duzu konpentsatu
+#. ahal izateko."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Hobari <strong>gutxienez %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> pilatu"
+" behar dituzu konpentsatu ahal izateko."
+
+#. {"msgid": ["Metatutako bonusa", "Metatutako hobaria"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Metatutako bonusa"
+
+#. {"msgid": ["Itxi leihoa", "Itxi leiho"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Itxi leihoa"
+
+#. {"msgid": ["Utzi esperimentua", "Esperimentua bertan behera utzi"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Utzi esperimentua"
+
+#. {"msgid": ["Inkesta osoa", "Inkesta Osatu"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Inkesta osoa"
+
+#. {"msgid": ["<strong>$%(BASE_PAYMENT)s</strong>eko oinarrizko ordainketaz
+#. gain, <strong>$%(BONUS)s</strong>eko hobaria jasoko duzu esperimentuan eman
+#. duzun denboragatik.", "<strong>$%(BASE_PAYMENT)s</strong>eko oinarrizko
+#. ordainketaz gain, <strong>$%(BONUS)s</strong>ko hobaria jasoko duzu
+#. esperimentuan eman zenuen denboragatik."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"<strong>$%(BASE_PAYMENT)s</strong>eko oinarrizko ordainketaz gain, "
+"<strong>$%(BONUS)s</strong>eko hobaria jasoko duzu esperimentuan eman duzun "
+"denboragatik."
+
+#. {"msgid": ["<strong>$%(PERFORMANCE_BONUS)s</strong>eko errendimendu-saria
+#. ere eman zaizu!", "<strong>$%(PERFORMANCE_BONUS)s</strong>eko errendimendu-
+#. saria ere eman dizute!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"<strong>$%(PERFORMANCE_BONUS)s</strong>eko errendimendu-saria ere eman "
+"zaizu!"
+
+#. {"msgid": ["Mesedez, sakatu \"Amaitu\" HIT osatzeko.", "Mesedez, egin klik
+#. \"Amaitu\" HIT-a osatzeko."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Mesedez, sakatu \"Amaitu\" HIT osatzeko."
+
+#. {"msgid": ["Amaitu", "Bukatu"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Amaitu"
+
+#. {"msgid": ["Eskerrik asko parte hartzeagatik.", "Mila esker parte
+#. hartzeagatik."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Eskerrik asko parte hartzeagatik."
+
+#. {"msgid": ["Hurrengoa", "Segidan"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Hurrengoa"
+
+#. {"msgid": ["Horrela ez bada, jar zaitez gurekin harremanetan %(EMAIL)s
+#. helbidera informazio hau aipatuz:", "Hala ez bada, jar zaitez gurekin
+#. harremanetan %(EMAIL)s helbidean, honako informazio hau aipatuz:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Horrela ez bada, jar zaitez gurekin harremanetan %(EMAIL)s helbidera "
+"informazio hau aipatuz:"
+
+#. {"msgid": ["Kalte-ordainei buruz galdetzeko, jarri harremanetan
+#. ikertzailearekin %(EMAIL)s helbidean eta deskribatu zerk eragin duen errore
+#. hau.", "Kalte-ordainei buruz galdetzeko, jarri harremanetan
+#. ikertzailearekin %(EMAIL)s helbidean eta deskriba ezazu zerk eragin duen
+#. errore hori."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Kalte-ordainei buruz galdetzeko, jarri harremanetan ikertzailearekin "
+"%(EMAIL)s helbidean eta deskribatu zerk eragin duen errore hau."
+
+#. {"msgid": ["Abortatu esperimentua", "Esperimentua bertan behera utzi"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Abortatu esperimentua"
+
+#. {"msgid": ["Esperimentua berriro hasten...", "Esperimentazioari berriz
+#. ematen..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Esperimentua berriro hasten..."
+
+#. {"msgid": ["Abortua ezin da.", "Ezinezkoa da abortua."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "Abortua ezin da."
+
+#. {"msgid": ["Ziur esperimentua bertan behera utzi nahi duzula?", "Ziur
+#. esperimentua eten nahi duzula?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Ziur esperimentua bertan behera utzi nahi duzula?"
+
+#. {"msgid": ["Inkesta argia bidaltzea", "Inkestaren bidalketa argitsua"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Inkesta argia bidaltzea"
+
+#. {"msgid": ["Baimena baztertu zen.", "Adostasuna baztertu egin da."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Baimena baztertu zen."
+
+#. {"msgid": ["Hori da esperimentuaren amaiera!", "Hor amaitu da
+#. esperimentua!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Hori da esperimentuaren amaiera!"
+
+#. {"msgid": ["Zoritxarrez esperimentua goiz amaitu behar da.", "Zoritxarrez,
+#. esperimentua goiz bukatu behar da."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Zoritxarrez esperimentua goiz amaitu behar da."
+
+#. {"msgid": ["Errorea!", "Akatsa!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Errorea!"
+
+#. {"msgid": ["Esperimentua hasten...", "Esperimentazioa hasten..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Esperimentua hasten..."
+
+#. {"msgid": ["Arazoren bat izanez gero, saiatu honako hau:", "Arazoren bat
+#. izanez gero, saiatu hurrengoa:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Arazoren bat izanez gero, saiatu honako hau:"
+
+#. {"msgid": ["Prest al zaude?", "Prest zaude?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Prest al zaude?"
+
+#. {"msgid": ["Hobaria", "Bonus"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Hobaria"
+
+#. {"msgid": ["Zure parte-hartzaileen IDa zehaztu gabe dago, proban zehar
+#. arakatzailea aldatu duzulako agian.", "Zure parte-hartzaileen IDa zehaztu
+#. gabe dago, agian arakatzailea aldatu duzulako proban zehar."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Zure parte-hartzaileen IDa zehaztu gabe dago, proban zehar arakatzailea "
+"aldatu duzulako agian."
+
+#. {"msgid": ["Esperimentua bertan behera uztea ezinezkoa da,
+#. esperimentatzaileak ez baitu baimentzen momentu honetan!", "Esperimentua
+#. bertan behera uztea ezinezkoa da, esperimentatzaileak ez duelako baimentzen
+#. momentu honetan!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Esperimentua bertan behera uztea ezinezkoa da, esperimentatzaileak ez baitu "
+"baimentzen momentu honetan!"
+
+#. {"msgid": ["Abortatu botoia sakatzen baduzu, esperimentua goiz amaituko da,
+#. eta automatikoki ordainduko zaizu orain arte irabazi duzun kalte-ordaina.",
+#. "Abortatu botoia sakatzen baduzu, esperimentua goiz amaituko da, eta
+#. automatikoki ordainduko zaizu orain arte irabazi duzun ordaina."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Abortatu botoia sakatzen baduzu, esperimentua goiz amaituko da, eta "
+"automatikoki ordainduko zaizu orain arte irabazi duzun kalte-ordaina."
+
+#. {"msgid": ["Zure Lucid Survey osatzeko, egin klik beheko botoian.", "Zure
+#. Inkesta Lucid osatzeko, egin klik beheko botoian."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Zure Lucid Survey osatzeko, egin klik beheko botoian."
+
+#. {"msgid": ["Esperimentuaren amaiera.", "Esperimentuaren bukaera."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Esperimentuaren amaiera."
+
+#. {"msgid": ["Hala ere, oraindik ere ordainduko zaizu jada eman duzun
+#. denboragatik.", "Hala ere, oraindik ere ordainduko dizute dagoeneko eman
+#. duzun denboragatik."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Hala ere, oraindik ere ordainduko zaizu jada eman duzun denboragatik."
+
+#. {"msgid": ["Baliteke esperimentua bertan behera utzi ahal izatea
+#. <strong>Abortatu esperimentua</strong> botoia <strong>MTurk iragarki-
+#. orrian</strong> erabiliz.", "Baliteke esperimentua bertan behera utzi ahal
+#. izatea <strong>Abortatu esperimentua</strong> botoia <strong>MTurk iragarki
+#. orrialdean</strong> erabiliz."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Baliteke esperimentua bertan behera utzi ahal izatea <strong>Abortatu "
+"esperimentua</strong> botoia <strong>MTurk iragarki-orrian</strong> "
+"erabiliz."
+
+#. {"msgid": ["Orria berriro kargatu.", "Berriz kargatu orrialdea."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Orria berriro kargatu."
+
+#. {"msgid": ["Egin klik botoian esperimentuarekin jarraitzeko prest
+#. zaudenean.", "Sakatu botoia esperimentuarekin jarraitzeko prest
+#. zaudenean."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Egin klik botoian esperimentuarekin jarraitzeko prest zaudenean."
+
+#. {"msgid": ["Laguntza!", "Lagundu!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Laguntza!"
+
+#. {"msgid": ["Zoritxarrez, portaera hau ez da onartzen.", "Zoritxarrez,
+#. portaera hau ez da onartzen une honetan."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Zoritxarrez, portaera hau ez da onartzen."
+
+#. {"msgid": ["Ikusi behean une honetan pilatutako bonusari buruzko
+#. informazioa.", "Ikusi beheko unean pilatutako bonusari buruzko
+#. informazioa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Ikusi behean une honetan pilatutako bonusari buruzko informazioa."
+
+#. {"msgid": ["Mesedez, jar zaitez gurekin harremanetan ordainketa jasotzeko
+#. arazoak badituzu.", "Mesedez, jarri gurekin harremanetan ordainketa
+#. jasotzeko arazoak badituzu."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Mesedez, jar zaitez gurekin harremanetan ordainketa jasotzeko arazoak "
+"badituzu."
+
+#. {"msgid": ["Ikusi beheko informazioa zure kalte-ordainaren
+#. xehetasunetarako.", "Ikusi beheko informazioa zure kalte-ordainari buruzko
+#. xehetasunak lortzeko."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Ikusi beheko informazioa zure kalte-ordainaren xehetasunetarako."
+
+#. {"msgid": ["Abortatu ondoren, ez dago gurekin harremanetan jarri beharrik
+#. kalte-ordaina jasotzeko;", "Abortatu ondoren, ez da gurekin harremanetan
+#. jarri behar kalte-ordaina jasotzeko;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Abortatu ondoren, ez dago gurekin harremanetan jarri beharrik kalte-ordaina "
+"jasotzeko;"
+
+#. {"msgid": ["Mesedez, aipatu informazio hau ere:", "Mesedez, aipa ezazu
+#. honako informazioa:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Mesedez, aipatu informazio hau ere:"
+
+#. {"msgid": ["Egin klik goiko botoian akatsen bat izanez gero konpentsatu
+#. ahal izateko.", "Egin klik goiko botoian akatsen bat gertatuz gero
+#. konpentsatua izateko."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Egin klik goiko botoian akatsen bat izanez gero konpentsatu ahal izateko."
+
+#. {"msgid": ["Egiaztatu Interneteko konexioa funtzionatzen ari dela.",
+#. "Egiaztatu zure Interneteko konexioa funtzionatzen ari dela."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Egiaztatu Interneteko konexioa funtzionatzen ari dela."
+
+#. {"msgid": ["Aurrekoak ez badu laguntzen, bidali mezu elektroniko bat
+#. informazio honekin:", "Aurrekoak ez badu laguntzen, bidal iezaguzu e-mail
+#. bat informazio honekin:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Aurrekoak ez badu laguntzen, bidali mezu elektroniko bat informazio honekin:"
+
+#. {"msgid": ["Uneko web orrirako esteka;", "Uneko web orrialderako esteka;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Uneko web orrirako esteka;"
+
+#. {"msgid": ["Zure Langilearen NANa;", "Zure Langilearen ID;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Zure Langilearen NANa;"
+
+#. {"msgid": ["Jasaten ari zaren arazoa.", "Bizitzen ari zaren arazoa."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Jasaten ari zaren arazoa."
+
+#. {"msgid": ["Jarraitu", "Laburtu", "Curriculuma", "Berrikuspena"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Jarraitu"
+
+#. {"msgid": ["Afganistan", "Afganistanen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:606
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:606
+#, fuzzy
+msgid "Afghanistan"
+msgstr "Afganistan"
+
+#. {"msgid": ["Albania", "Albaniakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:607
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:607
+#, fuzzy
+msgid "Albania"
+msgstr "Albania"
+
+#. {"msgid": ["Aljeria", "Argelia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:608
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:608
+#, fuzzy
+msgid "Algeria"
+msgstr "Aljeria"
+
+#. {"msgid": ["Amerikako Samoa", "Samoa amerikarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:609
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:609
+#, fuzzy
+msgid "American Samoa"
+msgstr "Amerikako Samoa"
+
+#. {"msgid": ["Andorra", "Andorrako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:610
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:610
+#, fuzzy
+msgid "Andorra"
+msgstr "Andorra"
+
+#. {"msgid": ["Angola", "Angola;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:611
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:611
+#, fuzzy
+msgid "Angola"
+msgstr "Angola"
+
+#. {"msgid": ["Anguilla", "Anguila"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:612
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:612
+#, fuzzy
+msgid "Anguilla"
+msgstr "Anguilla"
+
+#. {"msgid": ["Antartika", "Antartikakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:613
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:613
+#, fuzzy
+msgid "Antarctica"
+msgstr "Antartika"
+
+#. {"msgid": ["Antigua eta Barbuda", "Antigua eta Barbudan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:614
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:614
+#, fuzzy
+msgid "Antigua and Barbuda"
+msgstr "Antigua eta Barbuda"
+
+#. {"msgid": ["Argentina", "Argentinakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:615
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:615
+#, fuzzy
+msgid "Argentina"
+msgstr "Argentina"
+
+#. {"msgid": ["Armenia", "Armenian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:616
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:616
+#, fuzzy
+msgid "Armenia"
+msgstr "Armenia"
+
+#. {"msgid": ["Aruba", "aruba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:617
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:617
+#, fuzzy
+msgid "Aruba"
+msgstr "Aruba"
+
+#. {"msgid": ["Australia", "Australiara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:618
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:618
+#, fuzzy
+msgid "Australia"
+msgstr "Australia"
+
+#. {"msgid": ["Austria", "Austrian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:619
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:619
+#, fuzzy
+msgid "Austria"
+msgstr "Austria"
+
+#. {"msgid": ["Azerbaijango", "Azerbaijan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:620
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:620
+#, fuzzy
+msgid "Azerbaijan"
+msgstr "Azerbaijango"
+
+#. {"msgid": ["Bahamak", "Bahamas"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:621
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:621
+#, fuzzy
+msgid "Bahamas"
+msgstr "Bahamak"
+
+#. {"msgid": ["Bahrain", "Bahrein"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:622
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:622
+#, fuzzy
+msgid "Bahrain"
+msgstr "Bahrain"
+
+#. {"msgid": ["Bangladesh", "Bangladeshen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:623
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:623
+#, fuzzy
+msgid "Bangladesh"
+msgstr "Bangladesh"
+
+#. {"msgid": ["Barbados", "Barbado"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:624
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:624
+#, fuzzy
+msgid "Barbados"
+msgstr "Barbados"
+
+#. {"msgid": ["Bielorrusia", "Bielorrusian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:625
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:625
+#, fuzzy
+msgid "Belarus"
+msgstr "Bielorrusia"
+
+#. {"msgid": ["Belgika", "Belgikan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:626
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:626
+#, fuzzy
+msgid "Belgium"
+msgstr "Belgika"
+
+#. {"msgid": ["Belize", "Belice"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:627
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:627
+#, fuzzy
+msgid "Belize"
+msgstr "Belize"
+
+#. {"msgid": ["Benin", "Beninen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:628
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:628
+#, fuzzy
+msgid "Benin"
+msgstr "Benin"
+
+#. {"msgid": ["Bermudak", "Bermudetan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:629
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:629
+#, fuzzy
+msgid "Bermuda"
+msgstr "Bermudak"
+
+#. {"msgid": ["Bhutan", "Butan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:630
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:630
+#, fuzzy
+msgid "Bhutan"
+msgstr "Bhutan"
+
+#. {"msgid": ["Bolivia, Estatu Plurinazionala", "Bolivia, Estatu Aniztun"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:631
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:631
+#, fuzzy
+msgid "Bolivia, Plurinational State of"
+msgstr "Bolivia, Estatu Plurinazionala"
+
+#. {"msgid": ["Bonaire, Sint Eustatius eta Saba", "Bonaire, Sint Eustatius and
+#. Saba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:632
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:632
+#, fuzzy
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "Bonaire, Sint Eustatius eta Saba"
+
+#. {"msgid": ["Bosnia eta Herzegovina", "Bosnia-Herzegovina"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:633
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:633
+#, fuzzy
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnia eta Herzegovina"
+
+#. {"msgid": ["Botswana", "Botswanan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:634
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:634
+#, fuzzy
+msgid "Botswana"
+msgstr "Botswana"
+
+#. {"msgid": ["Bouvet uhartea", "Bouvet irla"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:635
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:635
+#, fuzzy
+msgid "Bouvet Island"
+msgstr "Bouvet uhartea"
+
+#. {"msgid": ["Brasil", "Brasilen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:636
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:636
+#, fuzzy
+msgid "Brazil"
+msgstr "Brasil"
+
+#. {"msgid": ["Britainia Handiko Indiako Ozeanoko Lurraldea", "Indiako
+#. Ozeanoko Britainia Handiko Lurraldea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:637
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:637
+#, fuzzy
+msgid "British Indian Ocean Territory"
+msgstr "Britainia Handiko Indiako Ozeanoko Lurraldea"
+
+#. {"msgid": ["Brunei Darussalam", "Brunei, Darussalam"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:638
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:638
+#, fuzzy
+msgid "Brunei Darussalam"
+msgstr "Brunei Darussalam"
+
+#. {"msgid": ["Bulgaria", "Bulgaria;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:639
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:639
+#, fuzzy
+msgid "Bulgaria"
+msgstr "Bulgaria"
+
+#. {"msgid": ["Burkina Faso", "Burkina Fason"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:640
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:640
+#, fuzzy
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
+#. {"msgid": ["Burundi", "Burundia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:641
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:641
+#, fuzzy
+msgid "Burundi"
+msgstr "Burundi"
+
+#. {"msgid": ["Cabo Verde", "Cabo Berdea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:642
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:642
+#, fuzzy
+msgid "Cabo Verde"
+msgstr "Cabo Verde"
+
+#. {"msgid": ["Kanbodia", "Cambodia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:643
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:643
+#, fuzzy
+msgid "Cambodia"
+msgstr "Kanbodia"
+
+#. {"msgid": ["Kamerun", "Kamerune"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:644
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:644
+#, fuzzy
+msgid "Cameroon"
+msgstr "Kamerun"
+
+#. {"msgid": ["Kanada", "Kanadan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:645
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:645
+#, fuzzy
+msgid "Canada"
+msgstr "Kanada"
+
+#. {"msgid": ["Kaiman Uharteak", "Kaiman irlak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:646
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:646
+#, fuzzy
+msgid "Cayman Islands"
+msgstr "Kaiman Uharteak"
+
+#. {"msgid": ["Afrika Erdiko Errepublika", "Erdialdeko Afrikako Errepublika"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:647
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:647
+#, fuzzy
+msgid "Central African Republic"
+msgstr "Afrika Erdiko Errepublika"
+
+#. {"msgid": ["Txad", "Txaden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:648
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:648
+#, fuzzy
+msgid "Chad"
+msgstr "Txad"
+
+#. {"msgid": ["Txile", "Chile"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:649
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:649
+#, fuzzy
+msgid "Chile"
+msgstr "Txile"
+
+#. {"msgid": ["Txina", "Txinakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:650
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:650
+#, fuzzy
+msgid "China"
+msgstr "Txina"
+
+#. {"msgid": ["Gabonetako uhartea", "Christmas uhartea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:651
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:651
+#, fuzzy
+msgid "Christmas Island"
+msgstr "Gabonetako uhartea"
+
+#. {"msgid": ["Cocos (Keeling) uharteak", "Kokos (Keeling) Uharteak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:652
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:652
+#, fuzzy
+msgid "Cocos (Keeling) Islands"
+msgstr "Cocos (Keeling) uharteak"
+
+#. {"msgid": ["Kolonbia", "Colombia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:653
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:653
+#, fuzzy
+msgid "Colombia"
+msgstr "Kolonbia"
+
+#. {"msgid": ["Komoreak", "Komorok"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:654
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:654
+#, fuzzy
+msgid "Comoros"
+msgstr "Komoreak"
+
+#. {"msgid": ["Kongo", "Kongokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:655
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:655
+#, fuzzy
+msgid "Congo"
+msgstr "Kongo"
+
+#. {"msgid": ["Kongo, Errepublika Demokratikoa", "Kongoko Errepublika
+#. Demokratikoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:656
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:656
+#, fuzzy
+msgid "Congo, The Democratic Republic of the"
+msgstr "Kongo, Errepublika Demokratikoa"
+
+#. {"msgid": ["Cook uharteak", "Cook irlak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:657
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:657
+#, fuzzy
+msgid "Cook Islands"
+msgstr "Cook uharteak"
+
+#. {"msgid": ["Costa Rica", "Costa Rican"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:658
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:658
+#, fuzzy
+msgid "Costa Rica"
+msgstr "Costa Rica"
+
+#. {"msgid": ["Kroazia", "Kroazian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:659
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:659
+#, fuzzy
+msgid "Croatia"
+msgstr "Kroazia"
+
+#. {"msgid": ["Kuba", "Cuba"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:660
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:660
+#, fuzzy
+msgid "Cuba"
+msgstr "Kuba"
+
+#. {"msgid": ["Cura\u00e7ao", "Kurazao"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:661
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:661
+#, fuzzy
+msgid "Curaçao"
+msgstr "Curaçao"
+
+#. {"msgid": ["Zipre", "Txipre"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:662
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:662
+#, fuzzy
+msgid "Cyprus"
+msgstr "Zipre"
+
+#. {"msgid": ["Txekia", "Txekiara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:663
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:663
+#, fuzzy
+msgid "Czechia"
+msgstr "Txekia"
+
+#. {"msgid": ["Boli Kosta", "Boli Kostan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:664
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:664
+#, fuzzy
+msgid "Côte d'Ivoire"
+msgstr "Boli Kosta"
+
+#. {"msgid": ["Danimarka", "Danimarkan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:665
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:665
+#, fuzzy
+msgid "Denmark"
+msgstr "Danimarka"
+
+#. {"msgid": ["Djibouti", "Djibutin"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:666
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:666
+#, fuzzy
+msgid "Djibouti"
+msgstr "Djibouti"
+
+#. {"msgid": ["Dominika", "Dominikako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:667
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:667
+#, fuzzy
+msgid "Dominica"
+msgstr "Dominika"
+
+#. {"msgid": ["Dominikar Errepublika", "Errepublika Dominikarra", "Dominikar
+#. Errepublikan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:668
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:668
+#, fuzzy
+msgid "Dominican Republic"
+msgstr "Dominikar Errepublika"
+
+#. {"msgid": ["Ekuador", "Ekuadorrekoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:669
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:669
+#, fuzzy
+msgid "Ecuador"
+msgstr "Ekuador"
+
+#. {"msgid": ["Egipto", "Egipton"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:670
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:670
+#, fuzzy
+msgid "Egypt"
+msgstr "Egipto"
+
+#. {"msgid": ["El Salvador", "Salvador"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:671
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:671
+#, fuzzy
+msgid "El Salvador"
+msgstr "El Salvador"
+
+#. {"msgid": ["Ekuatore Ginea", "Ginea Ekuatorea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:672
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:672
+#, fuzzy
+msgid "Equatorial Guinea"
+msgstr "Ekuatore Ginea"
+
+#. {"msgid": ["Eritrea", "Eritrea;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:673
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:673
+#, fuzzy
+msgid "Eritrea"
+msgstr "Eritrea"
+
+#. {"msgid": ["Estonia", "Estonia;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:674
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:674
+#, fuzzy
+msgid "Estonia"
+msgstr "Estonia"
+
+#. {"msgid": ["Eswatini", "eswatini"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:675
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:675
+#, fuzzy
+msgid "Eswatini"
+msgstr "Eswatini"
+
+#. {"msgid": ["Etiopia", "Etiopia;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:676
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:676
+#, fuzzy
+msgid "Ethiopia"
+msgstr "Etiopia"
+
+#. {"msgid": ["Falkland uharteak (Malvinak)", "Malvinak (Falkland uharteak)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:677
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:677
+#, fuzzy
+msgid "Falkland Islands (Malvinas)"
+msgstr "Falkland uharteak (Malvinak)"
+
+#. {"msgid": ["Faroe uharteak", "Faroe Uharteak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:678
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:678
+#, fuzzy
+msgid "Faroe Islands"
+msgstr "Faroe uharteak"
+
+#. {"msgid": ["Fiji", "Fidji"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:679
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:679
+#, fuzzy
+msgid "Fiji"
+msgstr "Fiji"
+
+#. {"msgid": ["Finlandia", "Finlandian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:680
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:680
+#, fuzzy
+msgid "Finland"
+msgstr "Finlandia"
+
+#. {"msgid": ["Frantzia", "Frantziakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:681
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:681
+#, fuzzy
+msgid "France"
+msgstr "Frantzia"
+
+#. {"msgid": ["Guyana Frantsesa", "Guyana frantsesa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:682
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:682
+#, fuzzy
+msgid "French Guiana"
+msgstr "Guyana Frantsesa"
+
+#. {"msgid": ["Polinesia frantsesa", "Frantziako Polinesia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:683
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:683
+#, fuzzy
+msgid "French Polynesia"
+msgstr "Polinesia frantsesa"
+
+#. {"msgid": ["Frantziako Hegoaldeko Lurraldeak", "Frantziako Hego
+#. Lurraldeak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:684
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:684
+#, fuzzy
+msgid "French Southern Territories"
+msgstr "Frantziako Hegoaldeko Lurraldeak"
+
+#. {"msgid": ["Gabon", "Gabonak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:685
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:685
+#, fuzzy
+msgid "Gabon"
+msgstr "Gabon"
+
+#. {"msgid": ["Gambia", "Gambiakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:686
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:686
+#, fuzzy
+msgid "Gambia"
+msgstr "Gambia"
+
+#. {"msgid": ["Georgia", "Georgiako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:687
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:687
+#, fuzzy
+msgid "Georgia"
+msgstr "Georgia"
+
+#. {"msgid": ["Alemania", "Alemaniakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:688
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:688
+#, fuzzy
+msgid "Germany"
+msgstr "Alemania"
+
+#. {"msgid": ["Ghana", "Ghanan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:689
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:689
+#, fuzzy
+msgid "Ghana"
+msgstr "Ghana"
+
+#. {"msgid": ["Gibraltar", "Gibraltarren"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:690
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:690
+#, fuzzy
+msgid "Gibraltar"
+msgstr "Gibraltar"
+
+#. {"msgid": ["Grezia", "Grezian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:691
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:691
+#, fuzzy
+msgid "Greece"
+msgstr "Grezia"
+
+#. {"msgid": ["Groenlandia", "Groenlandian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:692
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:692
+#, fuzzy
+msgid "Greenland"
+msgstr "Groenlandia"
+
+#. {"msgid": ["Grenada", "Granada"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:693
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:693
+#, fuzzy
+msgid "Grenada"
+msgstr "Grenada"
+
+#. {"msgid": ["Guadalupe", "Guadalupea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:694
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:694
+#, fuzzy
+msgid "Guadeloupe"
+msgstr "Guadalupe"
+
+#. {"msgid": ["Guam", "Guam;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:695
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:695
+#, fuzzy
+msgid "Guam"
+msgstr "Guam"
+
+#. {"msgid": ["Guatemala", "Guatemalako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:696
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:696
+#, fuzzy
+msgid "Guatemala"
+msgstr "Guatemala"
+
+#. {"msgid": ["Guernsey", "Gernsey"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:697
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:697
+#, fuzzy
+msgid "Guernsey"
+msgstr "Guernsey"
+
+#. {"msgid": ["Ginea", "Guinea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:698
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:698
+#, fuzzy
+msgid "Guinea"
+msgstr "Ginea"
+
+#. {"msgid": ["Ginea-Bissau", "Ginea-Bissaun"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:699
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:699
+#, fuzzy
+msgid "Guinea-Bissau"
+msgstr "Ginea-Bissau"
+
+#. {"msgid": ["Guyana", "Guiana"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:700
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:700
+#, fuzzy
+msgid "Guyana"
+msgstr "Guyana"
+
+#. {"msgid": ["Haiti", "Haitin"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:701
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:701
+#, fuzzy
+msgid "Haiti"
+msgstr "Haiti"
+
+#. {"msgid": ["Heard uhartea eta McDonald uharteak", "Heard eta McDonald
+#. uharteak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:702
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:702
+#, fuzzy
+msgid "Heard Island and McDonald Islands"
+msgstr "Heard uhartea eta McDonald uharteak"
+
+#. {"msgid": ["Egoitza Santua (Vatikano Hiria)", "Egoitza Santua ( Vatikano
+#. Hiria )"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:703
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:703
+#, fuzzy
+msgid "Holy See (Vatican City State)"
+msgstr "Egoitza Santua (Vatikano Hiria)"
+
+#. {"msgid": ["Honduras", "Hondurasen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:704
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:704
+#, fuzzy
+msgid "Honduras"
+msgstr "Honduras"
+
+#. {"msgid": ["Hong Kong", "Hong Kongen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:705
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:705
+#, fuzzy
+msgid "Hong Kong"
+msgstr "Hong Kong"
+
+#. {"msgid": ["Hungaria", "Hungarian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:706
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:706
+#, fuzzy
+msgid "Hungary"
+msgstr "Hungaria"
+
+#. {"msgid": ["Islandia", "Islandian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:707
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:707
+#, fuzzy
+msgid "Iceland"
+msgstr "Islandia"
+
+#. {"msgid": ["India", "Indiako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:708
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:708
+#, fuzzy
+msgid "India"
+msgstr "India"
+
+#. {"msgid": ["Indonesia", "Indonesian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:709
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:709
+#, fuzzy
+msgid "Indonesia"
+msgstr "Indonesia"
+
+#. {"msgid": ["Iran, Islamiar Errepublika", "Iran, Errepublika Islamiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:710
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:710
+#, fuzzy
+msgid "Iran, Islamic Republic of"
+msgstr "Iran, Islamiar Errepublika"
+
+#. {"msgid": ["Irak", "Irakekoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:711
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:711
+#, fuzzy
+msgid "Iraq"
+msgstr "Irak"
+
+#. {"msgid": ["Irlanda", "Irlandakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:712
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:712
+#, fuzzy
+msgid "Ireland"
+msgstr "Irlanda"
+
+#. {"msgid": ["Man uhartea", "Man irla"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:713
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:713
+#, fuzzy
+msgid "Isle of Man"
+msgstr "Man uhartea"
+
+#. {"msgid": ["Israel", "Israelen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:714
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:714
+#, fuzzy
+msgid "Israel"
+msgstr "Israel"
+
+#. {"msgid": ["Italia", "Italiakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:715
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:715
+#, fuzzy
+msgid "Italy"
+msgstr "Italia"
+
+#. {"msgid": ["Jamaika", "Jamaikakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:716
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:716
+#, fuzzy
+msgid "Jamaica"
+msgstr "Jamaika"
+
+#. {"msgid": ["Japonia", "Japonian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:717
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:717
+#, fuzzy
+msgid "Japan"
+msgstr "Japonia"
+
+#. {"msgid": ["Jersey", "Jerseyko"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:718
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:718
+#, fuzzy
+msgid "Jersey"
+msgstr "Jersey"
+
+#. {"msgid": ["Jordania", "Jordan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:719
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:719
+#, fuzzy
+msgid "Jordan"
+msgstr "Jordania"
+
+#. {"msgid": ["Kazakhstan", "Kazakhstanen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:720
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:720
+#, fuzzy
+msgid "Kazakhstan"
+msgstr "Kazakhstan"
+
+#. {"msgid": ["Kenya", "Kenian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:721
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:721
+#, fuzzy
+msgid "Kenya"
+msgstr "Kenya"
+
+#. {"msgid": ["Kiribati", "Kiribati;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:722
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:722
+#, fuzzy
+msgid "Kiribati"
+msgstr "Kiribati"
+
+#. {"msgid": ["Korea, Herri Errepublika Demokratikoa", "Korea, Errepublika
+#. Popular Demokratikoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:723
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:723
+#, fuzzy
+msgid "Korea, Democratic People's Republic of"
+msgstr "Korea, Herri Errepublika Demokratikoa"
+
+#. {"msgid": ["Korea, Errepublika", "Koreako Errepublika"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:724
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:724
+#, fuzzy
+msgid "Korea, Republic of"
+msgstr "Korea, Errepublika"
+
+#. {"msgid": ["Kuwait", "Kuwaiten"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:725
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:725
+#, fuzzy
+msgid "Kuwait"
+msgstr "Kuwait"
+
+#. {"msgid": ["Kirgizistan", "Kirgizian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:726
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:726
+#, fuzzy
+msgid "Kyrgyzstan"
+msgstr "Kirgizistan"
+
+#. {"msgid": ["Laosko Herri Errepublika Demokratikoa", "Laosko Errepublika
+#. Popular Demokratikoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:727
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:727
+#, fuzzy
+msgid "Lao People's Democratic Republic"
+msgstr "Laosko Herri Errepublika Demokratikoa"
+
+#. {"msgid": ["Letonia", "Letonian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:728
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:728
+#, fuzzy
+msgid "Latvia"
+msgstr "Letonia"
+
+#. {"msgid": ["Libano", "Libanoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:729
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:729
+#, fuzzy
+msgid "Lebanon"
+msgstr "Libano"
+
+#. {"msgid": ["Lesotho", "Lesoto"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:730
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:730
+#, fuzzy
+msgid "Lesotho"
+msgstr "Lesotho"
+
+#. {"msgid": ["Liberia", "Liberian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:731
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:731
+#, fuzzy
+msgid "Liberia"
+msgstr "Liberia"
+
+#. {"msgid": ["Libia", "Libiako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:732
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:732
+#, fuzzy
+msgid "Libya"
+msgstr "Libia"
+
+#. {"msgid": ["Liechtenstein", "Liechtensteinen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:733
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:733
+#, fuzzy
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
+
+#. {"msgid": ["Lituania", "Lituanian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:734
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:734
+#, fuzzy
+msgid "Lithuania"
+msgstr "Lituania"
+
+#. {"msgid": ["Luxenburgo", "Luxenburgokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:735
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:735
+#, fuzzy
+msgid "Luxembourg"
+msgstr "Luxenburgo"
+
+#. {"msgid": ["Makao", "Macau"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:736
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:736
+#, fuzzy
+msgid "Macao"
+msgstr "Makao"
+
+#. {"msgid": ["Madagaskar", "Madagaskarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:737
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:737
+#, fuzzy
+msgid "Madagascar"
+msgstr "Madagaskar"
+
+#. {"msgid": ["Malawi", "Malaui"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:738
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:738
+#, fuzzy
+msgid "Malawi"
+msgstr "Malawi"
+
+#. {"msgid": ["Malaysia", "Malaysian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:739
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:739
+#, fuzzy
+msgid "Malaysia"
+msgstr "Malaysia"
+
+#. {"msgid": ["Maldivak", "Maldibak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:740
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:740
+#, fuzzy
+msgid "Maldives"
+msgstr "Maldivak"
+
+#. {"msgid": ["Mali", "Malin"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:741
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:741
+#, fuzzy
+msgid "Mali"
+msgstr "Mali"
+
+#. {"msgid": ["Malta", "Maltako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:742
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:742
+#, fuzzy
+msgid "Malta"
+msgstr "Malta"
+
+#. {"msgid": ["Marshall Uharteak", "Marshall uharteak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:743
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:743
+#, fuzzy
+msgid "Marshall Islands"
+msgstr "Marshall Uharteak"
+
+#. {"msgid": ["Martinika", "Martinikan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:744
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:744
+#, fuzzy
+msgid "Martinique"
+msgstr "Martinika"
+
+#. {"msgid": ["Mauritania", "Mauritanian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:745
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:745
+#, fuzzy
+msgid "Mauritania"
+msgstr "Mauritania"
+
+#. {"msgid": ["Mauricio", "Mauritius"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:746
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:746
+#, fuzzy
+msgid "Mauritius"
+msgstr "Mauricio"
+
+#. {"msgid": ["Mayotte", "Mayota"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:747
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:747
+#, fuzzy
+msgid "Mayotte"
+msgstr "Mayotte"
+
+#. {"msgid": ["Mexiko", "Mexikon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:748
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:748
+#, fuzzy
+msgid "Mexico"
+msgstr "Mexiko"
+
+#. {"msgid": ["Mikronesia, Estatu Federatuak", "Mikronesia, Estatu
+#. federatuak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:749
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:749
+#, fuzzy
+msgid "Micronesia, Federated States of"
+msgstr "Mikronesia, Estatu Federatuak"
+
+#. {"msgid": ["Moldavia, Errepublika", "Moldova, Errepublika"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:750
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:750
+#, fuzzy
+msgid "Moldova, Republic of"
+msgstr "Moldavia, Errepublika"
+
+#. {"msgid": ["Monako", "Monakon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:751
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:751
+#, fuzzy
+msgid "Monaco"
+msgstr "Monako"
+
+#. {"msgid": ["Mongolia", "Mongolian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:752
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:752
+#, fuzzy
+msgid "Mongolia"
+msgstr "Mongolia"
+
+#. {"msgid": ["Montenegro", "Montenegro;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:753
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:753
+#, fuzzy
+msgid "Montenegro"
+msgstr "Montenegro"
+
+#. {"msgid": ["Montserrat", "Montserraten"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:754
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:754
+#, fuzzy
+msgid "Montserrat"
+msgstr "Montserrat"
+
+#. {"msgid": ["Maroko", "Marokoko"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:755
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:755
+#, fuzzy
+msgid "Morocco"
+msgstr "Maroko"
+
+#. {"msgid": ["Mozambike", "Mozambique"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:756
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:756
+#, fuzzy
+msgid "Mozambique"
+msgstr "Mozambike"
+
+#. {"msgid": ["Myanmar", "Birmania"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:757
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:757
+#, fuzzy
+msgid "Myanmar"
+msgstr "Myanmar"
+
+#. {"msgid": ["Namibia", "Namibian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:758
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:758
+#, fuzzy
+msgid "Namibia"
+msgstr "Namibia"
+
+#. {"msgid": ["Nauru", "Naurua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:759
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:974
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:759
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:974
+#, fuzzy
+msgid "Nauru"
+msgstr "Nauru"
+
+#. {"msgid": ["Nepal", "Nepalen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:760
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:760
+#, fuzzy
+msgid "Nepal"
+msgstr "Nepal"
+
+#. {"msgid": ["Herbehereak", "Holanda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:761
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:761
+#, fuzzy
+msgid "Netherlands"
+msgstr "Herbehereak"
+
+#. {"msgid": ["Kaledonia Berria", "Caledonia Berria"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:762
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:762
+#, fuzzy
+msgid "New Caledonia"
+msgstr "Kaledonia Berria"
+
+#. {"msgid": ["Zelanda Berria", "Zeelanda Berria", "Zeelanda Berrikoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:763
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:763
+#, fuzzy
+msgid "New Zealand"
+msgstr "Zelanda Berria"
+
+#. {"msgid": ["Nikaragua", "Nikaraguan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:764
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:764
+#, fuzzy
+msgid "Nicaragua"
+msgstr "Nikaragua"
+
+#. {"msgid": ["Niger", "Nigerkoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:765
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:765
+#, fuzzy
+msgid "Niger"
+msgstr "Niger"
+
+#. {"msgid": ["Nigeria", "Nigeria;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:766
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:766
+#, fuzzy
+msgid "Nigeria"
+msgstr "Nigeria"
+
+#. {"msgid": ["Niue", "Niuera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:767
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:767
+#, fuzzy
+msgid "Niue"
+msgstr "Niue"
+
+#. {"msgid": ["Norfolk uhartea", "Norfolk irla"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:768
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:768
+#, fuzzy
+msgid "Norfolk Island"
+msgstr "Norfolk uhartea"
+
+#. {"msgid": ["Ipar Mazedonia", "Ipar Mazedoniakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:769
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:769
+#, fuzzy
+msgid "North Macedonia"
+msgstr "Ipar Mazedonia"
+
+#. {"msgid": ["Ipar Mariana Uharteak", "Iparraldeko Mariana uharteak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:770
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:770
+#, fuzzy
+msgid "Northern Mariana Islands"
+msgstr "Ipar Mariana Uharteak"
+
+#. {"msgid": ["Norvegia", "Norvegian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:771
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:771
+#, fuzzy
+msgid "Norway"
+msgstr "Norvegia"
+
+#. {"msgid": ["Oman", "Omanen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:772
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:772
+#, fuzzy
+msgid "Oman"
+msgstr "Oman"
+
+#. {"msgid": ["Pakistan", "Pakistango"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:773
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:773
+#, fuzzy
+msgid "Pakistan"
+msgstr "Pakistan"
+
+#. {"msgid": ["Palau", "Palauak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:774
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:774
+#, fuzzy
+msgid "Palau"
+msgstr "Palau"
+
+#. {"msgid": ["Palestina, Estatua", "Palestina, estatua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:775
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:775
+#, fuzzy
+msgid "Palestine, State of"
+msgstr "Palestina, Estatua"
+
+#. {"msgid": ["Panama", "Panamakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:776
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:776
+#, fuzzy
+msgid "Panama"
+msgstr "Panama"
+
+#. {"msgid": ["Papua Ginea Berria", "Papua Ginea Berrian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:777
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:777
+#, fuzzy
+msgid "Papua New Guinea"
+msgstr "Papua Ginea Berria"
+
+#. {"msgid": ["Paraguai", "Paraguay"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:778
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:778
+#, fuzzy
+msgid "Paraguay"
+msgstr "Paraguai"
+
+#. {"msgid": ["Peru", "Perun"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:779
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:779
+#, fuzzy
+msgid "Peru"
+msgstr "Peru"
+
+#. {"msgid": ["Filipinak", "Filipinetan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:780
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:780
+#, fuzzy
+msgid "Philippines"
+msgstr "Filipinak"
+
+#. {"msgid": ["Pitcairn", "Pitcairnen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:781
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:781
+#, fuzzy
+msgid "Pitcairn"
+msgstr "Pitcairn"
+
+#. {"msgid": ["Polonia", "Poloniara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:782
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:782
+#, fuzzy
+msgid "Poland"
+msgstr "Polonia"
+
+#. {"msgid": ["Portugal", "Portugalen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:783
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:783
+#, fuzzy
+msgid "Portugal"
+msgstr "Portugal"
+
+#. {"msgid": ["Puerto Rico", "Puerto Ricoko"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:784
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:784
+#, fuzzy
+msgid "Puerto Rico"
+msgstr "Puerto Rico"
+
+#. {"msgid": ["Qatar", "Qatarrek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:785
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:785
+#, fuzzy
+msgid "Qatar"
+msgstr "Qatar"
+
+#. {"msgid": ["Errumania", "Rumania"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:786
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:786
+#, fuzzy
+msgid "Romania"
+msgstr "Errumania"
+
+#. {"msgid": ["Errusiako Federazioa", "Errusiar Federazioa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:787
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:787
+#, fuzzy
+msgid "Russian Federation"
+msgstr "Errusiako Federazioa"
+
+#. {"msgid": ["Ruanda", "Rwanda"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:788
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:788
+#, fuzzy
+msgid "Rwanda"
+msgstr "Ruanda"
+
+#. {"msgid": ["Bilera", "Erreunion", "R\u00e9union"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:789
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:789
+#, fuzzy
+msgid "Réunion"
+msgstr "Bilera"
+
+#. {"msgid": ["San Bartolome", "Saint Bartolome"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:790
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:790
+#, fuzzy
+msgid "Saint Barthélemy"
+msgstr "San Bartolome"
+
+#. {"msgid": ["Santa Helena, Ascension eta Tristan da Cunha", "Santa Elena,
+#. Igokundea eta Tristan da Cunha"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:791
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:791
+#, fuzzy
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "Santa Helena, Ascension eta Tristan da Cunha"
+
+#. {"msgid": ["Saint Kitts eta Nevis", "San Kitts eta Nevis"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:792
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:792
+#, fuzzy
+msgid "Saint Kitts and Nevis"
+msgstr "Saint Kitts eta Nevis"
+
+#. {"msgid": ["Santa Luzia", "Santa Lucia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:793
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:793
+#, fuzzy
+msgid "Saint Lucia"
+msgstr "Santa Luzia"
+
+#. {"msgid": ["Saint Martin (Frantziar zatia)", "Saint Martin (Frantziar
+#. parte)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:794
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:794
+#, fuzzy
+msgid "Saint Martin (French part)"
+msgstr "Saint Martin (Frantziar zatia)"
+
+#. {"msgid": ["Saint Pierre eta Miquelon", "San Pierre eta Mikelon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:795
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:795
+#, fuzzy
+msgid "Saint Pierre and Miquelon"
+msgstr "Saint Pierre eta Miquelon"
+
+#. {"msgid": ["Saint Vincent eta Grenadinak", "Donibane eta Grenadinak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:796
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:796
+#, fuzzy
+msgid "Saint Vincent and the Grenadines"
+msgstr "Saint Vincent eta Grenadinak"
+
+#. {"msgid": ["Samoa", "Samoan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:797
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:797
+#, fuzzy
+msgid "Samoa"
+msgstr "Samoa"
+
+#. {"msgid": ["San Marino", "San Marin"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:798
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:798
+#, fuzzy
+msgid "San Marino"
+msgstr "San Marino"
+
+#. {"msgid": ["Sao Tome eta Principe", "Santo Tom\u00e9 eta Principe"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:799
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:799
+#, fuzzy
+msgid "Sao Tome and Principe"
+msgstr "Sao Tome eta Principe"
+
+#. {"msgid": ["Saudi Arabia", "Saudi Arabian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:800
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:800
+#, fuzzy
+msgid "Saudi Arabia"
+msgstr "Saudi Arabia"
+
+#. {"msgid": ["Senegal", "Senegalen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:801
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:801
+#, fuzzy
+msgid "Senegal"
+msgstr "Senegal"
+
+#. {"msgid": ["Serbia", "Serbian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:802
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:802
+#, fuzzy
+msgid "Serbia"
+msgstr "Serbia"
+
+#. {"msgid": ["Seychelles", "Seychellesek"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:803
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:803
+#, fuzzy
+msgid "Seychelles"
+msgstr "Seychelles"
+
+#. {"msgid": ["Sierra Leona", "Sierra Leonan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:804
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:804
+#, fuzzy
+msgid "Sierra Leone"
+msgstr "Sierra Leona"
+
+#. {"msgid": ["Singapur", "Singapurrekoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:805
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:805
+#, fuzzy
+msgid "Singapore"
+msgstr "Singapur"
+
+#. {"msgid": ["Sint Maarten (Herbehereetako zatia)", "Sint Maarten
+#. (Herbehereetako aldea)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:806
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:806
+#, fuzzy
+msgid "Sint Maarten (Dutch part)"
+msgstr "Sint Maarten (Herbehereetako zatia)"
+
+#. {"msgid": ["Eslovakia", "Eslovakiako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:807
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:807
+#, fuzzy
+msgid "Slovakia"
+msgstr "Eslovakia"
+
+#. {"msgid": ["Eslovenia", "Eslovenia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:808
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:808
+#, fuzzy
+msgid "Slovenia"
+msgstr "Eslovenia"
+
+#. {"msgid": ["Salomon Uharteak", "Salomon irlak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:809
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:809
+#, fuzzy
+msgid "Solomon Islands"
+msgstr "Salomon Uharteak"
+
+#. {"msgid": ["Somalia", "Somalian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:810
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:810
+#, fuzzy
+msgid "Somalia"
+msgstr "Somalia"
+
+#. {"msgid": ["Hegoafrika", "Hego Afrikan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:811
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:811
+#, fuzzy
+msgid "South Africa"
+msgstr "Hegoafrika"
+
+#. {"msgid": ["Hego Georgia eta Hego Sandwich uharteak", "Hego Georgia eta
+#. Hegoaldeko Sandwich Uharteak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:812
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:812
+#, fuzzy
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "Hego Georgia eta Hego Sandwich uharteak"
+
+#. {"msgid": ["Hego Sudan", "Hego Sudango"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:813
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:813
+#, fuzzy
+msgid "South Sudan"
+msgstr "Hego Sudan"
+
+#. {"msgid": ["Espainia", "Espa\u00f1a"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:814
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:814
+#, fuzzy
+msgid "Spain"
+msgstr "Espainia"
+
+#. {"msgid": ["Sri Lanka", "Sri Lankako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:815
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:815
+#, fuzzy
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
+
+#. {"msgid": ["Sudan", "Sudanen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:816
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:816
+#, fuzzy
+msgid "Sudan"
+msgstr "Sudan"
+
+#. {"msgid": ["Surinam", "Suriname"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:817
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:817
+#, fuzzy
+msgid "Suriname"
+msgstr "Surinam"
+
+#. {"msgid": ["Svalbard eta Jan Mayen", "Svalbarden eta Jan Mayen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:818
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:818
+#, fuzzy
+msgid "Svalbard and Jan Mayen"
+msgstr "Svalbard eta Jan Mayen"
+
+#. {"msgid": ["Suedia", "Suedian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:819
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:819
+#, fuzzy
+msgid "Sweden"
+msgstr "Suedia"
+
+#. {"msgid": ["Suitza", "Suitzan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:820
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:820
+#, fuzzy
+msgid "Switzerland"
+msgstr "Suitza"
+
+#. {"msgid": ["Siriako Arabiar Errepublika", "Siriako Errepublika Arabiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:821
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:821
+#, fuzzy
+msgid "Syrian Arab Republic"
+msgstr "Siriako Arabiar Errepublika"
+
+#. {"msgid": ["Taiwan, Txinako Probintzia", "Taiwan, Txinako probintzia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:822
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:822
+#, fuzzy
+msgid "Taiwan, Province of China"
+msgstr "Taiwan, Txinako Probintzia"
+
+#. {"msgid": ["Tadjikistan", "Tajikistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:823
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:823
+#, fuzzy
+msgid "Tajikistan"
+msgstr "Tadjikistan"
+
+#. {"msgid": ["Tanzania, Errepublika Batua", "Tanzanian, Errepublika Batua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:824
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:824
+#, fuzzy
+msgid "Tanzania, United Republic of"
+msgstr "Tanzania, Errepublika Batua"
+
+#. {"msgid": ["Thailandia", "Tailandia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:825
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:825
+#, fuzzy
+msgid "Thailand"
+msgstr "Thailandia"
+
+#. {"msgid": ["Ekialdeko Timor", "Timor-Leste"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:826
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:826
+#, fuzzy
+msgid "Timor-Leste"
+msgstr "Ekialdeko Timor"
+
+#. {"msgid": ["Joan", "Togo", "Togokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:827
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:827
+#, fuzzy
+msgid "Togo"
+msgstr "Joan"
+
+#. {"msgid": ["Tokelau", "Tokelauko"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:828
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:828
+#, fuzzy
+msgid "Tokelau"
+msgstr "Tokelau"
+
+#. {"msgid": ["Tonga", "Tongan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:829
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:829
+#, fuzzy
+msgid "Tonga"
+msgstr "Tonga"
+
+#. {"msgid": ["Trinidad eta Tobago", "Trinidad eta Tobagon"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:830
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:830
+#, fuzzy
+msgid "Trinidad and Tobago"
+msgstr "Trinidad eta Tobago"
+
+#. {"msgid": ["Tunisia", "Tunisian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:831
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:831
+#, fuzzy
+msgid "Tunisia"
+msgstr "Tunisia"
+
+#. {"msgid": ["Turkia", "Turkian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:832
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:832
+#, fuzzy
+msgid "Turkey"
+msgstr "Turkia"
+
+#. {"msgid": ["Turkmenistan", "Turkmenistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:833
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:833
+#, fuzzy
+msgid "Turkmenistan"
+msgstr "Turkmenistan"
+
+#. {"msgid": ["Turks eta Caicos uharteak", "Turks eta Caicos irlak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:834
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:834
+#, fuzzy
+msgid "Turks and Caicos Islands"
+msgstr "Turks eta Caicos uharteak"
+
+#. {"msgid": ["Tuvalu", "Tuvalor"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:835
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:835
+#, fuzzy
+msgid "Tuvalu"
+msgstr "Tuvalu"
+
+#. {"msgid": ["Uganda", "Ugandako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:836
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:836
+#, fuzzy
+msgid "Uganda"
+msgstr "Uganda"
+
+#. {"msgid": ["Ukraina", "Ukrania"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:837
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:837
+#, fuzzy
+msgid "Ukraine"
+msgstr "Ukraina"
+
+#. {"msgid": ["Arabiar Emirerri Batuak", "Arabiar Emirerri Batuetan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:838
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:838
+#, fuzzy
+msgid "United Arab Emirates"
+msgstr "Arabiar Emirerri Batuak"
+
+#. {"msgid": ["Erresuma Batua", "Erresuma Batuan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:839
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:839
+#, fuzzy
+msgid "United Kingdom"
+msgstr "Erresuma Batua"
+
+#. {"msgid": ["Ameriketako Estatu Batuak", "Estatu Batuak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:840
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:840
+#, fuzzy
+msgid "United States"
+msgstr "Ameriketako Estatu Batuak"
+
+#. {"msgid": ["Estatu Batuetako Urrutiko Uharte Txikiak", "Ameriketako Estatu
+#. Batuetako Urrutiko Uharte txikiak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:841
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:841
+#, fuzzy
+msgid "United States Minor Outlying Islands"
+msgstr "Estatu Batuetako Urrutiko Uharte Txikiak"
+
+#. {"msgid": ["Uruguai", "Uruguay"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:842
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:842
+#, fuzzy
+msgid "Uruguay"
+msgstr "Uruguai"
+
+#. {"msgid": ["Uzbekistan", "Uzbekistango"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:843
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:843
+#, fuzzy
+msgid "Uzbekistan"
+msgstr "Uzbekistan"
+
+#. {"msgid": ["Vanuatu", "Vanuatu;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:844
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:844
+#, fuzzy
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+#. {"msgid": ["Venezuela, Errepublika Bolivartarra", "Venezuela, Bolivar
+#. Errepublika"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:845
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:845
+#, fuzzy
+msgid "Venezuela, Bolivarian Republic of"
+msgstr "Venezuela, Errepublika Bolivartarra"
+
+#. {"msgid": ["Vietnam", "Viet Nam"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:846
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:846
+#, fuzzy
+msgid "Viet Nam"
+msgstr "Vietnam"
+
+#. {"msgid": ["Birjina uharteak, britainiarrak", "Birjina Uharteak, Britainia
+#. Handiak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:847
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:847
+#, fuzzy
+msgid "Virgin Islands, British"
+msgstr "Birjina uharteak, britainiarrak"
+
+#. {"msgid": ["Birjina uharteak (AEB)", "Birjina Uharteak, AEB"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:848
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:848
+#, fuzzy
+msgid "Virgin Islands, U.S."
+msgstr "Birjina uharteak (AEB)"
+
+#. {"msgid": ["Wallis eta Futuna", "Wallis and Futuna"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:849
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:849
+#, fuzzy
+msgid "Wallis and Futuna"
+msgstr "Wallis eta Futuna"
+
+#. {"msgid": ["Mendebaldeko Sahara", "Western Sahara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:850
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:850
+#, fuzzy
+msgid "Western Sahara"
+msgstr "Mendebaldeko Sahara"
+
+#. {"msgid": ["Yemen", "Yemenen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:851
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:851
+#, fuzzy
+msgid "Yemen"
+msgstr "Yemen"
+
+#. {"msgid": ["Zambia", "Zambian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:852
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:852
+#, fuzzy
+msgid "Zambia"
+msgstr "Zambia"
+
+#. {"msgid": ["Zimbabwe", "Zimbabu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:853
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:853
+#, fuzzy
+msgid "Zimbabwe"
+msgstr "Zimbabwe"
+
+#. {"msgid": ["\u00c5land uharteak", "Aland irlak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:854
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:854
+#, fuzzy
+msgid "Åland Islands"
+msgstr "Åland uharteak"
+
+#. {"msgid": ["abkhaziarra", "abkhaziar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:868
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:868
+#, fuzzy
+msgid "Abkhazian"
+msgstr "abkhaziarra"
+
+#. {"msgid": ["urrun", "Urrutitik"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:869
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:869
+#, fuzzy
+msgid "Afar"
+msgstr "urrun"
+
+#. {"msgid": ["Afrikaans", "afrikarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:870
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:870
+#, fuzzy
+msgid "Afrikaans"
+msgstr "Afrikaans"
+
+#. {"msgid": ["Akan", "Akan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:871
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:871
+#, fuzzy
+msgid "Akan"
+msgstr "Akan"
+
+#. {"msgid": ["Albaniarra", "albanier"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:872
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:872
+#, fuzzy
+msgid "Albanian"
+msgstr "Albaniarra"
+
+#. {"msgid": ["Amharikoa", "Amharera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:873
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:873
+#, fuzzy
+msgid "Amharic"
+msgstr "Amharikoa"
+
+#. {"msgid": ["arabiera", "arabiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:874
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:874
+#, fuzzy
+msgid "Arabic"
+msgstr "arabiera"
+
+#. {"msgid": ["aragoiera", "aragoiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:875
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:875
+#, fuzzy
+msgid "Aragonese"
+msgstr "aragoiera"
+
+#. {"msgid": ["armeniarra", "armeniar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:876
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:876
+#, fuzzy
+msgid "Armenian"
+msgstr "armeniarra"
+
+#. {"msgid": ["Asamiera", "assamera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:877
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:877
+#, fuzzy
+msgid "Assamese"
+msgstr "Asamiera"
+
+#. {"msgid": ["Abarikoa", "Avarikoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:878
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:878
+#, fuzzy
+msgid "Avaric"
+msgstr "Abarikoa"
+
+#. {"msgid": ["Avestan", "avestan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:879
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:879
+#, fuzzy
+msgid "Avestan"
+msgstr "Avestan"
+
+#. {"msgid": ["aimara", "Aymara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:880
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:880
+#, fuzzy
+msgid "Aymara"
+msgstr "aimara"
+
+#. {"msgid": ["Azerbaijangoa", "Azerbaijanera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:881
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:881
+#, fuzzy
+msgid "Azerbaijani"
+msgstr "Azerbaijangoa"
+
+#. {"msgid": ["Bambara", "babarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:882
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:882
+#, fuzzy
+msgid "Bambara"
+msgstr "Bambara"
+
+#. {"msgid": ["Bashkir", "baxkirra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:883
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:883
+#, fuzzy
+msgid "Bashkir"
+msgstr "Bashkir"
+
+#. {"msgid": ["euskara", "euskeraz"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:884
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:884
+#, fuzzy
+msgid "Basque"
+msgstr "euskara"
+
+#. {"msgid": ["bielorrusiera", "Bielorrusiakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:885
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:885
+#, fuzzy
+msgid "Belarusian"
+msgstr "bielorrusiera"
+
+#. {"msgid": ["bengalera", "bengala"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:886
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:886
+#, fuzzy
+msgid "Bengali"
+msgstr "bengalera"
+
+#. {"msgid": ["Bislama", "bislama"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:887
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:887
+#, fuzzy
+msgid "Bislama"
+msgstr "Bislama"
+
+#. {"msgid": ["bosniarra", "Bosniakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:888
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:888
+#, fuzzy
+msgid "Bosnian"
+msgstr "bosniarra"
+
+#. {"msgid": ["bretoiera", "bretoia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:889
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:889
+#, fuzzy
+msgid "Breton"
+msgstr "bretoiera"
+
+#. {"msgid": ["bulgariera", "Bulgariarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:890
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:890
+#, fuzzy
+msgid "Bulgarian"
+msgstr "bulgariera"
+
+#. {"msgid": ["birmaniera", "Birmaniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:891
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:891
+#, fuzzy
+msgid "Burmese"
+msgstr "birmaniera"
+
+#. {"msgid": ["katalana", "Katalana"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:892
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:892
+#, fuzzy
+msgid "Catalan"
+msgstr "katalana"
+
+#. {"msgid": ["Erdialdeko Khmer", "Erdialdeko khemerra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:893
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:893
+#, fuzzy
+msgid "Central Khmer"
+msgstr "Erdialdeko Khmer"
+
+#. {"msgid": ["Chamorro", "Txamorroa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:894
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:894
+#, fuzzy
+msgid "Chamorro"
+msgstr "Chamorro"
+
+#. {"msgid": ["Txetxenia", "txetxeniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:895
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:895
+#, fuzzy
+msgid "Chechen"
+msgstr "Txetxenia"
+
+#. {"msgid": ["txinera", "Txinatarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:896
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:896
+#, fuzzy
+msgid "Chinese"
+msgstr "txinera"
+
+#. {"msgid": ["Eliza eslaviarra", "Elizako eslaviarrak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:897
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:897
+#, fuzzy
+msgid "Church Slavic"
+msgstr "Eliza eslaviarra"
+
+#. {"msgid": ["Txuvax", "Txuvaxera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:898
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:898
+#, fuzzy
+msgid "Chuvash"
+msgstr "Txuvax"
+
+#. {"msgid": ["Kornubiera", "Kornualles"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:899
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:899
+#, fuzzy
+msgid "Cornish"
+msgstr "Kornubiera"
+
+#. {"msgid": ["Korsikera", "Korsikarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:900
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:900
+#, fuzzy
+msgid "Corsican"
+msgstr "Korsikera"
+
+#. {"msgid": ["Kree", "Cree"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:901
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:901
+#, fuzzy
+msgid "Cree"
+msgstr "Kree"
+
+#. {"msgid": ["kroaziera", "kroaziar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:902
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:902
+#, fuzzy
+msgid "Croatian"
+msgstr "kroaziera"
+
+#. {"msgid": ["Txekiar", "txekiera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:903
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:903
+#, fuzzy
+msgid "Czech"
+msgstr "Txekiar"
+
+#. {"msgid": ["daniera", "Danimarka"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:904
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:904
+#, fuzzy
+msgid "Danish"
+msgstr "daniera"
+
+#. {"msgid": ["Dhivehi", "Divehia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:905
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:905
+#, fuzzy
+msgid "Dhivehi"
+msgstr "Dhivehi"
+
+#. {"msgid": ["holandarra", "nederlandera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:906
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:906
+#, fuzzy
+msgid "Dutch"
+msgstr "holandarra"
+
+#. {"msgid": ["Dzongkha", "dzongkha"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:907
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:907
+#, fuzzy
+msgid "Dzongkha"
+msgstr "Dzongkha"
+
+#. {"msgid": ["ingelesa", "Ingelesez"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:908
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:908
+#, fuzzy
+msgid "English"
+msgstr "ingelesa"
+
+#. {"msgid": ["esperantoa", "Esperanto"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:909
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:909
+#, fuzzy
+msgid "Esperanto"
+msgstr "esperantoa"
+
+#. {"msgid": ["Estoniarra", "estoniera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:910
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:910
+#, fuzzy
+msgid "Estonian"
+msgstr "Estoniarra"
+
+#. {"msgid": ["Ardia", "Ewe"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:911
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:911
+#, fuzzy
+msgid "Ewe"
+msgstr "Ardia"
+
+#. {"msgid": ["Faroeera", "Faroetarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:912
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:912
+#, fuzzy
+msgid "Faroese"
+msgstr "Faroeera"
+
+#. {"msgid": ["fijiarra", "Fijiera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:913
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:913
+#, fuzzy
+msgid "Fijian"
+msgstr "fijiarra"
+
+#. {"msgid": ["Finlandiera", "Finlandiakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:914
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:914
+#, fuzzy
+msgid "Finnish"
+msgstr "Finlandiera"
+
+#. {"msgid": ["frantsesa", "frantsesez"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:915
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:915
+#, fuzzy
+msgid "French"
+msgstr "frantsesa"
+
+#. {"msgid": ["Fula", "fulah"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:916
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:916
+#, fuzzy
+msgid "Fulah"
+msgstr "Fula"
+
+#. {"msgid": ["galegoa", "Galiziera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:917
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:917
+#, fuzzy
+msgid "Galician"
+msgstr "galegoa"
+
+#. {"msgid": ["Ganda", "Gandara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:918
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:918
+#, fuzzy
+msgid "Ganda"
+msgstr "Ganda"
+
+#. {"msgid": ["georgiarra", "georgiera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:919
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:919
+#, fuzzy
+msgid "Georgian"
+msgstr "georgiarra"
+
+#. {"msgid": ["alemana", "alemaniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:920
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:920
+#, fuzzy
+msgid "German"
+msgstr "alemana"
+
+#. {"msgid": ["guaraniera", "Guarani"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:921
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:921
+#, fuzzy
+msgid "Guarani"
+msgstr "guaraniera"
+
+#. {"msgid": ["gujaratera", "Gujarati"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:922
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:922
+#, fuzzy
+msgid "Gujarati"
+msgstr "gujaratera"
+
+#. {"msgid": ["haitiarra", "haitiar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:923
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:923
+#, fuzzy
+msgid "Haitian"
+msgstr "haitiarra"
+
+#. {"msgid": ["Hausa", "hausa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:924
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:924
+#, fuzzy
+msgid "Hausa"
+msgstr "Hausa"
+
+#. {"msgid": ["hebreera", "hebreerara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:925
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:925
+#, fuzzy
+msgid "Hebrew"
+msgstr "hebreera"
+
+#. {"msgid": ["Herero", "Hereroa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:926
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:926
+#, fuzzy
+msgid "Herero"
+msgstr "Herero"
+
+#. {"msgid": ["Hindia", "hindia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:927
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:927
+#, fuzzy
+msgid "Hindi"
+msgstr "Hindia"
+
+#. {"msgid": ["Hiri Motu", "Hiri motu"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:928
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:928
+#, fuzzy
+msgid "Hiri Motu"
+msgstr "Hiri Motu"
+
+#. {"msgid": ["hungariera", "Hungariarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:929
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:929
+#, fuzzy
+msgid "Hungarian"
+msgstr "hungariera"
+
+#. {"msgid": ["islandiera", "Islandiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:930
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:930
+#, fuzzy
+msgid "Icelandic"
+msgstr "islandiera"
+
+#. {"msgid": ["Nik egiten dut", "Ido"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:931
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:931
+#, fuzzy
+msgid "Ido"
+msgstr "Nik egiten dut"
+
+#. {"msgid": ["Igboa", "igboa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:932
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:932
+#, fuzzy
+msgid "Igbo"
+msgstr "Igboa"
+
+#. {"msgid": ["Indonesian", "indonesiera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:933
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:933
+#, fuzzy
+msgid "Indonesian"
+msgstr "Indonesian"
+
+#. {"msgid": ["Interlingua (International Auxiliary Language Association)",
+#. "Interlingua (Nazioarteko Hizkuntz Laguntzaileen Elkartea)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:934
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:934
+#, fuzzy
+msgid "Interlingua (International Auxiliary Language Association)"
+msgstr "Interlingua (International Auxiliary Language Association)"
+
+#. {"msgid": ["Interlingue", "Interlingua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:935
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:935
+#, fuzzy
+msgid "Interlingue"
+msgstr "Interlingue"
+
+#. {"msgid": ["Inuktitut", "inuktitut-a"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:936
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:936
+#, fuzzy
+msgid "Inuktitut"
+msgstr "Inuktitut"
+
+#. {"msgid": ["Inupiaq", "Inupiak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:937
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:937
+#, fuzzy
+msgid "Inupiaq"
+msgstr "Inupiaq"
+
+#. {"msgid": ["Irlandarra", "irlandera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:938
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:938
+#, fuzzy
+msgid "Irish"
+msgstr "Irlandarra"
+
+#. {"msgid": ["italiarra", "Italian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:939
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:939
+#, fuzzy
+msgid "Italian"
+msgstr "italiarra"
+
+#. {"msgid": ["japoniarra", "Japoniera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:940
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:940
+#, fuzzy
+msgid "Japanese"
+msgstr "japoniarra"
+
+#. {"msgid": ["javera", "Javanera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:941
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:941
+#, fuzzy
+msgid "Javanese"
+msgstr "javera"
+
+#. {"msgid": ["Kalaallisut", "Kalalalisut"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:942
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:942
+#, fuzzy
+msgid "Kalaallisut"
+msgstr "Kalaallisut"
+
+#. {"msgid": ["Kannada", "Kannadera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:943
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:943
+#, fuzzy
+msgid "Kannada"
+msgstr "Kannada"
+
+#. {"msgid": ["Kanuri", "kanuri"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:944
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:944
+#, fuzzy
+msgid "Kanuri"
+msgstr "Kanuri"
+
+#. {"msgid": ["Kaxmirra", "Kaxmir"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:945
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:945
+#, fuzzy
+msgid "Kashmiri"
+msgstr "Kaxmirra"
+
+#. {"msgid": ["Kazakh", "kazakhera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:946
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:946
+#, fuzzy
+msgid "Kazakh"
+msgstr "Kazakh"
+
+#. {"msgid": ["Kikuyu", "kikuyua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:947
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:947
+#, fuzzy
+msgid "Kikuyu"
+msgstr "Kikuyu"
+
+#. {"msgid": ["Kinyarwanda", "kinyaruandera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:948
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:948
+#, fuzzy
+msgid "Kinyarwanda"
+msgstr "Kinyarwanda"
+
+#. {"msgid": ["kirgiza", "Kirgiz"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:949
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:949
+#, fuzzy
+msgid "Kirghiz"
+msgstr "kirgiza"
+
+#. {"msgid": ["Komi", "Komik"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:950
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:950
+#, fuzzy
+msgid "Komi"
+msgstr "Komi"
+
+#. {"msgid": ["Kongo", "Kongokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:951
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:951
+#, fuzzy
+msgid "Kongo"
+msgstr "Kongo"
+
+#. {"msgid": ["Korean", "koreera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:952
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:952
+#, fuzzy
+msgid "Korean"
+msgstr "Korean"
+
+#. {"msgid": ["Kuanyama", "kuanyama"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:953
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:953
+#, fuzzy
+msgid "Kuanyama"
+msgstr "Kuanyama"
+
+#. {"msgid": ["kurduera", "Kurdua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:954
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:954
+#, fuzzy
+msgid "Kurdish"
+msgstr "kurduera"
+
+#. {"msgid": ["Lao", "Laosera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:955
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:955
+#, fuzzy
+msgid "Lao"
+msgstr "Lao"
+
+#. {"msgid": ["latina", "latinez"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:956
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:956
+#, fuzzy
+msgid "Latin"
+msgstr "latina"
+
+#. {"msgid": ["letoniera", "Letonia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:957
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:957
+#, fuzzy
+msgid "Latvian"
+msgstr "letoniera"
+
+#. {"msgid": ["Limburgan", "Limburgokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:958
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:958
+#, fuzzy
+msgid "Limburgan"
+msgstr "Limburgan"
+
+#. {"msgid": ["lingala", "Lingala"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:959
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:959
+#, fuzzy
+msgid "Lingala"
+msgstr "lingala"
+
+#. {"msgid": ["Lituaniera", "lituaniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:960
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:960
+#, fuzzy
+msgid "Lithuanian"
+msgstr "Lituaniera"
+
+#. {"msgid": ["Luba-Katanga", "Luba- Katanga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:961
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:961
+#, fuzzy
+msgid "Luba-Katanga"
+msgstr "Luba-Katanga"
+
+#. {"msgid": ["Luxenburgera", "Luxenburgokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:962
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:962
+#, fuzzy
+msgid "Luxembourgish"
+msgstr "Luxenburgera"
+
+#. {"msgid": ["Mazedoniera", "mazedoniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:963
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:963
+#, fuzzy
+msgid "Macedonian"
+msgstr "Mazedoniera"
+
+#. {"msgid": ["malgaxea", "malgaxekoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:964
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:964
+#, fuzzy
+msgid "Malagasy"
+msgstr "malgaxea"
+
+#. {"msgid": ["malaysiera (makrohizkuntza)", "malaiera (makrohizkuntza)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:965
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:965
+#, fuzzy
+msgid "Malay (macrolanguage)"
+msgstr "malaysiera (makrohizkuntza)"
+
+#. {"msgid": ["malayalamera", "Malayalam"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:966
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:966
+#, fuzzy
+msgid "Malayalam"
+msgstr "malayalamera"
+
+#. {"msgid": ["maltera", "Maltara"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:967
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:967
+#, fuzzy
+msgid "Maltese"
+msgstr "maltera"
+
+#. {"msgid": ["Manx", "Manxa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:968
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:968
+#, fuzzy
+msgid "Manx"
+msgstr "Manx"
+
+#. {"msgid": ["maoria", "Maori"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:969
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:969
+#, fuzzy
+msgid "Maori"
+msgstr "maoria"
+
+#. {"msgid": ["Marathia", "maratia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:970
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:970
+#, fuzzy
+msgid "Marathi"
+msgstr "Marathia"
+
+#. {"msgid": ["Marshallese", "marshallarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:971
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:971
+#, fuzzy
+msgid "Marshallese"
+msgstr "Marshallese"
+
+#. {"msgid": ["Greziera modernoa (1453-)", "Greziar modernoa (1453-)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:972
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:972
+#, fuzzy
+msgid "Modern Greek (1453-)"
+msgstr "Greziera modernoa (1453-)"
+
+#. {"msgid": ["Mongoliera", "mongoliarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:973
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:973
+#, fuzzy
+msgid "Mongolian"
+msgstr "Mongoliera"
+
+#. {"msgid": ["Navajo", "navajoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:975
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:975
+#, fuzzy
+msgid "Navajo"
+msgstr "Navajo"
+
+#. {"msgid": ["Ndonga", "ndonga"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:976
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:976
+#, fuzzy
+msgid "Ndonga"
+msgstr "Ndonga"
+
+#. {"msgid": ["Nepalera (makrohizkuntza)", "nepaliera (makrohizkuntza)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:977
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:977
+#, fuzzy
+msgid "Nepali (macrolanguage)"
+msgstr "Nepalera (makrohizkuntza)"
+
+#. {"msgid": ["Ipar Ndebele", "Iparraldeko Ndebele"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:978
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:978
+#, fuzzy
+msgid "North Ndebele"
+msgstr "Ipar Ndebele"
+
+#. {"msgid": ["Ipar samia", "Ipar samiari"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:979
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:979
+#, fuzzy
+msgid "Northern Sami"
+msgstr "Ipar samia"
+
+#. {"msgid": ["Norvegiara", "norvegiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:980
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:980
+#, fuzzy
+msgid "Norwegian"
+msgstr "Norvegiara"
+
+#. {"msgid": ["Norvegiako bokm\u00e5l", "norvegiar bokm\u00e5l"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:981
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:981
+#, fuzzy
+msgid "Norwegian Bokmål"
+msgstr "Norvegiako bokmål"
+
+#. {"msgid": ["Norvegiako nynorsk", "nynorsk norvegiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:982
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:982
+#, fuzzy
+msgid "Norwegian Nynorsk"
+msgstr "Norvegiako nynorsk"
+
+#. {"msgid": ["Nyanja", "nianja"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:983
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:983
+#, fuzzy
+msgid "Nyanja"
+msgstr "Nyanja"
+
+#. {"msgid": ["Okzitaniera (1500. urtea)", "Okzitaniera (1500 ondorengoa)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:984
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:984
+#, fuzzy
+msgid "Occitan (post 1500)"
+msgstr "Okzitaniera (1500. urtea)"
+
+#. {"msgid": ["Ojibwa", "ojibwa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:985
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:985
+#, fuzzy
+msgid "Ojibwa"
+msgstr "Ojibwa"
+
+#. {"msgid": ["Oriya (makrohizkuntza)", "oriyera (makrohizkuntza)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:986
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:986
+#, fuzzy
+msgid "Oriya (macrolanguage)"
+msgstr "Oriya (makrohizkuntza)"
+
+#. {"msgid": ["Oromoa", "Oromokoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:987
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:987
+#, fuzzy
+msgid "Oromo"
+msgstr "Oromoa"
+
+#. {"msgid": ["Oseta", "osetiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:988
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:988
+#, fuzzy
+msgid "Ossetian"
+msgstr "Oseta"
+
+#. {"msgid": ["Pali", "pali"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:989
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:989
+#, fuzzy
+msgid "Pali"
+msgstr "Pali"
+
+#. {"msgid": ["Panjabia", "panjabi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:990
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:990
+#, fuzzy
+msgid "Panjabi"
+msgstr "Panjabia"
+
+#. {"msgid": ["pertsiera", "pertsiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:991
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:991
+#, fuzzy
+msgid "Persian"
+msgstr "pertsiera"
+
+#. {"msgid": ["poloniarra", "poloniera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:992
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:992
+#, fuzzy
+msgid "Polish"
+msgstr "poloniarra"
+
+#. {"msgid": ["portugesa", "Portugesa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:993
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:993
+#, fuzzy
+msgid "Portuguese"
+msgstr "portugesa"
+
+#. {"msgid": ["Bultzada", "Pushto"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:994
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:994
+#, fuzzy
+msgid "Pushto"
+msgstr "Bultzada"
+
+#. {"msgid": ["kitxua", "kitxuera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:995
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:995
+#, fuzzy
+msgid "Quechua"
+msgstr "kitxua"
+
+#. {"msgid": ["errumaniera", "Errumaniakoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:996
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:996
+#, fuzzy
+msgid "Romanian"
+msgstr "errumaniera"
+
+#. {"msgid": ["Erromantxea", "erromantxea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:997
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:997
+#, fuzzy
+msgid "Romansh"
+msgstr "Erromantxea"
+
+#. {"msgid": ["Rundi", "rundi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:998
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:998
+#, fuzzy
+msgid "Rundi"
+msgstr "Rundi"
+
+#. {"msgid": ["errusiera", "Errusiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:999
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:999
+#, fuzzy
+msgid "Russian"
+msgstr "errusiera"
+
+#. {"msgid": ["samoarra", "Samoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1000
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1000
+#, fuzzy
+msgid "Samoan"
+msgstr "samoarra"
+
+#. {"msgid": ["Sango", "sangoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1001
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1001
+#, fuzzy
+msgid "Sango"
+msgstr "Sango"
+
+#. {"msgid": ["sanskritoa", "Sanskrito"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1002
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1002
+#, fuzzy
+msgid "Sanskrit"
+msgstr "sanskritoa"
+
+#. {"msgid": ["Sardiniera", "Sardiniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1003
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1003
+#, fuzzy
+msgid "Sardinian"
+msgstr "Sardiniera"
+
+#. {"msgid": ["Eskoziako gaelikoa", "Eskoziako gaelera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1004
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1004
+#, fuzzy
+msgid "Scottish Gaelic"
+msgstr "Eskoziako gaelikoa"
+
+#. {"msgid": ["serbiarra", "serbiera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1005
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1005
+#, fuzzy
+msgid "Serbian"
+msgstr "serbiarra"
+
+#. {"msgid": ["Serbokroaziera", "Serbo-kroazieraz"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1006
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1006
+#, fuzzy
+msgid "Serbo-Croatian"
+msgstr "Serbokroaziera"
+
+#. {"msgid": ["Shona", "Xona"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1007
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1007
+#, fuzzy
+msgid "Shona"
+msgstr "Shona"
+
+#. {"msgid": ["Sichuan Yi", "Sichuan-i"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1008
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1008
+#, fuzzy
+msgid "Sichuan Yi"
+msgstr "Sichuan Yi"
+
+#. {"msgid": ["Sindhia", "Sindhi"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1009
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1009
+#, fuzzy
+msgid "Sindhi"
+msgstr "Sindhia"
+
+#. {"msgid": ["Sinhalera", "sinhala"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1010
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1010
+#, fuzzy
+msgid "Sinhala"
+msgstr "Sinhalera"
+
+#. {"msgid": ["eslovakiera", "Eslovakiako"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1011
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1011
+#, fuzzy
+msgid "Slovak"
+msgstr "eslovakiera"
+
+#. {"msgid": ["Esloveniera", "esloveniarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1012
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1012
+#, fuzzy
+msgid "Slovenian"
+msgstr "Esloveniera"
+
+#. {"msgid": ["somaliera", "Somalia"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1013
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1013
+#, fuzzy
+msgid "Somali"
+msgstr "somaliera"
+
+#. {"msgid": ["Hego Ndebele", "Hegoaldeko Ndebele"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1014
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1014
+#, fuzzy
+msgid "South Ndebele"
+msgstr "Hego Ndebele"
+
+#. {"msgid": ["Hego Sothoa", "Hego Sotoa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1015
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1015
+#, fuzzy
+msgid "Southern Sotho"
+msgstr "Hego Sothoa"
+
+#. {"msgid": ["gaztelania", "erdaraz"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1016
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1016
+#, fuzzy
+msgid "Spanish"
+msgstr "gaztelania"
+
+#. {"msgid": ["Sundanera", "Sundanesera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1017
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1017
+#, fuzzy
+msgid "Sundanese"
+msgstr "Sundanera"
+
+#. {"msgid": ["Swahili (makrohizkuntza)", "swahilia (makrohizkuntza)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1018
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1018
+#, fuzzy
+msgid "Swahili (macrolanguage)"
+msgstr "Swahili (makrohizkuntza)"
+
+#. {"msgid": ["Swati", "Swatian"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1019
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1019
+#, fuzzy
+msgid "Swati"
+msgstr "Swati"
+
+#. {"msgid": ["Suediera", "suediarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1020
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1020
+#, fuzzy
+msgid "Swedish"
+msgstr "Suediera"
+
+#. {"msgid": ["Tagalog", "Tagalo"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1021
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1021
+#, fuzzy
+msgid "Tagalog"
+msgstr "Tagalog"
+
+#. {"msgid": ["tahitiarra", "Tahitiar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1022
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1022
+#, fuzzy
+msgid "Tahitian"
+msgstr "tahitiarra"
+
+#. {"msgid": ["Tajik", "tajikora"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1023
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1023
+#, fuzzy
+msgid "Tajik"
+msgstr "Tajik"
+
+#. {"msgid": ["Tamila", "tamilera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1024
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1024
+#, fuzzy
+msgid "Tamil"
+msgstr "Tamila"
+
+#. {"msgid": ["tatariarra", "Tatar"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1025
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1025
+#, fuzzy
+msgid "Tatar"
+msgstr "tatariarra"
+
+#. {"msgid": ["Telugu", "telugua"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1026
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1026
+#, fuzzy
+msgid "Telugu"
+msgstr "Telugu"
+
+#. {"msgid": ["thailandiera", "Thai"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1027
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1027
+#, fuzzy
+msgid "Thai"
+msgstr "thailandiera"
+
+#. {"msgid": ["Tibetarra", "tibetera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1028
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1028
+#, fuzzy
+msgid "Tibetan"
+msgstr "Tibetarra"
+
+#. {"msgid": ["Tigrinya", "tigri\u00f1a"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1029
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1029
+#, fuzzy
+msgid "Tigrinya"
+msgstr "Tigrinya"
+
+#. {"msgid": ["Tonga (Tonga uharteak)", "Tonga (Tonga irlak)"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1030
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1030
+#, fuzzy
+msgid "Tonga (Tonga Islands)"
+msgstr "Tonga (Tonga uharteak)"
+
+#. {"msgid": ["Tsonga", "tsongak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1031
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1031
+#, fuzzy
+msgid "Tsonga"
+msgstr "Tsonga"
+
+#. {"msgid": ["Tswana", "Tswanera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1032
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1032
+#, fuzzy
+msgid "Tswana"
+msgstr "Tswana"
+
+#. {"msgid": ["turkiera", "turkiarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1033
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1033
+#, fuzzy
+msgid "Turkish"
+msgstr "turkiera"
+
+#. {"msgid": ["Turkmenera", "turkmenarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1034
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1034
+#, fuzzy
+msgid "Turkmen"
+msgstr "Turkmenera"
+
+#. {"msgid": ["Twi", "Twin"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1035
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1035
+#, fuzzy
+msgid "Twi"
+msgstr "Twi"
+
+#. {"msgid": ["uigurrera", "Uigurra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1036
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1036
+#, fuzzy
+msgid "Uighur"
+msgstr "uigurrera"
+
+#. {"msgid": ["Ukrainara", "ukrainarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1037
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1037
+#, fuzzy
+msgid "Ukrainian"
+msgstr "Ukrainara"
+
+#. {"msgid": ["Urdu", "Urduera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1038
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1038
+#, fuzzy
+msgid "Urdu"
+msgstr "Urdu"
+
+#. {"msgid": ["uzbekera", "Uzbekistan"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1039
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1039
+#, fuzzy
+msgid "Uzbek"
+msgstr "uzbekera"
+
+#. {"msgid": ["Venda", "Venta"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1040
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1040
+#, fuzzy
+msgid "Venda"
+msgstr "Venda"
+
+#. {"msgid": ["Vietnamera", "vietnamdarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1041
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1041
+#, fuzzy
+msgid "Vietnamese"
+msgstr "Vietnamera"
+
+#. {"msgid": ["Volap\u00fck", "Volapuk"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1042
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1042
+#, fuzzy
+msgid "Volapük"
+msgstr "Volapük"
+
+#. {"msgid": ["Valonia", "Valoniera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1043
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1043
+#, fuzzy
+msgid "Walloon"
+msgstr "Valonia"
+
+#. {"msgid": ["galesera", "galestarra"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1044
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1044
+#, fuzzy
+msgid "Welsh"
+msgstr "galesera"
+
+#. {"msgid": ["Mendebaldeko frisiera", "Mendebaldeko Frisiera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1045
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1045
+#, fuzzy
+msgid "Western Frisian"
+msgstr "Mendebaldeko frisiera"
+
+#. {"msgid": ["wolofa", "Wolof"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1046
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1046
+#, fuzzy
+msgid "Wolof"
+msgstr "wolofa"
+
+#. {"msgid": ["Xhosa", "xhosa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1047
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1047
+#, fuzzy
+msgid "Xhosa"
+msgstr "Xhosa"
+
+#. {"msgid": ["Jiddisha", "yiddish"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1048
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1048
+#, fuzzy
+msgid "Yiddish"
+msgstr "Jiddisha"
+
+#. {"msgid": ["Yoruba", "yorubak"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1049
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1049
+#, fuzzy
+msgid "Yoruba"
+msgstr "Yoruba"
+
+#. {"msgid": ["Zhuang", "zhuang"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1050
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1050
+#, fuzzy
+msgid "Zhuang"
+msgstr "Zhuang"
+
+#. {"msgid": ["Zulua", "zuluera"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1051
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:1051
+#, fuzzy
+msgid "Zulu"
+msgstr "Zulua"

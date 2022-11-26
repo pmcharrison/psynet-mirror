@@ -1,0 +1,493 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-11-25 11:45+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: GoogleTranslate API\n"
+"Language-Team: GoogleTranslate\n"
+"Language: HAW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. {"msgid": ["Pono \u02bboe e h\u014d\u02bbili\u02bbili <strong>ma lalo o
+#. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> o ka bonus i hiki ke uku
+#. \u02bbia.", "Pono \u02bboe e h\u014d\u02bbili\u02bbili i <strong>ma ka
+#. li\u02bbili\u02bbi he $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> o ka
+#. bonus i hiki ke uku \u02bbia."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:39
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"compensated."
+msgstr ""
+"Pono ʻoe e hōʻiliʻili <strong>ma lalo o "
+"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> o ka bonus i hiki ke uku ʻia."
+
+#. {"msgid": ["P\u014dmaika\u02bbi h\u014d\u02bbili\u02bbili",
+#. "P\u014dmaika\u02bbi i h\u014d\u02bbulu\u02bbulu \u02bbia"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:46
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:45
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Pōmaikaʻi hōʻiliʻili"
+
+#. {"msgid": ["Pani pukaaniani", "E pani i ka puka makani"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:50
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:49
+#, fuzzy
+msgid "Close window"
+msgstr "Pani pukaaniani"
+
+#. {"msgid": ["Ho\u02bbopau i ka ho\u02bbokolohua", "Ho\u02bbopau
+#. ho\u02bbokolohua"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:52
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Hoʻopau i ka hoʻokolohua"
+
+#. {"msgid": ["Ho\u02bbopiha piha"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Hoʻopiha piha"
+
+#. {"msgid": ["Ma waho a\u02bbe o k\u0101u uku kumu o
+#. <strong>$%(BASE_PAYMENT)s</strong>e loa\u02bba i\u0101 \u02bboe kahi bonus
+#. o <strong>$%(BONUS)s</strong> no ka manawa \u0101u i ho\u02bbohana ai ma ka
+#. ho\u02bbokolohua.", "Ma waho a\u02bbe o k\u0101u uku kumu o
+#. <strong>$%(BASE_PAYMENT)s</strong> e loa\u02bba i\u0101 \u02bboe kahi bonus
+#. o <strong>$%(BONUS)s</strong> no ka manawa \u0101u i ho\u02bbohana ai i ka
+#. ho\u02bbokolohua."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of <strong>$%(BASE_PAYMENT)s</strong> you "
+"will receive a bonus of <strong>$%(BONUS)s</strong> for the time you spent "
+"on the experiment."
+msgstr ""
+"Ma waho aʻe o kāu uku kumu o <strong>$%(BASE_PAYMENT)s</strong>e loaʻa iā "
+"ʻoe kahi bonus o <strong>$%(BONUS)s</strong> no ka manawa āu i hoʻohana ai "
+"ma ka hoʻokolohua."
+
+#. {"msgid": ["Ua loa\u02bba i\u0101 \u02bboe ka bonus hana o
+#. <strong>$%(PERFORMANCE_BONUS)s</strong>!", "Ua loa\u02bba p\u016b i\u0101
+#. \u02bboe ka bonus hana o <strong>$%(PERFORMANCE_BONUS)s</strong>!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Ua loaʻa iā ʻoe ka bonus hana o <strong>$%(PERFORMANCE_BONUS)s</strong>!"
+
+#. {"msgid": ["E kaomi \"Ho\u02bbopau\" e ho\u02bbopau i ka HIT.", "E
+#. \u02bbolu\u02bbolu e kaomi i ka \"Finish\" no ka ho\u02bbopau \u02bbana i
+#. ka HIT."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:12
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:13
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "E kaomi \"Hoʻopau\" e hoʻopau i ka HIT."
+
+#. {"msgid": ["Ho\u02bbopau", "Pau"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:17
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:17
+#, fuzzy
+msgid "Finish"
+msgstr "Hoʻopau"
+
+#. {"msgid": ["Mahalo no kou komo \u02bbana.", "Mahalo i\u0101 \u02bboe no ka
+#. lawe \u02bbana mai."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:8
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:9
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Mahalo no kou komo ʻana."
+
+#. {"msgid": ["A\u02bbe", "Ma hope a\u02bbe"]}
+#: ../../../../../psynet-package/psynet/templates/macros.html:10
+#, fuzzy
+msgid "Next"
+msgstr "Aʻe"
+
+#. {"msgid": ["In\u0101 \u02bba\u02bbole k\u0113ia, e \u02bbolu\u02bbolu e
+#. kelepona mai i\u0101 m\u0101kou ma %(EMAIL)s me ka ha\u02bbi \u02bbana i
+#. k\u0113ia \u02bbike:", "In\u0101 \u02bba\u02bbole k\u0113ia, e
+#. \u02bbolu\u02bbolu e kelepona mai i\u0101 m\u0101kou ma %(EMAIL)s me ka
+#. ha\u02bbi \u02bbana i ka \u02bbike ma lalo nei:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:20
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Inā ʻaʻole kēia, e ʻoluʻolu e kelepona mai iā mākou ma %(EMAIL)s me ka haʻi "
+"ʻana i kēia ʻike:"
+
+#. {"msgid": ["No ka n\u012bnau \u02bbana e pili ana i ka uku, e
+#. \u02bbolu\u02bbolu e kelepona i ka mea noi\u02bbi ma %(EMAIL)s a wehewehe i
+#. ke kumu o k\u0113ia hewa.", "No ka n\u012bnau \u02bbana e pili ana i ka
+#. uku, e \u02bbolu\u02bbolu e kelepona i ka mea noi\u02bbi ma %(EMAIL)s a
+#. wehewehe i ka mea i alaka\u02bbi ai i k\u0113ia hewa."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:22
+#, python-format, fuzzy
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"No ka nīnau ʻana e pili ana i ka uku, e ʻoluʻolu e kelepona i ka mea noiʻi "
+"ma %(EMAIL)s a wehewehe i ke kumu o kēia hewa."
+
+#. {"msgid": ["Ho\u02bbopau i ka ho\u02bbokolohua", "Ho\u02bboka\u02bbawale i
+#. ka ho\u02bbokolohua"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:34
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Hoʻopau i ka hoʻokolohua"
+
+#. {"msgid": ["Ke ho\u02bbomau nei i ka ho\u02bbokolohua ...", "Ho\u02bbomaka
+#. hou i ka ho\u02bbokolohua ..."]}
+#: ../../../../../psynet-package/psynet/templates/resume.html:8
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Ke hoʻomau nei i ka hoʻokolohua ..."
+
+#. {"msgid": ["\u02bbA\u02bbole hiki ke h\u014d\u02bboki \u02bbia.",
+#. "\u02bbA\u02bbole hiki ke ho\u02bbop\u0101."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:34
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "Aborting not possible."
+msgstr "ʻAʻole hiki ke hōʻoki ʻia."
+
+#. {"msgid": ["Makemake \u02bboe e k\u0101pae i ka ho\u02bbokolohua?",
+#. "Makemake \u02bboe e ho\u02bb\u014dki i ka ho\u02bbokolohua?"]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:34
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Makemake ʻoe e kāpae i ka hoʻokolohua?"
+
+#. {"msgid": ["Ho\u02bbouna \u02bbia \u02bbo Lucid Survey", "Ho\u02bbouna
+#. \u02bbia \u02bbo Lucid Survey"]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Hoʻouna ʻia ʻo Lucid Survey"
+
+#. {"msgid": ["Ua h\u014d\u02bbole \u02bbia ka \u02bbae.", "H\u014d\u02bbole
+#. \u02bbia ka \u02bbae \u02bbana."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:4
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Ua hōʻole ʻia ka ʻae."
+
+#. {"msgid": ["\u02bbO ia ka hopena o ka ho\u02bbokolohua!", "\u02bbO ka pau
+#. ia o ka ho\u02bbokolohua!"]}
+#: ../../../../../psynet-package/psynet/templates/final-page-successful.html:4
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "ʻO ia ka hopena o ka hoʻokolohua!"
+
+#. {"msgid": ["\u02bbO ka mea p\u014d\u02bbino, pono e ho\u02bbopau koke ka
+#. ho\u02bbokolohua.", "\u02bbO ka mea p\u014d\u02bbino, pono e pau ka
+#. ho\u02bbokolohua i ka w\u0101 mua."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:4
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "ʻO ka mea pōʻino, pono e hoʻopau koke ka hoʻokolohua."
+
+#. {"msgid": ["Kupa!", "Ua hewa!"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:9
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Kupa!"
+
+#. {"msgid": ["Ho\u02bbomaka ho\u02bbokolohua...", "Ke ho\u02bbomaka nei i ka
+#. ho\u02bbokolohua..."]}
+#: ../../../../../psynet-package/psynet/templates/start.html:8
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Hoʻomaka hoʻokolohua..."
+
+#. {"msgid": ["In\u0101 pilikia, e ho'\u0101\u02bbo i k\u0113ia:", "In\u0101
+#. loa\u02bba kahi pilikia, e ho\u02bb\u0101\u02bbo i k\u0113ia:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:136
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Inā pilikia, e ho'āʻo i kēia:"
+
+#. {"msgid": ["M\u0101kaukau paha \u02bboe?", "M\u0101kaukau \u02bboe?", "Ua
+#. makaukau anei oe?"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:163
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Mākaukau paha ʻoe?"
+
+#. {"msgid": ["Bonus", "P\u014dmaika\u02bbi"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:214
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["\u02bbA\u02bbole i wehewehe \u02bbia k\u0101u ID komo, no ka
+#. mea ua ho\u02bbololi \u02bboe i n\u0101 polokalamu kele p\u016bnaewele i ka
+#. w\u0101 o ka ho\u02bb\u0101\u02bbo.", "\u02bbA\u02bbole i wehewehe \u02bbia
+#. k\u0101u ID komo, ma muli paha o kou ho\u02bbololi \u02bbana i n\u0101
+#. polokalamu kele p\u016bnaewele i ka w\u0101 o ka ho\u02bb\u0101\u02bbo."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1228
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"ʻAʻole i wehewehe ʻia kāu ID komo, no ka mea ua hoʻololi ʻoe i nā polokalamu"
+" kele pūnaewele i ka wā o ka hoʻāʻo."
+
+#. {"msgid": ["\u02bbA\u02bbole hiki ke h\u014d\u02bboki i ka ho\u02bbokolohua
+#. \u02bboiai \u02bba\u02bbole \u02bbae ka mea ho\u02bbokolohua i k\u0113ia
+#. manawa!", "\u02bbA\u02bbole hiki ke ho\u02bboku\u02bbu i ka
+#. ho\u02bbokolohua no ka mea \u02bba\u02bbole i \u02bbae ka mea
+#. ho\u02bbokolohua i k\u0113ia manawa!"]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:37
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"ʻAʻole hiki ke hōʻoki i ka hoʻokolohua ʻoiai ʻaʻole ʻae ka mea hoʻokolohua i"
+" kēia manawa!"
+
+#. {"msgid": ["In\u0101 kaomi \u02bboe i ke pihi Abort, e ho\u02bbopau koke ka
+#. ho\u02bbokolohua, a e uku \u02bbia \u02bboe i ka uku \u0101u i loa\u02bba
+#. ai i k\u0113ia manawa.", "In\u0101 \u02bboe e kaomi i ke pihi Abort, e
+#. ho\u02bbopau koke ka ho\u02bbokolohua, a e uku \u02bbia \u02bboe i ka uku i
+#. loa\u02bba i\u0101 \u02bboe i k\u0113ia manawa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:37
+#, fuzzy
+msgctxt "abbort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Inā kaomi ʻoe i ke pihi Abort, e hoʻopau koke ka hoʻokolohua, a e uku ʻia "
+"ʻoe i ka uku āu i loaʻa ai i kēia manawa."
+
+#. {"msgid": ["No ka ho\u02bbopau \u02bbana i k\u0101u Lucid Survey, kaomi i
+#. ke pihi ma lalo.", "No ka ho\u02bbopau \u02bbana i k\u0101u Lucid Survey,
+#. kaomi i ka pihi ma lalo nei."]}
+#: ../../../../../psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "No ka hoʻopau ʻana i kāu Lucid Survey, kaomi i ke pihi ma lalo."
+
+#. {"msgid": ["Ho\u02bbopau ho\u02bbokolohua.", "Pau o ka ho\u02bbokolohua."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-rejected-consent.html:5
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Hoʻopau hoʻokolohua."
+
+#. {"msgid": ["Eia na\u02bbe, e uku \u02bbia \u02bboe no ka manawa \u0101u i
+#. ho\u02bbolilo ai.", "Eia n\u014d na\u02bbe, e uku \u02bbia \u02bboe no ka
+#. manawa \u0101u i ho\u02bbopau ai."]}
+#: ../../../../../psynet-package/psynet/templates/final-page-unsuccessful.html:6
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Eia naʻe, e uku ʻia ʻoe no ka manawa āu i hoʻolilo ai."
+
+#. {"msgid": ["Hiki paha i\u0101 \u02bboe ke k\u0101pae i ka ho\u02bbokolohua
+#. me ka pihi <strong>Abort experiment</strong> <strong>ma ka \u02bbao\u02bbao
+#. ho\u02bbolaha MTurk</strong>.", "Hiki paha i\u0101 \u02bboe ke
+#. ho\u02bb\u014dki i ka ho\u02bbokolohua me ka pihi <strong>Abort
+#. experiment</strong> <strong>ma ka \u02bbao\u02bbao ho\u02bbolaha
+#. MTurk</strong>"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:17
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Hiki paha iā ʻoe ke kāpae i ka hoʻokolohua me ka pihi <strong>Abort "
+"experiment</strong> <strong>ma ka ʻaoʻao hoʻolaha MTurk</strong>."
+
+#. {"msgid": ["Ho\u02bbouka hou i ka \u02bbao\u02bbao.", "Ho\u02bbouka hou i
+#. ka palapala."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:138
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Hoʻouka hou i ka ʻaoʻao."
+
+#. {"msgid": ["Kaomi i ke pihi ke m\u0101kaukau \u02bboe e ho\u02bbomau i ka
+#. ho\u02bbokolohua.", "E kaomi i ke pihi ke m\u0101kaukau \u02bboe e
+#. ho\u02bbomau i ka ho\u02bbokolohua."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:165
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Kaomi i ke pihi ke mākaukau ʻoe e hoʻomau i ka hoʻokolohua."
+
+#. {"msgid": ["K\u014dkua!", "Kokua mai!"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:240
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Kōkua!"
+
+#. {"msgid": ["\u02bbA\u02bbole k\u0101ko\u02bbo \u02bbia k\u0113ia hana i
+#. k\u0113ia manawa.", "\u02bbA\u02bbole k\u0101ko\u02bbo \u02bbia k\u0113ia
+#. \u02bbano hana i k\u0113ia w\u0101."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:1229
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "ʻAʻole kākoʻo ʻia kēia hana i kēia manawa."
+
+#. {"msgid": ["E \u02bbike i ka \u02bbike ma lalo o k\u0101u bonus i
+#. h\u014d\u02bbili\u02bbili \u02bbia i k\u0113ia manawa.", "E \u02bbike i ka
+#. \u02bbike ma lalo e pili ana i k\u0101u bonus h\u014d\u02bbili\u02bbili i
+#. k\u0113ia manawa."]}
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#: ../../../../../psynet-package/psynet/templates/abort_not_possible.html:40
+#, fuzzy
+msgctxt "abbort_not_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "E ʻike i ka ʻike ma lalo o kāu bonus i hōʻiliʻili ʻia i kēia manawa."
+
+#. {"msgid": ["E \u02bbolu\u02bbolu e kelepona mai i\u0101 m\u0101kou in\u0101
+#. pilikia \u02bboe i ka loa\u02bba \u02bbana o k\u0101u uku.", "E
+#. \u02bbolu\u02bbolu e leka uila mai i\u0101 m\u0101kou in\u0101 pilikia
+#. \u02bboe i ka loa\u02bba \u02bbana o k\u0101u uku."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:38
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"E ʻoluʻolu e kelepona mai iā mākou inā pilikia ʻoe i ka loaʻa ʻana o kāu "
+"uku."
+
+#. {"msgid": ["E \u02bbike i ka \u02bbike ma lalo no n\u0101 kiko\u02bb\u012b
+#. o k\u0101u uku.", "E n\u0101n\u0101 i ka \u02bbike ma lalo no n\u0101
+#. kiko\u02bb\u012b o k\u0101u uku."]}
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#: ../../../../../psynet-package/psynet/templates/abort_possible.html:39
+#, fuzzy
+msgctxt "abbort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "E ʻike i ka ʻike ma lalo no nā kikoʻī o kāu uku."
+
+#. {"msgid": ["Ke ho\u02bbopau \u02bbia, \u02bba\u02bbohe pono e
+#. ho\u02bboka\u02bba\u02bbike mai i\u0101 m\u0101kou no ka loa\u02bba
+#. \u02bbana o ka uku;", "Ke ho\u02bbopau \u02bbia, \u02bba\u02bbohe pono e
+#. ho\u02bboka\u02bba\u02bbike mai i\u0101 m\u0101kou e loa\u02bba ka uku;"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:19
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Ke hoʻopau ʻia, ʻaʻohe pono e hoʻokaʻaʻike mai iā mākou no ka loaʻa ʻana o "
+"ka uku;"
+
+#. {"msgid": ["E \u02bbolu\u02bbolu e ha\u02bbi i ka \u02bbike ma lalo nei:",
+#. "E \u02bbolu\u02bbolu e ha\u02bbi mai i k\u0113ia \u02bbike:"]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:23
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "E ʻoluʻolu e haʻi i ka ʻike ma lalo nei:"
+
+#. {"msgid": ["Kaomi i ke pihi ma luna e uku \u02bbia in\u0101 he hewa.", "E
+#. kaomi i ka pihi ma luna e uku \u02bbia in\u0101 he hewa."]}
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#: ../../../../../psynet-package/psynet/templates/mturk_error.html:37
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Kaomi i ke pihi ma luna e uku ʻia inā he hewa."
+
+#. {"msgid": ["E n\u0101n\u0101 i ka hana \u02bbana o k\u0101u pili
+#. p\u016bnaewele.", "E h\u014d\u02bboia i ka hana \u02bbana o k\u0101u pilina
+#. p\u016bnaewele."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:139
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "E nānā i ka hana ʻana o kāu pili pūnaewele."
+
+#. {"msgid": ["In\u0101 \u02bba\u02bbole k\u014dkua ka mea i luna, e
+#. ho\u02bbouna mai i\u0101 m\u0101kou i leka uila me k\u0113ia \u02bbike:",
+#. "In\u0101 \u02bba\u02bbole k\u014dkua k\u0113ia mau mea i luna, e
+#. ho\u02bbouna mai i\u0101 m\u0101kou i leka uila me ka \u02bbike
+#. a\u02bbe:"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:145
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Inā ʻaʻole kōkua ka mea i luna, e hoʻouna mai iā mākou i leka uila me kēia "
+"ʻike:"
+
+#. {"msgid": ["He loulou i ka \u02bbao\u02bbao p\u016bnaewele o k\u0113ia
+#. manawa;", "He loulou i ka \u02bbao\u02bbao p\u016bnaewele puni honua;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:149
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "He loulou i ka ʻaoʻao pūnaewele o kēia manawa;"
+
+#. {"msgid": ["\u02bbO k\u0101u ID limahana;", "Kou ID limahana;"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:150
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ʻO kāu ID limahana;"
+
+#. {"msgid": ["\u02bbO ka pilikia \u0101u e \u02bbike nei.", "\u02bbO ka
+#. pilikia \u0101u e loa\u02bba nei."]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:151
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "ʻO ka pilikia āu e ʻike nei."
+
+#. {"msgid": ["Ho\u02bbomaka hou", "Ho\u02bbomau"]}
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#: ../../../../../psynet-package/psynet/templates/timeline-page.html:168
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Hoʻomaka hou"
