@@ -267,7 +267,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.pre_deploy_routines = []
 
         if (
-            request
+            session
+            and request
             and request.path == "/launch"
             and not redis_vars.get("launch_started", default=False)
         ):
