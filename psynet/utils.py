@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 import gettext
-from os.path import abspath, dirname
+from os.path import abspath, dirname, exists
 from os.path import join as join_path
 
 import jsonpickle
@@ -550,9 +550,9 @@ def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dir
             pass
     if locale is None:
         locale = get_language()
-    try:
+    if exists(join_path(localedir, locale, 'LC_MESSAGES', f'{module}.mo')):
         translator = gettext.translation(module, localedir, [locale])
-    except FileNotFoundError:
+    else:
         logger.warning(f'No translation file found for locale {locale}.')
         translator = gettext.NullTranslations()
     return translator.gettext, translator.pgettext, translator.npgettext
