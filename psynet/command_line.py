@@ -559,9 +559,8 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
-def sandbox(ctx, verbose, app, archive, force_prepare):
+def sandbox(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
@@ -573,7 +572,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     log(header)
 
     if not archive:
-        ctx.invoke(prepare, force=force_prepare)
+        ctx.invoke(prepare)
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 

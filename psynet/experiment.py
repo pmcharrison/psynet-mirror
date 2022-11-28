@@ -267,7 +267,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.pre_deploy_routines = []
 
         if (
-            request
+            session
+            and request
             and request.path == "/launch"
             and not redis_vars.get("launch_started", default=False)
         ):
@@ -969,6 +970,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             (
                 resource_filename("psynet", "resources/libraries/Tonejs"),
                 "/static/scripts/Tonejs",
+            ),
+            (
+                resource_filename("psynet", "resources/libraries/survey-jquery"),
+                "/static/scripts/survey-jquery",
+            ),
+            (
+                resource_filename("psynet", "resources/libraries/abc-js"),
+                "/static/scripts/abc-js",
             ),
             (
                 resource_filename("psynet", "templates/mturk_error.html"),

@@ -646,10 +646,11 @@ class Trial(SQLMixinDallinger, Info):
         return self.show_feedback(experiment=experiment, participant=participant)
 
     def gives_feedback(self, experiment, participant):
-        return (
-            self._show_feedback(experiment=experiment, participant=participant)
-            is not None
-        )
+        return is_method_overridden(self, Trial, "show_feedback")
+        # return (
+        #     self._show_feedback(experiment=experiment, participant=participant)
+        #     is not None
+        # )
 
     run_async_post_trial = None
 

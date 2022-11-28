@@ -316,3 +316,28 @@
         psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus));
     </script>
 {% endmacro %}
+
+{% macro abc_notation(config) %}
+    {{ simple(config) }}
+
+    <script src="/static/scripts/abc-js/abcjs-basic.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        let abcScore = "{{ config.content | safe }}";
+
+        function renderABCscore() {
+            $("#abcScore").css("visibility", "block")
+            ABCJS.renderAbc("abcScore", abcScore);
+        }
+
+        function hideABCscore() {
+            $("#abcScore").css("visibility", "hidden")
+        }
+
+        psynet.trial.onEvent("promptStart", renderABCscore);
+        psynet.trial.onEvent("promptEnd", hideABCscore);
+    </script>
+
+    <div id="abcScore"></div>
+
+{% endmacro %}

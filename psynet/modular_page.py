@@ -2545,3 +2545,99 @@ class VideoSliderControl(Control):
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return random.uniform(0, 1)
+
+
+class SurveyJSControl(Control):
+    """
+    This control exposes the open-source SurveyJS library.
+    You can use this library to develop sophisticated questionnaires which
+    many different question types.
+
+    When a SurveyJSControl is included in a PsyNet timeline it produces a single
+    SurveyJS survey. This survey can have multiple questions and indeed multiple pages.
+    Responses to these questions are compiled together as a dictionary and saved
+    as the participant's answer, similar to other controls.
+
+    The recommended way to design a SurveyJS survey is to use their free Survey Creator tool.
+    This can be accessed from their website: https://surveyjs.io/create-free-survey.
+    You design your survey using the interactive editor.
+    Once you are done, click the "JSON Editor" tab. Copy and paste the provided JSON
+    into the ``design`` argument of your ``SurveyJSControl``. You may need to update a few details
+    to match Python syntax, for example replacing ``true`` with ``True``; your syntax highlighter
+    should flag up points that need updating. That's it!
+
+    See https://surveyjs.io/ for more details.
+
+    See the survey_js demo for example usage.
+
+    Parameters
+    ----------
+
+    design :
+        A JSON-style specification for the survey.
+
+    bot_response :
+        Used for bot simulations; see demos for example usage.
+    """
+
+    def __init__(
+        self,
+        design,
+        bot_response=NoArgumentProvided,
+    ):
+        super().__init__(bot_response)
+
+        self.design = design
+
+    macro = "survey_js"
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        raise NotImplementedError
+
+    def format_answer(self, raw_answer, **kwargs):
+        return json.loads(raw_answer)
+
+
+class MusicNotationPrompt(Prompt):
+    """
+    Displays music notation using the abcjs library by Paul Rosen and Gregory Dyke.
+    See https://www.abcjs.net/ for information about abcjs.
+    See https://abcnotation.com/ for information about ABC notation.
+
+    Parameters
+    ----------
+
+    content :
+        Content to display, in ABC notation. This will be rendered to an image.
+        See https://www.abcjs.net/abcjs-editor.html for an interactive editor.
+        See https://abcnotation.com/wiki/abc:standard:v2.1 for a detailed definition of ABC notation.
+
+    text :
+        Text to display above the score.
+
+    text_align :
+        Alignment instructions for this text.
+    """
+
+    def __init__(
+        self,
+        content: str,
+        text: Union[None, str, Markup] = None,
+        text_align: str = "left",
+    ):
+        super().__init__(text=text, text_align=text_align)
+        self.content = content
+
+    macro = "abc_notation"
+
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["promptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    triggering_event="trialStart",
+                    delay=0,
+                )
+            ]
+        )

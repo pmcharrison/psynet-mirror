@@ -283,7 +283,7 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
     kill_chromedriver_processes()
 
     # timeout = request.config.getvalue("recruiter_timeout", 120)
-    timeout = 45
+    timeout = 60
 
     get_experiment()
 
