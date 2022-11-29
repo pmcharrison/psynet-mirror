@@ -513,7 +513,7 @@ def init_db(drop_all=False, bind=db.engine):
     close_all_sessions()
 
     with yaspin(
-        text="Initializing the database, this should only take a few moments...",
+        text="Initializing the database...",
         color="green",
     ) as spinner:
         old_init_db(drop_all, bind)
