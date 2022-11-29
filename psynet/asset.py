@@ -567,6 +567,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         replace: bool = False,
         async_: bool = False,
         delete_input: bool = False,
+        check_for_duplicates: bool = False,
     ):
         """
 
@@ -605,18 +606,21 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.set_keys()
 
             asset_to_use = self
-            duplicate = self.find_duplicate()
 
-            if duplicate:
-                try:
-                    self.assert_assets_are_equivalent(self, duplicate)
-                    asset_to_use = duplicate
-                except self.InconsistentAssetsError:
-                    if replace:
-                        db.session.delete(duplicate)
-                        asset_to_use = self
-                    else:
-                        raise
+            # TODO revisit this
+            if check_for_duplicates:
+                duplicate = self.find_duplicate()
+
+                if duplicate:
+                    try:
+                        self.assert_assets_are_equivalent(self, duplicate)
+                        asset_to_use = duplicate
+                    except self.InconsistentAssetsError:
+                        if replace:
+                            db.session.delete(duplicate)
+                            asset_to_use = self
+                        else:
+                            raise
 
             if asset_to_use == self:
                 try:
