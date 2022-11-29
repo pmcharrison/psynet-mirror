@@ -443,7 +443,7 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def deploy(ctx, verbose, app, archive, force_prepare):
+def deploy(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to MTurk.
     """
