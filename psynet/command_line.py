@@ -439,29 +439,53 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 # deploy #
 ##########
 @psynet.command()
+@click.option(
+    "--mode",
+    help="Deployment mode (can be 'heroku' or 'ssh')",
+    required=True,
+    prompt="Please choose a deployment mode (choices: heroku, ssh)",
+)
 @click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", default=None, help="Experiment id")
+@click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
-def deploy(ctx, verbose, app, archive, force_prepare):
+def deploy(ctx, mode, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
+    assert mode in ["heroku", "ssh"]
+
     redis_vars.clear()
     make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
 
+    log("Running pre-deploy checks...")
     run_pre_checks("deploy")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
 
-    from dallinger.command_line import deploy as dallinger_deploy
-
     try:
-        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+        if mode == "heroku":
+            from dallinger.command_line import deploy as dallinger_deploy
+
+            ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+        elif mode == "ssh":
+            from dallinger.command_line.docker_ssh import (
+                deploy as dallinger_docker_ssh_deploy,
+            )
+
+            ctx.invoke(
+                dallinger_docker_ssh_deploy,
+                live=False,  # TODO
+                app_name=app,
+                archive=archive,
+                # config_options -- this could be useful
+            )
+        else:
+            raise ValueError()
     finally:
         reset_console()
 
