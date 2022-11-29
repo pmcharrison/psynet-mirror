@@ -534,9 +534,9 @@ def render_string_with_translations(template_string, locale=None,  **kwargs):
 
 def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dirname(__file__)), 'locales')):
     if locale is None:
-        GET = request.args.to_dict()
-        possible_keys = ['assignmentId', 'workerId', 'participantId']
         try:
+            GET = request.args.to_dict()
+            possible_keys = ['assignmentId', 'workerId', 'participantId']
             from psynet.participant import Participant
             if any([key in GET for key in possible_keys]):
                 if 'assignmentId' in GET:
