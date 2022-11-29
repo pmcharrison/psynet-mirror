@@ -15,9 +15,9 @@
                     <p id="error-text-main">
                         {% if experiment.var.show_abort_button %}
                             {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
-                            <div id="abort-button-location"></div>
                             {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
                             {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
+                            <div id="abort-button-location"></div>
                         {% else %}
                             {% trans name="mturk_error" %}To enquire about compensation, please contact the researcher at {{ EMAIL }} and describe what led to this error.{% endtrans %}
                             {{ pgettext("mturk_error", "Please also quote the following information:") }}
