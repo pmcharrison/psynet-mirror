@@ -519,7 +519,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         else:
             locale = get_language()
             self.var.set('locale', locale)
-            logger.warn(f'Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}')
+            logger.warning(f'Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}')
             return locale
 
     def _(self, message):
