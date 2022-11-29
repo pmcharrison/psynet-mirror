@@ -448,7 +448,6 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
 def deploy(ctx, mode, verbose, app, archive, force_prepare):
     """
@@ -465,7 +464,7 @@ def deploy(ctx, mode, verbose, app, archive, force_prepare):
     log(header)
 
     if not archive:
-        ctx.invoke(prepare, force=force_prepare)
+        ctx.invoke(prepare)
 
     try:
         if mode == "heroku":
