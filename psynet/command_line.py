@@ -14,6 +14,7 @@ import psutil
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.version import __version__ as dallinger_version
+from pkg_resources import resource_filename
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -1119,3 +1120,16 @@ def generate_config(ctx):
             assert key.startswith("--")
             key = key[2:]
             file.write(f"{key} = {value}\n")
+
+
+@psynet.command()
+def add_scripts():
+    """
+    To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
+    prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
+    """
+    shutil.copytree(
+        resource_filename("psynet", "resources/shell_scripts"),
+        "scripts",
+        dirs_exist_ok=True,
+    )
