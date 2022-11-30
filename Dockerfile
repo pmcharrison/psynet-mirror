@@ -51,4 +51,10 @@ WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
 COPY ./README.md README.md
 
+RUN mkdir /psynet-exports
+RUN chmod a+rwx -R /psynet-exports
+
+RUN mkdir /psynet-debug-storage
+RUN chmod a+rwx -R /psynet-debug-storage
+
 ENV PSYNET_IN_DOCKER=1
