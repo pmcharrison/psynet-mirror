@@ -45,11 +45,9 @@ PsyNet Documentation
    :caption: Developer documentation
    :glob:
 
-   developer/working_with_git
-   developer/basic_workflow
+   developer/version_control_with_git
    developer/prescreening_tasks
    developer/updating_documentation
-   developer/releasing_new_versions
 
 .. toctree::
    :maxdepth: 2
