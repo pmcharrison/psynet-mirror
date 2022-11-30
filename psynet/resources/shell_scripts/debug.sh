@@ -1,9 +1,9 @@
 # Ensures that the script stops on errors
 set -euo pipefail
 
-. params.sh
-. services.sh
-. build.sh
+. scripts/params.sh
+. scripts/services.sh
+. scripts/build.sh
 
 # Note: any changes to this command should be propagated to terminal.sh
 docker run \
