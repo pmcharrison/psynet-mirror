@@ -478,9 +478,9 @@ def deploy(ctx, mode, verbose, app, archive):
 
             ctx.invoke(
                 dallinger_docker_ssh_deploy,
-                live=False,  # TODO
+                mode="sandbox",  # TODO - but does this even matter?
                 app_name=app,
-                archive=archive,
+                archive_path=archive,
                 # config_options -- this could be useful
             )
         else:
