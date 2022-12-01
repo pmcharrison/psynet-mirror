@@ -1,6 +1,5 @@
 include *.md
 include *.py
-include *.sh
 include *.txt
 include *.yaml
 include *.yml
@@ -34,8 +33,9 @@ recursive-include psynet *.png
 recursive-include psynet *.py
 recursive-include psynet *.svg
 recursive-include psynet *.txt
+recursive-include resources *
 recursive-include resources *.wav
-recursive-include resources *Dockerfile
+recursive-include resources *.sh
 recursive-include resources *DEPLOYMENT_PACKAGE
 recursive-include tests *.py
 recursive-include tests *.wav
