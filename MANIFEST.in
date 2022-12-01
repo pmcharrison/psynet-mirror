@@ -4,8 +4,6 @@ include *.sh
 include *.txt
 include *.yaml
 include *.yml
-include *Dockerfile
-include *DEPLOYMENT_PACKAGE
 recursive-include demos *.batch
 recursive-include demos *.css
 recursive-include demos *.data
@@ -37,5 +35,7 @@ recursive-include psynet *.py
 recursive-include psynet *.svg
 recursive-include psynet *.txt
 recursive-include resources *.wav
+recursive-include resources *Dockerfile
+recursive-include resources *DEPLOYMENT_PACKAGE
 recursive-include tests *.py
 recursive-include tests *.wav
