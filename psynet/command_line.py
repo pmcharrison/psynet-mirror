@@ -1128,6 +1128,9 @@ def update_scripts():
     To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
     prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
     """
+    print(
+        f"Populating the current directory ({os.getcwd()}) with experiment scripts, e.g. Dockerfile and shell scripts."
+    )
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
