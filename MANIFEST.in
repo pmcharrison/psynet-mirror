@@ -33,7 +33,7 @@ recursive-include psynet *.png
 recursive-include psynet *.py
 recursive-include psynet *.svg
 recursive-include psynet *.txt
-recursive-include resources *
+recursive-include psynet/resources *
 recursive-include resources *.wav
 recursive-include resources *.sh
 recursive-include resources *DEPLOYMENT_PACKAGE
