@@ -57,4 +57,10 @@ RUN chmod a+rwx -R /psynet-exports
 RUN mkdir /psynet-debug-storage
 RUN chmod a+rwx -R /psynet-debug-storage
 
+RUN mkdir /.cache
+RUN chmod a+rwx -R /.cache
+
+RUN mkdir /.local
+RUN chmod a+rwx -R /.local
+
 ENV PSYNET_IN_DOCKER=1
