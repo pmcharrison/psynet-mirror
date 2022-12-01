@@ -1144,3 +1144,6 @@ def update_scripts():
         "scripts",
         dirs_exist_ok=True,
     )
+    with open("Dockertag", "w") as file:
+        file.write(os.path.basename(os.getcwd()))
+        file.write("\n")
