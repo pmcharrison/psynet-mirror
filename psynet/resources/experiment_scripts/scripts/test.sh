@@ -21,7 +21,7 @@ docker run \
   -e PSYNET_EDITABLE="${PSYNET_EDITABLE:-}" \
   -v "${PSYNET_LOCAL_PATH}":/PsyNet \
   "${EXPERIMENT_IMAGE}" \
-  pytest test.py \
+  pytest -x -s test.py \
   | sed -e "s:/tmp/dallinger_develop/:${PWD}/:" -e "s:\"/PsyNet/":"\"${PSYNET_LOCAL_PATH}/:"
 
 #-p 5000:5000 \
