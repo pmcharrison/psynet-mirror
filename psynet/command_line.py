@@ -1123,17 +1123,21 @@ def generate_config(ctx):
 
 
 @psynet.command()
-def add_scripts():
+def update_experiment_scripts():
     """
     To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
     prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
     """
     shutil.copyfile(
-        resource_filename("psynet", "resources/template_scripts/Dockerfile"),
+        resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
     )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/test.py"),
+        "test.py",
+    )
     shutil.copytree(
-        resource_filename("psynet", "resources/template_scripts/scripts"),
+        resource_filename("psynet", "resources/experiment_scripts/scripts"),
         "scripts",
         dirs_exist_ok=True,
     )
