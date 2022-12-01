@@ -1128,8 +1128,12 @@ def add_scripts():
     To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
     prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
     """
+    shutil.copyfile(
+        resource_filename("psynet", "resources/template_scripts/Dockerfile"),
+        "Dockerfile",
+    )
     shutil.copytree(
-        resource_filename("psynet", "resources/shell_scripts"),
+        resource_filename("psynet", "resources/template_scripts/scripts"),
         "scripts",
         dirs_exist_ok=True,
     )
