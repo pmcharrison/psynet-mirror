@@ -6,6 +6,8 @@ set -euo pipefail
 . scripts/build.sh
 
 # Note: any changes to this command should be propagated to terminal.sh
+echo "TODO: wrap error message here"
+docker rm dallinger || true
 docker run \
   --name dallinger \
   --rm \
