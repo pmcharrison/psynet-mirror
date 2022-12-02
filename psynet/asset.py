@@ -1620,7 +1620,8 @@ class FunctionAssetMixin:
         if self.is_folder:
             return tempfile.mkdtemp()
         else:
-            return tempfile.NamedTemporaryFile(delete=False).name
+            suffix = self.extension if self.extension else ""
+            return tempfile.NamedTemporaryFile(delete=False, suffix=suffix).name
 
     @property
     def instructions(self):

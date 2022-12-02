@@ -1166,11 +1166,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         key_parsed = urllib.parse.unquote(key)
 
         asset = FastFunctionAsset.query.filter_by(key=key_parsed).one()
+        suffix = asset.extension if asset.extension else ""
 
-        with tempfile.NamedTemporaryFile() as temp_file:
+        with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             asset.export(temp_file.name)
 
-            return flask.send_file(temp_file.name, cache_timeout=0)
+            return flask.send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @staticmethod
