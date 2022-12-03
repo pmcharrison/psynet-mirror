@@ -28,7 +28,7 @@ variables:
   DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:v10-draft
   DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$DOCKER_TAG
   DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay
+  DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
 before_script:
