@@ -36,7 +36,7 @@ RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
 
 COPY . .
-RUN pip install -e --no-dependencies .
+RUN pip install --no-dependencies -e .
 
 WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
