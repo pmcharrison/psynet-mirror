@@ -12,7 +12,7 @@ from jsonpickle.util import importable_name
 from rq import Queue
 from rq.job import Job
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonDict, PythonObject
@@ -28,7 +28,7 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     label = Column(String)
     function = Column(PythonObject)
-    arguments = Column(PythonDict)
+    arguments = deferred(Column(PythonDict))
     pending = Column(Boolean)
     finished = Column(Boolean, default=False)
     time_started = Column(DateTime)

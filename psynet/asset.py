@@ -18,7 +18,7 @@ from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import column_property, deferred, relationship
 
 from psynet.timeline import NullElt
 
@@ -320,7 +320,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     export_path = Column(String, index=True, unique=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     label = Column(String)
-    parent = Column(PythonObject)
+    parent = deferred(Column(PythonObject))
     description = Column(String)
     personal = Column(Boolean)
     content_id = Column(String)
@@ -331,6 +331,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     extension = Column(String)
     storage = Column(PythonObject)
     replace_existing = Column(Boolean)
+    node_definition = Column(PythonObject)
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
@@ -736,7 +737,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             raise
 
     def receive_node_definition(self, definition):
-        self.var.node_definition = definition
+        self.node_definition = definition
 
     def read_text(self):
         assert not self.is_folder
@@ -1546,7 +1547,7 @@ class FunctionAssetMixin:
 
     @declared_attr
     def arguments(cls):
-        return cls.__table__.c.get("arguments", Column(PythonDict))
+        return cls.__table__.c.get("arguments", deferred(Column(PythonDict)))
 
     @declared_attr
     def computation_time_sec(cls):

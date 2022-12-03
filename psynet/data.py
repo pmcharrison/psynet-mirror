@@ -31,6 +31,7 @@ from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -323,7 +324,9 @@ class SQLMixinDallinger(SharedMixin):
         cls.check_validity()
         return self
 
-    vars = Column(PythonDict, default=lambda: {}, server_default="{}")
+    @declared_attr
+    def vars(cls):
+        return deferred(Column(PythonDict, default=lambda: {}, server_default="{}"))
 
     @property
     def var(self):
