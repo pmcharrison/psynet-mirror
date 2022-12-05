@@ -36,31 +36,6 @@ def get_logger():
 
 logger = get_logger()
 
-def log_once(msg, type='info'):
-    def _print_log(msg, type):
-        if type == 'info':
-            logger.info(msg)
-        elif type == 'warning':
-            logger.warning(msg)
-        elif type == 'error':
-            logger.error(msg)
-        else:
-            raise ValueError(f'Invalid log type: {type}')
-    try:
-        # We can only log when the experiment is running
-        from psynet.experiment import get_experiment
-        experiment = get_experiment()
-        key = f'{type}-{md5_object(msg)}'
-        if not experiment.var.has(key):
-            _print_log(msg, type)
-            experiment.var.set(key, msg)
-            db.session.commit()
-    except:
-        pass
-
-def warn_once(msg):
-    log_once(msg, type='warning')
-
 class NoArgumentProvided:
     """ "
     We use this class as a replacement for ``None`` as a default argument,
@@ -577,7 +552,7 @@ def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dir
     if exists(join_path(localedir, locale, 'LC_MESSAGES', f'{module}.mo')):
         translator = gettext.translation(module, localedir, [locale])
     else:
-        warn_once(f'No translation file found for locale {locale}.')
+        logger.warning(f'No translation file found for locale {locale}.')
         translator = gettext.NullTranslations()
     return translator.gettext, translator.pgettext, translator.npgettext
 
