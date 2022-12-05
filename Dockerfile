@@ -54,4 +54,6 @@ RUN chmod a+rwx -R /.cache
 RUN mkdir /.local
 RUN chmod a+rwx -R /.local
 
+RUN mkdir -p ~/.ssh && echo "Host *\n    StrictHostKeyChecking no" >> ~/.ssh/config
+
 ENV PSYNET_IN_DOCKER=1
