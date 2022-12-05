@@ -3041,7 +3041,11 @@ class AssetRegistry:
             backend="threading",
             # backend="multiprocessing",  # Slow compared to threading
         )(
-            delayed(lambda a: a.prepare_for_deployment(registry=self))(a)
+            delayed(
+                lambda a: threadsafe__prepare_asset_for_deployment(
+                    asset=a, registry=self
+                )
+            )(a)
             for a in self._staged_asset_specifications
         )
         # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -3055,3 +3059,8 @@ class AssetRegistry:
     # def populate_db_with_initial_assets(self):
     #     with open(self.initial_asset_manifesto_path, "r") as file:
     #         ingest_to_model(file, Asset)
+
+
+def threadsafe__prepare_asset_for_deployment(asset, registry):
+    asset_2 = db.session.merge(asset)
+    asset_2.prepare_for_deployment(registry=registry)
