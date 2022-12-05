@@ -79,7 +79,8 @@
         class="btn push-button btn-primary response {% if config.timed == true %} timed {% else %} submit {% endif %}"
         id="{{ config.id }}"
         onclick="clickedButton(this, this.id);"
-        style="{{ config.style }}"
+        style="{{ config.style }}",
+        disabled="true"
     >
         {% autoescape off %}
         {{ config.label }}
