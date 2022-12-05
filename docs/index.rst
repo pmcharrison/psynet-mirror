@@ -14,6 +14,7 @@ PsyNet Documentation
    :maxdepth: 2
    :caption: Installation
 
+   installation/docker
    installation/macos
    installation/linux
 

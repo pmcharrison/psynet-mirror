@@ -14,6 +14,7 @@ import psutil
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.version import __version__ as dallinger_version
+from pkg_resources import resource_filename
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -442,9 +443,8 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
-def deploy(ctx, verbose, app, archive, force_prepare):
+def deploy(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to MTurk.
     """
@@ -456,7 +456,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     log(header)
 
     if not archive:
-        ctx.invoke(prepare, force=force_prepare)
+        ctx.invoke(prepare)
 
     from dallinger.command_line import deploy as dallinger_deploy
 
@@ -1120,3 +1120,30 @@ def generate_config(ctx):
             assert key.startswith("--")
             key = key[2:]
             file.write(f"{key} = {value}\n")
+
+
+@psynet.command()
+def update_scripts():
+    """
+    To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
+    prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
+    """
+    print(
+        f"Populating the current directory ({os.getcwd()}) with experiment scripts, e.g. Dockerfile and shell scripts."
+    )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
+        "Dockerfile",
+    )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/test.py"),
+        "test.py",
+    )
+    shutil.copytree(
+        resource_filename("psynet", "resources/experiment_scripts/scripts"),
+        "scripts",
+        dirs_exist_ok=True,
+    )
+    with open("Dockertag", "w") as file:
+        file.write(os.path.basename(os.getcwd()))
+        file.write("\n")

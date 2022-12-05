@@ -15,7 +15,7 @@ from flask import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import column_property, deferred, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from psynet import field
@@ -258,7 +258,7 @@ class Trial(SQLMixinDallinger, Info):
     repeat_trial_index = Column(Integer)
     n_repeat_trials = Column(Integer)
     time_taken = Column(Float)
-    _initial_assets = Column(PythonDict)
+    _initial_assets = deferred(Column(PythonDict))
     time_credit_before_trial = Column(Float)
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
