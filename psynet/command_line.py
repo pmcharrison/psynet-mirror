@@ -12,6 +12,7 @@ import click
 import dallinger.command_line.utils
 import psutil
 from dallinger import db
+from dallinger.command_line.docker_ssh import server_option
 from dallinger.config import get_config
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
@@ -439,26 +440,15 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 ##########
 # deploy #
 ##########
-@psynet.command()
-@click.option(
-    "--mode",
-    help="Deployment mode (can be 'heroku' or 'ssh')",
-    required=True,
-    prompt="Please choose a deployment mode (choices: heroku, ssh)",
-)
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", required=True, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.pass_context
-def deploy(ctx, mode, verbose, app, archive):
-    """
-    Deploy app using Heroku to MTurk.
-    """
-    assert mode in ["heroku", "ssh"]
+
+
+def _pre_deploy(ctx, mode, archive):
+    log("Preparing for deployment...")
 
     redis_vars.clear()
     make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
+    deployment_info.write(deploy_mode=mode)
 
     log("Running pre-deploy checks...")
     run_pre_checks("deploy")
@@ -467,25 +457,52 @@ def deploy(ctx, mode, verbose, app, archive):
     if not archive:
         ctx.invoke(prepare)
 
+
+@psynet.command()
+@click.option("--verbose", is_flag=True, help="Verbose mode")
+@click.option("--app", required=True, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.pass_context
+def deploy_heroku(ctx, verbose, app, archive):
+    """
+    Deploy app using Heroku to MTurk.
+    """
+    _pre_deploy(ctx, mode="heroku", archive=archive)
+
     try:
-        if mode == "heroku":
-            from dallinger.command_line import deploy as dallinger_deploy
+        from dallinger.command_line import deploy as dallinger_deploy
 
-            ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
-        elif mode == "ssh":
-            from dallinger.command_line.docker_ssh import (
-                deploy as dallinger_docker_ssh_deploy,
-            )
+        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
-            ctx.invoke(
-                dallinger_docker_ssh_deploy,
-                mode="sandbox",  # TODO - but does this even matter?
-                app_name=app,
-                archive_path=archive,
-                # config_options -- this could be useful
-            )
-        else:
-            raise ValueError()
+
+@psynet.command()
+@click.option("--app", required=True, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@server_option
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
+@click.pass_context
+def deploy_ssh(ctx, app, archive, server, dns_host):
+    try:
+        _pre_deploy(ctx, mode="ssh", archive=archive)
+
+        from dallinger.command_line.docker_ssh import (
+            deploy as dallinger_docker_ssh_deploy,
+        )
+
+        ctx.invoke(
+            dallinger_docker_ssh_deploy,
+            mode="sandbox",  # TODO - but does this even matter?
+            server=server,
+            dns_host=dns_host,
+            app_name=app,
+            archive_path=archive,
+            # config_options -- this could be useful
+        )
     finally:
         reset_console()
 
