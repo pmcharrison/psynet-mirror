@@ -266,19 +266,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.recruitment_criteria = []
         self.pre_deploy_routines = []
 
-        if (
-            session
-            and request
-            and request.path == "/launch"
-            and not redis_vars.get("launch_started", default=False)
-        ):
-            redis_vars.set("launch_started", True)
-            self._on_launch()
-            redis_vars.set("launch_finished", True)
-
         self.process_timeline()
 
-    def _on_launch(self):
+    def on_launch(self):
+        super().on_launch()
         logger.info("Calling Exp.on_launch()...")
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
