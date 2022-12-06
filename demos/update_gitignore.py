@@ -18,7 +18,11 @@ def find_demo_dirs():
 
     root_dir = pathlib.Path(__file__).parent.resolve()
     return sorted(
-        [dir for dir, sub_dirs, files in os.walk(root_dir) if "experiment.py" in files]
+        [
+            dir
+            for dir, sub_dirs, files in os.walk(root_dir)
+            if "experiment.py" in files and not dir.endswith("/develop")
+        ]
     )
 
 
@@ -42,5 +46,15 @@ for dir in find_demo_dirs():
             "",
             "# Automatically generated resources for debugging experiments with debug storage",
             "static/debug_storage",
+            "",
+            "# PyCharm configuration file",
+            ".idea",
+            "",
+            "# Python cache files",
+            "__pycache__",
+            "",
+            "# MacOS Finder config files",
+            "*.DS_Store",
+            "",
         ]
         f.write("\n".join(lines))

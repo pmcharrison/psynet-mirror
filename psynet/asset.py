@@ -11,6 +11,7 @@ from functools import cached_property
 from typing import Optional
 
 import boto3
+import psutil
 import requests
 import sqlalchemy
 from dallinger import db
@@ -18,7 +19,7 @@ from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import column_property, deferred, relationship
 
 from psynet.timeline import NullElt
 
@@ -320,7 +321,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     export_path = Column(String, index=True, unique=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     label = Column(String)
-    parent = Column(PythonObject)
+    parent = deferred(Column(PythonObject))
     description = Column(String)
     personal = Column(Boolean)
     content_id = Column(String)
@@ -331,6 +332,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     extension = Column(String)
     storage = Column(PythonObject)
     replace_existing = Column(Boolean)
+    node_definition = Column(PythonObject)
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
@@ -736,7 +738,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             raise
 
     def receive_node_definition(self, definition):
-        self.var.node_definition = definition
+        self.node_definition = definition
 
     def read_text(self):
         assert not self.is_folder
@@ -1546,7 +1548,7 @@ class FunctionAssetMixin:
 
     @declared_attr
     def arguments(cls):
-        return cls.__table__.c.get("arguments", Column(PythonDict))
+        return cls.__table__.c.get("arguments", deferred(Column(PythonDict)))
 
     @declared_attr
     def computation_time_sec(cls):
@@ -1620,7 +1622,8 @@ class FunctionAssetMixin:
         if self.is_folder:
             return tempfile.mkdtemp()
         else:
-            return tempfile.NamedTemporaryFile(delete=False).name
+            suffix = self.extension if self.extension else ""
+            return tempfile.NamedTemporaryFile(delete=False, suffix=suffix).name
 
     @property
     def instructions(self):
@@ -3002,13 +3005,15 @@ class AssetRegistry:
         self.storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        # if self.n_parallel:
-        #     n_jobs = self.n_parallel
-        # elif len(self._staged_asset_specifications) < 25:
-        #     n_jobs = 1
-        # else:
-        #     n_jobs = psutil.cpu_count()
+        if self.n_parallel:
+            n_jobs = self.n_parallel
+        elif len(self._staged_asset_specifications) < 25:
+            n_jobs = 1
+        else:
+            n_jobs = psutil.cpu_count()
 
+        # OLD NOTES, may not be relevant any more
+        #
         # The parallel implementation is not reliable yet;
         # the language_tests demo fails due to a deadlock between
         # competing transactions. As a patch for now we disable
@@ -3027,7 +3032,7 @@ class AssetRegistry:
         # FROM pg_stat_activity AS activity
         # JOIN pg_stat_activity AS blocking ON blocking.pid = ANY(pg_blocking_pids(activity.pid));
 
-        n_jobs = 1
+        # n_jobs = 1
 
         logger.info("Preparing assets for deployment...")
         Parallel(
@@ -3036,7 +3041,11 @@ class AssetRegistry:
             backend="threading",
             # backend="multiprocessing",  # Slow compared to threading
         )(
-            delayed(lambda a: a.prepare_for_deployment(registry=self))(a)
+            delayed(
+                lambda a: threadsafe__prepare_asset_for_deployment(
+                    asset=a, registry=self
+                )
+            )(a)
             for a in self._staged_asset_specifications
         )
         # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -3050,3 +3059,8 @@ class AssetRegistry:
     # def populate_db_with_initial_assets(self):
     #     with open(self.initial_asset_manifesto_path, "r") as file:
     #         ingest_to_model(file, Asset)
+
+
+def threadsafe__prepare_asset_for_deployment(asset, registry):
+    asset_2 = db.session.merge(asset)
+    asset_2.prepare_for_deployment(registry=registry)

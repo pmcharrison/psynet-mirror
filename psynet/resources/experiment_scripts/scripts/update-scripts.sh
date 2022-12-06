@@ -1,11 +1,8 @@
-# Ensures that the script stops on errors
 set -euo pipefail
 
 . scripts/params.sh
-. scripts/services.sh
 . scripts/build.sh
 
-# Note: any changes to this command should be propagated to terminal.sh
 docker run \
   --name dallinger \
   --rm \
@@ -20,8 +17,8 @@ docker run \
   -e FLASK_OPTIONS='-h 0.0.0.0' \
   -e REDIS_URL=redis://dallinger_redis:6379 \
   -e DATABASE_URL=postgresql://dallinger:dallinger@dallinger_postgres/dallinger \
-  -e PSYNET_EDITABLE="${PSYNET_EDITABLE:-}" \
+  -e PSYNET_DEVELOPER_MODE="${PSYNET_DEVELOPER_MODE:-}" \
   -v "${PSYNET_LOCAL_PATH}":/PsyNet \
   "${EXPERIMENT_IMAGE}" \
-  psynet debug \
+  psynet update-scripts \
   | sed -e "s:/tmp/dallinger_develop/:${PWD}/:" -e "s:\"/PsyNet/":"\"${PSYNET_LOCAL_PATH}/:"

@@ -36,16 +36,7 @@ RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
 
 COPY . .
-RUN pip install -e .
-
-# The following code can be used to reinstall Dallinger from a particular development branch or commit
-WORKDIR /
-RUN rm -rf /dallinger
-RUN mkdir /dallinger
-RUN git clone https://github.com/Dallinger/Dallinger.git
-WORKDIR /Dallinger
-RUN git checkout print-dashboard-url
-RUN pip install -e ".[data]"
+RUN pip install --no-dependencies -e .
 
 WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
@@ -56,5 +47,13 @@ RUN chmod a+rwx -R /psynet-exports
 
 RUN mkdir /psynet-debug-storage
 RUN chmod a+rwx -R /psynet-debug-storage
+
+RUN mkdir /.cache
+RUN chmod a+rwx -R /.cache
+
+RUN mkdir /.local
+RUN chmod a+rwx -R /.local
+
+RUN mkdir -p ~/.ssh && echo "Host *\n    StrictHostKeyChecking no" >> ~/.ssh/config
 
 ENV PSYNET_IN_DOCKER=1
