@@ -488,6 +488,10 @@ def deploy_heroku(ctx, verbose, app, archive):
 @click.pass_context
 def deploy_ssh(ctx, app, archive, server, dns_host):
     try:
+        # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
+        # irrespective of whether a different version is installed locally.
+        os.environ["DALLINGER_NO_EGG_BUILD"] = 1
+
         _pre_deploy(ctx, mode="ssh", archive=archive)
 
         from dallinger.command_line.docker_ssh import (
