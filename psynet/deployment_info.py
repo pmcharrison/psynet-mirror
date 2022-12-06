@@ -8,6 +8,11 @@ path = "deploy/deployment_info.json"
 
 
 def init(redeploying_from_archive: bool):
+    print(
+        "Note -- you must use Dallinger branch 'pmch-dev' for this PsyNet version. This is a temporary requirement "
+        "that should be resolved soon."
+    )
+
     write_all(
         {
             "redeploying_from_archive": redeploying_from_archive,
