@@ -269,6 +269,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.process_timeline()
 
     def on_launch(self):
+        redis_vars.set("launch_started", True)
         super().on_launch()
         logger.info("Calling Exp.on_launch()...")
         if not deployment_info.read("redeploying_from_archive"):
@@ -277,6 +278,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.var.launch_finished = True
         logger.info("Experiment launch complete!")
         db.session.commit()
+        redis_vars.set("launch_finished", True)
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
