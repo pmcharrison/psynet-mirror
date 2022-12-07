@@ -36,4 +36,3 @@ gitlab-runner exec docker tests \
   --env CI_REGISTRY_USER="$CI_REGISTRY_USER" \
   --env CI_REGISTRY_PASSWORD="$CI_REGISTRY_PASSWORD" \
   --env CI_REGISTRY_IMAGE="$CI_REGISTRY"
-
