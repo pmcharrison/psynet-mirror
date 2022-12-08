@@ -211,16 +211,17 @@ def experiment_variables__docker_heroku(app):
 
 @docker_ssh.command("experiment-variables")
 @click.option("--app", required=True, help="Name of the experiment app")
-def experiment_variables__docker_ssh(app):
-    with db_connection(mode="docker_ssh", app=app) as connection:
+@server_option
+def experiment_variables__docker_ssh(app, server):
+    with db_connection(mode="docker_ssh", app=app, server=server) as connection:
         return experiment_variables(connection, echo=True)
 
 
 @contextmanager
-def db_connection(mode, app=None):
+def db_connection(mode, app=None, server=None):
     try:
         connection = None
-        with get_db_uri(mode, app) as db_uri:
+        with get_db_uri(mode, app, server) as db_uri:
             if "postgresql://" in db_uri or "postgres://" in db_uri:
                 connection = psycopg2.connect(dsn=db_uri)
             else:
@@ -1183,8 +1184,10 @@ def export_arguments(func):
 
 @local.command("export")
 @export_arguments
-def export__local(**kwargs):
-    export_(local=True, **kwargs)
+@click.pass_context
+def export__local(ctx, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables__local)
+    export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
 
 
 @psynet.command(
@@ -1203,22 +1206,36 @@ def export(*args, **kwargs):
 @heroku.command("export")
 @export_arguments
 @app_argument
-def export__heroku(**kwargs):
-    export_(local=False, **kwargs)
+@click.pass_context
+def export__heroku(ctx, app, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables__heroku, app=app)
+    export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
 
 @docker_heroku.command("export")
 @export_arguments
 @app_argument
-def export__docker_heroku(**kwargs):
-    export_(local=False, **kwargs)
+@click.pass_context
+def export__docker_heroku(ctx, app, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables__docker_heroku, app=app)
+    export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
 
 @docker_ssh.command("export")
 @export_arguments
 @app_argument
-def export__docker_ssh(**kwargs):
-    export_(local=False, docker_ssh=True, **kwargs)
+@server_option
+@click.pass_context
+def export__docker_ssh(ctx, app, server, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables__docker_ssh, app=app, server=server)
+    export_(
+        ctx,
+        app=app,
+        local=False,
+        exp_variables=exp_variables,
+        docker_ssh=True,
+        **kwargs,
+    )
 
 
 # def export(app, local, path, assets, anonymize, n_parallel):
@@ -1226,6 +1243,8 @@ def export__docker_ssh(**kwargs):
 
 
 def export_(
+    ctx,
+    exp_variables,
     app=None,
     local=False,
     path=None,
@@ -1233,6 +1252,8 @@ def export_(
     anonymize="both",
     n_parallel=None,
     docker_ssh=False,
+    server=None,
+    dns_host=None,
 ):
     """
     Export data from an experiment.
@@ -1253,8 +1274,6 @@ def export_(
     json:
         Contains the experiment data in JSON format.
     """
-    import requests
-
     from .experiment import import_local_experiment
 
     log(header)
@@ -1266,14 +1285,14 @@ def export_(
 
     if path is None:
         try:
-            export_root = config.get("default_export_root", "~/psynet-deployments")
+            export_root = config.get("default_export_root", "~/psynet-data/export")
         except KeyError:
             raise ValueError(
                 "No value for path was provided and no value for default_export_root was found in "
                 ".dallingerconfig or config.txt. Please provide either one of these and try again."
             )
 
-        deployment_id = requests.get("http://localhost:5000/app_deployment_id").text
+        deployment_id = exp_variables["deployment_id"]
         assert len(deployment_id) > 0
         path = os.path.join(export_root, deployment_id)
 
@@ -1300,10 +1319,22 @@ def export_(
 
     for anonymize_mode in anonymize_modes:
         _anonymize = anonymize_mode == "yes"
-        _export_(app, local, path, assets, _anonymize, n_parallel, docker_ssh)
+        _export_(
+            ctx,
+            app,
+            local,
+            path,
+            assets,
+            _anonymize,
+            n_parallel,
+            docker_ssh,
+            server,
+            dns_host,
+        )
 
 
 def _export_(
+    ctx,
     app,
     local,
     export_path,
@@ -1311,11 +1342,15 @@ def _export_(
     anonymize: bool,
     n_parallel=None,
     docker_ssh=False,
+    server=None,
+    dns_host=None,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
     """
-    database_zip_path = export_database(app, local, export_path, anonymize, docker_ssh)
+    database_zip_path = export_database(
+        ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
+    )
 
     # We originally thought code should be exported here. However it makes better sense to
     # export instead as part of psynet sandbox/deploy. We'll implement this soon.
@@ -1337,7 +1372,9 @@ def _export_(
     log(f"Export complete. You can find your results at: {export_path}")
 
 
-def export_database(app, local, export_path, anonymize, docker_ssh):
+def export_database(
+    ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
+):
     if local:
         app = "local"
 
@@ -1350,18 +1387,30 @@ def export_database(app, local, export_path, anonymize, docker_ssh):
     from dallinger import data as dallinger_data
     from dallinger import db as dallinger_db
 
-    if docker_ssh:
-        from dallinger.command_line.docker_ssh import export as dallinger_export
-    else:
-        from dallinger.command_line import export as dallinger_export
-
+    # if docker_ssh:
+    #     from dallinger.command_line.docker_ssh import export as dallinger_export
+    # else:
+    #     from dallinger.data import export as dallinger_export
     # Dallinger hard-codes the list of table names, but this list becomes out of date
     # if we add custom tables, so we have to patch it.
     dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
     with tempfile.TemporaryDirectory() as tempdir:
         with working_directory(tempdir):
-            dallinger_export(app, local=local, scrub_pii=anonymize)
+            if docker_ssh:
+                ctx.invoke(
+                    dallinger.command_line.docker_ssh.export,
+                    server=server,
+                    app=app,
+                    no_scrub=not anonymize,
+                )
+            else:
+                ctx.invoke(
+                    dallinger.command_line.export,
+                    app=app,
+                    local=local,
+                    no_scrub=not anonymize,
+                )
 
             shutil.move(
                 os.path.join(tempdir, "data", f"{app}-data.zip"),
