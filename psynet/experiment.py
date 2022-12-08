@@ -34,7 +34,7 @@ from psynet import __version__
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
 from .bot import Bot
-from .command_line import log
+from .command_line import export_deploy_log, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
@@ -285,8 +285,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
+        config = get_config()
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
+        export_deploy_log(
+            self.var.deployment_id,
+            config.get("dashboard_user"),
+            config.get("dashboard_password"),
+        )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.grow_all_networks()

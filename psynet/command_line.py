@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import re
@@ -330,12 +331,7 @@ def debug_(
 
         ctx = Context(debug)
 
-    log(header)
-
-    redis_vars.clear()
-    make_deploy_dir()
-    deployment_info.init(redeploying_from_archive=archive is not None)
-
+    _pre_launch(ctx, "debug", archive)
     drop_all_db_tables()
 
     if archive is None:
@@ -595,42 +591,69 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 ##########
 
 
-def _pre_deploy(ctx, mode, archive):
-    log("Preparing for deployment...")
+def _pre_launch(ctx, mode, archive):
+    log("Preparing for launch...")
 
     redis_vars.clear()
     make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
-    deployment_info.write(deploy_mode=mode)
+    deployment_info.write(mode=mode)
 
     log("Running pre-deploy checks...")
-    run_pre_checks("deploy")
+    run_pre_checks(mode)
     log(header)
 
     if not archive:
         ctx.invoke(prepare)
 
 
-@psynet.command()
+@heroku.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def deploy_heroku(ctx, verbose, app, archive):
+def deploy__heroku(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to MTurk.
     """
-    _pre_deploy(ctx, mode="heroku", archive=archive)
+    _pre_launch(ctx, mode="live", archive=archive)
 
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
-        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+        result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+        _post_deploy(result)
     finally:
         reset_console()
 
 
-@psynet.command()
+@docker_heroku.command()
+@click.option("--verbose", is_flag=True, help="Verbose mode")
+@click.option("--app", required=True, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.pass_context
+def deploy__docker_heroku(ctx, verbose, app, archive):
+    """
+    Deploy app using Heroku to MTurk.
+    """
+    if archive is not None:
+        raise NotImplementedError(
+            "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
+            "This shouldn't be hard to fix..."
+        )
+
+    _pre_launch(ctx, mode="live", archive=archive)
+
+    try:
+        from dallinger.command_line.docker import deploy as dallinger_deploy
+
+        result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app)
+        _post_deploy(result)
+    finally:
+        reset_console()
+
+
+@docker_ssh.command()
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
@@ -639,19 +662,19 @@ def deploy_heroku(ctx, verbose, app, archive):
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
 @click.pass_context
-def deploy_ssh(ctx, app, archive, server, dns_host):
+def deploy__docker_ssh(ctx, app, archive, server, dns_host):
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_deploy(ctx, mode="ssh", archive=archive)
+        _pre_launch(ctx, mode="live", archive=archive)
 
         from dallinger.command_line.docker_ssh import (
             deploy as dallinger_docker_ssh_deploy,
         )
 
-        ctx.invoke(
+        result = ctx.invoke(
             dallinger_docker_ssh_deploy,
             mode="sandbox",  # TODO - but does this even matter?
             server=server,
@@ -660,8 +683,40 @@ def deploy_ssh(ctx, app, archive, server, dns_host):
             archive_path=archive,
             # config_options -- this could be useful
         )
+
+        _post_deploy(result)
     finally:
         reset_console()
+
+
+def _post_deploy(result):
+    assert isinstance(result, dict)
+    assert "dashboard_user" in result
+    assert "dashboard_password" in result
+    export_deploy_log(
+        deployment_id=deployment_info.read("deployment_id"),
+        **result,
+    )
+
+
+def export_deploy_log(deployment_id, dashboard_user, dashboard_password, **kwargs):
+    """
+    Retrieves dashboard credentials from the current config and
+    saves them to disk.
+    """
+    parent = Path("~/psynet-data/deploy").expanduser() / deployment_id
+    parent.mkdir(parents=True, exist_ok=True)
+    file = parent.joinpath("dashboard_credentials.json")
+    with open(file, "w") as f:
+        json.dump(
+            {
+                "dashboard_user": dashboard_user,
+                "dashboard_password": dashboard_password,
+                **kwargs,
+            },
+            f,
+            indent=4,
+        )
 
 
 ########
@@ -753,31 +808,75 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
 ###########
 # sandbox #
 ###########
-@psynet.command()
+
+
+@heroku.command("debug")
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def sandbox(ctx, verbose, app, archive):
+def debug__heroku(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
-    redis_vars.clear()
-    make_deploy_dir()
-    deployment_info.init(redeploying_from_archive=archive is not None)
-
-    run_pre_checks("sandbox")
-    log(header)
-
-    if not archive:
-        ctx.invoke(prepare)
-
     from dallinger.command_line import sandbox as dallinger_sandbox
 
+    _pre_launch(ctx, "sandbox", archive)
+
     try:
-        ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+        result = ctx.invoke(
+            dallinger_sandbox, verbose=verbose, app=app, archive=archive
+        )
+        _post_deploy(result)
     finally:
         reset_console()
+
+
+@docker_heroku.command("debug")
+@click.option("--verbose", is_flag=True, help="Verbose mode")
+@click.option("--app", default=None, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.pass_context
+def debug__docker_heroku(ctx, verbose, app, archive):
+    from dallinger.command_line.docker import sandbox as dallinger_sandbox
+
+    if archive is not None:
+        raise NotImplementedError(
+            "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
+            "This shouldn't be hard to fix..."
+        )
+
+    _pre_launch(ctx, "sandbox", archive)
+
+    try:
+        result = ctx.invoke(dallinger_sandbox, verbose=verbose, app=app)
+        _post_deploy(result)
+    finally:
+        reset_console()
+
+
+@docker_ssh.command("debug")
+@click.option("--app", default=None, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@server_option
+@click.option("--config", "-c", "config_options", nargs=2, multiple=True)
+@click.pass_context
+def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
+    from dallinger.command_line.docker_ssh import deploy
+
+    _pre_launch(ctx, "sandbox", archive)
+
+    result = ctx.invoke(
+        deploy,
+        mode="sandbox",
+        server=server,
+        dns_host=dns_host,
+        app_name=app,
+        config_options=config_options,
+        archive_path=archive,
+    )
+
+    _post_deploy(result)
 
 
 ##########
@@ -1166,7 +1265,7 @@ def export_(
 
     if path is None:
         try:
-            export_root = config.get("default_export_root")
+            export_root = config.get("default_export_root", "~/psynet-deployments")
         except KeyError:
             raise ValueError(
                 "No value for path was provided and no value for default_export_root was found in "
