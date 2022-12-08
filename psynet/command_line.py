@@ -130,7 +130,27 @@ def _prepare():
 #########
 # debug #
 #########
-@psynet.command()
+@psynet.group("local")
+def local():
+    pass
+
+
+@psynet.group("heroku")
+def heroku():
+    pass
+
+
+@psynet.group("docker_ssh")
+def docker_ssh():
+    pass
+
+
+@psynet.group("docker_heroku")
+def docker_heroku():
+    pass
+
+
+@local.command("debug")
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--legacy", is_flag=True, help="Legacy mode")
 @click.option("--bot", is_flag=True, help="Use bot to complete experiment")
@@ -154,8 +174,21 @@ def _prepare():
     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
 )
 @click.pass_context
-def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask):
+def debug__local(
+    ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask
+):
     debug_(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask)
+
+
+@psynet.command(
+    context_settings=dict(
+        ignore_unknown_options=True,
+    )
+)
+def debug(*args, **kwargs):
+    raise click.ClickException(
+        "`psynet debug` has been replaced with `psynet local debug`, please use the latter."
+    )
 
 
 def debug_(
@@ -869,29 +902,117 @@ def generate_constraints(ctx):
 ##########
 # export #
 ##########
-@psynet.command()
-@click.option(
-    "--app",
-    default=None,
-    required=False,
-    help="App id",
+
+
+def app_argument(func):
+    return click.option(
+        "--app",
+        default=None,
+        required=False,
+        help="App id",
+    )(func)
+
+
+def export_arguments(func):
+    args = [
+        click.option("--path", default=None, help="Path to export directory"),
+        click.option(
+            "--assets",
+            default="experiment",
+            help="Which assets to export; valid values are none, experiment, and all",
+        ),
+        click.option(
+            "--anonymize",
+            default="both",
+            help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
+        ),
+        click.option(
+            "--n_parallel",
+            default=None,
+            help="Number of parallel jobs for exporting assets",
+        ),
+    ]
+    for arg in args:
+        func = arg(func)
+    return func
+
+
+# @psynet.command()
+# @click.option(
+#     "--app",
+#     default=None,
+#     required=False,
+#     help="App id",
+# )
+# @click.option("--local", is_flag=True, help="Export local data")
+# @click.option("--path", default=None, help="Path to export directory")
+# @click.option(
+#     "--assets",
+#     default="experiment",
+#     help="Which assets to export; valid values are none, experiment, and all",
+# )
+# @click.option(
+#     "--anonymize",
+#     default="both",
+#     help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
+# )
+# @click.option(
+#     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
+# )
+
+
+@local.command("export")
+@export_arguments
+def export__local(**kwargs):
+    export_(local=True, **kwargs)
+
+
+@psynet.command(
+    context_settings=dict(
+        ignore_unknown_options=True,
+    )
 )
-@click.option("--local", is_flag=True, help="Export local data")
-@click.option("--path", default=None, help="Path to export directory")
-@click.option(
-    "--assets",
-    default="experiment",
-    help="Which assets to export; valid values are none, experiment, and all",
-)
-@click.option(
-    "--anonymize",
-    default="both",
-    help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
-)
-@click.option(
-    "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
-)
-def export(app, local, path, assets, anonymize, n_parallel):
+def export(*args, **kwargs):
+    raise click.ClickException(
+        "`psynet export` has been removed, please use one of `psynet local export`, `psynet heroku export`, "
+        "`psynet docker-heroku export`, or `psynet docker-ssh export`."
+    )
+
+
+@heroku.command("export")
+@export_arguments
+@app_argument
+def export__heroku(**kwargs):
+    export_(local=False, **kwargs)
+
+
+@docker_heroku.command("export")
+@export_arguments
+@app_argument
+def export__docker_heroku(**kwargs):
+    export_(local=False, **kwargs)
+
+
+@docker_ssh.command("export")
+@export_arguments
+@app_argument
+def export__docker_ssh(**kwargs):
+    export_(local=False, docker_ssh=True, **kwargs)
+
+
+# def export(app, local, path, assets, anonymize, n_parallel):
+#     export_(app, local, path, assets, anonymize, n_parallel)
+
+
+def export_(
+    app=None,
+    local=False,
+    path=None,
+    assets="experiment",
+    anonymize="both",
+    n_parallel=None,
+    docker_ssh=False,
+):
     """
     Export data from an experiment.
 
@@ -911,17 +1032,6 @@ def export(app, local, path, assets, anonymize, n_parallel):
     json:
         Contains the experiment data in JSON format.
     """
-    export_(app, local, path, assets, anonymize, n_parallel)
-
-
-def export_(
-    app=None,
-    local=False,
-    export_path=None,
-    assets="experiment",
-    anonymize="both",
-    n_parallel=None,
-):
     import requests
 
     from .experiment import import_local_experiment
@@ -933,20 +1043,20 @@ def export_(
     if not config.ready:
         config.load()
 
-    if export_path is None:
+    if path is None:
         try:
             export_root = config.get("default_export_root")
         except KeyError:
             raise ValueError(
-                "No value for export_path was provided and no value for default_export_root was found in "
+                "No value for path was provided and no value for default_export_root was found in "
                 ".dallingerconfig or config.txt. Please provide either one of these and try again."
             )
 
         deployment_id = requests.get("http://localhost:5000/app_deployment_id").text
         assert len(deployment_id) > 0
-        export_path = os.path.join(export_root, deployment_id)
+        path = os.path.join(export_root, deployment_id)
 
-    export_path = os.path.expanduser(export_path)
+    path = os.path.expanduser(path)
 
     if app is None and not local:
         raise ValueError(
@@ -969,7 +1079,7 @@ def export_(
 
     for anonymize_mode in anonymize_modes:
         _anonymize = anonymize_mode == "yes"
-        _export_(app, local, export_path, assets, _anonymize, n_parallel)
+        _export_(app, local, path, assets, _anonymize, n_parallel, docker_ssh)
 
 
 def _export_(
@@ -979,11 +1089,12 @@ def _export_(
     assets,
     anonymize: bool,
     n_parallel=None,
+    docker_ssh=False,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
     """
-    database_zip_path = export_database(app, local, export_path, anonymize)
+    database_zip_path = export_database(app, local, export_path, anonymize, docker_ssh)
 
     # We originally thought code should be exported here. However it makes better sense to
     # export instead as part of psynet sandbox/deploy. We'll implement this soon.
@@ -1005,7 +1116,7 @@ def _export_(
     log(f"Export complete. You can find your results at: {export_path}")
 
 
-def export_database(app, local, export_path, anonymize):
+def export_database(app, local, export_path, anonymize, docker_ssh):
     if local:
         app = "local"
 
@@ -1018,13 +1129,18 @@ def export_database(app, local, export_path, anonymize):
     from dallinger import data as dallinger_data
     from dallinger import db as dallinger_db
 
+    if docker_ssh:
+        from dallinger.command_line.docker_ssh import export as dallinger_export
+    else:
+        from dallinger.command_line import export as dallinger_export
+
     # Dallinger hard-codes the list of table names, but this list becomes out of date
     # if we add custom tables, so we have to patch it.
     dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
     with tempfile.TemporaryDirectory() as tempdir:
         with working_directory(tempdir):
-            dallinger_data.export(app, local=local, scrub_pii=anonymize)
+            dallinger_export(app, local=local, scrub_pii=anonymize)
 
             shutil.move(
                 os.path.join(tempdir, "data", f"{app}-data.zip"),
