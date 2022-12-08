@@ -1284,14 +1284,7 @@ def export_(
         config.load()
 
     if path is None:
-        try:
-            export_root = config.get("default_export_root", "~/psynet-data/export")
-        except KeyError:
-            raise ValueError(
-                "No value for path was provided and no value for default_export_root was found in "
-                ".dallingerconfig or config.txt. Please provide either one of these and try again."
-            )
-
+        export_root = config.get("default_export_root", "~/psynet-data/export")
         deployment_id = exp_variables["deployment_id"]
         assert len(deployment_id) > 0
         path = os.path.join(export_root, deployment_id)
