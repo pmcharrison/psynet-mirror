@@ -287,8 +287,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("Calling Exp.on_every_launch()...")
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
+        self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.grow_all_networks()
+
+    def load_deployment_config(self):
+        config = get_config()
+        if not config.ready:
+            config.load()
+        self.var.deployment_config = {
+            key: value
+            for section in reversed(config.data)
+            for key, value in section.items()
+            if not config.is_sensitive(key)
+        }
 
     def _nodes_on_deploy(self):
         from .trial.main import TrialNode
