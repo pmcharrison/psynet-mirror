@@ -664,6 +664,10 @@ def deploy__docker_heroku(ctx, verbose, app, archive):
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
 @click.pass_context
 def deploy__docker_ssh(ctx, app, archive, server, dns_host):
     try:
@@ -862,6 +866,10 @@ def debug__docker_heroku(ctx, verbose, app, archive):
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
 @click.option("--config", "-c", "config_options", nargs=2, multiple=True)
 @click.pass_context
 def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
