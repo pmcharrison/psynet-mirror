@@ -20,6 +20,7 @@ from dallinger.command_line.docker_ssh import (
     remote_postgres,
     server_option,
 )
+from dallinger.command_line.utils import verify_id
 from dallinger.config import get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.version import __version__ as dallinger_version
@@ -1528,3 +1529,149 @@ def update_scripts():
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
+
+
+@heroku.command("destroy")
+@click.option("--app", default=None, callback=verify_id, help="Experiment id")
+@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
+@click.option(
+    "--expire-hit/--no-expire-hit",
+    flag_value=True,
+    default=True,
+    prompt="Would you like to expire all MTurk HITs associated with this experiment id?",
+    help="Expire any MTurk HITs associated with this experiment.",
+)
+@click.pass_context
+def destroy__heroku(ctx, app, expire_hit):
+    with yaspin("Destroying app...") as spinner:
+        ctx.invoke(
+            dallinger.command_line.destroy,
+            app=app,
+            expire_hit=False,
+        )
+        spinner.ok("✔")
+
+    if expire_hit:
+        with yaspin("Expiring hit...") as spinner:
+            sandbox = ctx.invoke(experiment_mode__heroku, app=app) == "sandbox"
+
+            ctx.invoke(
+                dallinger.command_line.expire,
+                app=app,
+                sandbox=sandbox,
+            )
+            spinner.ok("✔")
+
+
+@docker_heroku.command("destroy")
+@click.option("--app", default=None, callback=verify_id, help="Experiment id")
+@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
+@click.option(
+    "--expire-hit/--no-expire-hit",
+    flag_value=True,
+    default=True,
+    prompt="Would you like to expire all MTurk HITs associated with this experiment id?",
+    help="Expire any MTurk HITs associated with this experiment.",
+)
+@click.pass_context
+def destroy__docker_heroku(ctx, app, expire_hit):
+    ctx.invoke(
+        destroy__heroku,
+        app,
+        expire_hit,
+    )
+
+
+@docker_ssh.command("destroy")
+@click.option("--app", default=None, callback=verify_id, help="Experiment id")
+@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
+@click.option(
+    "--expire-hit/--no-expire-hit",
+    flag_value=True,
+    default=True,
+    prompt="Would you like to expire all MTurk HITs associated with this experiment id?",
+    help="Expire any MTurk HITs associated with this experiment.",
+)
+@click.pass_context
+def destroy__docker_ssh(ctx, app, expire_hit):
+    with yaspin("Destroying app...") as spinner:
+        ctx.invoke(
+            dallinger.command_line.docker_ssh.destroy,
+            app=app,
+        )
+        spinner.ok("✔")
+
+    if expire_hit:
+        with yaspin("Expiring hit...") as spinner:
+            sandbox = ctx.invoke(experiment_mode__docker_ssh, app=app) == "sandbox"
+
+            ctx.invoke(
+                dallinger.command_line.expire,
+                app=app,
+                sandbox=sandbox,
+            )
+            spinner.ok("✔")
+
+
+@local.command("experiment-mode")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_mode__local(ctx, app):
+    try:
+        mode = ctx.invoke(experiment_variables__local, app=app,)[
+            "deployment_config"
+        ]["mode"]
+    except Exception:
+        click.echo(
+            "Failed to communicate with the running experiment to determine the deployment mode. "
+        )
+        raise
+    click.echo(f"Experiment mode: {mode}")
+    return mode
+
+
+@heroku.command("experiment-mode")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_mode__heroku(ctx, app):
+    try:
+        mode = ctx.invoke(experiment_variables__heroku, app=app,)[
+            "deployment_config"
+        ]["mode"]
+    except Exception:
+        click.echo(
+            "Failed to communicate with the running experiment to determine the deployment mode. "
+        )
+        raise
+    click.echo(f"Experiment mode: {mode}")
+    return mode
+
+
+@docker_heroku.command("experiment-mode")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_mode__docker_heroku(ctx, app):
+    try:
+        mode = ctx.invoke(experiment_variables__docker_heroku, app=app,)[
+            "deployment_config"
+        ]["mode"]
+    except Exception:
+        click.echo(
+            "Failed to communicate with the running experiment to determine the deployment mode. "
+        )
+        raise
+    click.echo(f"Experiment mode: {mode}")
+    return mode
+
+
+@heroku.command("experiment-mode")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_mode__docker_ssh(ctx, app):
+    try:
+        mode = ctx.invoke(experiment_variables__docker_ssh, app=app,)[
+            "deployment_config"
+        ]["mode"]
+    except Exception:
+        click.echo(
+            "Failed to communicate with the running experiment to determine the deployment mode. "
+        )
+        raise
+    click.echo(f"Experiment mode: {mode}")
+    return mode
