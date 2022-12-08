@@ -5,15 +5,22 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from shutil import rmtree, which
 
 import click
 import dallinger.command_line.utils
 import psutil
+import psycopg2
 from dallinger import db
-from dallinger.command_line.docker_ssh import server_option
+from dallinger.command_line.docker_ssh import (
+    CONFIGURED_HOSTS,
+    remote_postgres,
+    server_option,
+)
 from dallinger.config import get_config
+from dallinger.heroku.tools import HerokuApp
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
 from yaspin import yaspin
@@ -24,6 +31,7 @@ from psynet import __version__
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .redis import redis_vars
+from .serialize import serialize, unserialize
 from .utils import (
     make_parents,
     pretty_format_seconds,
@@ -140,14 +148,122 @@ def heroku():
     pass
 
 
-@psynet.group("docker_ssh")
+@psynet.group("docker-ssh")
 def docker_ssh():
     pass
 
 
-@psynet.group("docker_heroku")
+@psynet.group("docker-heroku")
 def docker_heroku():
     pass
+
+
+def experiment_variables(connection, echo=False):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT vars FROM experiment")
+        records = cursor.fetchall()
+
+        if len(records) == 0:
+            raise RuntimeError(
+                "No rows found in the `experiment` table, maybe the experiment isn't launched yet?"
+            )
+
+        assert len(records) == 1
+
+        _vars = unserialize(records[0][0])
+        if echo:
+            print(serialize(_vars, indent=4))
+        return _vars
+    except psycopg2.errors.UndefinedTable:
+        print(
+            "Could not find the table `experiment` on the remote database. This could mean that the experiment isn't "
+            "launched yet, or it could mean that the experiment is using an incompatible version of PsyNet."
+        )
+    finally:
+        cursor.close()
+
+
+@local.command("experiment-variables")
+def experiment_variables__local():
+    with db_connection(mode="local") as connection:
+        return experiment_variables(connection, echo=True)
+
+
+@heroku.command("experiment-variables")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_variables__heroku(app):
+    with db_connection(mode="heroku", app=app) as connection:
+        return experiment_variables(connection, echo=True)
+
+
+@docker_heroku.command("experiment-variables")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_variables__docker_heroku(app):
+    with db_connection(mode="docker-heroku", app=app) as connection:
+        return experiment_variables(connection, echo=True)
+
+
+@docker_ssh.command("experiment-variables")
+@click.option("--app", required=True, help="Name of the experiment app")
+def experiment_variables__docker_ssh(app):
+    with db_connection(mode="docker_ssh", app=app) as connection:
+        return experiment_variables(connection, echo=True)
+
+
+@contextmanager
+def db_connection(mode, app=None):
+    try:
+        connection = None
+        with get_db_uri(mode, app) as db_uri:
+            if "postgresql://" in db_uri or "postgres://" in db_uri:
+                connection = psycopg2.connect(dsn=db_uri)
+            else:
+                connection = psycopg2.connect(database=db_uri, user="dallinger")
+            yield connection
+    finally:
+        if connection:
+            connection.close()
+
+
+@contextmanager
+def get_db_uri(mode, app=None, server=None):
+    try:
+        match mode:
+            case "local":
+                yield db.db_url
+            case "heroku" | "docker-heroku":
+                assert app is not None
+                yield HerokuApp(app).db_uri
+            case "docker-ssh":
+                assert app is not None
+                assert server is not None
+                server_info = CONFIGURED_HOSTS[server]
+                yield remote_postgres(server_info, app)
+    finally:
+        pass
+
+
+@local.command("db")
+def db__local():
+    with get_db_uri("local") as uri:
+        print(uri)
+        return uri
+
+
+@heroku.command("db")
+@click.option("--app", required=True, help="Name of the experiment app")
+def db__heroku(app):
+    with get_db_uri("heroku", app) as uri:
+        print(uri)
+        return uri
+
+
+@docker_heroku.command("db")
+@click.option("--app", required=True, help="Name of the experiment app")
+@click.pass_context
+def db__docker_heroku(ctx, app):
+    return ctx.invoke(db__heroku, app=app)
 
 
 @local.command("debug")

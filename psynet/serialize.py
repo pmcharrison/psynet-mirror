@@ -97,8 +97,8 @@ class PsyNetUnpickler(Unpickler):
         return import_local_experiment()
 
 
-def serialize(x):
-    return jsonpickle.encode(x)
+def serialize(x, **kwargs):
+    return jsonpickle.encode(x, **kwargs)
 
 
 pickler = Pickler()
