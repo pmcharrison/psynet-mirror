@@ -182,6 +182,7 @@ def debug__local(
 
 @psynet.command(
     context_settings=dict(
+        allow_extra_args=True,
         ignore_unknown_options=True,
     )
 )
@@ -969,6 +970,7 @@ def export__local(**kwargs):
 
 @psynet.command(
     context_settings=dict(
+        allow_extra_args=True,
         ignore_unknown_options=True,
     )
 )
