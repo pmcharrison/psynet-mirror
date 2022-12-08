@@ -35,6 +35,7 @@ from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    get_from_config,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -1284,7 +1285,7 @@ def export_(
         config.load()
 
     if path is None:
-        export_root = config.get("default_export_root", "~/psynet-data/export")
+        export_root = get_from_config("default_export_root")
         deployment_id = exp_variables["deployment_id"]
         assert len(deployment_id) > 0
         path = os.path.join(export_root, deployment_id)
