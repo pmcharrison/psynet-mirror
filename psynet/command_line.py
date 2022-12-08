@@ -206,7 +206,7 @@ def experiment_variables__heroku(app):
 @docker_heroku.command("experiment-variables")
 @click.option("--app", required=True, help="Name of the experiment app")
 def experiment_variables__docker_heroku(app):
-    with db_connection(mode="docker-heroku", app=app) as connection:
+    with db_connection(mode="docker_heroku", app=app) as connection:
         return experiment_variables(connection, echo=True)
 
 
@@ -239,14 +239,17 @@ def get_db_uri(mode, app=None, server=None):
         match mode:
             case "local":
                 yield db.db_url
-            case "heroku" | "docker-heroku":
+            case "heroku" | "docker_heroku":
                 assert app is not None
                 yield HerokuApp(app).db_uri
-            case "docker-ssh":
+            case "docker_ssh":
                 assert app is not None
                 assert server is not None
                 server_info = CONFIGURED_HOSTS[server]
-                yield remote_postgres(server_info, app)
+                with remote_postgres(server_info, app) as db_uri:
+                    yield db_uri
+            case _:
+                raise ValueError(f"Invalid mode: {mode}")
     finally:
         pass
 
@@ -841,7 +844,7 @@ def debug__heroku(ctx, verbose, app, archive):
 
 @docker_heroku.command("debug")
 @click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", default=None, help="Experiment id")
+@click.option("--app", required=True, help="App name")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
 def debug__docker_heroku(ctx, verbose, app, archive):
@@ -863,7 +866,7 @@ def debug__docker_heroku(ctx, verbose, app, archive):
 
 
 @docker_ssh.command("debug")
-@click.option("--app", default=None, help="Experiment id")
+@click.option("--app", required=True, help="App name")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
 @click.option(
@@ -875,6 +878,7 @@ def debug__docker_heroku(ctx, verbose, app, archive):
 def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
     from dallinger.command_line.docker_ssh import deploy
 
+    os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
     _pre_launch(ctx, "sandbox", archive)
 
     result = ctx.invoke(
@@ -1214,7 +1218,11 @@ def export(*args, **kwargs):
 
 @heroku.command("export")
 @export_arguments
-@app_argument
+@click.option(
+    "--app",
+    required=True,
+    help="Name of the app to export",
+)
 @click.pass_context
 def export__heroku(ctx, app, **kwargs):
     exp_variables = ctx.invoke(experiment_variables__heroku, app=app)
@@ -1223,7 +1231,11 @@ def export__heroku(ctx, app, **kwargs):
 
 @docker_heroku.command("export")
 @export_arguments
-@app_argument
+@click.option(
+    "--app",
+    required=True,
+    help="Name of the app to export",
+)
 @click.pass_context
 def export__docker_heroku(ctx, app, **kwargs):
     exp_variables = ctx.invoke(experiment_variables__docker_heroku, app=app)
@@ -1232,7 +1244,11 @@ def export__docker_heroku(ctx, app, **kwargs):
 
 @docker_ssh.command("export")
 @export_arguments
-@app_argument
+@click.option(
+    "--app",
+    required=True,
+    help="Name of the app to export",
+)
 @server_option
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
@@ -1645,9 +1661,11 @@ def destroy__docker_heroku(ctx, app, expire_hit):
 )
 @click.pass_context
 def destroy__docker_ssh(ctx, app, expire_hit):
+    from dallinger.command_line.docker_ssh import destroy
+
     with yaspin("Destroying app...") as spinner:
         ctx.invoke(
-            dallinger.command_line.docker_ssh.destroy,
+            destroy,
             app=app,
         )
         spinner.ok("✔")
@@ -1726,3 +1744,23 @@ def experiment_mode__docker_ssh(ctx, app):
         raise
     click.echo(f"Experiment mode: {mode}")
     return mode
+
+
+@docker_ssh.command("apps")
+@server_option
+@click.pass_context
+def apps__docker_ssh(ctx, server):
+    from dallinger.command_line.docker_ssh import apps
+
+    _apps = ctx.invoke(apps, server=server)
+    if len(_apps) == 0:
+        click.echo("No apps found.")
+
+
+@docker_ssh.command("stats")
+@server_option
+@click.pass_context
+def stats__docker_ssh(ctx, server):
+    from dallinger.command_line.docker_ssh import stats
+
+    ctx.invoke(stats, server=server)
