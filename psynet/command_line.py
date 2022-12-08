@@ -173,10 +173,10 @@ def experiment_variables(connection, echo=False):
 
         _vars = unserialize(records[0][0])
         if echo:
-            print(serialize(_vars, indent=4))
+            click.echo(serialize(_vars, indent=4))
         return _vars
     except psycopg2.errors.UndefinedTable:
-        print(
+        click.echo(
             "Could not find the table `experiment` on the remote database. This could mean that the experiment isn't "
             "launched yet, or it could mean that the experiment is using an incompatible version of PsyNet."
         )
@@ -250,7 +250,7 @@ def get_db_uri(mode, app=None, server=None):
 @local.command("db")
 def db__local():
     with get_db_uri("local") as uri:
-        print(uri)
+        click.echo(uri)
         return uri
 
 
@@ -258,7 +258,7 @@ def db__local():
 @click.option("--app", required=True, help="Name of the experiment app")
 def db__heroku(app):
     with get_db_uri("heroku", app) as uri:
-        print(uri)
+        click.echo(uri)
         return uri
 
 
@@ -1410,7 +1410,7 @@ def update_scripts():
     To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
     prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
     """
-    print(
+    click.echo(
         f"Populating the current directory ({os.getcwd()}) with experiment scripts, e.g. Dockerfile and shell scripts."
     )
     shutil.copyfile(
