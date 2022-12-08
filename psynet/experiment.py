@@ -67,11 +67,9 @@ from .utils import (
     cache,
     call_function,
     call_function_with_context,
-    classproperty,
     disable_logger,
     error_page,
     get_arg_from_dict,
-    get_from_config,
     get_logger,
     log_time_taken,
     pretty_log_dict,
@@ -288,8 +286,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
         self.var.server_working_directory = os.getcwd()
-        self.var.dashboard_user = get_from_config("dashboard_user")
-        self.var.dashboard_password = get_from_config("dashboard_password")
+        self.var.deployment_id = deployment_info.read("deployment_id")
         self.asset_storage.on_every_launch()
         self.grow_all_networks()
 
@@ -546,9 +543,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def generate_deployment_id(cls):
         return cls.label + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-    @classproperty
-    def deployment_id(cls):
-        return deployment_info.read("deployment_id")
+    @property
+    def deployment_id(self):
+        return self.var.deployment_id
 
     def grow_all_networks(self):
         from .trial.main import NetworkTrialMaker
