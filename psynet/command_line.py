@@ -1429,15 +1429,19 @@ def export_database(
     with tempfile.TemporaryDirectory() as tempdir:
         with working_directory(tempdir):
             if docker_ssh:
+                from dallinger.command_line.docker_ssh import export
+
                 ctx.invoke(
-                    dallinger.command_line.docker_ssh.export,
+                    export,
                     server=server,
                     app=app,
                     no_scrub=not anonymize,
                 )
             else:
+                from dallinger.command_line import export
+
                 ctx.invoke(
-                    dallinger.command_line.export,
+                    export,
                     app=app,
                     local=local,
                     no_scrub=not anonymize,
