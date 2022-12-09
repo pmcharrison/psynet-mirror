@@ -1243,13 +1243,13 @@ def export__docker_heroku(ctx, app, **kwargs):
 
 
 @docker_ssh.command("export")
-@export_arguments
 @click.option(
     "--app",
     required=True,
     help="Name of the app to export",
 )
 @server_option
+@export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
     exp_variables = ctx.invoke(experiment_variables__docker_ssh, app=app, server=server)
@@ -1257,6 +1257,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
         ctx,
         app=app,
         local=False,
+        server=server,
         exp_variables=exp_variables,
         docker_ssh=True,
         **kwargs,
