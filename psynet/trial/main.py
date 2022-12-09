@@ -16,6 +16,7 @@ from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, deferred, relationship
+from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from psynet import field
@@ -427,6 +428,8 @@ class Trial(SQLMixinDallinger, Info):
                 self.definition = self.finalize_definition(
                     self.definition, experiment, participant
                 )
+                flag_modified(self, "definition")
+
                 assert self.definition is not None
             else:
                 self.definition = definition

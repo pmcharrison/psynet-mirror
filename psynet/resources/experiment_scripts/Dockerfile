@@ -12,6 +12,9 @@
 
 FROM registry.gitlab.com/psynetdev/psynet:v10-release-candidate
 
+# This is used for debugging experiments using PyCharm
+RUN python3 -m pip install pydevd-pycharm~=221.6008.17
+
 RUN mkdir /experiment
 WORKDIR /experiment
 
@@ -32,5 +35,8 @@ RUN if test -f prepare_docker_image.sh ; then bash prepare_docker_image.sh ; fi
 COPY . /experiment
 
 ENV PORT=5000
+
+ARG REMOTE_DEBUGGER_PORT
+EXPOSE $REMOTE_DEBUGGER_PORT
 
 CMD dallinger_heroku_web
