@@ -304,7 +304,12 @@ def db__docker_heroku(ctx, app):
 def debug__local(
     ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask
 ):
-    debug_(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask)
+    try:
+        debug_(
+            ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask
+        )
+    finally:
+        _cleanup_exp_directory()
 
 
 @psynet.command(
@@ -398,6 +403,10 @@ def _cleanup_before_debug():
     # This is important for resetting the state before _debug_legacy;
     # otherwise `dallinger verify` throws an error.
     clean_sys_modules()  # Unimports the PsyNet experiment
+
+
+def _cleanup_exp_directory():
+    shutil.rmtree(".deploy")
 
 
 def run_pre_auto_reload_checks():
@@ -622,16 +631,15 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 ##########
 
 
-def _pre_launch(ctx, mode, archive, docker=False):
+def _pre_launch(ctx, mode, archive, docker=False, heroku=False):
     log("Preparing for launch...")
 
     redis_vars.clear()
-    make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
     deployment_info.write(mode=mode)
 
     log("Running pre-deploy checks...")
-    run_pre_checks(mode)
+    run_pre_checks(mode, heroku)
     log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
@@ -655,14 +663,14 @@ def deploy__heroku(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to MTurk.
     """
-    _pre_launch(ctx, mode="live", archive=archive)
-
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
+        _pre_launch(ctx, mode="live", archive=archive, heroku=True)
         result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
         _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
 
 
@@ -675,20 +683,20 @@ def deploy__docker_heroku(ctx, verbose, app, archive):
     """
     Deploy app using Heroku to MTurk.
     """
-    if archive is not None:
-        raise NotImplementedError(
-            "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
-            "This shouldn't be hard to fix..."
-        )
-
-    _pre_launch(ctx, mode="live", archive=archive, docker=True)
-
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
+        if archive is not None:
+            raise NotImplementedError(
+                "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
+                "This shouldn't be hard to fix..."
+            )
+
+        _pre_launch(ctx, mode="live", archive=archive, docker=True, heroku=True)
         result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app)
         _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
 
 
@@ -729,6 +737,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
 
         _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
 
 
@@ -801,11 +810,25 @@ def docs(force_rebuild):
 ##############
 
 
-def run_pre_checks(mode):
+def run_pre_checks(mode, heroku=False):
     from dallinger.recruiters import MTurkRecruiter
 
     from .asset import DebugStorage
     from .experiment import get_experiment
+
+    if heroku:
+        try:
+            with open(".gitignore", "r") as f:
+                for line in f.readlines():
+                    if line.startswith(".deploy"):
+                        if not click.confirm(
+                            "The .gitignore file contains '.deploy'; "
+                            "in order to deploy on Heroku without Docker this line must ordinarily be removed. "
+                            "Are you sure you want to continue?"
+                        ):
+                            raise click.Abort
+        except FileNotFoundError:
+            pass
 
     init_db(drop_all=True)
 
@@ -864,14 +887,14 @@ def debug__heroku(ctx, verbose, app, archive):
     """
     from dallinger.command_line import sandbox as dallinger_sandbox
 
-    _pre_launch(ctx, "sandbox", archive)
-
     try:
+        _pre_launch(ctx, "sandbox", archive, heroku=True)
         result = ctx.invoke(
             dallinger_sandbox, verbose=verbose, app=app, archive=archive
         )
         _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
 
 
@@ -883,18 +906,17 @@ def debug__heroku(ctx, verbose, app, archive):
 def debug__docker_heroku(ctx, verbose, app, archive):
     from dallinger.command_line.docker import sandbox as dallinger_sandbox
 
-    if archive is not None:
-        raise NotImplementedError(
-            "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
-            "This shouldn't be hard to fix..."
-        )
-
-    _pre_launch(ctx, "sandbox", archive, docker=True)
-
     try:
+        if archive is not None:
+            raise NotImplementedError(
+                "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
+                "This shouldn't be hard to fix..."
+            )
+        _pre_launch(ctx, "sandbox", archive, docker=True)
         result = ctx.invoke(dallinger_sandbox, verbose=verbose, app=app)
         _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
 
 
@@ -909,22 +931,25 @@ def debug__docker_heroku(ctx, verbose, app, archive):
 @click.option("--config", "-c", "config_options", nargs=2, multiple=True)
 @click.pass_context
 def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
-    from dallinger.command_line.docker_ssh import deploy
+    try:
+        from dallinger.command_line.docker_ssh import deploy
 
-    os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
-    _pre_launch(ctx, "sandbox", archive, docker=True)
+        os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+        _pre_launch(ctx, "sandbox", archive, docker=True)
 
-    result = ctx.invoke(
-        deploy,
-        mode="sandbox",
-        server=server,
-        dns_host=dns_host,
-        app_name=app,
-        config_options=config_options,
-        archive_path=archive,
-    )
+        result = ctx.invoke(
+            deploy,
+            mode="sandbox",
+            server=server,
+            dns_host=dns_host,
+            app_name=app,
+            config_options=config_options,
+            archive_path=archive,
+        )
 
-    _post_deploy(result)
+        _post_deploy(result)
+    finally:
+        _cleanup_exp_directory()
 
 
 ##########
@@ -1592,11 +1617,6 @@ def load(path):
 
     import_local_experiment()
     populate_db_from_zip_file(path)
-
-
-def make_deploy_dir():
-    path = "deploy"
-    Path(path).mkdir(parents=True, exist_ok=True)
 
 
 # Example usage: psynet generate-config --debug_storage_root ~/debug_storage

@@ -79,7 +79,7 @@ from .utils import (
 
 logger = get_logger()
 
-database_template_path = "deploy/database_template.zip"
+database_template_path = ".deploy/database_template.zip"
 
 
 def error_response(*args, **kwargs):
@@ -995,8 +995,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "prepare_docker_image.sh",
             ),
             (
-                "deploy",
-                "deploy",
+                ".deploy",
+                ".deploy",
             ),
             (
                 resource_filename(
