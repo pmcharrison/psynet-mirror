@@ -319,6 +319,30 @@ def debug(*args, **kwargs):
     )
 
 
+@psynet.command(
+    context_settings=dict(
+        allow_extra_args=True,
+        ignore_unknown_options=True,
+    )
+)
+def sandbox(*args, **kwargs):
+    raise click.ClickException(
+        "`psynet sandbox` has been replaced with `psynet heroku debug`, please use the latter."
+    )
+
+
+@psynet.command(
+    context_settings=dict(
+        allow_extra_args=True,
+        ignore_unknown_options=True,
+    )
+)
+def deploy(*args, **kwargs):
+    raise click.ClickException(
+        "`psynet deploy` has been replaced with `psynet heroku deploy`, please use the latter."
+    )
+
+
 def debug_(
     ctx=None,
     legacy=False,
