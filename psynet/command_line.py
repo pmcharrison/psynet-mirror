@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -703,18 +704,18 @@ def _post_deploy(result):
     assert isinstance(result, dict)
     assert "dashboard_user" in result
     assert "dashboard_password" in result
-    export_deploy_log(
+    export_launch_info(
         deployment_id=deployment_info.read("deployment_id"),
         **result,
     )
 
 
-def export_deploy_log(deployment_id, dashboard_user, dashboard_password, **kwargs):
+def export_launch_info(deployment_id, dashboard_user, dashboard_password, **kwargs):
     """
     Retrieves dashboard credentials from the current config and
     saves them to disk.
     """
-    parent = Path("~/psynet-data/deploy").expanduser() / deployment_id
+    parent = Path("~/psynet-data/launch_info").expanduser() / deployment_id
     parent.mkdir(parents=True, exist_ok=True)
     file = parent.joinpath("dashboard_credentials.json")
     with open(file, "w") as f:
@@ -1325,7 +1326,11 @@ def export_(
     if path is None:
         export_root = get_from_config("default_export_root")
 
-        path = os.path.join(export_root, deployment_id)
+        path = os.path.join(
+            export_root,
+            deployment_id,
+            "export " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
+        )
 
     path = os.path.expanduser(path)
 
