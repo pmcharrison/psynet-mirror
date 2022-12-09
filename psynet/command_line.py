@@ -634,6 +634,9 @@ def _pre_launch(ctx, mode, archive, docker=False):
     run_pre_checks(mode)
     log(header)
 
+    # Always use the Dallinger version in requirements.txt, not the local editable one
+    os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+
     if docker:
         if Path("Dockerfile").exists():
             # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
@@ -852,7 +855,7 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
 
 @heroku.command("debug")
 @click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", default=None, help="Experiment id")
+@click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
 def debug__heroku(ctx, verbose, app, archive):
