@@ -610,6 +610,9 @@ def _pre_launch(ctx, mode, archive):
     run_pre_checks(mode)
     log(header)
 
+    with open("constraints.txt", "w") as f:
+        f.write("# PsyNet does not use constraints.txt; please leave this file blank.")
+
     if not archive:
         ctx.invoke(prepare)
 
