@@ -1758,6 +1758,7 @@ def destroy__docker_ssh(ctx, app, expire_hit):
 
 @local.command("experiment-mode")
 @click.option("--app", required=True, help="Name of the experiment app")
+@click.pass_context
 def experiment_mode__local(ctx, app):
     try:
         mode = ctx.invoke(experiment_variables__local, app=app,)[
@@ -1774,6 +1775,7 @@ def experiment_mode__local(ctx, app):
 
 @heroku.command("experiment-mode")
 @click.option("--app", required=True, help="Name of the experiment app")
+@click.pass_context
 def experiment_mode__heroku(ctx, app):
     try:
         mode = ctx.invoke(experiment_variables__heroku, app=app,)[
@@ -1790,6 +1792,7 @@ def experiment_mode__heroku(ctx, app):
 
 @docker_heroku.command("experiment-mode")
 @click.option("--app", required=True, help="Name of the experiment app")
+@click.pass_context
 def experiment_mode__docker_heroku(ctx, app):
     try:
         mode = ctx.invoke(experiment_variables__docker_heroku, app=app,)[
@@ -1806,6 +1809,7 @@ def experiment_mode__docker_heroku(ctx, app):
 
 @heroku.command("experiment-mode")
 @click.option("--app", required=True, help="Name of the experiment app")
+@click.pass_context
 def experiment_mode__docker_ssh(ctx, app):
     try:
         mode = ctx.invoke(experiment_variables__docker_ssh, app=app,)[
