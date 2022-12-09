@@ -563,7 +563,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def deployment_id(self):
-        return self.var.deployment_id
+        return deployment_info.read("deployment_id")
 
     def grow_all_networks(self):
         from .trial.main import NetworkTrialMaker
