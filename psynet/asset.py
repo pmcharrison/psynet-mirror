@@ -319,9 +319,14 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     local_key = Column(String, index=True)
     key = Column(String, primary_key=True, index=True)  # , onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
-    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     label = Column(String)
+
     parent = deferred(Column(PythonObject))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
+    trial_id = Column(Integer, ForeignKey("info.id"), index=True)
+    node_id = Column(Integer, ForeignKey("node.id"), index=True)
+    network_id = Column(Integer, ForeignKey("network.id"), index=True)
+
     description = Column(String)
     personal = Column(Boolean)
     content_id = Column(String)
@@ -638,6 +643,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.parent:
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
+
+                ancestors = self.get_ancestors()
+                self.network_id = ancestors["network"]
+                self.node_id = ancestors["node"]
+                self.trial_id = ancestors["trial"]
+                self.participant_id = ancestors["participant"]
 
             if not self.content_id:
                 self.content_id = self.get_content_id()
