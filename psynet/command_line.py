@@ -598,7 +598,7 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 ##########
 
 
-def _pre_launch(ctx, mode, archive):
+def _pre_launch(ctx, mode, archive, docker=False):
     log("Preparing for launch...")
 
     redis_vars.clear()
@@ -610,8 +610,10 @@ def _pre_launch(ctx, mode, archive):
     run_pre_checks(mode)
     log(header)
 
-    with open("constraints.txt", "w") as f:
-        f.write("# PsyNet does not use constraints.txt; please leave this file blank.")
+    if docker:
+        if Path("Dockerfile").exists():
+            # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
+            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     if not archive:
         ctx.invoke(prepare)
@@ -652,7 +654,7 @@ def deploy__docker_heroku(ctx, verbose, app, archive):
             "This shouldn't be hard to fix..."
         )
 
-    _pre_launch(ctx, mode="live", archive=archive)
+    _pre_launch(ctx, mode="live", archive=archive, docker=True)
 
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
@@ -682,7 +684,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, mode="live", archive=archive)
+        _pre_launch(ctx, mode="live", archive=archive, docker=True)
 
         from dallinger.command_line.docker_ssh import (
             deploy as dallinger_docker_ssh_deploy,
@@ -860,7 +862,7 @@ def debug__docker_heroku(ctx, verbose, app, archive):
             "This shouldn't be hard to fix..."
         )
 
-    _pre_launch(ctx, "sandbox", archive)
+    _pre_launch(ctx, "sandbox", archive, docker=True)
 
     try:
         result = ctx.invoke(dallinger_sandbox, verbose=verbose, app=app)
@@ -883,7 +885,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
     from dallinger.command_line.docker_ssh import deploy
 
     os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
-    _pre_launch(ctx, "sandbox", archive)
+    _pre_launch(ctx, "sandbox", archive, docker=True)
 
     result = ctx.invoke(
         deploy,
