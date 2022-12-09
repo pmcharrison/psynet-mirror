@@ -1303,7 +1303,20 @@ def export_(
     from .experiment import import_local_experiment
 
     log(header)
-    import_local_experiment()
+
+    deployment_id = exp_variables["deployment_id"]
+    assert len(deployment_id) > 0
+
+    local_exp = import_local_experiment()["class"]
+
+    if not deployment_id.startswith(local_exp.label):
+        if not click.confirm(
+            f"The remote experiment's deployment ID ({deployment_id}) does not match the local experiment's "
+            f"label ({local_exp.label}). Are you sure you are running the export command from the right "
+            "experiment folder? If not, the export process is likely to fail. "
+            "To continue anyway, press Y and Enter, otherwise just press Enter to cancel."
+        ):
+            raise click.Abort
 
     config = get_config()
     if not config.ready:
@@ -1311,8 +1324,7 @@ def export_(
 
     if path is None:
         export_root = get_from_config("default_export_root")
-        deployment_id = exp_variables["deployment_id"]
-        assert len(deployment_id) > 0
+
         path = os.path.join(export_root, deployment_id)
 
     path = os.path.expanduser(path)
