@@ -384,7 +384,7 @@ def _debug__local(
             "It is not possible to select both --legacy and --docker modes simultaneously."
         )
 
-    _pre_launch(ctx, "debug", archive=archive, docker=docker)
+    _pre_launch(ctx, mode="debug", archive=archive, local_=True, docker=docker)
     drop_all_db_tables()
 
     if archive is None:
@@ -425,7 +425,10 @@ def _cleanup_before_debug():
 
 
 def _cleanup_exp_directory():
-    shutil.rmtree(".deploy")
+    try:
+        shutil.rmtree(".deploy")
+    except FileNotFoundError:
+        pass
 
 
 def run_pre_auto_reload_checks():
@@ -674,15 +677,23 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 ##########
 
 
-def _pre_launch(ctx, mode, archive, docker=False, heroku=False):
+def _pre_launch(
+    ctx,
+    *,
+    mode,
+    archive,
+    local_,
+    docker=False,
+    heroku=False,
+):
     log("Preparing for launch...")
 
     redis_vars.clear()
     deployment_info.init(redeploying_from_archive=archive is not None)
     deployment_info.write(mode=mode)
 
-    log("Running pre-deploy checks...")
-    run_pre_checks(mode, heroku, docker)
+    log("Running pre-launch checks...")
+    run_pre_checks(mode, local_, heroku, docker)
     log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
@@ -694,7 +705,10 @@ def _pre_launch(ctx, mode, archive, docker=False, heroku=False):
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     if not archive:
-        ctx.invoke(prepare)
+        if local_:
+            run_prepare_in_subprocess()
+        else:
+            ctx.invoke(prepare)
 
 
 @heroku.command()
@@ -709,7 +723,7 @@ def deploy__heroku(ctx, verbose, app, archive):
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
-        _pre_launch(ctx, mode="live", archive=archive, heroku=True)
+        _pre_launch(ctx, mode="live", archive=archive, local_=False, heroku=True)
         result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
         _post_deploy(result)
     finally:
@@ -735,7 +749,9 @@ def deploy__docker_heroku(ctx, verbose, app, archive):
                 "This shouldn't be hard to fix..."
             )
 
-        _pre_launch(ctx, mode="live", archive=archive, docker=True, heroku=True)
+        _pre_launch(
+            ctx, mode="live", archive=archive, local_=False, docker=True, heroku=True
+        )
         result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app)
         _post_deploy(result)
     finally:
@@ -762,7 +778,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, mode="live", archive=archive, docker=True)
+        _pre_launch(ctx, mode="live", archive=archive, local_=False, docker=True)
 
         from dallinger.command_line.docker_ssh import (
             deploy as dallinger_docker_ssh_deploy,
@@ -853,7 +869,7 @@ def docs(force_rebuild):
 ##############
 
 
-def run_pre_checks(mode, heroku=False, docker=False):
+def run_pre_checks(mode, local_, heroku=False, docker=False):
     from dallinger.recruiters import MTurkRecruiter
 
     from .asset import DebugStorage
@@ -881,30 +897,35 @@ def run_pre_checks(mode, heroku=False, docker=False):
                 "psynet update-docker"
             )
 
-    init_db(drop_all=True)
+    if not local_:
+        # Running these following tests in advance of local deployment is skipped because it confuses SQLAlchemy
+        # to import the experiment in advance of the experiment launch itself, you get errors like this:
+        # sqlalchemy.exc.InvalidRequestError: Table 'coin' is already defined for this MetaData instance.
+        # Specify 'extend_existing=True' to redefine options and columns on an existing Table object.
+        init_db(drop_all=True)
 
-    config = get_config()
-    if not config.ready:
-        config.load()
+        config = get_config()
+        if not config.ready:
+            config.load()
 
-    exp = get_experiment()
+        exp = get_experiment()
 
-    recruiter = exp.recruiter
-    is_mturk = isinstance(recruiter, MTurkRecruiter)
+        recruiter = exp.recruiter
+        is_mturk = isinstance(recruiter, MTurkRecruiter)
 
-    if mode in ["sandbox", "deploy"]:
-        if isinstance(exp.asset_storage, DebugStorage):
-            raise AttributeError(
-                "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
-                "If you don't need assets in your experiment, you can probably remove the line altogether, "
-                "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
-                "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
-            )
+        if mode in ["sandbox", "deploy"]:
+            if isinstance(exp.asset_storage, DebugStorage):
+                raise AttributeError(
+                    "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
+                    "If you don't need assets in your experiment, you can probably remove the line altogether, "
+                    "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
+                    "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+                )
 
-    if mode == "sandbox":
-        run_pre_checks_sandbox(exp, config, is_mturk)
-    elif mode == "deploy":
-        run_pre_checks_deploy(exp, config, is_mturk)
+        if mode == "sandbox":
+            run_pre_checks_sandbox(exp, config, is_mturk)
+        elif mode == "deploy":
+            run_pre_checks_deploy(exp, config, is_mturk)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
@@ -934,7 +955,7 @@ def debug__heroku(ctx, verbose, app, archive):
     from dallinger.command_line import sandbox as dallinger_sandbox
 
     try:
-        _pre_launch(ctx, "sandbox", archive, heroku=True)
+        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, heroku=True)
         result = ctx.invoke(
             dallinger_sandbox, verbose=verbose, app=app, archive=archive
         )
@@ -958,7 +979,7 @@ def debug__docker_heroku(ctx, verbose, app, archive):
                 "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
                 "This shouldn't be hard to fix..."
             )
-        _pre_launch(ctx, "sandbox", archive, docker=True)
+        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
         result = ctx.invoke(dallinger_sandbox, verbose=verbose, app=app)
         _post_deploy(result)
     finally:
@@ -982,7 +1003,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
 
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, "sandbox", archive, docker=True)
+        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
 
         result = ctx.invoke(
             deploy,
