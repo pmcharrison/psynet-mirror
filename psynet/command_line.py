@@ -281,6 +281,7 @@ def db__docker_heroku(ctx, app):
 @local.command("debug")
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--legacy", is_flag=True, help="Legacy mode")
+@click.option("--docker", is_flag=True, help="Docker mode")
 @click.option("--bot", is_flag=True, help="Use bot to complete experiment")
 @click.option(
     "--proxy", default=None, help="Alternate port when opening browser windows"
@@ -303,11 +304,20 @@ def db__docker_heroku(ctx, app):
 )
 @click.pass_context
 def debug__local(
-    ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask
+    ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask, docker
 ):
     try:
         debug_(
-            ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask
+            ctx,
+            legacy,
+            verbose,
+            bot,
+            proxy,
+            no_browsers,
+            threads,
+            archive,
+            skip_flask,
+            docker,
         )
     finally:
         _cleanup_exp_directory()
@@ -359,6 +369,7 @@ def debug_(
     threads=1,
     archive=None,
     skip_flask=False,
+    docker=False,
 ):
     """
     Run the experiment locally.
@@ -367,6 +378,11 @@ def debug_(
         from click import Context
 
         ctx = Context(debug)
+
+    if legacy and docker:
+        raise click.UsageError(
+            "It is not possible to select both --legacy and --docker modes simultaneously."
+        )
 
     _pre_launch(ctx, "debug", archive)
     drop_all_db_tables()
@@ -381,6 +397,8 @@ def debug_(
             # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
             # This problem manifests specifically when the experiment contains custom tables.
             _debug_legacy(**locals())
+        elif docker:
+            _debug_docker(**locals())
         else:
             _debug_auto_reload(**locals())
     finally:
@@ -446,7 +464,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
     exp_config = {"threads": str(threads)}
 
     if archive:
-        raise ValueError(
+        raise click.UsageError(
             "Legacy debug mode doesn't currently support loading from archive"
         )
 
@@ -460,6 +478,30 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
             proxy=proxy,
             no_browsers=no_browsers,
             exp_config=exp_config,
+            # archive=archive,  # Not currently supported by Dallinger
+        )
+    finally:
+        db.session.commit()
+        reset_console()
+
+
+def _debug_docker(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwargs):
+    from dallinger.command_line.docker import debug as dallinger_debug
+
+    if archive:
+        raise click.UsageError(
+            "`psynet debug --docker` doesn't currently support loading from archive. "
+        )
+
+    db.session.commit()
+
+    try:
+        ctx.invoke(
+            dallinger_debug,
+            verbose=verbose,
+            bot=bot,
+            proxy=proxy,
+            no_browsers=no_browsers,
             # archive=archive,  # Not currently supported by Dallinger
         )
     finally:
