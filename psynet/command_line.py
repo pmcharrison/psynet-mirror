@@ -1324,7 +1324,7 @@ def export_arguments(func):
 @local.command("export")
 @export_arguments
 @click.pass_context
-def export__local(ctx, **kwargs):
+def export__local(ctx=None, **kwargs):
     exp_variables = ctx.invoke(experiment_variables__local)
     export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
 
