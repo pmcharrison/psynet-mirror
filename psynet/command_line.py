@@ -143,27 +143,9 @@ def _prepare():
 #########
 # debug #
 #########
-@psynet.group("local")
-def local():
-    pass
 
 
-@psynet.group("heroku")
-def heroku():
-    pass
-
-
-@psynet.group("docker-ssh")
-def docker_ssh():
-    pass
-
-
-@psynet.group("docker-heroku")
-def docker_heroku():
-    pass
-
-
-def experiment_variables(connection, echo=False):
+def _experiment_variables(connection, echo=False):
     try:
         cursor = connection.cursor()
         cursor.execute("SELECT vars FROM experiment")
@@ -192,39 +174,36 @@ def experiment_variables(connection, echo=False):
 # Experiment variables ####
 
 
-@local.command("experiment-variables")
-def experiment_variables__local():
-    with db_connection(mode="local") as connection:
-        return experiment_variables(connection, echo=True)
+def _validate_location(ctx, param, value):
+    allowed = ["local", "heroku", "ssh"]
+    if value not in allowed:
+        raise click.UsageError(
+            f"Invalid location {value}; location must be one of: {', '.join(allowed)}"
+        )
 
 
-@heroku.command("experiment-variables")
-@click.option("--app", required=True, help="Name of the experiment app")
-def experiment_variables__heroku(app):
-    with db_connection(mode="heroku", app=app) as connection:
-        return experiment_variables(connection, echo=True)
-
-
-@docker_heroku.command("experiment-variables")
-@click.option("--app", required=True, help="Name of the experiment app")
-def experiment_variables__docker_heroku(app):
-    with db_connection(mode="docker_heroku", app=app) as connection:
-        return experiment_variables(connection, echo=True)
-
-
-@docker_ssh.command("experiment-variables")
-@click.option("--app", required=True, help="Name of the experiment app")
-@server_option
-def experiment_variables__docker_ssh(app, server):
-    with db_connection(mode="docker_ssh", app=app, server=server) as connection:
-        return experiment_variables(connection, echo=True)
+@psynet.command("experiment-variables")
+@click.argument("location", default="local", callback=_validate_location)
+@click.option(
+    "--app",
+    default=None,
+    help="Name of the experiment app (required for non-local deployments)",
+)
+@click.option(
+    "--server",
+    default=None,
+    help="Name of the remote server (only relevant for ssh deployments)",
+)
+def experiment_variables(location, app, server):
+    with db_connection(location, app, server) as connection:
+        return _experiment_variables(connection, echo=True)
 
 
 @contextmanager
-def db_connection(mode, app=None, server=None):
+def db_connection(location, app=None, server=None):
     try:
         connection = None
-        with get_db_uri(mode, app, server) as db_uri:
+        with get_db_uri(location, app, server) as db_uri:
             if "postgresql://" in db_uri or "postgres://" in db_uri:
                 connection = psycopg2.connect(dsn=db_uri)
             else:
@@ -235,104 +214,56 @@ def db_connection(mode, app=None, server=None):
             connection.close()
 
 
+def prompt_for_ssh_server():
+    click.echo(
+        "Choose one of the configured servers (add one with `dallinger docker-ssh servers add`):"
+    )
+    return click.Choice(CONFIGURED_HOSTS.keys())
+
+
 @contextmanager
-def get_db_uri(mode, app=None, server=None):
-    try:
-        match mode:
-            case "local":
-                yield db.db_url
-            case "heroku" | "docker_heroku":
-                assert app is not None
-                yield HerokuApp(app).db_uri
-            case "docker_ssh":
-                assert app is not None
-                assert server is not None
-                server_info = CONFIGURED_HOSTS[server]
-                with remote_postgres(server_info, app) as db_uri:
-                    yield db_uri
-            case _:
-                raise ValueError(f"Invalid mode: {mode}")
-    finally:
-        pass
+def get_db_uri(location, app=None, server=None):
+    match location:
+        case "local":
+            yield db.db_url
+        case "heroku" | "docker_heroku":
+            if app is None:
+                raise click.UsageError("Missing parameter: --app")
+            yield HerokuApp(app).db_uri
+        case "ssh":
+            if app is None:
+                raise click.UsageError("Missing parameter: --app")
+            if server is None:
+                server = prompt_for_ssh_server()
+            server_info = CONFIGURED_HOSTS[server]
+            with remote_postgres(server_info, app) as db_uri:
+                yield db_uri
+        case _:
+            raise click.BadParameter(f"Invalid location: {location}")
 
 
-@local.command("db")
-def db__local():
-    with get_db_uri("local") as uri:
+@psynet.command("db")
+@click.argument("location", default="local", callback=_validate_location)
+@click.option(
+    "--app",
+    default=None,
+    help="Name of the experiment app (required for non-local deployments)",
+)
+@click.option(
+    "--server",
+    default=None,
+    help="Name of the remote server (only relevant for ssh deployments)",
+)
+def _db(location, app, server):
+    with get_db_uri(location, app, server) as uri:
         click.echo(uri)
         return uri
 
 
-@heroku.command("db")
-@click.option("--app", required=True, help="Name of the experiment app")
-def db__heroku(app):
-    with get_db_uri("heroku", app) as uri:
-        click.echo(uri)
-        return uri
-
-
-@docker_heroku.command("db")
-@click.option("--app", required=True, help="Name of the experiment app")
+@psynet.group("debug", invoke_without_command=True)
 @click.pass_context
-def db__docker_heroku(ctx, app):
-    return ctx.invoke(db__heroku, app=app)
-
-
-@local.command("debug")
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--legacy", is_flag=True, help="Legacy mode")
-@click.option("--docker", is_flag=True, help="Docker mode")
-@click.option("--bot", is_flag=True, help="Use bot to complete experiment")
-@click.option(
-    "--proxy", default=None, help="Alternate port when opening browser windows"
-)
-@click.option(
-    "--no-browsers",
-    is_flag=True,
-    help="Skip opening browsers",
-)
-@click.option(
-    "--threads",
-    default=1,
-    help="Number of threads to spawn. Fewer threads means faster start-up time.",
-)
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option(
-    "--skip-flask",
-    is_flag=True,
-    help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
-)
-@click.pass_context
-def debug__local(
-    ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask, docker
-):
-    try:
-        _debug__local(
-            ctx,
-            legacy,
-            verbose,
-            bot,
-            proxy,
-            no_browsers,
-            threads,
-            archive,
-            skip_flask,
-            docker,
-        )
-    finally:
-        _cleanup_exp_directory()
-
-
-@psynet.command(
-    context_settings=dict(
-        allow_extra_args=True,
-        ignore_unknown_options=True,
-    )
-)
-def debug(*args, **kwargs):
-    raise click.ClickException(
-        "`psynet debug` has been replaced with `psynet local debug`, please use the latter."
-    )
+def debug(ctx):
+    pass
 
 
 @psynet.command(
@@ -347,32 +278,21 @@ def sandbox(*args, **kwargs):
     )
 
 
-@psynet.command(
-    context_settings=dict(
-        allow_extra_args=True,
-        ignore_unknown_options=True,
-    )
-)
-def deploy(*args, **kwargs):
-    raise click.ClickException(
-        "`psynet deploy` has been replaced with `psynet heroku deploy`, please use the latter."
-    )
-
-
-def _debug__local(
-    ctx=None,
-    legacy=False,
-    verbose=True,
-    bot=False,
-    proxy=None,
-    no_browsers=False,
-    threads=1,
-    archive=None,
-    skip_flask=False,
-    docker=False,
-):
+@debug.command("local")
+# @click.option("--app", default=None, help="Name of the experiment app (required for non-local deployments)")
+# @click.option("--server", default=None, help="Name of the remote server (only relevant for ssh deployments)")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@click.option("--legacy", is_flag=True, help="Legacy mode.")
+# @click.option(
+#     "--skip-flask",
+#     is_flag=True,
+#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
+# )
+@click.pass_context
+def debug__local(ctx, docker, archive, legacy):
     """
-    Run the experiment locally.
+    Debug the experiment locally (this should normally be your first choice).
     """
     if not ctx:
         from click import Context
@@ -396,11 +316,11 @@ def _debug__local(
             # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
             # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
             # This problem manifests specifically when the experiment contains custom tables.
-            _debug_legacy(**locals())
+            _debug_legacy(ctx, archive=archive)
         elif docker:
-            _debug_docker(**locals())
+            _debug_docker(ctx, archive=archive)
         else:
-            _debug_auto_reload(**locals())
+            _debug_auto_reload(ctx, archive=archive)
     finally:
         kill_psynet_worker_processes()
 
@@ -461,39 +381,36 @@ def run_pre_auto_reload_checks():
             )
 
 
-def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwargs):
-    from dallinger.command_line import debug as dallinger_debug
-
-    exp_config = {"threads": str(threads)}
-
+def _debug_legacy(ctx, archive):
     if archive:
         raise click.UsageError(
-            "Legacy debug mode doesn't currently support loading from archive"
+            "Legacy debug mode doesn't currently support loading from archive."
         )
+
+    from dallinger.command_line import debug as dallinger_debug
 
     db.session.commit()
 
     try:
         ctx.invoke(
             dallinger_debug,
-            verbose=verbose,
-            bot=bot,
-            proxy=proxy,
-            no_browsers=no_browsers,
-            exp_config=exp_config,
-            # archive=archive,  # Not currently supported by Dallinger
+            verbose=True,
+            bot=False,
+            proxy=False,
+            no_browsers=False,
+            exp_config={"threads": "1"},
         )
     finally:
         db.session.commit()
         reset_console()
 
 
-def _debug_docker(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwargs):
+def _debug_docker(ctx, archive):
     from dallinger.command_line.docker import debug as dallinger_debug
 
     if archive:
         raise click.UsageError(
-            "`psynet debug --docker` doesn't currently support loading from archive. "
+            "`psynet debug` with Docker doesn't currently support loading from archive."
         )
 
     db.session.commit()
@@ -501,28 +418,18 @@ def _debug_docker(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
     try:
         ctx.invoke(
             dallinger_debug,
-            verbose=verbose,
-            bot=bot,
-            proxy=proxy,
-            no_browsers=no_browsers,
-            # archive=archive,  # Not currently supported by Dallinger
+            verbose=True,
+            bot=False,
+            proxy=False,
+            no_browsers=False,
         )
     finally:
         db.session.commit()
         reset_console()
 
 
-def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, skip_flask, **kwargs):
+def _debug_auto_reload(ctx, archive):
     run_pre_auto_reload_checks()
-
-    for var, var_name in [
-        (bot, "bot"),
-        (proxy, "proxy"),
-        (no_browsers, "no_browsers"),
-    ]:
-        assert (
-            not var
-        ), f"The option '{var_name}' is not supported in this mode, please add --legacy to your command."
 
     from dallinger.command_line.develop import debug as dallinger_debug
     from dallinger.deployment import DevelopmentDeployment
@@ -531,7 +438,7 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, skip_flask, **kwar
     patch_dallinger_develop()
 
     try:
-        ctx.invoke(dallinger_debug, skip_flask=skip_flask)
+        ctx.invoke(dallinger_debug, skip_flask=False)
     finally:
         db.session.commit()
         reset_console()
@@ -711,35 +618,32 @@ def _pre_launch(
             ctx.invoke(prepare)
 
 
-@heroku.command()
-@click.option("--verbose", is_flag=True, help="Verbose mode")
+@psynet.group("deploy")
+def deploy():
+    pass
+
+
+@deploy.command("heroku")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def deploy__heroku(ctx, verbose, app, archive):
-    """
-    Deploy app using Heroku to MTurk.
-    """
+def deploy__heroku(ctx, app, archive):
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
         _pre_launch(ctx, mode="live", archive=archive, local_=False, heroku=True)
-        result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+        result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=archive)
         _post_deploy(result)
     finally:
         _cleanup_exp_directory()
         reset_console()
 
 
-@docker_heroku.command()
-@click.option("--verbose", is_flag=True, help="Verbose mode")
+@deploy.command("heroku")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def deploy__docker_heroku(ctx, verbose, app, archive):
-    """
-    Deploy app using Heroku to MTurk.
-    """
+def deploy__docker_heroku(ctx, app, archive):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
@@ -752,21 +656,17 @@ def deploy__docker_heroku(ctx, verbose, app, archive):
         _pre_launch(
             ctx, mode="live", archive=archive, local_=False, docker=True, heroku=True
         )
-        result = ctx.invoke(dallinger_deploy, verbose=verbose, app=app)
+        result = ctx.invoke(dallinger_deploy, verbose=True, app=app)
         _post_deploy(result)
     finally:
         _cleanup_exp_directory()
         reset_console()
 
 
-@docker_ssh.command()
+@deploy.command("ssh")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
-@click.option(
-    "--dns-host",
-    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
-)
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
@@ -943,34 +843,32 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
         raise click.Abort
 
 
-@heroku.command("debug")
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", required=True, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@debug.command("heroku")
+@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.pass_context
-def debug__heroku(ctx, verbose, app, archive):
+def debug__heroku(ctx, app, docker, archive):
     """
-    Deploy app using Heroku to the MTurk Sandbox.
+    Debug the experiment on Heroku.
     """
-    from dallinger.command_line import sandbox as dallinger_sandbox
+    if docker:
+        debug__docker_heroku(ctx, app, archive)
+    else:
+        from dallinger.command_line import sandbox as dallinger_sandbox
 
-    try:
-        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, heroku=True)
-        result = ctx.invoke(
-            dallinger_sandbox, verbose=verbose, app=app, archive=archive
-        )
-        _post_deploy(result)
-    finally:
-        _cleanup_exp_directory()
-        reset_console()
+        try:
+            _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, heroku=True)
+            result = ctx.invoke(
+                dallinger_sandbox, verbose=True, app=app, archive=archive
+            )
+            _post_deploy(result)
+        finally:
+            _cleanup_exp_directory()
+            reset_console()
 
 
-@docker_heroku.command("debug")
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", required=True, help="App name")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.pass_context
-def debug__docker_heroku(ctx, verbose, app, archive):
+def debug__docker_heroku(ctx, app, archive):
     from dallinger.command_line.docker import sandbox as dallinger_sandbox
 
     try:
@@ -980,24 +878,27 @@ def debug__docker_heroku(ctx, verbose, app, archive):
                 "This shouldn't be hard to fix..."
             )
         _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
-        result = ctx.invoke(dallinger_sandbox, verbose=verbose, app=app)
+        result = ctx.invoke(dallinger_sandbox, verbose=True, app=app)
         _post_deploy(result)
     finally:
         _cleanup_exp_directory()
         reset_console()
 
 
-@docker_ssh.command("debug")
-@click.option("--app", required=True, help="App name")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@server_option
-@click.option(
-    "--dns-host",
-    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
-)
-@click.option("--config", "-c", "config_options", nargs=2, multiple=True)
+@debug.command("ssh")
+@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@click.option("--server", default=None, help="Name of the remote server.")
+# @click.option(
+#     "--skip-flask",
+#     is_flag=True,
+#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
+# )
 @click.pass_context
-def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
+def debug__docker_ssh(ctx, app, archive, server):
+    """
+    Debug the experiment on a remote server via SSH.
+    """
     try:
         from dallinger.command_line.docker_ssh import deploy
 
@@ -1009,9 +910,8 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
             deploy,
             mode="sandbox",
             server=server,
-            dns_host=dns_host,
             app_name=app,
-            config_options=config_options,
+            config_options=None,
             archive_path=archive,
         )
 
@@ -1321,28 +1221,20 @@ def export_arguments(func):
 # )
 
 
-@local.command("export")
+@psynet.group("export")
+def export():
+    pass
+
+
+@export.command("local")
 @export_arguments
 @click.pass_context
 def export__local(ctx=None, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables__local)
+    exp_variables = ctx.invoke(experiment_variables, location="local")
     export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
 
 
-@psynet.command(
-    context_settings=dict(
-        allow_extra_args=True,
-        ignore_unknown_options=True,
-    )
-)
-def export(*args, **kwargs):
-    raise click.ClickException(
-        "`psynet export` has been removed, please use one of `psynet local export`, `psynet heroku export`, "
-        "`psynet docker-heroku export`, or `psynet docker-ssh export`."
-    )
-
-
-@heroku.command("export")
+@export.command("heroku")
 @export_arguments
 @click.option(
     "--app",
@@ -1351,24 +1243,11 @@ def export(*args, **kwargs):
 )
 @click.pass_context
 def export__heroku(ctx, app, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables__heroku, app=app)
+    exp_variables = ctx.invoke(experiment_variables, location="heroku")
     export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
 
-@docker_heroku.command("export")
-@export_arguments
-@click.option(
-    "--app",
-    required=True,
-    help="Name of the app to export",
-)
-@click.pass_context
-def export__docker_heroku(ctx, app, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables__docker_heroku, app=app)
-    export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
-
-
-@docker_ssh.command("export")
+@export.command("ssh")
 @click.option(
     "--app",
     required=True,
@@ -1378,7 +1257,7 @@ def export__docker_heroku(ctx, app, **kwargs):
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables__docker_ssh, app=app, server=server)
+    exp_variables = ctx.invoke(experiment_variables, location="ssh")
     export_(
         ctx,
         app=app,
@@ -1388,10 +1267,6 @@ def export__docker_ssh(ctx, app, server, **kwargs):
         docker_ssh=True,
         **kwargs,
     )
-
-
-# def export(app, local, path, assets, anonymize, n_parallel):
-#     export_(app, local, path, assets, anonymize, n_parallel)
 
 
 def export_(
@@ -1738,7 +1613,12 @@ def update_docker():
         file.write("\n")
 
 
-@heroku.command("destroy")
+@psynet.group("destroy")
+def destroy():
+    pass
+
+
+@destroy.command("heroku")
 @click.option("--app", default=None, callback=verify_id, help="Experiment id")
 @click.option(
     "--expire-hit/--no-expire-hit",
@@ -1804,25 +1684,7 @@ def _destroy(
             spinner.ok("✔")
 
 
-@docker_heroku.command("destroy")
-@click.option("--app", default=None, callback=verify_id, help="Experiment id")
-@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
-@click.option(
-    "--expire-hit/--no-expire-hit",
-    flag_value=True,
-    default=None,
-    help="Expire any MTurk HITs associated with this experiment.",
-)
-@click.pass_context
-def destroy__docker_heroku(ctx, app, expire_hit):
-    ctx.invoke(
-        destroy__heroku,
-        app,
-        expire_hit,
-    )
-
-
-@docker_ssh.command("destroy")
+@destroy.command("ssh")
 @click.option("--app", default=None, callback=verify_id, help="Experiment id")
 @click.confirmation_option(prompt="Are you sure you want to destroy the app?")
 @click.option(
@@ -1845,75 +1707,80 @@ def destroy__docker_ssh(ctx, app, expire_hit):
     )
 
 
-@local.command("experiment-mode")
-@click.option("--app", required=True, help="Name of the experiment app")
-@click.pass_context
-def experiment_mode__local(ctx, app):
-    try:
-        mode = ctx.invoke(experiment_variables__local, app=app,)[
-            "deployment_config"
-        ]["mode"]
-    except Exception:
-        click.echo(
-            "Failed to communicate with the running experiment to determine the deployment mode. "
-        )
-        raise
-    click.echo(f"Experiment mode: {mode}")
-    return mode
+# @local.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__local(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__local, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+#
+#
+# @heroku.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__heroku(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__heroku, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+#
+#
+# @docker_heroku.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__docker_heroku(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__docker_heroku, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+#
+#
+# @heroku.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__docker_ssh(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__docker_ssh, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
 
 
-@heroku.command("experiment-mode")
-@click.option("--app", required=True, help="Name of the experiment app")
-@click.pass_context
-def experiment_mode__heroku(ctx, app):
-    try:
-        mode = ctx.invoke(experiment_variables__heroku, app=app,)[
-            "deployment_config"
-        ]["mode"]
-    except Exception:
-        click.echo(
-            "Failed to communicate with the running experiment to determine the deployment mode. "
-        )
-        raise
-    click.echo(f"Experiment mode: {mode}")
-    return mode
+@psynet.group("apps")
+def apps():
+    pass
 
 
-@docker_heroku.command("experiment-mode")
-@click.option("--app", required=True, help="Name of the experiment app")
-@click.pass_context
-def experiment_mode__docker_heroku(ctx, app):
-    try:
-        mode = ctx.invoke(experiment_variables__docker_heroku, app=app,)[
-            "deployment_config"
-        ]["mode"]
-    except Exception:
-        click.echo(
-            "Failed to communicate with the running experiment to determine the deployment mode. "
-        )
-        raise
-    click.echo(f"Experiment mode: {mode}")
-    return mode
-
-
-@heroku.command("experiment-mode")
-@click.option("--app", required=True, help="Name of the experiment app")
-@click.pass_context
-def experiment_mode__docker_ssh(ctx, app):
-    try:
-        mode = ctx.invoke(experiment_variables__docker_ssh, app=app,)[
-            "deployment_config"
-        ]["mode"]
-    except Exception:
-        click.echo(
-            "Failed to communicate with the running experiment to determine the deployment mode. "
-        )
-        raise
-    click.echo(f"Experiment mode: {mode}")
-    return mode
-
-
-@docker_ssh.command("apps")
+@apps.command("ssh")
 @server_option
 @click.pass_context
 def apps__docker_ssh(ctx, server):
@@ -1924,7 +1791,12 @@ def apps__docker_ssh(ctx, server):
         click.echo("No apps found.")
 
 
-@docker_ssh.command("stats")
+@psynet.group("stats")
+def stats():
+    pass
+
+
+@stats.command("ssh")
 @server_option
 @click.pass_context
 def stats__docker_ssh(ctx, server):
