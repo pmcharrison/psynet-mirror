@@ -36,6 +36,7 @@ from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    get_args,
     get_from_config,
     make_parents,
     pretty_format_seconds,
@@ -639,7 +640,7 @@ def _pre_launch(ctx, mode, archive, docker=False, heroku=False):
     deployment_info.write(mode=mode)
 
     log("Running pre-deploy checks...")
-    run_pre_checks(mode, heroku)
+    run_pre_checks(mode, heroku, docker)
     log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
@@ -810,7 +811,7 @@ def docs(force_rebuild):
 ##############
 
 
-def run_pre_checks(mode, heroku=False):
+def run_pre_checks(mode, heroku=False, docker=False):
     from dallinger.recruiters import MTurkRecruiter
 
     from .asset import DebugStorage
@@ -829,6 +830,14 @@ def run_pre_checks(mode, heroku=False):
                             raise click.Abort
         except FileNotFoundError:
             pass
+
+    if docker:
+        if not Path("Dockerfile").exists():
+            raise click.UsageError(
+                "If using PsyNet with Docker, it is mandatory to include a Dockerfile in the experiment directory. "
+                "To add a generic Dockerfile to your experiment directory, run the following command:\n"
+                "psynet update-scripts"
+            )
 
     init_db(drop_all=True)
 
@@ -935,6 +944,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host, config_options):
         from dallinger.command_line.docker_ssh import deploy
 
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+
         _pre_launch(ctx, "sandbox", archive, docker=True)
 
         result = ctx.invoke(
@@ -1674,30 +1684,64 @@ def update_scripts():
 
 @heroku.command("destroy")
 @click.option("--app", default=None, callback=verify_id, help="Experiment id")
-@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
-    default=True,
-    prompt="Would you like to expire all MTurk HITs associated with this experiment id?",
+    default=None,
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
 def destroy__heroku(ctx, app, expire_hit):
-    with yaspin("Destroying app...") as spinner:
-        ctx.invoke(
-            dallinger.command_line.destroy,
-            app=app,
-            expire_hit=False,
-        )
-        spinner.ok("✔")
+    _destroy(
+        ctx,
+        dallinger.command_line.destroy,
+        dallinger.command_line.expire,
+        app=app,
+        expire_hit=expire_hit,
+    )
+
+
+def _destroy(
+    ctx,
+    f_destroy,
+    f_expire,
+    app,
+    expire_hit,
+):
+    if click.confirm(
+        "Would you like to delete the app from the web server? Select 'N' if the app is already deleted.",
+        default=True,
+    ):
+        with yaspin("Destroying app...") as spinner:
+            try:
+                if expire_hit in get_args(f_destroy):
+                    ctx.invoke(
+                        f_destroy,
+                        app=app,
+                        expire_hit=False,
+                    )
+                else:
+                    ctx.invoke(
+                        f_destroy,
+                        app=app,
+                    )
+                spinner.ok("✔")
+            except subprocess.CalledProcessError:
+                spinner.fail("✗")
+                click.echo(
+                    "Failed to destroy the app. Maybe it was already destroyed, or the app name was wrong?"
+                )
+
+    if expire_hit is None:
+        if click.confirm("Would you like to expire a related MTurk HIT?", default=True):
+            expire_hit = True
 
     if expire_hit:
-        with yaspin("Expiring hit...") as spinner:
-            sandbox = ctx.invoke(experiment_mode__heroku, app=app) == "sandbox"
+        sandbox = click.confirm("Is this a sandbox HIT?", default=True)
 
+        with yaspin("Expiring hit...") as spinner:
             ctx.invoke(
-                dallinger.command_line.expire,
+                f_expire,
                 app=app,
                 sandbox=sandbox,
             )
@@ -1710,8 +1754,7 @@ def destroy__heroku(ctx, app, expire_hit):
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
-    default=True,
-    prompt="Would you like to expire all MTurk HITs associated with this experiment id?",
+    default=None,
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
@@ -1729,31 +1772,21 @@ def destroy__docker_heroku(ctx, app, expire_hit):
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
-    default=True,
-    prompt="Would you like to expire all MTurk HITs associated with this experiment id?",
+    default=None,
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
 def destroy__docker_ssh(ctx, app, expire_hit):
+    from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
-    with yaspin("Destroying app...") as spinner:
-        ctx.invoke(
-            destroy,
-            app=app,
-        )
-        spinner.ok("✔")
-
-    if expire_hit:
-        with yaspin("Expiring hit...") as spinner:
-            sandbox = ctx.invoke(experiment_mode__docker_ssh, app=app) == "sandbox"
-
-            ctx.invoke(
-                dallinger.command_line.expire,
-                app=app,
-                sandbox=sandbox,
-            )
-            spinner.ok("✔")
+    _destroy(
+        ctx,
+        destroy,
+        expire,
+        app=app,
+        expire_hit=expire_hit,
+    )
 
 
 @local.command("experiment-mode")
