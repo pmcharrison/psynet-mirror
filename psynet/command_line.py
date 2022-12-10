@@ -878,7 +878,7 @@ def run_pre_checks(mode, heroku=False, docker=False):
             raise click.UsageError(
                 "If using PsyNet with Docker, it is mandatory to include a Dockerfile in the experiment directory. "
                 "To add a generic Dockerfile to your experiment directory, run the following command:\n"
-                "psynet update-scripts"
+                "psynet update-docker"
             )
 
     init_db(drop_all=True)
@@ -1693,14 +1693,12 @@ def generate_config(ctx):
 
 
 @psynet.command()
-def update_scripts():
+def update_docker():
     """
-    To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
+    To be run in an experiment directory; creates a folder called 'docker' which contains a set of
     prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
     """
-    click.echo(
-        f"Populating the current directory ({os.getcwd()}) with experiment scripts, e.g. Dockerfile and shell scripts."
-    )
+    click.echo(f"Populating the current directory ({os.getcwd()}) with Docker scripts.")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
@@ -1710,7 +1708,7 @@ def update_scripts():
         "test.py",
     )
     shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/scripts"),
+        resource_filename("psynet", "resources/experiment_scripts/docker"),
         "scripts",
         dirs_exist_ok=True,
     )
