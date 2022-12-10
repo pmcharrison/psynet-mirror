@@ -307,7 +307,7 @@ def debug__local(
     ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask, docker
 ):
     try:
-        debug_(
+        _debug__local(
             ctx,
             legacy,
             verbose,
@@ -359,7 +359,7 @@ def deploy(*args, **kwargs):
     )
 
 
-def debug_(
+def _debug__local(
     ctx=None,
     legacy=False,
     verbose=True,
@@ -384,7 +384,7 @@ def debug_(
             "It is not possible to select both --legacy and --docker modes simultaneously."
         )
 
-    _pre_launch(ctx, "debug", archive)
+    _pre_launch(ctx, "debug", archive=archive, docker=docker)
     drop_all_db_tables()
 
     if archive is None:
