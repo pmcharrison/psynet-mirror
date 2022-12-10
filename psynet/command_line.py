@@ -880,11 +880,6 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
         raise click.Abort
 
 
-###########
-# sandbox #
-###########
-
-
 @heroku.command("debug")
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", required=True, help="Experiment id")
