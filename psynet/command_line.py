@@ -284,13 +284,14 @@ def sandbox(*args, **kwargs):
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
+@click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
 # @click.option(
 #     "--skip-flask",
 #     is_flag=True,
 #     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
 # )
 @click.pass_context
-def debug__local(ctx, docker, archive, legacy):
+def debug__local(ctx, docker, archive, legacy, no_browsers):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
@@ -316,11 +317,11 @@ def debug__local(ctx, docker, archive, legacy):
             # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
             # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
             # This problem manifests specifically when the experiment contains custom tables.
-            _debug_legacy(ctx, archive=archive)
+            _debug_legacy(ctx, archive=archive, no_browsers=no_browsers)
         elif docker:
-            _debug_docker(ctx, archive=archive)
+            _debug_docker(ctx, archive=archive, no_browsers=no_browsers)
         else:
-            _debug_auto_reload(ctx, archive=archive)
+            _debug_auto_reload(ctx, archive=archive, no_browsers=no_browsers)
     finally:
         kill_psynet_worker_processes()
 
@@ -381,7 +382,7 @@ def run_pre_auto_reload_checks():
             )
 
 
-def _debug_legacy(ctx, archive):
+def _debug_legacy(ctx, archive, no_browsers):
     if archive:
         raise click.UsageError(
             "Legacy debug mode doesn't currently support loading from archive."
@@ -397,7 +398,7 @@ def _debug_legacy(ctx, archive):
             verbose=True,
             bot=False,
             proxy=None,
-            no_browsers=False,
+            no_browsers=no_browsers,
             exp_config={"threads": "1"},
         )
     finally:
@@ -405,7 +406,7 @@ def _debug_legacy(ctx, archive):
         reset_console()
 
 
-def _debug_docker(ctx, archive):
+def _debug_docker(ctx, archive, no_browsers):
     from dallinger.command_line.docker import debug as dallinger_debug
 
     if archive:
@@ -421,14 +422,19 @@ def _debug_docker(ctx, archive):
             verbose=True,
             bot=False,
             proxy=None,
-            no_browsers=False,
+            no_browsers=no_browsers,
         )
     finally:
         db.session.commit()
         reset_console()
 
 
-def _debug_auto_reload(ctx, archive):
+def _debug_auto_reload(ctx, archive, no_browsers):
+    if no_browsers:
+        raise click.UsageError(
+            "--no-browsers option is not supported in this debug mode."
+        )
+
     run_pre_auto_reload_checks()
 
     from dallinger.command_line.develop import debug as dallinger_debug

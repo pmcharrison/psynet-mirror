@@ -293,7 +293,7 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
 
     p = pexpect.spawn(
         "psynet",
-        ["debug", "local", "--legacy"],
+        ["debug", "local", "--legacy", "--no-browsers"],
         env=env,
         encoding="utf-8",
     )
