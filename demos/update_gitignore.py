@@ -36,7 +36,7 @@ for dir in find_demo_dirs():
             "env/",
             "",
             "# Automatically generated deployment resources, e.g. database templates",
-            "deploy/",
+            ".deploy/",
             "",
             "# Automatically generated resources for hot-fresh debugger",
             "/develop",

@@ -3,11 +3,11 @@
 # Standard place to put a virtual environment
 env/
 
-# Automatically generated resources for hot-fresh debugger
-/develop
-
 # Automatically generated deployment resources, e.g. database templates
 .deploy/
+
+# Automatically generated resources for hot-fresh debugger
+/develop
 
 # Automatically generated server log file
 server.log
