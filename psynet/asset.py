@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import time
 import urllib
+import urllib.parse
 import urllib.request
 import uuid
 from functools import cached_property
@@ -34,6 +35,7 @@ from .utils import (
     get_extension,
     get_file_size_mb,
     get_folder_size_mb,
+    get_from_config,
     get_logger,
     md5_directory,
     md5_file,
@@ -2587,7 +2589,7 @@ class LocalStorage(AssetStorage):
         This is the publicly exposed path by which the web browser can access the storage registry.
         This corresponds to a (symlinked) directory inside the experiment directory.
         """
-        return os.path.join("static", self.label)
+        return os.path.join(get_from_config("host"), "static", self.label)
 
     def _create_symlink(self):
         try:
@@ -2653,7 +2655,7 @@ class LocalStorage(AssetStorage):
         assert (
             self.root
         )  # Makes sure that the root storage location has been instantiated
-        return os.path.join(self.public_path, host_path)
+        return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
     def check_cache(self, host_path: str, is_folder: bool):
         file_system_path = self.get_file_system_path(host_path)
