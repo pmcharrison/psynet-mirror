@@ -396,7 +396,7 @@ def _debug_legacy(ctx, archive):
             dallinger_debug,
             verbose=True,
             bot=False,
-            proxy=False,
+            proxy=None,
             no_browsers=False,
             exp_config={"threads": "1"},
         )
@@ -420,7 +420,7 @@ def _debug_docker(ctx, archive):
             dallinger_debug,
             verbose=True,
             bot=False,
-            proxy=False,
+            proxy=None,
             no_browsers=False,
         )
     finally:
