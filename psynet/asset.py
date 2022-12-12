@@ -2474,7 +2474,8 @@ class AssetStorage:
 
     def export_subfile(self, asset, subfile, path):
         url = asset.url + "/" + subfile
-        self._http_export(url, path)
+        url = self._prepare_url_for_http_export(url)
+        self._http_file_export(url, path)
 
     def export_subfolder(self, asset, subfolder, path):
         raise RuntimeError(
@@ -2485,7 +2486,8 @@ class AssetStorage:
             "by listing each asset as a separate file."
         )
 
-    def _http_folder_export(self, url, path):
+    @staticmethod
+    def _http_folder_export(url, path):
         with open(path, "w") as f:
             f.write(
                 "It is not possible to automatically export assets over HTTP "
@@ -2495,7 +2497,8 @@ class AssetStorage:
                 "future by listing each asset as a separate file."
             )
 
-    def _http_file_export(self, url, path):
+    @staticmethod
+    def _http_file_export(url, path):
         try:
             r = requests.get(url)
             with open(path, "wb") as file:
