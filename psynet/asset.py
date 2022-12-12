@@ -2581,7 +2581,10 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            return os.path.expanduser("~/psynet-data/shared")
+            if os.getenv("PSYNET_IN_DOCKER"):
+                return "/psynet-data/shared"
+            else:
+                return os.path.expanduser("~/psynet-data/shared")
 
             # if os.getenv("PSYNET_IN_DOCKER"):
             #     return "~/psynet-data/shared"
