@@ -918,7 +918,7 @@ def debug__docker_heroku(ctx, app, archive):
 
 
 @debug.command("ssh")
-@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option("--app", required=True, help="Name of the experiment app.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
 # @click.option("--server", default=None, help="Name of the remote server.")
