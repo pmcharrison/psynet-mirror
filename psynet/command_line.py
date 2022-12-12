@@ -1710,7 +1710,9 @@ def _destroy(
                 )
 
     if expire_hit is None:
-        if click.confirm("Would you like to expire a related MTurk HIT?", default=True):
+        if click.confirm(
+            "Would you like to look for a related MTurk HIT to expire?", default=True
+        ):
             expire_hit = True
 
     if expire_hit:
@@ -1726,8 +1728,7 @@ def _destroy(
 
 
 @destroy.command("ssh")
-@click.option("--app", default=None, callback=verify_id, help="Experiment id")
-@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
+@click.option("--app", default=None, help="Experiment id")
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -1844,3 +1845,12 @@ def stats__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import stats
 
     ctx.invoke(stats, server=server)
+
+
+def verify_id(ctx, param, app):
+    return app
+
+
+# The original Dallinger verify_id function forces app names to begin with dlgr-,
+# which is not appropriate for us
+dallinger.command_line.utils.verify_id = verify_id
