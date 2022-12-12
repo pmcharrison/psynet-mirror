@@ -2616,7 +2616,7 @@ class LocalStorage(AssetStorage):
             # Path(self.public_path).rmdir()
             try:
                 shutil.rmtree(self.public_path)
-            except (FileNotFoundError, NotADirectoryError, PermissionError):
+            except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
                 pass
 
         os.makedirs("static", exist_ok=True)
