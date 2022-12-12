@@ -24,6 +24,7 @@ from sqlalchemy.orm import column_property, deferred, relationship
 
 from psynet.timeline import NullElt
 
+from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
 from .media import get_aws_credentials
@@ -2630,20 +2631,47 @@ class LocalStorage(AssetStorage):
         file_system_path = self.get_file_system_path(host_path)
         asset.var.file_system_path = file_system_path
 
+    @cache
+    def sftp_connection(self, ssh_host, ssh_user):
+        from dallinger.command_line.docker_ssh import get_sftp
+
+        return get_sftp(ssh_host, user=ssh_user)
+
     def _receive_deposit(self, asset: Asset, host_path: str):
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
-        if asset.is_folder:
-            shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            # We are depositing an asset that sits on the present server already,
+            # so we can just copy it.
+            if asset.is_folder:
+                shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
+            else:
+                shutil.copyfile(asset.input_path, file_system_path)
         else:
-            shutil.copyfile(asset.input_path, file_system_path)
+            if deployment_info.read("is_ssh_deployment"):
+
+                from io import BytesIO
+
+                ssh_host = deployment_info.read("ssh_host")
+                ssh_user = deployment_info.read("ssh_user")
+
+                sftp = self.sftp_connection(ssh_host, ssh_user)
+
+                sftp.putfo(BytesIO(asset.input_path), file_system_path)
+            else:
+                raise NotImplementedError
 
         asset.deposited = True
 
         # return dict(
         #     url=os.path.abspath(file_system_path),
         # )
+
+    def on_deployed_server(self):
+        from psynet.experiment import in_deployment_package
+
+        return in_deployment_package()
 
     # def export_subfile(self, asset, subfile, path):
     #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile

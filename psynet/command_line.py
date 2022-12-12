@@ -596,14 +596,25 @@ def _pre_launch(
     mode,
     archive,
     local_,
+    ssh=False,
     docker=False,
     heroku=False,
+    server=None,
 ):
     log("Preparing for launch...")
 
     redis_vars.clear()
     deployment_info.init(redeploying_from_archive=archive is not None)
-    deployment_info.write(mode=mode)
+    deployment_info.write(mode=mode, is_local_deployment=local_, is_ssh_deployment=ssh)
+
+    if ssh:
+        server_info = CONFIGURED_HOSTS[server]
+
+        ssh_host = server_info["host"]
+        ssh_user = server_info.get("user")
+
+        deployment_info.write("ssh_host", ssh_host)
+        deployment_info.write("ssh_user", ssh_user)
 
     log("Running pre-launch checks...")
     run_pre_checks(mode, local_, heroku, docker)
@@ -684,7 +695,15 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, mode="live", archive=archive, local_=False, docker=True)
+        _pre_launch(
+            ctx,
+            mode="live",
+            archive=archive,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server=server,
+        )
 
         from dallinger.command_line.docker_ssh import (
             deploy as dallinger_docker_ssh_deploy,
@@ -918,7 +937,15 @@ def debug__docker_ssh(ctx, app, archive, server):
 
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
+        _pre_launch(
+            ctx,
+            mode="sandbox",
+            archive=archive,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server=server,
+        )
 
         result = ctx.invoke(
             deploy,
