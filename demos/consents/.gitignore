@@ -12,8 +12,8 @@ env/
 # Automatically generated server log file
 server.log
 
-# Automatically generated resources for debugging experiments with debug storage
-static/debug_storage
+# Automatically generated resources for debugging experiments with local storage
+static/local_storage
 
 # PyCharm configuration file
 .idea

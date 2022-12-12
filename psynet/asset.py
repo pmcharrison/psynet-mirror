@@ -2550,11 +2550,8 @@ class LocalStorage(AssetStorage):
         Parameters
         ----------
         root :
-            Path to the directory to be used for storage.
+            Optional path to the directory to be used for storage.
             Tilde expansion (e.g. '~/psynet') is performed automatically.
-            If none is provided, then defaults to the config value of
-            ``debug_storage_root``, which can be set in ``config.txt``
-            or ``.dallingerconfig``.
 
         label :
             Label for the storage object.
@@ -2584,19 +2581,21 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            if os.getenv("PSYNET_IN_DOCKER"):
-                return "/psynet-debug-storage"
-            else:
-                try:
-                    from .utils import get_from_config
+            return os.path.expanduser("~/psynet-data/shared")
 
-                    return os.path.expanduser(get_from_config("debug_storage_root"))
-                except KeyError:
-                    raise KeyError(
-                        "No root location was provided to DebugStorage and no value for debug_storage_root "
-                        "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
-                        "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
-                    )
+            # if os.getenv("PSYNET_IN_DOCKER"):
+            #     return "~/psynet-data/shared"
+            # else:
+            #     try:
+            #         from .utils import get_from_config
+            #
+            #         return os.path.expanduser(get_from_config("debug_storage_root"))
+            #     except KeyError:
+            #         raise KeyError(
+            #             "No root location was provided to DebugStorage and no value for debug_storage_root "
+            #             "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
+            #             "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-local-storage"
+            #         )
 
     def _ensure_root_dir_exists(self):
         from pathlib import Path
