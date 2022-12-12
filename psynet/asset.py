@@ -2581,7 +2581,8 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            if os.getenv("PSYNET_IN_DOCKER"):
+            # if os.getenv("PSYNET_IN_DOCKER"):
+            if deployment_info.read("is_ssh_deployment"):
                 return "/psynet-data/shared"
             else:
                 return os.path.expanduser("~/psynet-data/shared")
