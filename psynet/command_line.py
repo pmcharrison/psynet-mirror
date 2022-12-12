@@ -260,7 +260,7 @@ def _db(location, app, server):
         return uri
 
 
-@psynet.group("debug", invoke_without_command=True)
+@psynet.group("debug")
 @click.pass_context
 def debug(ctx):
     pass
