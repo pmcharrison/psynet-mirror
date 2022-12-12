@@ -2429,7 +2429,7 @@ class AssetStorage:
         )
 
     def export(self, asset, path):
-        raise NotImplementedError
+        self._http_export(asset, path)
 
     def prepare_for_deployment(self):
         pass
@@ -2453,51 +2453,66 @@ class AssetStorage:
         """
         raise NotImplementedError
 
+    def _http_export(self, asset, path):
+        url = self._prepare_url_for_http_export(asset.url)
 
-class WebStorage(AssetStorage):
-    """
-    The notional storage back-end for external web-hosted assets.
-    """
-
-    def export(self, asset, path):
         if asset.is_folder:
-            self._folder_exporter(asset, path)
+            self._http_folder_export(url, path)
         else:
-            self._file_exporter(asset, path)
+            self._http_file_export(url, path)
+
+    @staticmethod
+    def _prepare_url_for_http_export(url):
+        if not url.startswith("http"):
+            host = get_from_config("host")
+            if host == "0.0.0.0":
+                prefix = "http://localhost:5000"
+            else:
+                prefix = host
+            url = os.path.join(prefix, url)
+        return url
 
     def export_subfile(self, asset, subfile, path):
         url = asset.url + "/" + subfile
-        self._download_file(url, path)
+        self._http_export(url, path)
 
     def export_subfolder(self, asset, subfolder, path):
         raise RuntimeError(
-            "export_subfolder is not supported for ExternalAssets."
+            "export_subfolder is not supported for assets being exported over HTTP."
             "This is because the internet provides "
             "no standard way to list the contents of a folder hosted "
             "on an arbitrary web server. You can avoid this issue in future"
             "by listing each asset as a separate file."
         )
 
-    def _folder_exporter(self, asset, path):
+    def _http_folder_export(self, url, path):
         with open(path, "w") as f:
             f.write(
-                "It is not possible to automatically export ExternalAssets "
+                "It is not possible to automatically export assets over HTTP "
                 "with type='folder'. This is because the internet provides "
                 "no standard way to list the contents of a folder hosted "
                 "on an arbitrary web server. You can avoid this issue in the "
                 "future by listing each asset as a separate file."
             )
 
-    def _file_exporter(self, asset, path):
+    def _http_file_export(self, url, path):
         try:
-            r = requests.get(asset.url)
+            r = requests.get(url)
             with open(path, "wb") as file:
                 file.write(r.content)
         except Exception:
             print(
-                f"An error occurred when trying to download asset {asset.key} from the following URL: {asset.url}"
+                f"An error occurred when trying to download from the following URL: {url}"
             )
             raise
+
+
+class WebStorage(AssetStorage):
+    """
+    The notional storage back-end for external web-hosted assets.
+    """
+
+    pass
 
 
 class NoStorage(AssetStorage):
@@ -2589,7 +2604,7 @@ class LocalStorage(AssetStorage):
         This is the publicly exposed path by which the web browser can access the storage registry.
         This corresponds to a (symlinked) directory inside the experiment directory.
         """
-        return os.path.join(get_from_config("host"), "static", self.label)
+        return os.path.join("static", self.label)
 
     def _create_symlink(self):
         try:
@@ -2627,23 +2642,15 @@ class LocalStorage(AssetStorage):
         #     url=os.path.abspath(file_system_path),
         # )
 
-    def export(self, asset, path):
-        from_ = self.get_file_system_path(asset.host_path)
-        to_ = path
-        if asset.is_folder:
-            shutil.copytree(from_, to_, dirs_exist_ok=True)
-        else:
-            shutil.copyfile(from_, to_)
-
-    def export_subfile(self, asset, subfile, path):
-        from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
-        to_ = path
-        shutil.copyfile(from_, to_)
-
-    def export_subfolder(self, asset, subfolder, path):
-        from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
-        to_ = path
-        shutil.copytree(from_, to_, dirs_exist_ok=True)
+    # def export_subfile(self, asset, subfile, path):
+    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
+    #     to_ = path
+    #     shutil.copyfile(from_, to_)
+    #
+    # def export_subfolder(self, asset, subfolder, path):
+    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
+    #     to_ = path
+    #     shutil.copytree(from_, to_, dirs_exist_ok=True)
 
     def get_file_system_path(self, host_path):
         if host_path:
