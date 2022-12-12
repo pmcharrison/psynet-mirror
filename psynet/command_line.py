@@ -613,8 +613,7 @@ def _pre_launch(
         ssh_host = server_info["host"]
         ssh_user = server_info.get("user")
 
-        deployment_info.write("ssh_host", ssh_host)
-        deployment_info.write("ssh_user", ssh_user)
+        deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
     log("Running pre-launch checks...")
     run_pre_checks(mode, local_, heroku, docker)
