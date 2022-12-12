@@ -2610,20 +2610,21 @@ class LocalStorage(AssetStorage):
         return os.path.join("static", self.label)
 
     def _create_symlink(self):
-        try:
-            os.unlink(self.public_path)
-        except (FileNotFoundError, IsADirectoryError, PermissionError):
-            # Path(self.public_path).rmdir()
-            try:
-                shutil.rmtree(self.public_path)
-            except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
-                pass
+        # try:
+        #     os.unlink(self.public_path)
+        # except (FileNotFoundError, IsADirectoryError, PermissionError):
+        #     # Path(self.public_path).rmdir()
+        #     try:
+        #         shutil.rmtree(self.public_path)
+        #     except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
+        #         pass
 
         os.makedirs("static", exist_ok=True)
 
-        os.symlink(self.root, self.public_path)
-        # except FileExistsError:
-        #     pass
+        try:
+            os.symlink(self.root, self.public_path)
+        except FileExistsError:
+            pass
 
     def update_asset_metadata(self, asset: Asset):
         host_path = asset.host_path
