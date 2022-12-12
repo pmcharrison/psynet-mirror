@@ -952,7 +952,7 @@ def debug__docker_ssh(ctx, app, archive, server):
             mode="sandbox",
             server=server,
             app_name=app,
-            config_options=None,
+            config_options={},
             archive_path=archive,
         )
 
