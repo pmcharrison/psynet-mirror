@@ -45,11 +45,14 @@ WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
 COPY ./README.md README.md
 
-RUN mkdir /psynet-exports
-RUN chmod a+rwx -R /psynet-exports
+RUN mkdir /psynet-data
+RUN chmod a+rwx -R /psynet-data
 
-RUN mkdir /psynet-debug-storage
-RUN chmod a+rwx -R /psynet-debug-storage
+#RUN mkdir /psynet-data/export
+#RUN chmod a+rwx -R /psynet-data/export
+#
+#RUN mkdir /psynet-debug-storage
+#RUN chmod a+rwx -R /psynet-debug-storage
 
 RUN mkdir /.cache
 RUN chmod a+rwx -R /.cache
