@@ -1,29 +1,18 @@
 ![Logo](psynet/resources/logo.svg)
 
-# About
+PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
+It streamlines the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
+perceptual prior estimation to adaptive psychophysical experiments. Once an experiment is implemented, it can be
+deployed with a single terminal command, which looks after server provisioning, participant recruitment, data-quality
+monitoring, and participant payment. Researchers using PsyNet can enjoy a paradigm shift in productivity, running many
+high-powered variants of the same experiment in the time it would ordinarily take to run an experiment once.
 
-PsyNet is an under-development project for designing and running the next generation of online behavioural experiments.
-It has not been formally released yet, but this respository is open-access to facilitate ongoing development and collaborations.
+PsyNet is still heavily under development and we have not officially launched it yet. We plan to do so in early 2023.
 
-For more information about PsyNet, see https://www.psynet.dev/.
+To try some real-world PsyNet experiments for yourself, visit the following repositories:
 
-If you are interested in using PsyNet yourself, please contact Peter Harrison (pmch2@cam.ac.uk) and 
-Nori Jacoby (nori.viola@gmail.com)
+- `Consonance profiles for carillon bells <https://github.com/pmcharrison/2022-consonance-carillon>`_
+- `Emotional connotations of musical scales <https://github.com/pmcharrison/2022-musical-scales>`_
+- `Vocal pitch matching in musical chords <https://github.com/pmcharrison/2022-vertical-processing-test>`_
 
-# Links
-
-- [Online documentation](https://computational-audition-lab.gitlab.io/psynet/)
-- [Contribution guidelines](https://computational-audition-lab.gitlab.io/psynet/developer/basic_workflow.html)
-
-# Running tests
-
-```
-python -m pytest
-```
-
-# Building documentation locally
-
-```
-make -C docs html
-open docs/_build/html/index.html
-```
+For more information about PsyNet, visit the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
