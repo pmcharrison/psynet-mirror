@@ -834,7 +834,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
 
         if docker:
             if config.get("docker_image_base_name", None) is None:
-                raise ValueError(
+                raise click.UsageError(
                     "docker_image_base_name must be specified in config.txt or ~/.dallingerconfig before you can "
                     "launch an experiment using Docker. For example, you might write the following: \n"
                     "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
