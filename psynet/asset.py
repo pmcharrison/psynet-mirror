@@ -2581,11 +2581,12 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            # if os.getenv("PSYNET_IN_DOCKER"):
-            if deployment_info.read("is_ssh_deployment"):
-                return "/psynet-data/shared"
-            else:
-                return os.path.expanduser("~/psynet-data/shared")
+            return "~/psynet-data/shared"
+
+            # if deployment_info.read("is_ssh_deployment"):
+            #     return "/psynet-data/shared"
+            # else:
+            #     return os.path.expanduser("~/psynet-data/shared")
 
             # if os.getenv("PSYNET_IN_DOCKER"):
             #     return "~/psynet-data/shared"
@@ -2635,34 +2636,55 @@ class LocalStorage(AssetStorage):
         file_system_path = self.get_file_system_path(host_path)
         asset.var.file_system_path = file_system_path
 
+    @staticmethod
     @cache
-    def sftp_connection(self, ssh_host, ssh_user):
+    def sftp_connection(ssh_host, ssh_user):
         from dallinger.command_line.docker_ssh import get_sftp
 
         return get_sftp(ssh_host, user=ssh_user)
 
+    @staticmethod
+    @cache
+    def ssh_executor(ssh_host, ssh_user):
+        from dallinger.command_line.docker_ssh import Executor
+
+        return Executor(ssh_host, user=ssh_user)
+
     def _receive_deposit(self, asset: Asset, host_path: str):
         file_system_path = self.get_file_system_path(host_path)
-        os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
             # We are depositing an asset that sits on the present server already,
             # so we can just copy it.
+
+            os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
+
             if asset.is_folder:
-                shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
+                shutil.copytree(
+                    asset.input_path,
+                    os.path.expanduser(file_system_path),
+                    dirs_exist_ok=True,
+                )
             else:
-                shutil.copyfile(asset.input_path, file_system_path)
+                shutil.copyfile(asset.input_path, os.path.expanduser(file_system_path))
         else:
             if deployment_info.read("is_ssh_deployment"):
-
-                from io import BytesIO
+                if asset.is_folder:
+                    raise NotImplementedError(
+                        "Haven't implemented depositing folder assets to SSH yet, use file assets instead"
+                    )
 
                 ssh_host = deployment_info.read("ssh_host")
                 ssh_user = deployment_info.read("ssh_user")
 
-                sftp = self.sftp_connection(ssh_host, ssh_user)
+                self._put_file(
+                    asset.input_path,
+                    file_system_path,
+                    ssh_host,
+                    ssh_user,
+                    make_parents=True,
+                )
 
-                sftp.putfo(BytesIO(asset.input_path), file_system_path)
             else:
                 raise NotImplementedError
 
@@ -2671,6 +2693,27 @@ class LocalStorage(AssetStorage):
         # return dict(
         #     url=os.path.abspath(file_system_path),
         # )
+
+    def _put_file(self, input_path, dest_path, ssh_host, ssh_user, make_parents=True):
+        from io import BytesIO
+
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        try:
+            with open(input_path, "rb") as file:
+                sftp.putfo(BytesIO(file.read()), dest_path)
+        except FileNotFoundError:
+            if make_parents:
+                self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
+                self._put_file(
+                    input_path, dest_path, ssh_host, ssh_user, make_parents=False
+                )
+            else:
+                raise
+
+    def _mk_dir_tree(self, dir, ssh_host, ssh_user):
+        executor = self.ssh_executor(ssh_host, ssh_user)
+        executor.run(f'mkdir -p "{dir}"')
 
     def on_deployed_server(self):
         from psynet.experiment import in_deployment_package
