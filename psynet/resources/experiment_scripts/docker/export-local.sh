@@ -1,6 +1,6 @@
 set -euo pipefail
 
-. scripts/params.sh
+. docker/params.sh
 
 docker exec \
   dallinger \

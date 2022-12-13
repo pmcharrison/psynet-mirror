@@ -1,8 +1,8 @@
 set -euo pipefail
 
-. scripts/params.sh
-. scripts/services.sh
-. scripts/build.sh
+. docker/params.sh
+. docker/services.sh
+. docker/build.sh
 
 
 docker run \

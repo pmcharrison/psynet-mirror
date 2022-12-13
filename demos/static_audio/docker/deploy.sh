@@ -1,6 +1,6 @@
 echo "Note: SSH support in requirements.txt is not yet supported for Windows and Linux hosts (to be fixed soon)"
 
-. scripts/params.sh
+. docker/params.sh
 
 DOCKER_BUILDKIT=1
 docker build . -t "${EXPERIMENT_IMAGE}"
@@ -16,7 +16,7 @@ docker run \
   -v ~/.docker:/root/.docker \
   -v "${HOME}/Library/Application Support/dallinger/":/root/.local/share/dallinger/ \
   -e HOME=/root \
-  -e SKIP_DEPENDENCY_CHECK=1
+  -e SKIP_DEPENDENCY_CHECK=1 \
   -e DALLINGER_NO_EGG_BUILD=1 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v  ~/.ssh:/root/.ssh \

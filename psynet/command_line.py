@@ -1655,7 +1655,7 @@ def update_scripts():
     )
     shutil.copytree(
         resource_filename("psynet", "resources/experiment_scripts/docker"),
-        "scripts",
+        "docker",
         dirs_exist_ok=True,
     )
     if Path("README.md").exists() and click.confirm("Replace existing README file?"):

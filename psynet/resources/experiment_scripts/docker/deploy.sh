@@ -1,6 +1,6 @@
 echo "Note: SSH support in requirements.txt is not yet supported for Windows and Linux hosts (to be fixed soon)"
 
-. scripts/params.sh
+. docker/params.sh
 
 DOCKER_BUILDKIT=1
 docker build . -t "${EXPERIMENT_IMAGE}"
