@@ -1646,15 +1646,20 @@ def update_scripts():
         "Dockerfile",
     )
     shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/psynet"),
-        "psynet",
+        resource_filename("psynet", "resources/experiment_scripts/run.sh"),
+        "run.sh",
     )
     shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/psynet-dev"),
-        "psynet-dev",
+        resource_filename("psynet", "resources/experiment_scripts/psynet.sh"),
+        "psynet.sh",
     )
-    os.system("chmod +x psynet")
-    os.system("chmod +x psynet-dev")
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/psynet-dev.sh"),
+        "psynet-dev.sh",
+    )
+    os.system("chmod +x psynet.sh")
+    os.system("chmod +x psynet-dev.sh")
+    os.system("chmod +x run.sh")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
         "INSTALL.md",

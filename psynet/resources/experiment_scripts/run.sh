@@ -33,5 +33,8 @@ docker run \
   -v "${PSYNET_LOCAL_PATH}":/PsyNet \
   -v "${DALLINGER_LOCAL_PATH}":/dallinger \
   "${EXPERIMENT_IMAGE}" \
-  psynet "$@" \
-  | sed -e "s:/tmp/dallinger_develop/:${PWD}/:" -e "s:\"/PsyNet/":"\"${PSYNET_LOCAL_PATH}/:"
+  "$@"
+
+#  /bin/bash -c "psynet --version"
+
+#  "$@"
