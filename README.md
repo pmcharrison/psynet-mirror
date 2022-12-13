@@ -11,8 +11,8 @@ PsyNet is still heavily under development and we have not officially launched it
 
 To try some real-world PsyNet experiments for yourself, visit the following repositories:
 
-- `Consonance profiles for carillon bells <https://github.com/pmcharrison/2022-consonance-carillon>`_
-- `Emotional connotations of musical scales <https://github.com/pmcharrison/2022-musical-scales>`_
-- `Vocal pitch matching in musical chords <https://github.com/pmcharrison/2022-vertical-processing-test>`_
+- [Consonance profiles for carillon bells](https://github.com/pmcharrison/2022-consonance-carillon)
+- [Emotional connotations of musical scales](https://github.com/pmcharrison/2022-musical-scales)
+- [Vocal pitch matching in musical chords](https://github.com/pmcharrison/2022-vertical-processing-test)
 
 For more information about PsyNet, visit the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
