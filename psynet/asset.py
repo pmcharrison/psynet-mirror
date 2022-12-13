@@ -2763,7 +2763,7 @@ class DebugStorage(LocalStorage):
     A local storage back-end used for debugging.
     """
 
-    label = "debug_storage"
+    pass
 
 
 # def create_bucket_if_necessary(fun):
