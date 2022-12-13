@@ -2502,6 +2502,11 @@ class AssetStorage:
     def _http_file_export(url, path):
         try:
             r = requests.get(url)
+            if r.status_code != 200:
+                raise ConnectionError(
+                    f"Failed to download from the following URL: {url} "
+                    f"(status code = {r.status_code})"
+                )
             with open(path, "wb") as file:
                 file.write(r.content)
         except Exception:
