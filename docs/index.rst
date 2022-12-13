@@ -1,6 +1,30 @@
 PsyNet Documentation
 ====================
 
+PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
+It streamlines the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
+perceptual prior estimation to adaptive psychophysical experiments. Once an experiment is implemented, it can be
+deployed with a single terminal command, which looks after server provisioning, participant recruitment, data-quality
+monitoring, and participant payment. Researchers using PsyNet can enjoy a paradigm shift in productivity, running many
+high-powered variants of the same experiment in the time it would ordinarily take to run an experiment once.
+
+To try some real-world PsyNet experiments for yourself, visit the following repositories:
+
+- `Consonance profiles for carillon bells <https://github.com/pmcharrison/2022-consonance-carillon>`_
+- `Emotional connotations of musical scales <https://github.com/pmcharrison/2022-musical-scales>`_
+- `Vocal pitch matching in musical chords <https://github.com/pmcharrison/2022-vertical-processing-test>`_
+
+To get a broader overview of the kinds of experiments you can implemented in PsyNet,
+follow this link.
+
+To get an overview of how you can start learning PsyNet,
+follow this link.
+
+For a full table of contents of this documentation website, see below:
+
+Table of contents
+-----------------
+
 .. toctree::
    :maxdepth: 1
    :caption: Introduction
