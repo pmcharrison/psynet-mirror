@@ -1646,6 +1646,10 @@ def update_docker():
         "Dockerfile",
     )
     shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
+        "INSTALL.md",
+    )
+    shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
         "test.py",
     )
