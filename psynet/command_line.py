@@ -839,6 +839,17 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                     "launch an experiment using Docker. For example, you might write the following: \n"
                     "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
                 )
+            _expected_docker_volumes = "${HOME}/psynet-data/shared:/psynet-data/shared"
+            if _expected_docker_volumes not in config.get(
+                "docker_volumes", ""
+            ) and not click.confirm(
+                "For deploying PsyNet experiments with Docker, you should typically have the following line "
+                "in your config.txt: \n"
+                f"docker_volumes = {_expected_docker_volumes}\n"
+                "You are advised to change this line then retry launching the experiment. "
+                "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
+            ):
+                raise click.Abort
 
         exp = get_experiment()
 
