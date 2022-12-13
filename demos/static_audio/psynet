@@ -6,10 +6,10 @@ set -euo pipefail
 . docker/services.sh
 . docker/build.sh
 
-docker rm dallinger &> /dev/null || true
+docker rm psynet &> /dev/null || true
 
 docker run \
-  --name dallinger \
+  --name psynet \
   --rm \
   -ti \
   -u $(id -u "${USER}"):$(id -g "${USER}") \
