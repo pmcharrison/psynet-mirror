@@ -260,7 +260,7 @@ def _db(location, app, server):
         return uri
 
 
-@psynet.group("debug", invoke_without_command=True)
+@psynet.group("debug")
 @click.pass_context
 def debug(ctx):
     pass
@@ -596,14 +596,24 @@ def _pre_launch(
     mode,
     archive,
     local_,
+    ssh=False,
     docker=False,
     heroku=False,
+    server=None,
 ):
     log("Preparing for launch...")
 
     redis_vars.clear()
     deployment_info.init(redeploying_from_archive=archive is not None)
-    deployment_info.write(mode=mode)
+    deployment_info.write(mode=mode, is_local_deployment=local_, is_ssh_deployment=ssh)
+
+    if ssh:
+        server_info = CONFIGURED_HOSTS[server]
+
+        ssh_host = server_info["host"]
+        ssh_user = server_info.get("user")
+
+        deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
     log("Running pre-launch checks...")
     run_pre_checks(mode, local_, heroku, docker)
@@ -684,7 +694,15 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, mode="live", archive=archive, local_=False, docker=True)
+        _pre_launch(
+            ctx,
+            mode="live",
+            archive=archive,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server=server,
+        )
 
         from dallinger.command_line.docker_ssh import (
             deploy as dallinger_docker_ssh_deploy,
@@ -816,11 +834,22 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
 
         if docker:
             if config.get("docker_image_base_name", None) is None:
-                raise ValueError(
+                raise click.UsageError(
                     "docker_image_base_name must be specified in config.txt or ~/.dallingerconfig before you can "
                     "launch an experiment using Docker. For example, you might write the following: \n"
                     "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
                 )
+            _expected_docker_volumes = "${HOME}/psynet-data/shared:/psynet-data/shared"
+            if _expected_docker_volumes not in config.get(
+                "docker_volumes", ""
+            ) and not click.confirm(
+                "For deploying PsyNet experiments with Docker, you should typically have the following line "
+                "in your config.txt: \n"
+                f"docker_volumes = {_expected_docker_volumes}\n"
+                "You are advised to change this line then retry launching the experiment. "
+                "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
+            ):
+                raise click.Abort
 
         exp = get_experiment()
 
@@ -900,9 +929,10 @@ def debug__docker_heroku(ctx, app, archive):
 
 
 @debug.command("ssh")
-@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option("--app", required=True, help="Name of the experiment app.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
-@click.option("--server", default=None, help="Name of the remote server.")
+@server_option
+# @click.option("--server", default=None, help="Name of the remote server.")
 # @click.option(
 #     "--skip-flask",
 #     is_flag=True,
@@ -918,14 +948,22 @@ def debug__docker_ssh(ctx, app, archive, server):
 
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
+        _pre_launch(
+            ctx,
+            mode="sandbox",
+            archive=archive,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server=server,
+        )
 
         result = ctx.invoke(
             deploy,
             mode="sandbox",
             server=server,
             app_name=app,
-            config_options=None,
+            config_options={},
             archive_path=archive,
         )
 
@@ -1145,12 +1183,6 @@ def setup_experiment_variables(experiment_class):
     experiment = experiment_class()
     experiment.setup_experiment_variables()
     return experiment
-
-
-def verify_experiment_id(ctx, param, app):
-    from dallinger.command_line import verify_id
-
-    return verify_id(ctx, param, app)
 
 
 ########################
@@ -1683,7 +1715,9 @@ def _destroy(
                 )
 
     if expire_hit is None:
-        if click.confirm("Would you like to expire a related MTurk HIT?", default=True):
+        if click.confirm(
+            "Would you like to look for a related MTurk HIT to expire?", default=True
+        ):
             expire_hit = True
 
     if expire_hit:
@@ -1699,8 +1733,7 @@ def _destroy(
 
 
 @destroy.command("ssh")
-@click.option("--app", default=None, callback=verify_id, help="Experiment id")
-@click.confirmation_option(prompt="Are you sure you want to destroy the app?")
+@click.option("--app", default=None, help="Experiment id")
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -1817,3 +1850,12 @@ def stats__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import stats
 
     ctx.invoke(stats, server=server)
+
+
+def verify_id(ctx, param, app):
+    return app
+
+
+# The original Dallinger verify_id function forces app names to begin with dlgr-,
+# which is not appropriate for us
+dallinger.command_line.utils.verify_id = verify_id

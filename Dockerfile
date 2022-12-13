@@ -3,7 +3,7 @@ FROM ghcr.io/dallinger/dallinger:9.2.0
 # Instead pin it below (see comments)
 #
 # To build locally, run something like this (including the period at the end of the line!):
-# docker build -t psynet-dev .
+# docker build -t registry.gitlab.com/psynetdev/psynet:v10-release-candidate .
 
 RUN mkdir /PsyNet
 WORKDIR /PsyNet
@@ -45,11 +45,14 @@ WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
 COPY ./README.md README.md
 
-RUN mkdir /psynet-exports
-RUN chmod a+rwx -R /psynet-exports
+RUN mkdir /psynet-data
+RUN chmod a+rwx -R /psynet-data
 
-RUN mkdir /psynet-debug-storage
-RUN chmod a+rwx -R /psynet-debug-storage
+#RUN mkdir /psynet-data/export
+#RUN chmod a+rwx -R /psynet-data/export
+#
+#RUN mkdir /psynet-debug-storage
+#RUN chmod a+rwx -R /psynet-debug-storage
 
 RUN mkdir /.cache
 RUN chmod a+rwx -R /.cache

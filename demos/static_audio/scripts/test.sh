@@ -13,7 +13,7 @@ docker run \
   -v "${PWD}":/experiment \
   -v "${HOME}"/.dallingerconfig:/.dallingerconfig \
   -v "$PSYNET_DEBUG_STORAGE"/tests:/psynet-debug-storage \
-  -v "$PSYNET_EXPORT_STORAGE"/tests:/psynet-exports \
+  -v "$PSYNET_EXPORT_STORAGE"/tests:/psynet-data/export \
   --network dallinger \
   -e FLASK_OPTIONS='-h 0.0.0.0' \
   -e REDIS_URL=redis://dallinger_redis:6379 \
