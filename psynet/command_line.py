@@ -1635,10 +1635,10 @@ def generate_config(ctx):
 
 
 @psynet.command()
-def update_docker():
+def update_scripts():
     """
-    To be run in an experiment directory; creates a folder called 'docker' which contains a set of
-    prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
+    To be run in an experiment directory; updates a collection of template scripts and help files to their
+    latest PsyNet versions.
     """
     click.echo(f"Populating the current directory ({os.getcwd()}) with Docker scripts.")
     shutil.copyfile(
