@@ -2563,8 +2563,9 @@ class LocalStorage(AssetStorage):
         self.public_path = self._create_public_path()
 
     def setup_files(self):
-        self._ensure_root_dir_exists()
-        self._create_symlink()
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            self._ensure_root_dir_exists()
+            self._create_symlink()
 
     def prepare_for_deployment(self):
         self.setup_files()
@@ -2581,12 +2582,12 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            return "~/psynet-data/shared"
+            # return "$HOME/psynet-data/shared"
 
-            # if deployment_info.read("is_ssh_deployment"):
-            #     return "/psynet-data/shared"
-            # else:
-            #     return os.path.expanduser("~/psynet-data/shared")
+            if deployment_info.read("is_ssh_deployment"):
+                return "/psynet-data/shared"
+            else:
+                return os.path.expanduser("~/psynet-data/shared")
 
             # if os.getenv("PSYNET_IN_DOCKER"):
             #     return "~/psynet-data/shared"
@@ -2677,9 +2678,11 @@ class LocalStorage(AssetStorage):
                 ssh_host = deployment_info.read("ssh_host")
                 ssh_user = deployment_info.read("ssh_user")
 
+                docker_host_path = "/home/" + ssh_user + file_system_path
+
                 self._put_file(
                     asset.input_path,
-                    file_system_path,
+                    docker_host_path,
                     ssh_host,
                     ssh_user,
                     make_parents=True,
