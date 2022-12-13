@@ -1,4 +1,5 @@
-# Ensures that the script stops on errors
+#!/bin/bash
+
 set -euo pipefail
 
 . docker/params.sh
@@ -15,4 +16,4 @@ if [ ! -d "$DALLINGER_LOCAL_PATH"/dallinger ]; then
   exit 1
 fi
 
-. docker/debug.sh
+./psynet "$@"

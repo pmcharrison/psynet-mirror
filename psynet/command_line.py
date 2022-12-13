@@ -1650,6 +1650,12 @@ def update_scripts():
         "psynet",
     )
     shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/psynet-dev"),
+        "psynet-dev",
+    )
+    os.system("chmod +x psynet")
+    os.system("chmod +x psynet-dev")
+    shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
         "INSTALL.md",
     )
