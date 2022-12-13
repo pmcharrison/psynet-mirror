@@ -6,8 +6,8 @@ set -euo pipefail
 . docker/services.sh
 . docker/build.sh
 
-echo "TODO: wrap error message here"
-docker rm dallinger || true
+docker rm dallinger &> /dev/null || true
+
 docker run \
   --name dallinger \
   --rm \
@@ -16,7 +16,7 @@ docker run \
   -v /etc/group:/etc/group \
   -v ~/.docker:/root/.docker \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v  ~/.ssh:/root/.ssh \
+  -v "${SSH_VOLUME}" \
   -v "${HOME}/Library/Application Support/dallinger/":/.local/share/dallinger/ \
   -v "${PWD}":/experiment \
   -v "${HOME}"/.dallingerconfig:/.dallingerconfig \
@@ -34,6 +34,3 @@ docker run \
   "${EXPERIMENT_IMAGE}" \
   psynet "$@" \
   | sed -e "s:/tmp/dallinger_develop/:${PWD}/:" -e "s:\"/PsyNet/":"\"${PSYNET_LOCAL_PATH}/:"
-
-
-#-e HOME=/root \
