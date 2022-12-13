@@ -1640,7 +1640,7 @@ def update_scripts():
     To be run in an experiment directory; updates a collection of template scripts and help files to their
     latest PsyNet versions.
     """
-    click.echo(f"Populating the current directory ({os.getcwd()}) with Docker scripts.")
+    click.echo(f"Updating PsyNet scripts in ({os.getcwd()}).")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
@@ -1658,6 +1658,11 @@ def update_scripts():
         "scripts",
         dirs_exist_ok=True,
     )
+    if Path("README.md").exists() and click.confirm("Replace existing README file?"):
+        shutil.copyfile(
+            resource_filename("psynet", "resources/experiment_scripts/README.md"),
+            "README.md",
+        )
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
