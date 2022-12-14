@@ -425,6 +425,8 @@ class ImagePrompt(Prompt):
         text_align: str = "left",
     ):
         super().__init__(text=text, text_align=text_align)
+        if isinstance(url, Asset):
+            url = url.url
         self.url = url
         self.width = width
         self.height = height

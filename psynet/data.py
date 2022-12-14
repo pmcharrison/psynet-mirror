@@ -41,6 +41,7 @@ from sqlalchemy.schema import (
     Table,
 )
 from tqdm import tqdm
+from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
@@ -514,11 +515,16 @@ def init_db(drop_all=False, bind=db.engine):
     db.session.commit()
     close_all_sessions()
 
-    old_init_db(drop_all, bind)
+    with yaspin(
+        text="Initializing the database...",
+        color="green",
+    ) as spinner:
+        old_init_db(drop_all, bind)
+        spinner.ok("✔")
 
     import time
 
-    time.sleep(1)
+    time.sleep(1)  # To do - remove this if it doesn't break the tests?
 
     return db.session
 

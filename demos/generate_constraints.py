@@ -8,7 +8,7 @@ import os
 import pathlib
 import subprocess
 
-from yaspin import yaspin
+from joblib import Parallel, delayed
 
 
 def find_demo_dirs():
@@ -27,14 +27,15 @@ def find_demo_dirs():
     )
 
 
-for dir in find_demo_dirs():
-    with yaspin(
-        text=f"Generating constraints for {dir} demo...", color="green"
-    ) as spinner:
-        subprocess.run(
-            "dallinger generate-constraints",
-            shell=True,
-            cwd=dir,
-            capture_output=True,
-        )
-        spinner.ok("✔")
+def generate_constraints(dir):
+    subprocess.run(
+        "dallinger generate-constraints",
+        shell=True,
+        cwd=dir,
+        capture_output=True,
+    )
+
+
+Parallel(verbose=10, n_jobs=16)(
+    delayed(generate_constraints)(_dir) for _dir in find_demo_dirs()
+)
