@@ -16,4 +16,4 @@ if [ ! -d "$DALLINGER_LOCAL_PATH"/dallinger ]; then
   exit 1
 fi
 
-./psynet.sh "$@"
+./docker/psynet.sh "$@"

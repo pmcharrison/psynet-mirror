@@ -1645,21 +1645,18 @@ def update_scripts():
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
     )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/run.sh"),
-        "run.sh",
-    )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/psynet.sh"),
-        "psynet.sh",
-    )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/psynet-dev.sh"),
-        "psynet-dev.sh",
-    )
-    os.system("chmod +x psynet.sh")
-    os.system("chmod +x psynet-dev.sh")
-    os.system("chmod +x run.sh")
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/run.sh"),
+    #     "run.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet.sh"),
+    #     "psynet.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet-dev.sh"),
+    #     "psynet-dev.sh",
+    # )
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
         "INSTALL.md",
@@ -1673,6 +1670,9 @@ def update_scripts():
         "docker",
         dirs_exist_ok=True,
     )
+    os.system("chmod +x docker/psynet.sh")
+    os.system("chmod +x docker/psynet-dev.sh")
+    os.system("chmod +x docker/run.sh")
     if Path("README.md").exists() and click.confirm("Replace existing README file?"):
         shutil.copyfile(
             resource_filename("psynet", "resources/experiment_scripts/README.md"),
