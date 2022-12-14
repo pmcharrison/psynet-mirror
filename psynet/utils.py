@@ -554,7 +554,8 @@ def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dir
     if exists(join_path(localedir, locale, 'LC_MESSAGES', f'{module}.mo')):
         translator = gettext.translation(module, localedir, [locale])
     else:
-        logger.warning(f'No translation file found for locale {locale}.')
+        if locale != 'en':
+            logger.warning(f'No translation file found for locale {locale}.')
         translator = gettext.NullTranslations()
     return translator.gettext, translator.pgettext, translator.npgettext
 
