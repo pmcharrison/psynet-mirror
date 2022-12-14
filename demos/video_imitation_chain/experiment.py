@@ -3,6 +3,8 @@ Video Imitation Chain Demo
 """
 import random
 
+from dallinger import db
+
 import psynet.experiment
 from psynet.asset import Asset, CachedAsset, DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
@@ -83,11 +85,7 @@ class CustomTrial(CameraImitationChainTrial):
                 logger.info([x.__json__() for x in self.node.async_processes])
 
                 logger.info("What happens if we refresh the object?")
-
-                logger.info("Does our trial's node have pending async processes?")
-                logger.info(self.node.async_processes)
-                logger.info([x.__json__() for x in self.node.async_processes])
-
+                db.session.refresh(self)
                 stimulus = self.assets["stimulus"]
 
             page_1 = ModularPage(
