@@ -1635,15 +1635,31 @@ def generate_config(ctx):
 
 
 @psynet.command()
-def update_docker():
+def update_scripts():
     """
-    To be run in an experiment directory; creates a folder called 'docker' which contains a set of
-    prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
+    To be run in an experiment directory; updates a collection of template scripts and help files to their
+    latest PsyNet versions.
     """
-    click.echo(f"Populating the current directory ({os.getcwd()}) with Docker scripts.")
+    click.echo(f"Updating PsyNet scripts in ({os.getcwd()}).")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
+    )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/run.sh"),
+    #     "run.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet.sh"),
+    #     "psynet.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet-dev.sh"),
+    #     "psynet-dev.sh",
+    # )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
+        "INSTALL.md",
     )
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
@@ -1651,9 +1667,17 @@ def update_docker():
     )
     shutil.copytree(
         resource_filename("psynet", "resources/experiment_scripts/docker"),
-        "scripts",
+        "docker",
         dirs_exist_ok=True,
     )
+    os.system("chmod +x docker/psynet.sh")
+    os.system("chmod +x docker/psynet-dev.sh")
+    os.system("chmod +x docker/run.sh")
+    if Path("README.md").exists() and click.confirm("Replace existing README file?"):
+        shutil.copyfile(
+            resource_filename("psynet", "resources/experiment_scripts/README.md"),
+            "README.md",
+        )
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")

@@ -1,7 +1,7 @@
 set -euo pipefail
 
-. scripts/params.sh
-. scripts/build.sh
+. docker/params.sh
+. docker/build.sh
 
 docker run \
   --name dallinger \
