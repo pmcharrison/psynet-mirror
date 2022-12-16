@@ -1289,7 +1289,7 @@ def export__local(ctx=None, **kwargs):
 )
 @click.pass_context
 def export__heroku(ctx, app, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables, location="heroku")
+    exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
     export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
 
@@ -1303,7 +1303,7 @@ def export__heroku(ctx, app, **kwargs):
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables, location="ssh")
+    exp_variables = ctx.invoke(experiment_variables, location="ssh", app=app)
     export_(
         ctx,
         app=app,
