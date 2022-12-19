@@ -150,7 +150,8 @@ It is possible to do many Git operations without any internet connection, with t
 
 Conversely, when working with multiple programmers on the same project, we will want to download new commits from the remote repository to our local repository. This process is called *pulling* (``git pull``). We generally pull to one branch at a time; pulling to a branch means downloading new commits in the remote branch to the corresponding branch of our local repository.
 
-Note: you may also come across the related command ``git fetch``. This command is similar to ``git pull``, but it does a bit less. Like ``git pull``, it downloads the state of the remote repository onto your local machine; however, unlike ``git pull``, it doesn’t integrate these changes with your current branch, but instead leaves it as it is. The main situation I find myself using ``git fetch`` is when I want to check out a branch that has been added by another user to the remote repository that I haven’t yet loaded onto my local machine.
+.. note::
+  You may also come across the related command ``git fetch``. This command is similar to ``git pull``, but it does a bit less. Like ``git pull``, it downloads the state of the remote repository onto your local machine; however, unlike ``git pull``, it doesn’t integrate these changes with your current branch, but instead leaves it as it is. The main situation I find myself using ``git fetch`` is when I want to check out a branch that has been added by another user to the remote repository that I haven’t yet loaded onto my local machine.
 
 One thing to note is that you can’t push to the remote repository if the remote repository contains commits that you are missing from your local repository. So, it is often necessary to first pull, so that you’re sure that you’re not missing anything from the remote repository, and only then push your new commits.
 

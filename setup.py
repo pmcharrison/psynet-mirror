@@ -47,7 +47,7 @@ setuptools.setup(
             "pre-commit",
             "pytest",
             "sphinx-autodoc-typehints",
-            "sphinx_rtd_theme",
+            "furo",
         ]
     },
     entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},
