@@ -1,5 +1,24 @@
 # CHANGELOG
 
+# [9.3.0] Released on 2022-11-26
+
+#### Added
+- Added support for panning in JSSynth
+- Added new parameter `show_free_text_option` to `RadioButtonControl` which appends a free text option to the list of options
+
+#### Fixed
+- Fixed typo in `LexTaleTest`
+
+#### Changed
+- Changed gender questionnaire
+- Renamed 'hits' to 'tasks' in `CapRecruiter` API calls
+
+#### Updated
+- Updated `Dallinger` to `v9.2.1` fixing the issue of not being able to deploy to Heroku. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.2.1.
+- Updated references for new GitLab repository path (`computational-audition-lab` -> `PsyNetDev`)
+- Updated `README.md`
+- Updated Linux installation instructions
+
 # [9.2.0] Released on 2022-11-10
 
 #### Fixed

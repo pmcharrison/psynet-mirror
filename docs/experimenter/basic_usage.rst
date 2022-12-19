@@ -13,7 +13,7 @@ This can be done by adding the following line:
 
 ::
 
-    git+ssh://git@gitlab.com/computational-audition-lab/psynet
+    git+ssh://git@gitlab.com/PsyNetDev/psynet
 
 You can also modify this line to specify a particular version to install,
 and to provide authentication to the repository if required;
@@ -23,7 +23,7 @@ In particular, to add your GitLab password, you can do something like this:
 
 ::
 
-    git+https://<username>:<password>@gitlab.com/computational-audition-lab/psynet#egg=psynet
+    git+https://<username>:<password>@gitlab.com/PsyNetDev/psynet#egg=psynet
 
 Alternatively, you can use a *deploy token* by simply copying the already prepared deploy token
 
@@ -33,7 +33,7 @@ of the user with username *cap* and include it as follows:
 
 ::
 
-    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/PsyNetDev/psynet#egg=psynet
 
 *\*In case you want to use a different deploy token, please consult the section on* :ref:`Deploy tokens` *for how to generate those.*
 
@@ -41,19 +41,19 @@ The above line will always deploy the most recent commit in the `master` branch.
 
 ::
 
-    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet@<commit_hash>#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/PsyNetDev/psynet@<commit_hash>#egg=psynet
 
 In the same way you can use a Git version tag ``<tag>`` like ``v1.5.0`` to always deploy a certain tagged commit:
 
 ::
 
-    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet@<tag>#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/PsyNetDev/psynet@<tag>#egg=psynet
 
 Contrary to the above, use a branch name ``<branch_name>`` like ``dev`` in case you want to deploy an experiment always using the most recent commit in a certain Git branch:
 
 ::
 
-    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet@<branch_name>#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/PsyNetDev/psynet@<branch_name>#egg=psynet
 
 Custom packages
 ---------------

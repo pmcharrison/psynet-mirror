@@ -58,7 +58,7 @@ setuptools.setup(
             "pre-commit",
             "pytest",
             "sphinx-autodoc-typehints",
-            "sphinx_rtd_theme",
+            "furo",
         ]
     },
     entry_points={

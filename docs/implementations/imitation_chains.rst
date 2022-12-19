@@ -75,8 +75,8 @@ See the low-level documentation (below)
 and the demo (``demos/imitation_chain``)
 for more details.
 
-Note: you can customize the assignment of participants to chains by overriding the
-:meth:`~psynet.trial.imitation_chain.ImitationChainTrialMaker.custom_network_filter` method.
+.. note::
+   You can customize the assignment of participants to chains by overriding the :meth:`~psynet.trial.imitation_chain.ImitationChainTrialMaker.custom_network_filter` method.
 
 .. [1] The :meth:`~psynet.trial.imitation_chain.ImitationChainTrial.show_trial` method
    may alternatively return a list of :class:`~psynet.timeline.Page` objects.

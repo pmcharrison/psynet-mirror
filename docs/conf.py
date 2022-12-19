@@ -53,7 +53,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "PsyNet"
-copyright = "2020, Peter Harrison"
+copyright = "2022, Peter Harrison"
 author = "Peter Harrison"
 
 # The version info for the project you're documenting, acts as replacement
@@ -71,7 +71,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -91,7 +91,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_theme_path = [
     "_themes",
 ]
@@ -170,18 +170,20 @@ texinfo_documents = [
 
 # This creates an 'Edit in GitLab' button on each documentation page.
 # This will take the user to a web IDE where they can propose changes
-# to the documentation page. When the user commits these changes, 
-# GitLab will create a new branch with a default name looking something 
-# like `pmcharrison-master-patch-68438`, 
-# and will prompt the user to create a merge request to master,
-# which will then have to be verified through code review before merging.
-#
-# See https://docs.readthedocs.io/en/stable/guides/edit-source-links-sphinx.html
-# for info on this specification.
-html_context = {
-    "display_gitlab": True, # Integrate Gitlab
-    "gitlab_user": "computational-audition-lab", # Username
-    "gitlab_repo": "psynet", # Repo name
-    "gitlab_version": "master", # Branch to edit
-    "conf_py_path": "/docs/", # Path in the checkout to the docs root
+# to the documentation page.
+html_theme_options = {
+    "source_repository": "https://gitlab.com/PsyNetDev/PsyNet/",
+    "source_branch": "master",
+    "source_directory": "docs/",
 }
+
+# Old version:
+# # See https://docs.readthedocs.io/en/stable/guides/edit-source-links-sphinx.html
+# # for info on this specification.
+# html_context = {
+#     "display_gitlab": True, # Integrate Gitlab
+#     "gitlab_user": "PsyNetDev", # Username
+#     "gitlab_repo": "psynet", # Repo name
+#     "gitlab_version": "master", # Branch to edit
+#     "conf_py_path": "/docs/", # Path in the checkout to the docs root
+# }

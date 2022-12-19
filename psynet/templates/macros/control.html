@@ -240,15 +240,31 @@
             psynet.nextPage(id);
         }
 
+        {% if config.show_free_text_option %}
+        psynet.trial.onEvent("responseEnable", function () {
+            var elem = $('#free_text')
+            $('#free_text_input').change(function () {
+                elem[0].checked = true;
+            }).click(function (){
+                elem[0].checked = true;
+            })
+        });
+        {% endif %}
+
         retrieveResponse = function() {
             let element = document.querySelector('input[name="{{ config.name }}"]:checked')
+            var rawAnswer = (element != null) ? element.id : null;
 
-            return {
-                rawAnswer: (element != null) ? element.id : null
+            {% if config.show_free_text_option %}
+            if (rawAnswer === 'free_text') {
+                rawAnswer = $('#free_text_input').val()
             }
+            {% endif %}
+            return {rawAnswer: rawAnswer}
         }
     </script>
 {% endmacro %}
+
 
 {% macro dropdown_option(config) %}
     <option value="{{ config.value }}">{{ config.text }}</option>
