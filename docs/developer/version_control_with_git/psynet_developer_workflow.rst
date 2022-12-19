@@ -32,8 +32,9 @@ We will begin by considering how to contribute a feature or bugfix to PsyNet.
 Contributing a feature/bugfix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Note:** there is an out-of-date description of this workflow hosted here:
-`https://computational-audition-lab.gitlab.io/PsyNet/developer/basic_workflow.html <https://computational-audition-lab.gitlab.io/PsyNet/developer/basic_workflow.html>`_. Please refer to the present document (PsyNet Learning) for the time being.
+.. note::
+    There is an out-of-date description of this workflow hosted here:
+    `https://computational-audition-lab.gitlab.io/PsyNet/developer/basic_workflow.html <https://computational-audition-lab.gitlab.io/PsyNet/developer/basic_workflow.html>`_. Please refer to the present document (PsyNet Learning) for the time being.
 
 Step 1: Creating an issue
 +++++++++++++++++++++++++
@@ -77,7 +78,8 @@ Let’s click ‘Create merge request’. This initiates two processes:
 #. Creating a **new branch** off the ‘`dev`’ branch called ‘`issue-288-network-participant`’;
 #. Creating a **new merge request** (what GitHub would call a pull request) for our new branch ‘`issue-288-network-participant`’ to ‘`dev`’.
 
-**Note:** If you accidentally click the button itself instead of the arrow, don’t worry, you can also customize those two options on the next page.
+.. note::
+    If you accidentally click the button itself instead of the arrow, don’t worry, you can also customize those two options on the next page.
 
 We will see some further options on the next page to customize our merge request. Next click edit on the top of the page:
 
@@ -93,8 +95,6 @@ First, in the dropdown box labeled ‘Description’, you should select ‘defau
   :align: center
 
 |br|
-**Note:** If we upgrade to GitLab Premium then we should be able to `set the template automatically when the merge request is created <https://docs.gitlab.com/ee/user/project/description_templates.html#set-a-default-template-for-merge-requests-and-issues>`_.
-
 Before filling out the description template, scroll down and ensure that you are listed as the Assignee (the person who will do the implementation) and the Reviewer is left unassigned. The Reviewer will stay unassigned until you have finished your implementation. The ‘delete source branch’ option should be unticked; if we have good naming conventions for our branches there’s no problem in keeping them for posterity. The ‘squash commits’ option should also be ticked; this means that when the branch is ultimately merged its changes will be squashed into one commit, ensuring the readability and interpretability of PsyNet’s version history.
 
 .. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_edit_merge_request-3.png
@@ -157,7 +157,8 @@ The resulting merge-request description should look something like this:
 
 Tagging the reviewers in this way will send the reviewers an email notification alerting them to the merge request, and give them an opportunity to discuss it with you. You should not consider the reviewing arrangement confirmed until you have had agreement from both reviewers. In order to encourage the reviewers to prioritize your case, it is worth making sure that the merge request description is well-specified so that they can be quickly convinced of the merit of the investment. In the context of complex proposals, you may wish to consider arranging a Zoom call with your reviewers to discuss the best way forward.
 
-**Note:** See e.g. the `Markdown Guide <https://www.markdownguide.org/>`_ for more information on writing markdown.
+.. note::
+    See e.g. the `Markdown Guide <https://www.markdownguide.org/>`_ for more information on writing markdown.
 
 We then need to get this branch into our local repository. GitLab provides a handy button for this labeled ‘Check out branch’, which will display the required commands automatically for us to copy and paste.
 
@@ -166,14 +167,16 @@ We then need to get this branch into our local repository. GitLab provides a han
   :align: center
 
 |br|
-**Note:** Other version-control systems (e.g., GitHub) do not necessarily provide these helper buttons. In such cases we can instead create the branch and the merge request using the following code, and create the pull/merge request via the version-control system’s web interface:
 
-.. code-block:: console
+.. note::
+    Other version-control systems (e.g., GitHub) do not necessarily provide these helper buttons. In such cases we can instead create the branch and the merge request using the following code, and create the pull/merge request via the version-control system’s web interface:
 
-  git checkout dev
-  git pull
-  git checkout -b issue-288-network-participant
-  git push -u origin issue-288-network-participant
+    .. code-block:: console
+
+      git checkout dev
+      git pull
+      git checkout -b issue-288-network-participant
+      git push -u origin issue-288-network-participant
 
 Once we’ve checked out the code locally, we should make sure that our Python is using this local version of PsyNet. We do this as follows:
 
@@ -489,12 +492,13 @@ Once the comment is completed, the reviewer clicks the ‘Start review’ button
 
 Once we’ve finished examining a given file, we click the ‘Viewed’ checkbox to log the fact that we’ve finished.
 
-**Note:** Sometimes the reviewer might want to try the code on their own machine, rather than just reading it online. To do this they will need to run some Git commands on their local repository:
+.. note::
+    Sometimes the reviewer might want to try the code on their own machine, rather than just reading it online. To do this they will need to run some Git commands on their local repository:
 
-.. code-block:: console
+    .. code-block:: console
 
-  git fetch  # fetches the current state of all branches, including the feature branch
-  git checkout my-feature-branch  # replace my-feature-branch with the branch name
+      git fetch  # fetches the current state of all branches, including the feature branch
+      git checkout my-feature-branch  # replace my-feature-branch with the branch name
 
 .. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_merge_request_collapse.gif
   :width: 700
@@ -514,7 +518,8 @@ explaining their actions. This could be as simple as writing ‘Fixed’; altern
 
 If the reviewer is satisfied with the response, they should click the ‘Resolve thread button’. This hides the commit from the diff view.
 
-**Note:** Contributors should *not* resolve reviewer comments! This runs the risk of the reviewer missing the response and hence not being able to verify it.
+.. note::
+    Contributors should *not* resolve reviewer comments! This runs the risk of the reviewer missing the response and hence not being able to verify it.
 
 If the reviewer is not satisfied with the response, they are welcome to discuss it further with the contributor to achieve a consensus. If this proves impossible, then they are encouraged to raise the issue to a core PsyNet developer (tagging the developer in that conversation should be sufficient).
 Eventually the conversation between the contributor and the first reviewer will come to an end, usually with all conversations resolved. If there is a second reviewer listed on the reviewer list, this is the point when the merge request should be passed onto that second reviewer. This is achieved similarly to how the first reviewer was selected, but this time we begin by deselecting the first reviewer and only then selecting the second reviewer. This second reviewer will then be sent an email notification and the review process will repeat with this new reviewer.

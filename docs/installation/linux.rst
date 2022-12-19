@@ -98,7 +98,6 @@ Install Dallinger
 In the example below Dallinger is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
 
 .. note::
-
    Make sure you have activated your virtual environment by running `workon psynet`.
 
 .. code-block:: bash

@@ -72,7 +72,6 @@ Setup virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
-
    If you are installing on Big Sur 11.3 with the M1 chip, please skip below
 
 .. code-block:: bash
@@ -110,7 +109,6 @@ Install Dallinger
 In the example below Dallinger is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
 
 .. note::
-
    Make sure you have activated your virtual environment by running `workon psynet`.
 
 .. code-block:: bash

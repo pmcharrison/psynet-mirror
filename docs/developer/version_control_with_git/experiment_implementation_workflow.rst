@@ -469,8 +469,6 @@ This workflow should work fine except for cases where your version-controlled ch
 Undoing commits accidentally committed to the wrong branch
 ##########################################################
 
-**Note: I have not tested this fully yet. It would be great if someone could test that it works on a test repository.**
-
 Sometimes we might accidentally make some commits to the wrong branch. As long as we realize this before pushing our commits, the problem is relatively straightforward to fix.
 
 The most efficient process here depends on the precise state of the repository. Here we will describe a process that should work well for any state, but in particular use cases there will be slightly more efficient methods.
@@ -534,7 +532,8 @@ replacing ``f265hfr`` with the checksum of your last valid commit.
 
 Verify that the commits have been appropriately using ``git status``. If so, you can consider your problem fixed.
 
-*Note:* The ``cherry-pick`` command works by taking a historic commit and applying it to the current branch. It is useful whenever you want to copy commits to a new branch without going through the process of merging branches.
+.. note::
+    The ``cherry-pick`` command works by taking a historic commit and applying it to the current branch. It is useful whenever you want to copy commits to a new branch without going through the process of merging branches.
 
 Using the Git GUI in your IDE
 #############################
@@ -749,7 +748,8 @@ When working on collaborative projects it is difficult to avoid merge conflicts 
     git checkout new-feature
     git merge master
 
-**Note:** some software projects use ‘rebasing’ instead of merging in this context. We do not recommend that in general, because rebasing is a destructive operation that can cause difficult-to-resolve problems down the road.
+.. note::
+    Some software projects use ‘rebasing’ instead of merging in this context. We do not recommend that in general, because rebasing is a destructive operation that can cause difficult-to-resolve problems down the road.
 
 Recap of concepts we covered
 ############################
