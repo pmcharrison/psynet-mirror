@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import re
@@ -5,14 +6,24 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from shutil import rmtree, which
 
 import click
 import dallinger.command_line.utils
 import psutil
+import psycopg2
 from dallinger import db
+from dallinger.command_line.docker_ssh import (
+    CONFIGURED_HOSTS,
+    remote_postgres,
+    server_option,
+)
+from dallinger.command_line.utils import verify_id
 from dallinger.config import get_config
+from dallinger.heroku.tools import HerokuApp
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
 from yaspin import yaspin
@@ -23,7 +34,10 @@ from psynet import __version__
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .redis import redis_vars
+from .serialize import serialize, unserialize
 from .utils import (
+    get_args,
+    get_from_config,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -129,73 +143,181 @@ def _prepare():
 #########
 # debug #
 #########
-@psynet.command()
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--legacy", is_flag=True, help="Legacy mode")
-@click.option("--bot", is_flag=True, help="Use bot to complete experiment")
+
+
+def _experiment_variables(connection, echo=False):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT vars FROM experiment")
+        records = cursor.fetchall()
+
+        if len(records) == 0:
+            raise RuntimeError(
+                "No rows found in the `experiment` table, maybe the experiment isn't launched yet?"
+            )
+
+        assert len(records) == 1
+
+        _vars = unserialize(records[0][0])
+        if echo:
+            click.echo(serialize(_vars, indent=4))
+        return _vars
+    except psycopg2.errors.UndefinedTable:
+        click.echo(
+            "Could not find the table `experiment` on the remote database. This could mean that the experiment isn't "
+            "launched yet, or it could mean that the experiment is using an incompatible version of PsyNet."
+        )
+    finally:
+        cursor.close()
+
+
+# Experiment variables ####
+
+
+def _validate_location(ctx, param, value):
+    allowed = ["local", "heroku", "ssh"]
+    if value not in allowed:
+        raise click.UsageError(
+            f"Invalid location {value}; location must be one of: {', '.join(allowed)}"
+        )
+
+
+@psynet.command("experiment-variables")
+@click.argument("location", default="local", callback=_validate_location)
 @click.option(
-    "--proxy", default=None, help="Alternate port when opening browser windows"
+    "--app",
+    default=None,
+    help="Name of the experiment app (required for non-local deployments)",
 )
 @click.option(
-    "--no-browsers",
-    is_flag=True,
-    help="Skip opening browsers",
+    "--server",
+    default=None,
+    help="Name of the remote server (only relevant for ssh deployments)",
+)
+def experiment_variables(location, app, server):
+    with db_connection(location, app, server) as connection:
+        return _experiment_variables(connection, echo=True)
+
+
+@contextmanager
+def db_connection(location, app=None, server=None):
+    try:
+        connection = None
+        with get_db_uri(location, app, server) as db_uri:
+            if "postgresql://" in db_uri or "postgres://" in db_uri:
+                connection = psycopg2.connect(dsn=db_uri)
+            else:
+                connection = psycopg2.connect(database=db_uri, user="dallinger")
+            yield connection
+    finally:
+        if connection:
+            connection.close()
+
+
+def prompt_for_ssh_server():
+    click.echo(
+        "Choose one of the configured servers (add one with `dallinger docker-ssh servers add`):"
+    )
+    return click.Choice(CONFIGURED_HOSTS.keys())
+
+
+@contextmanager
+def get_db_uri(location, app=None, server=None):
+    match location:
+        case "local":
+            yield db.db_url
+        case "heroku" | "docker_heroku":
+            if app is None:
+                raise click.UsageError("Missing parameter: --app")
+            yield HerokuApp(app).db_uri
+        case "ssh":
+            if app is None:
+                raise click.UsageError("Missing parameter: --app")
+            if server is None:
+                server = prompt_for_ssh_server()
+            server_info = CONFIGURED_HOSTS[server]
+            with remote_postgres(server_info, app) as db_uri:
+                yield db_uri
+        case _:
+            raise click.BadParameter(f"Invalid location: {location}")
+
+
+@psynet.command("db")
+@click.argument("location", default="local", callback=_validate_location)
+@click.option(
+    "--app",
+    default=None,
+    help="Name of the experiment app (required for non-local deployments)",
 )
 @click.option(
-    "--threads",
-    default=1,
-    help="Number of threads to spawn. Fewer threads means faster start-up time.",
+    "--server",
+    default=None,
+    help="Name of the remote server (only relevant for ssh deployments)",
 )
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option(
-    "--skip-flask",
-    is_flag=True,
-    help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
-)
+def _db(location, app, server):
+    with get_db_uri(location, app, server) as uri:
+        click.echo(uri)
+        return uri
+
+
+@psynet.group("debug")
 @click.pass_context
-def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask):
-    debug_(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask)
+def debug(ctx):
+    pass
 
 
-def debug_(
-    ctx=None,
-    legacy=False,
-    verbose=True,
-    bot=False,
-    proxy=None,
-    no_browsers=False,
-    threads=1,
-    archive=None,
-    skip_flask=False,
-):
+@psynet.command(
+    context_settings=dict(
+        allow_extra_args=True,
+        ignore_unknown_options=True,
+    )
+)
+def sandbox(*args, **kwargs):
+    raise click.ClickException(
+        "`psynet sandbox` has been replaced with `psynet heroku debug`, please use the latter."
+    )
+
+
+@debug.command("local")
+# @click.option("--app", default=None, help="Name of the experiment app (required for non-local deployments)")
+# @click.option("--server", default=None, help="Name of the remote server (only relevant for ssh deployments)")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@click.option("--legacy", is_flag=True, help="Legacy mode.")
+@click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+# @click.option(
+#     "--skip-flask",
+#     is_flag=True,
+#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
+# )
+@click.pass_context
+def debug__local(ctx, docker, archive, legacy, no_browsers):
     """
-    Run the experiment locally.
+    Debug the experiment locally (this should normally be your first choice).
     """
     if not ctx:
         from click import Context
 
         ctx = Context(debug)
 
-    log(header)
+    if legacy and docker:
+        raise click.UsageError(
+            "It is not possible to select both --legacy and --docker modes simultaneously."
+        )
 
-    redis_vars.clear()
-    make_deploy_dir()
-    deployment_info.init(redeploying_from_archive=archive is not None)
-
-    drop_all_db_tables()
-
-    if archive is None:
-        run_prepare_in_subprocess()  # TODO - think about running prepare even when we deploy from archive
-        _cleanup_before_debug()
+    _pre_launch(ctx, mode="debug", archive=archive, local_=True, docker=docker)
+    _cleanup_before_debug()
 
     try:
         if legacy:
             # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
             # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
             # This problem manifests specifically when the experiment contains custom tables.
-            _debug_legacy(**locals())
+            _debug_legacy(ctx, archive=archive, no_browsers=no_browsers)
+        elif docker:
+            _debug_docker(ctx, archive=archive, no_browsers=no_browsers)
         else:
-            _debug_auto_reload(**locals())
+            _debug_auto_reload(ctx, archive=archive, no_browsers=no_browsers)
     finally:
         kill_psynet_worker_processes()
 
@@ -217,6 +339,15 @@ def _cleanup_before_debug():
     # This is important for resetting the state before _debug_legacy;
     # otherwise `dallinger verify` throws an error.
     clean_sys_modules()  # Unimports the PsyNet experiment
+
+    drop_all_db_tables()
+
+
+def _cleanup_exp_directory():
+    try:
+        shutil.rmtree(".deploy")
+    except FileNotFoundError:
+        pass
 
 
 def run_pre_auto_reload_checks():
@@ -249,14 +380,36 @@ def run_pre_auto_reload_checks():
             )
 
 
-def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwargs):
+def _debug_legacy(ctx, archive, no_browsers):
+    if archive:
+        raise click.UsageError(
+            "Legacy debug mode doesn't currently support loading from archive."
+        )
+
     from dallinger.command_line import debug as dallinger_debug
 
-    exp_config = {"threads": str(threads)}
+    db.session.commit()
+
+    try:
+        ctx.invoke(
+            dallinger_debug,
+            verbose=True,
+            bot=False,
+            proxy=None,
+            no_browsers=no_browsers,
+            exp_config={"threads": "1"},
+        )
+    finally:
+        db.session.commit()
+        reset_console()
+
+
+def _debug_docker(ctx, archive, no_browsers):
+    from dallinger.command_line.docker import debug as dallinger_debug
 
     if archive:
-        raise ValueError(
-            "Legacy debug mode doesn't currently support loading from archive"
+        raise click.UsageError(
+            "`psynet debug` with Docker doesn't currently support loading from archive."
         )
 
     db.session.commit()
@@ -264,29 +417,23 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
     try:
         ctx.invoke(
             dallinger_debug,
-            verbose=verbose,
-            bot=bot,
-            proxy=proxy,
+            verbose=True,
+            bot=False,
+            proxy=None,
             no_browsers=no_browsers,
-            exp_config=exp_config,
-            # archive=archive,  # Not currently supported by Dallinger
         )
     finally:
         db.session.commit()
         reset_console()
 
 
-def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, skip_flask, **kwargs):
-    run_pre_auto_reload_checks()
+def _debug_auto_reload(ctx, archive, no_browsers):
+    if no_browsers:
+        raise click.UsageError(
+            "--no-browsers option is not supported in this debug mode."
+        )
 
-    for var, var_name in [
-        (bot, "bot"),
-        (proxy, "proxy"),
-        (no_browsers, "no_browsers"),
-    ]:
-        assert (
-            not var
-        ), f"The option '{var_name}' is not supported in this mode, please add --legacy to your command."
+    run_pre_auto_reload_checks()
 
     from dallinger.command_line.develop import debug as dallinger_debug
     from dallinger.deployment import DevelopmentDeployment
@@ -295,7 +442,7 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, skip_flask, **kwar
     patch_dallinger_develop()
 
     try:
-        ctx.invoke(dallinger_debug, skip_flask=skip_flask)
+        ctx.invoke(dallinger_debug, skip_flask=False)
     finally:
         db.session.commit()
         reset_console()
@@ -439,31 +586,170 @@ def run_pre_checks_deploy(exp, config, is_mturk):
 ##########
 # deploy #
 ##########
-@psynet.command()
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", default=None, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.pass_context
-def deploy(ctx, verbose, app, archive):
-    """
-    Deploy app using Heroku to MTurk.
-    """
-    redis_vars.clear()
-    make_deploy_dir()
-    deployment_info.init(redeploying_from_archive=archive is not None)
 
-    run_pre_checks("deploy")
+
+def _pre_launch(
+    ctx,
+    *,
+    mode,
+    archive,
+    local_,
+    ssh=False,
+    docker=False,
+    heroku=False,
+    server=None,
+):
+    log("Preparing for launch...")
+
+    redis_vars.clear()
+    deployment_info.init(redeploying_from_archive=archive is not None)
+    deployment_info.write(mode=mode, is_local_deployment=local_, is_ssh_deployment=ssh)
+
+    if ssh:
+        server_info = CONFIGURED_HOSTS[server]
+
+        ssh_host = server_info["host"]
+        ssh_user = server_info.get("user")
+
+        deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
+
+    log("Running pre-launch checks...")
+    run_pre_checks(mode, local_, heroku, docker)
     log(header)
 
+    # Always use the Dallinger version in requirements.txt, not the local editable one
+    os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+
+    if docker:
+        if Path("Dockerfile").exists():
+            # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
+            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+
     if not archive:
-        ctx.invoke(prepare)
+        if local_:
+            run_prepare_in_subprocess()
+        else:
+            ctx.invoke(prepare)
 
-    from dallinger.command_line import deploy as dallinger_deploy
 
+@psynet.group("deploy")
+def deploy():
+    pass
+
+
+@deploy.command("heroku")
+@click.option("--app", required=True, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.pass_context
+def deploy__heroku(ctx, app, archive):
     try:
-        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+        from dallinger.command_line import deploy as dallinger_deploy
+
+        _pre_launch(ctx, mode="live", archive=archive, local_=False, heroku=True)
+        result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=archive)
+        _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
+
+
+@deploy.command("heroku")
+@click.option("--app", required=True, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.pass_context
+def deploy__docker_heroku(ctx, app, archive):
+    try:
+        from dallinger.command_line.docker import deploy as dallinger_deploy
+
+        if archive is not None:
+            raise NotImplementedError(
+                "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
+                "This shouldn't be hard to fix..."
+            )
+
+        _pre_launch(
+            ctx, mode="live", archive=archive, local_=False, docker=True, heroku=True
+        )
+        result = ctx.invoke(dallinger_deploy, verbose=True, app=app)
+        _post_deploy(result)
+    finally:
+        _cleanup_exp_directory()
+        reset_console()
+
+
+@deploy.command("ssh")
+@click.option("--app", required=True, help="Experiment id")
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@server_option
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
+@click.pass_context
+def deploy__docker_ssh(ctx, app, archive, server, dns_host):
+    try:
+        # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
+        # irrespective of whether a different version is installed locally.
+        os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+
+        _pre_launch(
+            ctx,
+            mode="live",
+            archive=archive,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server=server,
+        )
+
+        from dallinger.command_line.docker_ssh import (
+            deploy as dallinger_docker_ssh_deploy,
+        )
+
+        result = ctx.invoke(
+            dallinger_docker_ssh_deploy,
+            mode="sandbox",  # TODO - but does this even matter?
+            server=server,
+            dns_host=dns_host,
+            app_name=app,
+            archive_path=archive,
+            # config_options -- this could be useful
+        )
+
+        _post_deploy(result)
+    finally:
+        _cleanup_exp_directory()
+        reset_console()
+
+
+def _post_deploy(result):
+    assert isinstance(result, dict)
+    assert "dashboard_user" in result
+    assert "dashboard_password" in result
+    export_launch_info(
+        deployment_id=deployment_info.read("deployment_id"),
+        **result,
+    )
+
+
+def export_launch_info(deployment_id, dashboard_user, dashboard_password, **kwargs):
+    """
+    Retrieves dashboard credentials from the current config and
+    saves them to disk.
+    """
+    parent = Path("~/psynet-data/launch_info").expanduser() / deployment_id
+    parent.mkdir(parents=True, exist_ok=True)
+    file = parent.joinpath("dashboard_credentials.json")
+    with open(file, "w") as f:
+        json.dump(
+            {
+                "dashboard_user": dashboard_user,
+                "dashboard_password": dashboard_password,
+                **kwargs,
+            },
+            f,
+            indent=4,
+        )
 
 
 ########
@@ -505,36 +791,82 @@ def docs(force_rebuild):
 ##############
 
 
-def run_pre_checks(mode):
+def run_pre_checks(mode, local_, heroku=False, docker=False):
     from dallinger.recruiters import MTurkRecruiter
 
     from .asset import DebugStorage
     from .experiment import get_experiment
 
-    init_db(drop_all=True)
+    if heroku:
+        try:
+            with open(".gitignore", "r") as f:
+                for line in f.readlines():
+                    if line.startswith(".deploy"):
+                        if not click.confirm(
+                            "The .gitignore file contains '.deploy'; "
+                            "in order to deploy on Heroku without Docker this line must ordinarily be removed. "
+                            "Are you sure you want to continue?"
+                        ):
+                            raise click.Abort
+        except FileNotFoundError:
+            pass
 
-    config = get_config()
-    if not config.ready:
-        config.load()
-
-    exp = get_experiment()
-
-    recruiter = exp.recruiter
-    is_mturk = isinstance(recruiter, MTurkRecruiter)
-
-    if mode in ["sandbox", "deploy"]:
-        if isinstance(exp.asset_storage, DebugStorage):
-            raise AttributeError(
-                "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
-                "If you don't need assets in your experiment, you can probably remove the line altogether, "
-                "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
-                "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+    if docker:
+        if not Path("Dockerfile").exists():
+            raise click.UsageError(
+                "If using PsyNet with Docker, it is mandatory to include a Dockerfile in the experiment directory. "
+                "To add a generic Dockerfile to your experiment directory, run the following command:\n"
+                "psynet update-docker"
             )
 
-    if mode == "sandbox":
-        run_pre_checks_sandbox(exp, config, is_mturk)
-    elif mode == "deploy":
-        run_pre_checks_deploy(exp, config, is_mturk)
+    if not local_:
+        # Running these following tests in advance of local deployment is skipped because it confuses SQLAlchemy
+        # to import the experiment in advance of the experiment launch itself, you get errors like this:
+        # sqlalchemy.exc.InvalidRequestError: Table 'coin' is already defined for this MetaData instance.
+        # Specify 'extend_existing=True' to redefine options and columns on an existing Table object.
+        init_db(drop_all=True)
+
+        config = get_config()
+        if not config.ready:
+            config.load()
+
+        if docker:
+            if config.get("docker_image_base_name", None) is None:
+                raise click.UsageError(
+                    "docker_image_base_name must be specified in config.txt or ~/.dallingerconfig before you can "
+                    "launch an experiment using Docker. For example, you might write the following: \n"
+                    "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
+                )
+            _expected_docker_volumes = "${HOME}/psynet-data/shared:/psynet-data/shared"
+            if _expected_docker_volumes not in config.get(
+                "docker_volumes", ""
+            ) and not click.confirm(
+                "For deploying PsyNet experiments with Docker, you should typically have the following line "
+                "in your config.txt: \n"
+                f"docker_volumes = {_expected_docker_volumes}\n"
+                "You are advised to change this line then retry launching the experiment. "
+                "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
+            ):
+                raise click.Abort
+
+        exp = get_experiment()
+
+        recruiter = exp.recruiter
+        is_mturk = isinstance(recruiter, MTurkRecruiter)
+
+        if mode in ["sandbox", "deploy"]:
+            if isinstance(exp.asset_storage, DebugStorage):
+                raise AttributeError(
+                    "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
+                    "If you don't need assets in your experiment, you can probably remove the line altogether, "
+                    "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
+                    "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+                )
+
+        if mode == "sandbox":
+            run_pre_checks_sandbox(exp, config, is_mturk)
+        elif mode == "deploy":
+            run_pre_checks_deploy(exp, config, is_mturk)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
@@ -552,34 +884,90 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
         raise click.Abort
 
 
-###########
-# sandbox #
-###########
-@psynet.command()
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option("--app", default=None, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
+@debug.command("heroku")
+@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.pass_context
-def sandbox(ctx, verbose, app, archive):
+def debug__heroku(ctx, app, docker, archive):
     """
-    Deploy app using Heroku to the MTurk Sandbox.
+    Debug the experiment on Heroku.
     """
-    redis_vars.clear()
-    make_deploy_dir()
-    deployment_info.init(redeploying_from_archive=archive is not None)
+    if docker:
+        debug__docker_heroku(ctx, app, archive)
+    else:
+        from dallinger.command_line import sandbox as dallinger_sandbox
 
-    run_pre_checks("sandbox")
-    log(header)
+        try:
+            _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, heroku=True)
+            result = ctx.invoke(
+                dallinger_sandbox, verbose=True, app=app, archive=archive
+            )
+            _post_deploy(result)
+        finally:
+            _cleanup_exp_directory()
+            reset_console()
 
-    if not archive:
-        ctx.invoke(prepare)
 
-    from dallinger.command_line import sandbox as dallinger_sandbox
+def debug__docker_heroku(ctx, app, archive):
+    from dallinger.command_line.docker import sandbox as dallinger_sandbox
 
     try:
-        ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+        if archive is not None:
+            raise NotImplementedError(
+                "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
+                "This shouldn't be hard to fix..."
+            )
+        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
+        result = ctx.invoke(dallinger_sandbox, verbose=True, app=app)
+        _post_deploy(result)
     finally:
+        _cleanup_exp_directory()
         reset_console()
+
+
+@debug.command("ssh")
+@click.option("--app", required=True, help="Name of the experiment app.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@server_option
+# @click.option("--server", default=None, help="Name of the remote server.")
+# @click.option(
+#     "--skip-flask",
+#     is_flag=True,
+#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
+# )
+@click.pass_context
+def debug__docker_ssh(ctx, app, archive, server):
+    """
+    Debug the experiment on a remote server via SSH.
+    """
+    try:
+        from dallinger.command_line.docker_ssh import deploy
+
+        os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+
+        _pre_launch(
+            ctx,
+            mode="sandbox",
+            archive=archive,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server=server,
+        )
+
+        result = ctx.invoke(
+            deploy,
+            mode="sandbox",
+            server=server,
+            app_name=app,
+            config_options={},
+            archive_path=archive,
+        )
+
+        _post_deploy(result)
+    finally:
+        _cleanup_exp_directory()
 
 
 ##########
@@ -795,12 +1183,6 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
-def verify_experiment_id(ctx, param, app):
-    from dallinger.command_line import verify_id
-
-    return verify_id(ctx, param, app)
-
-
 ########################
 # generate-constraints #
 ########################
@@ -824,29 +1206,126 @@ def generate_constraints(ctx):
 ##########
 # export #
 ##########
-@psynet.command()
+
+
+def app_argument(func):
+    return click.option(
+        "--app",
+        default=None,
+        required=False,
+        help="App id",
+    )(func)
+
+
+def export_arguments(func):
+    args = [
+        click.option("--path", default=None, help="Path to export directory"),
+        click.option(
+            "--assets",
+            default="experiment",
+            help="Which assets to export; valid values are none, experiment, and all",
+        ),
+        click.option(
+            "--anonymize",
+            default="both",
+            help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
+        ),
+        click.option(
+            "--n_parallel",
+            default=None,
+            help="Number of parallel jobs for exporting assets",
+        ),
+    ]
+    for arg in args:
+        func = arg(func)
+    return func
+
+
+# @psynet.command()
+# @click.option(
+#     "--app",
+#     default=None,
+#     required=False,
+#     help="App id",
+# )
+# @click.option("--local", is_flag=True, help="Export local data")
+# @click.option("--path", default=None, help="Path to export directory")
+# @click.option(
+#     "--assets",
+#     default="experiment",
+#     help="Which assets to export; valid values are none, experiment, and all",
+# )
+# @click.option(
+#     "--anonymize",
+#     default="both",
+#     help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
+# )
+# @click.option(
+#     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
+# )
+
+
+@psynet.group("export")
+def export():
+    pass
+
+
+@export.command("local")
+@export_arguments
+@click.pass_context
+def export__local(ctx=None, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables, location="local")
+    export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
+
+
+@export.command("heroku")
+@export_arguments
 @click.option(
     "--app",
-    default=None,
-    required=False,
-    help="App id",
+    required=True,
+    help="Name of the app to export",
 )
-@click.option("--local", is_flag=True, help="Export local data")
-@click.option("--path", default=None, help="Path to export directory")
+@click.pass_context
+def export__heroku(ctx, app, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
+    export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
+
+
+@export.command("ssh")
 @click.option(
-    "--assets",
-    default="experiment",
-    help="Which assets to export; valid values are none, experiment, and all",
+    "--app",
+    required=True,
+    help="Name of the app to export",
 )
-@click.option(
-    "--anonymize",
-    default="both",
-    help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
-)
-@click.option(
-    "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
-)
-def export(app, local, path, assets, anonymize, n_parallel):
+@server_option
+@export_arguments
+@click.pass_context
+def export__docker_ssh(ctx, app, server, **kwargs):
+    exp_variables = ctx.invoke(experiment_variables, location="ssh", app=app)
+    export_(
+        ctx,
+        app=app,
+        local=False,
+        server=server,
+        exp_variables=exp_variables,
+        docker_ssh=True,
+        **kwargs,
+    )
+
+
+def export_(
+    ctx,
+    exp_variables,
+    app=None,
+    local=False,
+    path=None,
+    assets="experiment",
+    anonymize="both",
+    n_parallel=None,
+    docker_ssh=False,
+    server=None,
+    dns_host=None,
+):
     """
     Export data from an experiment.
 
@@ -866,42 +1345,38 @@ def export(app, local, path, assets, anonymize, n_parallel):
     json:
         Contains the experiment data in JSON format.
     """
-    export_(app, local, path, assets, anonymize, n_parallel)
-
-
-def export_(
-    app=None,
-    local=False,
-    export_path=None,
-    assets="experiment",
-    anonymize="both",
-    n_parallel=None,
-):
-    import requests
-
     from .experiment import import_local_experiment
 
     log(header)
-    import_local_experiment()
+
+    deployment_id = exp_variables["deployment_id"]
+    assert len(deployment_id) > 0
+
+    local_exp = import_local_experiment()["class"]
+
+    if not deployment_id.startswith(local_exp.label):
+        if not click.confirm(
+            f"The remote experiment's deployment ID ({deployment_id}) does not match the local experiment's "
+            f"label ({local_exp.label}). Are you sure you are running the export command from the right "
+            "experiment folder? If not, the export process is likely to fail. "
+            "To continue anyway, press Y and Enter, otherwise just press Enter to cancel."
+        ):
+            raise click.Abort
 
     config = get_config()
     if not config.ready:
         config.load()
 
-    if export_path is None:
-        try:
-            export_root = config.get("default_export_root")
-        except KeyError:
-            raise ValueError(
-                "No value for export_path was provided and no value for default_export_root was found in "
-                ".dallingerconfig or config.txt. Please provide either one of these and try again."
-            )
+    if path is None:
+        export_root = get_from_config("default_export_root")
 
-        deployment_id = requests.get("http://localhost:5000/app_deployment_id").text
-        assert len(deployment_id) > 0
-        export_path = os.path.join(export_root, deployment_id)
+        path = os.path.join(
+            export_root,
+            deployment_id,
+            "export " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
+        )
 
-    export_path = os.path.expanduser(export_path)
+    path = os.path.expanduser(path)
 
     if app is None and not local:
         raise ValueError(
@@ -924,21 +1399,38 @@ def export_(
 
     for anonymize_mode in anonymize_modes:
         _anonymize = anonymize_mode == "yes"
-        _export_(app, local, export_path, assets, _anonymize, n_parallel)
+        _export_(
+            ctx,
+            app,
+            local,
+            path,
+            assets,
+            _anonymize,
+            n_parallel,
+            docker_ssh,
+            server,
+            dns_host,
+        )
 
 
 def _export_(
+    ctx,
     app,
     local,
     export_path,
     assets,
     anonymize: bool,
     n_parallel=None,
+    docker_ssh=False,
+    server=None,
+    dns_host=None,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
     """
-    database_zip_path = export_database(app, local, export_path, anonymize)
+    database_zip_path = export_database(
+        ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
+    )
 
     # We originally thought code should be exported here. However it makes better sense to
     # export instead as part of psynet sandbox/deploy. We'll implement this soon.
@@ -960,7 +1452,9 @@ def _export_(
     log(f"Export complete. You can find your results at: {export_path}")
 
 
-def export_database(app, local, export_path, anonymize):
+def export_database(
+    ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
+):
     if local:
         app = "local"
 
@@ -973,13 +1467,34 @@ def export_database(app, local, export_path, anonymize):
     from dallinger import data as dallinger_data
     from dallinger import db as dallinger_db
 
+    # if docker_ssh:
+    #     from dallinger.command_line.docker_ssh import export as dallinger_export
+    # else:
+    #     from dallinger.data import export as dallinger_export
     # Dallinger hard-codes the list of table names, but this list becomes out of date
     # if we add custom tables, so we have to patch it.
     dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
     with tempfile.TemporaryDirectory() as tempdir:
         with working_directory(tempdir):
-            dallinger_data.export(app, local=local, scrub_pii=anonymize)
+            if docker_ssh:
+                from dallinger.command_line.docker_ssh import export
+
+                ctx.invoke(
+                    export,
+                    server=server,
+                    app=app,
+                    no_scrub=not anonymize,
+                )
+            else:
+                from dallinger.command_line import export
+
+                ctx.invoke(
+                    export,
+                    app=app,
+                    local=local,
+                    no_scrub=not anonymize,
+                )
 
             shutil.move(
                 os.path.join(tempdir, "data", f"{app}-data.zip"),
@@ -1091,11 +1606,6 @@ def load(path):
     populate_db_from_zip_file(path)
 
 
-def make_deploy_dir():
-    path = "deploy"
-    Path(path).mkdir(parents=True, exist_ok=True)
-
-
 # Example usage: psynet generate-config --debug_storage_root ~/debug_storage
 @psynet.command(
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
@@ -1125,25 +1635,249 @@ def generate_config(ctx):
 @psynet.command()
 def update_scripts():
     """
-    To be run in an experiment directory; creates a folder called 'scripts' which contains a set of
-    prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
+    To be run in an experiment directory; updates a collection of template scripts and help files to their
+    latest PsyNet versions.
     """
-    print(
-        f"Populating the current directory ({os.getcwd()}) with experiment scripts, e.g. Dockerfile and shell scripts."
-    )
+    click.echo(f"Updating PsyNet scripts in ({os.getcwd()}).")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
+    )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/run.sh"),
+    #     "run.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet.sh"),
+    #     "psynet.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet-dev.sh"),
+    #     "psynet-dev.sh",
+    # )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
+        "INSTALL.md",
     )
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
         "test.py",
     )
     shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/scripts"),
-        "scripts",
+        resource_filename("psynet", "resources/experiment_scripts/docker"),
+        "docker",
         dirs_exist_ok=True,
     )
+    os.system("chmod +x docker/psynet.sh")
+    os.system("chmod +x docker/psynet-dev.sh")
+    os.system("chmod +x docker/run.sh")
+    if Path("README.md").exists() and click.confirm("Replace existing README file?"):
+        shutil.copyfile(
+            resource_filename("psynet", "resources/experiment_scripts/README.md"),
+            "README.md",
+        )
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
+
+
+@psynet.group("destroy")
+def destroy():
+    pass
+
+
+@destroy.command("heroku")
+@click.option("--app", default=None, callback=verify_id, help="Experiment id")
+@click.option(
+    "--expire-hit/--no-expire-hit",
+    flag_value=True,
+    default=None,
+    help="Expire any MTurk HITs associated with this experiment.",
+)
+@click.pass_context
+def destroy__heroku(ctx, app, expire_hit):
+    _destroy(
+        ctx,
+        dallinger.command_line.destroy,
+        dallinger.command_line.expire,
+        app=app,
+        expire_hit=expire_hit,
+    )
+
+
+def _destroy(
+    ctx,
+    f_destroy,
+    f_expire,
+    app,
+    expire_hit,
+):
+    if click.confirm(
+        "Would you like to delete the app from the web server? Select 'N' if the app is already deleted.",
+        default=True,
+    ):
+        with yaspin("Destroying app...") as spinner:
+            try:
+                if expire_hit in get_args(f_destroy):
+                    ctx.invoke(
+                        f_destroy,
+                        app=app,
+                        expire_hit=False,
+                    )
+                else:
+                    ctx.invoke(
+                        f_destroy,
+                        app=app,
+                    )
+                spinner.ok("✔")
+            except subprocess.CalledProcessError:
+                spinner.fail("✗")
+                click.echo(
+                    "Failed to destroy the app. Maybe it was already destroyed, or the app name was wrong?"
+                )
+
+    if expire_hit is None:
+        if click.confirm(
+            "Would you like to look for a related MTurk HIT to expire?", default=True
+        ):
+            expire_hit = True
+
+    if expire_hit:
+        sandbox = click.confirm("Is this a sandbox HIT?", default=True)
+
+        with yaspin("Expiring hit...") as spinner:
+            ctx.invoke(
+                f_expire,
+                app=app,
+                sandbox=sandbox,
+            )
+            spinner.ok("✔")
+
+
+@destroy.command("ssh")
+@click.option("--app", default=None, help="Experiment id")
+@click.option(
+    "--expire-hit/--no-expire-hit",
+    flag_value=True,
+    default=None,
+    help="Expire any MTurk HITs associated with this experiment.",
+)
+@click.pass_context
+def destroy__docker_ssh(ctx, app, expire_hit):
+    from dallinger.command_line import expire
+    from dallinger.command_line.docker_ssh import destroy
+
+    _destroy(
+        ctx,
+        destroy,
+        expire,
+        app=app,
+        expire_hit=expire_hit,
+    )
+
+
+# @local.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__local(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__local, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+#
+#
+# @heroku.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__heroku(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__heroku, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+#
+#
+# @docker_heroku.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__docker_heroku(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__docker_heroku, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+#
+#
+# @heroku.command("experiment-mode")
+# @click.option("--app", required=True, help="Name of the experiment app")
+# @click.pass_context
+# def experiment_mode__docker_ssh(ctx, app):
+#     try:
+#         mode = ctx.invoke(experiment_variables__docker_ssh, app=app,)[
+#             "deployment_config"
+#         ]["mode"]
+#     except Exception:
+#         click.echo(
+#             "Failed to communicate with the running experiment to determine the deployment mode. "
+#         )
+#         raise
+#     click.echo(f"Experiment mode: {mode}")
+#     return mode
+
+
+@psynet.group("apps")
+def apps():
+    pass
+
+
+@apps.command("ssh")
+@server_option
+@click.pass_context
+def apps__docker_ssh(ctx, server):
+    from dallinger.command_line.docker_ssh import apps
+
+    _apps = ctx.invoke(apps, server=server)
+    if len(_apps) == 0:
+        click.echo("No apps found.")
+
+
+@psynet.group("stats")
+def stats():
+    pass
+
+
+@stats.command("ssh")
+@server_option
+@click.pass_context
+def stats__docker_ssh(ctx, server):
+    from dallinger.command_line.docker_ssh import stats
+
+    ctx.invoke(stats, server=server)
+
+
+def verify_id(ctx, param, app):
+    return app
+
+
+# The original Dallinger verify_id function forces app names to begin with dlgr-,
+# which is not appropriate for us
+dallinger.command_line.utils.verify_id = verify_id

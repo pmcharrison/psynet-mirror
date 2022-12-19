@@ -34,7 +34,7 @@ from psynet import __version__
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
 from .bot import Bot
-from .command_line import log
+from .command_line import export_launch_info, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
@@ -67,11 +67,9 @@ from .utils import (
     cache,
     call_function,
     call_function_with_context,
-    classproperty,
     disable_logger,
     error_page,
     get_arg_from_dict,
-    get_from_config,
     get_logger,
     log_time_taken,
     pretty_log_dict,
@@ -81,7 +79,7 @@ from .utils import (
 
 logger = get_logger()
 
-database_template_path = "deploy/database_template.zip"
+database_template_path = ".deploy/database_template.zip"
 
 
 def error_response(*args, **kwargs):
@@ -266,26 +264,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.recruitment_criteria = []
         self.pre_deploy_routines = []
 
-        if (
-            session
-            and request
-            and request.path == "/launch"
-            and not redis_vars.get("launch_started", default=False)
-        ):
-            redis_vars.set("launch_started", True)
-            self._on_launch()
-            redis_vars.set("launch_finished", True)
-
         self.process_timeline()
 
-    def _on_launch(self):
+    def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
+        redis_vars.set("launch_started", True)
+        super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
         self.var.launch_finished = True
         logger.info("Experiment launch complete!")
         db.session.commit()
+        redis_vars.set("launch_finished", True)
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
@@ -294,11 +285,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
+        config = get_config()
         self.var.server_working_directory = os.getcwd()
-        self.var.dashboard_user = get_from_config("dashboard_user")
-        self.var.dashboard_password = get_from_config("dashboard_password")
+        self.var.deployment_id = deployment_info.read("deployment_id")
+        export_launch_info(
+            self.var.deployment_id,
+            config.get("dashboard_user"),
+            config.get("dashboard_password"),
+        )
+        self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.grow_all_networks()
+
+    def load_deployment_config(self):
+        config = get_config()
+        if not config.ready:
+            config.load()
+        self.var.deployment_config = {
+            key: value
+            for section in reversed(config.data)
+            for key, value in section.items()
+            if not config.is_sensitive(key)
+        }
 
     def _nodes_on_deploy(self):
         from .trial.main import TrialNode
@@ -551,10 +559,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def generate_deployment_id(cls):
-        return cls.label + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        return cls.label + " -- launch " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-    @classproperty
-    def deployment_id(cls):
+    @property
+    def deployment_id(self):
         return deployment_info.read("deployment_id")
 
     def grow_all_networks(self):
@@ -987,8 +995,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "prepare_docker_image.sh",
             ),
             (
-                "deploy",
-                "deploy",
+                ".deploy",
+                ".deploy",
             ),
             (
                 resource_filename(

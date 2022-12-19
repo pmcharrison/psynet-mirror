@@ -1,7 +1,8 @@
-# Ensures that the script stops on errors
+#!/bin/bash
+
 set -euo pipefail
 
-. scripts/params.sh
+. docker/params.sh
 
 export PSYNET_DEVELOPER_MODE=1
 
@@ -15,4 +16,4 @@ if [ ! -d "$DALLINGER_LOCAL_PATH"/dallinger ]; then
   exit 1
 fi
 
-. scripts/debug.sh
+./docker/psynet.sh "$@"

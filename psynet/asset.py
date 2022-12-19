@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import time
 import urllib
+import urllib.parse
 import urllib.request
 import uuid
 from functools import cached_property
@@ -23,6 +24,7 @@ from sqlalchemy.orm import column_property, deferred, relationship
 
 from psynet.timeline import NullElt
 
+from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
 from .media import get_aws_credentials
@@ -34,6 +36,7 @@ from .utils import (
     get_extension,
     get_file_size_mb,
     get_folder_size_mb,
+    get_from_config,
     get_logger,
     md5_directory,
     md5_file,
@@ -2427,7 +2430,7 @@ class AssetStorage:
         )
 
     def export(self, asset, path):
-        raise NotImplementedError
+        self._http_export(asset, path)
 
     def prepare_for_deployment(self):
         pass
@@ -2451,51 +2454,74 @@ class AssetStorage:
         """
         raise NotImplementedError
 
+    def _http_export(self, asset, path):
+        url = self._prepare_url_for_http_export(asset.url)
 
-class WebStorage(AssetStorage):
-    """
-    The notional storage back-end for external web-hosted assets.
-    """
-
-    def export(self, asset, path):
         if asset.is_folder:
-            self._folder_exporter(asset, path)
+            self._http_folder_export(url, path)
         else:
-            self._file_exporter(asset, path)
+            self._http_file_export(url, path)
+
+    @staticmethod
+    def _prepare_url_for_http_export(url):
+        if not url.startswith("http"):
+            host = get_from_config("host")
+            if host == "0.0.0.0":
+                prefix = "http://localhost:5000"
+            else:
+                prefix = host
+            url = os.path.join(prefix, url)
+        return url
 
     def export_subfile(self, asset, subfile, path):
         url = asset.url + "/" + subfile
-        self._download_file(url, path)
+        url = self._prepare_url_for_http_export(url)
+        self._http_file_export(url, path)
 
     def export_subfolder(self, asset, subfolder, path):
         raise RuntimeError(
-            "export_subfolder is not supported for ExternalAssets."
+            "export_subfolder is not supported for assets being exported over HTTP."
             "This is because the internet provides "
             "no standard way to list the contents of a folder hosted "
             "on an arbitrary web server. You can avoid this issue in future"
             "by listing each asset as a separate file."
         )
 
-    def _folder_exporter(self, asset, path):
+    @staticmethod
+    def _http_folder_export(url, path):
         with open(path, "w") as f:
             f.write(
-                "It is not possible to automatically export ExternalAssets "
+                "It is not possible to automatically export assets over HTTP "
                 "with type='folder'. This is because the internet provides "
                 "no standard way to list the contents of a folder hosted "
                 "on an arbitrary web server. You can avoid this issue in the "
                 "future by listing each asset as a separate file."
             )
 
-    def _file_exporter(self, asset, path):
+    @staticmethod
+    def _http_file_export(url, path):
         try:
-            r = requests.get(asset.url)
+            r = requests.get(url)
+            if r.status_code != 200:
+                raise ConnectionError(
+                    f"Failed to download from the following URL: {url} "
+                    f"(status code = {r.status_code})"
+                )
             with open(path, "wb") as file:
                 file.write(r.content)
         except Exception:
             print(
-                f"An error occurred when trying to download asset {asset.key} from the following URL: {asset.url}"
+                f"An error occurred when trying to download from the following URL: {url}"
             )
             raise
+
+
+class WebStorage(AssetStorage):
+    """
+    The notional storage back-end for external web-hosted assets.
+    """
+
+    pass
 
 
 class NoStorage(AssetStorage):
@@ -2529,11 +2555,8 @@ class LocalStorage(AssetStorage):
         Parameters
         ----------
         root :
-            Path to the directory to be used for storage.
+            Optional path to the directory to be used for storage.
             Tilde expansion (e.g. '~/psynet') is performed automatically.
-            If none is provided, then defaults to the config value of
-            ``debug_storage_root``, which can be set in ``config.txt``
-            or ``.dallingerconfig``.
 
         label :
             Label for the storage object.
@@ -2545,8 +2568,9 @@ class LocalStorage(AssetStorage):
         self.public_path = self._create_public_path()
 
     def setup_files(self):
-        self._ensure_root_dir_exists()
-        self._create_symlink()
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            self._ensure_root_dir_exists()
+            self._create_symlink()
 
     def prepare_for_deployment(self):
         self.setup_files()
@@ -2563,19 +2587,26 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            if os.getenv("PSYNET_IN_DOCKER"):
-                return "/psynet-debug-storage"
-            else:
-                try:
-                    from .utils import get_from_config
+            # return "$HOME/psynet-data/shared"
 
-                    return os.path.expanduser(get_from_config("debug_storage_root"))
-                except KeyError:
-                    raise KeyError(
-                        "No root location was provided to DebugStorage and no value for debug_storage_root "
-                        "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
-                        "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
-                    )
+            if deployment_info.read("is_ssh_deployment"):
+                return "/psynet-data/shared"
+            else:
+                return os.path.expanduser("~/psynet-data/shared")
+
+            # if os.getenv("PSYNET_IN_DOCKER"):
+            #     return "~/psynet-data/shared"
+            # else:
+            #     try:
+            #         from .utils import get_from_config
+            #
+            #         return os.path.expanduser(get_from_config("debug_storage_root"))
+            #     except KeyError:
+            #         raise KeyError(
+            #             "No root location was provided to DebugStorage and no value for debug_storage_root "
+            #             "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
+            #             "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-local-storage"
+            #         )
 
     def _ensure_root_dir_exists(self):
         from pathlib import Path
@@ -2596,28 +2627,74 @@ class LocalStorage(AssetStorage):
             # Path(self.public_path).rmdir()
             try:
                 shutil.rmtree(self.public_path)
-            except (FileNotFoundError, NotADirectoryError, PermissionError):
+            except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
                 pass
 
         os.makedirs("static", exist_ok=True)
 
-        os.symlink(self.root, self.public_path)
-        # except FileExistsError:
-        #     pass
+        try:
+            os.symlink(self.root, self.public_path)
+        except FileExistsError:
+            pass
 
     def update_asset_metadata(self, asset: Asset):
         host_path = asset.host_path
         file_system_path = self.get_file_system_path(host_path)
         asset.var.file_system_path = file_system_path
 
+    @staticmethod
+    @cache
+    def sftp_connection(ssh_host, ssh_user):
+        from dallinger.command_line.docker_ssh import get_sftp
+
+        return get_sftp(ssh_host, user=ssh_user)
+
+    @staticmethod
+    @cache
+    def ssh_executor(ssh_host, ssh_user):
+        from dallinger.command_line.docker_ssh import Executor
+
+        return Executor(ssh_host, user=ssh_user)
+
     def _receive_deposit(self, asset: Asset, host_path: str):
         file_system_path = self.get_file_system_path(host_path)
-        os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
-        if asset.is_folder:
-            shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            # We are depositing an asset that sits on the present server already,
+            # so we can just copy it.
+
+            os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
+
+            if asset.is_folder:
+                shutil.copytree(
+                    asset.input_path,
+                    os.path.expanduser(file_system_path),
+                    dirs_exist_ok=True,
+                )
+            else:
+                shutil.copyfile(asset.input_path, os.path.expanduser(file_system_path))
         else:
-            shutil.copyfile(asset.input_path, file_system_path)
+            if deployment_info.read("is_ssh_deployment"):
+                if asset.is_folder:
+                    raise NotImplementedError(
+                        "Haven't implemented depositing folder assets to SSH yet, use file assets instead"
+                    )
+
+                ssh_host = deployment_info.read("ssh_host")
+                ssh_user = deployment_info.read("ssh_user")
+
+                docker_host_path = "/home/" + ssh_user + file_system_path
+
+                self._put_file(
+                    asset.input_path,
+                    docker_host_path,
+                    ssh_host,
+                    ssh_user,
+                    make_parents=True,
+                )
+
+            else:
+                raise NotImplementedError
 
         asset.deposited = True
 
@@ -2625,23 +2702,41 @@ class LocalStorage(AssetStorage):
         #     url=os.path.abspath(file_system_path),
         # )
 
-    def export(self, asset, path):
-        from_ = self.get_file_system_path(asset.host_path)
-        to_ = path
-        if asset.is_folder:
-            shutil.copytree(from_, to_, dirs_exist_ok=True)
-        else:
-            shutil.copyfile(from_, to_)
+    def _put_file(self, input_path, dest_path, ssh_host, ssh_user, make_parents=True):
+        from io import BytesIO
 
-    def export_subfile(self, asset, subfile, path):
-        from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
-        to_ = path
-        shutil.copyfile(from_, to_)
+        sftp = self.sftp_connection(ssh_host, ssh_user)
 
-    def export_subfolder(self, asset, subfolder, path):
-        from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
-        to_ = path
-        shutil.copytree(from_, to_, dirs_exist_ok=True)
+        try:
+            with open(input_path, "rb") as file:
+                sftp.putfo(BytesIO(file.read()), dest_path)
+        except FileNotFoundError:
+            if make_parents:
+                self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
+                self._put_file(
+                    input_path, dest_path, ssh_host, ssh_user, make_parents=False
+                )
+            else:
+                raise
+
+    def _mk_dir_tree(self, dir, ssh_host, ssh_user):
+        executor = self.ssh_executor(ssh_host, ssh_user)
+        executor.run(f'mkdir -p "{dir}"')
+
+    def on_deployed_server(self):
+        from psynet.experiment import in_deployment_package
+
+        return in_deployment_package()
+
+    # def export_subfile(self, asset, subfile, path):
+    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
+    #     to_ = path
+    #     shutil.copyfile(from_, to_)
+    #
+    # def export_subfolder(self, asset, subfolder, path):
+    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
+    #     to_ = path
+    #     shutil.copytree(from_, to_, dirs_exist_ok=True)
 
     def get_file_system_path(self, host_path):
         if host_path:
@@ -2653,7 +2748,7 @@ class LocalStorage(AssetStorage):
         assert (
             self.root
         )  # Makes sure that the root storage location has been instantiated
-        return os.path.join(self.public_path, host_path)
+        return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
     def check_cache(self, host_path: str, is_folder: bool):
         file_system_path = self.get_file_system_path(host_path)
@@ -2668,7 +2763,7 @@ class DebugStorage(LocalStorage):
     A local storage back-end used for debugging.
     """
 
-    label = "debug_storage"
+    pass
 
 
 # def create_bucket_if_necessary(fun):

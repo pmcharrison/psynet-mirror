@@ -4,7 +4,10 @@
 env/
 
 # Automatically generated deployment resources, e.g. database templates
-deploy/
+.deploy/
+
+# Deployment logs
+deploy_logs/
 
 # Automatically generated resources for hot-fresh debugger
 /develop
@@ -12,8 +15,8 @@ deploy/
 # Automatically generated server log file
 server.log
 
-# Automatically generated resources for debugging experiments with debug storage
-static/debug_storage
+# Automatically generated resources for debugging experiments with local storage
+static/local_storage
 
 # PyCharm configuration file
 .idea

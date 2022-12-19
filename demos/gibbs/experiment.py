@@ -133,6 +133,7 @@ class CustomTrial(GibbsTrial):
         self.var.async_post_trial_completed = True
         with tempfile.NamedTemporaryFile("w") as file:
             file.write(f"completed async_post_trial for trial {self.id}")
+            file.flush()
             asset = ExperimentAsset(
                 label="async_post_trial",
                 input_path=file.name,

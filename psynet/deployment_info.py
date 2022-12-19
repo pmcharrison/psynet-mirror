@@ -4,7 +4,7 @@ from pathlib import Path
 
 import jsonpickle
 
-path = "deploy/deployment_info.json"
+path = ".deploy/deployment_info.json"
 
 
 def init(redeploying_from_archive: bool):

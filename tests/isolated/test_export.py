@@ -6,9 +6,10 @@ import zipfile
 import dallinger
 import pandas
 import pytest
+from click import Context
 
 from psynet.bot import Bot
-from psynet.command_line import export_, populate_db_from_zip_file
+from psynet.command_line import export__local, populate_db_from_zip_file
 from psynet.participant import Participant
 from psynet.pytest_psynet import bot_class, path_to_demo
 from psynet.timeline import Response
@@ -59,7 +60,8 @@ class TestExpWithExport:
             bot = Bot()
             bot.take_experiment()
 
-        export_(export_path=data_root_dir, local=True, assets="none", n_parallel=None)
+        ctx = Context(export__local)
+        ctx.invoke(export__local, path=data_root_dir, assets="none", n_parallel=None)
         # self._run_export_tests(data_root_dir, data_dir, database_zip_file, coin_class)
 
     #
@@ -84,8 +86,6 @@ class TestExport:
         assert nrow == 4
 
     # test_coins_file(data_dir)
-
-    from psynet.data import _prepare_db_export
 
     # def test_prepare_db_export():
     #     json = _prepare_db_export(scrub_pii=False)

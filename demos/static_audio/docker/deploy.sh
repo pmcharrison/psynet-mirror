@@ -1,6 +1,6 @@
 echo "Note: SSH support in requirements.txt is not yet supported for Windows and Linux hosts (to be fixed soon)"
 
-. scripts/params.sh
+. docker/params.sh
 
 DOCKER_BUILDKIT=1
 docker build . -t "${EXPERIMENT_IMAGE}"
@@ -16,16 +16,26 @@ docker run \
   -v ~/.docker:/root/.docker \
   -v "${HOME}/Library/Application Support/dallinger/":/root/.local/share/dallinger/ \
   -e HOME=/root \
-  -e SKIP_DEPENDENCY_CHECK=1
+  -e SKIP_DEPENDENCY_CHECK=1 \
   -e DALLINGER_NO_EGG_BUILD=1 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v  ~/.ssh:/root/.ssh \
+  -v "${SSH_VOLUME}" \
   -v "${PWD}":/experiment \
   "${EXPERIMENT_IMAGE}" \
   dallinger docker-ssh deploy \
   --app-name "${APPNAME}"
 
-
+if [[ "$PLATFORM" == "linux" ]]; then
+  SSH_VOLUME="$(readlink -f $SSH_AUTH_SOCK):/ssh-agent"
+elif [[ "$PLATFORM" == "macos" ]]; then
+  SSH_VOLUME="~/.ssh:/root/.ssh"
+elif [[ "$PLATFORM" == "windows" ]]; then
+  # Same as Linux because we are on WSL
+  SSH_VOLUME="$(readlink -f $SSH_AUTH_SOCK):/ssh-agent"
+else
+  echo "Unsupported operating system: ${PLATFORM}"
+  exit 1
+fi
 
 # TODO - incorporate the following OS-specific instructions from Silvio
 #    # On Linux you can use:
