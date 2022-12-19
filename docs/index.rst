@@ -1,17 +1,47 @@
-PsyNet Documentation
-====================
+About
+=====
+
+PsyNet is a new platform for running advanced behavioral experiments
+ranging from adaptive psychophysics to simulated cultural evolution.
+Its goal is to enable researchers to implement and deploy experiments as efficiently as possible,
+while placing minimal constraints on the complexity of the experiment design.
+
+This website contains a variety of resources to help you learn more about PsyNet.
+Some particularly useful resources are highlighted below,
+but see the sidebar for a full list.
+
+- :ref:`Use cases <Use_cases>`: Learn about the use cases for which PsyNet is optimized.
+
+- :ref:`Software stack <Software_stack>`: Learn about the open-source software that underpins PsyNet.
+
+- :ref:`History <history>`: Read about the origins of PsyNet.
+
+- :ref:`Example implementations <example_implementations>`: See code repositories for real-world PsyNet experiments.
+
+- :ref:`Learning PsyNet <learning_psynet>`: Get advice on learning PsyNet.
+
+- `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
+
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Introduction
 
+   self
+   introduction/team
    introduction/about
+   introduction/applications
+   introduction/history
    introduction/how_to_use
+   introduction/example_implementations
+   introduction/learning_psynet
    introduction/command_line
    introduction/demo
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Installation
 
    installation/docker
@@ -20,6 +50,7 @@ PsyNet Documentation
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Experimenter documentation
    :glob:
 
@@ -36,6 +67,7 @@ PsyNet Documentation
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Specific implementations
    :glob:
 
@@ -43,6 +75,7 @@ PsyNet Documentation
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Developer documentation
    :glob:
 
@@ -54,6 +87,7 @@ PsyNet Documentation
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Low-level documentation
    :glob:
 

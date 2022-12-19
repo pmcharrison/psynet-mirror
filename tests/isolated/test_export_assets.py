@@ -5,10 +5,12 @@ import tempfile
 import zipfile
 
 import pytest
+from click import Context
 from dallinger import db
 
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
 from psynet.bot import Bot
+from psynet.command_line import export__local
 from psynet.pytest_psynet import bot_class, path_to_demo
 
 logger = logging.getLogger(__file__)
@@ -60,6 +62,11 @@ def test_export_path__fast_function_asset():
     assert asset.export_path == "test_fast_function_asset.txt"
 
 
+@pytest.fixture(scope="class")
+def ctx():
+    return Context(export__local)
+
+
 # @pytest.mark.usefixtures("db_session")  # Assuming we don't need this
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
@@ -69,6 +76,7 @@ class TestAssetExport:
         data_root_dir,
         data_csv_dir,
         data_zip_file,
+        ctx,
     ):
         # Creating a couple of personal and non-personal assets
         with tempfile.NamedTemporaryFile("w") as file:
@@ -101,7 +109,7 @@ class TestAssetExport:
 
         assert Asset.query.count() == 4
 
-        self._test_asset_export_modes()
+        self._test_asset_export_modes(ctx)
 
         bot = Bot()
         bot.take_experiment()
@@ -112,40 +120,20 @@ class TestAssetExport:
         assert "worker_id" in json_full
         assert "worker_id" not in json_anon
 
-        from psynet.command_line import export_
-
         # Calling export_ multiple times in the same process causes SQLAlchemy errors due to repeated imports...
         # Temporary fix for now is to call in subprocess
         # from psynet.utils import run_subprocess_with_live_output
 
         with tempfile.TemporaryDirectory() as tempdir:
             with pytest.raises(ValueError) as e:
-                export_(export_path=tempdir)
-            assert (
-                str(e.value)
-                == "Either the flag --local must be present or an app name must be provided via --app."
-            )
-
-            with pytest.raises(ValueError) as e:
-                export_(app="my-app", local=True, export_path=tempdir)
-            assert (
-                str(e.value) == "You cannot provide both --local and --app arguments."
-            )
-
-            with pytest.raises(ValueError) as e:
-                export_(local=True, export_path=tempdir, assets="asdasdoj")
+                ctx.invoke(export__local, path=tempdir, assets="asdasdoj")
             assert str(e.value) == "--assets must be either none, experiment, or all."
 
             with pytest.raises(ValueError) as e:
-                export_(local=True, export_path=tempdir, anonymize="asdasdoj")
+                ctx.invoke(export__local, path=tempdir, anonymize="asdasdoj")
             assert str(e.value) == "--anonymize must be either yes, no, or both."
 
-            export_(
-                local=True,
-                assets="all",
-                anonymize="both",
-                export_path=tempdir,
-            )
+            ctx.invoke(export__local, path=tempdir, assets="all", anonymize="both")
 
             # Not relevant if we don't export code
             # self.assert_valid_code_zip(os.path.join(tempdir, "regular", "code.zip"))
@@ -161,11 +149,9 @@ class TestAssetExport:
             self.assert_regular_data(os.path.join(tempdir, "regular", "data"))
             self.assert_anonymous_data(os.path.join(tempdir, "anonymous", "data"))
 
-    def _test_asset_export_modes(self):
-        from psynet.command_line import export_
-
+    def _test_asset_export_modes(self, ctx):
         with tempfile.TemporaryDirectory() as tempdir:
-            export_(local=True, export_path=tempdir, assets="none")
+            ctx.invoke(export__local, path=tempdir, assets="none")
 
             path_1 = os.path.join(tempdir, "regular", "data")
             assert os.path.exists(path_1) and os.path.isdir(path_1)
@@ -175,7 +161,7 @@ class TestAssetExport:
             assert not os.path.exists(path_1)
 
         with tempfile.TemporaryDirectory() as tempdir:
-            export_(local=True, export_path=tempdir, assets="experiment")
+            ctx.invoke(export__local, path=tempdir, assets="experiment")
 
             path = os.path.join(tempdir, "regular", "assets")
             assert os.path.exists(path) and os.path.isdir(path)
@@ -194,7 +180,7 @@ class TestAssetExport:
             )
 
         with tempfile.TemporaryDirectory() as tempdir:
-            export_(local=True, export_path=tempdir, assets="all")
+            ctx.invoke(export__local, path=tempdir, assets="all")
 
             assert os.path.exists(
                 os.path.join(tempdir, "regular", "assets", "test_personal_asset")

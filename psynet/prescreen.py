@@ -79,7 +79,7 @@ class REPPVolumeCalibration(Module):
                       <br><br>
                       <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
                       <hr>
-                      <img style="width:70%" src="{assets['rules_image']} alt="rules_image">
+                      <img style="width:70%" src="{assets['rules_image'].url}" alt="rules_image">
                       """
                 ),
             ),
