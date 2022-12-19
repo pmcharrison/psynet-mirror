@@ -3,9 +3,18 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
+# Because the package isn't installed yet, we have to execute version.py
+# in this unusual way, reading directly from the file
+# (see https://packaging.python.org/en/latest/guides/single-sourcing-package-version/).
+version = {}
+with open("psynet/version.py", "r") as fp:
+    exec(fp.read(), version)
+
+
 setuptools.setup(
     name="psynet",
-    version="9.2.0",
+    version=version["psynet_version"],
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
@@ -22,7 +31,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger>=9.3.0, <10.0.0",
+        version["dallinger_version_requirement"],
         "click",
         "datetime",
         "dominate",
