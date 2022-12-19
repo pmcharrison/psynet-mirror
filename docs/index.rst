@@ -1,42 +1,47 @@
-PsyNet
-======
+About
+=====
 
-PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
-It streamlines the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
-perceptual prior estimation to adaptive psychophysical experiments. Once an experiment is implemented, it can be
-deployed with a single terminal command, which looks after server provisioning, participant recruitment, data-quality
-monitoring, and participant payment. Researchers using PsyNet can enjoy a paradigm shift in productivity, running many
-high-powered variants of the same experiment in the time it would ordinarily take to run an experiment once.
+PsyNet is a new platform for running advanced behavioral experiments
+ranging from adaptive psychophysics to simulated cultural evolution.
+Its goal is to enable researchers to implement and deploy experiments as efficiently as possible,
+while placing minimal constraints on the complexity of the experiment design.
 
-To try some real-world PsyNet experiments for yourself, visit the following repositories:
+This website contains a variety of resources to help you learn more about PsyNet.
+Some particularly useful resources are highlighted below,
+but see the sidebar for a full list.
 
-- `Consonance profiles for carillon bells <https://github.com/pmcharrison/2022-consonance-carillon>`_
-- `Emotional connotations of musical scales <https://github.com/pmcharrison/2022-musical-scales>`_
-- `Vocal pitch matching in musical chords <https://github.com/pmcharrison/2022-vertical-processing-test>`_
+- :ref:`Use cases <Use_cases>`: Learn about the use cases for which PsyNet is optimized.
 
-To get a broader overview of the kinds of experiments you can implement in PsyNet,
-see :ref:`Applications`.
+- :ref:`Software stack <Software_stack>`: Learn about the open-source software that underpins PsyNet.
 
-To get an overview of how you can start learning PsyNet,
-follow this link.
+- :ref:`History <history>`: Read about the origins of PsyNet.
 
-For a full table of contents of this documentation website, see below:
+- :ref:`Example implementations <example_implementations>`: See code repositories for real-world PsyNet experiments.
 
-Table of contents
-=================
+- :ref:`Learning PsyNet <learning_psynet>`: Get advice on learning PsyNet.
+
+- `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
+
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Introduction
 
+   self
+   introduction/team
    introduction/about
    introduction/applications
+   introduction/history
    introduction/how_to_use
+   introduction/example_implementations
+   introduction/learning_psynet
    introduction/command_line
    introduction/demo
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Installation
 
    installation/docker
@@ -45,6 +50,7 @@ Table of contents
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Experimenter documentation
    :glob:
 
@@ -61,6 +67,7 @@ Table of contents
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Specific implementations
    :glob:
 
@@ -68,6 +75,7 @@ Table of contents
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Developer documentation
    :glob:
 
@@ -79,6 +87,7 @@ Table of contents
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Low-level documentation
    :glob:
 

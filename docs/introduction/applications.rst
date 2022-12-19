@@ -1,7 +1,7 @@
-.. _Applications:
+.. _use_cases:
 
-Applications
-============
+Use cases
+=========
 
 PsyNet can be used for many kinds of psychology experiments.
 However there are certain scenarios to which PsyNet is particularly well suited.
