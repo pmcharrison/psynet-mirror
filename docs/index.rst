@@ -14,8 +14,8 @@ To try some real-world PsyNet experiments for yourself, visit the following repo
 - `Emotional connotations of musical scales <https://github.com/pmcharrison/2022-musical-scales>`_
 - `Vocal pitch matching in musical chords <https://github.com/pmcharrison/2022-vertical-processing-test>`_
 
-To get a broader overview of the kinds of experiments you can implemented in PsyNet,
-follow this link.
+To get a broader overview of the kinds of experiments you can implement in PsyNet,
+see :ref:`Applications`.
 
 To get an overview of how you can start learning PsyNet,
 follow this link.
@@ -30,6 +30,7 @@ Table of contents
    :caption: Introduction
 
    introduction/about
+   introduction/applications
    introduction/how_to_use
    introduction/command_line
    introduction/demo
