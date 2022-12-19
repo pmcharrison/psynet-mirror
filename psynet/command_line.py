@@ -306,11 +306,7 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
         )
 
     _pre_launch(ctx, mode="debug", archive=archive, local_=True, docker=docker)
-    drop_all_db_tables()
-
-    if archive is None:
-        run_prepare_in_subprocess()  # TODO - think about running prepare even when we deploy from archive
-        _cleanup_before_debug()
+    _cleanup_before_debug()
 
     try:
         if legacy:
@@ -343,6 +339,8 @@ def _cleanup_before_debug():
     # This is important for resetting the state before _debug_legacy;
     # otherwise `dallinger verify` throws an error.
     clean_sys_modules()  # Unimports the PsyNet experiment
+
+    drop_all_db_tables()
 
 
 def _cleanup_exp_directory():
