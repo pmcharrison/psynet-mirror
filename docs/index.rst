@@ -1,5 +1,5 @@
-PsyNet Documentation
-====================
+PsyNet
+======
 
 PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
 It streamlines the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
@@ -23,7 +23,7 @@ follow this link.
 For a full table of contents of this documentation website, see below:
 
 Table of contents
------------------
+=================
 
 .. toctree::
    :maxdepth: 1
