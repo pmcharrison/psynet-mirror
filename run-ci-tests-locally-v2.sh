@@ -12,7 +12,7 @@ DOCKER_DRIVER=overlay2
 DOCKER_TLS_CERTDIR=""
 
 # Sets up required services (postgres, redis etc)
-. psynet/resources/experiment_scripts/scripts/services.sh
+. psynet/resources/experiment_scripts/docker/services.sh
 
 # Builds the Docker image
 docker build --tag "$DOCKER_IMAGE" .
