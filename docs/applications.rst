@@ -1,7 +1,7 @@
 Applications
 ============
 
-PsyNet is suitably flexible for a  wide range of applications.
+PsyNet can be used for many kinds of psychology experiments.
 However there are certain scenarios to which PsyNet is particularly well suited.
 
 **Online experiments.** PsyNet experiments run in the web browser and therefore can be
@@ -28,6 +28,12 @@ task performance.
 
 Examples
 --------
+
+Here are a few examples of research projects that have successfully used
+PsyNet since its inception in 2020. These projects were carried out by a variety
+of researchers based at institutions including the Max Planck Institute for
+Empirical Aesthetics, the University of Cambridge, City University of New York,
+Princeton University, and the University of Oxford.
 
 **Gibbs Sampling with People**. This project developed a new adaptive technique for
 mapping semantic associations of a stimulus space. The procedure constructs a series
@@ -58,5 +64,5 @@ support for large, programmatically generated stimulus sets.
 
 **Governance simulations**. This project studied the success of different self-governance
 systems within a online social network. Participants experienced this network
-through a 3D video game
-
+through a 3D video game programmed in the Unity game engine. This took advantage
+of PsyNet's ability to orchestrate complex interactions between many participants.
