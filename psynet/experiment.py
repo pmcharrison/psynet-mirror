@@ -454,6 +454,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "window_width": 1024,
             "window_height": 768,
             "supported_locales": [],
+            "currency": "$",
             "current_locale": get_language(),
             "allow_switching_locale": True,
         }

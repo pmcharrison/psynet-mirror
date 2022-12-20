@@ -1096,6 +1096,7 @@ class Page(Elt):
             "contents": self.contents,
             "supported_language_dict": {iso: language_dict[iso] for iso in experiment.var.supported_locales},
             # "supported_language_dict": supported_language_dict,
+            "currency": experiment.var.currency,
             "current_locale": locale,
             "allow_switching_locale": experiment.var.allow_switching_locale,
         }
