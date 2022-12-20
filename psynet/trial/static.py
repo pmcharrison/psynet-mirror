@@ -307,4 +307,7 @@ class StaticNetwork(ChainNetwork):
 
 class StaticNode(ChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
-        pass
+        return None
+
+    def create_definition_from_seed(self, seed, experiment, participant):
+        return None
