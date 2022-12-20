@@ -1,10 +1,10 @@
-.. _use_cases:
+.. _applications:
 
-Use cases
-=========
+Applications
+============
 
 PsyNet can be used for many kinds of psychology experiments.
-However there are certain scenarios to which PsyNet is particularly well suited.
+However there are certain applications to which PsyNet is particularly well suited.
 
 **Online experiments.** PsyNet experiments run in the web browser and therefore can be
 used either for in-person or online data collection.

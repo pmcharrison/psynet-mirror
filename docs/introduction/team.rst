@@ -10,7 +10,7 @@ and the University of Cambridge.
 **Core team**
 
 - `Peter Harrison <https://cms.mus.cam.ac.uk/staff/dr-peter-harrison>`_: Project creator, co-director, developer, and maintainer
-- `Frank Höger`: Project development and maintenance
+- Frank Höger: Project development and maintenance
 - `Nori Jacoby <https://norijacoby.com/>`_: Project co-director
 
 **Additional contributors (A-Z)**
