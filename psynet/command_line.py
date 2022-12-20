@@ -1289,7 +1289,7 @@ def export__local(ctx=None, **kwargs):
 )
 @click.pass_context
 def export__heroku(ctx, app, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables, location="heroku")
+    exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
     export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
 
