@@ -18,3 +18,9 @@ and relate it to what you read here. If you're particularly interested in certai
 you can download the demo and run it yourself. If you want to use a demo as a basis for your
 own experiment, the best thing is to copy that demo into a separate directory (outside the PsyNet
 repository) and make your changes there.
+
+.. note::
+    This section is still work-in-progress and we will be adding more demo overviews over time.
+    In the meantime, feel free also to explore the
+    `demos directory <https://gitlab.com/PsyNetDev/PsyNet/-/tree/master/demos>`_
+    directly yourself.
