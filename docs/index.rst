@@ -58,6 +58,7 @@ but see the sidebar for a full list.
    demos/introduction
    demos/hello_world
    demos/timeline
+   demos/survey_js
 
 .. toctree::
    :maxdepth: 2
