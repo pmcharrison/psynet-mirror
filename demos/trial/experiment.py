@@ -1,10 +1,3 @@
-# pylint: disable=unused-import,abstract-method
-
-##########################################################################################
-# Imports
-##########################################################################################
-
-import logging
 import random
 
 from flask import Markup
@@ -16,10 +9,6 @@ from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, for_loop
 from psynet.trial.main import Trial
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-
 
 WORDS = [
     "cat",
