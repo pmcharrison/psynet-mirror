@@ -1398,7 +1398,7 @@ class TrialMaker(Module):
         return sum(
             [
                 self.estimate_n_pending_trials(p)
-                for p in self.established_working_participants
+                for p in self._established_working_participants
             ]
         )
 
@@ -1406,21 +1406,36 @@ class TrialMaker(Module):
     def n_trials_still_required(self):
         raise NotImplementedError
 
-    def estimate_n_pending_trials(self, participant):
-        return (
-            self.expected_trials_per_participant
-            - participant.module_state.n_completed_trials
+    def estimate_n_pending_trials(self, participant: Participant):
+        assert participant.status == "working"
+        assert not participant.failed
+
+        module_states = participant.module_states.get(self.id, [])
+        n_completed_trials = sum(
+            [module_state.n_completed_trials for module_state in module_states]
         )
 
+        # This will be an underestimate in the unusual case of a trial maker inside a while loop.
+        # Ideally we'd multiply it by the number of repetitions of the while loop but that's hard to get at from here.
+        # It shouldn't really matter though because all that'll happen is we'll recruit a few too many participants.
+        expected_total_n_trials = self.expected_trials_per_participant
+
+        return expected_total_n_trials - n_completed_trials
+
     @property
-    def working_participants(self):
+    def _working_participants(self):
+        # Looks across the whole experiment, not just that trial maker.
+        # Should migrate this to the experiment class eventually.
         return Participant.query.filter_by(status="working", failed=False)
 
     @property
-    def established_working_participants(self):
+    def _established_working_participants(self):
+        # Returns the number of established working participants across the whole
+        # experiment (not just that trial maker!). Should migrate this to the
+        # Experiment class eventually.
         return [
             p
-            for p in self.working_participants
+            for p in self._working_participants
             if p.progress > self.participant_progress_threshold
         ]
 
