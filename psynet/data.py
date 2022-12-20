@@ -221,9 +221,11 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
     JSON-style dictionary
 
     """
-    data = obj.to_dict()
-    if "class" not in data:
-        data["class"] = obj.__class__.__name__  # for the Dallinger classes
+    try:
+        data = obj.to_dict()
+    except AttributeError:
+        data = obj.__json__()
+        data["class"] = obj.__class__.__name__ # for the Dallinger classes
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
     return data
