@@ -7,29 +7,39 @@
 {% block main_body %}
   <div class="main-div" style="padding-bottom: 100px;">
     <noscript>
-        <h1>Warning: Javascript is not working on your browser</h1>
-        <p>The study will not work unless Javascript is enabled on your browser.</p>
-        <p>Please enable Javascript then refresh this page.</p>
+        <h1>{{ pgettext("consent-javascript", "Warning: Javascript is not working on your browser") }}</h1>
+        <p>{{ pgettext("consent-javascript", "The study will not work unless Javascript is enabled on your browser.") }}</p>
+        <p>{{ pgettext("consent-javascript", "Please enable Javascript then refresh this page.") }}</p>
     </noscript>
-    <h1>Research Participant Consent Form</h1>
+    <h1>{{ pgettext("consent-title", "Research Participant Consent Form") }}</h1>
     <hr>
     <div class="text-justify">
         <div class="text-left" style="font-size:18px">
-          <h2>Title of study: {{experiment_title}}</h2>
+          <h2>{{ pgettext("consent", "Title of study:") }} {{experiment_title}}</h2>
           <p>
-              I have received written information about the study and the procedure of the study. I have read and understood all of the information completely. If I had questions concerning the upcoming study, they were answered completely and to my satisfaction by Mr Harin Lee.
+              {{ pgettext("consent-cap", "I have received written information about the study and the procedure of the study.") }}
+              {{ pgettext("consent-cap", "I have read and understood all of the information completely.") }}
+              {{ pgettext("consent-cap", "If I had questions concerning the upcoming study, they were answered completely and to my satisfaction.") }}
           </p>
           <p>
-              I agree to the described collecting and processing of my age, gender, and country of birth. The recording and processing of these data are carried out in pseudonymized form by means of a code and do not contain my name. There is a coding list on paper that links my name to this number. The investigators are the only persons who have access to this coding list and who are thus able to link the collected data to my name. After completion of the research project, the coding list will be destroyed. From this point on, my data are anonymous, which means that they cannot be linked to my person any longer.
+              {{ pgettext("consent-cap", "I agree to the described collecting and processing of my age, gender, and country of birth.") }}
+              {{ pgettext("consent-cap", "The recording and processing of these data are carried out in pseudonymized form by means of a code and do not contain my name.") }}
+              {{ pgettext("consent-cap", "There is a coding list on paper that links my name to this number.") }}
+              {{ pgettext("consent-cap", "The investigators are the only persons who have access to this coding list and who are thus able to link the collected data to my name.") }}
+              {{ pgettext("consent-cap", "After completion of the research project, the coding list will be destroyed.") }}
+              {{ pgettext("consent-cap", "From this point on, my data are anonymous, which means that they cannot be linked to my person any longer.") }}
           </p>
           <p>
-              I understand that I am free to withdraw my consent to the collection and storage of my personal data without negative consequences. I have been informed that I may request deletion of all my data at any time. However, if the coding list has already been destroyed, it will no longer be possible to identify and thus to delete my data set.
+              {{ pgettext("consent-cap", "I understand that I am free to withdraw my consent to the collection and storage of my personal data without negative consequences.") }}
+              {{ pgettext("consent-cap", "I have been informed that I may request deletion of all my data at any time.") }}
+              {{ pgettext("consent-cap", "However, if the coding list has already been destroyed, it will no longer be possible to identify and thus to delete my data set.") }}
           </p>
           <p>
-              The participant information sheet about the examination is part of this consent form. I have received a copy of the participant information sheet and of the consent form.
+              {{ pgettext("consent-cap", "The participant information sheet about the examination is part of this consent form.") }}
+              {{ pgettext("consent-cap", "I have received a copy of the participant information sheet and of the consent form.") }}
           </p>
   ​
-          <h4>Investigator</h4>
+          <h4>{{ pgettext("consent", "Investigator") }}</h4>
           <p>
               Harin Lee,
               Max Planck Institut for Empirical Aesthetics,
@@ -38,7 +48,7 @@
               harin.lee@ae.mpg.de
           </p>
   ​
-          <h4>Principal Investigator</h4>
+          <h4>{{ pgettext("consent", "Principal Investigator") }}</h4>
           <p>
               Dr. Nori Jacoby,
               Max Planck Institut for Empirical Aesthetics,
@@ -47,21 +57,20 @@
               nori.jacoby@ae.mpg.de
           </p>
   ​
-          <h4> Consent </h4>
+          <h4>{{ pgettext("consent-consent", "Consent") }}</h4>
           <p>
-              By consenting to participate, you acknowledge that you are 18 years or older,
-              have read this consent form, agree to its contents, and agree to take part
-              in this research. If you do not wish to consent, please close this page.
+              {{ pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
+              {{ pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
           </p>
         </div>
         <hr>
-        <h4>Do you understand and consent to these terms?</h4>
+        <h4>{{ gettext("Do you understand and consent to these terms?") }}</h4>
         <br>
         <button type="button" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
-          I agree
+          {{ pgettext("consent", "I agree") }}
         </button>
         <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-          No, thank you (return task)
+            {{ pgettext("consent", "No, thank you (return task)") }}
         </button>
       </div>
   </div>

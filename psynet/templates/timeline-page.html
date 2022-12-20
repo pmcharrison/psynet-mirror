@@ -214,11 +214,11 @@
                                 {{ pgettext('timeline', 'Bonus') }}:
                                 <strong>
                                     <span id="bonus-details" style="display: none">
-                                        &#36;<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
-                                        &#36;<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
+                                        {{ currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
+                                        {{ currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
                                     </span>
                                     <span style="font-weight: bold">
-                                        &#36;<span id="total-bonus">{{ total_bonus }}</span>
+                                        {{ currency }}<span id="total-bonus">{{ total_bonus }}</span>
                                     </span>
                                 </strong>
                             </div>

@@ -18,99 +18,91 @@
 <div class="main-div" style="padding-bottom: 100px; font-size: 18px;">
   <div class="text-justify">
     <p>
-        TITLE OF RESEARCH: <i>Computational Cognitive Science</i> <br><br>
-        PRINCIPAL INVESTIGATOR: Thomas Griffiths <br><br>
-        PRINCIPAL INVESTIGATOR’S DEPARTMENT: <i>Psychology</i>
+        {{ pgettext("consent", "TITLE OF RESEARCH:") }} <i>Computational Cognitive Science</i> <br><br>
+        {{ pgettext("consent", "PRINCIPAL INVESTIGATOR:") }} Thomas Griffiths <br><br>
+        {{ pgettext("consent", "PRINCIPAL INVESTIGATOR’S DEPARTMENT:") }} <i>Psychology</i>
     </p>
     <p>
-        You are being invited to take part in a research study. Before you decide to participate in this study, it is
-        important that you understand why the research is being done and what it will involve. Please take the
-        time to read the following information carefully. Please ask the researcher if there is anything that is not
-        clear or if you need more information.
-    </p>
-
-    <h2>Purpose of the research:</h2>
-    <p>
-        This project aims to collect data that can be used to evaluate formal accounts of causal learning,
-        categorization, and language learning and to track how knowledge about these areas is transformed when
-        passed from person to person.
+        {{ pgettext("consent", "You are being invited to take part in a research study.") }}
+        {{ pgettext("consent", "Before you decide to participate in this study, it is important that you understand why the research is being done and what it will involve.") }}
+        {{ pgettext("consent", "Please take the time to read the following information carefully.") }}
+        {{ pgettext("consent", "Please ask the researcher if there is anything that is not clear or if you need more information.") }}
     </p>
 
-    <h2>Study Procedures:</h2>
+    <h2>{{ pgettext("consent-purpose", "Purpose of the research:") }}</h2>
     <p>
-        You will be presented with a visual stimulus and will then be asked to make one or more judgments about
-        that information, or decisions based upon it. In some cases you will be asked to provide explanations or
-        justifications for your responses, typically in the form of a short paragraph. The task will not involve
-        deception or emotionally disturbing materials - just simple questions about categories, causal
-        relationships, and languages. <br>
-        The task you will perform will be one or more of the following: 1. Being shown a set of members of a
-        category, and then asked to indicate which other objects are likely to belong to the category. 2. Being
-        presented a sequence of pictures or sounds, and being asked to predict the next item in the sequence. 3.
-        Being told a set of words in a language, and then making judgments about whether other words belong to
-        the language. 4. Being shown statistical information about the interaction of causes and effects, and then
-        making judgments about the causal relationships involved. 5. Observing a set of events or reading a
-        description or information, and then evaluating the probability of events or statements. 6. Being presented
-        with one or more visual puzzles and re-arranging elements on a screen to solve them.  7. Being presented
-        with visual stimuli and making a quantitative or qualitative judgment on the basis of said stimuli. 8.
-        Interacting with one or more participants about shared stimuli using a chat box. 9. Making a decision
-        about an action to take based on quantitative or qualitative information.
+        {{ pgettext("consent-purpose", "This project aims to collect data that can be used to evaluate formal accounts of causal learning, categorization, and language learning and to track how knowledge about these areas is transformed when passed from person to person.") }}
+    </p>
+
+    <h2>{{ pgettext("consent-procedure", "Study Procedures:") }}</h2>
+    <p>
+        {{ pgettext("consent-procedure", "You will be presented with a visual stimulus and will then be asked to make one or more judgments about that information, or decisions based upon it.") }}
+        {{ pgettext("consent-procedure", "In some cases you will be asked to provide explanations or justifications for your responses, typically in the form of a short paragraph.") }}
+        {{ pgettext("consent-procedure", "The task will not involve deception or emotionally disturbing materials - just simple questions about categories, causal relationships, and languages.") }}
+        <br>
+        {{ pgettext("consent-procedure", "The task you will perform will be one or more of the following:") }}
+        {{ pgettext("consent-procedure", "1. Being shown a set of members of a category, and then asked to indicate which other objects are likely to belong to the category.") }}
+        {{ pgettext("consent-procedure", "2. Being presented a sequence of pictures or sounds, and being asked to predict the next item in the sequence.") }}
+        {{ pgettext("consent-procedure", "3. Being told a set of words in a language, and then making judgments about whether other words belong to the language.") }}
+        {{ pgettext("consent-procedure", "4. Being shown statistical information about the interaction of causes and effects, and then making judgments about the causal relationships involved.") }}
+        {{ pgettext("consent-procedure", "5. Observing a set of events or reading a description or information, and then evaluating the probability of events or statements.") }}
+        {{ pgettext("consent-procedure", "6. Being presented with one or more visual puzzles and re-arranging elements on a screen to solve them.") }}
+        {{ pgettext("consent-procedure", "7. Being presented with visual stimuli and making a quantitative or qualitative judgment on the basis of said stimuli.") }}
+        {{ pgettext("consent-procedure", "8. Interacting with one or more participants about shared stimuli using a chat box.") }}
+        {{ pgettext("consent-procedure", "9. Making a decision about an action to take based on quantitative or qualitative information.") }}
     </p>
 
     <p>
-        The answers you provide in the task may be used as stimuli for future participants. However, data that would identify you will not be shared with other participants.
+        {{ pgettext("consent", "The answers you provide in the task may be used as stimuli for future participants.") }}
+        {{ pgettext("consent", "However, data that would identify you will not be shared with other participants.") }}
     </p>
 
     <p>
-        Your total expected time commitment for this study is <span style="font-weight: bold; white-space: nowrap;">
-        {{ experiment.estimated_duration_in_minutes|round|int }} minutes</span>.
+        {{ pgettext("consent", "Your total expected time commitment for this study is:") }} <span style="font-weight: bold; white-space: nowrap;">
+        {{ experiment.estimated_duration_in_minutes|round|int }} {{ gettext("minutes") }}</span>.
     </p>
 
-    <h2>Benefits and Risks: </h2>
+    <h2>{{ pgettext("consent", "Benefits and Risks:") }}</h2>
 
     <p>
-        There are no direct benefits to you as a participant; however, by furthering our understanding of human
-        cognition, this research will benefit society by helping with the development of automated systems that
-        can better solve problems that are computationally challenging, but that people can solve easily with little
-        formal guidance. <br>
-        Risks associated with participation in this study are minimal. You may feel slight discomfort answering
-        some questions, but you may refrain from answering any questions that make you uncomfortable and may
-        withdraw your participation at any time even after completing the experiment without penalty.
+        {{ pgettext("consent", "There are no direct benefits to you as a participant; however, by furthering our understanding of human cognition, this research will benefit society by helping with the development of automated systems that can better solve problems that are computationally challenging, but that people can solve easily with little formal guidance.") }}
+        <br>
+        {{ pgettext("consent", "Risks associated with participation in this study are minimal.") }}
+        {{ pgettext("consent", "You may feel slight discomfort answering some questions, but you may refrain from answering any questions that make you uncomfortable and may withdraw your participation at any time even after completing the experiment without penalty.") }}
     </p>
 
-    <h2>Confidentiality: </h2>
+    <h2>{{ pgettext("consent-confidentiality", "Confidentiality:") }}</h2>
     <p>
-        We will not be asking for any personally identifying information, and we will handle responses as
-        confidentially as possible. Your name, or your Worker IDs will never be tied to your responses on this
-        survey. However, we cannot guarantee the confidentiality of information transmitted over the Internet. To
-        minimize this risk, data containing anything that might be personally identifiable (e.g. Worker IDs) will
-        be encrypted on transfer and storage and will only be accessible to qualified lab personnel. We will be
-        keeping data collected as part of this experiment indefinitely. This anonymized data (containing neither
-        Worker IDs nor IP addresses) may be shared with the scientific community and corporate sponsors. At the
-        end of the survey you may be asked if you would like to provide your email or MTurk ID to be contacted
-        to participate in future studies., If you choose to provide this information, you may be contacted for
-        participation in future studies.
+        {{ pgettext("consent-confidentiality", "We will not be asking for any personally identifying information, and we will handle responses as confidentially as possible.") }}
+        {{ pgettext("consent-confidentiality", "Your name, or your Worker IDs will never be tied to your responses on this survey.") }}
+        {{ pgettext("consent-confidentiality", "However, we cannot guarantee the confidentiality of information transmitted over the Internet.") }}
+        {{ pgettext("consent-confidentiality", "To minimize this risk, data containing anything that might be personally identifiable (e.g. Worker IDs) will be encrypted on transfer and storage and will only be accessible to qualified lab personnel.") }}
+        {{ pgettext("consent-confidentiality", "We will be keeping data collected as part of this experiment indefinitely.") }}
+        {{ pgettext("consent-confidentiality", "This anonymized data (containing neither Worker IDs nor IP addresses) may be shared with the scientific community and corporate sponsors.") }}
+        {{ pgettext("consent-confidentiality", "At the end of the survey you may be asked if you would like to provide your email or MTurk ID to be contacted to participate in future studies.") }}
+        {{ pgettext("consent-confidentiality", "If you choose to provide this information, you may be contacted for participation in future studies.") }}
     </p>
 
-    <h2>Compensation: </h2>
+    <h2>{{ pgettext("consent-compensation", "Compensation:") }}</h2>
     <p>
-        For your participation, you will receive approximately <span style="font-weight: bold">${{ "{:.2f}".format(experiment.var.wage_per_hour) }}
-        per hour</span>. Based on the estimated time to complete the experiment that amounts to
-        <span style="font-weight: bold; white-space: nowrap;">${{ "{:.2f}".format(experiment.estimated_bonus_in_dollars) }} in total</span>. If you are on Mturk or Prolific and for any reason you do
-        not complete the study (e.g. technical difficulties, or a desire to stop), we will only be able to pay you if
-        you send an email through MTurk/Prolific, or by emailing the researcher, at cocosci-lab@princeton.edu.
-        If you have any questions about the study, feel free to contact the researcher or the Principal Investigator,
+        {{ pgettext("consent-compensation", "For your participation, you will receive approximately:") }}
+        <span style="font-weight: bold">{{ currency }}{{ "{:.2f}".format(experiment.var.wage_per_hour) }} {{ gettext("per hour") }}</span>.
+        {{ pgettext("consent-compensation", "Based on the estimated time to complete the experiment:") }}
+        <span style="font-weight: bold; white-space: nowrap;">{{ currency }}{{ "{:.2f}".format(experiment.estimated_bonus_in_dollars) }}</span>.
+        {{ pgettext("consent-compensation", "If you are on Mturk or Prolific and for any reason you do not complete the study (e.g. technical difficulties, or a desire to stop), we will only be able to pay you if you send an email through MTurk/Prolific, or by emailing the researcher, at:") }} cocosci-lab@princeton.edu.
+        {{ pgettext("consent-compensation", "If you have any questions about the study, feel free to contact the researcher or the Principal Investigator:") }}
         Thomas Griffiths, at tomg@princeton.edu.
     </p>
 
-    <h2>Who to contact with questions:</h2>
+    <h2>{{ pgettext("consent", "Who to contact with questions:") }}</h2>
     <ol>
-        <li>PRINCIPAL INVESTIGATOR: <br><br>
+        <li>{{ pgettext("consent", "PRINCIPAL INVESTIGATOR:") }}<br><br>
             Dr. Thomas Griffiths,<br>
             tomg@princeton.edu <br><br>
         </li>
 
-        <li>If you have questions regarding your rights as a research subject, or if problems arise which you do
-            not feel you can discuss with the Investigator, please contact the Institutional Review Board at: <br><br>
+        <li>
+            {{ pgettext("consent", "If you have questions regarding your rights as a research subject, or if problems arise which you do not feel you can discuss with the Investigator, please contact the Institutional Review Board at:") }} <br><br>
             Assistant Director,<br>
             Research Integrity and Assurance,<br>
             Phone: (609) 258-8543,<br>
@@ -119,31 +111,31 @@
     </ol>
 
     <p>
-        I understand the information that was presented and that:
+        {{ pgettext("consent", "I understand the information that was presented and that:") }}
         <ol>
             <li>
-                My participation is voluntary, and I may withdraw my consent and discontinue participation in the project at any time.
-                My refusal to participate will not result in any penalty.
+                {{ pgettext("consent", "My participation is voluntary, and I may withdraw my consent and discontinue participation in the project at any time.") }}
+                {{ pgettext("consent", "My refusal to participate will not result in any penalty.") }}
             </li>
             <li>
-                I do not waive any legal rights or release Princeton University, its agents, or you from liability for negligence.
+                {{ pgettext("consent", "I do not waive any legal rights or release Princeton University, its agents, or you from liability for negligence.") }}
             </li>
         </ol>
     </p>
 
     <p>
-        I hereby give my consent to be the subject of your research.
+        {{ pgettext("consent", "I hereby give my consent to be the subject of your research.") }}
     </p>
     <p>
         <span style="font-weight: bold">
-            This study has been approved by the Institutional Review Board for Human Subjects
+            {{ pgettext("consent", "This study has been approved by the Institutional Review Board for Human Subjects") }}
         </span>
     </p>
     <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-        I agree
+        {{ pgettext("consent", "I agree") }}
     </button>
     <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-        No, thank you (return task)
+        {{ pgettext("consent", "No, thank you (return task)") }}
     </button>
   </div>
 </div>
