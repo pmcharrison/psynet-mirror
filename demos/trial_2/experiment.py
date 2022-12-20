@@ -11,10 +11,6 @@ from psynet.trial import Node, Trial
 
 from .custom_synth import synth_prosody
 
-##########################################################################################
-# Stimuli
-##########################################################################################
-
 
 def synth_stimulus(path, frequencies):
     synth_prosody(vector=frequencies, output_path=path)

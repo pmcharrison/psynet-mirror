@@ -60,6 +60,7 @@ but see the sidebar for a full list.
    demos/timeline
    demos/survey_js
    demos/trial
+   demos/trial_2
 
 .. toctree::
    :maxdepth: 2
