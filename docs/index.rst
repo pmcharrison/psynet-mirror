@@ -51,6 +51,14 @@ but see the sidebar for a full list.
    installation/unix_installation
 
 .. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Demos
+
+   demos/introduction
+   demos/hello_world
+
+.. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Installation
