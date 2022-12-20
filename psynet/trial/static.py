@@ -306,4 +306,5 @@ class StaticNetwork(ChainNetwork):
 
 
 class StaticNode(ChainNode):
-    pass
+    def summarize_trials(self, trials: list, experiment, participant):
+        return None

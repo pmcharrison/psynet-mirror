@@ -11,6 +11,9 @@ class Trial(ChainTrial):
 class Node(ChainNode):
     polymorphic_identity = "GenericNode"
 
+    def summarize_trials(self, trials: list, experiment, participant):
+        return None
+
 
 def compile_nodes_from_directory(
     input_dir: str,
