@@ -243,7 +243,6 @@ class Exp(psynet.experiment.Experiment):
                 WorkerAsyncProcess(
                     function=CustomTrial.expensive_computation,
                     arguments={
-                        "trial": t,
                         "seed": random.randint(0, 10),
                     },
                 )
