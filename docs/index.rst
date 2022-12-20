@@ -16,15 +16,13 @@ This website contains a variety of resources to help you learn more about PsyNet
 Some particularly useful resources are highlighted below,
 but see the sidebar for a full list.
 
-- :ref:`Applications <applications>`: Learn about the use cases for which PsyNet is optimized.
+- :ref:`When to use PsyNet? <applications>`: Learn about the use cases for which PsyNet is optimized.
 
-- :ref:`Software stack <Software_stack>`: Learn about the open-source software that underpins PsyNet.
+- :ref:`Demos <demos_introduction>`: Learn about the use cases for which PsyNet is optimized.
+
+- :ref:`Example experiments <example_implementations>`: See code repositories for real-world PsyNet experiments.
 
 - :ref:`History <history>`: Read about the origins of PsyNet.
-
-- :ref:`Examples <example_implementations>`: See code repositories for real-world PsyNet experiments.
-
-- :ref:`Learning <learning_psynet>`: Get advice on learning PsyNet.
 
 - `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
 

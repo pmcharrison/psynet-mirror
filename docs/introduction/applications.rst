@@ -1,7 +1,7 @@
 .. _applications:
 
-Applications
-============
+When to use PsyNet?
+===================
 
 PsyNet can be used for many kinds of psychology experiments.
 However there are certain applications to which PsyNet is particularly well suited.
