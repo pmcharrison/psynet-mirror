@@ -2587,15 +2587,15 @@ class LocalStorage(AssetStorage):
         if self._root:
             return self._root
         else:
-            # return "$HOME/psynet-data/shared"
+            # return "$HOME/psynet-data/assets"
 
             if deployment_info.read("is_ssh_deployment"):
-                return "/psynet-data/shared"
+                return "/psynet-data/assets"
             else:
-                return os.path.expanduser("~/psynet-data/shared")
+                return os.path.expanduser("~/psynet-data/assets")
 
             # if os.getenv("PSYNET_IN_DOCKER"):
-            #     return "~/psynet-data/shared"
+            #     return "~/psynet-data/assets"
             # else:
             #     try:
             #         from .utils import get_from_config
