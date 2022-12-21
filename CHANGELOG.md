@@ -1,5 +1,18 @@
 # CHANGELOG
 
+# [9.4.0] Released on 2022-12-21
+
+#### Added
+- Added MIT license
+- Added and updated experimenter and developer documentation; changed layout to `furo` theme
+
+#### Fixed
+- Fixed node details visualization in dashboard monitor
+
+#### Updated
+- Updated `Dallinger` to `v9.3.0` which comes with many Docker improvements
+- Updated README.md
+
 # [9.3.0] Released on 2022-11-26
 
 #### Added
