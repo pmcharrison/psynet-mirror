@@ -72,3 +72,7 @@ deploy_docs:
     paths:
     - public
     - public/low_level
+  only:
+    refs:
+      - master
+      - v10-draft
