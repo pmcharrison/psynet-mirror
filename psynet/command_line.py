@@ -796,6 +796,20 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
     from .asset import DebugStorage
     from .experiment import get_experiment
 
+    try:
+        with open("requirements.txt", "r") as f:
+            for line in f.readlines():
+                if "computational-audition-lab/psynet" in line.lower() and not click.confirm(
+                    "It looks like you're using an old version of PsyNet in requirements.txt "
+                    "(computational-audition-lab/psynet); "
+                    "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
+                ):
+                    raise click.Abort
+    except FileNotFoundError:
+        raise click.ClickException(
+            f"requirements.txt is missing from your experiment directory ({os.getcwd()})."
+        )
+
     if heroku:
         if docker and not click.confirm(
             "Heroku deployment with Docker hasn't been working well recently; experiments have been failing to launch "
