@@ -63,12 +63,19 @@ but see the sidebar for a full list.
    demos/survey_js
    demos/trial
    demos/trial_2
+   demos/gibbs
+   demos/audio_gibbs
+   demos/imitation_chains
+   demos/tapping_imitation_chain
+   demos/mcmcp
+
 
 .. toctree::
    :maxdepth: 1
    :hidden:
    :caption: Example experiments
 
+   example_experiments/introduction
    example_experiments/carillon
    example_experiments/emotions-scales
    example_experiments/pitch-matching
@@ -76,10 +83,18 @@ but see the sidebar for a full list.
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Installation
+   :caption: Installation (Docker route)
 
    installation/unix_installation
    installation/windows_installation
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Installation (legacy route)
+
+   legacy_installation/linux
+   legacy_installation/macos
 
 .. toctree::
    :maxdepth: 2
@@ -89,12 +104,15 @@ but see the sidebar for a full list.
 
    tutorials/classes
    tutorials/timeline
+   tutorials/assets
    tutorials/command_line
    tutorials/specifying_dependencies
-   tutorials/trial_overview
    tutorials/ad_page
    tutorials/modular_page
    tutorials/graphics
+   tutorials/demography
+   tutorials/prescreening_tasks
+   tutorials/pre_deploy_routines
    tutorials/experiment_variables
    tutorials/unity_integration
    tutorials/writing_custom_frontends
@@ -102,36 +120,30 @@ but see the sidebar for a full list.
    tutorials/communicating_with_backend
    tutorials/payment_limits
    tutorials/deploy_tokens
+   tutorials/introduction_to_sql_alchemy
+   tutorials/version_control_with_git
+   tutorials/upgrading_to_psynet_10
 
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Specific implementations
+   :caption: Contributing to PsyNet
    :glob:
 
-   implementations/*
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: Developer documentation
-   :glob:
-
-   developer/version_control_with_git
    developer/prescreening_tasks
    developer/updating_documentation
-   developer/introduction_to_sql_alchemy
 
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Low-level documentation
+   :caption: API documentation
    :glob:
 
-   low_level/demography
-   low_level/Experiment
-   low_level/Participant
-   low_level/prescreen
-   low_level/timeline
-   low_level/trial
-   low_level/VarStore
+   api/overview
+   api/demography
+   api/Experiment
+   api/Participant
+   api/prescreen
+   api/timeline
+   api/trial
+   api/VarStore

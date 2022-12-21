@@ -1,3 +1,6 @@
+.. _demos_introduction::
+
+============
 Introduction
 ============
 

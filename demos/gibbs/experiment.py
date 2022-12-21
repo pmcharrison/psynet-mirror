@@ -1,9 +1,3 @@
-# pylint: disable=unused-import,abstract-method,unused-argument,no-member
-
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
 import tempfile
 import time
@@ -91,6 +85,8 @@ class CustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
+        # This is a silly example of how we might define a function that runs every time
+        # the network grows.
         try:
             self.var.growth_counter += 1
         except KeyError:
@@ -209,13 +205,12 @@ trial_maker = CustomTrialMaker(
     choose_participant_group=lambda participant: participant.var.participant_group,
 )
 
+
 ###################
 # This code is borrowed from the custom_table_simple demo.
 # It is totally irrelevant for the Gibbs implementation.
 # We just include it so we can test the export functionality
 # in the regression tests.
-
-
 @register_table
 class Coin(SQLBase, SQLMixin):
     __tablename__ = "coin"
@@ -238,14 +233,6 @@ def _collect_coin(participant):
     db.session.add(coin)
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
     asset_storage = DebugStorage()
