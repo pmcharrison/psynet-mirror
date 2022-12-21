@@ -280,7 +280,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
-        ingest_zip(database_template_path, db.engine)
+        # This check is helpful to stop the database from being ingested multiple times
+        # if the launch fails the first time
+        if not redis_vars.get("deployment_db_ingested", False):
+            ingest_zip(database_template_path, db.engine)
+            redis_vars.set("deployment_db_ingested", True)
         self._nodes_on_deploy()
 
     def on_every_launch(self):
