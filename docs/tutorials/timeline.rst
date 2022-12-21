@@ -1,6 +1,6 @@
-============
-The timeline
-============
+========
+Timeline
+========
 
 The timeline determines the sequential logic of the experiment.
 A timeline comprises a series of *events* that are ordinarily

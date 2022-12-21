@@ -156,10 +156,6 @@ which can be subclassed to implement a particular paradigm:
 * :class:`~psynet.trial.chain.ChainTrial`,
   a special type of :class:`~psynet.trial.main.NetworkTrial`;
 
-* :class:`~psynet.trial.chain.ChainSource`,
-  a special type of :class:`dallinger.nodes.Source`,
-  providing the initial network state.
-
 To implement a new paradigm using these helper classes,
 we recommend that you create new classes that subclass each of the
 helper classes listed above. Follow their documentation to understand

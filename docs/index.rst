@@ -70,7 +70,7 @@ but see the sidebar for a full list.
    :caption: Example experiments
 
    example_experiments/carillon
-   example_experiments/scales
+   example_experiments/emotions-scales
    example_experiments/pitch-matching
 
 .. toctree::
@@ -78,9 +78,8 @@ but see the sidebar for a full list.
    :hidden:
    :caption: Installation
 
-   installation/docker
-   installation/macos
-   installation/linux
+   installation/unix_installation
+   installation/windows_installation
 
 .. toctree::
    :maxdepth: 2
@@ -88,13 +87,15 @@ but see the sidebar for a full list.
    :caption: Tutorials
    :glob:
 
-   tutorials/basic_usage
-   tutorials/command_line
+   tutorials/classes
    tutorials/timeline
+   tutorials/command_line
+   tutorials/specifying_dependencies
    tutorials/trial_overview
    tutorials/ad_page
    tutorials/modular_page
    tutorials/graphics
+   tutorials/experiment_variables
    tutorials/unity_integration
    tutorials/writing_custom_frontends
    tutorials/event_management

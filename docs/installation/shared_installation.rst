@@ -33,5 +33,5 @@ Step 4: Try running an experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To check that everything is now running properly, you should try running an experiment.
-You can start by downloading one from the :ref:`Examples <example_implementations>` page.
+You can start by downloading one from the :ref:`Example experiments <example_experiments>` page.
 Follow the instructions in the repository to launch the experiment using Docker.

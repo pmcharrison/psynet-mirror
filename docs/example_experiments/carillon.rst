@@ -1,3 +1,5 @@
+.. _consonance_carillon:
+
 Consonance and the carillon
 ===========================
 

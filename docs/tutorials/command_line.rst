@@ -1,8 +1,11 @@
 .. _command_line:
 
-====================
-Command-Line Utility
-====================
+============
+Command-line
+============
+
+.. warning::
+    This section needs to be updated for PsyNet 10.0.0.
 
 PsyNet is executed from the command line within the experiment directory.
 
