@@ -74,3 +74,4 @@ deploy_docs:
     - public/low_level
   only:
   - master
+  - v10-draft
