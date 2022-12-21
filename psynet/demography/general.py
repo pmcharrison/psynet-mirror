@@ -7,7 +7,7 @@ from psynet.modular_page import (
     TextControl,
 )
 from psynet.timeline import FailedValidation, Module, conditional, join
-from psynet.utils import get_logger, languages, countries, get_translator
+from psynet.utils import get_logger, get_translator, get_country_dict, get_language_dict
 
 logger = get_logger()
 
@@ -21,11 +21,11 @@ class BasicDemography(Module):
     ):
         self.label = label
         self.elts = join(
-            Gender(locale),
-            Age(locale),
-            CountryOfBirth(locale),
-            CountryOfResidence(locale),
-            FormalEducation(locale),
+            Gender(locale=locale),
+            Age(locale=locale),
+            CountryOfBirth(locale=locale),
+            CountryOfResidence(locale=locale),
+            FormalEducation(locale=locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -57,9 +57,9 @@ class BasicMusic(Module):
     ):
         self.label = label
         self.elts = join(
-            YearsOfFormalTraining(locale),
-            HoursOfDailyMusicListening(locale),
-            MoneyFromPlayingMusic(locale),
+            YearsOfFormalTraining(locale=locale),
+            HoursOfDailyMusicListening(locale=locale),
+            MoneyFromPlayingMusic(locale=locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -72,13 +72,13 @@ class Dance(Module):
     ):
         self.label = label
         self.elts = join(
-            DanceSociallyOrProfessionally(locale),
+            DanceSociallyOrProfessionally(locale=locale),
             conditional(
                 "dance_socially_or_professionally",
                 lambda experiment, participant: (
                     participant.answer in ["socially", "professionally"]
                 ),
-                LastTimeDanced(locale),
+                LastTimeDanced(locale=locale),
             ),
         )
         super().__init__(self.label, self.elts)
@@ -92,8 +92,8 @@ class SpeechDisorders(Module):
     ):
         self.label = label
         self.elts = join(
-            SpeechLanguageTherapy(locale),
-            DiagnosedWithDyslexia(locale),
+            SpeechLanguageTherapy(locale=locale),
+            DiagnosedWithDyslexia(locale=locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -106,7 +106,7 @@ class Income(Module):
     ):
         self.label = label
         self.elts = join(
-            HouseholdIncomePerYear(locale),
+            HouseholdIncomePerYear(locale=locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -119,9 +119,9 @@ class ExperimentFeedback(Module):
     ):
         self.label = label
         self.elts = join(
-            LikedExperiment(locale),
-            FoundExperimentDifficult(locale),
-            EncounteredTechnicalProblems(locale),
+            LikedExperiment(locale=locale),
+            FoundExperimentDifficult(locale=locale),
+            EncounteredTechnicalProblems(locale=locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -150,7 +150,7 @@ class Gender(ModularPage):
             ],
             name="gender",
             show_free_text_option=True,
-            placeholder_text_free_text="Specify yourself",
+            placeholder_text_free_text=_p("gender", "Specify yourself"),
         )
         super().__init__(
             self.label, self.prompt, control=control, time_estimate=self.time_estimate
@@ -165,6 +165,7 @@ class Age(ModularPage):
     ):
         _, _p, _np = get_translator(locale)
         self.label = label
+        self.locale = locale
         self.prompt = _p("age", "What is your age?")
         self.time_estimate = 5
         super().__init__(
@@ -174,71 +175,75 @@ class Age(ModularPage):
             time_estimate=self.time_estimate,
         )
 
-    @staticmethod
-    def validate(response, **kwargs):
-        if not (
-            0 < response.answer < 120
-            and round(response.answer) == float(response.answer)
-        ):
-            return FailedValidation(
-                "You need to provide your age as an integer between 0 and 120!"
-            )
-        return None
+    def validate(self, response, **kwargs):
+        _, _p, _np = get_translator(self.locale)
+        answer = response.answer
+        error_msg = _p("age", "You need to provide your age as an integer between 0 and 120! Your answer was: '{}'").format(answer)
+        try:
+            age = int(answer)
+            if not (
+                    0 < age < 120
+            ):
+                return FailedValidation(error_msg)
+            else:
+                return None
+        except ValueError:
+            return FailedValidation(error_msg)
 
-
-class CountryOfBirth(ModularPage):
+class CountryDropdown(ModularPage):
     def __init__(self, label="country_of_birth", locale=DEFAULT_LOCALE):
-        _, _p, _np = get_translator(locale)
         self.label = label
         self.locale = locale
-        self.prompt = _p("country-select", "What country are you from?")
+        _, _p, _np = self.get_translator()
         self.time_estimate = 5
-
+        country_dict = get_country_dict(locale)
         control = DropdownControl(
-            choices=[country[0] for country in countries('en')] + ["OTHER"],
-            labels=[country[1] for country in countries('en')] + ["Other country"],
+            choices=list(country_dict.keys()) + ["OTHER"],
+            labels=list(country_dict.values()) + [_p("country-select", "Other country")],
             default_text=_p("country-select", "Select a country"),
             name=self.label,
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label, self.get_prompt(), control=control, time_estimate=self.time_estimate
         )
 
+    def get_translator(self):
+        return get_translator(self.locale)
+
+    def get_prompt(self):
+        raise NotImplementedError()
+
     def validate(self, response, **kwargs):
-        _, _p, _np = get_translator(self.locale)
+        _, _p, _np = self.get_translator()
         if self.control.force_selection and response.answer == "":
             return FailedValidation(_p("country-select", "You need to select a country!"))
         return None
 
 
-class CountryOfResidence(ModularPage):
+class CountryOfBirth(CountryDropdown):
+    def __init__(
+        self,
+        label="country_of_birth",
+        locale=DEFAULT_LOCALE,
+    ):
+        super().__init__(label, locale)
+
+    def get_prompt(self):
+        _, _p, _np = self.get_translator()
+        return _p("country-select", "What country are you from?")
+
+
+class CountryOfResidence(CountryDropdown):
     def __init__(
         self,
         label="country_of_residence",
         locale=DEFAULT_LOCALE,
     ):
-        _, _p, _np = get_translator(locale)
-        self.label = label
-        self.locale = locale
-        self.prompt = _p("country-select", "What is your current country of residence?")
-        self.time_estimate = 5
+        super().__init__(label, locale)
 
-        control = DropdownControl(
-            choices=[country[0] for country in countries('en')] + ["OTHER"],
-            labels=[country[1] for country in countries('en')] + ["Other country"],
-            default_text="Select a country",
-            name=self.label,
-        )
-        super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
-        )
-
-    def validate(self, response, **kwargs):
-        _, _p, _np = get_translator(self.locale)
-        if self.control.force_selection and response.answer == "":
-            return FailedValidation(_p("country-select", "You need to select a country!"))
-        return None
-
+    def get_prompt(self):
+        _, _p, _np = self.get_translator()
+        return _p("country-select", "What is your current country of residence?")
 
 class FormalEducation(ModularPage):
     def __init__(
@@ -287,9 +292,11 @@ class MotherTongue(ModularPage):
         self.prompt = _p("language-select", "What is your mother tongue - i.e., the language which you have grown up speaking from early childhood)?")
         self.time_estimate = 5
 
+        language_dict = get_language_dict(locale)
+
         control = DropdownControl(
-            choices=[language[0] for language in languages()] + ["other"],
-            labels=[language[1] for language in languages()] + ["Other language"],
+            choices=list(language_dict.keys()) + ["other"],
+            labels=list(language_dict.values()) + ["Other language"],
             default_text=_p("language-select", "Select a language"),
             name=self.label,
         )
