@@ -59,7 +59,7 @@ deploy_docker:
   script:
     - docker push $DOCKER_IMAGE
 
-deploy_docs:
+pages:
   image: $DOCKER_IMAGE
   stage: deploy
   needs: [deploy_docker]
