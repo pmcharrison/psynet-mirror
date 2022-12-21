@@ -1352,13 +1352,14 @@ def export_(
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0
 
-    local_exp = import_local_experiment()["class"]
+    remote_exp_label = exp_variables["label"]
+    local_exp_label = import_local_experiment()["class"].label
 
-    if not deployment_id.startswith(local_exp.label):
+    if not remote_exp_label == local_exp_label:
         if not click.confirm(
-            f"The remote experiment's deployment ID ({deployment_id}) does not match the local experiment's "
-            f"label ({local_exp.label}). Are you sure you are running the export command from the right "
-            "experiment folder? If not, the export process is likely to fail. "
+            f"The remote experiment's label ({remote_exp_label}) does not seem consistent with the "
+            f"local experiment's label ({local_exp_label}). Are you sure you are running the export command from "
+            "the right experiment folder? If not, the export process is likely to fail. "
             "To continue anyway, press Y and Enter, otherwise just press Enter to cancel."
         ):
             raise click.Abort
