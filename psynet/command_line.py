@@ -736,9 +736,9 @@ def export_launch_info(deployment_id, dashboard_user, dashboard_password, **kwar
     Retrieves dashboard credentials from the current config and
     saves them to disk.
     """
-    parent = Path("~/psynet-data/launch_info").expanduser() / deployment_id
+    parent = Path("~/psynet-data/launch-info").expanduser() / deployment_id
     parent.mkdir(parents=True, exist_ok=True)
-    file = parent.joinpath("dashboard_credentials.json")
+    file = parent.joinpath("dashboard-credentials.json")
     with open(file, "w") as f:
         json.dump(
             {
