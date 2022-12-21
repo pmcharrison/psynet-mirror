@@ -230,7 +230,7 @@ class Exp(psynet.experiment.Experiment):
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
 
-    @scheduled_task("interval", minutes=1, max_instances=1)
+    @scheduled_task("interval", minutes=0.1, max_instances=1)
     @staticmethod
     def add_random_var_to_trials():
         trials = CustomTrial.query.all()
@@ -241,7 +241,7 @@ class Exp(psynet.experiment.Experiment):
                 # One might implement more complex checks here, for example only running the
                 # task for trials that have already received a response from the participant.
                 WorkerAsyncProcess(
-                    function=CustomTrial.expensive_computation,
+                    function=t.expensive_computation,
                     arguments={
                         "seed": random.randint(0, 10),
                     },
@@ -263,3 +263,14 @@ class Exp(psynet.experiment.Experiment):
         assert trials[3].failed_reason.startswith(
             "Exception in asynchronous process: JobTimeoutException"
         )
+
+    def test_experiment(self):
+        super().test_experiment()
+
+        expensive_computations = WorkerAsyncProcess.query.filter_by(
+            label="expensive_computation"
+        ).all()
+        assert len(expensive_computations) > 0
+
+        for _process in expensive_computations:
+            assert not _process.failed
