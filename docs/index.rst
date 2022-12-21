@@ -40,9 +40,9 @@ but see the sidebar for a full list.
    :hidden:
    :caption: Architecture
 
-   architecture/docker
-   architecture/servers
    architecture/dallinger
+   architecture/docker
+   architecture/web_servers
 
 .. toctree::
    :maxdepth: 1
@@ -85,22 +85,22 @@ but see the sidebar for a full list.
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Experimenter documentation
+   :caption: Tutorials
    :glob:
 
-   experimenter/basic_usage
-   experimenter/command_line
-   experimenter/timeline
-   experimenter/trial_overview
-   experimenter/ad_page
-   experimenter/modular_page
-   experimenter/graphics
-   experimenter/unity_integration
-   experimenter/writing_custom_frontends
-   experimenter/event_management
-   experimenter/communicating_with_backend
-   experimenter/payment_limits
-   experimenter/deploy_tokens
+   tutorials/basic_usage
+   tutorials/command_line
+   tutorials/timeline
+   tutorials/trial_overview
+   tutorials/ad_page
+   tutorials/modular_page
+   tutorials/graphics
+   tutorials/unity_integration
+   tutorials/writing_custom_frontends
+   tutorials/event_management
+   tutorials/communicating_with_backend
+   tutorials/payment_limits
+   tutorials/deploy_tokens
 
 .. toctree::
    :maxdepth: 2
