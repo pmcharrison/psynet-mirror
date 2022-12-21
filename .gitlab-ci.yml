@@ -73,6 +73,5 @@ deploy_docs:
     - public
     - public/low_level
   only:
-    refs:
-      - master
-      - v10-draft
+    - master
+    - v10-draft
