@@ -7,23 +7,25 @@ from psynet.modular_page import (
     TextControl,
 )
 from psynet.timeline import FailedValidation, Module, conditional, join
-from psynet.utils import get_logger, languages, countries
+from psynet.utils import get_logger, languages, countries, get_translator
 
 logger = get_logger()
 
+DEFAULT_LOCALE = "en"
 
 class BasicDemography(Module):
     def __init__(
         self,
+        locale=DEFAULT_LOCALE,
         label="basic_demography",
     ):
         self.label = label
         self.elts = join(
-            Gender(),
-            Age(),
-            CountryOfBirth(),
-            CountryOfResidence(),
-            FormalEducation(),
+            Gender(locale),
+            Age(locale),
+            CountryOfBirth(locale),
+            CountryOfResidence(locale),
+            FormalEducation(locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -32,6 +34,7 @@ class Language(Module):
     def __init__(
         self,
         label="language",
+        locale=DEFAULT_LOCALE,
     ):
         self.label = label
         self.elts = join(
@@ -50,12 +53,13 @@ class BasicMusic(Module):
     def __init__(
         self,
         label="basic_music",
+        locale=DEFAULT_LOCALE,
     ):
         self.label = label
         self.elts = join(
-            YearsOfFormalTraining(),
-            HoursOfDailyMusicListening(),
-            MoneyFromPlayingMusic(),
+            YearsOfFormalTraining(locale),
+            HoursOfDailyMusicListening(locale),
+            MoneyFromPlayingMusic(locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -64,16 +68,17 @@ class Dance(Module):
     def __init__(
         self,
         label="dance",
+        locale=DEFAULT_LOCALE,
     ):
         self.label = label
         self.elts = join(
-            DanceSociallyOrProfessionally(),
+            DanceSociallyOrProfessionally(locale),
             conditional(
                 "dance_socially_or_professionally",
                 lambda experiment, participant: (
                     participant.answer in ["socially", "professionally"]
                 ),
-                LastTimeDanced(),
+                LastTimeDanced(locale),
             ),
         )
         super().__init__(self.label, self.elts)
@@ -83,11 +88,12 @@ class SpeechDisorders(Module):
     def __init__(
         self,
         label="speech_disorders",
+        locale=DEFAULT_LOCALE,
     ):
         self.label = label
         self.elts = join(
-            SpeechLanguageTherapy(),
-            DiagnosedWithDyslexia(),
+            SpeechLanguageTherapy(locale),
+            DiagnosedWithDyslexia(locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -96,10 +102,11 @@ class Income(Module):
     def __init__(
         self,
         label="income",
+        locale=DEFAULT_LOCALE,
     ):
         self.label = label
         self.elts = join(
-            HouseholdIncomePerYear(),
+            HouseholdIncomePerYear(locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -108,12 +115,13 @@ class ExperimentFeedback(Module):
     def __init__(
         self,
         label="feedback",
+        locale=DEFAULT_LOCALE,
     ):
         self.label = label
         self.elts = join(
-            LikedExperiment(),
-            FoundExperimentDifficult(),
-            EncounteredTechnicalProblems(),
+            LikedExperiment(locale),
+            FoundExperimentDifficult(locale),
+            EncounteredTechnicalProblems(locale),
         )
         super().__init__(self.label, self.elts)
 
@@ -123,15 +131,23 @@ class Gender(ModularPage):
     def __init__(
         self,
         label="gender",
-        prompt="How do you identify yourself?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
+        prompt = _p("gender", "How do you identify yourself?")
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
 
         control = RadioButtonControl(
             ["female", "male", "non_binary", "not_specified", "prefer_not_to_say"],
-            ["Female", "Male", "Non-binary", "Not specified", "I prefer not to answer"],
+            [
+                _p("gender", "Female"),
+                _p("gender", "Male"),
+                _p("gender", "Non-binary"),
+                _p("gender", "Not specified"),
+                _p("gender", "I prefer not to answer")
+            ],
             name="gender",
             show_free_text_option=True,
             placeholder_text_free_text="Specify yourself",
@@ -145,10 +161,11 @@ class Age(ModularPage):
     def __init__(
         self,
         label="age",
-        prompt="What is your age?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("age", "What is your age?")
         self.time_estimate = 5
         super().__init__(
             self.label,
@@ -170,15 +187,17 @@ class Age(ModularPage):
 
 
 class CountryOfBirth(ModularPage):
-    def __init__(self, label="country_of_birth", prompt="What country are you from?"):
+    def __init__(self, label="country_of_birth", locale=DEFAULT_LOCALE):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.locale = locale
+        self.prompt = _p("country-select", "What country are you from?")
         self.time_estimate = 5
 
         control = DropdownControl(
-            choices=[country[0] for country in countries()] + ["OTHER"],
-            labels=[country[1] for country in countries()] + ["Other country"],
-            default_text="Select a country",
+            choices=[country[0] for country in countries('en')] + ["OTHER"],
+            labels=[country[1] for country in countries('en')] + ["Other country"],
+            default_text=_p("country-select", "Select a country"),
             name=self.label,
         )
         super().__init__(
@@ -186,8 +205,9 @@ class CountryOfBirth(ModularPage):
         )
 
     def validate(self, response, **kwargs):
+        _, _p, _np = get_translator(self.locale)
         if self.control.force_selection and response.answer == "":
-            return FailedValidation("You need to select a country!")
+            return FailedValidation(_p("country-select", "You need to select a country!"))
         return None
 
 
@@ -195,15 +215,17 @@ class CountryOfResidence(ModularPage):
     def __init__(
         self,
         label="country_of_residence",
-        prompt="What is your current country of residence?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.locale = locale
+        self.prompt = _p("country-select", "What is your current country of residence?")
         self.time_estimate = 5
 
         control = DropdownControl(
-            choices=[country[0] for country in countries()] + ["OTHER"],
-            labels=[country[1] for country in countries()] + ["Other country"],
+            choices=[country[0] for country in countries('en')] + ["OTHER"],
+            labels=[country[1] for country in countries('en')] + ["Other country"],
             default_text="Select a country",
             name=self.label,
         )
@@ -212,8 +234,9 @@ class CountryOfResidence(ModularPage):
         )
 
     def validate(self, response, **kwargs):
+        _, _p, _np = get_translator(self.locale)
         if self.control.force_selection and response.answer == "":
-            return FailedValidation("You need to select a country!")
+            return FailedValidation(_p("country-select", "You need to select a country!"))
         return None
 
 
@@ -221,10 +244,11 @@ class FormalEducation(ModularPage):
     def __init__(
         self,
         label="formal_education",
-        prompt="What is your highest level of formal education?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("formal-education", "What is your highest level of formal education?")
         self.time_estimate = 5
 
         control = RadioButtonControl(
@@ -236,11 +260,11 @@ class FormalEducation(ModularPage):
                 "postgraduate_degree_or_higher",
             ],
             [
-                "None",
-                "High school",
-                "College",
-                "Graduate School",
-                "Postgraduate degree or higher",
+                _p("formal-education", "None"),
+                _p("formal-education", "High school"),
+                _p("formal-education", "College"),
+                _p("formal-education", "Graduate School"),
+                _p("formal-education", "Postgraduate degree or higher"),
             ],
             name="formal_education",
         )
@@ -255,16 +279,18 @@ class MotherTongue(ModularPage):
         self,
         label="mother_tongue",
         # TODO Change back to plural (add "(s)") once multi-select is implemented.
-        prompt="What is your mother tongue - i.e., the language which you have grown up speaking from early childhood)?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.locale = locale
+        self.prompt = _p("language-select", "What is your mother tongue - i.e., the language which you have grown up speaking from early childhood)?")
         self.time_estimate = 5
 
         control = DropdownControl(
             choices=[language[0] for language in languages()] + ["other"],
             labels=[language[1] for language in languages()] + ["Other language"],
-            default_text="Select a language",
+            default_text=_p("language-select", "Select a language"),
             name=self.label,
         )
         super().__init__(
@@ -272,8 +298,9 @@ class MotherTongue(ModularPage):
         )
 
     def validate(self, response, **kwargs):
+        _, _p, _np = get_translator(self.locale)
         if self.control.force_selection and response.answer == "":
-            return FailedValidation("You need to select a language!")
+            return FailedValidation(_p("language-select", "You need to select a language!"))
         return None
 
 
@@ -281,15 +308,16 @@ class MoreThanOneLanguage(ModularPage):
     def __init__(
         self,
         label="more_than_one_language",
-        prompt="Do you speak more than one language?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("language-select", "Do you speak more than one language?")
         self.time_estimate = 5
 
         control = PushButtonControl(
             choices=["yes", "no"],
-            labels=["Yes", "No"],
+            labels=[_("Yes"), _("No")],
             arrange_vertically=False,
         )
         super().__init__(
@@ -301,10 +329,13 @@ class LanguagesInOrderOfProficiency(ModularPage):
     def __init__(
         self,
         label="languages_in_order_of_proficiency",
-        prompt="Please list the languages you speak in order of proficiency (first language first, second language second, ...)",
+            locale=DEFAULT_LOCALE,
+
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.locale = locale
+        self.prompt = _p("language-select", "Please list the languages you speak in order of proficiency (first language first, second language second, ...)"),
         self.time_estimate = 5
         super().__init__(
             self.label,
@@ -313,10 +344,10 @@ class LanguagesInOrderOfProficiency(ModularPage):
             time_estimate=self.time_estimate,
         )
 
-    @staticmethod
-    def validate(response, **kwargs):
+    def validate(self, response, **kwargs):
+        _, _p, _np = get_translator(self.locale)
         if not response.answer != "":
-            return FailedValidation("Please list at least one language!")
+            return FailedValidation(_p("language-select", "Please list at least one language!"))
         return None
 
 
@@ -325,10 +356,11 @@ class YearsOfFormalTraining(ModularPage):
     def __init__(
         self,
         label="years_of_formal_training",
-        prompt="How many years of formal training on a musical instrument (including voice) have you had during your lifetime?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("music", "How many years of formal training on a musical instrument (including voice) have you had during your lifetime?"),
         self.time_estimate = 5
         super().__init__(
             self.label,
@@ -342,10 +374,11 @@ class HoursOfDailyMusicListening(ModularPage):
     def __init__(
         self,
         label="hours_of_daily_music_listening",
-        prompt="On average, how many hours do you listen to music daily?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("music", "On average, how many hours do you listen to music daily?")
         self.time_estimate = 5
         super().__init__(
             self.label,
@@ -359,15 +392,16 @@ class MoneyFromPlayingMusic(ModularPage):
     def __init__(
         self,
         label="money_from_playing_music",
-        prompt="Do you make money from playing music?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("music", "Do you make money from playing music?"),
         self.time_estimate = 5
 
         control = RadioButtonControl(
             ["frequently", "sometimes", "never"],
-            ["Frequently", "Sometimes", "Never"],
+            [_p("music", "Frequently"), _p("music", "Sometimes"), _p("music", "Never")],
             name="money_from_playing_music",
         )
         super().__init__(
@@ -380,15 +414,16 @@ class HearingLoss(ModularPage):
     def __init__(
         self,
         label="hearing_loss",
-        prompt="Do you have hearing loss or any other hearing issues?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("music", "Do you have hearing loss or any other hearing issues?")
         self.time_estimate = 5
 
         control = PushButtonControl(
             choices=["yes", "no"],
-            labels=["Yes", "No"],
+            labels=[_("Yes"), _("No")],
             arrange_vertically=False,
         )
         super().__init__(
@@ -401,15 +436,16 @@ class DanceSociallyOrProfessionally(ModularPage):
     def __init__(
         self,
         label="dance_socially_or_professionally",
-        prompt="Do you dance socially or professionally?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("dance", "Do you dance socially or professionally?")
         self.time_estimate = 5
 
         control = RadioButtonControl(
             ["socially", "professionally", "never_dance"],
-            ["Socially", "Professionally", "I never dance"],
+            [_p("dance", "Socially"), _p("dance", "Professionally"), _p("dance", "I never dance")],
             name="dance_socially_or_professionally",
         )
         super().__init__(
@@ -421,10 +457,11 @@ class LastTimeDanced(ModularPage):
     def __init__(
         self,
         label="last_time_danced",
-        prompt="When was the last time you danced? (choose the most accurate answer):",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("dance", "When was the last time you danced? (choose the most accurate answer):")
         self.time_estimate = 5
 
         control = RadioButtonControl(
@@ -437,12 +474,12 @@ class LastTimeDanced(ModularPage):
                 "never_danced",
             ],
             [
-                "This week",
-                "This month",
-                "This year",
-                "Some years ago",
-                "Many years ago",
-                "I never danced",
+                _p("dance","This week"),
+                _p("dance","This month"),
+                _p("dance","This year"),
+                _p("dance","Some years ago"),
+                _p("dance","Many years ago"),
+                _p("dance","I never danced"),
             ],
             name="last_time_danced",
         )
@@ -456,15 +493,16 @@ class SpeechLanguageTherapy(ModularPage):
     def __init__(
         self,
         label="speech_language_therapy",
-        prompt="Did you get speech-language therapy as a child?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("speech-disorder", "Did you get speech-language therapy as a child?")
         self.time_estimate = 5
 
         control = PushButtonControl(
             choices=["yes", "no", "dont_know"],
-            labels=["Yes", "No", "I Don’t know"],
+            labels=[_("Yes"), _("No"), _("I don’t know")],
             arrange_vertically=False,
         )
         super().__init__(
@@ -476,15 +514,16 @@ class DiagnosedWithDyslexia(ModularPage):
     def __init__(
         self,
         label="diagnosed_with_dyslexia",
-        prompt="Have you ever been diagnosed with dyslexia?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("speech-disorder", "Have you ever been diagnosed with dyslexia?")
         self.time_estimate = 5
 
         control = PushButtonControl(
             choices=["yes", "no", "dont_know"],
-            labels=["Yes", "No", "I Don’t know"],
+            labels=[_("Yes"), _("No"), _("I don’t know")],
             arrange_vertically=False,
         )
         super().__init__(
@@ -497,10 +536,12 @@ class HouseholdIncomePerYear(ModularPage):
     def __init__(
         self,
         label="household_income_per_year",
-        prompt="What is your total household income per year?",
+        currency="USD",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("income", "What is your total household income per year?")
         self.time_estimate = 5
 
         control = RadioButtonControl(
@@ -519,18 +560,18 @@ class HouseholdIncomePerYear(ModularPage):
                 "150000_or_more",
             ],
             [
-                "Less than $10,000",
-                "$10,000 to $19,999",
-                "$20,000 to $29,999",
-                "$30,000 to $39,999",
-                "$40,000 to $49,999",
-                "$50,000 to $59,999",
-                "$60,000 to $69,999",
-                "$70,000 to $79,999",
-                "$80,000 to $89,999",
-                "$90,000 to $99,999",
-                "$100,000 to $149,999",
-                "$150,000 or more",
+                _p("income", "Less than 10,000 {}").format(currency),
+                _p("income", "10,000 to 19,999 {}").format(currency),
+                _p("income", "20,000 to 29,999 {}").format(currency),
+                _p("income", "30,000 to 39,999 {}").format(currency),
+                _p("income", "40,000 to 49,999 {}").format(currency),
+                _p("income", "50,000 to 59,999 {}").format(currency),
+                _p("income", "60,000 to 69,999 {}").format(currency),
+                _p("income", "70,000 to 79,999 {}").format(currency),
+                _p("income", "80,000 to 89,999 {}").format(currency),
+                _p("income", "90,000 to 99,999 {}").format(currency),
+                _p("income", "100,000 to 149,999 {}").format(currency),
+                _p("income", "150,000 {} or more").format(currency),
             ],
             name="household_income_per_year",
         )
@@ -544,10 +585,12 @@ class LikedExperiment(ModularPage):
     def __init__(
         self,
         label="liked_experiment",
-        prompt="Did you like the experiment?",
+        locale=DEFAULT_LOCALE,
+
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("experiment-feedback", "Did you like the experiment?")
         self.time_estimate = 5
         super().__init__(
             self.label,
@@ -563,10 +606,11 @@ class FoundExperimentDifficult(ModularPage):
     def __init__(
         self,
         label="find_experiment_difficult",
-        prompt="Did you find the experiment difficult?",
+        locale=DEFAULT_LOCALE,
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt= _p("experiment-feedback", "Did you find the experiment difficult?")
         self.time_estimate = 5
         super().__init__(
             self.label,
@@ -581,10 +625,12 @@ class EncounteredTechnicalProblems(ModularPage):
     def __init__(
         self,
         label="encountered_technical_problems",
-        prompt="Did you encounter any technical problems during the experiment? If so, please provide a few words describing the problem.",
+        locale=DEFAULT_LOCALE,
+
     ):
+        _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = prompt
+        self.prompt = _p("experiment-feedback", "Did you encounter any technical problems during the experiment? If so, please provide a few words describing the problem.")
         self.time_estimate = 5
         super().__init__(
             self.label,
