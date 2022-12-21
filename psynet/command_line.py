@@ -639,8 +639,12 @@ def deploy():
 @deploy.command("heroku")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
-def deploy__heroku(ctx, app, archive):
+def deploy__heroku(ctx, app, archive, docker):
+    if docker:
+        _deploy__docker_heroku(ctx, app, archive)
+
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
@@ -652,11 +656,7 @@ def deploy__heroku(ctx, app, archive):
         reset_console()
 
 
-@deploy.command("heroku")
-@click.option("--app", required=True, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.pass_context
-def deploy__docker_heroku(ctx, app, archive):
+def _deploy__docker_heroku(ctx, app, archive):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
@@ -797,6 +797,12 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
     from .experiment import get_experiment
 
     if heroku:
+        if docker and not click.confirm(
+            "Heroku deployment with Docker hasn't been working well recently; experiments have been failing to launch "
+            "and returning a psutil version error. Are you sure you want to continue?"
+        ):
+            raise click.Abort
+
         try:
             with open(".gitignore", "r") as f:
                 for line in f.readlines():
