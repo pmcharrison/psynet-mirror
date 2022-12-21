@@ -3,14 +3,9 @@
 Docker
 ======
 
-It is now possible to develop PsyNet experiments entirely within Docker.
+PsyNet uses Docker as a platform for developing and deploying experiments.
 Docker is a virtualization platform that runs software in 'containers' that behave like
-self-contained operating systems. This enables us to run the same PsyNet code on different
-operating systems (Windows, MacOS, Linux) without worrying about differences between these environments.
-For more information see https://www.docker.com/.
-
-We are starting to encourage people to use Docker as the primary approach for developing and deploying
-PsyNet experiments. It has several key advantages:
+self-contained operating systems. Docker brings several key advantages:
 
 - **Simplifying installation.** Previously it would take many steps to install PsyNet on a local computer,
   as one had to install many supporting services such as Redis and Postgres. Now all of this is wrapped in Docker,
@@ -27,9 +22,10 @@ PsyNet experiments. It has several key advantages:
   years into the future. This contrasts with previous approaches, where incremental changes to Python versions
   and operating system conditions would often eventually break experiments.
 
-There are a few disadvantages too -- we think they're small, but worth noting nonetheless.
+For more information see the `official Docker website <https://www.docker.com/>`_.
 
-- Using Docker introduces a performance overhead to local debugging, meaning slower start-up times
-  and increased memory usage. It's helpful to use a computer with at least 16 GB of RAM.
-- Docker adds an extra layer between you and code execution, which can make it a little harder to debug
-  processes. However there are various techniques that can reduce the impact of this which we'll talk about later.
+.. warning::
+    The Docker workflow for PsyNet is still relatively new and we're still working
+    to document all of its details. It still remains possible to use the previous
+    workflow for PsyNet, which involves maintaining a Python virtual environment
+    and installing various supporting services like Postgres and Redis.

@@ -18,11 +18,9 @@ but see the sidebar for a full list.
 
 - :ref:`When to use PsyNet? <applications>`: Learn about the use cases for which PsyNet is optimized.
 
-- :ref:`Demos <demos_introduction>`: Learn about the use cases for which PsyNet is optimized.
+- :ref:`Demos <demos_introduction>`: See demos of different PsyNet features.
 
 - :ref:`Example experiments <example_experiments_introduction>`: See code repositories for real-world PsyNet experiments.
-
-- :ref:`History <history>`: Read about the origins of PsyNet.
 
 - `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
 
@@ -35,10 +33,16 @@ but see the sidebar for a full list.
    self
    introduction/applications
    introduction/history
-   introduction/example_implementations
-   introduction/docker
-   introduction/learning_psynet
    introduction/team
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Architecture
+
+   architecture/docker
+   architecture/servers
+   architecture/dallinger
 
 .. toctree::
    :maxdepth: 1
