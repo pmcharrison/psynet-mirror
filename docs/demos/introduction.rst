@@ -1,4 +1,4 @@
-.. _demos_introduction::
+.. _demos_introduction:
 
 ============
 Introduction
