@@ -10,8 +10,8 @@ import os
 import re
 import sys
 import time
+from collections import OrderedDict
 from babel.support import Translations
-from dallinger import db
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import _render, Environment
@@ -559,7 +559,6 @@ def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dir
         translator = gettext.NullTranslations()
     return translator.gettext, translator.pgettext, translator.npgettext
 
-
 def countries(locale=None):
     """
     List compiled using the pycountry package v20.7.3 with
@@ -1026,16 +1025,21 @@ def languages(locale=None):
         ("zu", _p("language_name", "Zulu")),
     ]
 
-def _get_entity_dict_from_tuple_list(tuple_list):
-    return dict(zip(
+def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
+    dictionary = dict(zip(
         [key for key, value in tuple_list],
         [value for key, value in tuple_list]
     ))
-def get_language_dict(locale):
-    return _get_entity_dict_from_tuple_list(languages(locale))
+    if sort_by_value:
+        return dict(OrderedDict(sorted(dictionary.items(), key=lambda t: t[1])))
+    else:
+        return dictionary
 
-def get_country_dict(locale):
-    return _get_entity_dict_from_tuple_list(countries(locale))
+def get_language_dict(locale, sort_by_name=True):
+    return _get_entity_dict_from_tuple_list(languages(locale), sort_by_name)
+
+def get_country_dict(locale, sort_by_name=True):
+    return _get_entity_dict_from_tuple_list(countries(locale), sort_by_name)
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
     import numpy as np
