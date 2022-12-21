@@ -37,7 +37,6 @@ from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
     get_args,
-    get_from_config,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -1369,7 +1368,8 @@ def export_(
         config.load()
 
     if path is None:
-        export_root = get_from_config("default_export_root")
+        # export_root = get_from_config("default_export_root")
+        export_root = "~/psynet-data/export"
 
         path = os.path.join(
             export_root,
