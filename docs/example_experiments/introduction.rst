@@ -1,9 +1,9 @@
-.. _example_implementations:
+.. _example_experiments_introduction:
 
 Example experiments
 ===================
 
-Here are a few example implementations of PsyNet experiments.
+This section few example implementations of PsyNet experiments.
 Each experiment is shared as a standalone Git repository that contains all the information
 you should need to run the experiment yourself. Follow the links and follow the provided
 README files.

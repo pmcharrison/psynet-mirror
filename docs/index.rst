@@ -20,7 +20,7 @@ but see the sidebar for a full list.
 
 - :ref:`Demos <demos_introduction>`: Learn about the use cases for which PsyNet is optimized.
 
-- :ref:`Example experiments <example_implementations>`: See code repositories for real-world PsyNet experiments.
+- :ref:`Example experiments <example_experiments_introduction>`: See code repositories for real-world PsyNet experiments.
 
 - :ref:`History <history>`: Read about the origins of PsyNet.
 
@@ -59,6 +59,15 @@ but see the sidebar for a full list.
    demos/survey_js
    demos/trial
    demos/trial_2
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Example experiments
+
+   example_experiments/carillon
+   example_experiments/scales
+   example_experiments/pitch-matching
 
 .. toctree::
    :maxdepth: 2
