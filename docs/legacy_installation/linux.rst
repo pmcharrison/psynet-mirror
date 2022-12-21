@@ -1,5 +1,5 @@
-Ubuntu/GNU Linux
-================
+Linux installation
+==================
 
 The following installation instructions apply to **Ubuntu 20.04 LTS (Focal Fossa)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 

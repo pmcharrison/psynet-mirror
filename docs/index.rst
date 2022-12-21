@@ -45,12 +45,20 @@ but see the sidebar for a full list.
    architecture/web_servers
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :hidden:
-   :caption: Installation
+   :caption: Installation (Docker route)
 
-   installation/windows_installation
    installation/unix_installation
+   installation/windows_installation
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Installation (legacy route)
+
+   legacy_installation/linux
+   legacy_installation/macos
 
 .. toctree::
    :maxdepth: 1
@@ -79,22 +87,6 @@ but see the sidebar for a full list.
    example_experiments/carillon
    example_experiments/emotions-scales
    example_experiments/pitch-matching
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: Installation (Docker route)
-
-   installation/unix_installation
-   installation/windows_installation
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: Installation (legacy route)
-
-   legacy_installation/linux
-   legacy_installation/macos
 
 .. toctree::
    :maxdepth: 2
