@@ -288,6 +288,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = get_config()
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
+        self.var.label = self.label
         export_launch_info(
             self.var.deployment_id,
             config.get("dashboard_user"),
