@@ -41,12 +41,9 @@ def write(**kwargs):
 
 
 def read_all():
-    try:
-        with open(path, "r") as file:
-            txt = file.read()
-        content = jsonpickle.decode(txt)
-    except FileNotFoundError:
-        content = {}
+    with open(path, "r") as file:
+        txt = file.read()
+    content = jsonpickle.decode(txt)
     assert isinstance(content, dict)
     return content
 
