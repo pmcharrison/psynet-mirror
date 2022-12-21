@@ -4,5 +4,4 @@
 # dallinger@git+https://github.com/Dallinger/Dallinger.git#egg=dallinger
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet
 
-dallinger@git+https://github.com/Dallinger/Dallinger.git@pmch-dev#egg=dallinger
 psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10-draft#egg=psynet
