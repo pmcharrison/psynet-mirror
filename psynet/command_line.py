@@ -1374,7 +1374,9 @@ def export_(
         path = os.path.join(
             export_root,
             deployment_id,
-            "export " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
+            remote_exp_label
+            + "__export="
+            + datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
         )
 
     path = os.path.expanduser(path)
