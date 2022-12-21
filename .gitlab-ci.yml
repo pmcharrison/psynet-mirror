@@ -72,6 +72,6 @@ deploy_docs:
     paths:
     - public
     - public/low_level
-  only:
-  - master
-  - v10-draft
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "v10-draft"
