@@ -16,7 +16,7 @@ from sqlalchemy.orm import deferred, relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonDict, PythonObject
-from .utils import classproperty, get_logger
+from .utils import call_function, classproperty, get_logger
 
 logger = get_logger()
 
@@ -241,7 +241,8 @@ class AsyncProcess(SQLBase, SQLMixin):
             process.time_started = datetime.datetime.now()
             db.session.commit()
 
-            function(**arguments)
+            call_function(function, **arguments)
+
             process.time_finished = datetime.datetime.now()
             process.time_taken = time.monotonic() - timer
             process.pending = False
