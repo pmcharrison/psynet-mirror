@@ -639,8 +639,12 @@ def deploy():
 @deploy.command("heroku")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.option("--docker", default=False, help="Deploy using Docker")
 @click.pass_context
-def deploy__heroku(ctx, app, archive):
+def deploy__heroku(ctx, app, archive, docker):
+    if docker:
+        _deploy__docker_heroku(ctx, app, archive)
+
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
@@ -652,11 +656,7 @@ def deploy__heroku(ctx, app, archive):
         reset_console()
 
 
-@deploy.command("heroku")
-@click.option("--app", required=True, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.pass_context
-def deploy__docker_heroku(ctx, app, archive):
+def _deploy__docker_heroku(ctx, app, archive):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
