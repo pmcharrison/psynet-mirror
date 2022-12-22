@@ -3,34 +3,34 @@
 # [9.4.0] Released on 2022-12-21
 
 #### Added
-- Added MIT license
-- Added and updated experimenter and developer documentation; changed layout to `furo` theme
+- Added MIT license.
+- Added and updated experimenter and developer documentation; changed layout to `furo` theme (author: Peter Harrison, reviewer: Frank Höger).
 
 #### Fixed
-- Fixed node details visualization in dashboard monitor
+- Fixed node details visualization in dashboard monitor (author: Peter Harrison).
 
 #### Updated
-- Updated `Dallinger` to `v9.3.0` which comes with many Docker improvements
-- Updated README.md
+- Updated `Dallinger` to `v9.3.0` which comes with many Docker improvements. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.3.0.
+- Updated README.md (author: Peter Harrison).
 
 # [9.3.0] Released on 2022-11-26
 
 #### Added
-- Added support for panning in JSSynth
-- Added new parameter `show_free_text_option` to `RadioButtonControl` which appends a free text option to the list of options
+- Added support for panning in JSSynth (author: Peter Harrison).
+- Added new parameter `show_free_text_option` to `RadioButtonControl` which appends a free text option to the list of options (author: Pol van Rijn, reviewer: Peter Harrison).
 
 #### Fixed
-- Fixed typo in `LexTaleTest`
+- Fixed typo in `LexTaleTest` (author: Pol van Rijn).
 
 #### Changed
-- Changed gender questionnaire
-- Renamed 'hits' to 'tasks' in `CapRecruiter` API calls
+- Changed gender questionnaire (author: Pol van Rijn, reviewer: Peter Harrison).
+- Renamed 'hits' to 'tasks' in `CapRecruiter` API calls (author: Frank Höger).
 
 #### Updated
 - Updated `Dallinger` to `v9.2.1` fixing the issue of not being able to deploy to Heroku. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.2.1.
-- Updated references for new GitLab repository path (`computational-audition-lab` -> `PsyNetDev`)
-- Updated `README.md`
-- Updated Linux installation instructions
+- Updated references for new GitLab repository path (`computational-audition-lab` -> `PsyNetDev`).
+- Updated `README.md`.
+- Updated Linux installation instructions.
 
 # [9.2.0] Released on 2022-11-10
 
