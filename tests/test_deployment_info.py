@@ -9,8 +9,10 @@ from psynet.utils import working_directory
 def test_deployment_info():
     with tempfile.TemporaryDirectory() as tempdir:
         with working_directory(tempdir):
-            with pytest.raises(KeyError):
+            with pytest.raises(FileNotFoundError):
                 deployment_info.read("x")
+
+            deployment_info.reset()
 
             deployment_info.write(x=3)
             assert deployment_info.read("x") == 3
