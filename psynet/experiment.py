@@ -34,7 +34,7 @@ from psynet import __version__
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
 from .bot import Bot
-from .command_line import export_launch_info, log
+from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
@@ -293,7 +293,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
-        export_launch_info(
+        export_launch_data(
             self.var.deployment_id,
             config.get("dashboard_user"),
             config.get("dashboard_password"),

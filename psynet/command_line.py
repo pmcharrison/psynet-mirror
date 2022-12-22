@@ -725,13 +725,13 @@ def _post_deploy(result):
     assert isinstance(result, dict)
     assert "dashboard_user" in result
     assert "dashboard_password" in result
-    export_launch_info(
+    export_launch_data(
         deployment_id=deployment_info.read("deployment_id"),
         **result,
     )
 
 
-def export_launch_info(deployment_id, dashboard_user, dashboard_password, **kwargs):
+def export_launch_data(deployment_id, dashboard_user, dashboard_password, **kwargs):
     """
     Retrieves dashboard credentials from the current config and
     saves them to disk.
