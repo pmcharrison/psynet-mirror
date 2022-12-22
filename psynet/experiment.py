@@ -293,11 +293,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
-        export_launch_data(
-            self.var.deployment_id,
-            config.get("dashboard_user"),
-            config.get("dashboard_password"),
-        )
+        if deployment_info.read("is_local_deployment"):
+            # This is necessary because the local deployment command is blocking and therefore we can't
+            # get the launch data from the command-line invocation.
+            export_launch_data(
+                self.var.deployment_id,
+                config.get("dashboard_user"),
+                config.get("dashboard_password"),
+            )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.grow_all_networks()

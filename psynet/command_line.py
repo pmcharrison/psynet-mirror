@@ -736,9 +736,15 @@ def export_launch_data(deployment_id, dashboard_user, dashboard_password, **kwar
     Retrieves dashboard credentials from the current config and
     saves them to disk.
     """
-    parent = Path("~/psynet-data/launch-data").expanduser() / deployment_id
-    parent.mkdir(parents=True, exist_ok=True)
-    file = parent.joinpath("dashboard-credentials.json")
+    directory = Path("~/psynet-data/launch-data").expanduser() / deployment_id
+    directory.mkdir(parents=True, exist_ok=True)
+    _export_launch_info(directory, dashboard_user, dashboard_password)
+    if deployment_info.read("mode") == "live":
+        _export_code(directory)
+
+
+def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs):
+    file = directory.joinpath("launch-info.json")
     with open(file, "w") as f:
         json.dump(
             {
@@ -749,6 +755,15 @@ def export_launch_data(deployment_id, dashboard_user, dashboard_password, **kwar
             f,
             indent=4,
         )
+
+
+def _export_code(directory):
+    file = directory.joinpath("code")
+    with yaspin(
+        text=f"Saving a snapshot of the code to {file}...", color="green"
+    ) as spinner:
+        shutil.make_archive(file, "zip", os.getcwd())
+        spinner.ok("✔")
 
 
 ########
