@@ -7,6 +7,10 @@
 Creating pre-screening tasks
 ============================
 
+.. warning::
+
+    This tutorial needs updating to PsyNet v10
+
 Have a look at the below examples and add a new class specifying your new pre-screening task in the file ``psynet/prescreen.py``.
 
 A simple pre-screening task

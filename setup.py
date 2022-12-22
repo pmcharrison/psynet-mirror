@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="psynet",
-    version="9.3.0",
+    version="9.4.0",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
@@ -22,7 +22,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger>=9.2.1, <10.0.0",
+        "dallinger>=9.3.0, <10.0.0",
         "click",
         "datetime",
         "dominate",
@@ -47,7 +47,7 @@ setuptools.setup(
             "pre-commit",
             "pytest",
             "sphinx-autodoc-typehints",
-            "sphinx_rtd_theme",
+            "furo",
         ]
     },
     entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},
