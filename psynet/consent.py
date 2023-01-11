@@ -348,6 +348,66 @@ class PrincetonConsent(Module):
             return {"princeton_consent": raw_answer}
 
 
+class PrincetonCAPRecruiterConsent(Module):
+    """
+    The Princeton University consent form to be used in conjunction with CAP-Recruiter.
+
+    Parameters
+    ----------
+
+    time_estimate:
+        Time estimated for the page.
+    """
+
+    def __init__(
+        self,
+        time_estimate: Optional[float] = 30,
+    ):
+        self.label = "princeton_cap_recruiter_consent"
+        self.elts = join(
+            self.PrincetonCAPRecruiterConsentPage(),
+            conditional(
+                "princeton_cap_recruiter_consent_conditional",
+                lambda experiment, participant: (
+                    not participant.answer["princeton_cap_recruiter_consent"]
+                ),
+                RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "princeton_cap_recruiter_consent",
+                    participant.answer["princeton_cap_recruiter_consent"],
+                )
+            ),
+        )
+        super().__init__(self.label, self.elts)
+
+    class PrincetonCAPRecruiterConsentPage(Page, Consent):
+        """
+        This page displays the Princeton University consent page to be used in conjunction with CAP-Recruiter.
+
+        Parameters
+        ----------
+
+        time_estimate:
+            Time estimated for the page.
+        """
+
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template(
+                    "consents/princeton_cap_recruiter_consent.html"
+                ),
+            )
+
+        def format_answer(self, raw_answer, **kwargs):
+            return {"princeton_cap_recruiter_consent": raw_answer}
+
+
 ########
 # Main #
 ########
