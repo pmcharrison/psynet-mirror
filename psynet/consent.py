@@ -427,6 +427,9 @@ class PrincetonCAPRecruiterConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"princeton_cap_recruiter_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"princeton_cap_recruiter_consent": True}
+
 
 ########
 # Main #
