@@ -9,6 +9,7 @@ from psynet.consent import (
     MTurkStandardConsent,
     NoConsent,
     OpenScienceConsent,
+    PrincetonCAPRecruiterConsent,
     PrincetonConsent,
     VoluntaryWithNoCompensationConsent,
 )
@@ -34,5 +35,6 @@ class Exp(psynet.experiment.Experiment):
         CAPRecruiterStandardConsent(),
         CAPRecruiterAudiovisualConsent(),
         PrincetonConsent(),
+        PrincetonCAPRecruiterConsent(),
         SuccessfulEndPage(),
     )
