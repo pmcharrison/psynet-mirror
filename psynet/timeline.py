@@ -2267,7 +2267,7 @@ class DatabaseCheck(NullElt):
 class PreDeployRoutine(NullElt):
     """
     A timeline component that allows for the definition of tasks to be performed
-    before deployment. :class:`PreDeployRoutine`s are thought to be added to the
+    before deployment. :class:`PreDeployRoutine` s are thought to be added to the
     beginning of a timeline of an experiment.
 
     Parameters

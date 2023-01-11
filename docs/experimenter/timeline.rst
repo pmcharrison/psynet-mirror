@@ -97,7 +97,7 @@ In both cases the participant will be paid the amount that they have accumulated
 however, :class:`~psynet.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
 when the participant has yet to accumulate much payment.
 
-:class:`~psynet.page.UnityPage` allows for the integration of Unity and PsyNet. See the special section on :doc:`/experimenter/unity_page` for more detailed information.
+:class:`~psynet.page.UnityPage` allows for the integration of Unity and PsyNet. See the special section on :doc:`/experimenter/unity_integration` for more detailed information.
 
 We hope to significantly extend the control types available in ``psynet`` in the future.
 When you've found a custom control type useful for your own experiment,
