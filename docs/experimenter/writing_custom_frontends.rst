@@ -107,7 +107,7 @@ As before, we can access them using Jinja curly brackets:
 
 .. code-block:: html
 
-    <h1 style: "background-color: {{ config.background_color }}">
+    <h1 style="background-color: {{ config.background_color }}">
         Hello, {{ config.username }}!
     </h1>
 
