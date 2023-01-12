@@ -1,19 +1,8 @@
-# pylint: disable=unused-import,abstract-method
-
-##########################################################################################
-# Imports
-##########################################################################################
-
-import logging
-
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, SurveyJSControl
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
 
 
 class Exp(psynet.experiment.Experiment):

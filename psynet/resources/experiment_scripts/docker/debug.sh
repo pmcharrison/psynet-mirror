@@ -25,5 +25,5 @@ docker run \
   -e PSYNET_DEVELOPER_MODE="${PSYNET_DEVELOPER_MODE:-}" \
   -v "${PSYNET_LOCAL_PATH}":/PsyNet \
   "${EXPERIMENT_IMAGE}" \
-  psynet debug \
+  psynet debug local \
   | sed -e "s:/tmp/dallinger_develop/:${PWD}/:" -e "s:\"/PsyNet/":"\"${PSYNET_LOCAL_PATH}/:"

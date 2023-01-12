@@ -34,7 +34,7 @@ from psynet import __version__
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
 from .bot import Bot
-from .command_line import export_launch_info, log
+from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
@@ -280,7 +280,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
-        ingest_zip(database_template_path, db.engine)
+        # This check is helpful to stop the database from being ingested multiple times
+        # if the launch fails the first time
+        if not redis_vars.get("deployment_db_ingested", False):
+            ingest_zip(database_template_path, db.engine)
+            redis_vars.set("deployment_db_ingested", True)
         self._nodes_on_deploy()
 
     def on_every_launch(self):
@@ -288,11 +292,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = get_config()
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
-        export_launch_info(
-            self.var.deployment_id,
-            config.get("dashboard_user"),
-            config.get("dashboard_password"),
-        )
+        self.var.label = self.label
+        if deployment_info.read("is_local_deployment"):
+            # This is necessary because the local deployment command is blocking and therefore we can't
+            # get the launch data from the command-line invocation.
+            export_launch_data(
+                self.var.deployment_id,
+                config.get("dashboard_user"),
+                config.get("dashboard_password"),
+            )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.grow_all_networks()
@@ -563,7 +571,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def generate_deployment_id(cls):
-        return cls.label + " -- launch " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        sanitized_label = cls.label.replace(" ", "-").lower()
+        return (
+            sanitized_label + "__launch=" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        )
 
     @property
     def deployment_id(self):

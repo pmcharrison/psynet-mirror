@@ -37,7 +37,6 @@ from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
     get_args,
-    get_from_config,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -642,8 +641,12 @@ def deploy():
 @deploy.command("heroku")
 @click.option("--app", required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
-def deploy__heroku(ctx, app, archive):
+def deploy__heroku(ctx, app, archive, docker):
+    if docker:
+        _deploy__docker_heroku(ctx, app, archive)
+
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
@@ -655,11 +658,7 @@ def deploy__heroku(ctx, app, archive):
         reset_console()
 
 
-@deploy.command("heroku")
-@click.option("--app", required=True, help="Experiment id")
-@click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.pass_context
-def deploy__docker_heroku(ctx, app, archive):
+def _deploy__docker_heroku(ctx, app, archive):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
@@ -728,20 +727,26 @@ def _post_deploy(result):
     assert isinstance(result, dict)
     assert "dashboard_user" in result
     assert "dashboard_password" in result
-    export_launch_info(
+    export_launch_data(
         deployment_id=deployment_info.read("deployment_id"),
         **result,
     )
 
 
-def export_launch_info(deployment_id, dashboard_user, dashboard_password, **kwargs):
+def export_launch_data(deployment_id, dashboard_user, dashboard_password, **kwargs):
     """
     Retrieves dashboard credentials from the current config and
     saves them to disk.
     """
-    parent = Path("~/psynet-data/launch_info").expanduser() / deployment_id
-    parent.mkdir(parents=True, exist_ok=True)
-    file = parent.joinpath("dashboard_credentials.json")
+    directory = Path("~/psynet-data/launch-data").expanduser() / deployment_id
+    directory.mkdir(parents=True, exist_ok=True)
+    _export_launch_info(directory, dashboard_user, dashboard_password)
+    if deployment_info.read("mode") == "live":
+        _export_code(directory)
+
+
+def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs):
+    file = directory.joinpath("launch-info.json")
     with open(file, "w") as f:
         json.dump(
             {
@@ -752,6 +757,15 @@ def export_launch_info(deployment_id, dashboard_user, dashboard_password, **kwar
             f,
             indent=4,
         )
+
+
+def _export_code(directory):
+    file = directory.joinpath("code")
+    with yaspin(
+        text=f"Saving a snapshot of the code to {file}...", color="green"
+    ) as spinner:
+        shutil.make_archive(file, "zip", os.getcwd())
+        spinner.ok("✔")
 
 
 ########
@@ -799,7 +813,27 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
     from .asset import DebugStorage
     from .experiment import get_experiment
 
+    try:
+        with open("requirements.txt", "r") as f:
+            for line in f.readlines():
+                if "computational-audition-lab/psynet" in line.lower() and not click.confirm(
+                    "It looks like you're using an old version of PsyNet in requirements.txt "
+                    "(computational-audition-lab/psynet); "
+                    "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
+                ):
+                    raise click.Abort
+    except FileNotFoundError:
+        raise click.ClickException(
+            f"requirements.txt is missing from your experiment directory ({os.getcwd()})."
+        )
+
     if heroku:
+        if docker and not click.confirm(
+            "Heroku deployment with Docker hasn't been working well recently; experiments have been failing to launch "
+            "and returning a psutil version error. Are you sure you want to continue?"
+        ):
+            raise click.Abort
+
         try:
             with open(".gitignore", "r") as f:
                 for line in f.readlines():
@@ -839,7 +873,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                     "launch an experiment using Docker. For example, you might write the following: \n"
                     "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
                 )
-            _expected_docker_volumes = "${HOME}/psynet-data/shared:/psynet-data/shared"
+            _expected_docker_volumes = "${HOME}/psynet-data/assets:/psynet-data/assets"
             if _expected_docker_volumes not in config.get(
                 "docker_volumes", ""
             ) and not click.confirm(
@@ -1354,13 +1388,14 @@ def export_(
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0
 
-    local_exp = import_local_experiment()["class"]
+    remote_exp_label = exp_variables["label"]
+    local_exp_label = import_local_experiment()["class"].label
 
-    if not deployment_id.startswith(local_exp.label):
+    if not remote_exp_label == local_exp_label:
         if not click.confirm(
-            f"The remote experiment's deployment ID ({deployment_id}) does not match the local experiment's "
-            f"label ({local_exp.label}). Are you sure you are running the export command from the right "
-            "experiment folder? If not, the export process is likely to fail. "
+            f"The remote experiment's label ({remote_exp_label}) does not seem consistent with the "
+            f"local experiment's label ({local_exp_label}). Are you sure you are running the export command from "
+            "the right experiment folder? If not, the export process is likely to fail. "
             "To continue anyway, press Y and Enter, otherwise just press Enter to cancel."
         ):
             raise click.Abort
@@ -1370,12 +1405,17 @@ def export_(
         config.load()
 
     if path is None:
-        export_root = get_from_config("default_export_root")
+        # export_root = get_from_config("default_export_root")
+        export_root = "~/psynet-data/export"
 
         path = os.path.join(
             export_root,
             deployment_id,
-            "export " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
+            re.sub(
+                "__launch.*", "", deployment_id
+            )  # Strip the launch date from the path to keep things short
+            + "__export="
+            + datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
         )
 
     path = os.path.expanduser(path)

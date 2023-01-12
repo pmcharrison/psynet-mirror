@@ -7,6 +7,7 @@ ChainNetwork
 
 .. autoclass:: psynet.trial.chain.ChainNetwork
     :members:
+    :exclude-members: awaiting_async_process
 
 =========
 ChainNode
@@ -21,6 +22,7 @@ ChainTrial
 
 .. autoclass:: psynet.trial.chain.ChainTrial
     :members:
+    :exclude-members: awaiting_async_process
 
 ===============
 ChainTrialMaker
@@ -43,6 +45,7 @@ Trial
 
 .. autoclass:: psynet.trial.main.Trial
     :members:
+    :exclude-members: awaiting_async_process
 
 ==========
 TrialMaker
@@ -58,3 +61,4 @@ TrialNetwork
 
 .. autoclass:: psynet.trial.main.TrialNetwork
     :members:
+    :exclude-members: awaiting_async_process

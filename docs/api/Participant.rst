@@ -6,3 +6,4 @@ Participant
 
 .. autoclass:: psynet.participant.Participant
     :members:
+    :exclude-members: id

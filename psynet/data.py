@@ -225,7 +225,8 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data = obj.to_dict()
     except AttributeError:
         data = obj.__json__()
-        data["class"] = obj.__class__.__name__ # for the Dallinger classes
+    if "class" not in data:
+        data["class"] = obj.__class__.__name__  # for the Dallinger classes
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
     return data
@@ -354,6 +355,11 @@ class SQLMixinDallinger(SharedMixin):
             x["type"] = "TrialSource"
         else:
             x["type"] = x["class"]
+
+        # Dallinger also needs us to set a parameter called ``object_type``
+        # which is used to determine the visualization method.
+        base_class = get_sql_base_class(self)
+        x["object_type"] = base_class.__name__ if base_class else x["type"]
 
         field.json_add_extra_vars(x, self)
         field.json_clean(x, details=True)
@@ -693,6 +699,16 @@ def sql_base_classes():
         **_sql_dallinger_base_classes(),
         **_sql_psynet_base_classes,
     }
+
+
+def get_sql_base_class(x):
+    """
+    Return the SQLAlchemy base class of an object x, returning None if no such base class is found.
+    """
+    for cls in sql_base_classes().values():
+        if isinstance(x, cls):
+            return cls
+    return None
 
 
 def register_table(cls):

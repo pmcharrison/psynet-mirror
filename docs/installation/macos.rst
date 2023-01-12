@@ -1,5 +1,5 @@
-macOS
-=====
+macOS installation
+==================
 
 The following installation instructions apply to **macOS Monterey (12.1), Big Sur (11.1), and Catalina (10.15)**. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
@@ -177,7 +177,7 @@ Verify successful installation
 
    psynet --version
 
-As an *experiment author* you are now done with the installation and you can begin building experiments. In this case, move on to :doc:`/experimenter/basic_usage`.
+As an *experiment author* you are now done with the installation and you can begin building experiments.
 
 
 As a *developer* who wants to work on `psynet`'s source code, however, please continue with the remaining installation steps below.
