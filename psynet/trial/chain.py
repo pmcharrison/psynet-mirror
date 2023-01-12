@@ -570,7 +570,7 @@ class ChainNode(TrialNode):
             if parent:
                 context = parent.context
 
-        if not definition and not seed:
+        if not definition and not seed and degree == 0:
             seed = self.create_initial_seed(experiment, participant)
 
         if not definition:

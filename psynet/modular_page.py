@@ -1180,28 +1180,6 @@ class RadioButtonControl(OptionControl):
         return None
 
 
-
-    def visualize_response(self, answer, response, trial):
-        html = tags.div()
-        with html:
-            for choice, label in zip(self.choices, self.labels):
-                tags.input_(
-                    type="radio",
-                    id=choice,
-                    name=self.name,
-                    value=choice,
-                    checked=(True if choice == answer else False),
-                )
-                tags.span(label)
-                tags.br()
-        return html.render()
-
-    def validate(self, response, **kwargs):
-        if self.force_selection and response.answer is None:
-            return FailedValidation("You need to select an answer!")
-        return None
-
-
 class RadioButton:
     def __init__(
         self, id_, *, name, label, start_disabled=False, style="cursor: pointer"

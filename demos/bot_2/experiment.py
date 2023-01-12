@@ -88,7 +88,7 @@ class CustomNode(ImitationChainNode):
     def create_initial_seed(self, experiment, participant):
         return random.randint(0, 9999999)
 
-    def summarize_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
 
 

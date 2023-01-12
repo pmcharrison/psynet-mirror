@@ -75,5 +75,4 @@ the recruitment method being used, `MTurk`, `CAP-Recruiter`, and `Prolific` part
     Again, you can make use of HTML's style attribute to adapt the text's appearance to your needs.
 
 .. note::
-
     To completely override the appearance of the ad page you can add an `ad.html` file to the `templates` directory of your experiment.

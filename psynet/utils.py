@@ -34,7 +34,10 @@ def get_logger():
     logging.basicConfig(level=logging.INFO)
     return logging.getLogger()
 
+
 logger = get_logger()
+DEFAULT_LOCALE = "en"
+
 
 class NoArgumentProvided:
     """ "
@@ -548,9 +551,7 @@ def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dir
                     participant = Participant.query.filter_by(id=GET['participant_id']).one()
                 locale = participant.var.locale
         except:
-            pass
-    if locale is None:
-        locale = get_language()
+            locale = get_language()
     if exists(join_path(localedir, locale, 'LC_MESSAGES', f'{module}.mo')):
         translator = gettext.translation(module, localedir, [locale])
     else:
@@ -1055,11 +1056,15 @@ def error_page(
     compensate=True,
     error_type="default",
     request_data="",
+    locale=DEFAULT_LOCALE,
 ):
     """Render HTML for error page."""
     from flask import make_response, request
 
     config = get_config()
+    _, _p, _np = get_translator(locale)
+    if error_text is None:
+        error_text = _p("error-msg", "There has been an error and so you are unable to continue, sorry!")
 
     if participant is not None:
         hit_id = participant.hit_id
@@ -1078,14 +1083,10 @@ def error_page(
         except (ValueError, TypeError):
             participant_id = None
 
-    # TODO get participant and get translator
-
-    if error_text is None:
-        error_text = "There has been an error and so you are unable to continue, sorry!"
-
     return make_response(
         render_template_with_translations(
             "mturk_error.html",
+            locale=locale,
             error_text=error_text,
             compensate=compensate,
             contact_address=config.get("contact_email_on_error"),

@@ -14,9 +14,6 @@ class Node(ChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
         return None
 
-    def create_initial_seed(self, experiment, participant):
-        return None
-
     def create_definition_from_seed(self, seed, experiment, participant):
         return None
 

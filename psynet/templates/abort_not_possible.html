@@ -41,8 +41,8 @@
         </p>
         <table class="table table-sm table-striped">
             <tbody>
-              <tr><th>Assignment ID</th><td>{{ participant_abort_info.assignment_id }}</td></tr>
-              <tr><th>HIT ID</th><td>{{ participant_abort_info.hit_id }}</td></tr>
+              <tr><th>{{ gettext("Assignment ID") }}</th><td>{{ participant_abort_info.assignment_id }}</td></tr>
+              <tr><th>{{ gettext("HIT ID") }}</th><td>{{ participant_abort_info.hit_id }}</td></tr>
               <tr><th>{{ gettext("Accumulated bonus") }}</th><td>{{ participant_abort_info.accumulated_bonus }}</td></tr>
             </tbody>
         </table>

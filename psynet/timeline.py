@@ -37,7 +37,6 @@ from .utils import (
     serialise,
     time_logger,
     unserialise_datetime,
-    languages
 )
 
 logger = get_logger()
@@ -1062,9 +1061,6 @@ class Page(Elt):
         locale = participant.get_locale()
         language_dict = get_language_dict(locale)
 
-        # TODO precompute once
-        # supported_language_dict = {language_iso: get_language_dict(locale)[language_iso] for language_iso in experiment.var.supported_locales}
-
         all_template_arg = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
@@ -1095,7 +1091,6 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
             "supported_language_dict": {iso: language_dict[iso] for iso in experiment.var.supported_locales},
-            # "supported_language_dict": supported_language_dict,
             "currency": experiment.var.currency,
             "current_locale": locale,
             "allow_switching_locale": experiment.var.allow_switching_locale,
@@ -1618,6 +1613,7 @@ class CreditEstimate:
 
             else:
                 pos += 1
+
 
 class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):

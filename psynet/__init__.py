@@ -1,4 +1,6 @@
-import os
+from psynet.version import check_dallinger_version
+
+check_dallinger_version()
 
 # To make sure the tests run properly (in particular, avoiding errors
 # where one test breaks the test that runs after it),
@@ -18,6 +20,7 @@ from . import (  # noqa
     process,
     serialize,
     trial,
+    version,
 )
 from .trial import (  # noqa; graph,  # temporarily commented out so we can test other parts of the codebase before refactoring this
     audio,
@@ -32,10 +35,7 @@ from .trial import (  # noqa; graph,  # temporarily commented out so we can test
     video,
 )
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-with open(os.path.join(here, "VERSION")) as version_file:
-    __version__ = version_file.read().strip()
+__version__ = version.psynet_version
 
 
 # def patch_dallinger_config():

@@ -190,8 +190,9 @@ class Age(ModularPage):
         except ValueError:
             return FailedValidation(error_msg)
 
+
 class CountryDropdown(ModularPage):
-    def __init__(self, label="country_of_birth", locale=DEFAULT_LOCALE):
+    def __init__(self, label, locale):
         self.label = label
         self.locale = locale
         _, _p, _np = self.get_translator()

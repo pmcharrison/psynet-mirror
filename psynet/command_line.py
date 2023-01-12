@@ -305,11 +305,7 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
         )
 
     _pre_launch(ctx, mode="debug", archive=archive, local_=True, docker=docker)
-    drop_all_db_tables()
-
-    if archive is None:
-        run_prepare_in_subprocess()  # TODO - think about running prepare even when we deploy from archive
-        _cleanup_before_debug()
+    _cleanup_before_debug()
 
     try:
         if legacy:
@@ -342,6 +338,8 @@ def _cleanup_before_debug():
     # This is important for resetting the state before _debug_legacy;
     # otherwise `dallinger verify` throws an error.
     clean_sys_modules()  # Unimports the PsyNet experiment
+
+    drop_all_db_tables()
 
 
 def _cleanup_exp_directory():
@@ -1337,7 +1335,7 @@ def export__heroku(ctx, app, **kwargs):
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables, location="ssh")
+    exp_variables = ctx.invoke(experiment_variables, location="ssh", app=app)
     export_(
         ctx,
         app=app,
@@ -1675,15 +1673,31 @@ def generate_config(ctx):
 
 
 @psynet.command()
-def update_docker():
+def update_scripts():
     """
-    To be run in an experiment directory; creates a folder called 'docker' which contains a set of
-    prepopulated shell scripts that can be used to run a PsyNet experiment through Docker.
+    To be run in an experiment directory; updates a collection of template scripts and help files to their
+    latest PsyNet versions.
     """
-    click.echo(f"Populating the current directory ({os.getcwd()}) with Docker scripts.")
+    click.echo(f"Updating PsyNet scripts in ({os.getcwd()}).")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
         "Dockerfile",
+    )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/run.sh"),
+    #     "run.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet.sh"),
+    #     "psynet.sh",
+    # )
+    # shutil.copyfile(
+    #     resource_filename("psynet", "resources/experiment_scripts/psynet-dev.sh"),
+    #     "psynet-dev.sh",
+    # )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
+        "INSTALL.md",
     )
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
@@ -1691,9 +1705,17 @@ def update_docker():
     )
     shutil.copytree(
         resource_filename("psynet", "resources/experiment_scripts/docker"),
-        "scripts",
+        "docker",
         dirs_exist_ok=True,
     )
+    os.system("chmod +x docker/psynet.sh")
+    os.system("chmod +x docker/psynet-dev.sh")
+    os.system("chmod +x docker/run.sh")
+    if Path("README.md").exists() and click.confirm("Replace existing README file?"):
+        shutil.copyfile(
+            resource_filename("psynet", "resources/experiment_scripts/README.md"),
+            "README.md",
+        )
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")

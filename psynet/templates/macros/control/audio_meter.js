@@ -70,7 +70,6 @@ audioMeterControl.init = function(json) {
 }
 
 audioMeterControl.onMicrophoneDenied = function() {
-    // TODO translate this
     alert('Microphone permission denied. You may refresh the page to try again.');
 }
 
