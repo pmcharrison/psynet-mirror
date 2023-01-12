@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="psynet",
-    version="9.1.2",
+    version="9.4.1",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/computational-audition-lab/psynet",
+    url="https://gitlab.com/PsyNetDev/psynet",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -22,7 +22,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger>=9.0.1, <10.0.0",
+        "dallinger>=9.3.0, <10.0.0",
         "click",
         "datetime",
         "dominate",
@@ -47,7 +47,7 @@ setuptools.setup(
             "pre-commit",
             "pytest",
             "sphinx-autodoc-typehints",
-            "sphinx_rtd_theme",
+            "furo",
         ]
     },
     entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},

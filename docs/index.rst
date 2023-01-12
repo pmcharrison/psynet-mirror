@@ -28,8 +28,10 @@ PsyNet Documentation
    experimenter/ad_page
    experimenter/modular_page
    experimenter/graphics
-   experimenter/unity_page
-   experimenter/pre_deploy_routines
+   experimenter/unity_integration
+   experimenter/writing_custom_frontends
+   experimenter/event_management
+   experimenter/communicating_with_backend
    experimenter/payment_limits
    experimenter/deploy_tokens
 
@@ -45,11 +47,10 @@ PsyNet Documentation
    :caption: Developer documentation
    :glob:
 
-   developer/working_with_git
-   developer/basic_workflow
+   developer/version_control_with_git
    developer/prescreening_tasks
    developer/updating_documentation
-   developer/releasing_new_versions
+   developer/introduction_to_sql_alchemy
 
 .. toctree::
    :maxdepth: 2

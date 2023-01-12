@@ -300,6 +300,11 @@ class Chord(dict):
           and select from this dictionary by specifying an appropriate key in the ``timbre`` argument
           of the :class:`~psynet.js_synth.Chord` object. This provides a way to move between multiple timbres
           in the same sequence.
+
+    pan:
+        Optional panning parameter, taking values between -1 (full-left) and +1 (full-right).
+        If this is provided as a list of numbers then these numbers are applied to the respective
+        notes as specified in ``pitches``.
     """
 
     def __init__(
@@ -308,12 +313,19 @@ class Chord(dict):
         duration: Union[float, str] = "default",
         silence: Union[float, str] = "default",
         timbre: str = "default",
+        pan: Union[float, List[float]] = 0.0,
     ):
+        if isinstance(pan, list):
+            assert len(pan) == len(pitches)
+        else:
+            pan = [pan for _ in pitches]
+
         super().__init__(
             pitches=pitches,
             duration=duration,
             silence=silence,
             channel=timbre,
+            pan=pan,
         )
 
 
@@ -420,12 +432,21 @@ class JSSynth(Prompt):
         for t in timbre.values():
             assert isinstance(t, Timbre)
 
+        uses_panning = False
+
         assert isinstance(sequence, list)
         for elt in sequence:
             if not isinstance(elt, Chord):
                 raise ValueError(
                     "Each element in 'sequence' must be an object of type 'Chord' or 'Note'."
                 )
+            uses_panning = uses_panning or any([p != 0.0 for p in elt["pan"]])
+
+        if uses_panning:
+            for t in timbre.values():
+                assert isinstance(
+                    t, ADSRTimbre
+                ), "Currently panning is only supported for ADSR timbres"
 
         options = dict(
             max_num_pitches=0,

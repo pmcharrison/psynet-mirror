@@ -88,7 +88,7 @@ class CapRecruiter(BaseCapRecruiter):
     """
 
     nickname = "cap-recruiter"
-    external_submission_url = "https://cap-recruiter.ae.mpg.de/hits"
+    external_submission_url = "https://cap-recruiter.ae.mpg.de/tasks"
 
 
 class StagingCapRecruiter(BaseCapRecruiter):
@@ -99,7 +99,7 @@ class StagingCapRecruiter(BaseCapRecruiter):
     """
 
     nickname = "staging-cap-recruiter"
-    external_submission_url = "https://staging-cap-recruiter.ae.mpg.de/hits"
+    external_submission_url = "https://staging-cap-recruiter.ae.mpg.de/tasks"
 
 
 class DevCapRecruiter(BaseCapRecruiter):
@@ -110,7 +110,7 @@ class DevCapRecruiter(BaseCapRecruiter):
     """
 
     nickname = "dev-cap-recruiter"
-    external_submission_url = "http://localhost:8000/hits"
+    external_submission_url = "http://localhost:8000/tasks"
 
 
 # Lucid

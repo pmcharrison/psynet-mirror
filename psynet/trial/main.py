@@ -1380,7 +1380,7 @@ class TrialMaker(Module):
         Returns
         -------
 
-        An :class:`~psynet.timeline.Elt` or a list of :class:`~psynet.timeline.Elt`s.
+        An :class:`~psynet.timeline.Elt` or a list of :class:`~psynet.timeline.Elt` s.
         """
         return join(UnsuccessfulEndPage(failure_tags=["performance_check"]))
 

@@ -147,6 +147,7 @@ play_stimulus = function (stimulus) {
 play_note = function (active_nodes, stimulus, note_dict, time) {
     let note = {...note_dict};
     let pitches = note["pitches"];
+    let pan = note["pan"];
     let N = pitches.length;
     let specs = {...stimulus["channels"][note["channel"]]["synth"]};
 
@@ -169,12 +170,12 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     if (specs["type"] in ADDITIVE_TYPES) {
       let synthesizer = new ADDITIVE_TYPES[specs["type"]](specs)
       freqs = util.post_pad(freqs, specs["max_num_pitches"], 0) // 0 frequency signifies no output
-      custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time)    
+      custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, pan)
     } else if (INST_NAMES.includes(specs["type"])) {
       let instrument = LOADED_INSTRUMENTS[specs["type"]]
       instrument.triggerAttackRelease(freqs, specs["duration"], time)
     } else {
-      throw {name : "NotImplementedError", message : "Timbre type not implemented!"}; 
+      throw {name : "NotImplementedError", message : "Timbre type not implemented!"};
     }
   
 }
@@ -229,7 +230,7 @@ util_gaussian = function(x,mu,sigma){
   return 1 / N * Math.exp(-1 * ((x - mu) ** 2) / (2 * sigma ** 2))
 }
 
-custom_timbre_synth = function(active_nodes,freqs,synth,specs,time){
+custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,pan){
   var ampEnv = active_nodes["envelope"];
   ampEnv.attack = synth.attack;
   ampEnv.decay = synth.decay;
@@ -261,8 +262,14 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time){
           osc.frequency.value = curr_freq * synth.freqs[k];
         }
         gain.gain.value = sweights[j] * synth.amps[k] ;
-      }
 
+        let panner = tone_nodes[j][k][2]
+        if (pan[i]) {
+          panner.pan.value = pan[i];
+        } else {
+          panner.pan.value = 0.0;
+        }
+      }
     }
   }
   ampEnv.triggerAttackRelease(synth.duration - synth.release, time)
@@ -282,9 +289,11 @@ generate_additive_nodes = function(options){
       for (k = 0; k < DEFAULT_PARAMS["max_num_harmonics"]; k++){
         var osc = new Tone.Oscillator({"type": "sine", "volume": -17});
         var gain = new Tone.Gain();
+        var panner = new Tone.Panner(0);
         osc.connect(gain).start();
-        gain.connect(ampEnv);
-        tone_nodes[j][k] = [osc,gain];
+        gain.connect(panner);
+        panner.connect(ampEnv);
+        tone_nodes[j][k] = [osc,gain,panner];
       }
     }
     control_nodes["complex_" + String(i)] = tone_nodes

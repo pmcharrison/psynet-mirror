@@ -597,19 +597,15 @@ def update(dallinger_version, psynet_version, verbose):
     # PsyNet
     log("Updating PsyNet...")
     cwd = psynet_dir()
-    if is_editable("psynet"):
-        _prepare(
-            psynet_version,
-            "PsyNet",
-            cwd,
-            capture_output,
-        )
+    _prepare(
+        psynet_version,
+        "PsyNet",
+        cwd,
+        capture_output,
+    )
 
-        text = "Installing base packages and development requirements..."
-        install_command = "pip install -e '.[dev]'"
-    else:
-        text = "Installing base packages..."
-        install_command = "pip install .'"
+    text = "Installing base packages and development requirements..."
+    install_command = "pip install -e '.[dev]'"
 
     with yaspin(text=text, color="green") as spinner:
         install_command = install_command

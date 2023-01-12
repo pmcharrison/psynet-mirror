@@ -12,7 +12,7 @@ Commands:
 | :ref:`deploy <deploy>`
 | :ref:`estimate <estimate>`
 | :ref:`export <export>`
-| :ref:`generate_constraints <generate-constraints>`
+| :ref:`generate_constraints <generate_constraints>`
 | :ref:`sandbox <sandbox>`
 | :ref:`update <update>`
 
@@ -160,7 +160,7 @@ Export from sandbox/production
     --help           Show this message and exit.
 
 
-.. _update:
+.. _generate_constraints:
 
 Generate the constraints.txt file (``generate-constraints``)
 ------------------------------------------------------------

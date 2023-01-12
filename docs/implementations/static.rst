@@ -122,4 +122,5 @@ available to the participant at a given point in the experiment.
 .. automodule:: psynet.trial.static
     :show-inheritance:
     :members:
+    :exclude-members: awaiting_async_process
     

@@ -26,6 +26,6 @@ and should be considered an 'alpha' project, with the API potentially subject to
 Repository
 ----------
 
-The source code is hosted at https://gitlab.com/computational-audition-lab/psynet.
+The source code is hosted at https://gitlab.com/PsyNetDev/psynet.
 Contact one of the members of the Computational Auditory Perception research group
 if you don't have access to this repository.

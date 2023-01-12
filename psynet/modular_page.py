@@ -1066,6 +1066,9 @@ class RadioButtonControl(OptionControl):
 
     show_reset_button
         Whether to display a 'Reset' button to allow for unsetting a ticked radiobutton. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when a radiobutton is ticked. Default: ``never``.
+
+    show_free_text_option
+        Appends a free text option to the radiobuttons. Default: ``False``.
     """
 
     def __init__(
@@ -1077,6 +1080,8 @@ class RadioButtonControl(OptionControl):
         arrange_vertically: bool = True,
         force_selection: bool = True,
         show_reset_button: str = "never",
+        show_free_text_option: bool = False,
+        placeholder_text_free_text: str = None,
     ):
         super().__init__(choices, labels, style)
         self.validate_name(name)
@@ -1084,11 +1089,29 @@ class RadioButtonControl(OptionControl):
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
         self.show_reset_button = show_reset_button
+        self.show_free_text_option = show_free_text_option
+        self.placeholder_text_free_text = placeholder_text_free_text
 
         self.radiobuttons = [
             RadioButton(name=self.name, id_=choice, label=label, style=self.style)
             for choice, label in zip(self.choices, self.labels)
         ]
+        if self.show_free_text_option:
+            placeholder_text = (
+                ""
+                if self.placeholder_text_free_text is None
+                else f'placeholder="{self.placeholder_text_free_text}"'
+            )
+            self.radiobuttons.append(
+                RadioButton(
+                    name=self.name,
+                    id_="free_text",
+                    label=Markup(
+                        f"<input id='free_text_input' {placeholder_text} type='text'>"
+                    ),
+                    style=self.style,
+                )
+            )
 
     macro = "radiobuttons"
 

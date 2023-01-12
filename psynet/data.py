@@ -276,6 +276,12 @@ class SQLMixinDallinger(SharedMixin):
         x = {c: getattr(self, c) for c in self.sql_columns}
 
         x["class"] = self.__class__.__name__
+
+        # Dallinger also needs us to set a parameter called ``object_type``
+        # which is used to determine the visualization method.
+        base_class = get_sql_base_class(self)
+        x["object_type"] = base_class.__name__ if base_class else x["type"]
+
         field.json_add_extra_vars(x, self)
         field.json_clean(x, details=True)
         field.json_format_vars(x)
@@ -460,6 +466,16 @@ def sql_base_classes():
         **_sql_dallinger_base_classes(),
         **_sql_psynet_base_classes,
     }
+
+
+def get_sql_base_class(x):
+    """
+    Return the SQLAlchemy base class of an object x, returning None if no such base class is found.
+    """
+    for cls in sql_base_classes().values():
+        if isinstance(x, cls):
+            return cls
+    return None
 
 
 def register_table(cls):
