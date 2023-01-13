@@ -50,7 +50,7 @@ setuptools.setup(
         "praat-parselmouth",
         "joblib",  # Library used for internal parallelization of for loops
         "babel",  # Library used for internationalization
-        "gettext",  # Library used for internationalization
+        "python-gettext",  # Library used for internationalization
     ],
     extras_require={
         "dev": [
