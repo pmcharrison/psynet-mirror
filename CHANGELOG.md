@@ -1,10 +1,18 @@
 # CHANGELOG
 
+# [9.4.1] Released on 2023-01-11
+
+#### Added
+- Added Princeton University consent for CAP-Recruiter deployment (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Fixed
+- Fixed warnings when building the Sphinx documentation (author: Frank Höger, reviewer: Peter Harrison).
+
 # [9.4.0] Released on 2022-12-21
 
 #### Added
 - Added MIT license.
-- Added and updated experimenter and developer documentation; changed layout to `furo` theme (author: Peter Harrison, reviewer: Frank Höger).
+- Added and updated experimenter and developer documentation; changed layout to `furo` theme .
 
 #### Fixed
 - Fixed node details visualization in dashboard monitor (author: Peter Harrison).
