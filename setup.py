@@ -51,6 +51,7 @@ setuptools.setup(
         "joblib",  # Library used for internal parallelization of for loops
         "babel",  # Library used for internationalization
         "python-gettext",  # Library used for internationalization
+        "sphinx==5.3.0",
     ],
     extras_require={
         "dev": [
