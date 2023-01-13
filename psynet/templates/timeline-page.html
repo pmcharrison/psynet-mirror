@@ -1217,7 +1217,12 @@
                     // Returns estimated download speed in megabits/second
                     // (at the time of writing, this is capped at 10).
                     let connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                    return connection.downlink
+                    if (connection) {
+                        return connection.downlink
+                    } else {
+                        return null;
+                    }
+
                 }
 
                 psynet.pageLoaded = false;
