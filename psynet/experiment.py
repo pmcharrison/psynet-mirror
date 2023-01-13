@@ -26,7 +26,7 @@ from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import success_response
 from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
-from flask import jsonify, request
+from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
 
 from psynet import __version__
@@ -1054,7 +1054,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "modules": [{"id": module.id} for module in exp.timeline.module_list]
         }
 
-        return render_template_with_translations(
+        return render_template(
             "dashboard_timeline.html",
             title="Timeline modules",
             panes=panes,
@@ -1087,7 +1087,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             message = "Found multiple participants matching those specifications."
 
-        return render_template_with_translations(
+        return render_template(
             "participant.html",
             title="Participant",
             participant=participant,
