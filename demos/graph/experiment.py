@@ -284,7 +284,7 @@ class CustomNode(GraphChainNode):
             random.randint(0, len(COLOR_OPTIONS) - 1) for i in range(NECKLACE_LENGTH)
         ]
 
-    def summarize_trials(self, trials: list, experiment, paricipant):
+    def summarize_trials(self, trials: list, experiment, participant):
         answers = np.array([trial.answer["reproduce"] for trial in trials])
         summary = stats.mode(answers)
         return summary.mode.flatten().tolist()

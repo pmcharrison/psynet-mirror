@@ -38,7 +38,7 @@
 
     <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();" disabled="true">
         <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
-        <span id="next-button-text">Next</span>
+        <span id="next-button-text">{{ gettext("Next") }}</span>
     </button>
 {% endmacro %}
 
@@ -69,7 +69,7 @@
     </script>
 
     <button type="button" id="reset-button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="onResetButton();" disabled>
-        Reset
+        {{ gettext("Reset") }}
     </button>
     {% endmacro %}
 
@@ -852,10 +852,10 @@
 
     <ul class="nav nav-tabs">
         <li class="nav-item">
-            <a href="#audio-meter-sliders" class="nav-link" data-toggle="tab">Sliders</a>
+            <a href="#audio-meter-sliders" class="nav-link" data-toggle="tab">{{ pgettext("audio_meter_calibrate", "Sliders") }}</a>
         </li>
         <li class="nav-item">
-            <a href="#audio-meter-documentation" class="nav-link" data-toggle="tab">Documentation</a>
+            <a href="#audio-meter-documentation" class="nav-link" data-toggle="tab">{{ pgettext("audio_meter_calibrate", "Documentation") }}</a>
         </li>
     </ul>
 
@@ -866,23 +866,22 @@
 
         <div id="audio-meter-documentation" class="tab-pane">
             <p>
-                The <strong>decay</strong> parameters determine the amount of smoothing
-                that happens to the signal, and have units of seconds. A high decay parameter
-                means that the signal takes a long time to decay (i.e. high smoothing).
-                There are three decay parameters: one for the displayed audio meter,
-                one for the 'too-high' detector, and one for the 'too-low' detector.
+                {{ pgettext("audio_meter_calibrate", "The <strong>decay</strong> parameters determine the amount of smoothing that happens to the signal, and have units of seconds.") }}
+                {{ pgettext("audio_meter_calibrate", "A high decay parameter means that the signal takes a long time to decay (i.e. high smoothing).") }}
+                {{ pgettext("audio_meter_calibrate", "There are three decay parameters: one for the displayed audio meter, one for the 'too-high' detector, and one for the 'too-low' detector.") }}
+
             </p>
             <p>
-                The <strong>threshold</strong> parameters determine the point at which
-                the volume is determined to be 'too high' or 'too low'.
+                {{ pgettext("audio_meter_calibrate", "The <strong>threshold</strong> parameters determine the point at which the volume is determined to be 'too high' or 'too low'.") }}
+
             </p>
             <p>
-                The <strong>grace</strong> parameters determine how long the volume must be
-                outside the respective threshold for a warning message to be triggered.
+                {{ pgettext("audio_meter_calibrate", "The <strong>grace</strong> parameters determine how long the volume must be outside the respective threshold for a warning message to be triggered.") }}
+
             </p>
             <p>
-                The <strong>message duration</strong> parameters determine how long
-                warning messages are displayed for.
+                {{ pgettext("audio_meter_calibrate", "The <strong>message duration</strong> parameters determine how long warning messages are displayed for.") }}
+
             </p>
         </div>
     </div>
@@ -918,19 +917,19 @@
 
         <div id="record-controls">
             <button id="btn-record-record" type="button" class="btn record-button auto-reset record-control btn-danger btn-sm" disabled>
-                Record from start
+                {{ gettext("Record from start") }}
             </button>
             <button id="btn-record-play-all" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
-                Play all
+                {{ gettext("Play all") }}
             </button>
             <button id="btn-record-play-prompt" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
-                Play prompt
+                {{ gettext("Play prompt") }}
             </button>
             <button id="btn-record-play-recording" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
-                Play recording
+                {{ gettext("Play recording") }}
             </button>
             <button id="btn-record-stop" type="button" class="btn record-button auto-reset record-control btn-secondary btn-sm">
-                Stop
+                {{ gettext("Stop") }}
             </button>
 {#            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>#}
 {#                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>#}
@@ -939,7 +938,7 @@
             <div id="record-loop">
                 <label style="cursor: pointer;">
                     <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
-                    Loop
+                    {{ gettext("Loop") }}
                 </label>
             </div>
         </div>

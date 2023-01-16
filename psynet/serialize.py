@@ -127,11 +127,11 @@ no_json_classes = [flask.Markup]
 
 class NoJSONHandler(jsonpickle.handlers.BaseHandler):
     def flatten(self, obj, state):
-        state["bytes"] = pickle.dumps(obj, 0).decode("ascii")
+        state["bytes"] = pickle.dumps(obj, 0).decode("latin-1")
         return state
 
     def restore(self, state):
-        return pickle.loads(state["bytes"].encode("ascii"))
+        return pickle.loads(state["bytes"].encode("latin-1"))
 
 
 for _cls in no_json_classes:
