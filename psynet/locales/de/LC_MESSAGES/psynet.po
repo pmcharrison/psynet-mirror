@@ -689,7 +689,7 @@ msgstr "Fenster schließen"
 #. wollen?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:34
 #, fuzzy
-msgctxt "abbort_possible"
+msgctxt "abort_possible"
 msgid "Are you sure you want to abort the experiment?"
 msgstr "Sind Sie sicher, dass Sie das Experiment abbrechen möchten?"
 
@@ -705,7 +705,7 @@ msgstr "Sind Sie sicher, dass Sie das Experiment abbrechen möchten?"
 #. die bisher verdiente Verg\u00fctung."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:37
 #, fuzzy
-msgctxt "abbort_possible"
+msgctxt "abort_possible"
 msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
 "be automatically paid the compensation you have earned so far."
@@ -720,7 +720,7 @@ msgstr ""
 #. Probleme mit der Auszahlung haben."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:38
 #, fuzzy
-msgctxt "abbort_possible"
+msgctxt "abort_possible"
 msgid "Please only contact us if you have trouble receiving your payment."
 msgstr ""
 "Bitte kontaktieren Sie uns nur, wenn Sie Probleme mit der Auszahlung haben."
@@ -731,7 +731,7 @@ msgstr ""
 #. zu Ihrer Entsch\u00e4digung finden Sie weiter unten."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:39
 #, fuzzy
-msgctxt "abbort_possible"
+msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr ""
 "Einzelheiten zu Ihrer Vergütung finden Sie in den unten stehenden "
