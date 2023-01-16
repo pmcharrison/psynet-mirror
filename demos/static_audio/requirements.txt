@@ -1,1 +1,7 @@
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/PsyNetDev/psynet#egg=psynet
+# These requirements were set temporarily for debugging.
+# For real-world use you probably want to revert to this:
+#
+# dallinger@git+https://github.com/Dallinger/Dallinger.git#egg=dallinger
+# psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet
+
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10-draft#egg=psynet

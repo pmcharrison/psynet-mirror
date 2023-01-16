@@ -18,6 +18,8 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Option controls demo"
+
     timeline = Timeline(
         NoConsent(),
         ModularPage(

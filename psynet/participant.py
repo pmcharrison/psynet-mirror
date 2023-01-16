@@ -1,6 +1,5 @@
 # pylint: disable=attribute-defined-outside-init
 
-import datetime
 import json
 from smtplib import SMTPAuthenticationError
 
@@ -8,12 +7,16 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import desc
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from . import field
+from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import claim_var, extra_var
-from .utils import get_logger, serialise_datetime, unserialise_datetime
+from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
+from .process import AsyncProcess
+from .utils import get_language, get_logger, organize_by_key
 
 logger = get_logger()
 
@@ -63,6 +66,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         go to element 3 within that page maker, which must also be a page maker;
         go to element 2 within that page maker.
 
+    elt_bounds : list
+        Represents the number of elements at each level of the current
+        ``elt_id`` hierarchy; used to work out when to leave a page maker
+        and go up to the next level.
+        Should not be modified directly.
+
     page_uuid : str
         A long unique string that is randomly generated when the participant advances
         to a new page, used as a passphrase to guarantee the security of
@@ -84,22 +93,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         The most recent answer submitted by the participant.
         Can take any form that can be automatically serialized to JSON.
         Should not be modified directly.
-
-    answer_accumulators: list
-        This is an internal PsyNet variable that most users don't need to worry about.
-        See below for implementation details:
-
-        This list begins empty.
-        Each time the participant enters a page maker with ``accumulate_answers = True``,
-        an empty list is appended to ``answer_accumulators``.
-        Whenever a new answer is generated, this answer is appended to the last list in ``answer_accumulators``.
-        If the participant enters another page maker with ``accumulate_answers = True`` (i.e. nested page makers),
-        then another empty list is appended to ``answer_accumulators``.
-        Whenever the participant leaves a page maker with ``accumulate_answers = True``,
-        the last list in ``answer_accumulators`` is removed and is placed in the ``answer`` variable.
-        The net result is that all answers within a given page maker with ``accumulate_answers = True``
-        end up being stored as a single list in the ``answer`` variable once the participant leaves
-        the trial maker.
 
     response : Response
         An object of class :class:`~psynet.timeline.Response`
@@ -143,117 +136,221 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     polymorphic_identity = "PsyNetParticipant"
     __extra_vars__ = {}
 
-    elt_id = field.claim_field("elt_id", __extra_vars__, list)
-    page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
-    aborted = claim_var(
-        "aborted", __extra_vars__, use_default=True, default=lambda: False
-    )
-    complete = field.claim_field("complete", __extra_vars__, bool)
-    answer = field.claim_field("answer", __extra_vars__, object)
-    answer_accumulators = field.claim_field("answer_accumulators", __extra_vars__, list)
-    branch_log = field.claim_field("branch_log", __extra_vars__)
+    elt_id = Column(PythonList)
+    elt_id_max = Column(PythonList)
+    page_uuid = Column(String)
+    aborted = Column(Boolean, default=False)
+    complete = Column(Boolean, default=False)
+    answer = Column(PythonObject)
+    answer_accumulators = Column(PythonList)
+    branch_log = Column(PythonObject)
+    for_loops = Column(PythonObject, default=lambda: {})
+    failure_tags = Column(PythonList, default=lambda: [])
 
-    failure_tags = claim_var(
-        "failure_tags", __extra_vars__, use_default=True, default=lambda: []
-    )
-    last_response_id = claim_var(
-        "last_response_id", __extra_vars__, use_default=True, default=lambda: None
-    )
-    base_payment = claim_var("base_payment", __extra_vars__)
-    performance_bonus = claim_var("performance_bonus", __extra_vars__)
-    unpaid_bonus = claim_var("unpaid_bonus", __extra_vars__)
-    modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
-    client_ip_address = claim_var(
-        "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
-    )
-    auth_token = claim_var("auth_token", __extra_vars__)
-    answer_is_fresh = claim_var(
-        "answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False
-    )
-    browser_platform = claim_var(
-        "browser_platform", __extra_vars__, use_default=True, default=lambda: ""
-    )
+    # Ideally we wold make this a foreign key but this creates a circular dependency
+    # when importing CSVs
+    last_response_id = Column(Integer)
 
-    def __json__(self):
-        x = SQLMixinDallinger.__json__(self)
-        del x["modules"]
-        return x
+    base_payment = Column(Float)
+    performance_bonus = Column(Float)
+    unpaid_bonus = Column(Float)
+    client_ip_address = Column(String, default=lambda: "")
+    auth_token = Column(String)
+    answer_is_fresh = Column(Boolean, default=False)
+    browser_platform = Column(String, default="")
+    module_state_id = Column(Integer, ForeignKey("module_state.id"))
+    module_state = relationship(
+        "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="joined"
+    )
+    current_trial_id = Column(Integer, ForeignKey("info.id"))
+    current_trial = relationship(
+        "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
+    )
+    trial_status = Column(String)
 
-    def trials(self, failed=False, complete=True, is_repeat_trial=False):
-        from .trial.main import Trial
-
-        return Trial.query.filter_by(
-            participant_id=self.id,
-            failed=failed,
-            complete=complete,
-            is_repeat_trial=is_repeat_trial,
-        ).all()
+    # @property
+    # def current_trial(self):
+    #     if self.in_module and hasattr(self.module_state, "current_trial"):
+    #         return self.module_state.current_trial
+    #
+    # @current_trial.setter
+    # def current_trial(self, value):
+    #     self.module_state.current_trial = value
 
     @property
     def last_response(self):
-        if self.last_response_id is None:
-            return None
-        from .timeline import Response
+        from psynet.timeline import Response
 
         return Response.query.filter_by(id=self.last_response_id).one()
+
+    # all_trials = relationship("psynet.trial.main.Trial")
+
+    @property
+    def alive_trials(self):
+        return [t for t in self.all_trials if not t.failed]
+
+    @property
+    def failed_trials(self):
+        return [t for t in self.all_trials if t.failed]
+
+    # This would be better, but we end up with a circular import problem
+    # if we try and read csv files using this foreign key...
+    #
+    # last_response = relationship(
+    #     "psynet.timeline.Response", foreign_keys=[last_response_id]
+    # )
+
+    # current_trial_id = Column(
+    #     Integer, ForeignKey("info.id")
+    # )  # 'info.id' because trials are stored in the info table
+
+    # This should work but it's buggy, don't know why.
+    # current_trial = relationship(
+    #     "psynet.trial.main.Trial",
+    #     foreign_keys="[psynet.participant.Participant.current_trial_id]",
+    # )
+    #
+    # Instead we resort to the below...
+
+    # @property
+    # def current_trial(self):
+    #     from dallinger.models import Info
+    #
+    #     # from .trial.main import Trial
+    #
+    #     if self.current_trial_id is None:
+    #         return None
+    #     else:
+    #         # We should just be able to use Trial for the query, but using Info seems
+    #         # to avoid an annoying SQLAlchemy bug that comes when we run multiple demos
+    #         # in one session. When this happens, what we see is that Trial.query.all()
+    #         # sees all trials appropriately, but Trial.query.filter_by(id=1).all() fails.
+    #         #
+    #         # return Trial.query.filter_by(id=self.current_trial_id).one()
+    #         return Info.query.filter_by(id=self.current_trial_id).one()
+    #
+    # @current_trial.setter
+    # def current_trial(self, trial):
+    #     from psynet.trial.main import Trial
+    #     self.current_trial_id = trial.id if isinstance(trial, Trial) else None
+
+    awaiting_async_process = column_property(
+        select(AsyncProcess.participant_id, AsyncProcess.pending)
+        .where(
+            AsyncProcess.participant_id == dallinger.models.Participant.id,
+            AsyncProcess.pending,
+        )
+        .exists()
+    )
+    register_extra_var(__extra_vars__, "awaiting_async_process")
+
+    asset_links = relationship(
+        "AssetParticipant",
+        collection_class=attribute_mapped_collection("label"),
+        cascade="all, delete-orphan",
+    )
+
+    assets = association_proxy(
+        "asset_links", "asset", creator=lambda k, v: AssetParticipant(label=k, asset=v)
+    )
+
+    errors = relationship("ErrorRecord")
+    # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")
+
+    @property
+    def module_states(self):
+        return organize_by_key(
+            self._module_states,
+            key=lambda x: x.module_id,
+            sort_key=lambda x: x.time_started,
+        )
+
+    def select_module(self, module_id: str):
+        candidates = [
+            state
+            for state in self._module_states
+            if not state.finished and state.module_id == module_id
+        ]
+        assert len(candidates) == 1
+        self.module_state = candidates[0]
+
+    @property
+    def var(self):
+        return self.globals
+
+    @property
+    def globals(self):
+        return VarStore(self)
+
+    @property
+    def locals(self):
+        return self.module_state.var
+
+    def to_dict(self):
+        x = SQLMixinDallinger.to_dict(self)
+        x.update(self.locals_to_dict())
+        return x
+
+    def locals_to_dict(self):
+        output = {}
+        for module_id, module_states in self.module_states.items():
+            module_states.sort(key=lambda x: x.time_started)
+            for i, module_state in enumerate(module_states):
+                if i == 0:
+                    prefix = f"{module_id}__"
+                else:
+                    prefix = f"{module_id}__{i}__"
+                for key, value in module_state.var.items():
+                    output[prefix + key] = value
+        return output
 
     @property
     @extra_var(__extra_vars__)
     def aborted_modules(self):
-        modules = [
-            (key, value)
-            for key, value in self.modules.items()
-            if value.get("time_aborted") is not None
-            and len(value.get("time_aborted")) > 0
+        return [
+            log.module_id
+            for log in sorted(self._module_states, key=lambda x: x.time_started)
+            if log.aborted
         ]
-        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
-        return [m[0] for m in modules]
 
     @property
     @extra_var(__extra_vars__)
     def started_modules(self):
-        modules = [
-            (key, value)
-            for key, value in self.modules.items()
-            if len(value["time_started"]) > 0
+        return [
+            log.module_id
+            for log in sorted(self._module_states, key=lambda x: x.time_started)
+            if log.started
         ]
-        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
-        return [m[0] for m in modules]
 
     @property
     @extra_var(__extra_vars__)
     def finished_modules(self):
-        modules = [
-            (key, value)
-            for key, value in self.modules.items()
-            if len(value["time_finished"]) > 0
+        return [
+            log.module_id
+            for log in sorted(self._module_states, key=lambda x: x.time_started)
+            if log.finished
         ]
-        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
-        return [m[0] for m in modules]
+
+    def refresh_module_state(self):
+        if len(self._module_states) == 0:
+            self.module_state = None
+        else:
+            unfinished = [x for x in self._module_states if not x.finished]
+            unfinished.sort(key=lambda x: x.time_started)
+            if len(unfinished) == 0:
+                self.module_state = None
+            else:
+                self.module_state = unfinished[-1]
+
+    @property
+    def in_module(self):
+        return self.module_state is not None
 
     @property
     @extra_var(__extra_vars__)
-    def current_module(self):
-        return None if not self.started_modules else self.started_modules[-1]
-
-    def start_module(self, label):
-        modules = self.modules.copy()
-        try:
-            log = modules[label]
-        except KeyError:
-            log = {"time_started": [], "time_finished": []}
-        time_now = serialise_datetime(datetime.datetime.now())
-        log["time_started"] = log["time_started"] + [time_now]
-        modules[label] = log.copy()
-        self.modules = modules.copy()
-
-    def end_module(self, label):
-        modules = self.modules.copy()
-        log = modules[label]
-        time_now = serialise_datetime(datetime.datetime.now())
-        log["time_finished"] = log["time_finished"] + [time_now]
-        modules[label] = log.copy()
-        self.modules = modules.copy()
+    def module_id(self):
+        if self.module_state:
+            return self.module_state.module_id
 
     def set_answer(self, value):
         self.answer = value
@@ -261,7 +358,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.vars = {}
         self.elt_id = [-1]
+        self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []
         self.complete = False
         self.time_credit.initialize(experiment)
@@ -275,7 +374,13 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         db.session.add(self)
         db.session.commit()
 
-        experiment.timeline.advance_page(experiment, participant=self)
+        self.initialize(
+            experiment
+        )  # Hook for custom subclasses to provide further initialization
+        db.session.commit()
+
+    def initialize(self, experiment):
+        pass
 
     def calculate_bonus(self):
         """
@@ -296,21 +401,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return (0.0 if self.base_payment is None else self.base_payment) + (
             0.0 if self.bonus is None else self.bonus
         )
-
-    def set_participant_group(self, trial_maker_id: str, participant_group: str):
-        from .trial.main import set_participant_group
-
-        return set_participant_group(trial_maker_id, self, participant_group)
-
-    def get_participant_group(self, trial_maker_id: str):
-        from .trial.main import get_participant_group
-
-        return get_participant_group(trial_maker_id, self)
-
-    def has_participant_group(self, trial_maker_id: str):
-        from .trial.main import has_participant_group
-
-        return has_participant_group(trial_maker_id, self)
 
     def send_email_max_payment_reached(
         self, experiment_class, requested_bonus, reduced_bonus
@@ -423,6 +513,17 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         combined = list(set(original + new))
         self.failure_tags = combined
         return self
+
+    def get_locale(self):
+        if self.var.has("locale"):
+            return self.var.locale
+        else:
+            locale = get_language()
+            self.var.set("locale", locale)
+            logger.warning(
+                f"Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}"
+            )
+            return locale
 
     def abort_info(self):
         """

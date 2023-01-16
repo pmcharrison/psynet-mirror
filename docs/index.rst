@@ -1,66 +1,141 @@
-PsyNet Documentation
-====================
+Overview
+========
+
+.. warning::
+    At the time of writing (December 2022) PsyNet is under heavy development as we prepare
+    for an official release in 2023. Most of its features are ready, but some important
+    details are still undocumented or unfinished. We recommend contacting the PsyNet developers
+    for advice before starting to adopt PsyNet for your own research projects.
+
+PsyNet is a new platform for running advanced behavioral experiments
+ranging from adaptive psychophysics to simulated cultural evolution.
+Its goal is to enable researchers to implement and deploy experiments as efficiently as possible,
+while placing minimal constraints on the complexity of the experiment design.
+
+This website contains a variety of resources to help you learn more about PsyNet.
+Some particularly useful resources are highlighted below,
+but see the sidebar for a full list.
+
+- :ref:`When to use PsyNet? <applications>`: Learn about the use cases for which PsyNet is optimized.
+
+- :ref:`Demos <demos_introduction>`: See demos of different PsyNet features.
+
+- :ref:`Example experiments <example_experiments_introduction>`: See code repositories for real-world PsyNet experiments.
+
+- `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
+
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Introduction
 
-   introduction/about
-   introduction/how_to_use
-   introduction/command_line
-   introduction/demo
+   self
+   introduction/applications
+   introduction/history
+   introduction/team
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Architecture
+
+   architecture/dallinger
+   architecture/docker
+   architecture/web_servers
 
 .. toctree::
    :maxdepth: 2
-   :caption: Installation
+   :hidden:
+   :caption: Installation (Docker route)
 
-   installation/macos
-   installation/linux
+   installation/unix_installation
+   installation/windows_installation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Experimenter documentation
+   :hidden:
+   :caption: Installation (legacy route)
+
+   legacy_installation/linux
+   legacy_installation/macos
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Demos
+
+   demos/introduction
+   demos/hello_world
+   demos/timeline
+   demos/survey_js
+   demos/trial
+   demos/trial_2
+   demos/gibbs
+   demos/audio_gibbs
+   demos/imitation_chains
+   demos/tapping_imitation_chain
+   demos/mcmcp
+
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Example experiments
+
+   example_experiments/introduction
+   example_experiments/carillon
+   example_experiments/emotions-scales
+   example_experiments/pitch-matching
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Tutorials
    :glob:
 
-   experimenter/basic_usage
-   experimenter/timeline
-   experimenter/trial_overview
-   experimenter/ad_page
-   experimenter/modular_page
-   experimenter/graphics
-   experimenter/unity_integration
-   experimenter/writing_custom_frontends
-   experimenter/event_management
-   experimenter/communicating_with_backend
-   experimenter/payment_limits
-   experimenter/deploy_tokens
+   tutorials/classes
+   tutorials/timeline
+   tutorials/assets
+   tutorials/command_line
+   tutorials/specifying_dependencies
+   tutorials/ad_page
+   tutorials/modular_page
+   tutorials/graphics
+   tutorials/demography
+   tutorials/prescreening_tasks
+   tutorials/pre_deploy_routines
+   tutorials/experiment_variables
+   tutorials/unity_integration
+   tutorials/writing_custom_frontends
+   tutorials/event_management
+   tutorials/communicating_with_backend
+   tutorials/payment_limits
+   tutorials/deploy_tokens
+   tutorials/introduction_to_sql_alchemy
+   tutorials/version_control_with_git
+   tutorials/upgrading_to_psynet_10
 
 .. toctree::
    :maxdepth: 2
-   :caption: Specific implementations
+   :hidden:
+   :caption: Contributing to PsyNet
    :glob:
 
-   implementations/*
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Developer documentation
-   :glob:
-
-   developer/version_control_with_git
    developer/prescreening_tasks
    developer/updating_documentation
-   developer/introduction_to_sql_alchemy
 
 .. toctree::
    :maxdepth: 2
-   :caption: Low-level documentation
+   :hidden:
+   :caption: API documentation
    :glob:
 
-   low_level/demography
-   low_level/Experiment
-   low_level/Participant
-   low_level/prescreen
-   low_level/timeline
-   low_level/trial
-   low_level/VarStore
+   api/overview
+   api/demography
+   api/Experiment
+   api/Participant
+   api/prescreen
+   api/timeline
+   api/trial
+   api/VarStore

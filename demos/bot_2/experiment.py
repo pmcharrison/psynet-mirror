@@ -16,13 +16,11 @@ from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
-    ImitationChainNetwork,
     ImitationChainNode,
-    ImitationChainSource,
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
-from psynet.utils import get_experiment, get_logger
+from psynet.utils import get_logger
 
 logger = get_logger()
 
@@ -39,7 +37,7 @@ class FixedDigitInputPage(ModularPage):
     def __init__(
         self, label: str, prompt: str, time_estimate: float, correct_answer: int
     ):
-        self.num_digits = 7
+        self.n_digits = 7
 
         super().__init__(
             label,
@@ -56,7 +54,7 @@ class FixedDigitInputPage(ModularPage):
     def format_answer(self, raw_answer, **kwargs):
         try:
             pattern = re.compile("^[0-9]*$")
-            assert len(raw_answer) == self.num_digits
+            assert len(raw_answer) == self.n_digits
             assert pattern.match(raw_answer)
             return int(raw_answer)
         except (ValueError, AssertionError):
@@ -86,18 +84,12 @@ class CustomTrial(ImitationChainTrial):
         return [page_1, page_2]
 
 
-class CustomNetwork(ImitationChainNetwork):
-    pass
-
-
 class CustomNode(ImitationChainNode):
-    def summarize_trials(self, trials: list, experiment, paricipant):
-        return round(mean([trial.answer for trial in trials]))
-
-
-class CustomSource(ImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
+    def create_initial_seed(self, experiment, participant):
         return random.randint(0, 9999999)
+
+    def summarize_trials(self, trials: list, experiment, participant):
+        return round(mean([trial.answer for trial in trials]))
 
 
 class CustomTrialMaker(ImitationChainTrialMaker):
@@ -114,26 +106,26 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Bot demo (2)"
+
     timeline = Timeline(
         NoConsent(),
         CustomTrialMaker(
             id_="imitation_demo",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
-            phase="experiment",
             chain_type="within",
-            num_iterations_per_chain=5,
-            num_trials_per_participant=5,
-            num_chains_per_participant=1,
-            num_chains_per_experiment=None,
+            max_nodes_per_chain=5,
+            expected_trials_per_participant=5,
+            max_trials_per_participant=5,
+            chains_per_participant=1,
+            chains_per_experiment=None,
             trials_per_node=1,
             balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
-            recruit_mode="num_participants",
-            target_num_participants=10,
+            recruit_mode="n_participants",
+            target_n_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
@@ -147,8 +139,9 @@ class Exp(psynet.experiment.Experiment):
     @scheduled_task("interval", minutes=5 / 60, max_instances=1)
     def run_bot_participant():
         # Every 7 seconds, runs a bot participant.
-        experiment = get_experiment()
-        if experiment.var.launched:
+        from psynet.experiment import is_experiment_launched
+
+        if is_experiment_launched():
             bot = Bot()
             bot.take_experiment()
 

@@ -1,0 +1,426 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-13/01/ 11:22:14\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: DeepL API\n"
+"Language-Team: DeepL\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. {"msgid": ["Sie sollten nicht auf feine Unterschiede in der Schreibweise
+#. achten.", "Sie sollten nicht auf feine Unterschiede in der Rechtschreibung
+#. achten.", "Sie sollten nicht auf kleine Unterschiede in der Schreibweise
+#. achten.", "Achten Sie nicht auf feine Unterschiede in der Schreibweise."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:100
+msgctxt "instructions2"
+msgid "You should not pay attention to subtle spelling differences."
+msgstr ""
+"Sie sollen aber nicht auf feine Unterschiede in der Rechtschreibung achten."
+
+#. {"msgid": ["W\u00f6rter werden entweder nur in Gro\u00dfbuchstaben oder nur
+#. in Kleinbuchstaben dargestellt.", "W\u00f6rter werden entweder nur in
+#. Gro\u00dfbuchstaben oder nur in Kleinbuchstaben angezeigt.", "Die
+#. W\u00f6rter werden entweder nur in Gro\u00df- oder Kleinbuchstaben
+#. dargestellt.", "W\u00f6rter werden entweder nur in Gro\u00dfbuchstaben oder
+#. nur in Kleinbuchstaben pr\u00e4sentiert."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:101
+msgctxt "instructions2"
+msgid "Words are either presented in only uppercase or lowercase letters."
+msgstr ""
+"Wörter werden entweder nur mit großen oder kleinen Buchstaben geschrieben."
+
+#. {"msgid": ["Sie sollten nicht auf die Gro\u00df- und Kleinschreibung der
+#. Buchstaben achten.", "Sie sollten nicht auf die Gro\u00df- und
+#. Kleinschreibung achten.", "Sie sollten nicht auf die Gro\u00df- oder
+#. Kleinschreibung achten.", "Sie sollten nicht auf die Gro\u00dfschreibung
+#. achten."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:102
+msgctxt "instructions2"
+msgid "You should not pay attention to the case of the letters."
+msgstr ""
+"Sie sollten daher nicht auf die Groß- und Kleinschreibung der Buchstaben "
+"achten."
+
+#. {"msgid": ["Um die Aufgabe schnell zu erledigen, sollten Sie die Tasten auf
+#. Ihrer Tastatur verwenden.", "Um die Aufgabe schnell zu erledigen, sollten
+#. Sie die Tasten auf Ihrer Tastatur benutzen.", "Um die Aufgabe schnell zu
+#. erledigen, sollten Sie die Tasten Ihrer Tastatur verwenden.", "Um die
+#. Aufgabe schnell zu erledigen, sollten Sie die Tasten Ihrer Tastatur
+#. benutzen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:112
+msgctxt "instructions3"
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Um die Aufgabe schnell machen zu können, sollten Sie Ihre Tastatur "
+"verwenden."
+
+#. {"msgid": ["Sie k\u00f6nnen die folgenden Tasten verwenden:", "Sie
+#. k\u00f6nnen die folgenden Tasten benutzen:", "Sie k\u00f6nnen folgende
+#. Tasten verwenden:", "Sie k\u00f6nnen folgende Tasten benutzen:"]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:113
+msgctxt "instructions3"
+msgid "You can use the following keys:"
+msgstr "Sie können die folgenden Tasten verwenden:"
+
+#. {"msgid": ["Dr\u00fccken Sie <kbd>A</kbd>, wenn das angezeigte Wort
+#. <strong>echt</strong> ist", "Dr\u00fccken Sie <kbd>A</kbd>, wenn das
+#. angezeigte Wort <strong>echt</strong> ist.", "Dr\u00fccken Sie
+#. <kbd>A</kbd>, wenn das dargestellte Wort <strong>echt</strong> ist.",
+#. "Dr\u00fccken Sie <kbd>A</kbd>, wenn das dargebotene Wort
+#. <strong>real</strong> ist"]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:116
+msgctxt "instructions3"
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Drücken Sie <kbd>A</kbd>, wenn das angezeigte Wort "
+"<strong>existiert</strong>"
+
+#. {"msgid": ["Dr\u00fccken Sie <kbd>L</kbd>, wenn das pr\u00e4sentierte Wort
+#. <strong>fake</strong> ist", "Dr\u00fccken Sie <kbd>L</kbd>, wenn das
+#. angezeigte Wort <strong>fake</strong> ist", "Dr\u00fccken Sie <kbd>L</kbd>,
+#. wenn das angezeigte Wort <strong>fake</strong> ist.", "Dr\u00fccken Sie
+#. <kbd>L</kbd>, wenn das pr\u00e4sentierte Wort <strong>fake</strong> ist."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:119
+msgctxt "instructions3"
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Drücken Sie <kbd>L</kbd>, wenn das präsentierte Wort <strong>nicht "
+"existiert</strong>"
+
+#. {"msgid": ["Machen Sie sich mit den beiden Tasten auf Ihrer Tastatur
+#. vertraut.", "Machen Sie sich mit den zwei Tasten auf Ihrer Tastatur
+#. vertraut.", "Machen Sie sich mit den beiden Tasten Ihrer Tastatur
+#. vertraut.", "Machen Sie sich mit den zwei Tasten Ihrer Tastatur
+#. vertraut."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:123
+msgctxt "instructions3"
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Machen Sie sich mit den beiden Tasten auf Ihrer Tastatur vertraut."
+
+#. {"msgid": ["Wenn Sie sie dr\u00fccken, leuchten sie in der Tastatur rechts
+#. auf.", "Wenn Sie sie dr\u00fccken, leuchten sie auf der Tastatur rechts
+#. auf.", "Wenn Sie sie dr\u00fccken, leuchten sie auf der rechten Tastatur
+#. auf.", "Wenn Sie sie dr\u00fccken, leuchten sie in der rechten Tastatur
+#. auf."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:124
+msgctxt "instructions3"
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr ""
+"Wenn Sie sie die Tasten drücken, leuchten sie in der Tastatur rechts auf."
+
+#. {"msgid": ["Sie m\u00fcssen beide Tasten mindestens einmal dr\u00fccken, um
+#. auf die n\u00e4chste Seite zu gelangen.", "Sie m\u00fcssen beide Tasten
+#. mindestens einmal dr\u00fccken, um zur n\u00e4chsten Seite zu gelangen.",
+#. "Sie m\u00fcssen beide Tasten mindestens einmal dr\u00fccken, um zur
+#. n\u00e4chsten Seite zu kommen.", "Sie m\u00fcssen beide Tasten mindestens
+#. einmal dr\u00fccken, um die n\u00e4chste Seite zu erreichen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:126
+msgctxt "instructions3"
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "Sie müssen beide Tasten mindestens einmal drücken, um fortzufahren."
+
+#. {"msgid": ["F\u00fcr den Fall, dass Sie die Tasten vergessen, sind sie auf
+#. jeder Seite abgedruckt.", "Falls Sie die Tasten vergessen haben, sind sie
+#. auf jeder Seite abgedruckt.", "Falls Sie die Tasten vergessen haben, sind
+#. sie auf jeder Seite aufgedruckt."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:128
+msgctxt "instructions3"
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr ""
+"Für den Fall, dass Sie die Tasten vergessen, werden sie auf jeder Seite "
+"wiederholt."
+
+#. {"msgid": ["Sie werden insgesamt 4 Bl\u00f6cke sehen.", "Sie sehen
+#. insgesamt 4 Bl\u00f6cke.", "Es werden insgesamt 4 Bl\u00f6cke angezeigt.",
+#. "Insgesamt sehen Sie 4 Bl\u00f6cke."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:136
+msgctxt "instructions4"
+msgid "You will see a total of 4 blocks."
+msgstr "Sie werden insgesamt 4 Blöcke sehen."
+
+#. {"msgid": ["Jeder Block wird etwa 1 Minute dauern.", "Jeder Block dauert
+#. etwa 1 Minute.", "Jeder Block dauert ungef\u00e4hr 1 Minute.", "Jeder Block
+#. dauert ca. 1 Minute."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:137
+msgctxt "instructions4"
+msgid "Each block will take about 1 minute."
+msgstr "Jeder Block wird etwa 1 Minute dauern."
+
+#. {"msgid": ["Beachten Sie, dass wir Ihre Leistung verfolgen und die Umfrage
+#. m\u00f6glicherweise vorzeitig beenden, wenn die Antworten nicht konsistent
+#. sind.", "Beachten Sie, dass wir Ihre Leistung verfolgen und die Umfrage
+#. vorzeitig beenden k\u00f6nnen, wenn die Antworten nicht konsistent sind.",
+#. "Beachten Sie, dass wir Ihre Leistung verfolgen und die Umfrage vorzeitig
+#. beenden k\u00f6nnen, wenn die Antworten nicht einheitlich sind.", "Bitte
+#. beachten Sie, dass wir Ihre Leistung verfolgen und die Umfrage
+#. m\u00f6glicherweise vorzeitig beenden, wenn die Antworten nicht konsistent
+#. sind."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:141
+msgctxt "instructions4"
+msgid ""
+"Note that we track your performance and the survey may terminate early if "
+"the response is not consistent."
+msgstr ""
+"Wir messen die Konsistenz Ihrer Antworten. Falls die Antworten nicht "
+"konsistent genug sind, werden Sie von der weiteren Teilnahme ausgeschlossen."
+
+#. {"msgid": ["Dr\u00fccken Sie auf \"Weiter\", um das eigentliche Experiment
+#. zu starten.", "Dr\u00fccken Sie \"Weiter\", um das eigentliche Experiment
+#. zu starten.", "Klicken Sie auf \"Weiter\", um das eigentliche Experiment zu
+#. starten.", "Dr\u00fccken Sie auf \"Weiter\", um das eigentliche Experiment
+#. zu beginnen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:148
+msgctxt "instructions5"
+msgid "Press \"Next\" to start the real experiment."
+msgstr "Drücken Sie auf \"Weiter\", um das eigentliche Experiment zu starten."
+
+#. {"msgid": ["Wir werden nun zu den zweiten Sprachen \u00fcbergehen.", "Wir
+#. werden jetzt zu den zweiten Sprachen \u00fcbergehen.", "Wir gehen nun zu
+#. den zweiten Sprachen \u00fcber.", "Wir gehen jetzt zu den zweiten Sprachen
+#. \u00fcber."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:153
+msgctxt "instructions6"
+msgid "We will now move on to the second languages."
+msgstr "Wir werden nun zu den zweiten Sprachen übergehen."
+
+#. {"msgid": ["Sie haben den ersten Teil des Experiments abgeschlossen.", "Sie
+#. haben den ersten Teil des Experiments beendet.", "Sie haben den ersten Teil
+#. des Versuchs abgeschlossen.", "Sie haben den ersten Teil des Versuchs
+#. beendet."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:165
+msgctxt "instructions6"
+msgid "You have finished the first part of the experiment."
+msgstr "Sie haben den ersten Teil des Experiments abgeschlossen."
+
+#. {"msgid": ["Vielen Dank, dass Sie an dem Experiment teilgenommen haben!",
+#. "Danke, dass Sie an dem Experiment teilgenommen haben!", "Vielen Dank, dass
+#. Sie an diesem Experiment teilgenommen haben!", "Vielen Dank, dass Sie am
+#. Experiment teilgenommen haben!"]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:167
+msgctxt "feedback"
+msgid "Thanks for taking part in the experiment!"
+msgstr "Vielen Dank, dass Sie an dem Experiment teilgenommen haben!"
+
+#. {"msgid": ["Hatten Sie irgendwelche Probleme mit den W\u00f6rtern, die
+#. Ihnen gezeigt wurden?", "Hatten Sie Probleme mit den W\u00f6rtern, die
+#. Ihnen gezeigt wurden?", "Hatten Sie Probleme mit den W\u00f6rtern, die
+#. Ihnen angezeigt wurden?", "Hatten Sie Probleme mit den Ihnen angezeigten
+#. W\u00f6rtern?"]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:169
+msgctxt "feedback"
+msgid "Did you have any issues with the words you were shown?"
+msgstr ""
+"Hatten Sie irgendwelche Probleme mit den Wörtern, die Ihnen gezeigt wurden?"
+
+#. {"msgid": ["Bitte lassen Sie es uns wissen, damit wir das Spiel verbessern
+#. k\u00f6nnen.", "Bitte teilen Sie uns dies mit, damit wir das Spiel
+#. verbessern k\u00f6nnen.", "Lassen Sie es uns bitte wissen, damit wir das
+#. Spiel verbessern k\u00f6nnen.", "Lassen Sie es uns wissen, damit wir das
+#. Spiel verbessern k\u00f6nnen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:170
+msgctxt "feedback"
+msgid "Please let us know so we can improve the game."
+msgstr ""
+"Bitte lassen Sie es uns wissen, damit wir das Spiel verbessern können."
+
+#. {"msgid": ["Dr\u00fccken Sie \"Weiter\", um den englischen Teil des
+#. Experiments zu starten.", "Dr\u00fccken Sie auf \"Weiter\", um den
+#. englischen Teil des Experiments zu starten.", "Dr\u00fccken Sie \"Weiter\",
+#. um den englischen Teil des Experiments zu beginnen.", "Dr\u00fccken Sie auf
+#. \"Weiter\", um den englischen Teil des Experiments zu beginnen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:172
+msgctxt "instructions6"
+msgid "Press \"Next\" to start the English part of the experiment."
+msgstr ""
+"Drücken Sie \"Weiter\", um den englischen Teil des Experiments zu starten."
+
+#. {"msgid": ["Dr\u00fccken Sie auf \"Weiter\", um den niederl\u00e4ndischen
+#. Teil des Experiments zu starten.", "Dr\u00fccken Sie \"Weiter\", um den
+#. niederl\u00e4ndischen Teil des Experiments zu starten.", "Dr\u00fccken Sie
+#. auf \"Weiter\", um den niederl\u00e4ndischen Teil des Experiments zu
+#. beginnen.", "Dr\u00fccken Sie \"Weiter\", um den niederl\u00e4ndischen Teil
+#. des Experiments zu beginnen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:174
+msgctxt "instructions6"
+msgid "Press \"Next\" to start the Dutch part of the experiment."
+msgstr ""
+"Drücken Sie auf \"Weiter\", um den niederländischen Teil des Experiments zu "
+"starten."
+
+#. {"msgid": ["Dr\u00fccken Sie auf \"Weiter\", um den deutschen Teil des
+#. Experiments zu starten.", "Dr\u00fccken Sie \"Weiter\", um den deutschen
+#. Teil des Experiments zu starten.", "Dr\u00fccken Sie auf \"Weiter\", um den
+#. deutschen Teil des Experiments zu beginnen.", "Klicken Sie auf \"Weiter\",
+#. um den deutschen Teil des Experiments zu starten."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:176
+msgctxt "instructions6"
+msgid "Press \"Next\" to start the German part of the experiment."
+msgstr ""
+"Drücken Sie auf \"Weiter\", um den deutschen Teil des Experiments zu "
+"starten."
+
+#. {"msgid": ["Willkommen zum Experiment!", "Willkommen beim Experiment!",
+#. "Herzlich willkommen zum Experiment!", "Herzlich willkommen zu unserem
+#. Experiment!"]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:70
+msgctxt "landing_page"
+msgid "Welcome to the experiment!"
+msgstr "Willkommen zum Experiment!"
+
+#. {"msgid": ["In diesem Experiment werden wir Ihr Wissen \u00fcber die
+#. deutsche Sprache und Ihr allgemeines Wissen \u00fcber Englisch und
+#. Niederl\u00e4ndisch testen.", "In diesem Experiment werden wir Ihr Wissen
+#. \u00fcber die deutsche Sprache und Ihr allgemeines Wissen \u00fcber
+#. Englisch und Niederl\u00e4ndisch pr\u00fcfen.", "In diesem Experiment
+#. testen wir Ihr Wissen \u00fcber die deutsche Sprache und Ihr allgemeines
+#. Wissen \u00fcber Englisch und Niederl\u00e4ndisch.", "In diesem Experiment
+#. testen wir Ihr Wissen \u00fcber die deutsche Sprache und Ihr
+#. Allgemeinwissen \u00fcber Englisch und Niederl\u00e4ndisch."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:73
+msgctxt "landing_page"
+msgid ""
+"In this experiment, we will test your knowledge about German and your "
+"general knowledge about English and Dutch."
+msgstr ""
+"In diesem Experiment werden wir Ihr Wissen über die deutsche Sprache und Ihr"
+" allgemeines Wissen über Englisch und Niederländisch testen."
+
+#. {"msgid": ["F\u00fcr jede Sprache sehen Sie eine Zeichenfolge.", "F\u00fcr
+#. jede Sprache sehen Sie eine Zeichenkette.", "F\u00fcr jede Sprache wird
+#. Ihnen eine Zeichenfolge angezeigt.", "F\u00fcr jede Sprache wird eine
+#. Zeichenfolge angezeigt."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:82
+msgctxt "instructions1"
+msgid "For each language, you will see a string of characters."
+msgstr "Für jede Sprache sehen Sie eine Zeichenfolge."
+
+#. {"msgid": ["Das Wort verschwindet nach zwei Sekunden.", "Das Wort
+#. verschwindet nach zwei Sekunden wieder.", "Nach zwei Sekunden verschwindet
+#. das Wort.", "Nach zwei Sekunden verschwindet das Wort wieder."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:83
+msgctxt "instructions1"
+msgid "The word will disappear after two seconds."
+msgstr "Das Wort verschwindet nach zwei Sekunden."
+
+#. {"msgid": ["Ihre Aufgabe ist es, zu entscheiden, ob dieses Wort in der
+#. Sprache existiert oder nicht.", "Ihre Aufgabe ist es zu entscheiden, ob
+#. dieses Wort in der Sprache existiert oder nicht.", "Ihre Aufgabe ist es, zu
+#. entscheiden, ob das Wort in der Sprache existiert oder nicht.", "Ihre
+#. Aufgabe ist es zu entscheiden, ob das Wort in der Sprache existiert oder
+#. nicht."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:84
+msgctxt "instructions1"
+msgid ""
+"Your task is to decide whether this word exists in the language or not."
+msgstr ""
+"Ihre Aufgabe ist es, zu entscheiden, ob dieses Wort in der Sprache existiert"
+" oder nicht."
+
+#. {"msgid": ["Wenn Sie die genaue Bedeutung des Wortes nicht kennen, aber
+#. sicher sind, dass es in der Sprache existiert, sollten Sie das Wort als
+#. echtes Wort markieren.", "Wenn Sie die genaue Bedeutung des Wortes nicht
+#. kennen, aber sicher sind, dass es in der Sprache existiert, sollten Sie es
+#. als echtes Wort markieren.", "Wenn Sie die genaue Bedeutung des Wortes
+#. nicht kennen, aber sicher sind, dass es in der Sprache existiert, sollten
+#. Sie es als richtiges Wort markieren.", "Wenn Sie die genaue Bedeutung des
+#. Wortes nicht kennen, sich aber sicher sind, dass es in der Sprache
+#. existiert, sollten Sie es als echtes Wort markieren."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:94
+msgctxt "instructions2"
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in the language, you should mark the it as a real word."
+msgstr ""
+"Wenn Sie die genaue Bedeutung des Wortes nicht kennen, sich aber sicher "
+"sind, dass es in der Sprache existiert, sollten Sie das Wort als echtes Wort"
+" markieren."
+
+#. {"msgid": ["Wenn Sie nicht sicher sind, ob das Wort in der Sprache
+#. existiert, sollten Sie es als falsches Wort markieren.", "Wenn Sie sich
+#. nicht sicher sind, ob das Wort in der Sprache existiert, sollten Sie es als
+#. falsches Wort markieren.", "Wenn Sie nicht sicher sind, ob das Wort in der
+#. Sprache existiert, sollten Sie es als Kunstwort markieren.", "Wenn Sie sich
+#. nicht sicher sind, ob das Wort in der Sprache existiert, sollten Sie es als
+#. Kunstwort markieren."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:96
+msgctxt "instructions2"
+msgid ""
+"If you are not sure whether the word exists in the language, you should mark"
+" it as a fake word."
+msgstr ""
+"Wenn Sie nicht sicher sind, ob das Wort in der Sprache existiert, sollten "
+"Sie es als falsches Wort markieren."
+
+#. {"msgid": ["Bei diesem Experiment k\u00f6nnten Sie eine Mischung aus
+#. verschiedenen Schreibweisen finden.", "Bei diesem Experiment k\u00f6nnen
+#. Sie eine Mischung aus verschiedenen Schreibweisen finden.", "Bei diesem
+#. Experiment finden Sie vielleicht eine Mischung aus verschiedenen
+#. Schreibweisen.", "Bei diesem Experiment finden Sie m\u00f6glicherweise eine
+#. Mischung aus verschiedenen Schreibweisen."]}
+#: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:99
+msgctxt "instructions2"
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"In diesem Experiment sehen Sie ggf. eine Mischung aus verschiedenen "
+"Schreibweisen."
+
+#. {"msgid": ["Willkommen bei der \u00dcbersetzungsdemo!", "Willkommen bei der
+#. \u00dcbersetzungs-Demo!", "Willkommen zur \u00dcbersetzungsdemo!",
+#. "Willkommen zur \u00dcbersetzungs-Demo!"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:22
+#, fuzzy
+msgctxt "welcome-page"
+msgid "Welcome to the translation demo!"
+msgstr "Willkommen bei der Übersetzungsdemo!"
+
+#. {"msgid": ["Unten sehen Sie diesen Text \u00fcbersetzt!", "Nachfolgend
+#. sehen Sie diesen Text \u00fcbersetzt!", "Nachstehend sehen Sie diesen Text
+#. \u00fcbersetzt!", "Nachfolgend sehen Sie diesen Text in der
+#. \u00dcbersetzung!"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:31
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:45
+#, fuzzy
+msgid "Below you will see this text translated!"
+msgstr "Unten sehen Sie diesen Text übersetzt!"
+
+#. {"msgid": ["Sie k\u00f6nnen auch Text in Drucktasten oder auf jeder Art von
+#. Seite \u00fcbersetzen!", "Sie k\u00f6nnen auch Text in Drucktasten oder
+#. jede Art von Seite \u00fcbersetzen!", "Sie k\u00f6nnen auch Text in
+#. Schaltfl\u00e4chen oder auf jeder Art von Seite \u00fcbersetzen!", "Sie
+#. k\u00f6nnen auch Text in Schaltfl\u00e4chen oder auf jeder beliebigen Seite
+#. \u00fcbersetzen!"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:54
+#, fuzzy
+msgid "You can also translate text in push buttons or any kind of page!"
+msgstr ""
+"Sie können auch Text in Drucktasten oder auf jeder Art von Seite übersetzen!"
+
+#. {"msgid": ["Klicken Sie", "Klicken Sie auf", "Klicken Sie auf .", "Klicken
+#. Sie ."]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:57
+#, fuzzy
+msgctxt "button"
+msgid "Click"
+msgstr "Klicken Sie"
+
+#. {"msgid": ["auf", "auf ."]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:57
+#, fuzzy
+msgctxt "button"
+msgid "on"
+msgstr "auf"
+
+#. {"msgid": ["\u00dcbersetzung", "\u00fcbersetzung", "\u00dcbersetzung .",
+#. "die \u00dcbersetzung"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:57
+#, fuzzy
+msgctxt "button"
+msgid "translation"
+msgstr "Übersetzung"

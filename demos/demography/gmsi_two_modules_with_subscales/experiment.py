@@ -13,6 +13,8 @@ from psynet.timeline import Timeline
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "GMSI (two modules with subscales) demo"
+
     timeline = Timeline(
         NoConsent(),
         GMSI(label="gmsi_1", subscales=["Singing Abilities"]),

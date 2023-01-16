@@ -1,72 +1,77 @@
-image: python:3.10
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        DOCKER_TAG: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        DOCKER_TAG: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
 
-# Originally we used the GitLab Postgres service.
-# However, it seemed to be a bit buggy, so we are now installing
-# Postgres locally. Here is the config that we used to use:
-#
-#services:
-#  - postgres:12.2-alpine
-#
-#variables:
-#  POSTGRES_DB: dallinger
-#  POSTGRES_USER: dallinger
-#  POSTGRES_PASSWORD: ""
-#  POSTGRES_HOST_AUTH_METHOD: trust
-#  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
+image: docker:20.10.16
+
+services:
+  - docker:20.10.16-dind
+  - postgres:12.2-alpine
+  - redis:latest
 
 variables:
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+  AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
   POSTGRES_DB: dallinger
   POSTGRES_USER: dallinger
-  POSTGRES_PASSWORD: "dallinger"
-  DATABASE_URL: postgresql://dallinger:dallinger@localhost:5432/dallinger
+  POSTGRES_PASSWORD: ""
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
+  REDIS_URL: redis://redis:6379
+  HEADLESS: "TRUE"
+  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:v10-draft
+  DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$DOCKER_TAG
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
 
 before_script:
-# General setup
-  - apt update
-  - apt -f -y install curl redis-server unzip
-  - service redis-server start
-  - curl https://cli-assets.heroku.com/install.sh | sh
-  - wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_101.0.4951.64-1_amd64.deb
-  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_linux64.zip
-  - apt -f -y install ./chrome.deb
-  - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
-  - pip install "git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments[extract]"
-  - pip install pytest-test-groups
-  - export HEADLESS=TRUE
-# Install and setup PostgreSQL
-  - apt install -y postgresql postgresql-contrib libpq-dev
-  - service postgresql start
-  - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
-  - chown postgres:postgres postgres_setup.sql
-  - runuser -l postgres -c 'psql -c "\i /builds/PsyNetDev/PsyNet/postgres_setup.sql"'
-# Install Dallinger
-  - git clone --branch v9.2.1 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
-  - pip install -r /tmp/dallinger/dev-requirements.txt
-  - pip install -e /tmp/dallinger[data]
-# Install PsyNet
-  - pip install -e .[dev]
+  - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 }')
+  - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 }')
+  - echo $POSTGRES_IP
+  - echo $REDIS_IP
+  - docker image prune --all --force
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker pull $DOCKER_IMAGE_CACHE_FROM || true
+  - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_IMAGE .
 
 tests:
-  parallel: 5
+  parallel: 10
   stage: test
   script:
-  - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests
+    - docker run
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
+      $DOCKER_IMAGE bash -c
+      "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
+      --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
 
-tests_isolated:
-  stage: test
-  script:
-  - pytest --chrome tests/isolated/test_demo_gibbs.py
-
-pages:
+deploy_docker:
   stage: deploy
   script:
-  - pip install -U sphinx
-  - pip install sphinx_rtd_theme
-  - pip install sphinx-autodoc-typehints
-  - sphinx-build -b html docs public
+    - docker push $DOCKER_IMAGE
+
+pages:
+  image: $DOCKER_IMAGE
+  stage: deploy
+  needs: [deploy_docker]
+  script:
+    - pip install -U sphinx
+    - pip install sphinx_rtd_theme
+    - pip install sphinx-autodoc-typehints
+    - sphinx-build -b html docs public
   artifacts:
     paths:
     - public
     - public/low_level
-  only:
-  - master
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "v10-draft"'

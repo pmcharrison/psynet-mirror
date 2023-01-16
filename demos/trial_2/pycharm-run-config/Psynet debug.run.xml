@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Psynet debug" type="Python.FlaskServer">
+    <option name="flaskDebug" value="true" />
+    <module name="trial_2" />
+    <option name="targetType" value="PATH" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <option name="SDK_HOME" value="$USER_HOME$/opt/miniconda3/envs/psynet/bin/python" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/develop" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+    <option name="launchJavascriptDebuger" value="false" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Prepare for PsyNet debug" run_configuration_type="PythonConfigurationType" />
+    </method>
+  </configuration>
+</component>

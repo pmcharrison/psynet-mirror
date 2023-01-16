@@ -1,3 +1,4 @@
+import random
 from typing import List, Optional
 
 from .modular_page import Control, ModularPage, Prompt
@@ -56,7 +57,7 @@ class GraphicMixin:
     def __init__(
         self,
         id_: str,
-        frames: List,
+        frames: "List[Frame]",
         dimensions: List,
         viewport_width: float = 0.6,
         loop: bool = False,
@@ -142,7 +143,7 @@ class GraphicMixin:
             "dimensions": self.dimensions,
             "viewport_width": self.viewport_width,
             "loop": self.loop,
-            "num_frames": len(self.frames),
+            "n_frames": len(self.frames),
         }
 
 
@@ -174,7 +175,7 @@ class Frame:
 
     def __init__(
         self,
-        objects: List,
+        objects: "List[GraphicObject]",
         duration: Optional[float] = None,
         audio_id: Optional[str] = None,
         activate_control_response: bool = False,
@@ -687,6 +688,24 @@ class GraphicControl(GraphicMixin, Control):
 
     def visualize_response(self, answer, response, trial):
         raise NotImplementedError
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        if self.auto_advance_after is not None:
+            return None
+        else:
+            clickable_objects = [
+                obj
+                for frame in self.frames
+                for obj in frame.objects
+                if obj.click_to_answer
+            ]
+            obj = random.choice(clickable_objects)
+            try:
+                coord = [obj.x, obj.y]
+            except AttributeError:
+                coord = [random.randint(0, span) for span in self.dimensions]
+            return {"clicked_object": obj.id, "click_coordinates": coord}
+
         # html = (
         #         super().visualize_response(answer, response, trial) +
         #         "\n" +

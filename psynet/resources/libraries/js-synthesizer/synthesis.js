@@ -5,7 +5,6 @@ class AdditiveComplexTone {
     this.attack = specs["attack"];
     this.decay = specs["decay"];
     this.release = specs["release"];
-    this.duration = specs["duration"];
     this.sustain_amp = specs["sustain_amp"];
     this.type = "additive";
 
@@ -131,10 +130,7 @@ play_stimulus = function (stimulus) {
 
   for (i = 0; i < n; i ++) {
     note = note_list[i];
-    if (i < n - 1) {
-      onsets[i + 1] = onsets[i] + note["duration"] + note["silence"]; 
-    }
-    note_events = note_events.concat([{time: onsets[i], note: note_list[i]}])
+    note_events = note_events.concat([{time: note.onset, note: note_list[i]}])
   }
 
   new Tone.Part(((time, value) => {
@@ -150,8 +146,8 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     let pan = note["pan"];
     let N = pitches.length;
     let specs = {...stimulus["channels"][note["channel"]]["synth"]};
-
-    specs["duration"] = note["duration"]
+    let duration = note["duration"];
+    let volume = note["volume"];
 
     for (key in DEFAULT_PARAMS) {
       if (!(key in specs)){
@@ -165,15 +161,15 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     freqs = []
     for (i=0;i<N;i++){
       freqs = freqs.concat([util.midi2freq(pitches[i])])
-    } 
+    }
     
     if (specs["type"] in ADDITIVE_TYPES) {
       let synthesizer = new ADDITIVE_TYPES[specs["type"]](specs)
       freqs = util.post_pad(freqs, specs["max_num_pitches"], 0) // 0 frequency signifies no output
-      custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, pan)
-    } else if (INST_NAMES.includes(specs["type"])) {
+      custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, duration, pan, volume)
+    } else if (Object.keys(LOADED_INSTRUMENTS).includes(specs["type"])) {
       let instrument = LOADED_INSTRUMENTS[specs["type"]]
-      instrument.triggerAttackRelease(freqs, specs["duration"], time)
+      instrument.triggerAttackRelease(freqs, duration, time, volume)
     } else {
       throw {name : "NotImplementedError", message : "Timbre type not implemented!"};
     }
@@ -230,14 +226,14 @@ util_gaussian = function(x,mu,sigma){
   return 1 / N * Math.exp(-1 * ((x - mu) ** 2) / (2 * sigma ** 2))
 }
 
-custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,pan){
+custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan,volume){
   var ampEnv = active_nodes["envelope"];
   ampEnv.attack = synth.attack;
   ampEnv.decay = synth.decay;
   ampEnv.sustain = synth.sustain_amp;
   ampEnv.release = synth.release;
 
-  console.assert(synth.duration - synth.attack - synth.decay - synth.release > 0, "The sum of attack, decay and release phases cannot exceed the full duration of the tone!")
+  console.assert(synth.duration - synth.attack - synth.decay - synth.release >= 0, "The sum of attack, decay and release phases cannot exceed the full duration of the tone!")
 
   for (i = 0; i < specs["max_num_pitches"]; i++){
     freq = freqs[i]
@@ -263,6 +259,10 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,pan){
         }
         gain.gain.value = sweights[j] * synth.amps[k] ;
 
+        if (volume) {
+            gain.gain.value *= volume;
+        }
+
         let panner = tone_nodes[j][k][2]
         if (pan[i]) {
           panner.pan.value = pan[i];
@@ -272,7 +272,7 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,pan){
       }
     }
   }
-  ampEnv.triggerAttackRelease(synth.duration - synth.release, time)
+  ampEnv.triggerAttackRelease(duration - synth.release, time);
 }
 
 generate_additive_nodes = function(options){

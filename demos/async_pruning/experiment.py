@@ -20,18 +20,14 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.experiment import scheduled_task
 from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
+from psynet.process import WorkerAsyncProcess
 from psynet.timeline import Timeline
-from psynet.trial.gibbs import (
-    GibbsNetwork,
-    GibbsNode,
-    GibbsSource,
-    GibbsTrial,
-    GibbsTrialMaker,
-)
+from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -69,7 +65,6 @@ class ColorSliderPage(ModularPage):
             label=label,
             prompt=Prompt(prompt),
             control=SliderControl(
-                label=label,
                 start_value=starting_values[selected_idx],
                 min_value=0,
                 max_value=255,
@@ -93,11 +88,6 @@ class ColorSliderPage(ModularPage):
 
 
 class CustomNetwork(GibbsNetwork):
-    vector_length = 3
-
-    def random_sample(self, i):
-        return random.randint(0, 255)
-
     def make_definition(self):
         return {"target": self.balance_across_networks(TARGETS)}
 
@@ -108,7 +98,7 @@ class CustomNetwork(GibbsNetwork):
         logger.info(
             "Running custom async_post_grow_network function (network id = %i)", self.id
         )
-        if self.num_nodes > 1:
+        if self.n_alive_nodes > 1:
             if self.head.id % 3 == 0:
                 assert False
             elif self.head.id % 4 == 0:
@@ -183,11 +173,10 @@ class CustomTrial(GibbsTrial):
 
 
 class CustomNode(GibbsNode):
-    pass
+    vector_length = 3
 
-
-class CustomSource(GibbsSource):
-    pass
+    def random_sample(self, i):
+        return random.randint(0, 255)
 
 
 class CustomTrialMaker(GibbsTrialMaker):
@@ -203,20 +192,19 @@ trial_maker = CustomTrialMaker(
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    source_class=CustomSource,
-    phase="experiment",  # can be whatever you like
     chain_type="across",  # can be "within" or "across"
-    num_trials_per_participant=4,
-    num_iterations_per_chain=5,  # note that the final node receives no trials
-    num_chains_per_participant=None,  # set to None if chain_type="across"
-    num_chains_per_experiment=4,  # set to None if chain_type="within"
+    expected_trials_per_participant=4,
+    max_trials_per_participant=4,
+    max_nodes_per_chain=5,  # note that the final node receives no trials
+    chains_per_participant=None,  # set to None if chain_type="across"
+    chains_per_experiment=4,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_participants",
-    target_num_participants=10,
+    recruit_mode="n_participants",
+    target_n_participants=10,
 )
 
 ##########################################################################################
@@ -228,6 +216,8 @@ trial_maker = CustomTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Asynchronous pruning demo"
+
     timeline = Timeline(
         NoConsent(),
         trial_maker,
@@ -240,7 +230,7 @@ class Exp(psynet.experiment.Experiment):
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
 
-    @scheduled_task("interval", minutes=1, max_instances=1)
+    @scheduled_task("interval", minutes=0.1, max_instances=1)
     @staticmethod
     def add_random_var_to_trials():
         trials = CustomTrial.query.all()
@@ -250,6 +240,37 @@ class Exp(psynet.experiment.Experiment):
                 # for a pre-existing asynchronous process to complete.
                 # One might implement more complex checks here, for example only running the
                 # task for trials that have already received a response from the participant.
-                t.queue_async_method(
-                    "expensive_computation", seed=random.randint(0, 10)
+                WorkerAsyncProcess(
+                    function=t.expensive_computation,
+                    arguments={
+                        "seed": random.randint(0, 10),
+                    },
                 )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        trials = bot.all_trials
+        trials.sort(key=lambda x: x.id)
+
+        assert not trials[0].failed
+        assert not trials[1].failed
+
+        assert trials[2].failed
+        assert trials[2].failed_reason.startswith(
+            "Exception in asynchronous process: AssertionError"
+        )
+
+        assert trials[3].failed
+        assert trials[3].failed_reason.startswith(
+            "Exception in asynchronous process: JobTimeoutException"
+        )
+
+    def test_experiment(self):
+        super().test_experiment()
+
+        expensive_computations = WorkerAsyncProcess.query.filter_by(
+            label="expensive_computation"
+        ).all()
+        assert len(expensive_computations) > 0
+
+        for _process in expensive_computations:
+            assert not _process.failed

@@ -1,13 +1,11 @@
-import pickle
 import re
 from datetime import datetime
 
-import flask
-import jsonpickle
 from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
 
+from .serialize import serialize, unserialize
 from .utils import get_logger
 
 logger = get_logger()
@@ -27,8 +25,13 @@ class PythonObject(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        sanitized = self.sanitize(value)
-        return jsonpickle.encode(sanitized)
+        try:
+            return self.serialize(value)
+        except Exception:
+            logger.error(
+                f"An error occurred when trying to serialize the following Python object to the database: {value}"
+            )
+            raise
 
     def process_literal_param(self, value, dialect):
         return value
@@ -36,35 +39,26 @@ class PythonObject(TypeDecorator):
     def process_result_value(self, value, dialect):
         if value is None:
             return None
-        return jsonpickle.decode(value)
+        try:
+            return self.unserialize(value)
+        except Exception:
+            pass
+
+    @classmethod
+    def serialize(cls, value):
+        return serialize(value)
+
+    @classmethod
+    def unserialize(cls, value):
+        return unserialize(value)
 
 
-class PythonDict(PythonObject):
-    def sanitize(self, value):
-        return dict(value)
+class _PythonList(PythonObject):
+    def serialize(self, value):
+        return super().serialize(list(value))
 
 
-class PythonList(PythonObject):
-    def sanitize(self, value):
-        return list(value)
-
-
-# These classes cannot be reliably pickled by the `jsonpickle` library.
-# Instead we fall back to Python's built-in pickle library.
-no_json_classes = [flask.Markup]
-
-
-class NoJSONHandler(jsonpickle.handlers.BaseHandler):
-    def flatten(self, obj, state):
-        state["bytes"] = pickle.dumps(obj, 0).decode("ascii")
-        return state
-
-    def restore(self, state):
-        return pickle.loads(state["bytes"].encode("ascii"))
-
-
-for cls in no_json_classes:
-    jsonpickle.register(cls, NoJSONHandler)
+PythonList = MutableList.as_mutable(_PythonList)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -96,9 +90,9 @@ def claim_field(name: str, extra_vars: dict, field_type=object):
     elif field_type is str:
         col = Column(String, nullable=True)
     elif field_type is list:
-        col = Column(MutableList.as_mutable(PythonList), nullable=True)
+        col = Column(PythonList, nullable=True)
     elif field_type is dict:
-        col = Column(MutableDict.as_mutable(PythonDict), nullable=True)
+        col = Column(PythonDict, nullable=True)
     elif field_type is object:
         col = Column(PythonObject, nullable=True)
     else:
@@ -119,7 +113,7 @@ def claim_var(
     def function(self):
         try:
             return unserialise(getattr(self.var, name))
-        except UndefinedVariableError:
+        except KeyError:
             if use_default:
                 return default()
             raise
@@ -140,10 +134,6 @@ def check_type(x, allowed):
             match = True
     if not match:
         raise TypeError(f"{x} did not have a type in the approved list ({allowed}).")
-
-
-class UndefinedVariableError(Exception):
-    pass
 
 
 class BaseVarStore:
@@ -176,12 +166,12 @@ class BaseVarStore:
         Raises
         ------
 
-        UndefinedVariableError
+        KeyError
             Thrown if the variable doesn't exist and no default value is provided.
         """
         try:
             return self.__getattr__(name)
-        except UndefinedVariableError:
+        except KeyError:
             if default == marker:
                 raise
             else:
@@ -229,7 +219,7 @@ class BaseVarStore:
         try:
             self.get(name)
             return True
-        except UndefinedVariableError:
+        except KeyError:
             return False
 
     def inc(self, name, value=1):
@@ -255,7 +245,7 @@ class BaseVarStore:
         Raises
         ------
 
-        UndefinedVariableError
+        KeyError
             Thrown if the variable doesn't exist.
         """
         original = self.get(name)
@@ -286,7 +276,7 @@ class BaseVarStore:
         Raises
         ------
 
-        UndefinedVariableError
+        KeyError
             Thrown if the variable doesn't exist.
         """
         if self.has(name):
@@ -349,53 +339,51 @@ class VarStore(BaseVarStore):
     def __init__(self, owner):
         self._owner = owner
 
+    def __repr__(self):
+        # data = {
+        #     key: self.decode_string(value) for key, value in self.get_vars().items()
+        # }
+        return f"VarStore: {self.__dict__['_owner'].vars}"
+
     def __getattr__(self, name):
         owner = self.__dict__["_owner"]
         if name == "_owner":
             return owner
-        elif name == "_all":
-            return self.get_vars()
         else:
-            return self.get_var(name)
+            data = self.__dict__["_owner"].vars
+            if data is None:
+                raise KeyError("The VarStore has not been initialized yet")
+            else:
+                return data[name]
 
-    def encode_to_string(self, obj):
-        return jsonpickle.encode(obj)
-
-    def decode_string(self, string):
-        return jsonpickle.decode(string)
-
-    def get_var(self, name):
-        vars_ = self.get_vars()
-        try:
-            return self.decode_string(vars_[name])
-        except KeyError:
-            raise UndefinedVariableError(f"Undefined variable: {name}.")
+    def items(self):
+        return self.__dict__["_owner"].vars.items()
 
     def __setattr__(self, name, value):
         if name == "_owner":
             self.__dict__["_owner"] = value
         else:
-            self.set_var(name, value)
+            if self.__dict__["_owner"].vars is None:
+                self.__dict__["_owner"].vars = {}
+            self.__dict__["_owner"].vars[name] = value
+            # self[name] = value
+            # self.set_var(name, value)
 
-    def set_var(self, name, value):
-        vars_ = self.get_vars()
-        value_encoded = self.encode_to_string(value)
-        vars_[name] = value_encoded
-        self.set_vars(vars_)
 
-    def get_vars(self):
-        vars_ = self.__dict__["_owner"].details
-        if vars_ is None:
-            vars_ = {}
-        return vars_.copy()
-
-    def set_vars(self, vars_):
-        # We need to copy the dictionary otherwise
-        # SQLAlchemy won't notice if we change it later.
-        self.__dict__["_owner"].details = vars_.copy()
-
-    def list(self):
-        return list(self._all.keys())
+# class DotDict(dict, BaseVarStore):
+#     def __setattr__(self, key, value):
+#         self[key] = value
+#
+#     def __getattr__(self, key):
+#         return self[key]
+#
+#
+# class _PythonDotDict(_PythonDict):
+#     def unserialize(cls, value):
+#         return DotDict(super().unserialize(value))
+#
+#
+# PythonDotDict = MutableDict.as_mutable(_PythonDotDict)
 
 
 def json_clean(x, details=False, contents=False):
@@ -415,6 +403,16 @@ def json_clean(x, details=False, contents=False):
         del x["metadata_"]
 
 
+def json_unpack_answer(x):
+    if "answer" in x and isinstance(x["answer"], dict):
+        answer = x["answer"]
+        del x["answer"]
+        for key, value in answer.items():
+            x[f"answer__{key}"] = value
+
+    return x
+
+
 def json_add_extra_vars(x, obj):
     def valid_key(key):
         return not re.search("^_", key)
@@ -423,27 +421,58 @@ def json_add_extra_vars(x, obj):
         if valid_key(key):
             try:
                 val = getattr(obj, key)
-            except UndefinedVariableError:
+            except KeyError:
                 val = None
             x[key] = val
 
     if hasattr(obj, "var") and isinstance(obj.var, VarStore):
-        for key in obj.var.list():
+        for key, value in obj.var.items():
             if valid_key(key):
-                x[key] = obj.var.get(key)
+                x[key] = value
 
     return x
 
 
+def is_basic_type(value):
+    return value is None or isinstance(value, (int, float, str, bool))
+
+
 def json_format_vars(x):
     for key, value in x.items():
+        # TODO - revisit this? Will need some concurrent edits in Dallinger,
+        # e.g. the logic for sending __json__() outputs to the dashboard.
         if isinstance(value, datetime):
-            new_val = value.strftime("%Y-%m-%d %H:%M")
-        elif not (
-            (value is None)
-            or isinstance(value, (int, float, str, bool, list, datetime))
-        ):
-            new_val = jsonpickle.encode(value)
-        else:
-            new_val = value
-        x[key] = new_val
+            value = value.strftime("%Y-%m-%d %H:%M:%S")
+        elif isinstance(value, MutableList):
+            value = list(value)
+        elif isinstance(value, MutableDict):
+            value = dict(value)
+
+        # if not is_basic_type(value):
+        #     value = serialize(value)
+
+        x[key] = value
+
+
+# class MutableDotDict(MutableDict, dict, BaseVarStore):
+#     def __setattr__(self, key, value):
+#         if self.is_internal(key):
+#             super().__setattr__(key, value)
+#         else:
+#             self[key] = value
+#
+#     def __getattr__(self, item):
+#         if self.is_internal(item):
+#             return super().__getattr__(item)
+#         return self[item]
+#
+#     def is_internal(self, key):
+#         return key.startswith("_")
+
+
+class _PythonDict(PythonObject):
+    def serialize(cls, value):
+        return super().serialize(dict(value))
+
+
+PythonDict = MutableDict.as_mutable(_PythonDict)

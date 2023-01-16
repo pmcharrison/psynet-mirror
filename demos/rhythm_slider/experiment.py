@@ -68,7 +68,7 @@ def new_example(
         ModularPage(
             "slider_page",
             prompt,
-            control=AudioSliderControl("slider_control", audio=media.audio, **kwargs),
+            control=AudioSliderControl(audio=media.audio, **kwargs),
             media=media,
             time_estimate=time_estimate,
         ),
@@ -77,6 +77,8 @@ def new_example(
 
 
 class CustomExp(psynet.experiment.Experiment):
+    label = "Demo rhythm slider"
+
     ids = [f"rhythm_{i}" for i in range(GRANULARITY_SLIDER)]
     ratios = np.linspace(0.1, 0.9, num=GRANULARITY_SLIDER)
 

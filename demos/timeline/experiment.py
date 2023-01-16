@@ -23,18 +23,11 @@ from psynet.timeline import (
     switch,
     while_loop,
 )
-from psynet.utils import get_logger
-
-logger = get_logger()
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
+    label = "Timeline demo"
+    initial_recruitment_size = 1
 
     variables = {
         "show_abort_button": True,
@@ -152,7 +145,7 @@ class Exp(psynet.experiment.Experiment):
             PageMaker(
                 lambda participant: [
                     ModularPage(
-                        "mp1",
+                        "shape",
                         Prompt(f"Participant {participant.id}, choose a shape:"),
                         control=PushButtonControl(
                             ["Square", "Circle"], arrange_vertically=False
@@ -160,7 +153,7 @@ class Exp(psynet.experiment.Experiment):
                         time_estimate=5,
                     ),
                     ModularPage(
-                        "mp2",
+                        "chord",
                         Prompt(f"Participant {participant.id}, choose a chord:"),
                         control=PushButtonControl(
                             ["Major", "Minor"], arrange_vertically=False
@@ -174,7 +167,7 @@ class Exp(psynet.experiment.Experiment):
             PageMaker(
                 lambda participant: InfoPage(
                     (
-                        "If accumulate_answers is True, then the answers are stored in a list, in this case: "
+                        "If accumulate_answers is True, then the answers are stored in a dictionary, in this case: "
                         + f"{participant.answer}."
                     ),
                     time_estimate=5,
