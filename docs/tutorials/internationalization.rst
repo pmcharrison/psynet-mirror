@@ -150,7 +150,7 @@ Open this file and add the translation to ``msgstr``:
 Compiling the translation
 -------------------------
 
-In order to use the translation in the software, we have to convert
+In order to use the translation in PsyNet (or in any other code), we have to convert
 the ``.po`` file to a machine-readable translation ``.mo``-file. You can
 do so by running:
 
@@ -161,19 +161,19 @@ do so by running:
 Combining translations
 ----------------------
 
-Many times you will have to update a translation because new strings are added, modified or removed. To manipulate the translation files and keep them updated, you can use the ``msgcat`` and ``msgmerge``. We will now have a quick look at them.
+Many times you will have to update a translation because new strings are added, modified or removed. To manipulate the translation files and keep them updated, you can use the ``msgcat`` and ``msgmerge`` commands. We will now have a quick look at them.
 
-::
+ .. note::
 
     msgcat filename_1.po filename_2.po -o output.po
 
 Given two .po files, `msgcat` concatenates these two files into a single one. Note: if the same key exists within both files but with different translations, then msgcat adds both translations to the new file and the translator should fix the conflict.
 
-::
+ .. note::
 
     msgmerge previous.po updated.po -o output.po [--no-fuzzy-matching]``
 
-To merge two translations, you can use ``msgmerge``. Imagine that you created a new PO file from all of your translatable strings from your code called ``updated.po``, but you already have the translations for a large part of the code in ``previous.po``. You can use ``msgmerge`` to only add the new entries of ``updated.po`` to ``previous.po`` and store the result in the final ``output.po`` file. The optional argument ``--no-fuzzy-matching`` will prevent the merging of fuzzy translations. Fuzzy matching means that it will not look for a 100% match, but will also keys which changed slightly. Fuzzy matched translations will be flagged with the keyword ``fuzzy``:
+To merge two translations, you can use ``msgmerge``. Imagine you created a new PO file from all of your translatable strings from your code called ``updated.po``, but you already have the translations for a large part of the code in ``previous.po``. You can use ``msgmerge`` to only add the new entries of ``updated.po`` to ``previous.po`` and store the result in the final ``output.po`` file. The optional argument ``--no-fuzzy-matching`` will prevent the merging of fuzzy translations. Fuzzy matching means that it will not look for a 100% match, but will also keys which changed slightly. Fuzzy matched translations will be flagged with the keyword ``fuzzy``:
 
 ::
 
@@ -204,57 +204,14 @@ However, since plurals are highly language dependent, it is generally *discourag
 
 Use high-level tools where possible!
 ------------------------------------
-Making mistakes in translation is easy and small mistakes in the translation can easily lead to runtime errors which are hard to catch without running the program (e.g., the string might expect a variable, but the translator forgot to mark it). Therefore, it is recommended to use high-level tools and not do the translation in a text editor.
+
+Making mistakes in translations is easy and small mistakes in a translation can easily lead to runtime errors which are hard to catch without running the program (e.g., the string might expect a variable, but the translator forgot to mark it). Therefore, it is recommended to use high-level tools and not do the translation in a text editor.
 
 
 We recommend using `POedit editor <https://poedit.net>`__ which warns the user about many potential issues in the translation. By saving a PO file, it will also automatically compile a MO file.
 
 .. warning::
     However, before saving the file with POedit or compiling it manually, you need to make sure that none of the strings are flagged as fuzzy (the translation entry would be marked as “Needs work”). If you don’t remove them, the translations for those strings will not be recognized.
-
-
-
-``internat``
-~~~~~~~~~~~~
-
-At the time of writing (January 2023) I am writing a small Python package ``internat`` that can help you with translations.
-
-Extract templates
-^^^^^^^^^^^^^^^^^
-
-It has a command line interface allowing you to add files to a POT
-template, e.g.:
-
-::
-
-   internat extract --input_path experiment.py --pot_path locales/experiment.pot [--start_with_fresh_file]
-
-``--start_with_fresh_file`` allows you to start with a new file.
-
-Automatic translation
-^^^^^^^^^^^^^^^^^^^^^
-
-It also supports automatic translation using Google Translate and DeepL:
-
-::
-
-   internat auto_translate --pot_path locales/experiment.pot  --output_language de --translator DeepL --formality formal
-
-Crowd-sourced translation
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-We are creating a new paradigm which can help crowd-sourcing the translation to users using an iterative paradigm called STEP-Translate. This process could be initiated using something like:
-
-::
-
-   internat verify --po_path locales/el/LC_MESSAGES/experiment.po
-
-Which will deploy an experiment for you in the target language. Once the experiment is finished, you can download the results as a PO file and use it as a translation.
-
-Other handy functions
-^^^^^^^^^^^^^^^^^^^^^
-
-``internat`` also comes with other command line functions: ``sort`` to sort a PO/POT file, ``unique`` to remove duplicate entries and ``compile`` to create a MO file with all fuzzy flags removed.
 
 
 Translating a PsyNet experiment
@@ -264,7 +221,7 @@ Now that we know the basics of ``gettext``, we can start translating our experim
 Loading the translation
 -----------------------
 
-Extracting and marking the translatable strings in PsyNet are the same as for any other Python script. For jinja templates (HTML files), you can use:
+Extracting and marking the translatable strings in PsyNet are the same as for any other Python script. For Jinja2 templates (HTML files), you can use:
 
 ::
 
@@ -291,25 +248,25 @@ To get the translation from the participant, we can run:
    )
 
 
-Note that ``_`` is an alias for ``gettext``, ``_p`` for ``pgettext`` and
+Note that ``_`` is an alias for ``gettext``, ``_p`` for ``pgettext``, and
 ``_np`` for ``npgettext``. ``participant.get_locale()`` will return the
 language settings of a participant.
 
 You can also set additional language settings in the experiment variables:
 
-- the number of supported languages the user can choose from
+- Supported languages the user can choose from
 
 ::
 
    supported_locales = ['en', 'de', 'nl']
 
--  The ability to change the translation during the experiment by the user
+-  The ability for the participant to change the translation during the experiment
 
 ::
 
    allow_switching_locale=True
 
 It is always possible to programmatically overwrite the language of the
-user by overwriting ``participant.var.locale``. To access the participant variable in the timeline, you can use pagemakers.
+user by overwriting ``participant.var.locale``. To access the `participant` variable in the timeline, you can use `PageMaker`.
 
 To see the translation in action, have a look at the ``translation`` demo.
