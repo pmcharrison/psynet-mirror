@@ -133,22 +133,22 @@
                 <div class="modal-content">
                     <span class="close">&times;</span>
                     <div style="margin: 20px">
-                        <h3>{{ pgettext('timeline_problem', 'In case of a problem, try the following:') }}</h3>
+                        <h3>{{ pgettext("timeline_problem", "In case of a problem, try the following:") }}</h3>
                         <ul>
-                            <li>{{ pgettext('timeline_problem', 'Reload the page.') }}</li>
-                            <li>{{ pgettext('timeline_problem', 'Check that your internet connection is working.') }}</li>
+                            <li>{{ pgettext("timeline_problem", "Reload the page.") }}</li>
+                            <li>{{ pgettext("timeline_problem", "Check that your internet connection is working.") }}</li>
                             <li>
                                 <a
                                         href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant.id }}%29"
                                         target="_top"
                                 >
-                                {{ pgettext('timeline_problem', "If the above doesn't help, send us an email with the following information:") }}
+                                {{ pgettext("timeline_problem", "If the above doesn't help, send us an email with the following information:") }}
                                 </a>
 
                                 <ol>
-                                    <li>{{ pgettext('timeline_problem', 'A link to the current web page;') }}</li>
-                                    <li>{{ pgettext('timeline_problem', 'Your Worker ID;') }}</li>
-                                    <li>{{ pgettext('timeline_problem', "The problem you're experiencing.") }}</li>
+                                    <li>{{ pgettext("timeline_problem", "A link to the current web page;") }}</li>
+                                    <li>{{ pgettext("timeline_problem", "Your Worker ID;") }}</li>
+                                    <li>{{ pgettext("timeline_problem", "The problem you're experiencing.") }}</li>
                                 </ol>
                             </li>
                         </ul>
@@ -160,12 +160,12 @@
         {% block resume_modal %}
             <div id="resume-modal" class="modal">
                 <div class="modal-content">
-                    <h3>{{ pgettext('timeline_resume', 'Are you ready?') }}</h3>
+                    <h3>{{ pgettext("timeline_resume", "Are you ready?") }}</h3>
                     <p>
-                        {{ pgettext('timeline_resume', "Click the button when you're ready to continue the experiment.") }}
+                        {{ pgettext("timeline_resume", "Click the button when you're ready to continue the experiment.") }}
                     </p>
                     <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume-button">
-                        {{ pgettext('timeline_resume', "Resume") }}
+                        {{ pgettext("timeline_resume", "Resume") }}
                     </button>
                 </div>
             </div>
@@ -211,7 +211,7 @@
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
                         {% if show_bonus %}
                             <div class="footer-text">
-                                {{ pgettext('timeline', 'Bonus') }}:
+                                {{ pgettext("timeline", "Bonus") }}:
                                 <strong>
                                     <span id="bonus-details" style="display: none">
                                         {{ currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
@@ -237,7 +237,7 @@
                             </select>
                         </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary" id="help-button">{{ pgettext('timeline', 'Help!') }}</button>
+                        <button type="button" class="btn btn-primary" id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
                 </div>
             </nav>

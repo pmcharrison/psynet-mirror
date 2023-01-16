@@ -1,7 +1,7 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-    {{ pgettext('final_page_successful', "That's the end of the experiment!") }}
+    {{ pgettext("final_page_successful", "That's the end of the experiment!") }}
     {% if experiment.var.show_bonus %}
         {% include "final-page-bonuses.html" %}
     {% endif %}
