@@ -243,6 +243,7 @@
             </nav>
         {% endif %}
         <script>
+        // Allows the user to switch the language of the experiment if this setting is enabled.
         $('#iso-language').on('change', function (x){
             var $_GET=[];
             window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(a,name,value){$_GET[name]=value;});
