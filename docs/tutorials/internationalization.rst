@@ -17,7 +17,7 @@ Let’s install ``gettext``:
 ::
 
    $ sudo apt-get install gettext # for Ubuntu-based distributions
-   $ brew install gettext # for MacOS
+   $ brew install gettext # for macOS
 
 
 How does ``gettext`` work?
@@ -162,13 +162,17 @@ Combining translations
 
 Many times you will have to update a translation because new strings are added, modified or removed. To manipulate the translation files and keep them updated, you can use the ``msgcat`` and ``msgmerge`` commands. We will now have a quick look at them.
 
- .. note::
+::
 
     msgcat filename_1.po filename_2.po -o output.po
 
-Given two .po files, `msgcat` concatenates these two files into a single one. Note: if the same key exists within both files but with different translations, then msgcat adds both translations to the new file and the translator should fix the conflict.
+Given two .po files, ``msgcat`` concatenates these two files into a single one.
 
- .. note::
+.. note::
+
+    If the same key exists within both files but with different translations, then ``msgcat`` adds both translations to the new file and the translator should fix the conflict.
+
+::
 
     msgmerge previous.po updated.po -o output.po [--no-fuzzy-matching]``
 
@@ -266,6 +270,6 @@ You can also set additional language settings in the experiment variables:
    allow_switching_locale=True
 
 It is always possible to programmatically overwrite the language of the
-user by overwriting ``participant.var.locale``. To access the `participant` variable in the timeline, you can use :class:`~psynet.timeline.PageMaker`.
+user by overwriting ``participant.var.locale``. To access the ``participant`` variable in the timeline, you can use :class:`~psynet.timeline.PageMaker`.
 
 To see the translation in action, have a look at the ``translation`` demo.
