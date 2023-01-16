@@ -1,11 +1,12 @@
-from flask import Markup
 from os.path import abspath
+
+from flask import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Timeline, join, PageMaker
+from psynet.timeline import PageMaker, Timeline, join
 from psynet.utils import get_logger, get_translator
 
 logger = get_logger()
@@ -14,12 +15,12 @@ logger = get_logger()
 def timeline(participant):
     locale = participant.get_locale()
     _, _p, _np = get_translator(
-        locale=locale,
-        module='experiment',
-        localedir=abspath('locales')
+        locale=locale, module="experiment", localedir=abspath("locales")
     )
     return join(
-        InfoPage(_p("welcome-page", "Welcome to the translation demo!"), time_estimate=2),
+        InfoPage(
+            _p("welcome-page", "Welcome to the translation demo!"), time_estimate=2
+        ),
         InfoPage(
             Markup(
                 "<h2>"
@@ -37,7 +38,7 @@ def timeline(participant):
         InfoPage(
             Markup(
                 "<h2>"
-                + f"You can also change the translation during the experiment if you like. Try switching to another language!"
+                + "You can also change the translation during the experiment if you like. Try switching to another language!"
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
@@ -54,11 +55,15 @@ def timeline(participant):
                 "You can also translate text in push buttons or any kind of page!"
             ),
             control=PushButtonControl(
-                [_p("button", "Click"), _p("button", "on"), _p("button", "translation")],
+                [
+                    _p("button", "Click"),
+                    _p("button", "on"),
+                    _p("button", "translation"),
+                ],
                 arrange_vertically=False,
             ),
             time_estimate=4,
-        )
+        ),
     )
 
 
@@ -66,7 +71,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Translation demo"
 
     variables = {
-        "supported_locales":  ['en', 'de', 'nl'],
+        "supported_locales": ["en", "de", "nl"],
         "allow_switching_locale": True,
     }
     timeline = Timeline(

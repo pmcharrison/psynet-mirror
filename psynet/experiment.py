@@ -70,13 +70,13 @@ from .utils import (
     disable_logger,
     error_page,
     get_arg_from_dict,
+    get_language,
     get_logger,
     log_time_taken,
     pretty_log_dict,
+    render_template_with_translations,
     serialise,
     working_directory,
-    render_template_with_translations,
-    get_language,
 )
 
 logger = get_logger()
@@ -1350,7 +1350,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         new_locale = new_locale.lower()
         participant.var.set("locale", new_locale)
         db.session.commit()
-        logger.info(f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'.")
+        logger.info(
+            f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
+        )
         return success_response()
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])

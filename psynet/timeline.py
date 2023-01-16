@@ -22,7 +22,6 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .utils import render_string_with_translations, get_language_dict
 from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
@@ -31,9 +30,11 @@ from .utils import (
     dict_to_js_vars,
     format_datetime_string,
     get_args,
+    get_language_dict,
     get_logger,
     log_time_taken,
     merge_dicts,
+    render_string_with_translations,
     serialise,
     time_logger,
     unserialise_datetime,
@@ -1090,12 +1091,16 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
-            "supported_language_dict": {iso: language_dict[iso] for iso in experiment.var.supported_locales},
+            "supported_language_dict": {
+                iso: language_dict[iso] for iso in experiment.var.supported_locales
+            },
             "currency": experiment.var.currency,
             "current_locale": locale,
             "allow_switching_locale": experiment.var.allow_switching_locale,
         }
-        return render_string_with_translations(template_string=self.template_str, locale=locale, **all_template_arg)
+        return render_string_with_translations(
+            template_string=self.template_str, locale=locale, **all_template_arg
+        )
 
     @property
     def define_media_requests(self):

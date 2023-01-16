@@ -1,5 +1,6 @@
 import base64
 import contextlib
+import gettext
 import hashlib
 import importlib
 import importlib.util
@@ -11,23 +12,22 @@ import re
 import sys
 import time
 from collections import OrderedDict
-from babel.support import Translations
-from flask import url_for
-from flask.globals import current_app, request
-from flask.templating import _render, Environment
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
+from os.path import abspath, dirname, exists
+from os.path import join as join_path
 from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
-import gettext
-from os.path import abspath, dirname, exists
-from os.path import join as join_path
 
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
+from babel.support import Translations
 from dallinger.config import config, get_config
+from flask import url_for
+from flask.globals import current_app, request
+from flask.templating import Environment, _render
 
 
 def get_logger():
@@ -503,23 +503,26 @@ def get_language():
     return config.get("language")
 
 
-
-def _render_with_translations(locale, template_name=None, template_string=None, all_template_args=None):
+def _render_with_translations(
+    locale, template_name=None, template_string=None, all_template_args=None
+):
     """Render a template with translations applied."""
 
     if all_template_args is None:
         all_template_args = {}
-    assert [template_name, template_string].count(None) == 1, \
-        "Only one of template_name or template_string should be provided."
+    assert [template_name, template_string].count(
+        None
+    ) == 1, "Only one of template_name or template_string should be provided."
 
     app = current_app._get_current_object()  # type: ignore[attr-defined]
     gettext, pgettext, npgettext = get_translator(locale)
     gettext_functions = [gettext, pgettext, npgettext, url_for]
     gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
-    translation = Translations.load('translations', [locale])
+    translation = Translations.load("translations", [locale])
 
-
-    environment = Environment(loader=app.jinja_env.loader, extensions=['jinja2.ext.i18n'], app=app)
+    environment = Environment(
+        loader=app.jinja_env.loader, extensions=["jinja2.ext.i18n"], app=app
+    )
     environment.install_gettext_translations(translation)
 
     environment.globals.update(**gettext_abbr)
@@ -530,38 +533,57 @@ def _render_with_translations(locale, template_name=None, template_string=None, 
         template = environment.from_string(template_string)
     return _render(app, template, all_template_args)
 
-def render_template_with_translations(template_name, locale=None,  **kwargs):
-    return _render_with_translations(template_name=template_name, locale=locale, all_template_args=kwargs)
 
-def render_string_with_translations(template_string, locale=None,  **kwargs):
-    return _render_with_translations(template_string=template_string, locale=locale, all_template_args=kwargs)
+def render_template_with_translations(template_name, locale=None, **kwargs):
+    return _render_with_translations(
+        template_name=template_name, locale=locale, all_template_args=kwargs
+    )
 
-def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dirname(__file__)), 'locales')):
+
+def render_string_with_translations(template_string, locale=None, **kwargs):
+    return _render_with_translations(
+        template_string=template_string, locale=locale, all_template_args=kwargs
+    )
+
+
+def get_translator(
+    locale=None,
+    module="psynet",
+    localedir=join_path(abspath(dirname(__file__)), "locales"),
+):
     if locale is None:
         try:
             GET = request.args.to_dict()
-            possible_keys = ['assignmentId', 'workerId', 'participantId']
+            possible_keys = ["assignmentId", "workerId", "participantId"]
             from psynet.participant import Participant
+
             if any([key in GET for key in possible_keys]):
-                if 'assignmentId' in GET:
-                    participant = Participant.query.filter_by(assignment_id=GET['assignment_id']).one()
-                elif 'workerId' in GET:
-                    participant = Participant.query.filter_by(worker_id=int(GET['worker_id'])).one()
-                elif 'participantId' in GET:
-                    participant = Participant.query.filter_by(id=GET['participant_id']).one()
+                if "assignmentId" in GET:
+                    participant = Participant.query.filter_by(
+                        assignment_id=GET["assignment_id"]
+                    ).one()
+                elif "workerId" in GET:
+                    participant = Participant.query.filter_by(
+                        worker_id=int(GET["worker_id"])
+                    ).one()
+                elif "participantId" in GET:
+                    participant = Participant.query.filter_by(
+                        id=GET["participant_id"]
+                    ).one()
                 locale = participant.var.locale
-        except:
+        except Exception:
             pass
     if locale is None:
         locale = get_language()
-    if exists(join_path(localedir, locale, 'LC_MESSAGES', f'{module}.mo')):
+    if exists(join_path(localedir, locale, "LC_MESSAGES", f"{module}.mo")):
         translator = gettext.translation(module, localedir, [locale])
     else:
-        if locale != 'en':
-            logger.warning(f'No translation file found for locale {locale}.')
+        if locale != "en":
+            logger.warning(f"No translation file found for locale {locale}.")
         translator = gettext.NullTranslations()
 
     return translator.gettext, translator.pgettext, translator.npgettext
+
 
 def countries(locale=None):
     """
@@ -1029,21 +1051,24 @@ def languages(locale=None):
         ("zu", _p("language_name", "Zulu")),
     ]
 
+
 def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
-    dictionary = dict(zip(
-        [key for key, value in tuple_list],
-        [value for key, value in tuple_list]
-    ))
+    dictionary = dict(
+        zip([key for key, value in tuple_list], [value for key, value in tuple_list])
+    )
     if sort_by_value:
         return dict(OrderedDict(sorted(dictionary.items(), key=lambda t: t[1])))
     else:
         return dictionary
 
+
 def get_language_dict(locale, sort_by_name=True):
     return _get_entity_dict_from_tuple_list(languages(locale), sort_by_name)
 
+
 def get_country_dict(locale, sort_by_name=True):
     return _get_entity_dict_from_tuple_list(countries(locale), sort_by_name)
+
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
     import numpy as np
@@ -1067,7 +1092,10 @@ def error_page(
     config = get_config()
     _, _p, _np = get_translator(locale)
     if error_text is None:
-        error_text = _p("error-msg", "There has been an error and so you are unable to continue, sorry!")
+        error_text = _p(
+            "error-msg",
+            "There has been an error and so you are unable to continue, sorry!",
+        )
 
     if participant is not None:
         hit_id = participant.hit_id
