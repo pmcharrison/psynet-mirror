@@ -273,7 +273,7 @@ def debug(ctx):
 )
 def sandbox(*args, **kwargs):
     raise click.ClickException(
-        "`psynet sandbox` has been replaced with `psynet heroku debug`, please use the latter."
+        "`psynet sandbox` has been replaced with `psynet debug heroku`, please use the latter."
     )
 
 
