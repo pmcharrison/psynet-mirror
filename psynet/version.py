@@ -3,7 +3,7 @@ import re
 
 # Bump versions by changing these two lines. setup.py will read them automatically.
 dallinger_minimum_version = "9.3.0"
-psynet_version = "10.0.0a1"
+psynet_version = "10.0.0rc0"
 
 dallinger_minimum_version_parts = dallinger_minimum_version.split(".")
 dallinger_maximum_major_version = int(dallinger_minimum_version_parts[0]) + 1
