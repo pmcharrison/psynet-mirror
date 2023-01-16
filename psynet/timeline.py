@@ -1062,7 +1062,7 @@ class Page(Elt):
         locale = participant.get_locale()
         language_dict = get_language_dict(locale)
 
-        all_template_arg = {
+        all_template_args = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
                 dict_to_js_vars({**self.js_vars, **internal_js_vars})
@@ -1099,7 +1099,7 @@ class Page(Elt):
             "allow_switching_locale": experiment.var.allow_switching_locale,
         }
         return render_string_with_translations(
-            template_string=self.template_str, locale=locale, **all_template_arg
+            template_string=self.template_str, locale=locale, **all_template_args
         )
 
     @property
