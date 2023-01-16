@@ -12,7 +12,7 @@
 
 #### Added
 - Added MIT license.
-- Added and updated experimenter and developer documentation; changed layout to `furo` theme .
+- Added and updated experimenter and developer documentation; changed layout to `furo` theme (author: Peter Harrison, reviewer: Frank Höger).
 
 #### Fixed
 - Fixed node details visualization in dashboard monitor (author: Peter Harrison).
