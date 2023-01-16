@@ -17,9 +17,8 @@ Let’s install ``gettext``:
 ::
 
    $ sudo apt-get install gettext # for Ubuntu-based distributions
-   $ brew install gettext # for Mac OS
+   $ brew install gettext # for MacOS
 
-To use ``gettext`` in Python, we'll also install the ``python-gettext`` module in our environment via ``pip install python-gettext``.
 
 How does ``gettext`` work?
 --------------------------
@@ -56,16 +55,16 @@ We can create the PO Template (``.pot``) file by running the following command i
 
    xgettext -d experiment -o locales/experiment.pot example.py
 
-The ``xgettext`` consists of three arguments:
+The ``xgettext`` command consists of three arguments:
 
-1. ``-d`` indicating the name of the module. Modules are like namespaces, for example, translations in PsyNet will use the module ``psynet``. For experiments, I prefer to use the module name ``experiment``
-2. Translation files are stored in the ``locales`` folder. Make sure you have created one in your experiment. You can do this by running:
+1. ``-d`` indicating the name of the module. Modules are like namespaces, for example, translations in PsyNet will use the module ``psynet``. For experiments, we recommend using the module name ``experiment``
+2. Translation files are stored in the ``locales`` folder. Make sure you have created one in your experiment. You can do this by running in your experiment directory:
 
 ::
 
    mkdir locales
 
-3. Finally, you need to pass in the file. Here we use one file (``example.py``), but you can add multiple files , e.g. all Python files in a folder:
+3. Finally, you need to pass in the file. Here we use one file (``example.py``), but you can add multiple files, e.g. all Python files in a folder:
 
 ::
 
@@ -79,8 +78,8 @@ PO format
 
 Let’s have a look at the PO format by opening
 ``locales/experiment.pot``. You can see a lot of entries starting with
-``msgid`` and ``msgstr``. The first entry contains meta-information
-about the translation.
+``msgid`` and ``msgstr``. The first entry looks like this and has meta-information
+about the translation:
 
 ::
 
@@ -267,6 +266,6 @@ You can also set additional language settings in the experiment variables:
    allow_switching_locale=True
 
 It is always possible to programmatically overwrite the language of the
-user by overwriting ``participant.var.locale``. To access the `participant` variable in the timeline, you can use `PageMaker`.
+user by overwriting ``participant.var.locale``. To access the `participant` variable in the timeline, you can use :class:`~psynet.timeline.PageMaker`.
 
 To see the translation in action, have a look at the ``translation`` demo.
