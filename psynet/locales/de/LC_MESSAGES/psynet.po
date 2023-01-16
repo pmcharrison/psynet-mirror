@@ -592,7 +592,7 @@ msgstr ""
 #. "Abbruch ist nicht m\u00f6glich.", "Kein Abbruch m\u00f6glich."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:34
 #, fuzzy
-msgctxt "abbort_not_possible"
+msgctxt "abort_not_possible"
 msgid "Aborting not possible."
 msgstr "Abbruch nicht möglich."
 
@@ -605,7 +605,7 @@ msgstr "Abbruch nicht möglich."
 #. dies derzeit nicht zul\u00e4sst!"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:37
 #, fuzzy
-msgctxt "abbort_not_possible"
+msgctxt "abort_not_possible"
 msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
@@ -650,7 +650,7 @@ msgstr ""
 #. Informationen zu Ihrem derzeitigen Bonus."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:40
 #, fuzzy
-msgctxt "abbort_not_possible"
+msgctxt "abort_not_possible"
 msgid "See below information on your currently accumulated bonus."
 msgstr "Hier finden Sie Informationen zu Ihrem derzeit angesammelten Bonus."
 
