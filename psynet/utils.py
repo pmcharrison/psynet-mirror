@@ -524,7 +524,7 @@ def _render_with_translations(locale, template_name=None, template_string=None, 
 
     environment.globals.update(**gettext_abbr)
 
-    if template_name:
+    if template_name is not None:
         template = environment.get_template(template_name)
     else:
         template = environment.from_string(template_string)
