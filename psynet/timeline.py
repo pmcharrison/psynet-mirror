@@ -1,35 +1,42 @@
 # pylint: disable=abstract-method
 
 import json
+import random
 import time
 import warnings
 from collections import Counter
 from datetime import datetime
-from functools import reduce
+from functools import cached_property, reduce
 from statistics import median
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Type, Union
 
 import flask
 import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import claim_field
-from .participant import Participant
+from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
-    call_function,
+    call_function_with_context,
     check_function_args,
     dict_to_js_vars,
     format_datetime_string,
+    get_args,
+    get_language_dict,
     get_logger,
+    log_time_taken,
     merge_dicts,
+    render_string_with_translations,
     serialise,
+    time_logger,
     unserialise_datetime,
 )
 
@@ -160,6 +167,7 @@ class Elt:
     time_estimate = None
     expected_repetitions = None
     id = None
+    created_within_page_maker = False
 
     def consume(self, experiment, participant):
         raise NotImplementedError
@@ -174,6 +182,9 @@ class Elt:
 
 class NullElt(Elt):
     def consume(self, experiment, participant):
+        pass
+
+    def render(self, experiment, participant):
         pass
 
 
@@ -194,10 +205,16 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        call_function(
+        with time_logger("CodeBlock pre-commit", indent=2):
+            db.session.commit()
+        call_function_with_context(
             self.function,
-            {"self": self, "experiment": experiment, "participant": participant},
+            self=self,
+            experiment=experiment,
+            participant=participant,
         )
+        with time_logger("CodeBlock post-commit", indent=2):
+            db.session.commit()
 
 
 class FixTime(Elt):
@@ -273,9 +290,11 @@ class ReactiveGoTo(GoTo):
             raise TypeError("<targets> must be a dictionary of Elt objects.")
 
     def get_target(self, experiment, participant):
-        val = call_function(
+        val = call_function_with_context(
             self.function,
-            {"self": self, "experiment": experiment, "participant": participant},
+            self=self,
+            experiment=experiment,
+            participant=participant,
         )
         try:
             return self.targets[val]
@@ -329,6 +348,8 @@ class MediaSpec:
         image: Optional[dict] = None,
         video: Optional[dict] = None,
     ):
+        from .asset import Asset
+
         if audio is None:
             audio = {}
 
@@ -339,6 +360,15 @@ class MediaSpec:
             video = {}
 
         self.data = {"audio": audio, "image": image, "video": video}
+
+        for modality in self.data.values():
+            for key, value in modality.items():
+                if isinstance(value, Asset):
+                    modality[key] = value.url
+                elif isinstance(value, dict):
+                    for _key, _value in value.items():
+                        if isinstance(_value, Asset):
+                            value[_key] = _value.url
 
         assert list(self.data) == self.modalities
 
@@ -729,14 +759,12 @@ class Page(Elt):
         if self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot)
         elif callable(self._bot_response):
-            res = call_function(
+            res = call_function_with_context(
                 self._bot_response,
-                args={
-                    "experiment": experiment,
-                    "bot": bot,
-                    "participant": bot,
-                    "page": self,
-                },
+                experiment=experiment,
+                bot=bot,
+                participant=bot,
+                page=self,
             )
         else:
             res = self._bot_response
@@ -755,7 +783,7 @@ class Page(Elt):
         ``BotResponse`` object which contains other parameters
         such as ``blobs`` and ``metadata``.
         """
-        return None
+        raise NotImplementedError
 
     def prepare_default_events(self):
         return {
@@ -818,6 +846,7 @@ class Page(Elt):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
+    @log_time_taken
     def process_response(
         self,
         raw_answer,
@@ -835,6 +864,15 @@ class Page(Elt):
         if metadata is None:
             metadata = {}
 
+        resp = Response(
+            participant=participant,
+            label=self.label,
+            page_type=type(self).__name__,
+            client_ip_address=client_ip_address,
+        )
+        db.session.add(resp)
+        db.session.commit()
+
         if answer == NoArgumentProvided:
             answer = self.format_answer(
                 raw_answer,
@@ -842,6 +880,8 @@ class Page(Elt):
                 metadata=metadata,
                 experiment=experiment,
                 participant=participant,
+                trial=participant.current_trial,
+                response=resp,
             )
 
         extra_metadata = self.metadata(
@@ -854,24 +894,19 @@ class Page(Elt):
 
         combined_metadata = {**metadata, **extra_metadata}
 
-        resp = Response(
-            participant=participant,
-            label=self.label,
-            answer=answer,
-            page_type=type(self).__name__,
-            metadata=combined_metadata,
-            client_ip_address=client_ip_address,
-        )
+        resp.answer = answer
+        resp.metadata = combined_metadata
 
-        db.session.add(resp)
         db.session.commit()
 
         if self.save_answer:
             participant.last_response_id = resp.id
             if len(participant.answer_accumulators) > 0:
-                participant.answer_accumulators[-1] = participant.answer_accumulators[
-                    -1
-                ] + [resp.answer]
+                page_label = self.label
+                accumulator = participant.answer_accumulators[-1]
+                answer_label = self._find_answer_label(page_label, accumulator)
+                accumulator[answer_label] = resp.answer
+                flag_modified(participant, "answer_accumulators")
             else:
                 participant.answer = resp.answer
             participant.answer_is_fresh = True
@@ -886,6 +921,18 @@ class Page(Elt):
 
         db.session.commit()
         return resp
+
+    def _find_answer_label(self, page_label, accumulator):
+        if page_label not in accumulator:
+            return page_label
+        else:
+            i = 0
+            while i < 1e7:
+                i += 1
+                label = f"{page_label}_{i}"
+                if label not in accumulator:
+                    return label
+        raise ValueError("Failed to construct an appropriate answer label")
 
     def metadata(self, **kwargs):
         """
@@ -1012,7 +1059,10 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
-        all_template_arg = {
+        locale = participant.get_locale()
+        language_dict = get_language_dict(locale)
+
+        all_template_args = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
                 dict_to_js_vars({**self.js_vars, **internal_js_vars})
@@ -1041,8 +1091,16 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
+            "supported_language_dict": {
+                iso: language_dict[iso] for iso in experiment.var.supported_locales
+            },
+            "currency": experiment.var.currency,
+            "current_locale": locale,
+            "allow_switching_locale": experiment.var.allow_switching_locale,
         }
-        return flask.render_template_string(self.template_str, **all_template_arg)
+        return render_string_with_translations(
+            template_string=self.template_str, locale=locale, **all_template_args
+        )
 
     @property
     def define_media_requests(self):
@@ -1096,11 +1154,13 @@ class PageMaker(Elt):
         function,
         time_estimate,
         accumulate_answers: bool = False,
+        label: str = "page_maker",
     ):
         self.function = function
         self.time_estimate = time_estimate
         self.accumulate_answers = accumulate_answers
         self.expected_repetitions = 1
+        self.label = label
 
     def resolve(self, experiment, participant, position):
         """
@@ -1125,13 +1185,16 @@ class PageMaker(Elt):
 
         A list of ``Elt`` objects.
         """
-        res = call_function(
+        res = call_function_with_context(
             self.function,
-            {"self": self, "experiment": experiment, "participant": participant},
+            self=self,
+            experiment=experiment,
+            participant=participant,
         )
         res = join(res)
         self.impute_time_estimates(res)
         self.check_time_estimates(res)
+
         res = join(
             StartAccumulateAnswers() if self.accumulate_answers else None,
             res,
@@ -1139,6 +1202,7 @@ class PageMaker(Elt):
         )
         for i, elt in enumerate(res):
             elt.id = position + [i]
+            elt.created_within_page_maker = True
         return res
 
     def impute_time_estimates(self, elts):
@@ -1199,7 +1263,7 @@ def multi_page_maker(
 
     accumulate_answers
         If ``False`` (default), then the final ``answer`` is simply the answer delivered by the final
-        page. If ``True``, then the answers to all the pages are accumulated in a list.
+        page. If ``True``, then the answers to all the pages are accumulated in a dict.
 
     check_num_pages
         IGNORED
@@ -1258,9 +1322,22 @@ class Timeline:
     def __init__(self, *args):
         elts = join(*args)
         self.elts = elts
+        self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
         self.estimated_time_credit = CreditEstimate(self.elts)
+
+    def compile_modules(self):
+        modules = {}
+        module_list = []
+        for elt in self.elts:
+            if isinstance(elt, StartModule):
+                module = elt.module
+                if module.id in modules:
+                    raise ValueError(f"Duplicated module name detected: {module.id}")
+                modules[module.id] = module
+                module_list.append(module)
+        return modules, module_list
 
     def check_elts(self):
         assert isinstance(self.elts, list)
@@ -1329,27 +1406,31 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
-    def modules(self):
+    # @property
+    # def modules(self):
+    #     return {
+    #         "modules": [
+    #             {"id": elt.module.id}
+    #             for elt in self.elts
+    #             if isinstance(elt, StartModule)
+    #         ]
+    #     }
+    #
+    # # def report_module_status(self):
+
+    @cached_property
+    def trial_makers(self):
         return {
-            "modules": [
-                {"id": elt.module.id}
-                for elt in self.elts
-                if isinstance(elt, StartModule)
-            ]
+            e.trial_maker_id: e.trial_maker
+            for e in self.elts
+            if isinstance(e, RegisterTrialMaker)
         }
 
     def get_trial_maker(self, trial_maker_id):
-        elts = self.elts
         try:
-            start = [
-                e
-                for e in elts
-                if isinstance(e, StartModule) and e.label == trial_maker_id
-            ][0]
+            return self.trial_makers[trial_maker_id]
         except IndexError:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
-        trial_maker = start.module
-        return trial_maker
 
     def add_elt_ids(self):
         for i, elt in enumerate(self.elts):
@@ -1370,6 +1451,7 @@ class Timeline:
     def __getitem__(self, key):
         return self.elts[key]
 
+    @log_time_taken
     def get_current_elt(self, experiment, participant):
         # Remember, ``participant.elt_id`` corresponds to a list representation
         # of the participant's position in the timeline, where the first element corresponds
@@ -1396,6 +1478,13 @@ class Timeline:
             # then:
             # depth: 0, 1, 2
             # index: 10, 3, 2
+            try:
+                # index_max tells us the maximum allowed elt_id at this level of the hierarchy.
+                # The top level is the number of Elts in the timeline, minus one;
+                # the next level is the number of Elts in the trialmaker minus one, and so on.
+                index_max = participant.elt_id_max[depth]
+            except IndexError:
+                index_max = None
             if depth == 0:
                 # We start just by going to the ith element in the timeline.
                 selected_elt = self[index]
@@ -1407,10 +1496,13 @@ class Timeline:
                     # depth: 2
                     # index: 2
                     # position: ``[10, 3]``
+                    if index_max is not None and index > index_max:
+                        raise IndexError
                     position = participant.elt_id[0:depth]
-                    selected_elt = selected_elt.resolve(
-                        experiment, participant, position
-                    )[index]
+                    resolved = selected_elt.resolve(experiment, participant, position)
+                    if index_max is None:
+                        participant.elt_id_max.append(len(resolved) - 1)
+                    selected_elt = resolved[index]
                 except IndexError:
                     # This occurs if the requested index goes past the number of
                     # elements produced by the current page maker.
@@ -1420,30 +1512,41 @@ class Timeline:
                     # to move to the next part of the timeline. In this case we therefore
                     # raise a ``PageMakerFinishedError``.
                     # However, if this happens at a higher level of ``participant.elt_id``,
-                    # something weird has happened, and so we don't catch that error.
-                    if depth + 1 == num_levels:
-                        raise PageMakerFinishedError
-                    raise
+                    # something weird has happened.
+                    assert depth + 1 == num_levels
+
+                    raise PageMakerFinishedError
+
         return selected_elt
 
+    @log_time_taken
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            participant.elt_id[-1] += 1
+            with time_logger("advance_page", indent=8):
+                with time_logger("advance_page update participant elt_id"):
+                    participant.elt_id[-1] += 1
 
-            try:
-                new_elt = self.get_current_elt(experiment, participant)
-            except PageMakerFinishedError:
-                participant.elt_id = participant.elt_id[:-1]
-                continue
-            if isinstance(new_elt, PageMaker):
-                participant.elt_id.append(-1)
-                continue
+                try:
+                    new_elt = self.get_current_elt(experiment, participant)
+                except PageMakerFinishedError:
+                    participant.elt_id = participant.elt_id[:-1]
+                    participant.elt_id_max = participant.elt_id_max[:-1]
+                    continue
+                if isinstance(new_elt, PageMaker):
+                    participant.elt_id.append(-1)
+                    continue
 
-            new_elt.consume(experiment, participant)
+                with time_logger(
+                    f"consuming elt {new_elt.id} ({type(new_elt)})", indent=12
+                ):
+                    new_elt.consume(experiment, participant)
 
-            if isinstance(new_elt, Page):
-                finished = True
+                # with time_logger("advance_page commit"):
+                #     db.session.commit()
+
+                if isinstance(new_elt, Page):
+                    finished = True
 
     def estimated_max_bonus(self, wage_per_hour):
         return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
@@ -1564,18 +1667,22 @@ class Response(_Response):
 
     __extra_vars__ = {}
 
-    participant = relationship(Participant, backref="all_responses")
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
+    participant = relationship(
+        "psynet.participant.Participant",
+        backref="all_responses",
+        foreign_keys=[participant_id],
+    )
 
-    question = claim_field("question", __extra_vars__, str)
-    answer = claim_field("answer", __extra_vars__)
-    page_type = claim_field("page_type", __extra_vars__, str)
-    successful_validation = claim_field("successful_validation", __extra_vars__, bool)
-    client_ip_address = claim_field("client_ip_address", __extra_vars__, str)
+    question = Column(String)
+    answer = Column(PythonObject)
+    page_type = Column(String)
+    successful_validation = Column(Boolean)
+    client_ip_address = Column(String)
 
     # metadata is a protected attribute in SQLAlchemy, hence the underscore
     # and the functional setter/getter.
-    metadata_ = claim_field("metadata", __extra_vars__)
+    metadata_ = Column(PythonObject)
 
     @property
     def metadata(self):
@@ -1589,19 +1696,34 @@ class Response(_Response):
     def metadata(self, metadata):
         self.metadata_ = metadata
 
+    async_processes = relationship("AsyncProcess")
+    # assets = relationship(
+    #     "Asset", collection_class=attribute_mapped_collection("label_or_key")
+    # )
+
+    errors = relationship("ErrorRecord")
+
     def __init__(
-        self, participant, label, answer, page_type, metadata, client_ip_address
+        self,
+        participant,
+        label,
+        page_type,
+        client_ip_address,
+        answer=None,
+        metadata=None,
     ):
         self.participant_id = participant.id
         self.question = label
-        self.answer = answer
-        self.metadata = metadata
         self.page_type = page_type
         self.metadata = metadata
         self.client_ip_address = client_ip_address
+        self.answer = answer
+        self.metadata = metadata
 
 
-def is_list_of(x: list, what):
+def is_list_of(x, what):
+    if not isinstance(x, list):
+        return False
     for val in x:
         if not isinstance(val, what):
             return False
@@ -1609,13 +1731,17 @@ def is_list_of(x: list, what):
 
 
 def join(*args):
+    from .asset import AssetSpecification
+
+    valid_classes = (AssetSpecification, Elt, Module)
+
     for i, arg in enumerate(args):
         if not (
             (arg is None)
-            or (isinstance(arg, (Elt, Module)) or is_list_of(arg, (Elt, Module)))
+            or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module nor a list of such objects: ({arg})."
             )
 
     args = [a for a in args if a is not None]
@@ -1649,7 +1775,9 @@ def join(*args):
             elif isinstance(x, list) and isinstance(y, list):
                 return x + y
             else:
-                return Exception("An unexpected error occurred.")
+                raise ValueError(
+                    f"Don't know how to join the following two timeline components: {x}, {y}."
+                )
 
         return reduce(f, args)
 
@@ -1730,6 +1858,13 @@ def while_loop(
     logic = join(logic)
     logic = multiply_expected_repetitions(logic, expected_repetitions)
 
+    def condition_wrapped(participant, experiment):
+        result = call_function_with_context(
+            condition, participant=participant, experiment=experiment
+        )
+        logger.info(f"Evaluating while_loop ({label}) condition: result = {result}")
+        return result
+
     conditional_logic = join(logic, GoTo(start_while))
 
     def with_namespace(x=None):
@@ -1767,9 +1902,10 @@ def while_loop(
         start_while,
         conditional(
             "max_loop_time_condition",
-            lambda participant, experiment: call_function(
+            lambda participant, experiment: call_function_with_context(
                 max_loop_time_condition,
-                {"participant": participant, "experiment": experiment},
+                participant=participant,
+                experiment=experiment,
             ),
             after_timeout_logic,
             fix_time_credit=False,
@@ -1777,7 +1913,7 @@ def while_loop(
         ),
         conditional(
             label,
-            condition,
+            condition_wrapped,
             conditional_logic,
             fix_time_credit=False,
             log_chosen_branch=False,
@@ -1892,9 +2028,10 @@ class StartSwitch(ReactiveGoTo):
         if log_chosen_branch:
 
             def function_2(experiment, participant):
-                val = call_function(
+                val = call_function_with_context(
                     function,
-                    {"experiment": experiment, "participant": participant},
+                    experiment=experiment,
+                    participant=participant,
                 )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
@@ -2009,11 +2146,102 @@ def multiply_expected_repetitions(logic, factor: float):
     return logic
 
 
+@register_table
+class ModuleState(SQLBase, SQLMixin):
+    __tablename__ = "module_state"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True, unique=True)
+    module_id = Column(String)
+    # parent_id = Column(Integer, ForeignKey("module_state.id"))
+    # parent = relationship("ModuleState", foreign_keys=[parent_id], post_update=True)
+    participant_id = Column(
+        Integer,
+        ForeignKey("participant.id"),
+        # back_populates="_module_states",
+    )
+    participant = relationship(
+        "psynet.participant.Participant",
+        foreign_keys=[participant_id],
+        backref="_module_states",
+    )
+    # current_trial = Column(
+    #     PythonObject
+    # )  # Note: this can sometimes be a trial object or alternatively a string
+
+    @property
+    def var(self):
+        return VarStore(self)
+
+    time_started = Column(DateTime)
+    time_finished = Column(DateTime)
+    time_aborted = Column(DateTime)
+    started = Column(Boolean, default=False)
+    finished = Column(Boolean, default=False)
+    aborted = Column(Boolean, default=False)
+
+    assets = relationship(
+        # We see assets that belong to that module,
+        # and either belong to that participant, or belong to no other participants
+        "psynet.asset.Asset",
+        primaryjoin=(
+            "and_(foreign(ModuleState.module_id)==remote(psynet.asset.Asset.module_id), "
+            "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
+            "psynet.asset.Asset.participant_id.is_(None)))"
+        ),
+        uselist=True,
+        collection_class=attribute_mapped_collection("local_key"),
+    )
+
+    nodes = relationship(
+        # We see nodes that belong to that module,
+        # and either belong to that participant, or belong to no other participants
+        "psynet.trial.main.TrialNode",
+        primaryjoin=(
+            "and_(foreign(ModuleState.module_id)==remote(psynet.trial.main.TrialNode.module_id), "
+            "or_(ModuleState.participant_id==psynet.trial.main.TrialNode.participant_id, "
+            "psynet.trial.main.TrialNode.participant_id.is_(None)))"
+        ),
+        uselist=True,
+    )
+
+    def __init__(self, module, participant):
+        self.module_id = module.id
+        self.participant = participant
+
+    def start(self):
+        self.time_started = datetime.now()
+        self.started = True
+
+    def finish(self):
+        self.time_finished = datetime.now()
+        self.finished = True
+
+    def abort(self):
+        self.time_finished = datetime.now()
+        self.aborted = True
+
+    # def get(self, module_id: str):
+    #     return self.participant.get_module_state(module_id)
+
+
+class ModuleAssets:
+    def __init__(self, module_id):
+        self.module_id = module_id
+
+    def __getitem__(self, item):
+        from psynet.asset import Asset
+
+        return Asset.query.filter_by(local_key=item).one()
+
+
 class Module:
     default_id = None
     default_elts = None
+    state_class = ModuleState  # type: Type[ModuleState]
 
-    def __init__(self, id_: str = None, *args):
+    def __init__(
+        self, id_: str = None, *args, assets=None, nodes=None, state_class=None
+    ):
         elts = join(*args)
 
         if self.default_id is None and id_ is None:
@@ -2023,17 +2251,103 @@ class Module:
 
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
+        self.nodes = nodes if nodes else []
+
+        if assets is None:
+            self._staged_assets = []
+        elif isinstance(assets, dict):
+            self._staged_assets = []
+            for _local_key, _asset in assets.items():
+                _asset.local_key = _local_key
+                self._staged_assets.append(_asset)
+        else:
+            assert isinstance(assets, list)
+            self._staged_assets = assets
+
+        self.state_class = state_class if state_class else self.__class__.state_class
+
+        from psynet.asset import Asset
+
+        for elt in self.elts:
+            if isinstance(elt, Asset):
+                self._staged_assets.append(elt)
+
+        for asset in self._staged_assets:
+            asset.module_id = self.id
+
+    @property
+    def assets(self):
+        return ModuleAssets(self.id)
+
+    def prepare_for_deployment(self, experiment):
+        self.prepare_nodes_for_deployment(experiment)
+        self.prepare_assets_for_deployment(experiment)
+
+    def prepare_nodes_for_deployment(self, experiment):
+        self.nodes_register_in_db()
+        self.nodes_stage_assets(experiment)
+
+    def prepare_assets_for_deployment(self, experiment):
+        for asset in self._staged_assets:
+            experiment.assets.stage(asset)
+        db.session.commit()
+
+    def deposit_assets_on_the_fly(self):
+        if len(self._staged_assets) > 0:
+            logger.info(
+                "Depositing %i assets on-the-fly (i.e. while the participant waits for the "
+                "experiment to continue. This is a bad idea if the number of assets is large "
+                "and if they need to be uploaded to a remote server. "
+                "To avoid this, avoid defining your module/trial maker within a page maker.",
+                len(self._staged_assets),
+            )
+            for asset in self._staged_assets:
+                # TODO - parallelize this deposit, see code in Experiment class
+                asset.deposit()
+            db.session.commit()
+
+    def nodes_register_in_db(self):
+        for node in self.nodes:
+            db.session.add(node)
+            node.module_id = self.id
+            if node.network is None:
+                node.add_default_network()
+        db.session.commit()
+        for node in self.nodes:
+            node.check_on_create()
+            node.check_on_deploy()
+        db.session.commit()
+
+    def nodes_stage_assets(self, experiment):
+        for node in self.nodes:
+            node.stage_assets(experiment)
+        db.session.commit()
+
+    def start(self, participant):
+        state = self.state_class(self, participant)
+        state.start()
+        participant.module_state = state
+        db.session.add(state)
+        db.session.commit()
+
+    def end(self, participant):
+        # This should only fail (delivering multiple logs) if the experimenter has perversely
+        # defined a recursive module (or is reusing module ID)
+        state = self.state_class.query.filter_by(
+            module_id=self.id, participant_id=participant.id, finished=False
+        ).one()
+        state.finish()
+        db.session.commit()
+        participant.refresh_module_state()
+        db.session.commit()
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
+        logs = cls.state_class.query.filter_by(module_id=module_id, finished=True).all()
         return [
-            {
-                "time_started": participant.modules[module_id]["time_started"][0],
-                "time_finished": participant.modules[module_id]["time_finished"][0],
-                "time_aborted": participant.modules[module_id]["time_finished"][0],
-            }
-            for participant in participants
-            if module_id in participant.finished_modules
+            {"time_started": log.time_started, "time_finished": log.time_finished}
+            # "time_aborted": log.time_aborted,
+            for log in logs
         ]
 
     @classmethod
@@ -2065,37 +2379,60 @@ class Module:
     def aborted_participants(self):
         from .participant import Participant
 
-        participants = Participant.query.all()
-        aborted_participants = [p for p in participants if self.id in p.aborted_modules]
-        aborted_participants.sort(key=lambda p: p.modules[self.id]["time_aborted"][0])
-        return aborted_participants
+        return (
+            db.session.query(Participant)
+            .filter(self.state_class.module_id == self.id, self.state_class.aborted)
+            .order_by(self.state_class.time_aborted)
+            .all()
+        )
+
+        # participants = Participant.query.all()
+        # aborted_participants = [p for p in participants if self.id in p.aborted_modules]
+        # aborted_participants.sort(key=lambda p: p.modules[self.id]["time_aborted"][0])
+        # return aborted_participants
 
     @property
     def started_participants(self):
         from .participant import Participant
 
-        participants = Participant.query.all()
-        started_participants = [p for p in participants if self.id in p.started_modules]
-        started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
-        return started_participants
+        return (
+            db.session.query(Participant)
+            .filter(self.state_class.module_id == self.id, self.state_class.started)
+            .order_by(self.state_class.time_started)
+            .all()
+        )
+
+        # participants = Participant.query.all()
+        # started_participants = [p for p in participants if self.id in p.started_modules]
+        # started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
+        # return started_participants
 
     @property
     def finished_participants(self):
         from .participant import Participant
 
-        participants = Participant.query.all()
-        finished_participants = [
-            p for p in participants if self.id in p.finished_modules
-        ]
-        finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
-        return finished_participants
+        return (
+            db.session.query(Participant)
+            .filter(self.state_class.module_id == self.id, self.state_class.finished)
+            .order_by(self.state_class.time_finished)
+            .all()
+        )
+
+        # participants = Participant.query.all()
+        # finished_participants = [
+        #     p for p in participants if self.id in p.finished_modules
+        # ]
+        # finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
+        # return finished_participants
 
     def resolve(self):
-        return join(StartModule(self.id, module=self), self.elts, EndModule(self.id))
+        return join(
+            StartModule(self.id, module=self),
+            self.elts,
+            EndModule(self.id, module=self),
+        )
 
     def visualize(self):
-        phase = self.phase if hasattr(self, "phase") else None
-
         if self.started_participants:
             time_started_last = self.started_participants[-1].modules[self.id][
                 "time_started"
@@ -2117,9 +2454,6 @@ class Module:
             with tags.h4("Module"):
                 tags.i(self.id)
             with tags.ul(cls="details"):
-                if phase is not None:
-                    tags.li(f"Phase: {phase}")
-                    tags.br()
                 tags.li(f"Participants started: {len(self.started_participants)}")
                 tags.li(f"Participants finished: {len(self.finished_participants)}")
                 tags.li(f"Participants aborted: {len(self.aborted_participants)}")
@@ -2167,24 +2501,24 @@ class Module:
         return span.render()
 
     def get_progress_info(self):
-        target_num_participants = (
-            self.target_num_participants
-            if hasattr(self, "target_num_participants")
+        target_n_participants = (
+            self.target_n_participants
+            if hasattr(self, "target_n_participants")
             else None
         )
         # TODO a more sophisticated calculation of progress
         progress = (
-            len(self.finished_participants) / target_num_participants
-            if target_num_participants is not None and target_num_participants > 0
+            len(self.finished_participants) / target_n_participants
+            if target_n_participants is not None and target_n_participants > 0
             else 1
         )
 
         return {
             self.id: {
-                "started_num_participants": len(self.started_participants),
-                "finished_num_participants": len(self.finished_participants),
-                "aborted_num_participants": len(self.aborted_participants),
-                "target_num_participants": target_num_participants,
+                "started_n_participants": len(self.started_participants),
+                "finished_n_participants": len(self.finished_participants),
+                "aborted_n_participants": len(self.aborted_participants),
+                "target_n_participants": target_n_participants,
                 "progress": progress,
             }
         }
@@ -2197,45 +2531,31 @@ class StartModule(NullElt):
         self.module = module
 
     def consume(self, experiment, participant):
-        participant.start_module(self.label)
+        self.module.start(participant)
+
+        if self.created_within_page_maker:
+            self.module.deposit_assets_on_the_fly()
 
 
 class EndModule(NullElt):
-    def __init__(self, label):
+    def __init__(self, label, module):
         super().__init__()
         self.label = label
+        self.module = module
 
     def consume(self, experiment, participant):
-        participant.end_module(self.label)
+        self.module.end(participant)
 
 
 class StartAccumulateAnswers(NullElt):
     def consume(self, experiment, participant):
-        participant.answer_accumulators = participant.answer_accumulators + [[]]
+        participant.answer_accumulators = participant.answer_accumulators + [{}]
 
 
 class EndAccumulateAnswers(NullElt):
     def consume(self, experiment, participant):
         participant.answer = participant.answer_accumulators[-1]
         participant.answer_accumulators = participant.answer_accumulators[:-1]
-
-
-class ExperimentSetupRoutine(NullElt):
-    def __init__(self, function):
-        self.check_function(function)
-        self.function = function
-
-    def check_function(self, function):
-        if not self._is_function(function) and check_function_args(
-            function, ["experiment"]
-        ):
-            raise TypeError(
-                "<function> must be a function or method of the form f(experiment)."
-            )
-
-    @staticmethod
-    def _is_function(x):
-        return callable(x)
 
 
 class DatabaseCheck(NullElt):
@@ -2267,8 +2587,8 @@ class DatabaseCheck(NullElt):
 class PreDeployRoutine(NullElt):
     """
     A timeline component that allows for the definition of tasks to be performed
-    before deployment. :class:`PreDeployRoutine` s are thought to be added to the
-    beginning of a timeline of an experiment.
+    before deployment. It is possible to make database changes as part of these
+    routines and these will be propagated to the deployed experiment.
 
     Parameters
     ----------
@@ -2283,8 +2603,12 @@ class PreDeployRoutine(NullElt):
         The arguments for the function to be executed.
     """
 
-    def __init__(self, label, function, args):
-        check_function_args(function, args=args.keys(), need_all=False)
+    def __init__(self, label, function, args=None):
+        if args is None:
+            args = {}
+        provided_args = list(args.keys())
+        provided_args.append("experiment")
+        check_function_args(function, args=provided_args, need_all=False)
         self.label = label
         self.function = function
         self.args = args
@@ -2304,3 +2628,127 @@ class RecruitmentCriterion(NullElt):
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
+
+
+def get_trial_maker(trial_maker_id):
+    raise ImportError(
+        "get_trial_maker has moved from psynet.timeline to psynet.experiment, please update your import statements."
+    )
+
+
+FOR_LOOP_STACK_DEPTH = -1
+
+
+def for_loop(
+    *,
+    label,
+    iterate_over,
+    logic,
+    time_estimate_per_iteration,
+    expected_repetitions=None,
+):
+    assert callable(iterate_over)
+    assert callable(logic)
+
+    def estimate_num_repetitions(iterate_over):
+        if len(get_args(iterate_over)) > 0:
+            raise ValueError(
+                "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
+                "and must be provided explicitly."
+            )
+        return len(iterate_over())
+
+    def setup(experiment, participant):
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        nonlocal iterate_over
+        nonlocal label
+        if callable(iterate_over):
+            lst = call_function_with_context(
+                iterate_over,
+                experiment=experiment,
+                participant=participant,
+            )
+        state = {"lst": lst, "index": 0}
+        # participant.for_loops.append(state)
+        if label in participant.for_loops:
+            raise ValueError(
+                f"Duplicated for_loop label detected: {label}. "
+                "This suggests that you have tried to nest two for loops with the same label, "
+                "which is not permitted. Please disambiguate the labels."
+            )
+        participant.for_loops[label] = state
+        flag_modified(participant, "for_loops")
+
+    def wrapup(experiment, participant):
+        nonlocal label
+        del participant.for_loops[label]
+        flag_modified(participant, "for_loops")
+
+    def content(experiment, participant):
+        # global FOR_LOOP_STACK_DEPTH
+        # FOR_LOOP_STACK_DEPTH += 1
+        # state = participant.for_loops[FOR_LOOP_STACK_DEPTH]
+        nonlocal label
+        state = participant.for_loops[label]
+        lst = state["lst"]
+        index = state["index"]
+        input = lst[index]
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        return call_function_with_context(
+            logic,
+            input,
+            experiment=experiment,
+            participant=participant,
+        )
+
+    def should_stay_in_loop(participant):
+        nonlocal label
+        # state = participant.for_loops[-1]
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        state = participant.for_loops[label]
+        return state["index"] < len(state["lst"])
+
+    def increment_counter(participant):
+        # state = participant.for_loops[-1]
+        nonlocal label
+        state = participant.for_loops[label]
+        state["index"] += 1
+        flag_modified(participant, "for_loops")
+
+    return join(
+        CodeBlock(setup),
+        while_loop(
+            "for_loop",
+            should_stay_in_loop,
+            join(
+                PageMaker(content, time_estimate_per_iteration),
+                CodeBlock(increment_counter),
+            ),
+            expected_repetitions=expected_repetitions
+            if expected_repetitions
+            else estimate_num_repetitions(iterate_over),
+            fix_time_credit=False,
+        ),
+        CodeBlock(wrapup),
+    )
+
+
+def randomize(*, label, logic):
+    assert isinstance(logic, list)
+    n = len(logic)
+    total_time = sum(elt.time_estimate for elt in logic)
+    return for_loop(
+        label=label,
+        iterate_over=lambda: random.sample(range(n), n),
+        logic=lambda i: logic[i],
+        time_estimate_per_iteration=total_time / n,
+    )
+
+
+class RegisterTrialMaker(NullElt):
+    def __init__(self, trial_maker):
+        self.trial_maker_id = trial_maker.id
+        self.trial_maker = trial_maker

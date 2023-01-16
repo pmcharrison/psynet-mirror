@@ -9,7 +9,7 @@ import numpy as np
 TIMESTAMPS = [0.0, 0.071, 0.142, 0.213, 0.284, 0.355, 0.426]
 
 
-def synth_stimulus(vector, output_path, chain_definition):
+def synth_stimulus(vector, output_path):
     """
     Synthesises a stimulus.
 
@@ -26,11 +26,7 @@ def synth_stimulus(vector, output_path, chain_definition):
 
     output_path : str
         The output path for the generated file.
-
-    chain_definition
-        The chain's definition object.
     """
-    assert isinstance(chain_definition, dict)
     times = np.array(TIMESTAMPS)
     assert len(vector) == len(times)
     freqs = np.array(vector)

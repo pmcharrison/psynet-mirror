@@ -47,15 +47,15 @@
 
         <div id="audio-prompt-controls">
             <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
-                Play from start
+                {{ gettext("Play from start") }}
             </button>
             <button id="audio-prompt-stop" type="button" class="btn audio-prompt-button btn-secondary btn-sm" disabled>
-                Stop
+                {{ gettext("Stop") }}
             </button>
             <div id="audio-prompt-loop">
               <input id="audio-prompt-loop-input" type="checkbox" value="" {% if config.loop %} checked {% endif %}>
               <label id="audio-prompt-loop-label" for="audio-prompt-loop-input" style="cursor: pointer;">
-                Loop
+                {{ gettext("Loop") }}
               </label>
             </div>
         </div>
@@ -122,7 +122,7 @@
     </style>
 
     <div id="prompt-video-container">
-        <video id="prompt" style="width: {{ config.width }}" alt="Video not found" controls></video>
+        <video id="prompt" style="width: {{ config.width }}" alt="{{ gettext("Video not found") }}" controls></video>
     </div>
 
     <script>
@@ -205,7 +205,7 @@
         }
     </style>
 
-    <img id="prompt-image" src="{{ config.url }}" alt="Image not found">
+    <img id="prompt-image" src="{{ config.url }}" alt="{{ gettext("Image not found") }}">
 
     <script>
         let promptImage = $("#prompt-image").get(0);
@@ -299,7 +299,10 @@
         psynet.trial.onEvent("trialConstruct", async function() {
             await Tone.start();
             for (const i of options.instruments) {
-                LOADED_INSTRUMENTS[i] = await load_sampler(i);
+                if (i.samples) {
+                    INSTRUMENTS[i.type] = {urls: i.samples, baseUrl: i.base_url};
+                }
+                LOADED_INSTRUMENTS[i.type] = await load_sampler(i.type);
             }
             if (options["max_num_pitches"] > 0) {
                 ACTIVE_NODES = generate_additive_nodes(options);
@@ -312,4 +315,29 @@
 
         psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus));
     </script>
+{% endmacro %}
+
+{% macro abc_notation(config) %}
+    {{ simple(config) }}
+
+    <script src="/static/scripts/abc-js/abcjs-basic.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        let abcScore = "{{ config.content | safe }}";
+
+        function renderABCscore() {
+            $("#abcScore").css("visibility", "block")
+            ABCJS.renderAbc("abcScore", abcScore);
+        }
+
+        function hideABCscore() {
+            $("#abcScore").css("visibility", "hidden")
+        }
+
+        psynet.trial.onEvent("promptStart", renderABCscore);
+        psynet.trial.onEvent("promptEnd", hideABCscore);
+    </script>
+
+    <div id="abcScore"></div>
+
 {% endmacro %}

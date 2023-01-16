@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .modular_page import Prompt
 from .timeline import Event
@@ -32,9 +32,6 @@ class ADSRTimbre(Timbre):
         (as experienced at the transition between the 'attack' and
         'decay' portions.
 
-    duration:
-        Duration of the tone, in seconds.
-
     release:
         Duration of the 'release' portion of the sound, in seconds.
     """
@@ -44,14 +41,12 @@ class ADSRTimbre(Timbre):
         attack: float = 0.2,
         decay: float = 0.1,
         sustain_amp: float = 0.8,
-        duration: float = 0.75,
         release: float = 0.4,
     ):
         super().__init__(
             attack=attack,
             decay=decay,
             sustain_amp=sustain_amp,
-            duration=duration,
             release=release,
         )
 
@@ -247,22 +242,40 @@ class InstrumentTimbre(Timbre):
     required pitch. This is done by pitch-shifting the nearest pitch sample in the dictionary to the
     desired value, allowing for continuous pitch manipulation.
     For specific implementation details, see (https://github.com/Tonejs/Tone.js/blob/c313bc6/Tone/instrument/Sampler.ts#L297).
+
+    Parameters
+    ----------
+
+    type :
+        Instrument to select. This can be drawn from a list of built-in options (see below),
+        alternatively a custom instrument name can be specified, as long as a dictionary of samples
+        is provided to the samples argument.
+
+    samples:
+        An optional dictionary of samples to use for synthesis. The keys of this dictionary should be
+        note names, for example "F4", "Gb4", and so on. The values should be URLs for the sound files.
+
+    base_url:
+        An optional base_url which is prefixed to the URLs in ``samples``.
     """
 
-    def __init__(self, type):
+    def __init__(self, type: str, samples: Optional[dict] = None, base_url=""):
         super().__init__()
-        assert type in [
-            "piano",
-            "xylophone",
-            "violin",
-            "guitar",
-            "harpsichord",
-            "saxophone",
-            "clarinet",
-            "flute",
-            "trumpet",
-        ]
+        if samples is None:
+            assert type in [
+                "piano",
+                "xylophone",
+                "violin",
+                "guitar",
+                "harpsichord",
+                "saxophone",
+                "clarinet",
+                "flute",
+                "trumpet",
+            ]
         self["type"] = type
+        self["samples"] = samples
+        self["base_url"] = base_url
         self["num_octave_transpositions"] = 0
 
 
@@ -300,11 +313,16 @@ class Chord(dict):
           and select from this dictionary by specifying an appropriate key in the ``timbre`` argument
           of the :class:`~psynet.js_synth.Chord` object. This provides a way to move between multiple timbres
           in the same sequence.
+        Applying the same logic, one may also pass a list of strings, where each element provides the timbre
+        for a different note in the chord.
 
     pan:
         Optional panning parameter, taking values between -1 (full-left) and +1 (full-right).
         If this is provided as a list of numbers then these numbers are applied to the respective
         notes as specified in ``pitches``.
+
+    volume:
+        Optional volume parameter, taking values between 0 and 1. Passed directly to JSSynth.
     """
 
     def __init__(
@@ -312,13 +330,21 @@ class Chord(dict):
         pitches: List[float],
         duration: Union[float, str] = "default",
         silence: Union[float, str] = "default",
-        timbre: str = "default",
+        timbre: Union[str, List[str]] = "default",
         pan: Union[float, List[float]] = 0.0,
+        volume: float = 1.0,
     ):
         if isinstance(pan, list):
             assert len(pan) == len(pitches)
         else:
             pan = [pan for _ in pitches]
+
+        if isinstance(timbre, list):
+            print(timbre)
+            print(pitches)
+            assert len(timbre) == len(pitches)
+        else:
+            timbre = [timbre for _ in pitches]
 
         super().__init__(
             pitches=pitches,
@@ -326,6 +352,7 @@ class Chord(dict):
             silence=silence,
             channel=timbre,
             pan=pan,
+            volume=volume,
         )
 
 
@@ -465,19 +492,24 @@ class JSSynth(Prompt):
                 x["duration"] = default_duration
             if x["silence"] == "default":
                 x["silence"] = default_silence
-            if not x["channel"] in timbre:
-                raise ValueError(
-                    f"Selected timbre ({x['channel']}) was not found in timbre list ({timbre})."
-                )
+
+            requested_channels = (
+                x["channel"] if isinstance(x["channel"], list) else [x["channel"]]
+            )
+            for requested_channel in requested_channels:
+                if requested_channel not in timbre:
+                    raise ValueError(
+                        f"Selected timbre ({requested_channel}) was not found in timbre list ({timbre})."
+                    )
 
             return x
 
-        sequence = [consolidate_chord(chord) for chord in sequence]
+        chord_sequence = [consolidate_chord(chord) for chord in sequence]
 
         channels = {key: {"synth": value} for key, value in timbre.items()}
 
         self.total_duration = 0.0
-        for chord in sequence:
+        for chord in chord_sequence:
             self.total_duration += chord["duration"] + chord["silence"]
 
         for t in timbre.values():
@@ -491,10 +523,28 @@ class JSSynth(Prompt):
                     t.num_octave_transpositions,
                 )
             if isinstance(t, InstrumentTimbre):
-                options["instruments"].append(t["type"])
+                options["instruments"].append(t)
+
+        note_sequence = []
+        onset = 0
+        for chord in chord_sequence:
+            for i, pitch in enumerate(chord["pitches"]):
+                note = chord.copy()
+                note["pitches"] = [pitch]
+                note["onset"] = onset
+
+                if isinstance(note["channel"], list):
+                    note["channel"] = note["channel"][i]
+
+                if isinstance(note["pan"], list):
+                    note["pan"] = [note["pan"][i]]
+
+                note_sequence.append(note)
+
+            onset += chord["duration"] + chord["silence"]
 
         self.stimulus = dict(
-            notes=sequence,
+            notes=note_sequence,
             channels=channels,
         )
         self.options = options

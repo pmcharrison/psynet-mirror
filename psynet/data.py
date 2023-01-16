@@ -1,13 +1,17 @@
+import contextlib
 import csv
 import io
 import os
+import shutil
 import tempfile
 from typing import List, Optional
 from zipfile import ZipFile
 
+import dallinger.data
 import dallinger.models
 import pandas
 import postgres_copy
+import psutil
 import six
 import sqlalchemy
 from dallinger import db
@@ -24,8 +28,10 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
+from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -35,9 +41,10 @@ from sqlalchemy.schema import (
     Table,
 )
 from tqdm import tqdm
+from yaspin import yaspin
 
 from . import field
-from .field import VarStore
+from .field import PythonDict, is_basic_type
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -61,8 +68,20 @@ def _get_superclasses_by_table():
     A dictionary where the keys enumerate the different tables in the database
     and the values correspond to the superclasses for each of those tables.
     """
+    # try:
+    #     mappers = list(db.Base.registry.mappers)
+    # except Exception:
+    #     import pydevd_pycharm
+    #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+    # mapped_classes = [m.class_ for m in mappers]
+
     mappers = list(db.Base.registry.mappers)
     mapped_classes = [m.class_ for m in mappers]
+
+    # candidate_classes = {x.class_ for x in list(dict(db.Base.registry._managers))}
+    # candidate_classes = organize_by_key(candidate_classes, lambda x: x.__name__)
+    # mapped_classes = [classes[0] for classes in candidate_classes.values()]
+
     mapped_classes_by_table = organize_by_key(mapped_classes, lambda x: x.__tablename__)
     superclasses_by_table = {
         cls: _get_superclass(class_list)
@@ -135,6 +154,7 @@ def _get_preferred_superclass_version(cls):
 
     preferred_superclasses = {
         dallinger.models.Info: psynet.trial.main.Trial,
+        psynet.bot.Bot: psynet.participant.Participant,
         psynet.timeline._Response: psynet.timeline.Response,
     }
 
@@ -151,7 +171,7 @@ def _get_preferred_superclass_version(cls):
     return cls
 
 
-def _db_class_instances_to_json(cls):
+def _db_class_instances_to_dicts(cls, scrub_pii: bool):
     """
     Given a class, retrieves all instances of that class from the database,
     encodes them as JSON-style dictionaries, and returns the resulting list.
@@ -159,7 +179,10 @@ def _db_class_instances_to_json(cls):
     Parameters
     ----------
     cls
-        Class to retrieve
+        Class to retrieve.
+
+    scrub_pii
+        Whether to remove personally identifying information.
 
     Returns
     -------
@@ -173,20 +196,24 @@ def _db_class_instances_to_json(cls):
         print(f"{cls.__name__}: skipped (nothing to export)")
         return []
     else:
-        obj_json = [
-            _db_instance_to_json(obj) for obj in tqdm(obj_sql, desc=cls.__name__)
+        obj_dict = [
+            _db_instance_to_dict(obj, scrub_pii)
+            for obj in tqdm(obj_sql, desc=cls.__name__)
         ]
-        return obj_json
+        return obj_dict
 
 
-def _db_instance_to_json(obj):
+def _db_instance_to_dict(obj, scrub_pii: bool):
     """
     Converts an ORM-mapped instance to a JSON-style representation.
 
     Parameters
     ----------
     obj
-        Object to convert
+        Object to convert.
+
+    scrub_pii
+        Whether to remove personally identifying information.
 
     Returns
     -------
@@ -194,15 +221,26 @@ def _db_instance_to_json(obj):
     JSON-style dictionary
 
     """
-    json = obj.__json__()
-    if "class" not in json:
-        json["class"] = obj.__class__.__name__  # for the Dallinger classes
-    return json
+    try:
+        data = obj.to_dict()
+    except AttributeError:
+        data = obj.__json__()
+    if "class" not in data:
+        data["class"] = obj.__class__.__name__  # for the Dallinger classes
+    if scrub_pii and hasattr(obj, "scrub_pii"):
+        data = obj.scrub_pii(data)
+    return data
 
 
-def _prepare_db_export():
+def _prepare_db_export(scrub_pii):
     """
     Encodes the database to a JSON-style representation suitable for export.
+
+    Parameters
+    ----------
+
+    scrub_pii
+        Whether to remove personally identifying information.
 
     Returns
     -------
@@ -216,12 +254,21 @@ def _prepare_db_export():
     superclasses.sort(key=lambda cls: cls.__name__)
     res = []
     for superclass in superclasses:
-        res.extend(_db_class_instances_to_json(superclass))
+        res.extend(_db_class_instances_to_dicts(superclass, scrub_pii))
     res = organize_by_key(res, key=lambda x: x["class"])
     return res
 
 
-def dump_db_to_disk(dir):
+def copy_db_table_to_csv(tablename, path):
+    # TODO - improve naming of copy_db_table_to_csv and dump_db_to_disk to clarify
+    # that the former is a Dallinger export and the latter is a PsyNet export
+    with tempfile.TemporaryDirectory() as tempdir:
+        dallinger.data.copy_db_to_csv(db.db_url, tempdir)
+        temp_filename = f"{tablename}.csv"
+        shutil.copyfile(os.path.join(tempdir, temp_filename), path)
+
+
+def dump_db_to_disk(dir, scrub_pii: bool):
     """
     Exports all database objects to JSON-style dictionaries
     and writes them to CSV files, one for each class type.
@@ -231,14 +278,26 @@ def dump_db_to_disk(dir):
 
     dir
         Directory to which the CSV files should be exported.
+
+    scrub_pii
+        Whether to remove personally identifying information.
     """
-    objects_by_class = _prepare_db_export()
+    from .utils import make_parents
+
+    objects_by_class = _prepare_db_export(scrub_pii)
 
     for cls, objects in objects_by_class.items():
         filename = cls + ".csv"
         filepath = os.path.join(dir, filename)
-        with open(filepath, "w") as file:
+        with open(make_parents(filepath), "w") as file:
             json_to_data_frame(objects).to_csv(file, index=False)
+
+
+class InvalidDefinitionError(ValueError):
+    pass
+
+
+checked_classes = set()
 
 
 class SQLMixinDallinger(SharedMixin):
@@ -264,18 +323,38 @@ class SQLMixinDallinger(SharedMixin):
     )
     __extra_vars__ = {}
 
+    def __new__(cls, *args, **kwargs):
+        self = super().__new__(cls)
+        cls.check_validity()
+        return self
+
+    @declared_attr
+    def vars(cls):
+        return deferred(Column(PythonDict, default=lambda: {}, server_default="{}"))
+
     @property
     def var(self):
+        from .field import VarStore
+
         return VarStore(self)
 
-    def __json__(self):
+    def to_dict(self):
         """
         Determines the information that is shown for this object in the dashboard
         and in the csv files generated by ``psynet export``.
         """
+        from psynet.trial import ChainNode
+
         x = {c: getattr(self, c) for c in self.sql_columns}
 
         x["class"] = self.__class__.__name__
+
+        # This is a little hack we do for compatibility with the Dallinger
+        # network visualization, which relies on sources being explicitly labeled.
+        if isinstance(self, ChainNode) and self.degree == 0:
+            x["type"] = "TrialSource"
+        else:
+            x["type"] = x["class"]
 
         # Dallinger also needs us to set a parameter called ``object_type``
         # which is used to determine the visualization method.
@@ -287,6 +366,14 @@ class SQLMixinDallinger(SharedMixin):
         field.json_format_vars(x)
 
         return x
+
+    def __json__(self) -> dict:
+        "Used to transmit the item to the Dallinger dashboard"
+        data = self.to_dict()
+        for key, value in data.items():
+            if not is_basic_type(value):
+                data[key] = repr(value)
+        return data
 
     @classproperty
     def sql_columns(cls):
@@ -321,6 +408,7 @@ class SQLMixinDallinger(SharedMixin):
         constructed automatically based on class names.
         """
         # If the class has a distinct polymorphic_identity attribute, use that
+        cls.check_validity()
         if cls.polymorphic_identity and not cls.ancestor_has_same_polymorphic_identity(
             cls.polymorphic_identity
         ):
@@ -338,6 +426,70 @@ class SQLMixinDallinger(SharedMixin):
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.type
         return x
+
+    __validity_checks_complete__ = False
+
+    @classmethod
+    def check_validity(cls):
+        if cls not in checked_classes:
+            cls._check_validity()
+            checked_classes.add(cls)
+
+    @classmethod
+    def _check_validity(cls):
+        if cls.defined_in_invalid_location():
+            raise InvalidDefinitionError(
+                f"Problem detected with the definition of class {cls.__name__}:"
+                "You are not allowed to define SQLAlchemy classes in unconventional places, "
+                "e.g. as class attributes of other classes, within functions, etc. - "
+                "it can cause some very hard to debug problems downstream, "
+                "for example silently breaking SQLAlchemy relationship updating. "
+                "You should instead define your class at the top level of a Python file."
+            )
+
+    @classmethod
+    def defined_in_invalid_location(cls):
+        from jsonpickle.util import importable_name
+
+        path = importable_name(cls)
+        family = path.split(".")
+        ancestors = family[:-1]
+        parent_path = ".".join(ancestors)
+
+        return parent_path != cls.__module__
+        # if "<locals>" in parent_path:
+        #     return True
+        #
+        # parent = loadclass(parent_path)
+        # if parent is None or isclass(parent):
+        #     return True
+        #
+        # return False
+
+    def scrub_pii(self, json):
+        """
+        Removes personally identifying information from the object's JSON representation.
+        This is a destructive operation (it changes the input object).
+        """
+        try:
+            del json["worker_id"]
+        except KeyError:
+            pass
+
+        return json
+
+
+#
+# @event.listens_for(SQLMixinDallinger, "after_insert", propagate=True)
+# def after_insert(mapper, connection, target):
+#     # obj = unserialize(serialize(target))
+#     old_session = db.session
+#     db.session = db.scoped_session(db.session_factory)  # db.create_scoped_session()
+#     obj = unserialize(serialize(target))
+#     obj.on_creation()
+#     # target.on_creation()
+#     db.session.commit()
+#     db.session = old_session
 
 
 class SQLMixin(SQLMixinDallinger):
@@ -362,13 +514,30 @@ class SQLMixin(SQLMixinDallinger):
         return Column(String(50))
 
 
+old_init_db = dallinger.db.init_db
+
+
 def init_db(drop_all=False, bind=db.engine):
     # Without these preliminary steps, the process can freeze --
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
     db.session.commit()
     close_all_sessions()
 
-    dallinger.db.init_db(drop_all, bind)
+    with yaspin(
+        text="Initializing the database...",
+        color="green",
+    ) as spinner:
+        old_init_db(drop_all, bind)
+        spinner.ok("✔")
+
+    import time
+
+    time.sleep(1)  # To do - remove this if it doesn't break the tests?
+
+    return db.session
+
+
+dallinger.db.init_db = init_db
 
 
 def drop_all_db_tables(bind=db.engine):
@@ -379,16 +548,46 @@ def drop_all_db_tables(bind=db.engine):
 
     (https://github.com/pallets-eco/flask-sqlalchemy/issues/722)
     """
+    from sqlalchemy.exc import ProgrammingError
+
     engine = bind
+
+    db.session.commit()
 
     con = engine.connect()
     trans = con.begin()
-    inspector = sqlalchemy.inspect(engine)
+
+    all_fkeys, tables = list_fkeys()
+
+    for fkey in all_fkeys:
+        try:
+            con.execute(DropConstraint(fkey))
+        except ProgrammingError as err:
+            if "UndefinedTable" in str(err):
+                pass
+            else:
+                raise
+
+    for table in tables:
+        try:
+            con.execute(DropTable(table))
+        except ProgrammingError as err:
+            if "UndefinedTable" in str(err):
+                pass
+            else:
+                raise
+
+    trans.commit()
+
+
+def list_fkeys():
+    inspector = sqlalchemy.inspect(db.engine)
 
     # We need to re-create a minimal metadata with only the required things to
     # successfully emit drop constraints and tables commands for postgres (based
     # on the actual schema of the running instance)
     meta = MetaData()
+
     tables = []
     all_fkeys = []
 
@@ -404,16 +603,50 @@ def drop_all_db_tables(bind=db.engine):
         tables.append(Table(table_name, meta, *fkeys))
         all_fkeys.extend(fkeys)
 
-    for fkey in all_fkeys:
-        con.execute(DropConstraint(fkey))
-
-    for table in tables:
-        con.execute(DropTable(table))
-
-    trans.commit()
+    return all_fkeys, tables
 
 
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
+
+
+# @contextlib.contextmanager
+# def disable_foreign_key_constraints():
+#     db.session.execute("SET session_replication_role = replica;")
+#     # connection.execute("SET session_replication_role = replica;")
+#     yield
+#     db.session.execute("SET session_replication_role = DEFAULT;")
+
+# This would have been useful for importing data, however in practice
+# it caused the import process to hang.
+#
+@contextlib.contextmanager
+def disable_foreign_key_constraints():
+    db.session.commit()
+    # con = db.engine.connect()
+    # trans = con.begin()
+
+    all_fkeys, tables = list_fkeys()
+
+    for fkey in all_fkeys:
+        # con.execute(DropConstraint(fkey))
+        db.session.execute(DropConstraint(fkey))
+
+    db.session.commit()
+
+    yield
+
+    # This code was meant to re-add the constraints afterwards, but it causes an error that we have not been
+    # able to debug, so we have disabled it. It should not be too much of a problem, though; SQLAlchemy
+    # should protect us from foreign key misuse anyway.
+    #
+    # for fkey in all_fkeys:
+    #     # con.execute(AddConstraint(fkey))
+    #     print(fkey)
+    #     db.session.execute(AddConstraint(fkey))
+    #
+    # db.session.commit()
+
+    # trans.commit()
 
 
 def _sql_dallinger_base_classes():
@@ -493,6 +726,7 @@ def register_table(cls):
     _sql_psynet_base_classes[cls.__tablename__] = cls
     setattr(dallinger.models, cls.__name__, cls)
     update_dashboard_models()
+    dallinger.data.table_names.append(cls.__tablename__)
     return cls
 
 
@@ -560,10 +794,14 @@ def ingest_to_model(
         inspector = sqlalchemy.inspect(db.engine)
         reader = csv.reader(file)
         columns = tuple('"{}"'.format(n) for n in next(reader))
-        postgres_copy.copy_from(
-            file, model, engine, columns=columns, format="csv", HEADER=False
-        )
-        if "id" in inspector.get_columns(model.__table__):
+
+        with disable_foreign_key_constraints():
+            postgres_copy.copy_from(
+                file, model, engine, columns=columns, format="csv", HEADER=False
+            )
+
+        column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
+        if "id" in column_names:
             fix_autoincrement(engine, model.__table__.name)
 
 
@@ -595,6 +833,7 @@ def ingest_zip(path, engine=None):
     import_order = [
         "network",
         "participant",
+        "response",
         "node",
         "info",
         "notification",
@@ -602,6 +841,7 @@ def ingest_zip(path, engine=None):
         "transformation",
         "vector",
         "transmission",
+        "asset",
     ]
 
     for n in all_table_names:
@@ -634,3 +874,66 @@ def ingest_zip(path, engine=None):
 
 dallinger.data.ingest_zip = ingest_zip
 dallinger.data.ingest_to_model = ingest_to_model
+
+
+def export_assets(
+    path,
+    include_private: bool,
+    experiment_assets_only: bool,
+    include_fast_function_assets: bool,
+    n_parallel=None,
+):
+    # Assumes we already have loaded the experiment into the local database,
+    # as would be the case if the function is called from psynet export.
+    if n_parallel:
+        n_jobs = n_parallel
+    else:
+        n_jobs = psutil.cpu_count()
+
+    if experiment_assets_only:
+        from .asset import ExperimentAsset as base_class
+    else:
+        from .asset import Asset as base_class
+
+    asset_query = db.session.query(base_class.key, base_class.personal)
+    if not include_private:
+        asset_query = asset_query.filter_by(personal=False)
+
+    asset_keys = [a.key for a in asset_query]
+
+    # n_jobs = 1  # todo -fix
+    Parallel(
+        n_jobs=n_jobs,
+        verbose=10,
+        backend="threading",
+        # backend="multiprocessing", # Slow compared to threading
+    )(
+        delayed(export_asset)(key, path, include_fast_function_assets)
+        for key in asset_keys
+    )
+    # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
+
+
+# def close_parallel_db_sessions():
+
+
+def export_asset(key, root, include_fast_function_assets):
+    from .asset import Asset, FastFunctionAsset
+    from .experiment import import_local_experiment
+    from .utils import make_parents
+
+    import_local_experiment()
+    a = Asset.query.filter_by(key=key).one()
+
+    if not include_fast_function_assets and isinstance(a, FastFunctionAsset):
+        return
+
+    path = os.path.join(root, a.export_path)
+
+    make_parents(path)
+
+    try:
+        a.export(path)
+    except Exception:
+        print(f"An error occurred when trying to export the asset with key: {key}")
+        raise

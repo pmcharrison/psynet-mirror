@@ -1,10 +1,6 @@
-# pylint: disable=unused-import,abstract-method,unused-argument,no-member
-
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
+import tempfile
+import time
 from typing import List, Union
 
 from dallinger import db
@@ -13,20 +9,17 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
+from psynet.asset import DebugStorage, ExperimentAsset
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback
 from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
 from psynet.page import InfoPage, Prompt, SuccessfulEndPage
 from psynet.participant import Participant
+from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.gibbs import (
-    GibbsNetwork,
-    GibbsNode,
-    GibbsSource,
-    GibbsTrial,
-    GibbsTrialMaker,
-)
+from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -64,7 +57,6 @@ class ColorSliderPage(ModularPage):
             label,
             Prompt(prompt),
             control=SliderControl(
-                label=label,
                 start_value=starting_values[selected_idx],
                 min_value=0,
                 max_value=255,
@@ -76,6 +68,7 @@ class ColorSliderPage(ModularPage):
                     "hidden_inputs": hidden_inputs,
                 },
                 continuous_updates=False,
+                bot_response=lambda: random.randint(0, 255),
             ),
             time_estimate=time_estimate,
         )
@@ -89,29 +82,28 @@ class ColorSliderPage(ModularPage):
 
 
 class CustomNetwork(GibbsNetwork):
-    vector_length = 3
+    run_async_post_grow_network = True
 
-    def random_sample(self, i):
-        return random.randint(0, 255)
-
-    def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS),
-            "participant_group": self.balance_across_networks(["A", "B"]),
-        }
+    def async_post_grow_network(self):
+        # This is a silly example of how we might define a function that runs every time
+        # the network grows.
+        try:
+            self.var.growth_counter += 1
+        except KeyError:
+            self.var.growth_counter = 1
 
 
 class CustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
+    run_async_post_trial = True
     resample_free_parameter = True
-
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
-        target = self.network.definition["target"]
+        target = self.context["target"]
         prompt = Markup(
-            f"<h3 id='participant-group'>Participant group = {participant.get_participant_group('gibbs_demo')}</h3>"
+            f"<h3 id='participant-group'>Participant group = {participant.module_state.participant_group}</h3>"
             "<p>Adjust the slider to match the following word as well as possible: "
             f"<strong>{target}</strong></p>"
         )
@@ -131,18 +123,35 @@ class CustomTrial(GibbsTrial):
             CodeBlock(lambda participant: participant.var.set("test_variable", 123)),
         ]
 
+    def async_post_trial(self):
+        # You could put a time-consuming analysis here, perhaps one that generates a plot...
+        time.sleep(1)
+        self.var.async_post_trial_completed = True
+        with tempfile.NamedTemporaryFile("w") as file:
+            file.write(f"completed async_post_trial for trial {self.id}")
+            file.flush()
+            asset = ExperimentAsset(
+                label="async_post_trial",
+                input_path=file.name,
+                extension=".txt",
+                parent=self,
+            )
+            asset.deposit()
+
 
 class CustomNode(GibbsNode):
-    pass
+    vector_length = 3
 
-
-class CustomSource(GibbsSource):
-    pass
+    def random_sample(self, i):
+        return random.randint(0, 255)
 
 
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
+
+    # If we set this to True, then the performance check will wait until all async_post_trial processes have finished
+    end_performance_check_waits = False
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
@@ -163,45 +172,51 @@ class CustomTrialMaker(GibbsTrialMaker):
     def custom_network_filter(self, candidates, participant):
         # As an example, let's make the participant join networks
         # in order of increasing network ID.
-        candidates.sort(key=lambda x: x.id)
-        return [candidates[0]]
+        return sorted(candidates, key=lambda x: x.id)
 
+
+start_nodes = [
+    CustomNode(context={"target": target}, participant_group=participant_group)
+    for target in TARGETS
+    for participant_group in ["A", "B"]
+]
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
+    start_nodes=start_nodes,
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    source_class=CustomSource,
-    phase="experiment",  # can be whatever you like
     chain_type="across",  # can be "within" or "across"
-    num_trials_per_participant=4,
-    num_iterations_per_chain=2,
-    num_chains_per_participant=None,  # set to None if chain_type="across"
-    num_chains_per_experiment=8,  # set to None if chain_type="within"
+    expected_trials_per_participant=4,
+    max_trials_per_participant=4,
+    max_nodes_per_chain=2,
+    chains_per_participant=None,  # set to None if chain_type="across"
+    chains_per_experiment=8,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_trials",
-    target_num_participants=None,
-    num_repeat_trials=3,
+    recruit_mode="n_trials",
+    target_n_participants=None,
+    n_repeat_trials=3,
+    wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
+    choose_participant_group=lambda participant: participant.var.participant_group,
 )
+
 
 ###################
 # This code is borrowed from the custom_table_simple demo.
 # It is totally irrelevant for the Gibbs implementation.
 # We just include it so we can test the export functionality
 # in the regression tests.
-
-
 @register_table
 class Coin(SQLBase, SQLMixin):
     __tablename__ = "coin"
 
     participant = relationship(Participant, backref="all_coins")
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
 
     def __init__(self, participant):
         self.participant = participant
@@ -218,15 +233,11 @@ def _collect_coin(participant):
     db.session.add(coin)
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Gibbs demo"
+    asset_storage = DebugStorage()
+    initial_recruitment_size = 1
+
     timeline = Timeline(
         NoConsent(),
         ModularPage(
@@ -234,11 +245,8 @@ class Exp(psynet.experiment.Experiment):
             Prompt("What participant group would you like to join?"),
             control=PushButtonControl(["A", "B"], arrange_vertically=False),
             time_estimate=5,
-        ),
-        CodeBlock(
-            lambda participant: participant.set_participant_group(
-                "gibbs_demo", participant.answer
-            )
+            save_answer="participant_group",
+            bot_response=lambda bot: ["A", "B"][bot.id % 2],
         ),
         trial_maker,
         collect_coin(),
@@ -246,8 +254,19 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
+    test_num_bots = 4
 
-        # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
+    def test_check_bots(self, bots: List[Bot]):
+        time.sleep(2.0)
+
+        assert len([b for b in bots if b.var.participant_group == "A"]) == 2
+        assert len([b for b in bots if b.var.participant_group == "B"]) == 2
+
+        for b in bots:
+            assert len(b.alive_trials) == 7  # 4 normal trials + 3 repeat trials
+            assert all([t.finalized for t in b.alive_trials])
+
+        processes = AsyncProcess.query.all()
+        assert all([not p.failed for p in processes])
+
+        super().test_check_bots(bots)

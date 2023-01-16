@@ -12,17 +12,19 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
+from psynet.asset import DebugStorage
+from psynet.bot import Bot
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
-    AudioGibbsNetwork,
     AudioGibbsNode,
-    AudioGibbsSource,
     AudioGibbsTrial,
     AudioGibbsTrialMaker,
 )
 from psynet.utils import get_logger
+
+from . import custom_synth
 
 logger = get_logger()
 
@@ -68,33 +70,12 @@ GRANULARITY = 25
 SNAP_SLIDER = False
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 
 NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2  # every dimension is visited twice
-NUM_CHAINS_PER_EXPERIMENT = (
+CHAINS_PER_EXPERIMENT = (
     len(TARGETS) * 3
 )  # for each emotion there are 3 chains (each with a different sentence)
 NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3  # every participant does 9 trials
-
-
-class CustomNetwork(AudioGibbsNetwork):
-    synth_function_location = {
-        "module_name": "custom_synth",
-        "function_name": "synth_stimulus",
-    }
-
-    s3_bucket = "audio-gibbs-demo"
-    vector_length = DIMENSIONS
-    vector_ranges = RANGES
-    granularity = GRANULARITY
-
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
-
-    def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS),
-            "file": random.sample(SENTENCE_RECORDINGS, 1)[0],  # Get random sample
-        }
 
 
 class CustomTrial(AudioGibbsTrial):
@@ -107,24 +88,25 @@ class CustomTrial(AudioGibbsTrial):
     def get_prompt(self, experiment, participant):
         return Markup(
             "Adjust the slider to make the speaker sound like she is "
-            f"<strong>{self.network.definition['target']}</strong>."
+            f"<strong>{self.context['target']}</strong>."
         )
 
 
 class CustomNode(AudioGibbsNode):
-    pass
+    vector_length = DIMENSIONS
+    vector_ranges = RANGES
+    granularity = GRANULARITY
 
+    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-class CustomSource(AudioGibbsSource):
-    def generate_seed(self, network, experiment, participant):
-        if network.vector_length is None:
-            raise ValueError(
-                "network.vector_length must not be None. Did you forget to set it?"
-            )
+    def create_initial_seed(self, experiment, participant):
         return {
             "vector": INITIAL_VALUES,  # Start at predefined zero points, i.e. not at a random point in space
-            "active_index": random.randint(0, network.vector_length),  #
+            "active_index": random.randint(0, self.vector_length),  #
         }
+
+    def synth_function(self, vector, output_path):
+        custom_synth.synth_stimulus(vector, output_path, self.context["input_file"])
 
 
 class CustomTrialMaker(AudioGibbsTrialMaker):
@@ -133,23 +115,24 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="audio_gibbs_demo",
-    network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    source_class=CustomSource,
-    phase="experiment",  # can be whatever you like
+    start_nodes=lambda: [
+        CustomNode(context={"target": target, "input_file": sentence})
+        for target in TARGETS
+        for sentence in SENTENCE_RECORDINGS
+    ],
     chain_type="across",  # can be "within" or "across"
-    num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
-    num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    num_chains_per_participant=None,  # set to None if chain_type="across"
-    num_chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
+    expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_trials",
-    target_num_participants=None,
+    recruit_mode="n_trials",
+    target_n_participants=None,
     wait_for_networks=True,
 )
 
@@ -163,6 +146,10 @@ trial_maker = CustomTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Complex audio Gibbs sampling demo"
+    asset_storage = DebugStorage()
+    initial_recruitment_size = 1
+
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
         CAPRecruiterAudiovisualConsent(),
@@ -170,8 +157,8 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
+    test_n_bots = 2
 
-        # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert not bot.failed
+        assert len(bot.alive_trials) == NUM_TRIALS_PER_PARTICIPANT

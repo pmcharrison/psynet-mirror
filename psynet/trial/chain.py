@@ -1,39 +1,69 @@
 import random
-import warnings
-from typing import Optional
+from typing import Optional, Type
 
 from dallinger import db
-from sqlalchemy import Column, func
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.sql.expression import not_
+from dallinger.models import Vector
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.sql.expression import not_, select
 
-from ..field import VarStore, claim_field, claim_var, extra_var, register_extra_var
+from ..data import SQLMixinDallinger
+from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
-from ..utils import get_logger, negate
+from ..timeline import is_list_of
+from ..utils import (
+    call_function_with_context,
+    get_logger,
+    log_time_taken,
+    negate,
+    time_logger,
+)
 from .main import (
-    HasDefinition,
     NetworkTrialMaker,
+    NetworkTrialMakerState,
     Trial,
     TrialNetwork,
     TrialNode,
-    TrialSource,
 )
 
 logger = get_logger()
 
 
-class HasSeed:
-    # Mixin class that provides a 'seed' slot.
-    # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
-    @declared_attr
-    def seed(cls):
-        return cls.__table__.c.get(
-            "seed", Column(JSONB, server_default="{}", default=lambda: {})
-        )
+# class HasSeed:
+#     # Mixin class that provides a 'seed' slot.
+#     # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
+#     @declared_attr
+#     def seed(cls):
+#         return cls.__table__.c.get(
+#             "seed", Column(JSONB, server_default="{}", default=lambda: {})
+#         )
+#
+#     __extra_vars__ = {}
+#     register_extra_var(__extra_vars__, "seed", field_type=dict)
 
-    __extra_vars__ = {}
-    register_extra_var(__extra_vars__, "seed", field_type=dict)
+# Vector.type = Column(String(50))
+# Vector.__mapper_args__ = {"polymorphic_on": Vector.type, "polymorphic_identity": "vector"}
+
+
+class ChainVector(SQLMixinDallinger, Vector):
+    def __init__(self, origin, destination):
+        """
+        Patched version of ``dallinger.models.Vector`` that does not assume that
+        ``origin`` or ``destination`` have been committed to the database yet.
+        """
+        self.origin = origin
+        self.destination = destination
+        self.network = self.origin.network
 
 
 class ChainNetwork(TrialNetwork):
@@ -45,14 +75,6 @@ class ChainNetwork(TrialNetwork):
 
     Parameters
     ----------
-
-    source_class
-        The class object for network sources. A source is the 'seed' for a network,
-        providing some data which is somehow propagated to other nodes.
-
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
 
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
@@ -67,7 +89,7 @@ class ChainNetwork(TrialNetwork):
         in the chain before another chain will be added.
         Most paradigms have this equal to 1.
 
-    target_num_nodes
+    target_n_nodes
         Indicates the target number of nodes for that network.
         In a network with one trial per node, the total number of nodes will generally
         be one greater than the total number of trials. This is because
@@ -84,14 +106,9 @@ class ChainNetwork(TrialNetwork):
     Attributes
     ----------
 
-    target_num_trials : int or None
+    target_n_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
-
-    phase : str
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set by default in the ``__init__`` function.
 
     awaiting_async_process : bool
         Whether the network is currently waiting for an asynchronous process to complete.
@@ -99,10 +116,10 @@ class ChainNetwork(TrialNetwork):
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
-    num_nodes : int
+    n_alive_nodes : int
         Returns the number of non-failed nodes in the network.
 
-    num_completed_trials : int
+    n_completed_trials : int
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes, but excluding repeat trials).
 
@@ -131,31 +148,42 @@ class ChainNetwork(TrialNetwork):
     """
 
     # pylint: disable=abstract-method
-    __extra_vars__ = TrialNetwork.__extra_vars__.copy()
+    # __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_id = claim_field("participant_id", __extra_vars__, int)
-    id_within_participant = claim_field("id_within_participant", __extra_vars__, int)
+    chain_type = Column(String)
+    head_id = Column(Integer, ForeignKey("node.id"))
+    trials_per_node = Column(Integer)
+    definition = Column(PythonObject)
+    block = Column(String, index=True)
 
-    participant_group = claim_var("participant_group", __extra_vars__)
-    chain_type = claim_var("chain_type", __extra_vars__)
-    trials_per_node = claim_var("trials_per_node", __extra_vars__)
-    definition = claim_var("definition", __extra_vars__)
+    head = relationship("ChainNode", foreign_keys=[head_id], post_update=True)
 
-    # Note - the <details> slot is occupied by VarStore.
+    # @hybrid_property
+    # def n_viable_trials_at_head(self):
+    #     return self.head.n_viable_trials
+    #
+    # @n_viable_trials_at_head.expression
+    # def n_viable_trials_at_head(cls):
+    #     return
+    #
+    #
+    #     column_property(
+    # ef n_viable_trials_at_head = column_property(
+    #
+    # )
 
     def __init__(
         self,
         trial_maker_id: str,
-        source_class,
-        phase: str,
+        start_node,
         experiment,
         chain_type: str,
         trials_per_node: int,
-        target_num_nodes: int,
+        target_n_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
     ):
-        super().__init__(trial_maker_id, phase, experiment)
+        super().__init__(trial_maker_id, experiment)
         db.session.add(self)
         db.session.commit()
 
@@ -165,24 +193,32 @@ class ChainNetwork(TrialNetwork):
 
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
-        self.target_num_nodes = target_num_nodes
-        # The last node in the chain doesn't receive any trials
-        self.target_num_trials = (target_num_nodes - 1) * trials_per_node
+        self.target_n_nodes = target_n_nodes
+        self.target_n_trials = target_n_nodes * trials_per_node
+
         self.definition = self.make_definition()
-        self.participant_group = self.get_participant_group()
-        self.add_source(source_class, experiment, participant)
+        self.block = start_node.block
+
+        if start_node.participant_group:
+            self.participant_group = start_node.participant_group
+        elif isinstance(self.definition, dict):
+            try:
+                self.participant_group = self.definition["participant_group"]
+            except KeyError:
+                pass
+        else:
+            self.participant_group = "default"
+
+        db.session.add(start_node)
+        self.add_node(start_node)
+        db.session.commit()
+        start_node.check_on_create()
+        start_node.check_on_deploy()
+        db.session.commit()
 
         self.validate()
 
-        experiment.save()
-
-    def get_participant_group(self):
-        if isinstance(self.definition, dict):
-            try:
-                return self.definition["participant_group"]
-            except KeyError:
-                pass
-        return "default"
+        db.session.commit()
 
     def validate(self):
         """
@@ -281,60 +317,27 @@ class ChainNetwork(TrialNetwork):
         return values[id_to_use % len(values)]
 
     @property
-    def target_num_nodes(self):
-        # Subtract 1 to account for the source
-        return self.max_size - 1
+    def target_n_nodes(self):
+        return self.max_size
 
-    @target_num_nodes.setter
-    def target_num_nodes(self, target_num_nodes):
-        self.max_size = target_num_nodes + 1
-
-    @property
-    def num_nodes(self):
-        return ChainNode.query.filter_by(network_id=self.id, failed=False).count()
+    @target_n_nodes.setter
+    def target_n_nodes(self, target_n_nodes):
+        self.max_size = target_n_nodes
 
     @property
     def degree(self):
-        if self.num_nodes == 0:
+        if self.n_alive_nodes == 0:
             return 0
-        return (
-            # pylint: disable=no-member
-            db.session.query(func.max(ChainNode.degree))
-            .filter(ChainNode.network_id == self.id, ChainNode.failed.is_(False))
-            .scalar()
-        )
+        return max([node.degree for node in self.alive_nodes])
 
-    @property
-    def source(self):
-        return ChainSource.query.filter_by(network_id=self.id).one()
-
-    @property
-    def head(self):
-        if self.num_nodes == 0:
-            return self.source
-        else:
-            degree = self.degree
-            return self.get_node_with_degree(degree)
+    # @property
+    # def head(self):
+    #     return self.get_node_with_degree(self.degree)
 
     def get_node_with_degree(self, degree):
-        assert degree >= 0
-        if degree == 0:
-            return self.source
-        nodes = (
-            ChainNode.query.filter_by(network_id=self.id, failed=False)
-            .order_by(ChainNode.id)
-            .all()
-        )
+        nodes = [n for n in self.alive_nodes if n.degree == degree]
+        nodes.sort(key=lambda n: n.id)
 
-        # This cannot be included in the SQL call because not all Node objects
-        # have the property `degree`.
-        # This can cause an error once enough SQLAlchemy Node classes have been
-        # registered (more than 6 changes the order of execution and so
-        # SQL tries to cast property1 to int even for Node classes that aren't ChainNodes.
-        nodes = [n for n in nodes if n.degree == degree]
-
-        # This deals with the case where somehow we've ended up with multiple
-        # nodes at the same degree.
         first_node = nodes[0]
         other_nodes = nodes[1:]
         for node in other_nodes:
@@ -342,33 +345,44 @@ class ChainNetwork(TrialNetwork):
         return first_node
 
     def add_node(self, node):
+        node.set_network(self)
         if node.degree > 0:
-            previous_head = self.get_node_with_degree(node.degree - 1)
-            previous_head.connect(whom=node)
+            # previous_head = self.get_node_with_degree(node.degree - 1)
+            previous_head = self.head
+            vector = ChainVector(origin=previous_head, destination=node)
+            db.session.add(vector)
             previous_head.child = node
-        if self.num_nodes >= self.target_num_nodes:
+            node.parent = previous_head
+        if node.degree >= self.max_size:
+            # Setting full=True means that no participants will be assigned to the final node,
+            # and it'll just be used as a summary of the chain's final state.
+            #
+            # Note: We avoid calling self.calculate_full because it involves a database query.
             self.full = True
-
-    def add_source(self, source_class, experiment, participant=None):
-        source = source_class(self, experiment, participant)
-        db.session.add(source)
-        self.add_node(source)
-        db.session.commit()
+        self.head = node
 
     @property
-    def num_trials_still_required(self):
-        assert self.target_num_trials is not None
+    def n_trials_still_required(self):
+        assert self.target_n_trials is not None
         if self.full:
             return 0
         else:
-            return self.target_num_trials - self.num_completed_trials
+            return self.target_n_trials - self.n_completed_trials
 
-    def fail_async_processes(self, reason):
-        super().fail_async_processes(reason)
-        self.head.fail(reason=reason)
+    # @hybrid_property
+    # def ready_to_spawn(self):
+    #     return self.head.ready_to_spawn
+    #
+    # @ready_to_spawn.expression
+    # def ready_to_spawn(cls):
+    #     return (
+    #         select(ChainNode.ready_to_spawn)
+    #         .where(ChainNode.id == cls.head_id)
+    #         .scalar_subquery()
+    #     )
 
 
-class ChainNode(TrialNode, HasSeed, HasDefinition):
+class ChainNode(TrialNode):
     """
     Represents a node in a chain network.
     In an experimental context, the node represents a state in the experiment;
@@ -451,20 +465,11 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
-    source
-        The source of the chain, if one exists.
-        Should be an object of class :class:`~psynet.trial.chain.ChainSource`.
-
     child
         The node's child (i.e. direct descendant) in the chain, or
         ``None`` if no child exists.
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
-
-    target_num_trials
+    target_n_trials
         The target number of trials for the node,
         set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
 
@@ -481,45 +486,143 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         Returns all completed trials associated with the node.
         Excludes failed nodes and repeat trials.
 
-    num_completed_trials
+    n_completed_trials
         Counts the number of completed trials associated with the node.
         Excludes failed nodes and repeat_trials.
 
-    num_viable_trials
+    viable_trials
         Returns all viable trials associated with the node,
         i.e. all trials that have not failed.
     """
 
-    __extra_vars__ = {
-        **HasSeed.__extra_vars__.copy(),
-        **HasDefinition.__extra_vars__.copy(),
-        **TrialNode.__extra_vars__.copy(),
-    }
+    __extra_vars__ = TrialNode.__extra_vars__.copy()
+
+    key = Column(String, index=True)
+    degree = Column(Integer)
+    child_id = Column(Integer, ForeignKey("node.id"), index=True)
+    parent_id = Column(Integer, ForeignKey("node.id"), index=True)
+    seed = Column(PythonObject, default=lambda: {})
+    definition = Column(PythonObject, default=lambda: {})
+    context = Column(PythonObject)
+    participant_group = Column(String, index=True)
+    block = Column(String, index=True)
+    propagate_failure = Column(Boolean)
+
+    child = relationship(
+        "ChainNode",
+        foreign_keys=[child_id],
+        remote_side=TrialNode.id,
+        uselist=False,
+        post_update=True,
+    )
+    parent = relationship(
+        "ChainNode",
+        foreign_keys=[parent_id],
+        remote_side=TrialNode.id,
+        uselist=False,
+        post_update=True,
+    )
 
     def __init__(
         self,
-        seed,
-        degree: int,
-        network,
-        experiment,
-        propagate_failure: bool,
+        *,
+        definition=None,
+        context=None,
+        seed=None,
+        parent=None,
+        participant_group=None,
+        block=None,
+        assets=None,
+        degree=None,
+        module_id=None,
+        network=None,
+        experiment=None,
         participant=None,
+        propagate_failure=False,
     ):
-        # pylint: disable=unused-argument
         super().__init__(network=network, participant=participant)
-        self.seed = seed
+
+        assert not (definition and seed)
+
+        if participant_group is None:
+            if parent:
+                participant_group = parent.participant_group
+            else:
+                participant_group = "default"
+
+        if block is None:
+            if parent:
+                block = parent.block
+            else:
+                block = "default"
+
+        if degree is None:
+            if parent:
+                degree = parent.degree + 1
+            else:
+                degree = 0
+
+        if module_id is None:
+            if parent:
+                module_id = parent.module_id
+
+        if context is None:
+            if parent:
+                context = parent.context
+
+        if not definition and not seed and degree == 0:
+            seed = self.create_initial_seed(experiment, participant)
+
+        if not definition:
+            definition = self.create_definition_from_seed(seed, experiment, participant)
+
+        if assets is None:
+            assets = {}
+
+        self.assets = assets
+        self.block = block
+        self.participant_group = participant_group
         self.degree = degree
-        self.definition = self.create_definition_from_seed(
-            seed, experiment, participant
-        )
+        self.module_id = module_id
+        self.seed = seed
+        self.definition = definition
+        self.context = context
         self.propagate_failure = propagate_failure
+        self._staged_assets = assets
+
+        if parent:
+            parent.child = self
+            self.parent = parent
+
+    def create_initial_seed(self, experiment, participant):
+        raise NotImplementedError
+
+    def stage_assets(self, experiment):
+        self.assets = {}
+
+        # if self.network:
+        #     self.assets.update(**self.network.assets)
+
+        for label, asset in self._staged_assets.items():
+            if asset.label is None:
+                asset.label = label
+
+            asset.parent = self
+
+            if not asset.has_key:
+                asset.set_keys()
+
+            asset.receive_node_definition(self.definition)
+
+            experiment.assets.stage(asset)
+            self.assets[label] = asset
+
+        db.session.commit()
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
         Creates a node definition from a seed.
-        The seed comes from the previous state in the chain, which
-        will be either a :class:`~psynet.trial.chain.ChainSource`
-        or a :class:`~psynet.trial.chain.ChainNode`.
+        The seed comes from the previous node in the chain.
         In many cases (e.g. iterated reproduction) the definition
         will be trivially equal to the seed,
         but in some cases we may introduce some kind of stochastic alteration
@@ -576,78 +679,89 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         raise NotImplementedError
 
     def create_seed(self, experiment, participant):
-        trials = self.completed_and_processed_trials.all()
+        trials = self.completed_and_processed_trials
         return self.summarize_trials(trials, experiment, participant)
 
-    degree = claim_field("degree", __extra_vars__, int)
-    child_id = claim_field("child_id", __extra_vars__, int)
-
-    propagate_failure = claim_var("propagate_failure", __extra_vars__)
-
-    # VarStore occuppies the <details> slot.
     @property
     def var(self):
         return VarStore(self)
 
-    @property
-    def source(self):
-        return self.network.source
-
-    @property
-    def child(self):
-        if self.child_id is None:
-            return None
-        return ChainNode.query.filter_by(id=self.child_id).one()
-
-    @child.setter
-    def child(self, child):
-        self.child_id = child.id
-
-    @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.network.phase
-
-    @property
-    def target_num_trials(self):
+    @hybrid_property
+    def target_n_trials(self):
         return self.network.trials_per_node
 
-    @property
-    def ready_to_spawn(self):
-        return self.reached_target_num_trials()
+    @target_n_trials.expression
+    def target_n_trials(cls):
+        # Does this produce a correlated subquery? Is it problematic for performance?
+        # (https://docs.sqlalchemy.org/en/14/orm/extensions/hybrid.html#correlated-subquery-relationship-hybrid)
+        return (
+            select(ChainNetwork.trials_per_node)
+            .where(ChainNetwork.id == cls.network_id)
+            .scalar_subquery()
+        )
+
+    # @property
+    # def ready_to_spawn(self):
+    #     return self.reached_target_n_trials
 
     @property
     def completed_and_processed_trials(self):
-        return Trial.query.filter_by(
-            origin_id=self.id,
-            failed=False,
-            complete=True,
-            finalized=True,
-            is_repeat_trial=False,
+        return [
+            t
+            for t in self.alive_trials
+            if (t.complete and t.finalized and not t.is_repeat_trial)
+        ]
+
+    @hybrid_property
+    def n_completed_and_processed_trials(self):
+        return len(self.completed_and_processed_trials)
+
+    @n_completed_and_processed_trials.expression
+    def n_completed_and_processed_trials(cls):
+        return (
+            select(func.count(Trial.id))
+            .where(
+                Trial.node_id == cls.id,
+                Trial.complete,
+                Trial.finalized,
+                ~Trial.is_repeat_trial,
+            )
+            .scalar_subquery()
         )
 
-    @property
-    def _query_completed_trials(self):
-        return Trial.query.filter_by(
-            origin_id=self.id, failed=False, complete=True, is_repeat_trial=False
-        )
+    # column_property(
+    #     # select(Trial.node_id, Trial.complete, Trial.finalized, Trial.is_repeat_trial)
+    #     select(func.count(Trial.id))
+    #     .where(Trial.node_id == TrialNode.id, Trial.complete, Trial.finalized, ~ Trial.is_repeat_trial)
+    # )
+
+    @hybrid_property
+    def reached_target_n_trials(self):
+        return self.n_completed_and_processed_trials >= self.target_n_trials
+
+    @reached_target_n_trials.expression
+    def reached_target_n_trials(cls):
+        return cls.n_completed_and_processed_trials >= cls.target_n_trials
+
+    @hybrid_property
+    def ready_to_spawn(self):
+        return self.reached_target_n_trials
+
+    @ready_to_spawn.expression
+    def ready_to_spawn(cls):
+        return cls.reached_target_n_trials
 
     @property
-    def completed_trials(self):
-        return self._query_completed_trials.all()
+    def viable_trials(self):
+        return [t for t in self.alive_trials if not t.is_repeat_trial]
 
-    @property
-    def num_completed_trials(self):
-        return self._query_completed_trials.count()
+    # def reached_target_n_trials(self):
+    #     return len(self.completed_and_processed_trials) >= self.target_n_trials
 
-    @property
-    def num_viable_trials(self):
-        return Trial.query.filter_by(
-            origin_id=self.id, failed=False, is_repeat_trial=False
-        ).count()
-
-    def reached_target_num_trials(self):
-        return self.completed_and_processed_trials.count() >= self.target_num_trials
+    def fail(self, reason=None):
+        if self.network.head.id == self.id:
+            self.network.head = self.parent
+        super().fail(reason)
 
     @property
     def failure_cascade(self):
@@ -658,137 +772,53 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
                 to_fail.append(lambda: [self.child])
         return to_fail
 
-    def fail(self, reason=None):
-        """
-        Marks the node as failed.
+    # @hybrid_property
+    # def n_viable_trials(self):
+    #     return len(self.viable_trials)
+    #
+    # @n_viable_trials.expression
+    # def n_viable_trials(cls):
+    #     return (
+    #         select(func.count(Trial.id))
+    #         .where(
+    #             Trial.node_id == cls.id,
+    #             ~ Trial.is_repeat_trial,
+    #             ~ Trial.failed,
+    #         )
+    #         .scalar_subquery()
+    #     )
 
-        If a `reason` argument is passed, this will be stored in
-        :attr:`~dallinger.models.SharedMixin.failed_reason`.
-        """
-        if not self.failed:
-            super().fail(reason=reason)
+
+TrialNode.n_viable_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.node_id == TrialNode.id,
+        ~Trial.is_repeat_trial,
+        ~Trial.failed,
+    )
+    .scalar_subquery()
+)
+
+ChainNetwork.ready_to_spawn = column_property(
+    select(ChainNode.ready_to_spawn)
+    .where(ChainNode.id == ChainNetwork.head_id)
+    .scalar_subquery()
+)
+
+ChainNetwork.n_viable_trials_at_head = column_property(
+    select(TrialNode.n_viable_trials)
+    .where(TrialNode.id == ChainNetwork.head_id)
+    .scalar_subquery()
+)
+
+ChainNetwork.head_is_awaiting_async_process = column_property(
+    select(TrialNode.awaiting_async_process)
+    .where(TrialNode.id == ChainNetwork.head_id)
+    .scalar_subquery()
+)
 
 
-class ChainSource(TrialSource, HasSeed):
-    """
-    Represents a source in a chain network.
-    The source provides the seed from which the rest of the chain is ultimately derived.
-
-    This class is intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
-    It subclasses :class:`dallinger.nodes.Source`.
-
-    The most important attribute is :attr:`~psynet.trial.chain.ChainSource.definition`.
-    This is the core information that represents the current state of the node.
-    In a transmission chain of drawings, this might be the initial drawing
-    that begins the transmission chain.
-
-    The user is required to override the following abstract method:
-
-    * :meth:`~psynet.trial.chain.ChainSource.generate_seed`,
-      which generates a seed for the :class:`~psynet.trial.chain.ChainSource`
-      which will then be stored in the :attr:`~psynet.trial.chain.ChainSource.seed` attribute.
-
-    Parameters
-    ----------
-
-    network
-        The network with which the node is to be associated.
-
-    experiment
-        An instantiation of :class:`psynet.experiment.Experiment`,
-        corresponding to the current experiment.
-
-    participant
-        Optional participant with which to associate the node.
-
-    Attributes
-    ----------
-
-    degree
-        The degree of a :class:`~psynet.trial.chain.ChainSource` object is always 0.
-
-    seed
-        The seed that is passed to the next node in the chain.
-        Created by :meth:`~psynet.trial.chain.ChainSource.generate_seed`.
-
-    var : :class:`~psynet.field.VarStore`
-        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
-
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set from :attr:`psynet.trial.chain.ChainNetwork.phase`.
-
-    ready_to_spawn
-        Always returns ``True`` for :class:`~psynet.trial.chain.ChainSource` objects.
-    """
-
-    # pylint: disable=abstract-method
-    __extra_vars__ = {
-        **TrialSource.__extra_vars__.copy(),
-        **HasSeed.__extra_vars__.copy(),
-    }
-
-    ready_to_spawn = True
-    degree = 0
-
-    def __init__(self, network, experiment, participant):
-        super().__init__(network, participant)
-        self.seed = self.generate_seed(network, experiment, participant)
-
-    @property
-    @extra_var(__extra_vars__)
-    def degree(self):
-        return 0
-
-    @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.network.phase
-
-    @property
-    def var(self):  # occupies the <details> attribute
-        return VarStore(self)
-
-    def fail(self, reason=None):
-        """
-        Marks the source node as failed.
-
-        If a `reason` argument is passed, this will be stored in
-        :attr:`~dallinger.models.SharedMixin.failed_reason`.
-        """
-        if not self.failed:
-            super().fail(reason=reason)
-
-    def create_seed(self, experiment, participant):
-        # pylint: disable=unused-argument
-        return self.seed
-
-    def generate_seed(self, network, experiment, participant):
-        """
-        Generates a seed for the :class:`~psynet.trial.chain.ChainSource` and
-        correspondingly for the :class:`~psynet.trial.chain.ChainNetwork`.
-
-        Parameters
-        ----------
-
-        network
-            The network to which the :class:`~psynet.trial.chain.ChainSource` belongs.
-
-        experiment
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-
-        participant
-            The associated participant, if relevant.
-
-        Returns
-        -------
-
-        object
-            The generated seed. It must be suitable for serialisation to JSON.
-        """
-        raise NotImplementedError
+UniqueConstraint(ChainNode.module_id, ChainNode.key)
 
 
 class ChainTrial(Trial):
@@ -891,20 +921,9 @@ class ChainTrial(Trial):
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
-        The user should not typically change this directly.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
-
-    source
-        The :class:`~psynet.trial.chain.ChainSource of the
-        :class:`~psynet.trial.chain.ChainNetwork`
-        to which the :class:`~psynet.trial.chain.ChainTrial` belongs.
-
-    phase : str
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Pulled from the :attr:`~psynet.trial.chain.ChainTrial.node` attribute.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other
@@ -927,51 +946,83 @@ class ChainTrial(Trial):
     # pylint: disable=abstract-method
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    @property
-    @extra_var(__extra_vars__)
-    def degree(self):
-        return self.node.degree
+    participant_group = association_proxy("node", "participant_group")
+    degree = association_proxy("node", "degree")
+    context = association_proxy("node", "context")
 
-    @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.node.phase
+    block_position = Column(Integer, index=True)
+    block = Column(String, index=True)
 
-    @property
-    @extra_var(__extra_vars__)
-    def node_id(self):
-        return self.origin_id
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        if participant.in_module and hasattr(
+            participant.module_state, "block_position"
+        ):
+            self.block_position = participant.module_state.block_position
+            self.block = participant.module_state.block
 
-    @property
-    def node(self):
-        return self.origin
-
-    @property
-    def source(self):
-        return self.node.source
+    # @property
+    # @extra_var(__extra_vars__)
+    # def degree(self):
+    #     return self.node.degree
+    #
+    # @property
+    # def node(self):
+    #     return self.origin
 
     @property
     def failure_cascade(self):
         to_fail = []
         if self.propagate_failure:
-            if self.child:
-                to_fail.append(lambda: [self.child])
+            if self.node.child:
+                to_fail.append(lambda: [self.node.child])
         return to_fail
 
-    def fail(self, reason=None):
-        """
-        Marks a trial as failed. Failing a trial means that it is somehow
-        excluded from certain parts of the experiment logic, for example
-        not counting towards data collection quotas, or not contributing
-        towards latter parts of a transmission chain.
+    @property
+    def trial_maker(self):
+        return self.node.trial_maker
 
-        The original fail function from the
-        :class:`~dallinger.models.Info` class
-        throws an error if the object is already failed,
-        but this behaviour is disabled here.
-        """
-        if not self.failed:
-            super().fail(reason=reason)
+
+class ChainTrialMakerState(NetworkTrialMakerState):
+    block_order = Column(PythonList)
+    block_position = Column(Integer)
+    block = Column(String)
+    participated_networks = Column(PythonList, default=lambda: [])
+
+    # @hybrid_property
+    # def block(self):
+    #     return self.block_order[self.block_position]
+
+    @property
+    def n_blocks(self):
+        return len(self.block_order)
+
+    @property
+    def remaining_blocks(self):
+        return self.block_order[self.block_position :]
+
+    def set_block_position(self, i):
+        self.block_position = i
+        self.block = self.block_order[i]
+
+    def go_to_next_block(self):
+        self.set_block_position(self.block_position + 1)
+
+
+ChainTrialMakerState.n_participant_trials_in_trial_maker = column_property(
+    select(func.count(ChainTrial.id))
+    .where(ChainTrial.module_state_id == ChainTrialMakerState.id)
+    .scalar_subquery()
+)
+
+ChainTrialMakerState.n_participant_trials_in_block = column_property(
+    select(func.count(ChainTrial.id))
+    .where(
+        ChainTrial.module_state_id == ChainTrialMakerState.id,
+        ChainTrial.block_position == ChainTrialMakerState.block_position,
+    )
+    .scalar_subquery()
+)
 
 
 class ChainTrialMaker(NetworkTrialMaker):
@@ -990,10 +1041,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     * :class:`~psynet.trial.chain.ChainTrial`;
       a special type of :class:`~psynet.trial.main.NetworkTrial`
-
-    * :class:`~psynet.trial.chain.ChainSource`;
-      a special type of :class:`~dallinger.nodes.Source`, corresponding
-      to the initial state of the network.
 
     A chain is initialized with a :class:`~psynet.trial.chain.ChainSource` object.
     This :class:`~psynet.trial.chain.ChainSource` object provides
@@ -1030,39 +1077,31 @@ class ChainTrialMaker(NetworkTrialMaker):
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.chain.ChainTrial`).
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-
     chain_type
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
 
-    num_trials_per_participant
+    max_trials_per_participant
         Maximum number of trials that each participant may complete;
         once this number is reached, the participant will move on
         to the next stage in the timeline.
 
-    num_chains_per_participant
+    chains_per_participant
         Number of chains to be created for each participant;
         only relevant if ``chain_type="within"``.
 
-    num_chains_per_experiment
+    chains_per_experiment
         Number of chains to be created for the entire experiment;
         only relevant if ``chain_type="across"``.
 
-    num_iterations_per_chain
+    max_nodes_per_chain
         Specifies chain length in terms of the
         number of data-collection iterations that are required to complete a chain.
         The number of successful participant trials required to complete the chain then
-        corresponds to ``trials_per_node * num_iterations_per_chain``.
-        Previously chain length was specified using the now-deprecated argument ``num_nodes_per_chain``.
+        corresponds to ``trials_per_node * max_nodes_per_chain``.
 
-    num_nodes_per_chain
-        [DEPRECATED; new code should use ``num_iterations_per_chain`` and leave this argument empty.]
+    max_nodes_per_chain
         Maximum number of nodes in the chain before the chain is marked as full and no more nodes will be added.
-        The final node receives no participant trials, but instead summarizes the state of the network.
-        So, ``num_nodes_per_chain`` is equal to ``1 + num_iterations_per_chain``.
 
     trials_per_node
         Number of satisfactory trials to be received by the last node
@@ -1074,6 +1113,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         such that trials are preferentially sourced from chains with
         fewer valid trials.
 
+    # balance_strategy
+    #     A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
+    #     If the list contains "across", then the balancing will take into account trials from other participants.
+    #     If it contains "within", then the balancing will take into account trials from the present participant.
+    #     If both are selected, then the balancing strategy will prioritize balancing within the current participant,
+    #     but will use counts from other participants as a tie breaker.
+
     check_performance_at_end
         If ``True``, the participant's performance
         is evaluated at the end of the series of trials.
@@ -1084,15 +1130,15 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of
-        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``, though the latter requires overriding of
+        :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
+        ``recruit_mode="n_participants"``.
 
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
@@ -1111,7 +1157,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
@@ -1124,6 +1170,11 @@ class ChainTrialMaker(NetworkTrialMaker):
     allow_revisiting_networks_in_across_chains : bool
         If this is set to ``True``, then participants can revisit the same network
         in across-participant chains. The default is ``False``.
+
+    choose_participant_group
+        Only relevant if the trial maker uses nodes with non-default participant groups.
+        In this case the experimenter is expected to supply a function that takes participant as an argument
+        and returns the chosen participant group for that trial maker.
 
     Attributes
     ----------
@@ -1151,7 +1202,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
-    num_networks : int
+    n_networks : int
         Returns the number of networks owned by the trial maker.
 
     networks : list
@@ -1167,111 +1218,244 @@ class ChainTrialMaker(NetworkTrialMaker):
         longer have any pending asynchronous processes.
     """
 
+    state_class = ChainTrialMakerState
+
     def __init__(
         self,
         *,
         id_,
-        network_class,
-        node_class,
-        source_class,
-        trial_class,
-        phase: str,
+        trial_class: Type[ChainTrial],
+        node_class: Type[ChainNode],
+        network_class: Type[ChainNetwork] = None,
         chain_type: str,
-        num_trials_per_participant: int,
-        num_chains_per_participant: Optional[int],
-        num_chains_per_experiment: Optional[int],
-        trials_per_node: int,
-        balance_across_chains: bool,
-        check_performance_at_end: bool,
-        check_performance_every_trial: bool,
-        recruit_mode: str,
-        target_num_participants=Optional[int],
-        num_iterations_per_chain: Optional[int] = None,
-        num_nodes_per_chain: Optional[int] = None,
+        expected_trials_per_participant: int,
+        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_block: Optional[int] = None,
+        max_nodes_per_chain: Optional[int] = None,
+        chains_per_participant: Optional[int] = None,
+        chains_per_experiment: Optional[int] = None,
+        trials_per_node: int = 1,
+        n_repeat_trials: int = 0,
+        target_n_participants: Optional[int] = None,
+        balance_across_chains: bool = False,
+        start_nodes=None,
+        # balance_strategy: Set[str] = {"within", "across"},
+        check_performance_at_end: bool = False,
+        check_performance_every_trial: bool = False,
+        recruit_mode: str = "n_participants",
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
-        num_repeat_trials: int = 0,
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
+        assets=None,
+        choose_participant_group: Optional[callable] = None,
     ):
+        if network_class is None:
+            network_class = self.default_network_class
+
         assert chain_type in ["within", "across"]
 
         if (
             chain_type == "across"
-            and num_trials_per_participant > num_chains_per_experiment
+            and expected_trials_per_participant
+            and chains_per_experiment
+            and expected_trials_per_participant > chains_per_experiment
             and not allow_revisiting_networks_in_across_chains
         ):
             raise ValueError(
-                "In across-chain experiments, <num_trials_per_participant> "
-                "cannot exceed <num_chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
+                "In across-participant chain experiments, <expected_trials_per_participant> "
+                "cannot exceed <chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
                 "is ``True``."
             )
 
-        if chain_type == "within" and recruit_mode == "num_trials":
+        if chain_type == "within" and recruit_mode == "n_trials":
             raise ValueError(
-                "In within-chain experiments the 'num_trials' recruit method is not available."
+                "In within-chain experiments the 'n_trials' recruit method is not available."
             )
 
-        if (num_nodes_per_chain is not None) and (num_iterations_per_chain is not None):
-            raise ValueError(
-                "num_nodes_per_chain and num_iterations_per_chain cannot both be provided"
+        if chain_type == "within":
+            assert start_nodes is None or callable(start_nodes)
+            assert not (start_nodes is None and chains_per_participant is None)
+            assert (
+                max_trials_per_participant is not None
+                or max_trials_per_block is not None
+                or max_nodes_per_chain is not None
             )
-        elif num_nodes_per_chain is not None:
-            num_iterations_per_chain = num_nodes_per_chain - 1
-            warnings.simplefilter("always", DeprecationWarning)
-            warnings.warn(
-                "num_nodes_per_chain is deprecated, use num_iterations_per_chain instead",
-                DeprecationWarning,
+        elif chain_type == "across":
+            assert (
+                start_nodes is None
+                or callable(start_nodes)
+                or is_list_of(start_nodes, ChainNode)
             )
-        elif num_iterations_per_chain is not None:
-            pass
-        elif (num_nodes_per_chain is None) and (num_iterations_per_chain is None):
-            raise ValueError(
-                "one of num_nodes_per_chain and num_iterations_per_chain must be provided"
-            )
+            if allow_revisiting_networks_in_across_chains:
+                assert (
+                    max_trials_per_participant is not None
+                    or max_trials_per_block is not None
+                )
+        else:
+            raise ValueError(f"Unrecognized chain type: {chain_type}")
+
+        self.start_nodes = start_nodes
+
+        # assert len(balance_strategy) <= 2
+        # assert all([x in ["across", "within"] for x in balance_strategy])
 
         self.node_class = node_class
-        self.source_class = source_class
         self.trial_class = trial_class
-        self.phase = phase
         self.chain_type = chain_type
-        self.num_trials_per_participant = num_trials_per_participant
-        self.num_chains_per_participant = num_chains_per_participant
-        self.num_chains_per_experiment = num_chains_per_experiment
-        self.num_iterations_per_chain = num_iterations_per_chain
-        self.num_nodes_per_chain = num_iterations_per_chain + 1
+        self.max_trials_per_participant = max_trials_per_participant
+        self.max_trials_per_block = max_trials_per_block
+        self.chains_per_participant = chains_per_participant
+        self.chains_per_experiment = chains_per_experiment
+        self.max_nodes_per_chain = max_nodes_per_chain
         self.trials_per_node = trials_per_node
         self.balance_across_chains = balance_across_chains
+        # self.balance_strategy = balance_strategy
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
         self.allow_revisiting_networks_in_across_chains = (
             allow_revisiting_networks_in_across_chains
         )
+        self.choose_participant_group = choose_participant_group
 
         super().__init__(
             id_=id_,
             trial_class=trial_class,
             network_class=network_class,
-            phase=phase,
-            expected_num_trials=num_trials_per_participant + num_repeat_trials,
+            expected_trials_per_participant=expected_trials_per_participant
+            + n_repeat_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials,
+            target_n_participants=target_n_participants,
+            n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
+            assets=assets,
         )
+
+        self.check_initialization()
+
+    def check_initialization(self):
+        pass
+
+    def check_participant_groups(self, networks):
+        for n in networks:
+            if (
+                n.participant_group != "default"
+                and self.choose_participant_group is None
+            ):
+                raise ValueError(
+                    f"Since the Trial Maker's starting nodes contain a non-default participant_group "
+                    f"({n.participant_group}), you must provide a value for the choose_participant_groups "
+                    "argument. This should be a function that takes 'participant' as an argument and returns "
+                    "the participant group chosen for that Trial Maker."
+                )
+
+    @property
+    def default_network_class(self):
+        return ChainNetwork
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
-        self.init_participated_networks(participant)
+        participant.module_state.participated_networks = []
         if self.chain_type == "within":
-            self.create_networks_within(experiment, participant)
+            networks = self.create_networks_within(experiment, participant)
+        else:
+            networks = self.networks
+            if len(self.networks) == 0:
+                raise RuntimeError(
+                    f"Couldn't find any networks for the trial maker '{participant.module_state.module_id}'. "
+                    "A common reason for this is deploying your experiment using 'dallinger deploy' instead of "
+                    "'psynet deploy'."
+                )
+        blocks = set([network.block for network in networks])
+        self.init_block_order(experiment, participant, blocks)
+        participant.module_state.set_block_position(0)
+        self.check_participant_groups(networks)
+
+    def init_block_order(self, experiment, participant, blocks):
+        block_order = call_function_with_context(
+            self.choose_block_order,
+            experiment=experiment,
+            participant=participant,
+            blocks=blocks,
+        )
+        participant.module_state.block_order = block_order
+
+    def choose_block_order(self, experiment, participant, blocks):
+        # pylint: disable=unused-argument
+        """
+        Determines the order of blocks for the current participant.
+        By default this function shuffles the blocks randomly for each participant.
+        The user is invited to override this function for alternative behaviour.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant
+            An instantiation of :class:`psynet.participant.Participant`,
+            corresponding to the current participant.
+
+        Returns
+        -------
+
+        list
+            A list of blocks in order of presentation,
+            where each block is identified by a string label.
+        """
+        return random.sample(list(blocks), len(blocks))
+
+    def _should_finish_block(self, participant):
+        state = participant.module_state
+
+        assert state.block is not None
+        assert state.block_position is not None
+
+        # Used to pass these for convenience, but it produces unnecessary computation.
+        # Keeping the code here though in case people overriding this function want
+        # to make use of these.
+        #
+        # trials_in_trial_maker = [
+        #     trial for trial in participant.all_trials if trial.trial_maker_id == self.id
+        # ]
+        # trials_in_block = [
+        #     trial
+        #     for trial in trials_in_trial_maker
+        #     if trial.block_position == block_position
+        # ]
+
+        return self.should_finish_block(
+            participant,
+            state.block,
+            state.block_position,
+            state.n_participant_trials_in_block,
+            state.n_participant_trials_in_trial_maker,
+        )
+
+    def should_finish_block(
+        self,
+        participant,  # noqa
+        block,  # noqa
+        block_position,  # noqa
+        n_participant_trials_in_block,
+        n_participant_trials_in_trial_maker,
+    ):  # noqa
+        return (
+            self.max_trials_per_block is not None
+            and n_participant_trials_in_block >= self.max_trials_per_block
+        ) or (
+            self.max_trials_per_participant is not None
+            and n_participant_trials_in_trial_maker >= self.max_trials_per_participant
+        )
 
     @property
     def introduction(self):
@@ -1285,71 +1469,155 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def all_participant_networks_ready(self, participant):
         networks = self.network_class.query.filter_by(
-            participant_id=participant.id, phase=self.phase, trial_maker_id=self.id
+            participant_id=participant.id, trial_maker_id=self.id
         ).all()
         return all([not x.awaiting_async_process for x in networks])
 
     @property
-    def num_trials_still_required(self):
+    def n_trials_still_required(self):
         assert self.chain_type == "across"
-        return sum([network.num_trials_still_required for network in self.networks])
+        return sum([network.n_trials_still_required for network in self.networks])
 
     #########################
     # Participated networks #
     #########################
-    def init_participated_networks(self, participant):
-        participant.var.set(self.with_namespace("participated_networks"), [])
 
-    def get_participated_networks(self, participant):
-        return participant.var.get(self.with_namespace("participated_networks"))
-
-    def add_to_participated_networks(self, participant, network_id):
-        networks = self.get_participated_networks(participant)
-        networks.append(network_id)
-        participant.var.set(self.with_namespace("participated_networks"), networks)
-
-    def experiment_setup_routine(self, experiment):
-        if self.num_networks == 0 and self.chain_type == "across":
+    def pre_deploy_routine(self, experiment):
+        if self.chain_type == "across":
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant):
-        for i in range(self.num_chains_per_participant):
-            self.create_network(experiment, participant, id_within_participant=i)
+        if self.start_nodes:
+            nodes = call_function_with_context(
+                self.start_nodes, experiment=experiment, participant=participant
+            )
+            if self.chains_per_participant is not None:
+                assert len(nodes) == self.chains_per_participant, (
+                    f"Problem with trial maker {self.id}: "
+                    f"The number of nodes generated by start_nodes ({len(nodes)} did not equal "
+                    f"chains_per_participant ({self.chains_per_participant})."
+                )
+        else:
+            nodes = [None for _ in range(self.chains_per_participant)]
+
+        networks = []
+        for i, node in enumerate(nodes):
+            network = self.create_network(
+                experiment, participant, id_within_participant=i, start_node=nodes[i]
+            )
+            # self._grow_network(network, experiment)  # not necessary any more!
+            networks.append(network)
+            if node:
+                node.check_on_deploy()
+
+        db.session.commit()
+
+        return networks
 
     def create_networks_across(self, experiment):
-        for _ in range(self.num_chains_per_experiment):
-            self.create_network(experiment)
+        if self.start_nodes:
+            if callable(self.start_nodes):
+                nodes = call_function_with_context(
+                    self.start_nodes, experiment=experiment
+                )
+            else:
+                nodes = self.start_nodes
+                assert isinstance(nodes, list)
+            if self.chains_per_experiment:
+                assert len(nodes) == self.chains_per_experiment, (
+                    f"Problem with trial maker {self.id}: "
+                    f"The number of nodes provided by start_nodes ({len(nodes)}) did not equal 0 or "
+                    f"chains_per_experiment ({self.chains_per_experiment})."
+                )
+        else:
+            nodes = [None for _ in range(self.chains_per_experiment)]
+        for node in nodes:  # type: ChainNode
+            self.create_network(experiment, start_node=node)
+            if node is not None:
+                node.stage_assets(experiment)
 
-    def create_network(self, experiment, participant=None, id_within_participant=None):
+    def create_network(
+        self, experiment, participant=None, id_within_participant=None, start_node=None
+    ):
+        if not start_node:
+            start_node = self.node_class(
+                network=None, experiment=experiment, participant=participant
+            )
+
         network = self.network_class(
             trial_maker_id=self.id,
-            source_class=self.source_class,
-            phase=self.phase,
+            start_node=start_node,
             experiment=experiment,
             chain_type=self.chain_type,
             trials_per_node=self.trials_per_node,
-            target_num_nodes=self.num_nodes_per_chain,
+            target_n_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
         )
         db.session.add(network)
-        db.session.commit()
-        self._grow_network(network, participant, experiment)
+        start_node.set_network(network)
+        db.session.commit()  # TODO - remove this for efficiency?
         return network
 
-    def find_networks(self, participant, experiment, ignore_async_processes=False):
-        if (
-            self.get_num_completed_trials_in_phase(participant)
-            >= self.num_trials_per_participant
-        ):
-            return []
+    @log_time_taken
+    def find_networks(self, participant, experiment):
+        """
 
+        Parameters
+        ----------
+        participant
+        experiment
+
+        Returns
+        -------
+
+        Either "exit", "wait", or a list of networks.
+
+        """
+        participant.module_state  # type: ChainTrialMakerState
+
+        db.session.commit()
+        logger.info(
+            "Looking for networks for participant %i.",
+            participant.id,
+        )
+        n_completed_trials = participant.module_state.n_completed_trials
+        if (
+            self.max_trials_per_participant is not None
+            and n_completed_trials >= self.max_trials_per_participant
+        ):
+            logger.info(
+                "N completed trials (%i) >= N trials per participant (%i), skipping forward",
+                n_completed_trials,
+                self.max_trials_per_participant,
+            )
+            return "exit"
+
+        if self._should_finish_block(participant):
+            if (
+                participant.module_state.block_position + 1
+                >= participant.module_state.n_blocks
+            ):
+                return "exit"
+            else:
+                participant.module_state.go_to_next_block()
+
+        # networks = db.session.query(
+        #     self.network_class.chain_type,
+        #     self.network_class.head,
+        # ,
+        # )
+        #
+        #
         networks = self.network_class.query.filter_by(
-            trial_maker_id=self.id, phase=self.phase, full=False
+            trial_maker_id=self.id, full=False
         )
 
-        if not ignore_async_processes:
-            networks = networks.filter_by(awaiting_async_process=False)
+        # logger.info(
+        #     "There are %i non-full networks for trialmaker %s.",
+        #     networks.count(),
+        #     self.id,
+        # )
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)
@@ -1359,23 +1627,101 @@ class ChainTrialMaker(NetworkTrialMaker):
         ):
             networks = self.exclude_participated(networks, participant)
 
-        networks = networks.all()
+        participant_group = participant.module_state.participant_group
+        networks = networks.filter_by(participant_group=participant_group)
 
-        participant_group = participant.get_participant_group(self.id)
-        networks = [n for n in networks if n.participant_group == participant_group]
+        # logger.info(
+        #     "%i of these networks match the current participant group (%s).",
+        #     networks.count(),
+        #     participant_group,
+        # )
+
+        networks = networks.all()
 
         networks = self.custom_network_filter(
             candidates=networks, participant=participant
         )
+
+        logger.info("%i remain after applying custom network filters.", len(networks))
+
         if not isinstance(networks, list):
             return TypeError("custom_network_filter must return a list of networks")
+
+        def has_pending_process(network):
+            return (
+                network.awaiting_async_process or network.head_is_awaiting_async_process
+            )
+
+        networks_without_pending_processes = [
+            n for n in networks if not has_pending_process(n)
+        ]
+
+        logger.info(
+            "%i out of %i networks are awaiting async processes (or have nodes awaiting async processes).",
+            len(networks) - len(networks_without_pending_processes),
+            len(networks),
+        )
+
+        if (
+            len(networks_without_pending_processes) == 0
+            and len(networks) > 0
+            and self.wait_for_networks
+        ):
+            logger.info("Will wait for a network to become available.")
+            return "wait"
+
+        networks = networks_without_pending_processes
+
+        networks_with_head_space = [
+            n for n in networks if n.n_viable_trials_at_head < self.trials_per_node
+        ]
+
+        if len(networks) > 0 and len(networks_with_head_space) == 0:
+            logger.info(
+                "All of these chains have head nodes that have already received their full complement of trials. "
+                "They need to grow before a new participant can join them."
+            )
+            if self.wait_for_networks:
+                return "wait"
+            else:
+                return "exit"
+
+        networks = networks_with_head_space
+
+        if len(networks) == 0:
+            return "exit"
 
         random.shuffle(networks)
 
         if self.balance_across_chains:
-            networks.sort(key=lambda network: network.num_completed_trials)
+            networks.sort(key=lambda network: network.n_completed_trials)
 
-        return networks
+            # if "across" in self.balance_strategy:
+            #     networks.sort(key=lambda network: network.n_completed_trials)
+            # if "within" in self.balance_strategy:
+            #     networks.sort(
+            #         key=lambda network: len(
+            #             [
+            #                 t
+            #                 for t in network.alive_trials
+            #                 if t.participant_id == participant.id
+            #             ]
+            #         )
+            #     )
+
+        current_block = participant.module_state.block
+        remaining_blocks = participant.module_state.remaining_blocks
+        networks = [n for n in networks if n.block in remaining_blocks]
+        networks.sort(key=lambda network: remaining_blocks.index(network.block))
+
+        chosen = networks[0]
+        if chosen.block != current_block:
+            logger.info(
+                f"Advanced from block '{current_block}' to '{chosen.block}' "
+                "because there weren't any spots available in the former."
+            )
+
+        return [chosen]
 
     def custom_network_filter(self, candidates, participant):
         """
@@ -1399,42 +1745,62 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     @staticmethod
     def filter_by_participant_id(networks, participant):
-        return networks.filter_by(participant_id=participant.id)
+        query = networks.filter_by(participant_id=participant.id)
+        # logger.info(
+        #     "%i of these belong to participant %i.",
+        #     query.count(),
+        #     participant.id,
+        # )
+        return query
 
     def exclude_participated(self, networks, participant):
-        return networks.filter(
-            not_(self.network_class.id.in_(self.get_participated_networks(participant)))
+        query = networks.filter(
+            not_(
+                self.network_class.id.in_(
+                    participant.module_state.participated_networks
+                )
+            )
         )
+        # logger.info(
+        #     "%i of these are available once you exclude already-visited networks.",
+        #     query.count(),
+        # )
+        return query
 
-    def grow_network(self, network, participant, experiment):
+    @log_time_taken
+    def grow_network(self, network, experiment):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None
-        head = network.head
-        if head.ready_to_spawn:
-            seed = head.create_seed(experiment, participant)
-            node = self.node_class(
-                seed,
-                head.degree + 1,
-                network,
-                experiment,
-                self.propagate_failure,
-                participant,
-            )
-            db.session.add(node)
-            network.add_node(node)
-            db.session.commit()
+        if network.ready_to_spawn:
+            head = network.head
+            with time_logger("create seed", indent=4):
+                seed = head.create_seed(experiment, participant)
+            with time_logger("create node", indent=4):
+                node = self.node_class(
+                    seed=seed,
+                    parent=head,
+                    network=network,
+                    experiment=experiment,
+                    propagate_failure=self.propagate_failure,
+                    participant=participant,
+                )
+            with time_logger("add node to DB", indent=4):
+                db.session.add(node)
+                network.add_node(node)
+                db.session.commit()
+            with time_logger("creation checks", indent=4):
+                node.check_on_create()
+                node.check_on_deploy()
+            with time_logger("final commit", indent=4):
+                db.session.commit()
             return True
         return False
 
+    @log_time_taken
     def find_node(self, network, participant, experiment):
-        head = network.head
-        if network.awaiting_async_process or (
-            head.num_viable_trials >= self.trials_per_node
-        ):
-            return None
-        return head
+        return network.head
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
-        self.add_to_participated_networks(participant, trial.network_id)
+        participant.module_state.participated_networks.append(trial.network_id)

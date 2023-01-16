@@ -1,3 +1,0 @@
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/PsyNetDev/psynet#egg=psynet
-melody_experiments@git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments
-matplotlib

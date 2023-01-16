@@ -6,35 +6,35 @@
             <div class="col-xs-2">
               <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
             </div>
-            <h1 id="header" style="clear: both;">Error!</h1>
+            <h1 id="header" style="clear: both;">{{ pgettext("mturk_error", "Error!") }}</h1>
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
+                {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
                 {% if compensate == True %}
                     <p id="error-text-main">
                         {% if experiment.var.show_abort_button %}
-                            You may be able to abort the experiment using the <span style="font-weight: bold;">Abort experiment</span> button <span id="abort-button-location" style="font-weight: bold;">on the MTurk ad page</span></span>. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at
-                            <a href="mailto:{{contact_address}}">{{contact_address}}</a>
-                            quoting the following information:
+                            {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
+                            {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
+                            {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
+                            <div id="abort-button-location"></div>
                         {% else %}
-                            To enquire about compensation, please contact the researcher at
-                            <a href="mailto:{{contact_address}}">{{contact_address}}</a>
-                            and describe what led to this error.
-                            Please also quote the following information:
+                            {% trans name="mturk_error" %}To enquire about compensation, please contact the researcher at {{ EMAIL }} and describe what led to this error.{% endtrans %}
+                            {{ pgettext("mturk_error", "Please also quote the following information:") }}
                         {% endif %}
                     </p>
                     <p>
-                        Error type: {{ error_type }}<br>
-                        HIT ID: {{ hit_id }}<br>
-                        Assignment ID: {{ assignment_id }}<br>
-                        Worker ID: {{ worker_id }}<br>
+                        {{ gettext("Error type") }}: {{ error_type }}<br>
+                        {{ gettext("HIT ID") }}: {{ hit_id }}<br>
+                        {{ gettext("Assignment ID") }}: {{ assignment_id }}<br>
+                        {{ gettext("Worker ID") }}: {{ worker_id }}<br>
                     </p>
                     {% if experiment.var.show_abort_button %}
                         <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
-                        Abort Experiment
+                        {{ gettext("Abort Experiment") }}
                         </button>
                         <div id="abort-text" style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px; display: none;">
-                            <span class="alert-danger">Click the above button to be compensated in case of an error.</span>
+                            <span class="alert-danger">{{ pgettext("mturk_error", "Click the above button to be compensated in case of an error.") }}</span>
                         </div>
                         <script>
                             function abortExperiment() {

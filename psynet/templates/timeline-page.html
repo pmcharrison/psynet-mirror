@@ -46,8 +46,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .vspace {
@@ -70,7 +74,8 @@
                 <div class="progress">
                     <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
                          aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
-                         style="width:{{ progress_percentage }}%">{{ progress_percentage }}%</div>
+                         style="width:{{ progress_percentage }}%">{{ progress_percentage }}%
+                    </div>
                 </div>
             {% endif %}
         </div>
@@ -89,6 +94,7 @@
                         margin-bottom: 15px;
                         display: {% if trial_progress_display_config["show_bar"] %} flex {% else %} none {% endif %};
                     }
+
                     #trial-progress-caption {
                         margin-top: 15px;
                         margin-bottom: 15px;
@@ -97,6 +103,7 @@
                         align-items: center;
                         font-weight: bold;
                     }
+
                     .trial-progress-bar-segment {
                         -webkit-transition: none;
                         -moz-transition: none;
@@ -126,19 +133,22 @@
                 <div class="modal-content">
                     <span class="close">&times;</span>
                     <div style="margin: 20px">
-                        <h3>In case of a problem, try the following:</h3>
+                        <h3>{{ pgettext("timeline_problem", "In case of a problem, try the following:") }}</h3>
                         <ul>
-                            <li>Reload the page.</li>
-                            <li>Check that your internet connection is working.</li>
-                            <li>If the above doesn't help,
+                            <li>{{ pgettext("timeline_problem", "Reload the page.") }}</li>
+                            <li>{{ pgettext("timeline_problem", "Check that your internet connection is working.") }}</li>
+                            <li>
                                 <a
-                                href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant.id }}%29"
-                                target="_top">send us an email</a>
-                                with the following information:
+                                        href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant.id }}%29"
+                                        target="_top"
+                                >
+                                {{ pgettext("timeline_problem", "If the above doesn't help, send us an email with the following information:") }}
+                                </a>
+
                                 <ol>
-                                    <li>A link to the current web page;</li>
-                                    <li>Your Worker ID;</li>
-                                    <li>The problem you're experiencing.</li>
+                                    <li>{{ pgettext("timeline_problem", "A link to the current web page;") }}</li>
+                                    <li>{{ pgettext("timeline_problem", "Your Worker ID;") }}</li>
+                                    <li>{{ pgettext("timeline_problem", "The problem you're experiencing.") }}</li>
                                 </ol>
                             </li>
                         </ul>
@@ -150,12 +160,12 @@
         {% block resume_modal %}
             <div id="resume-modal" class="modal">
                 <div class="modal-content">
-                    <h3>Are you ready?</h3>
+                    <h3>{{ pgettext("timeline_resume", "Are you ready?") }}</h3>
                     <p>
-                        Click the button when you're ready to continue the experiment.
+                        {{ pgettext("timeline_resume", "Click the button when you're ready to continue the experiment.") }}
                     </p>
                     <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume-button">
-                        Resume
+                        {{ pgettext("timeline_resume", "Resume") }}
                     </button>
                 </div>
             </div>
@@ -173,19 +183,23 @@
                     line-height: 33px;
                     border-style: none;
                 }
+
                 #media-download-progress-bar {
                     width: {{ initial_download_progress }}%;
                     height: 6px;
                     background-color: black;
                 }
+
                 .footer-text {
                     margin: 0px;
                 }
+
                 #help-button {
                     min-width: 50px;
                     background-color: white;
                     color: black
                 }
+
                 #help-button:hover {
                     background-color: rgb(234, 236, 239);
                 }
@@ -197,23 +211,49 @@
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
                         {% if show_bonus %}
                             <div class="footer-text">
-                                Bonus:
+                                {{ pgettext("timeline", "Bonus") }}:
                                 <strong>
                                     <span id="bonus-details" style="display: none">
-                                        &#36;<span id="basic-bonus">{{basic_bonus}}</span> (basic) +
-                                        &#36;<span id="extra-bonus">{{extra_bonus}}</span> (extra) =
+                                        {{ currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
+                                        {{ currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
                                     </span>
                                     <span style="font-weight: bold">
-                                        &#36;<span id="total-bonus">{{total_bonus}}</span>
+                                        {{ currency }}<span id="total-bonus">{{ total_bonus }}</span>
                                     </span>
                                 </strong>
                             </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary" id="help-button">Help!</button>
+
+                        {% if allow_switching_locale and supported_language_dict|length > 1 %}
+                        <div>
+                            <select id="iso-language" class="form-control">
+                                {% for iso, language in supported_language_dict.items() %}
+                                    {% if iso == current_locale %}
+                                        <option value="{{ iso }}" selected>{{ language }}️</option>
+                                    {% else %}
+                                        <option value="{{ iso }}">{{ language }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        <button type="button" class="btn btn-primary" id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
                 </div>
             </nav>
         {% endif %}
+        <script>
+        // Allows the user to switch the language of the experiment if this setting is enabled.
+        $('#iso-language').on('change', function (x){
+            var $_GET=[];
+            window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(a,name,value){$_GET[name]=value;});
+            var participant_id = $_GET['participant_id'];
+            $.get('/set_locale_participant/' + participant_id + '?locale=' + $(this).val(), function (data) {
+                location.reload();
+            });
+            $('#iso-language').val()
+        })
+    </script>
     {% endblock %}
 {% endblock %}
 
@@ -221,6 +261,8 @@
     {{ super() }}
 
     <script src="/static/scripts/jquery-3.6.0.min.js"></script>
+
+
 
     <script>
         {{ init_js_vars }}
@@ -239,11 +281,11 @@
                     utils: {}
                 };
 
-                psynet.utils.shallowCopy = function(x) {
+                psynet.utils.shallowCopy = function (x) {
                     return Object.assign({}, x);
                 }
 
-                psynet.utils.deepCopy = function(x) {
+                psynet.utils.deepCopy = function (x) {
                     return JSON.parse(JSON.stringify(x));
                 }
 
@@ -299,9 +341,9 @@
                     return total / numbers.length;
                 };
 
-                psynet.waitForEventListener = async function(target, type) {
+                psynet.waitForEventListener = async function (target, type) {
                     await new Promise((resolve) => {
-                       target.addEventListener(type, () => resolve(), {once: true});
+                        target.addEventListener(type, () => resolve(), {once: true});
                     });
                 };
 
@@ -323,7 +365,7 @@
                     }
 
                     let time = new Date();
-                    console.log("LOG (" + level.toUpperCase() + ") at " + time.toLocaleTimeString()  + ": " + msg);
+                    console.log("LOG (" + level.toUpperCase() + ") at " + time.toLocaleTimeString() + ": " + msg);
 
                     if (level != "debug" && psynet.log.counter < psynet.log.max) {
                         psynet.log.counter += 1;
@@ -357,7 +399,7 @@
                     psynet.log.generic(msg, "debug")
                 }
 
-                let Trial = function() {
+                let Trial = function () {
                     let trial = {
                         state: null,
                         events: {},
@@ -367,14 +409,14 @@
                         stopping: false
                     };
 
-                    trial.reset = function() {
+                    trial.reset = function () {
                         trial.state = null;
                         trial.inProgress = false;
                         trial.startTime = null;
                         Object.values(trial.events).forEach((e) => e.reset());
                     };
 
-                    let Event = function(id, spec) {
+                    let Event = function (id, spec) {
                         let event = {
                             id: id,
                             toBeTriggered: [],
@@ -394,21 +436,21 @@
                                 fired: false,
                                 triggeredEvent: event
                             };
-                            trigger.fire = function(info) {
+                            trigger.fire = function (info) {
                                 trigger.fired = true;
                                 trigger.triggeredEvent.checkTriggers(info);
                             };
                             return trigger
                         });
 
-                        event.checkTriggers = function(info) {
+                        event.checkTriggers = function (info) {
                             let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
                             if ((event.triggerCondition == "any" || allTriggersFired) && (!(event.once && event.happened))) {
                                 trial.setTimer(() => trial.registerEvent(id, {info: info}), event.delay * 1000);
                             }
                         };
 
-                        event.propagateTriggers = function() {
+                        event.propagateTriggers = function () {
                             event.isTriggeredBy.forEach((trigger) => {
                                 let triggeringEvent = trial.events[trigger.triggeringEvent];
                                 if (!triggeringEvent) {
@@ -420,34 +462,34 @@
                             });
                         };
 
-                        event.resetTriggers = function() {
+                        event.resetTriggers = function () {
                             event.isTriggeredBy.forEach((trigger) => {
                                 trigger.fired = false;
                             });
                         };
 
-                        event.reset = function() {
+                        event.reset = function () {
                             event.happened = false;
                             event.resetTriggers();
                         };
 
-                        event.showMessage = function() {
+                        event.showMessage = function () {
                             if (event.message !== null) {
                                 psynet.trialProgress.setText(event.message, event.messageColor);
                             }
                         };
 
-                        event.runJS = function(info) {
+                        event.runJS = function (info) {
                             if (event.js !== null) {
                                 Function("info", unescape(event.js))(info);
                             }
                         };
 
-                        event.runHandlers = async function(info) {
+                        event.runHandlers = async function (info) {
                             let handlers = event.handlers;
 
                             // Sort in order of decreasing priority
-                            handlers.sort((a, b) => - (a.priority - b.priority));
+                            handlers.sort((a, b) => -(a.priority - b.priority));
 
                             for (const handler of handlers) {
                                 trial.pendingEventHandlers.add(id);
@@ -456,7 +498,7 @@
                             }
                         };
 
-                        event.hitTriggers = function(info) {
+                        event.hitTriggers = function (info) {
                             for (const target of event.toBeTriggered) {
                                 trial.setTimer(() => target.fire(info), target.delay * 1000);
                             }
@@ -465,7 +507,7 @@
                         return event;
                     };
 
-                    let genericEvent = function(id) {
+                    let genericEvent = function (id) {
                         // We use snake_case here to mirror the specification format
                         // that comes from the Python back-end
                         return Event(id, {
@@ -476,7 +518,7 @@
                         });
                     };
 
-                    trial.initEvents = function() {
+                    trial.initEvents = function () {
                         let rawEvents = {{ events | tojson }};
                         Object.entries(rawEvents).forEach(([id, spec]) => trial.events[id] = Event(id, spec));
                         Object.values(trial.events).forEach((event) => event.propagateTriggers());
@@ -484,11 +526,11 @@
 
                     trial.initEvents()
 
-                    trial.setTimer = function(handler, timeout) {
+                    trial.setTimer = function (handler, timeout) {
                         trial.timers.push(setTimeout(handler, timeout));
                     };
 
-                    trial.clearTimers = function() {
+                    trial.clearTimers = function () {
                         trial.timers.forEach(timer => clearTimeout(timer));
                     };
 
@@ -497,18 +539,18 @@
                         return {
                             data: data,
 
-                            add: function(id) {
+                            add: function (id) {
                                 let time = new Date();
                                 data[id] = {
                                     timeStarted: time
                                 }
                             },
 
-                            remove: function(id) {
+                            remove: function (id) {
                                 delete data[id];
                             },
 
-                            waitFor: async function(providedOptions) {
+                            waitFor: async function (providedOptions) {
                                 let options = {
                                     pollInterval: 0.005,
                                     timeOut: 10,
@@ -548,7 +590,7 @@
                         };
                     })();
 
-                    trial.logEvent = function(id, info) {
+                    trial.logEvent = function (id, info) {
                         let time = new Date();
                         trial.eventLog.push({
                             eventType: id,
@@ -558,7 +600,7 @@
                         psynet.log.debug(id);
                     }
 
-                    trial.registerEvent = async function(id, providedOptions) {
+                    trial.registerEvent = async function (id, providedOptions) {
                         let options = {
                             info: null,
                             once: false
@@ -582,7 +624,7 @@
                         }
                     };
 
-                    trial.onEvent = function(id, handler, providedOptions) {
+                    trial.onEvent = function (id, handler, providedOptions) {
                         // Higher priority values are executed first
                         let options = {
                             priority: 0.0
@@ -600,25 +642,25 @@
                         });
                     };
 
-                    trial.getGlobalTime = function() {
+                    trial.getGlobalTime = function () {
                         return psynet.media.audioContext.currentTime;
                     };
 
-                    trial.listEvents = function() {
+                    trial.listEvents = function () {
                         return Object.keys(trial.events);
                     };
 
-                    trial.init = async function() {
+                    trial.init = async function () {
                         // Should only be called once, on page load
                         await trial.registerEvent("trialConstruct");
                     };
 
-                    trial.stop = async function() {
-                    /**
-                     * Can be called manually to stop the trial.
-                     * Is idempotent (you can call it multiple times
-                     * with no bad side effects).
-                     */
+                    trial.stop = async function () {
+                        /**
+                         * Can be called manually to stop the trial.
+                         * Is idempotent (you can call it multiple times
+                         * with no bad side effects).
+                         */
                         if (trial.inProgress && !trial.stopping) {
                             trial.stopping = true;
                             trial.clearTimers();
@@ -630,7 +672,7 @@
                         }
                     };
 
-                    trial.restart = async function(providedOptions) {
+                    trial.restart = async function (providedOptions) {
                         // Can be called manually at an arbitrary point to restart the trial
                         let options = {
                             from: "trialPrepare"
@@ -648,33 +690,34 @@
 
                 psynet.trial = Trial();
 
-                psynet.trial.onEvent("trialConstruct", async function() {
+                psynet.trial.onEvent("trialConstruct", async function () {
                     await psynet.media.init();
                     $(".wait-for-media-load").removeAttr("disabled");
                 });
 
-                psynet.trial.onEvent("trialPrepare", function() {
+                psynet.trial.onEvent("trialPrepare", function () {
                     psynet.trial.inProgress = true;
                 });
 
-                psynet.trial.onEvent("trialFinished", function() {
+                psynet.trial.onEvent("trialFinished", function () {
                     psynet.trial.inProgress = false;
                 });
 
-                psynet.trial.onEvent("trialStopped", function() {
+                psynet.trial.onEvent("trialStopped", function () {
                     psynet.trial.inProgress = false;
                 });
 
                 psynet.submit = {
-                    enable: () => $(".submit").removeAttr("disabled"),
-                    disable: () => $(".submit").attr("disabled", "disabled")
+                    // .sd-navigation__complete-btn is the complete button in SurveyJS
+                    enable: () => $(".submit, .sd-navigation__complete-btn").removeAttr("disabled"),
+                    disable: () => $(".submit, .sd-navigation__complete-btn").attr("disabled", "disabled")
                 };
 
                 psynet.response = {
                     staged: {
                         rawAnswer: null,
-                        metadata: undefined,
-                        blobs: undefined
+                        metadata: {},
+                        blobs: {}
                     },
                     enable: () => $(".response").removeAttr("disabled"),
                     disable: () => $(".response").attr("disabled", "disabled")
@@ -747,9 +790,9 @@
                 //     }
                 // };
 
-                psynet.media.stopAllAudio = function() {
+                psynet.media.stopAllAudio = function () {
                     if (psynet.audio) {
-                        Object.values(psynet.audio).forEach(function(x) {
+                        Object.values(psynet.audio).forEach(function (x) {
                             x.stop();
                         });
                     }
@@ -768,12 +811,12 @@
                     psynet.media.audioContext = context;
                 };
 
-                let askUserToResume = function() {
+                let askUserToResume = function () {
                     return new Promise((resolve) => {
                         let resumeModal = $("#resume-modal");
                         let resumeButton = $("#resume-button");
                         resumeModal.css("display", "block");
-                        resumeButton.click(async function() {
+                        resumeButton.click(async function () {
                             resumeModal.css("display", "none");
                             await psynet.media.init();
                             resolve();
@@ -932,133 +975,135 @@
                     Object.keys(requests).forEach(log);
                 };
 
-                let createAudioStimulus = function(data, stimulusId, handler) {
+                let createAudioStimulus = function (data, stimulusId, handler) {
                     psynet.log.debug("Decoding sound " + stimulusId + "...");
 
-                    return new Promise((resolve) => { psynet.media.audioContext.decodeAudioData(data, function (buffer) {
-                        psynet.log.debug("Sound " + stimulusId + " decoded.");
+                    return new Promise((resolve) => {
+                        psynet.media.audioContext.decodeAudioData(data, function (buffer) {
+                            psynet.log.debug("Sound " + stimulusId + " decoded.");
 
-                        let out = psynet.media.data.audio[stimulusId];
-                        out.buffer = buffer;
+                            let out = psynet.media.data.audio[stimulusId];
+                            out.buffer = buffer;
 
-                        out.play = function (providedOptions) {
-                            let options = {
-                                fadeIn: 0.0,
-                                fadeOut: 0.0,
-                                startDelay: 0.01,
-                                gain: 1,
-                                loop: false,
-                                start: null,
-                                end: null
-                            };
-
-                            Object.assign(options, providedOptions);
-
-                            const start = (options.start === null) ? 0.0 : options.start;
-                            const duration = (options.end === null) ? undefined : options.end - options.start;
-
-                            let sound = {
-                                source: psynet.media.audioContext.createBufferSource(),
-                                gainNode: psynet.media.audioContext.createGain(),
-                                startTime: psynet.media.audioContext.currentTime + options.startDelay,
-                                options: options,
-                                manuallyStopped: false,
-                                duration: (duration === undefined) ? buffer.duration : duration,
-                                stimulusId: stimulusId,
-                                onEnd: null
-                            };
-
-                            sound.source.buffer = buffer;
-
-                            sound.source.connect(sound.gainNode);
-                            sound.gainNode.connect(psynet.media.audioContext.destination);
-
-                            sound.gainNode.gain.setValueAtTime(
-                                0.001,
-                                sound.startTime
-                            );
-
-                            sound.source.start(sound.startTime, start, duration);
-
-                            if (options.gain > 1e-10) {
-                                sound.gainNode.gain.exponentialRampToValueAtTime(
-                                    options.gain,
-                                    psynet.media.audioContext.currentTime + options.startDelay + options.fadeIn
-                                );
-                            }
-
-                            let stopTimer = setTimeout(
-                                () => sound.stop({fadeOut: options.fadeOut, manual: false}),
-                                1000 * (options.startDelay + sound.duration - options.fadeOut)
-                            );
-
-                            sound.stop = function (providedOptions) {
+                            out.play = function (providedOptions) {
                                 let options = {
-                                    fadeOut: sound.options.fadeOut,
-                                    manual: true
+                                    fadeIn: 0.0,
+                                    fadeOut: 0.0,
+                                    startDelay: 0.01,
+                                    gain: 1,
+                                    loop: false,
+                                    start: null,
+                                    end: null
                                 };
 
                                 Object.assign(options, providedOptions);
 
-                                clearTimeout(stopTimer);
+                                const start = (options.start === null) ? 0.0 : options.start;
+                                const duration = (options.end === null) ? undefined : options.end - options.start;
 
-                                psynet.log.debug("Stopping audio " + sound.stimulusId + ".");
+                                let sound = {
+                                    source: psynet.media.audioContext.createBufferSource(),
+                                    gainNode: psynet.media.audioContext.createGain(),
+                                    startTime: psynet.media.audioContext.currentTime + options.startDelay,
+                                    options: options,
+                                    manuallyStopped: false,
+                                    duration: (duration === undefined) ? buffer.duration : duration,
+                                    stimulusId: stimulusId,
+                                    onEnd: null
+                                };
 
-                                sound.manuallyStopped = options.manual;
+                                sound.source.buffer = buffer;
 
-                                let gainNow = sound.gainNode.gain.value;
-                                let timeNow = psynet.media.audioContext.currentTime;
+                                sound.source.connect(sound.gainNode);
+                                sound.gainNode.connect(psynet.media.audioContext.destination);
 
-                                if (sound.gainNode.gain.value > 0.001) {
-                                    sound.gainNode.gain.setValueAtTime(gainNow, timeNow);
-                                    sound.gainNode.gain.exponentialRampToValueAtTime(0.001, timeNow + options.fadeOut);
+                                sound.gainNode.gain.setValueAtTime(
+                                    0.001,
+                                    sound.startTime
+                                );
+
+                                sound.source.start(sound.startTime, start, duration);
+
+                                if (options.gain > 1e-10) {
+                                    sound.gainNode.gain.exponentialRampToValueAtTime(
+                                        options.gain,
+                                        psynet.media.audioContext.currentTime + options.startDelay + options.fadeIn
+                                    );
                                 }
 
-                                return new Promise((resolve) => {
-                                    setTimeout(() => {
-                                        sound.source.stop();
-                                        resolve();
-                                    }, options.fadeOut * 1000);
+                                let stopTimer = setTimeout(
+                                    () => sound.stop({fadeOut: options.fadeOut, manual: false}),
+                                    1000 * (options.startDelay + sound.duration - options.fadeOut)
+                                );
+
+                                sound.stop = function (providedOptions) {
+                                    let options = {
+                                        fadeOut: sound.options.fadeOut,
+                                        manual: true
+                                    };
+
+                                    Object.assign(options, providedOptions);
+
+                                    clearTimeout(stopTimer);
+
+                                    psynet.log.debug("Stopping audio " + sound.stimulusId + ".");
+
+                                    sound.manuallyStopped = options.manual;
+
+                                    let gainNow = sound.gainNode.gain.value;
+                                    let timeNow = psynet.media.audioContext.currentTime;
+
+                                    if (sound.gainNode.gain.value > 0.001) {
+                                        sound.gainNode.gain.setValueAtTime(gainNow, timeNow);
+                                        sound.gainNode.gain.exponentialRampToValueAtTime(0.001, timeNow + options.fadeOut);
+                                    }
+
+                                    return new Promise((resolve) => {
+                                        setTimeout(() => {
+                                            sound.source.stop();
+                                            resolve();
+                                        }, options.fadeOut * 1000);
+                                    });
+                                }
+
+                                sound.source.addEventListener("ended", function () {
+                                    clearTimeout(stopTimer);
+                                    psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
+                                    psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
+                                    if (sound.options.loop && !sound.manuallyStopped) {
+                                        psynet.log.debug("Looping sound with ID = " + out.stimulusId);
+                                        out.play(sound.options);
+                                    }
                                 });
-                            }
 
-                            sound.source.addEventListener("ended", function () {
-                                clearTimeout(stopTimer);
-                                psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
-                                psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
-                                if (sound.options.loop && !sound.manuallyStopped) {
-                                    psynet.log.debug("Looping sound with ID = " + out.stimulusId);
-                                    out.play(sound.options);
-                                }
-                            });
+                                psynet.media.sounds.push(sound);
+                                return sound;
+                            };
 
-                            psynet.media.sounds.push(sound);
-                            return sound;
-                        };
+                            out.stop = function (options) {
+                                psynet.media.sounds.forEach(function (s) {
+                                    if (s.stimulusId == stimulusId) {
+                                        s.stop(options);
+                                    }
+                                });
+                                return this
+                            };
 
-                        out.stop = function (options) {
-                            psynet.media.sounds.forEach(function(s) {
-                                if (s.stimulusId == stimulusId) {
-                                    s.stop(options);
-                                }
-                            });
-                            return this
-                        };
+                            out.loaded = true;
 
-                        out.loaded = true;
-
-                        resolve();
-                    })});
+                            resolve();
+                        })
+                    });
                 };
 
-                psynet.media.blobToArrayBuffer = async function(blob) {
+                psynet.media.blobToArrayBuffer = async function (blob) {
                     let buffer = await new Response(blob).arrayBuffer();
                     return buffer;
                 }
 
                 // Used to add extra stimuli that aren't loaded as part of the initial media load
                 // (needs refactoring in a general cross-media way)
-                psynet.media.addExtraAudioStimulus = async function(buffer, stimulusId) {
+                psynet.media.addExtraAudioStimulus = async function (buffer, stimulusId) {
                     initStimulus(stimulusId, "audio");
                     await createAudioStimulus(buffer, stimulusId, () => Promise.resolve());
                 }
@@ -1069,7 +1114,7 @@
                     return createAudioStimulus(data, args.stimulusId);
                 };
 
-                let getImageMetadataFromURL = function(url) {
+                let getImageMetadataFromURL = function (url) {
                     return new Promise((resolve, reject) => {
                         let img = new Image();
                         img.onload = () => resolve({
@@ -1182,9 +1227,8 @@
                 let checkParticipantId = function () {
                     if (dallinger.identity.participantId === undefined) {
                         alert(
-                            "Your participant ID is undefined, perhaps because you " +
-                            "switched browsers during the test. " +
-                            "Unfortunately this behaviour is not currently supported."
+                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") }}" +
+                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") }}"
                         );
                         throw console.error("Undefined participant ID.");
                     }
@@ -1212,16 +1256,21 @@
                     }
                 };
 
-                psynet.estimateDownloadSpeed = function() {
+                psynet.estimateDownloadSpeed = function () {
                     // Returns estimated download speed in megabits/second
                     // (at the time of writing, this is capped at 10).
                     let connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                    return connection.downlink
+                    if (connection) {
+                        return connection.downlink
+                    } else {
+                        return null;
+                    }
+
                 }
 
                 psynet.pageLoaded = false;
 
-                let waitForPageLoad = function() {
+                let waitForPageLoad = function () {
                     return new Promise(resolve => {
                         window.addEventListener("load", () => resolve());
                     });
@@ -1265,7 +1314,7 @@
                     }
                 };
 
-                psynet.nextPage = function (rawAnswer, metadata, blobs) {
+                psynet.nextPage = function (rawAnswer, metadata, blobs, onRejection) {
                     // Arguments default to psynet.response.staged if they
                     // are not provided explicitly.
                     if (rawAnswer === undefined) {
@@ -1277,10 +1326,10 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
-                    submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse);
+                    submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                 };
 
-                let onSuccessResponse = function (request) {
+                let onSuccessResponse = function (request, onRejection) {
                     let response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
@@ -1299,12 +1348,15 @@
                         alert(response.message);
                         psynet.response.enable();
                         psynet.submit.enable();
+                        if (onRejection) {
+                            onRejection(response);
+                        }
                     } else {
                         throw Error("Received a malformed response.");
                     }
                 };
 
-                onPageUpdated = function(event) {
+                onPageUpdated = function (event) {
                     console.log("Dispatched 'onPageUpdated' event. Sending data to Unity:\nattributes:" + psynet.page.attributes + "\ncontents:" + psynet.page.contents);
                     unityInstance.SendMessage(
                         "PsynetObj",
@@ -1358,11 +1410,11 @@
                     });
                 };
 
-                let submitGenericResponse = function (rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse) {
+                let submitGenericResponse = function (rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection) {
                     // rawAnswer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
-                    $( " .response, .submit " ).prop("disabled", true);
+                    $(" .response, .submit ").prop("disabled", true);
 
                     json = prepareJsonSubmission(rawAnswer, metadata);
 
@@ -1379,7 +1431,7 @@
                         if (request.readyState === 4) {
                             if (request.status === 200) {
                                 psynet.log.debug("Response was successfully received.");
-                                onSuccessResponse(request);
+                                onSuccessResponse(request, onRejection);
                             } else {
                                 psynet.log.debug("Something went wrong.");
                                 onErrorResponse(request);
@@ -1394,7 +1446,7 @@
                     let config = {{ trial_progress_display_config | tojson }};
                     let opacities = {light: 0.25, medium: 0.6, dark: 1.0};
 
-                    let init = function() {
+                    let init = function () {
                         config.stages.forEach((stage) => stage.html = {});
                         config.stages.forEach((stage) => {
                             stage.html.past = addBarSegment(stage.color, opacities.dark);
@@ -1403,7 +1455,7 @@
                             stage.html.future = addBarSegment(stage.color, opacities.light);
                         });
                         config.stages.forEach((stage) => {
-                            stage.update = function(elapsed) {
+                            stage.update = function (elapsed) {
                                 let proportionOfStageComplete = bound((elapsed - stage.time[0]) / stage.duration, 0, 1);
                                 let proportionOfBarComplete = (proportionOfStageComplete * stage.duration) / config.duration;
                                 stage.html.past.setWidth(100 * proportionOfBarComplete);
@@ -1422,7 +1474,7 @@
                         setInterval(update, 5);
                     };
 
-                    let bound = function(x, min, max) {
+                    let bound = function (x, min, max) {
                         return Math.max(min, Math.min(x, max));
                     };
 
@@ -1451,12 +1503,12 @@
                         startTime = psynet.trial.getGlobalTime();
                     };
 
-                    let stop = function() {
+                    let stop = function () {
                         startTime = null;
                         activeStage = null;
                     };
 
-                    let setText = function(content, color) {
+                    let setText = function (content, color) {
                         if (content == "") {
                             resetText();
                         } else {
@@ -1468,12 +1520,12 @@
                         }
                     };
 
-                    let resetText = function() {
+                    let resetText = function () {
                         let text = $("#trial-progress-caption-contents");
                         text.html("&nbsp;");
                     };
 
-                    let update = function() {
+                    let update = function () {
                         let elapsed = startTime !== null ? psynet.trial.getGlobalTime() - startTime : 0.0
                         config.stages.forEach((s) => s.update(elapsed));
                         if (config.stages.length > 0) {
@@ -1505,25 +1557,25 @@
             }()
         )
 
-        let updateProgressAndBonus = function() {
+        let updateProgressAndBonus = function () {
             if (psynet.participantId !== undefined) {
                 $.get('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
-                .done(function(data) {
-                    let progressPercentage = data['progressPercentage'];
-                    let progressPercentageStr = progressPercentage + '%';
-                    $('#timeline-progress-bar').text(progressPercentageStr);
-                    $('#timeline-progress-bar').css("width", progressPercentageStr)
-                    $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+                    .done(function (data) {
+                        let progressPercentage = data['progressPercentage'];
+                        let progressPercentageStr = progressPercentage + '%';
+                        $('#timeline-progress-bar').text(progressPercentageStr);
+                        $('#timeline-progress-bar').css("width", progressPercentageStr)
+                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
 
-                    if (data['bonus'] !== undefined) {
-                        if (data['bonus']['extra'].toFixed(2) > 0) {
-                            $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
-                            $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                            $("#bonus-details").show()
+                        if (data['bonus'] !== undefined) {
+                            if (data['bonus']['extra'].toFixed(2) > 0) {
+                                $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
+                                $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
+                                $("#bonus-details").show()
+                            }
+                            $('#total-bonus').text(data['bonus']['total'].toFixed(2));
                         }
-                        $('#total-bonus').text(data['bonus']['total'].toFixed(2));
-                    }
-                });
+                    });
             }
         }
 
@@ -1531,7 +1583,7 @@
             setInterval(updateProgressAndBonus, 1000);
         }
 
-        function alertParticipantOpenedDevtools(){
+        function alertParticipantOpenedDevtools() {
             console.warn(
                 'You have opened the developer tools. ' +
                 'The experimenter is informed about this possible misconduct. ' +
@@ -1540,20 +1592,21 @@
         }
 
         function writeToDbParticipantOpenedDevtools() {
-             dallinger.post(
-                 '/participant_opened_devtools/' + dallinger.identity.participantId
-                 + "/{{ auth_token }}"
-             );
+            dallinger.post(
+                '/participant_opened_devtools/' + dallinger.identity.participantId
+                + "/{{ auth_token }}"
+            );
         }
 
-        function logParticipantOpenedDevtools(){
+        function logParticipantOpenedDevtools() {
             psynet.log.warning('Participant ' + psynet.participantId + " opened the browser's developer tools.")
         }
 
         function isConsoleOpen() {
             let consoleOpen = false;
-            let f = function() {}
-            f.toString = function() {
+            let f = function () {
+            }
+            f.toString = function () {
                 consoleOpen = true;
             }
             console.profile(f);
@@ -1578,7 +1631,8 @@
 
 {% block libs %}
     {{ super() }}
-    <script src="/static/scripts/platform.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}" type="text/javascript"> </script>
+    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}" type="text/javascript"> </script>
 {% endblock %}
 
 {% block scripts %}

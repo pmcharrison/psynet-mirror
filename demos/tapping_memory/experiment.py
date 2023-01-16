@@ -14,15 +14,14 @@ from reppextension.iterated_tapping import (
 from scipy.io import wavfile
 
 import psynet.experiment
+from psynet.asset import DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import JSONSerializer, REPPTappingCalibration
+from psynet.prescreen import NumpySerializer, REPPTappingCalibration
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
-    AudioImitationChainNetwork,
     AudioImitationChainNode,
-    AudioImitationChainSource,
     AudioImitationChainTrial,
     AudioImitationChainTrialMaker,
 )
@@ -32,7 +31,6 @@ logger = get_logger()
 
 
 # Global parameters
-BUCKET_NAME = "iterated-tapping-demo"
 config = ConfigUpdater.create_config(
     sms_tapping,
     {
@@ -67,7 +65,7 @@ TIME_ESTIMATE_PER_TRIAL = config.REPEATS * 3
 # failing criteria
 MIN_RESPONSES_PLAYED = config.MIN_TAPS_PLAYED
 # within chains
-NUM_CHAINS_PER_PARTICIPANT = 2  # set to 4 for a real experiment
+CHAINS_PER_PARTICIPANT = 2  # set to 4 for a real experiment
 NUM_ITERATION_CHAIN = 2  # set to 5 for a real experiment
 NUM_TRIALS_PARTICIPANT = 4  # set to 20 for a real experiment
 TOTAL_NUM_PARTICIPANTS = 50
@@ -96,8 +94,8 @@ class CustomTrialAnalysis(AudioImitationChainTrial):
         failed = output_iteration["seed_needs_change"]
         reason = output_iteration["seed_needs_change_reason"]
         ratios_reps = output_iteration["resp_onsets_complete"]
-        ratios_reps = json.dumps(ratios_reps, cls=JSONSerializer)
-        output_iteration = json.dumps(output_iteration, cls=JSONSerializer)
+        ratios_reps = json.dumps(ratios_reps, cls=NumpySerializer)
+        output_iteration = json.dumps(output_iteration, cls=NumpySerializer)
         ioi_new_seed = [as_native_type(value) for value in new_seed]
         ioi_old_seed = [as_native_type(value) for value in old_seed]
         return {
@@ -114,30 +112,29 @@ class CustomTrial(CustomTrialAnalysis):
     time_estimate = TIME_ESTIMATE_PER_TRIAL
 
     def show_trial(self, experiment, participant):
-        info_stimulus = self.origin.var.info_stimulus
+        info_stimulus = self.node.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec_sec"]
         trial_number = self.position + 1
-        num_trials = NUM_TRIALS_PARTICIPANT if self.phase == "experiment" else 2
+        n_trials = self.trial_maker.expected_trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(
-                self.origin.target_url,
+                self.assets["stimulus"],
                 Markup(
                     f"""
                     <h3>Imitate the rhythm</h3>
                     Listen to the rhythm and imitate it as best as you can by tapping with your finger.
                     <br><br>
-                    <i>Trial number {trial_number} out of {num_trials} trials.</i>
+                    <i>Trial number {trial_number} out of {n_trials} trials.</i>
                     """
                 ),
             ),
             AudioRecordControl(
                 duration=duration_rec_sec + 5,
-                s3_bucket=BUCKET_NAME,
-                public_read=True,
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
+                bot_response_media="example_tapping_memory_recording.wav",
             ),
             time_estimate=duration_rec_sec + 5,
             events={
@@ -161,20 +158,17 @@ class CustomTrial(CustomTrialAnalysis):
                         1,
                         "Finished recording.",
                         "green",
+                        persistent=False,
                     ),
                     ProgressStage(
                         0.5,
-                        "Uploading, please wait...",
+                        "Press Next when you are ready to continue...",
                         "orange",
                         persistent=True,
                     ),
                 ],
             ),
         )
-
-
-class CustomNetwork(AudioImitationChainNetwork):
-    s3_bucket = BUCKET_NAME
 
 
 class CustomNode(AudioImitationChainNode):
@@ -184,30 +178,45 @@ class CustomNode(AudioImitationChainNode):
 
     def synthesize_target(self, output_file):
         random_seed = self.definition
-        stim, _, _ = stimulus.make_stim_from_seed(random_seed)
+        stim, _, _ = stimulus.make_stim_from_seed(
+            random_seed, repeats=config["repeats"]
+        )
         self.var.info_stimulus = {
             "duration_rec_sec": len(stim) / config.FS,
             "random_seed": random_seed,
         }
         save_samples_to_file(stim, output_file, config.FS)
 
+    def create_initial_seed(self, experiment, participant):
+        config.DURATION_RANGE = self.duration_range
+        ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
+        random_seed = [as_native_type(value) for value in ioi_seed]
+        return random_seed
 
-class CustomSource(AudioImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        if self.network.phase == "practice":
-            config.DURATION_RANGE = [500, 2000]
-            ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
-            random_seed = [as_native_type(value) for value in ioi_seed]
-            return random_seed
-        else:
-            config.DURATION_RANGE = [250, 2000]
-            ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
-            random_seed = [as_native_type(value) for value in ioi_seed]
-            return random_seed
+    @property
+    def duration_range(self):
+        raise NotImplementedError
+
+
+class PracticeNode(CustomNode):
+    @property
+    def duration_range(self):
+        return [500, 2000]
+
+
+class ExperimentNode(CustomNode):
+    @property
+    def duration_range(self):
+        return [250, 2000]
 
 
 # Timeline
 class Exp(psynet.experiment.Experiment):
+    label = "Tapping memory demo"
+
+    asset_storage = DebugStorage()
+    # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
+
     timeline = Timeline(
         NoConsent(),
         REPPTappingCalibration(),  # calibrate tapping
@@ -230,23 +239,20 @@ class Exp(psynet.experiment.Experiment):
         ),
         AudioImitationChainTrialMaker(
             id_="trial_maker_iterated_tapping",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
-            node_class=CustomNode,
-            source_class=CustomSource,
-            phase="experiment",
+            node_class=ExperimentNode,
             chain_type="within",
-            num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
-            num_iterations_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
-            num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
-            num_chains_per_experiment=None,  # set to None if chain_type="within"
+            expected_trials_per_participant=NUM_TRIALS_PARTICIPANT,
+            max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
+            chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
+            chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,
             balance_across_chains=False,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             propagate_failure=False,
-            recruit_mode="num_participants",
-            target_num_participants=TOTAL_NUM_PARTICIPANTS,
+            recruit_mode="n_participants",
+            target_n_participants=TOTAL_NUM_PARTICIPANTS,
         ),
         SuccessfulEndPage(),
     )

@@ -1,22 +1,44 @@
 {% macro null(config) %}
     <script>
+        disableButton = function() {
+            $("#next-button").attr("disabled", true)
+            $("#next-button-spinner").show()
+            $("#next-button-text").hide();
+        };
+
+        enableButton = function() {
+            $("#next-button").attr("disabled", false)
+            $("#next-button-spinner").hide()
+            $("#next-button-text").show();
+        }
+
         onNextButton = function() {
-            $(this).prop('disabled', true);
+            let width = $("#next-button").width()
+            $("#next-button").width(width); // Locks the button width to the current width
+
+            disableButton();
+
+            function onRejection() {
+                enableButton();
+            }
+
             if (typeof retrieveResponse == "undefined") {
                 psynet.nextPage();
             } else {
-                response = retrieveResponse();
+                let response = retrieveResponse();
                 psynet.nextPage(
                     response.rawAnswer,
                     response.metadata,
-                    response.blobs
+                    response.blobs,
+                    onRejection,
                 );
             }
         }
     </script>
 
-    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();">
-        Next
+    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();" disabled="true">
+        <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
+        <span id="next-button-text">{{ gettext("Next") }}</span>
     </button>
 {% endmacro %}
 
@@ -47,7 +69,7 @@
     </script>
 
     <button type="button" id="reset-button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="onResetButton();" disabled>
-        Reset
+        {{ gettext("Reset") }}
     </button>
     {% endmacro %}
 
@@ -57,7 +79,8 @@
         class="btn push-button btn-primary response {% if config.timed == true %} timed {% else %} submit {% endif %}"
         id="{{ config.id }}"
         onclick="clickedButton(this, this.id);"
-        style="{{ config.style }}"
+        style="{{ config.style }}",
+        disabled="true"
     >
         {% autoescape off %}
         {{ config.label }}
@@ -829,10 +852,10 @@
 
     <ul class="nav nav-tabs">
         <li class="nav-item">
-            <a href="#audio-meter-sliders" class="nav-link" data-toggle="tab">Sliders</a>
+            <a href="#audio-meter-sliders" class="nav-link" data-toggle="tab">{{ pgettext("audio_meter_calibrate", "Sliders") }}</a>
         </li>
         <li class="nav-item">
-            <a href="#audio-meter-documentation" class="nav-link" data-toggle="tab">Documentation</a>
+            <a href="#audio-meter-documentation" class="nav-link" data-toggle="tab">{{ pgettext("audio_meter_calibrate", "Documentation") }}</a>
         </li>
     </ul>
 
@@ -843,23 +866,22 @@
 
         <div id="audio-meter-documentation" class="tab-pane">
             <p>
-                The <strong>decay</strong> parameters determine the amount of smoothing
-                that happens to the signal, and have units of seconds. A high decay parameter
-                means that the signal takes a long time to decay (i.e. high smoothing).
-                There are three decay parameters: one for the displayed audio meter,
-                one for the 'too-high' detector, and one for the 'too-low' detector.
+                {{ pgettext("audio_meter_calibrate", "The <strong>decay</strong> parameters determine the amount of smoothing that happens to the signal, and have units of seconds.") }}
+                {{ pgettext("audio_meter_calibrate", "A high decay parameter means that the signal takes a long time to decay (i.e. high smoothing).") }}
+                {{ pgettext("audio_meter_calibrate", "There are three decay parameters: one for the displayed audio meter, one for the 'too-high' detector, and one for the 'too-low' detector.") }}
+
             </p>
             <p>
-                The <strong>threshold</strong> parameters determine the point at which
-                the volume is determined to be 'too high' or 'too low'.
+                {{ pgettext("audio_meter_calibrate", "The <strong>threshold</strong> parameters determine the point at which the volume is determined to be 'too high' or 'too low'.") }}
+
             </p>
             <p>
-                The <strong>grace</strong> parameters determine how long the volume must be
-                outside the respective threshold for a warning message to be triggered.
+                {{ pgettext("audio_meter_calibrate", "The <strong>grace</strong> parameters determine how long the volume must be outside the respective threshold for a warning message to be triggered.") }}
+
             </p>
             <p>
-                The <strong>message duration</strong> parameters determine how long
-                warning messages are displayed for.
+                {{ pgettext("audio_meter_calibrate", "The <strong>message duration</strong> parameters determine how long warning messages are displayed for.") }}
+
             </p>
         </div>
     </div>
@@ -895,28 +917,28 @@
 
         <div id="record-controls">
             <button id="btn-record-record" type="button" class="btn record-button auto-reset record-control btn-danger btn-sm" disabled>
-                Record from start
+                {{ gettext("Record from start") }}
             </button>
             <button id="btn-record-play-all" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
-                Play all
+                {{ gettext("Play all") }}
             </button>
             <button id="btn-record-play-prompt" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
-                Play prompt
+                {{ gettext("Play prompt") }}
             </button>
             <button id="btn-record-play-recording" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
-                Play recording
+                {{ gettext("Play recording") }}
             </button>
             <button id="btn-record-stop" type="button" class="btn record-button auto-reset record-control btn-secondary btn-sm">
-                Stop
+                {{ gettext("Stop") }}
             </button>
-            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>
-                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
-                <span>Upload</span>
-            </button>
+{#            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>#}
+{#                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>#}
+{#                <span>Upload</span>#}
+{#            </button>#}
             <div id="record-loop">
                 <label style="cursor: pointer;">
                     <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
-                    Loop
+                    {{ gettext("Loop") }}
                 </label>
             </div>
         </div>
@@ -960,22 +982,22 @@
                 loopRecorder = event.target.checked;
             });
 
-            $("#btn-record-upload").on("click", function() {
-                let spinner = $("#btn-record-upload-spinner");
-                let button = $(this);
-                button.prop("disabled", true);
-                let resetButton = function() {
-                    button.prop("disabled", true);
-                    spinner.hide();
-                }
-                spinner.show();
-                psynet.trial.registerEvent("uploadStart");
-                psynet.trial.onEvent("uploadEnd", () => {
-                    spinner.hide();
-                    $("#next-button").click()
-                });
-                psynet.trial.onEvent("uploadFail", resetButton);
-            });
+            {#$("#btn-record-upload").on("click", function() {#}
+            {#    let button = $(this);#}
+            {#    let spinner = $("#btn-record-upload-spinner");#}
+            {##}
+            {#    let disableResponse = function() {#}
+            {#        button.prop("disabled", true);#}
+            {#        spinner.show();#}
+            {#    }#}
+            {#    let enableResponse = function() {#}
+            {#        button.prop("disabled", false);#}
+            {#        spinner.hide();#}
+            {#    }#}
+            {#    disableResponse();#}
+            {#    psynet.trial.onEvent("submitFail", enableResponse);#}
+            {#    $("#next-button").click();#}
+            {#});#}
         });
 
         let recorderControls = {{ config.controls | lower }};
@@ -988,11 +1010,11 @@
             }
             $("#btn-record-play-recording").attr("disabled", false);
             $("#btn-record-play-all").attr("disabled", false);
-            $("#btn-record-upload").prop("disabled", false);
+            {#$("#btn-record-upload").prop("disabled", false);#}
 
-            if (!recorderControls) {
-                psynet.trial.registerEvent("uploadStart");
-            }
+            psynet.response.staged.blobs["cameraRecording"] = psynet.media.data["videoBlob"];
+            psynet.response.staged.blobs["screenRecording"] = psynet.media.data["screenBlob"];
+
         }, {
             priority: -100 // ensures that this is only executed once all the media processing completes
         });
@@ -1024,20 +1046,16 @@
             $("#btn-record-record").prop("disabled", false);
         }, {priority: - 1000});
 
-        function uploadToS3(blob, presignedUrl) {
-            return new Promise(resolve => {
-                // TODO upload if LOCAL_S3
-                let xhr = new XMLHttpRequest();
-                xhr.open('PUT', presignedUrl, true);
+        psynet.trial.onEvent("autoSubmit", () => {
+            let submitButton = $("#next-button");
+            let enableButton = () => submitButton.prop("disabled", false);
+            let disableButton = () => submitButton.prop("disabled", true);
 
-                xhr.onload = function(e) {
-                    resolve(true);
-                };
-
-                let wavFile = new File([blob], "s3_upload.wav")
-                xhr.send(wavFile);
-            });
-        };
+            psynet.trial.onEvent("submitFail", enableButton);
+            enableButton();
+            submitButton.click();
+            disableButton();
+        });
 
     </script>
 
@@ -1050,10 +1068,6 @@
 
     <script>
         {% include "macros/control/recorder.js" %}
-
-        {% autoescape off %}
-        var presignedUrl = "{{ config.presigned_url }}";
-        {% endautoescape %}
 
         var recorder;
         var hasRecorded = false;
@@ -1086,20 +1100,9 @@
             if (!replayMode) {
                 await recorder.stop();
                 recordingBlob = await getAudioRecording();
+                psynet.response.staged.blobs["audioRecording"] = recordingBlob;
                 let buffer = await psynet.media.blobToArrayBuffer(recordingBlob);
                 await psynet.media.addExtraAudioStimulus(buffer, "recording");
-            }
-        });
-
-        psynet.trial.onEvent("uploadStart", async function() {
-            try {
-                await uploadToS3(recordingBlob, presignedUrl);
-                // We don't want to wait for the following line, not sure how to get round
-                // the linter complaining here.
-                psynet.trial.registerEvent("uploadEnd", {info: {url: presignedUrl}});
-            } catch(e) {
-                psynet.trial.registerEvent("uploadFail");
-                throw e;
             }
         });
 
@@ -1123,12 +1126,6 @@
                 resolve();
             });
         }));
-
-        retrieveResponse = function() {
-            return {
-                rawAnswer: presignedUrl
-            }
-        }
     </script>
 {% endmacro %}
 
@@ -1164,11 +1161,6 @@
         {% include "macros/control/RecordRTC.js" %}
         {% include "macros/control/adapter.js" %}
 
-        {% autoescape off %}
-        psynet.media.presignedUrlCamera = "{{ config.presigned_url_camera }}";
-        psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
-        {% endautoescape %}
-
         let videoPreviewPlayer = document.getElementById('video-control');
         let screenVideo = document.getElementById('screen-recording');
 
@@ -1183,7 +1175,7 @@
 
             if ({{ config.record_audio | lower }}) {
                 audioSettings = {
-                    channelCount: {{ config.audio_num_channels }}
+                    channelCount: {{ config.audio_n_channels }}
                 };
             }
             else { audioSettings = false; }
@@ -1330,32 +1322,6 @@
                 await screenRecorder.reset();
             });
 
-        }
-
-        psynet.trial.onEvent("uploadStart", async function() {
-            let promises = [];
-            if (recordingCamera) {
-                promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
-            }
-            if (recordingScreen) {
-                promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
-            }
-            try {
-                await Promise.all(promises);
-                psynet.trial.registerEvent("uploadEnd");
-            } catch(e) {
-                psynet.trial.registerEvent("uploadFail");
-                throw e;
-            }
-        });
-
-        function retrieveResponse() {
-            return {
-                rawAnswer: {
-                    'camera': psynet.media.presignedUrlCamera,
-                    'screen': psynet.media.presignedUrlScreen,
-                }
-            }
         }
     </script>
 {% endmacro %}
@@ -1507,4 +1473,47 @@
 {% from "macros/graphics.html" import graphic_%}
 {% macro graphic(config) %}
     {{ graphic_(config) }}
+{% endmacro %}
+
+
+{% macro survey_js(config) %}
+    <style>
+    </style>
+
+    <div id="surveyContainer"></div>
+
+    <link href="{{ url_for('static', filename='scripts/survey-jquery/defaultV2.min.css') }}" type="text/css" rel="stylesheet">
+
+    <script>
+    function initSurvey() {
+        Survey
+            .StylesManager
+            .applyTheme("defaultV2");
+
+        const surveyJson = {{ config.design | tojson }};
+
+        const survey = new Survey.Model(surveyJson);
+        survey.focusFirstQuestionAutomatic = false;
+        survey.showCompletedPage = false;
+
+        function submitSurveyResults (sender) {
+            const results = JSON.stringify(sender.data);
+            psynet.nextPage(results);
+        }
+
+        survey.onAfterRenderPage.add(() => {
+            $(".sd-navigation__complete-btn").addClass("submit");
+            $(".sd-navigation__complete-btn").attr("disabled", true);
+        });
+        survey.onComplete.add(submitSurveyResults);
+
+        $(function() {
+            $("#surveyContainer").Survey({ model: survey });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", initSurvey);
+
+    </script>
+
 {% endmacro %}

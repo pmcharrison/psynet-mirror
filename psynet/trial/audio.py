@@ -5,7 +5,6 @@ from ..utils import get_logger
 from .record import (
     MediaImitationChainNetwork,
     MediaImitationChainNode,
-    MediaImitationChainSource,
     MediaImitationChainTrial,
     MediaImitationChainTrialMaker,
     RecordTrial,
@@ -29,7 +28,7 @@ class AudioImitationChainNetwork(MediaImitationChainNetwork):
     A Network class for audio imitation chains.
     """
 
-    media_extension = "wav"
+    pass
 
 
 class AudioImitationChainTrial(AudioRecordTrial, MediaImitationChainTrial):
@@ -46,16 +45,6 @@ class AudioImitationChainTrial(AudioRecordTrial, MediaImitationChainTrial):
 class AudioImitationChainNode(MediaImitationChainNode):
     """
     A Node class for audio imitation chains.
-    Users must override the
-    :meth:`~psynet.trial.audio.AudioImitationChainNode.synthesize_target` method.
-    """
-
-    pass
-
-
-class AudioImitationChainSource(MediaImitationChainSource):
-    """
-    A Source class for audio imitation chains.
     """
 
     pass
@@ -68,3 +57,7 @@ class AudioImitationChainTrialMaker(MediaImitationChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return AudioImitationChainNetwork

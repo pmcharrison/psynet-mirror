@@ -27,7 +27,7 @@ class Pet(SQLBase, SQLMixin):
     base_price = None
 
     participant = relationship(Participant, backref="all_pets")
-    participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
 
     price = Column(Float)
     name = Column(String)
@@ -150,6 +150,8 @@ class Cat(Pet):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Custom table (complex) demo"
+
     timeline = Timeline(
         NoConsent(),
         Pet.choose_pet(),

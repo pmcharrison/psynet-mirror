@@ -12,6 +12,8 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Page maker demo"
+
     timeline = Timeline(
         NoConsent(),
         ModularPage(
@@ -23,14 +25,12 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         CodeBlock(
-            lambda participant: participant.var.set(
-                "num_pages", int(participant.answer)
-            )
+            lambda participant: participant.var.set("n_pages", int(participant.answer))
         ),
         PageMaker(
             lambda participant: [
-                InfoPage(f"Page {i + 1}/{participant.var.num_pages}", time_estimate=1)
-                for i in range(participant.var.num_pages)
+                InfoPage(f"Page {i + 1}/{participant.var.n_pages}", time_estimate=1)
+                for i in range(participant.var.n_pages)
             ],
             time_estimate=3,
         ),

@@ -1,6 +1,8 @@
-In addition to your base payment of <span style="font-weight: bold;">${{ "%.2f"|format(participant.base_payment) }}</span>,
-you will receive a bonus of <span style="font-weight: bold;">${{ "%.2f"|format(participant.time_credit.get_bonus()) }}</span>
-for the time you spent on the experiment.
+{% set BASE_PAYMENT =  "%.2f"|format(participant.base_payment) %}
+{% set BONUS =  "%.2f"|format(participant.time_credit.get_bonus()) %}
+{% set PERFORMANCE_BONUS =  "%.2f"|format(participant.performance_bonus) %}
+{% trans name="final-page-bonusses" %}In addition to your base payment of <strong>{{ currency }}{{ BASE_PAYMENT }}</strong>, you will receive a bonus of <strong>{{ currency }}{{ BONUS }}</strong> for the time you spent on the experiment.{% endtrans %}
+
 {% if participant.performance_bonus > 0.0 %}
-    You have also been awarded a performance bonus of <span style="font-weight: bold;">${{ "%.2f"|format(participant.performance_bonus) }}</span>!
+    {% trans name="final-page-bonusses" %}You have also been awarded a performance bonus of <strong>{{ currency }}{{PERFORMANCE_BONUS}}</strong>!{% endtrans %}
 {% endif %}

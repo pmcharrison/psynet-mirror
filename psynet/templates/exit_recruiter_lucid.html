@@ -35,10 +35,10 @@
 {% block body %}
     <div id="container">
       <div class="well">
-        <h1>Lucid Survey Submission</h1>
+        <h1>{{ pgettext("exit_recruiter_lucid", "Lucid Survey Submission") }}</h1>
         <hr>
-        <p>To complete your Lucid Survey, click the button below.</p>
-        <a href="{{ external_submit_url }}" class="btn btn-success btn-large" style="width: auto;">Complete Survey</a>
+        <p>{{ pgettext("exit_recruiter_lucid", "To complete your Lucid Survey, click the button below.") }}</p>
+        <a href="{{ external_submit_url }}" class="btn btn-success btn-large" style="width: auto;">{{ gettext("Complete Survey") }}</a>
       </div>
     </div>
 {% endblock %}

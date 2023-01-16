@@ -9,7 +9,7 @@ from numpy import linspace
 
 from ..field import extra_var
 from ..utils import get_logger
-from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 logger = get_logger()
 
@@ -17,40 +17,10 @@ logger = get_logger()
 class GibbsNetwork(ChainNetwork):
     """
     A Network class for Gibbs sampler chains.
-
-    Attributes
-    ----------
-
-    vector_length : int
-        Must be overridden with the length of the free parameter vector
-        that is manipulated during the Gibbs sampling procedure.
     """
-
-    vector_length = None
 
     def make_definition(self):
         return {}
-
-    def random_sample(self, i: int):
-        """
-        (Abstract method, to be overridden)
-        Randomly samples a new value for the ith element of the
-        free parameter vector.
-        This is used for initialising the participant's response options.
-
-        Parameters
-        ----------
-
-        i
-            The index of the element that is being resampled.
-
-        Returns
-        -------
-
-        float
-            The new parameter value.
-        """
-        raise NotImplementedError
 
 
 class GibbsTrial(ChainTrial):
@@ -125,7 +95,7 @@ class GibbsTrial(ChainTrial):
         reverse_scale = self.choose_reverse_scale()
 
         if self.resample_free_parameter:
-            vector[active_index] = self.network.random_sample(active_index)
+            vector[active_index] = self.node.random_sample(active_index)
 
         definition = {
             "vector": vector,
@@ -159,24 +129,41 @@ class GibbsTrial(ChainTrial):
         new[self.active_index] = self.answer
         return new
 
-    def summarize(self):
-        return {
-            "trial_id": self.id,
-            "node_id": self.origin.id,
-            "network_id": self.network.id,
-            "network_definition": self.network.definition,
-            "initial_vector": self.initial_vector,
-            "active_index": self.active_index,
-            "reverse_scale": self.reverse_scale,
-            "answer": self.answer,
-            "updated_vector": self.updated_vector,
-        }
-
 
 class GibbsNode(ChainNode):
     """
     A Node class for Gibbs sampler chains.
+
+    Attributes
+    ----------
+
+    vector_length : int
+        Must be overridden with the length of the free parameter vector
+        that is manipulated during the Gibbs sampling procedure.
     """
+
+    vector_length = None
+
+    def random_sample(self, i: int):
+        """
+        (Abstract method, to be overridden)
+        Randomly samples a new value for the ith element of the
+        free parameter vector.
+        This is used for initialising the participant's response options.
+
+        Parameters
+        ----------
+
+        i
+            The index of the element that is being resampled.
+
+        Returns
+        -------
+
+        float
+            The new parameter value.
+        """
+        raise NotImplementedError
 
     @property
     def vector(self):
@@ -328,13 +315,7 @@ class GibbsNode(ChainNode):
         new_index = (original_index + 1) % dimension
         return {"vector": vector, "active_index": new_index}
 
-
-class GibbsSource(ChainSource):
-    """
-    A Source class for Gibbs sampler chains.
-    """
-
-    def generate_seed(self, network, experiment, participant):
+    def create_initial_seed(self, experiment, participant):
         """
         Generates the seed for the :class:`~psynet.trial.gibbs.GibbsSource`.
         By default the method samples the vector of parameters by repeatedly
@@ -349,9 +330,6 @@ class GibbsSource(ChainSource):
 
         Parameters
         ----------
-
-        network
-            The network with which the :class:`~psynet.trial.gibbs.GibbsSource` is associated.
 
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
@@ -377,13 +355,14 @@ class GibbsSource(ChainSource):
             where ``vector`` is the initial vector
             and ``active_index`` identifies the position of the free parameter.
         """
-        if network.vector_length is None:
+        if self.vector_length is None:
             raise ValueError(
-                "network.vector_length must not be None. Did you forget to set it?"
+                "node.vector_length must not be None. Did you forget to set it? "
+                "Please provide this as a class attribute of your Node class."
             )
         return {
-            "vector": [network.random_sample(i) for i in range(network.vector_length)],
-            "active_index": random.randint(0, network.vector_length - 1),
+            "vector": [self.random_sample(i) for i in range(self.vector_length)],
+            "active_index": random.randint(0, self.vector_length - 1),
         }
 
 
@@ -394,3 +373,25 @@ class GibbsTrialMaker(ChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    def check_initialization(self):
+        super().check_initialization()
+        if self.node_class.random_sample == GibbsNode.random_sample:
+            raise NotImplementedError(
+                "The GibbsNode class is missing a random_sample method, "
+                "which tells the Gibbs process how to resample free parameters. "
+                "If you are migrating from a previous version of PsyNet (< 10.0.0), "
+                "you probably need to copy this method over from your custom network class "
+                "to your custom node class."
+            )
+        if self.node_class.vector_length is None:
+            raise NotImplementedError(
+                "The GibbsNode class is missing a vector_length attribute. "
+                "If you are migrating from a previous version of PsyNet (< 10.0.0), "
+                "you probably need to copy this method over from your custom network class "
+                "to your custom node class."
+            )
+
+    @property
+    def default_network_class(self):
+        return GibbsNetwork

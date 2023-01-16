@@ -89,6 +89,11 @@ class CAPRecruiterStandardConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"cap-recruiter_standard_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {
+                "cap-recruiter_standard_consent": True,
+            }
+
 
 class CAPRecruiterAudiovisualConsent(Module):
     """
@@ -160,6 +165,12 @@ class CAPRecruiterAudiovisualConsent(Module):
                 ],
             }
 
+        def get_bot_response(self, experiment, bot):
+            return {
+                "cap-recruiter_audiovisual_consent": True,
+                "demonstration_purposes_consent": True,
+            }
+
 
 #########
 # MTurk #
@@ -225,6 +236,9 @@ class MTurkStandardConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"mturk_standard_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"mturk_standard_consent": True}
+
 
 class MTurkAudiovisualConsent(Module):
     """
@@ -287,6 +301,9 @@ class MTurkAudiovisualConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"audiovisual_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"audiovisual_consent": True}
+
 
 #############
 # Princeton #
@@ -346,6 +363,9 @@ class PrincetonConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"princeton_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"princeton_consent": True}
 
 
 class PrincetonCAPRecruiterConsent(Module):
@@ -407,6 +427,9 @@ class PrincetonCAPRecruiterConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"princeton_cap_recruiter_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"princeton_cap_recruiter_consent": True}
+
 
 ########
 # Main #
@@ -466,6 +489,9 @@ class MainConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"main_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"main_consent": True}
 
 
 ############
@@ -527,6 +553,9 @@ class DatabaseConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"database_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"database_consent": True}
+
 
 ###############
 # Audiovisual #
@@ -587,6 +616,9 @@ class AudiovisualConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"audiovisual_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"audiovisual_consent": True}
+
 
 ################
 # Open science #
@@ -646,6 +678,9 @@ class OpenScienceConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"open_science_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"open_science_consent": True}
 
 
 ################################################
@@ -711,3 +746,6 @@ class VoluntaryWithNoCompensationConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"voluntary_with_no_compensation_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"voluntary_with_no_compensation_consent": True}
