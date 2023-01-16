@@ -6,6 +6,9 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       variables:
         DOCKER_TAG: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    - if: $CI_COMMIT_BRANCH == "master"
+      variables:
+        DOCKER_TAG: master
 
 image: docker:20.10.16
 
