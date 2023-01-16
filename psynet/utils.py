@@ -1,5 +1,6 @@
 import base64
 import contextlib
+import gettext
 import hashlib
 import importlib
 import importlib.util
@@ -10,8 +11,11 @@ import os
 import re
 import sys
 import time
+from collections import OrderedDict
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
+from os.path import abspath, dirname, exists
+from os.path import join as join_path
 from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
@@ -19,7 +23,11 @@ from urllib.parse import ParseResult, urlparse
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
+from babel.support import Translations
 from dallinger.config import config, get_config
+from flask import url_for
+from flask.globals import current_app, request
+from flask.templating import Environment, _render
 
 
 def get_logger():
@@ -28,6 +36,7 @@ def get_logger():
 
 
 logger = get_logger()
+DEFAULT_LOCALE = "en"
 
 
 class NoArgumentProvided:
@@ -494,6 +503,573 @@ def get_language():
     return config.get("language")
 
 
+def _render_with_translations(
+    locale, template_name=None, template_string=None, all_template_args=None
+):
+    """Render a template with translations applied."""
+
+    if all_template_args is None:
+        all_template_args = {}
+    assert [template_name, template_string].count(
+        None
+    ) == 1, "Only one of template_name or template_string should be provided."
+
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+    gettext, pgettext, npgettext = get_translator(locale)
+    gettext_functions = [gettext, pgettext, npgettext, url_for]
+    gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
+    translation = Translations.load("translations", [locale])
+
+    environment = Environment(
+        loader=app.jinja_env.loader, extensions=["jinja2.ext.i18n"], app=app
+    )
+    environment.install_gettext_translations(translation)
+
+    environment.globals.update(**gettext_abbr)
+
+    if template_name is not None:
+        template = environment.get_template(template_name)
+    else:
+        template = environment.from_string(template_string)
+    return _render(app, template, all_template_args)
+
+
+def render_template_with_translations(template_name, locale=None, **kwargs):
+    return _render_with_translations(
+        template_name=template_name, locale=locale, all_template_args=kwargs
+    )
+
+
+def render_string_with_translations(template_string, locale=None, **kwargs):
+    return _render_with_translations(
+        template_string=template_string, locale=locale, all_template_args=kwargs
+    )
+
+
+def get_translator(
+    locale=None,
+    module="psynet",
+    localedir=join_path(abspath(dirname(__file__)), "locales"),
+):
+    if locale is None:
+        try:
+            GET = request.args.to_dict()
+            possible_keys = ["assignmentId", "workerId", "participantId"]
+            from psynet.participant import Participant
+
+            if any([key in GET for key in possible_keys]):
+                if "assignmentId" in GET:
+                    participant = Participant.query.filter_by(
+                        assignment_id=GET["assignment_id"]
+                    ).one()
+                elif "workerId" in GET:
+                    participant = Participant.query.filter_by(
+                        worker_id=int(GET["worker_id"])
+                    ).one()
+                elif "participantId" in GET:
+                    participant = Participant.query.filter_by(
+                        id=GET["participant_id"]
+                    ).one()
+                locale = participant.var.locale
+        except Exception:
+            pass
+    if locale is None:
+        locale = get_language()
+    if exists(join_path(localedir, locale, "LC_MESSAGES", f"{module}.mo")):
+        translator = gettext.translation(module, localedir, [locale])
+    else:
+        if locale != "en":
+            logger.warning(f"No translation file found for locale {locale}.")
+        translator = gettext.NullTranslations()
+
+    return translator.gettext, translator.pgettext, translator.npgettext
+
+
+def countries(locale=None):
+    """
+    List compiled using the pycountry package v20.7.3 with
+    ``
+    sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
+        if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
+    ``
+    """
+    _, _p, _np = get_translator(locale)
+    return [
+        ("AF", _p("country_name", "Afghanistan")),
+        ("AL", _p("country_name", "Albania")),
+        ("DZ", _p("country_name", "Algeria")),
+        ("AS", _p("country_name", "American Samoa")),
+        ("AD", _p("country_name", "Andorra")),
+        ("AO", _p("country_name", "Angola")),
+        ("AI", _p("country_name", "Anguilla")),
+        ("AQ", _p("country_name", "Antarctica")),
+        ("AG", _p("country_name", "Antigua and Barbuda")),
+        ("AR", _p("country_name", "Argentina")),
+        ("AM", _p("country_name", "Armenia")),
+        ("AW", _p("country_name", "Aruba")),
+        ("AU", _p("country_name", "Australia")),
+        ("AT", _p("country_name", "Austria")),
+        ("AZ", _p("country_name", "Azerbaijan")),
+        ("BS", _p("country_name", "Bahamas")),
+        ("BH", _p("country_name", "Bahrain")),
+        ("BD", _p("country_name", "Bangladesh")),
+        ("BB", _p("country_name", "Barbados")),
+        ("BY", _p("country_name", "Belarus")),
+        ("BE", _p("country_name", "Belgium")),
+        ("BZ", _p("country_name", "Belize")),
+        ("BJ", _p("country_name", "Benin")),
+        ("BM", _p("country_name", "Bermuda")),
+        ("BT", _p("country_name", "Bhutan")),
+        ("BO", _p("country_name", "Bolivia")),
+        ("BQ", _p("country_name", "Bonaire, Sint Eustatius and Saba")),
+        ("BA", _p("country_name", "Bosnia and Herzegovina")),
+        ("BW", _p("country_name", "Botswana")),
+        ("BV", _p("country_name", "Bouvet Island")),
+        ("BR", _p("country_name", "Brazil")),
+        ("IO", _p("country_name", "British Indian Ocean Territory")),
+        ("BN", _p("country_name", "Brunei Darussalam")),
+        ("BG", _p("country_name", "Bulgaria")),
+        ("BF", _p("country_name", "Burkina Faso")),
+        ("BI", _p("country_name", "Burundi")),
+        ("CV", _p("country_name", "Cabo Verde")),
+        ("KH", _p("country_name", "Cambodia")),
+        ("CM", _p("country_name", "Cameroon")),
+        ("CA", _p("country_name", "Canada")),
+        ("KY", _p("country_name", "Cayman Islands")),
+        ("CF", _p("country_name", "Central African Republic")),
+        ("TD", _p("country_name", "Chad")),
+        ("CL", _p("country_name", "Chile")),
+        ("CN", _p("country_name", "China")),
+        ("CX", _p("country_name", "Christmas Island")),
+        ("CC", _p("country_name", "Cocos  Islands")),
+        ("CO", _p("country_name", "Colombia")),
+        ("KM", _p("country_name", "Comoros")),
+        ("CG", _p("country_name", "Congo")),
+        ("CD", _p("country_name", "Congo (Democratic Republic)")),
+        ("CK", _p("country_name", "Cook Islands")),
+        ("CR", _p("country_name", "Costa Rica")),
+        ("HR", _p("country_name", "Croatia")),
+        ("CU", _p("country_name", "Cuba")),
+        ("CW", _p("country_name", "Curaçao")),
+        ("CY", _p("country_name", "Cyprus")),
+        ("CZ", _p("country_name", "Czechia")),
+        ("CI", _p("country_name", "Côte d'Ivoire")),
+        ("DK", _p("country_name", "Denmark")),
+        ("DJ", _p("country_name", "Djibouti")),
+        ("DM", _p("country_name", "Dominica")),
+        ("DO", _p("country_name", "Dominican Republic")),
+        ("EC", _p("country_name", "Ecuador")),
+        ("EG", _p("country_name", "Egypt")),
+        ("SV", _p("country_name", "El Salvador")),
+        ("GQ", _p("country_name", "Equatorial Guinea")),
+        ("ER", _p("country_name", "Eritrea")),
+        ("EE", _p("country_name", "Estonia")),
+        ("SZ", _p("country_name", "Eswatini")),
+        ("ET", _p("country_name", "Ethiopia")),
+        ("FK", _p("country_name", "Falkland Islands (Malvinas)")),
+        ("FO", _p("country_name", "Faroe Islands")),
+        ("FJ", _p("country_name", "Fiji")),
+        ("FI", _p("country_name", "Finland")),
+        ("FR", _p("country_name", "France")),
+        ("GF", _p("country_name", "French Guiana")),
+        ("PF", _p("country_name", "French Polynesia")),
+        ("TF", _p("country_name", "French Southern Territories")),
+        ("GA", _p("country_name", "Gabon")),
+        ("GM", _p("country_name", "Gambia")),
+        ("GE", _p("country_name", "Georgia")),
+        ("DE", _p("country_name", "Germany")),
+        ("GH", _p("country_name", "Ghana")),
+        ("GI", _p("country_name", "Gibraltar")),
+        ("GR", _p("country_name", "Greece")),
+        ("GL", _p("country_name", "Greenland")),
+        ("GD", _p("country_name", "Grenada")),
+        ("GP", _p("country_name", "Guadeloupe")),
+        ("GU", _p("country_name", "Guam")),
+        ("GT", _p("country_name", "Guatemala")),
+        ("GG", _p("country_name", "Guernsey")),
+        ("GN", _p("country_name", "Guinea")),
+        ("GW", _p("country_name", "Guinea-Bissau")),
+        ("GY", _p("country_name", "Guyana")),
+        ("HT", _p("country_name", "Haiti")),
+        ("HM", _p("country_name", "Heard Island and McDonald Islands")),
+        ("VA", _p("country_name", "Vatican City State")),
+        ("HN", _p("country_name", "Honduras")),
+        ("HK", _p("country_name", "Hong Kong")),
+        ("HU", _p("country_name", "Hungary")),
+        ("IS", _p("country_name", "Iceland")),
+        ("IN", _p("country_name", "India")),
+        ("ID", _p("country_name", "Indonesia")),
+        ("IR", _p("country_name", "Iran")),
+        ("IQ", _p("country_name", "Iraq")),
+        ("IE", _p("country_name", "Ireland")),
+        ("IM", _p("country_name", "Isle of Man")),
+        ("IL", _p("country_name", "Israel")),
+        ("IT", _p("country_name", "Italy")),
+        ("JM", _p("country_name", "Jamaica")),
+        ("JP", _p("country_name", "Japan")),
+        ("JE", _p("country_name", "Jersey")),
+        ("JO", _p("country_name", "Jordan")),
+        ("KZ", _p("country_name", "Kazakhstan")),
+        ("KE", _p("country_name", "Kenya")),
+        ("KI", _p("country_name", "Kiribati")),
+        ("KP", _p("country_name", "North Korea")),
+        ("KR", _p("country_name", "South Korea")),
+        ("KW", _p("country_name", "Kuwait")),
+        ("KG", _p("country_name", "Kyrgyzstan")),
+        ("LA", _p("country_name", "Lao")),
+        ("LV", _p("country_name", "Latvia")),
+        ("LB", _p("country_name", "Lebanon")),
+        ("LS", _p("country_name", "Lesotho")),
+        ("LR", _p("country_name", "Liberia")),
+        ("LY", _p("country_name", "Libya")),
+        ("LI", _p("country_name", "Liechtenstein")),
+        ("LT", _p("country_name", "Lithuania")),
+        ("LU", _p("country_name", "Luxembourg")),
+        ("MO", _p("country_name", "Macao")),
+        ("MG", _p("country_name", "Madagascar")),
+        ("MW", _p("country_name", "Malawi")),
+        ("MY", _p("country_name", "Malaysia")),
+        ("MV", _p("country_name", "Maldives")),
+        ("ML", _p("country_name", "Mali")),
+        ("MT", _p("country_name", "Malta")),
+        ("MH", _p("country_name", "Marshall Islands")),
+        ("MQ", _p("country_name", "Martinique")),
+        ("MR", _p("country_name", "Mauritania")),
+        ("MU", _p("country_name", "Mauritius")),
+        ("YT", _p("country_name", "Mayotte")),
+        ("MX", _p("country_name", "Mexico")),
+        ("FM", _p("country_name", "Micronesia")),
+        ("MD", _p("country_name", "Moldova")),
+        ("MC", _p("country_name", "Monaco")),
+        ("MN", _p("country_name", "Mongolia")),
+        ("ME", _p("country_name", "Montenegro")),
+        ("MS", _p("country_name", "Montserrat")),
+        ("MA", _p("country_name", "Morocco")),
+        ("MZ", _p("country_name", "Mozambique")),
+        ("MM", _p("country_name", "Myanmar")),
+        ("NA", _p("country_name", "Namibia")),
+        ("NR", _p("country_name", "Nauru")),
+        ("NP", _p("country_name", "Nepal")),
+        ("NL", _p("country_name", "Netherlands")),
+        ("NC", _p("country_name", "New Caledonia")),
+        ("NZ", _p("country_name", "New Zealand")),
+        ("NI", _p("country_name", "Nicaragua")),
+        ("NE", _p("country_name", "Niger")),
+        ("NG", _p("country_name", "Nigeria")),
+        ("NU", _p("country_name", "Niue")),
+        ("NF", _p("country_name", "Norfolk Island")),
+        ("MK", _p("country_name", "North Macedonia")),
+        ("MP", _p("country_name", "Northern Mariana Islands")),
+        ("NO", _p("country_name", "Norway")),
+        ("OM", _p("country_name", "Oman")),
+        ("PK", _p("country_name", "Pakistan")),
+        ("PW", _p("country_name", "Palau")),
+        ("PS", _p("country_name", "Palestine")),
+        ("PA", _p("country_name", "Panama")),
+        ("PG", _p("country_name", "Papua New Guinea")),
+        ("PY", _p("country_name", "Paraguay")),
+        ("PE", _p("country_name", "Peru")),
+        ("PH", _p("country_name", "Philippines")),
+        ("PN", _p("country_name", "Pitcairn")),
+        ("PL", _p("country_name", "Poland")),
+        ("PT", _p("country_name", "Portugal")),
+        ("PR", _p("country_name", "Puerto Rico")),
+        ("QA", _p("country_name", "Qatar")),
+        ("RO", _p("country_name", "Romania")),
+        ("RU", _p("country_name", "Russian Federation")),
+        ("RW", _p("country_name", "Rwanda")),
+        ("RE", _p("country_name", "Réunion")),
+        ("BL", _p("country_name", "Saint Barthélemy")),
+        ("SH", _p("country_name", "Saint Helena, Ascension and Tristan da Cunha")),
+        ("KN", _p("country_name", "Saint Kitts and Nevis")),
+        ("LC", _p("country_name", "Saint Lucia")),
+        ("MF", _p("country_name", "Saint Martin")),
+        ("PM", _p("country_name", "Saint Pierre and Miquelon")),
+        ("VC", _p("country_name", "Saint Vincent and the Grenadines")),
+        ("WS", _p("country_name", "Samoa")),
+        ("SM", _p("country_name", "San Marino")),
+        ("ST", _p("country_name", "Sao Tome and Principe")),
+        ("SA", _p("country_name", "Saudi Arabia")),
+        ("SN", _p("country_name", "Senegal")),
+        ("RS", _p("country_name", "Serbia")),
+        ("SC", _p("country_name", "Seychelles")),
+        ("SL", _p("country_name", "Sierra Leone")),
+        ("SG", _p("country_name", "Singapore")),
+        ("SX", _p("country_name", "Sint Maarten")),
+        ("SK", _p("country_name", "Slovakia")),
+        ("SI", _p("country_name", "Slovenia")),
+        ("SB", _p("country_name", "Solomon Islands")),
+        ("SO", _p("country_name", "Somalia")),
+        ("ZA", _p("country_name", "South Africa")),
+        ("GS", _p("country_name", "South Georgia and the South Sandwich Islands")),
+        ("SS", _p("country_name", "South Sudan")),
+        ("ES", _p("country_name", "Spain")),
+        ("LK", _p("country_name", "Sri Lanka")),
+        ("SD", _p("country_name", "Sudan")),
+        ("SR", _p("country_name", "Suriname")),
+        ("SJ", _p("country_name", "Svalbard and Jan Mayen")),
+        ("SE", _p("country_name", "Sweden")),
+        ("CH", _p("country_name", "Switzerland")),
+        ("SY", _p("country_name", "Syria")),
+        ("TW", _p("country_name", "Taiwan")),
+        ("TJ", _p("country_name", "Tajikistan")),
+        ("TZ", _p("country_name", "Tanzania")),
+        ("TH", _p("country_name", "Thailand")),
+        ("TL", _p("country_name", "Timor-Leste")),
+        ("TG", _p("country_name", "Togo")),
+        ("TK", _p("country_name", "Tokelau")),
+        ("TO", _p("country_name", "Tonga")),
+        ("TT", _p("country_name", "Trinidad and Tobago")),
+        ("TN", _p("country_name", "Tunisia")),
+        ("TR", _p("country_name", "Turkey")),
+        ("TM", _p("country_name", "Turkmenistan")),
+        ("TC", _p("country_name", "Turks and Caicos Islands")),
+        ("TV", _p("country_name", "Tuvalu")),
+        ("UG", _p("country_name", "Uganda")),
+        ("UA", _p("country_name", "Ukraine")),
+        ("AE", _p("country_name", "United Arab Emirates")),
+        ("GB", _p("country_name", "United Kingdom")),
+        ("US", _p("country_name", "United States")),
+        ("UM", _p("country_name", "United States Minor Outlying Islands")),
+        ("UY", _p("country_name", "Uruguay")),
+        ("UZ", _p("country_name", "Uzbekistan")),
+        ("VU", _p("country_name", "Vanuatu")),
+        ("VE", _p("country_name", "Venezuela")),
+        ("VN", _p("country_name", "Vietnam")),
+        ("VG", _p("country_name", "Virgin Islands (British)")),
+        ("VI", _p("country_name", "Virgin Islands (U.S.)")),
+        ("WF", _p("country_name", "Wallis and Futuna")),
+        ("EH", _p("country_name", "Western Sahara")),
+        ("YE", _p("country_name", "Yemen")),
+        ("ZM", _p("country_name", "Zambia")),
+        ("ZW", _p("country_name", "Zimbabwe")),
+        ("AX", _p("country_name", "Åland Islands")),
+    ]
+
+
+def languages(locale=None):
+    """
+    List compiled using the pycountry package v20.7.3 with
+    ``
+    sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
+        if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
+    ``
+    """
+    _, _p, _np = get_translator(locale)
+    return [
+        ("ab", _p("language_name", "Abkhazian")),
+        ("aa", _p("language_name", "Afar")),
+        ("af", _p("language_name", "Afrikaans")),
+        ("ak", _p("language_name", "Akan")),
+        ("sq", _p("language_name", "Albanian")),
+        ("am", _p("language_name", "Amharic")),
+        ("ar", _p("language_name", "Arabic")),
+        ("an", _p("language_name", "Aragonese")),
+        ("hy", _p("language_name", "Armenian")),
+        ("as", _p("language_name", "Assamese")),
+        ("av", _p("language_name", "Avaric")),
+        ("ae", _p("language_name", "Avestan")),
+        ("ay", _p("language_name", "Aymara")),
+        ("az", _p("language_name", "Azerbaijani")),
+        ("bm", _p("language_name", "Bambara")),
+        ("ba", _p("language_name", "Bashkir")),
+        ("eu", _p("language_name", "Basque")),
+        ("be", _p("language_name", "Belarusian")),
+        ("bn", _p("language_name", "Bengali")),
+        ("bi", _p("language_name", "Bislama")),
+        ("bs", _p("language_name", "Bosnian")),
+        ("br", _p("language_name", "Breton")),
+        ("bg", _p("language_name", "Bulgarian")),
+        ("my", _p("language_name", "Burmese")),
+        ("ca", _p("language_name", "Catalan")),
+        ("km", _p("language_name", "Central Khmer")),
+        ("ch", _p("language_name", "Chamorro")),
+        ("ce", _p("language_name", "Chechen")),
+        ("zh", _p("language_name", "Chinese")),
+        ("zh-cn", _p("language_name", "Chinese")),
+        ("cu", _p("language_name", "Church Slavic")),
+        ("cv", _p("language_name", "Chuvash")),
+        ("kw", _p("language_name", "Cornish")),
+        ("co", _p("language_name", "Corsican")),
+        ("cr", _p("language_name", "Cree")),
+        ("hr", _p("language_name", "Croatian")),
+        ("ceb", _p("language_name", "Cebuano")),
+        ("cs", _p("language_name", "Czech")),
+        ("da", _p("language_name", "Danish")),
+        ("dv", _p("language_name", "Dhivehi")),
+        ("nl", _p("language_name", "Dutch")),
+        ("dz", _p("language_name", "Dzongkha")),
+        ("en", _p("language_name", "English")),
+        ("eo", _p("language_name", "Esperanto")),
+        ("et", _p("language_name", "Estonian")),
+        ("ee", _p("language_name", "Ewe")),
+        ("fo", _p("language_name", "Faroese")),
+        ("fj", _p("language_name", "Fijian")),
+        ("fi", _p("language_name", "Finnish")),
+        ("fr", _p("language_name", "French")),
+        ("ff", _p("language_name", "Fulah")),
+        ("gl", _p("language_name", "Galician")),
+        ("lg", _p("language_name", "Ganda")),
+        ("ka", _p("language_name", "Georgian")),
+        ("de", _p("language_name", "German")),
+        ("got", _p("language_name", "Gothic")),
+        ("gn", _p("language_name", "Guarani")),
+        ("gu", _p("language_name", "Gujarati")),
+        ("ht", _p("language_name", "Haitian")),
+        ("ha", _p("language_name", "Hausa")),
+        ("haw", _p("language_name", "Hawaiian")),
+        ("he", _p("language_name", "Hebrew")),
+        ("hz", _p("language_name", "Herero")),
+        ("hi", _p("language_name", "Hindi")),
+        ("ho", _p("language_name", "Hiri Motu")),
+        ("hmn", _p("language_name", "Hmong")),
+        ("hu", _p("language_name", "Hungarian")),
+        ("is", _p("language_name", "Icelandic")),
+        ("io", _p("language_name", "Ido")),
+        ("ig", _p("language_name", "Igbo")),
+        ("id", _p("language_name", "Indonesian")),
+        ("ia", _p("language_name", "Interlingua")),
+        ("ie", _p("language_name", "Interlingue")),
+        ("iu", _p("language_name", "Inuktitut")),
+        ("ik", _p("language_name", "Inupiaq")),
+        ("ga", _p("language_name", "Irish")),
+        ("it", _p("language_name", "Italian")),
+        ("ja", _p("language_name", "Japanese")),
+        ("jv", _p("language_name", "Javanese")),
+        ("jw", _p("language_name", "Javanese")),
+        ("kl", _p("language_name", "Kalaallisut")),
+        ("kn", _p("language_name", "Kannada")),
+        ("kr", _p("language_name", "Kanuri")),
+        ("ks", _p("language_name", "Kashmiri")),
+        ("kk", _p("language_name", "Kazakh")),
+        ("ki", _p("language_name", "Kikuyu")),
+        ("rw", _p("language_name", "Kinyarwanda")),
+        ("ky", _p("language_name", "Kirghiz")),
+        ("kv", _p("language_name", "Komi")),
+        ("kg", _p("language_name", "Kongo")),
+        ("ko", _p("language_name", "Korean")),
+        ("kj", _p("language_name", "Kuanyama")),
+        ("ku", _p("language_name", "Kurdish")),
+        ("lo", _p("language_name", "Lao")),
+        ("la", _p("language_name", "Latin")),
+        ("lv", _p("language_name", "Latvian")),
+        ("li", _p("language_name", "Limburgan")),
+        ("ln", _p("language_name", "Lingala")),
+        ("lt", _p("language_name", "Lithuanian")),
+        ("lu", _p("language_name", "Luba-Katanga")),
+        ("lb", _p("language_name", "Luxembourgish")),
+        ("mk", _p("language_name", "Macedonian")),
+        ("mg", _p("language_name", "Malagasy")),
+        ("ms", _p("language_name", "Malay")),
+        ("ml", _p("language_name", "Malayalam")),
+        ("mt", _p("language_name", "Maltese")),
+        ("gv", _p("language_name", "Manx")),
+        ("mi", _p("language_name", "Maori")),
+        ("mr", _p("language_name", "Marathi")),
+        ("mh", _p("language_name", "Marshallese")),
+        ("el", _p("language_name", "Greek")),
+        ("mn", _p("language_name", "Mongolian")),
+        ("na", _p("language_name", "Nauru")),
+        ("nv", _p("language_name", "Navajo")),
+        ("ng", _p("language_name", "Ndonga")),
+        ("ne", _p("language_name", "Nepali")),
+        ("nd", _p("language_name", "North Ndebele")),
+        ("se", _p("language_name", "Northern Sami")),
+        ("no", _p("language_name", "Norwegian")),
+        ("nb", _p("language_name", "Norwegian Bokmål")),
+        ("nn", _p("language_name", "Norwegian Nynorsk")),
+        ("ny", _p("language_name", "Nyanja")),
+        ("oc", _p("language_name", "Occitan")),
+        ("oj", _p("language_name", "Ojibwa")),
+        ("or", _p("language_name", "Oriya")),
+        ("om", _p("language_name", "Oromo")),
+        ("os", _p("language_name", "Ossetian")),
+        ("pi", _p("language_name", "Pali")),
+        ("pa", _p("language_name", "Panjabi")),
+        ("fa", _p("language_name", "Persian")),
+        ("pl", _p("language_name", "Polish")),
+        ("pt", _p("language_name", "Portuguese")),
+        ("ps", _p("language_name", "Pushto")),
+        ("qu", _p("language_name", "Quechua")),
+        ("ro", _p("language_name", "Romanian")),
+        ("rm", _p("language_name", "Romansh")),
+        ("rn", _p("language_name", "Rundi")),
+        ("ru", _p("language_name", "Russian")),
+        ("sm", _p("language_name", "Samoan")),
+        ("sg", _p("language_name", "Sango")),
+        ("sa", _p("language_name", "Sanskrit")),
+        ("sc", _p("language_name", "Sardinian")),
+        ("gd", _p("language_name", "Scottish Gaelic")),
+        ("sr", _p("language_name", "Serbian")),
+        ("sh", _p("language_name", "Serbo-Croatian")),
+        ("sn", _p("language_name", "Shona")),
+        ("ii", _p("language_name", "Sichuan Yi")),
+        ("sd", _p("language_name", "Sindhi")),
+        ("si", _p("language_name", "Sinhala")),
+        ("sk", _p("language_name", "Slovak")),
+        ("sl", _p("language_name", "Slovenian")),
+        ("so", _p("language_name", "Somali")),
+        ("nr", _p("language_name", "South Ndebele")),
+        ("st", _p("language_name", "Southern Sotho")),
+        ("es", _p("language_name", "Spanish")),
+        ("su", _p("language_name", "Sundanese")),
+        ("sw", _p("language_name", "Swahili")),
+        ("ss", _p("language_name", "Swati")),
+        ("sv", _p("language_name", "Swedish")),
+        ("zh-tw", _p("language_name", "Taiwanese")),
+        ("tl", _p("language_name", "Tagalog")),
+        ("ty", _p("language_name", "Tahitian")),
+        ("tg", _p("language_name", "Tajik")),
+        ("ta", _p("language_name", "Tamil")),
+        ("tt", _p("language_name", "Tatar")),
+        ("te", _p("language_name", "Telugu")),
+        ("th", _p("language_name", "Thai")),
+        ("bo", _p("language_name", "Tibetan")),
+        ("ti", _p("language_name", "Tigrinya")),
+        ("to", _p("language_name", "Tonga")),
+        ("ts", _p("language_name", "Tsonga")),
+        ("tn", _p("language_name", "Tswana")),
+        ("tr", _p("language_name", "Turkish")),
+        ("tk", _p("language_name", "Turkmen")),
+        ("tw", _p("language_name", "Twi")),
+        ("ug", _p("language_name", "Uighur")),
+        ("uk", _p("language_name", "Ukrainian")),
+        ("ur", _p("language_name", "Urdu")),
+        ("uz", _p("language_name", "Uzbek")),
+        ("ve", _p("language_name", "Venda")),
+        ("vi", _p("language_name", "Vietnamese")),
+        ("vo", _p("language_name", "Volapük")),
+        ("wa", _p("language_name", "Walloon")),
+        ("cy", _p("language_name", "Welsh")),
+        ("hyw", _p("language_name", "Western Armenian")),
+        ("fy", _p("language_name", "Western Frisian")),
+        ("wo", _p("language_name", "Wolof")),
+        ("xh", _p("language_name", "Xhosa")),
+        ("yi", _p("language_name", "Yiddish")),
+        ("yo", _p("language_name", "Yoruba")),
+        ("za", _p("language_name", "Zhuang")),
+        ("zu", _p("language_name", "Zulu")),
+    ]
+
+
+def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
+    dictionary = dict(
+        zip([key for key, value in tuple_list], [value for key, value in tuple_list])
+    )
+    if sort_by_value:
+        return dict(OrderedDict(sorted(dictionary.items(), key=lambda t: t[1])))
+    else:
+        return dictionary
+
+
+def get_language_dict(locale, sort_by_name=True):
+    return _get_entity_dict_from_tuple_list(languages(locale), sort_by_name)
+
+
+def get_country_dict(locale, sort_by_name=True):
+    return _get_entity_dict_from_tuple_list(countries(locale), sort_by_name)
+
+
 def sample_from_surface_of_unit_sphere(n_dimensions):
     import numpy as np
 
@@ -508,14 +1084,18 @@ def error_page(
     compensate=True,
     error_type="default",
     request_data="",
+    locale=DEFAULT_LOCALE,
 ):
     """Render HTML for error page."""
-    from flask import make_response, render_template, request
+    from flask import make_response, request
 
     config = get_config()
-
+    _, _p, _np = get_translator(locale)
     if error_text is None:
-        error_text = "There has been an error and so you are unable to continue, sorry!"
+        error_text = _p(
+            "error-msg",
+            "There has been an error and so you are unable to continue, sorry!",
+        )
 
     if participant is not None:
         hit_id = participant.hit_id
@@ -535,8 +1115,9 @@ def error_page(
             participant_id = None
 
     return make_response(
-        render_template(
+        render_template_with_translations(
             "mturk_error.html",
+            locale=locale,
             error_text=error_text,
             compensate=compensate,
             contact_address=config.get("contact_email_on_error"),

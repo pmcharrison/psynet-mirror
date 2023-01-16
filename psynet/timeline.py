@@ -30,9 +30,11 @@ from .utils import (
     dict_to_js_vars,
     format_datetime_string,
     get_args,
+    get_language_dict,
     get_logger,
     log_time_taken,
     merge_dicts,
+    render_string_with_translations,
     serialise,
     time_logger,
     unserialise_datetime,
@@ -1057,7 +1059,10 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
-        all_template_arg = {
+        locale = participant.get_locale()
+        language_dict = get_language_dict(locale)
+
+        all_template_args = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
                 dict_to_js_vars({**self.js_vars, **internal_js_vars})
@@ -1086,8 +1091,16 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
+            "supported_language_dict": {
+                iso: language_dict[iso] for iso in experiment.var.supported_locales
+            },
+            "currency": experiment.var.currency,
+            "current_locale": locale,
+            "allow_switching_locale": experiment.var.allow_switching_locale,
         }
-        return flask.render_template_string(self.template_str, **all_template_arg)
+        return render_string_with_translations(
+            template_string=self.template_str, locale=locale, **all_template_args
+        )
 
     @property
     def define_media_requests(self):

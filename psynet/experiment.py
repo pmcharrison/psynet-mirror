@@ -70,9 +70,11 @@ from .utils import (
     disable_logger,
     error_page,
     get_arg_from_dict,
+    get_language,
     get_logger,
     log_time_taken,
     pretty_log_dict,
+    render_template_with_translations,
     serialise,
     working_directory,
 )
@@ -461,6 +463,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
+            "supported_locales": [],
+            "currency": "$",
+            "current_locale": get_language(),
+            "allow_switching_locale": True,
         }
 
     @property
@@ -1256,7 +1262,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/start", methods=["GET"])
     @staticmethod
     def route_start():
-        return render_template("start.html")
+        return render_template_with_translations("start.html")
 
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
@@ -1330,7 +1336,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/resume/<auth_token>", methods=["GET"])
     @classmethod
     def route_resume(cls, auth_token):
-        return render_template("resume.html", auth_token=auth_token)
+        return render_template_with_translations("resume.html", auth_token=auth_token)
+
+    @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
+    @classmethod
+    def route_set_locale_participant(cls, participant_id):
+        participant = cls.get_participant_from_participant_id(participant_id)
+        old_locale = participant.var.locale
+        GET = request.args.to_dict()
+        assert "locale" in GET, "locale not in GET"
+        new_locale = GET["locale"]
+        assert len(new_locale) == 2, "Locale must be a two-letter code"
+        new_locale = new_locale.lower()
+        participant.var.set("locale", new_locale)
+        db.session.commit()
+        logger.info(
+            f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
+        )
+        return success_response()
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
@@ -1365,7 +1388,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             logger.error("Found multiple participants matching those specifications.")
 
-        return render_template(
+        return render_template_with_translations(
             template_name,
             participant=participant,
             participant_abort_info=participant_abort_info,
