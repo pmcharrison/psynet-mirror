@@ -1410,7 +1410,7 @@
                     });
                 };
 
-                let submitGenericResponse = function (rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse) {
+                let submitGenericResponse = function (rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection) {
                     // rawAnswer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
