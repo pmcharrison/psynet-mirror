@@ -504,11 +504,11 @@ def get_language():
 
 
 
-def _render_with_translations(locale, template_name=None, template_string=None, all_template_arg=None):
+def _render_with_translations(locale, template_name=None, template_string=None, all_template_args=None):
     """Render a template with translations applied."""
 
-    if all_template_arg is None:
-        all_template_arg = {}
+    if all_template_args is None:
+        all_template_args = {}
     assert [template_name, template_string].count(None) == 1, \
         "Only one of template_name or template_string should be provided."
 
@@ -528,13 +528,13 @@ def _render_with_translations(locale, template_name=None, template_string=None, 
         template = environment.get_template(template_name)
     else:
         template = environment.from_string(template_string)
-    return _render(app, template, all_template_arg)
+    return _render(app, template, all_template_args)
 
 def render_template_with_translations(template_name, locale=None,  **kwargs):
-    return _render_with_translations(template_name=template_name, locale=locale, all_template_arg=kwargs)
+    return _render_with_translations(template_name=template_name, locale=locale, all_template_args=kwargs)
 
 def render_string_with_translations(template_string, locale=None,  **kwargs):
-    return _render_with_translations(template_string=template_string, locale=locale, all_template_arg=kwargs)
+    return _render_with_translations(template_string=template_string, locale=locale, all_template_args=kwargs)
 
 def get_translator(locale=None, module='psynet', localedir=join_path(abspath(dirname(__file__)), 'locales')):
     if locale is None:
