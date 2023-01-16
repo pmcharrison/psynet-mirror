@@ -38,10 +38,10 @@ class Language(Module):
     ):
         self.label = label
         self.elts = join(
-            MotherTongue(),
-            MoreThanOneLanguage(),
+            MotherTongue(locale=locale),
+            MoreThanOneLanguage(locale=locale),
             conditional(
-                "Does the participant speak more than one language?",
+                "more_than_one_language",
                 lambda experiment, participant: participant.answer == "yes",
                 LanguagesInOrderOfProficiency(),
             ),
