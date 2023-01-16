@@ -10,7 +10,7 @@ respective language.
 Internationalization in general
 ===============================
 To translate PsyNet experiments, we will use standard software to handle translations.
-We'll use the ``gettext`` software. In a nutshell, we use the software to scan translatable strings indicated by the programmer. The strings are then stored in a file as key value pairs. Where the keys are the original sentences and the values are blank and need to be completed by a translator. The translated strings are then compiled into a binary file, which is used by the program.
+We'll use the ``gettext`` software. In a nutshell, we use the software to scan translatable strings indicated by the programmer. The strings are then stored in a file as key value pairs, where the keys are the original sentences and the values are blank and need to be completed by a translator. The translated strings are then compiled into a binary file, which is used by the program.
 
 Let’s install ``gettext``:
 
