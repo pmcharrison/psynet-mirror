@@ -58,11 +58,13 @@ We can create the PO Template (``.pot``) file by running the following command i
 The ``xgettext`` command consists of three arguments:
 
 1. ``-d`` indicating the name of the module. Modules are like namespaces, for example, translations in PsyNet will use the module ``psynet``. For experiments, we recommend using the module name ``experiment``
-2. Translation files are stored in the ``locales`` folder. Make sure you have created one in your experiment. You can do this by running in your experiment directory:
+2. Translation files are stored in the ``locales`` folder. Make sure you have created one in your experiment. You can do this by running
 
 ::
 
    mkdir locales
+
+ in your experiment directory.
 
 3. Finally, you need to pass in the file. Here we use one file (``example.py``), but you can add multiple files, e.g. all Python files in a folder:
 
@@ -176,7 +178,7 @@ Given two .po files, ``msgcat`` concatenates these two files into a single one.
 
     msgmerge previous.po updated.po -o output.po [--no-fuzzy-matching]``
 
-To merge two translations, you can use ``msgmerge``. Imagine you created a new PO file from all of your translatable strings from your code called ``updated.po``, but you already have the translations for a large part of the code in ``previous.po``. You can use ``msgmerge`` to only add the new entries of ``updated.po`` to ``previous.po`` and store the result in the final ``output.po`` file. The optional argument ``--no-fuzzy-matching`` will prevent the merging of fuzzy translations. Fuzzy matching means that it will not look for a 100% match, but will also keys which changed slightly. Fuzzy matched translations will be flagged with the keyword ``fuzzy``:
+To merge two translations, you can use ``msgmerge``. Imagine you created a new PO file from all of your translatable strings from your code called ``updated.po``, but you already have the translations for a large part of the code in ``previous.po``. You can use ``msgmerge`` to only add the new entries of ``updated.po`` to ``previous.po`` and store the result in the final ``output.po`` file. The optional argument ``--no-fuzzy-matching`` will prevent the merging of fuzzy translations. Fuzzy matching means that it will not look for a 100% match, but will also match keys which changed slightly. Fuzzy matched translations will be flagged with the keyword ``fuzzy``:
 
 ::
 
@@ -263,7 +265,7 @@ You can also set additional language settings in the experiment variables:
 
    supported_locales = ['en', 'de', 'nl']
 
--  The ability for the participant to change the translation during the experiment
+-  The ability for the participant to change the language during the experiment
 
 ::
 
