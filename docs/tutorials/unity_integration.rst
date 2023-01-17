@@ -15,7 +15,7 @@ Unity integration
 
 PsyNet includes several GUI features that can accelerate the development of appealing experimental environments. In addition, standard HTML5 and WebGL features can be implemented with relative ease. The built-in network visualization panel of the dashboard, is a nice example of how such tools can be used. However, for experiments where a sophisticated and gamified user interface in either 2D or 3D is desired, it makes more sense to use a well developed 3rd party GUI RDE. Unity 3D is among the leading RDEs for games, and it has several advantages:
 
-#. The same code base can be compiled and deployed with relative ease, as a native app,  across platforms including WebGL, Windows, MacOS, iOS, Android, etc.
+#. The same code base can be compiled and deployed with relative ease, as a native app,  across platforms including WebGL, Windows, macOS, iOS, Android, etc.
 #. Both 2D and 3D virtual worlds physics are well developed
 #. There are many 3rd party components in the Unity App store that can be easily integrated. These include both high and low level tools such as embedded graphs, a virtual playable 3D piano, animated coins, etc.
 

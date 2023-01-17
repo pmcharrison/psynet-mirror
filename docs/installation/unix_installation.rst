@@ -1,4 +1,4 @@
-MacOS/Linux installation
+macOS/Linux installation
 ========================
 
 .. include:: shared_introduction.rst

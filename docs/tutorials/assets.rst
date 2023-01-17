@@ -71,22 +71,22 @@ participant responses.
 
 3. A :class:`~psynet.asset.CachedAsset` is an asset that is reused over multiple experiment
 deployments. The classic use of a ``CachedAsset`` would be to represent some kind of stimulus
-that is pre-defined in advance of experiment launch. In the standard case, the :class:`~psynet.asset.CachedAsset
+that is pre-defined in advance of experiment launch. In the standard case, the :class:`~psynet.asset.CachedAsset`
 refers to a file on the local computer that is uploaded to a remote server on deployment.
 
 It's also worth knowing about a few special cases of these asset types.
 
 - An :class:`~psynet.asset.ExternalS3Asset` is a special type of :class:`~psynet.asset.ExternalAsset`
-that is stored in an Amazon Web Services S3 bucket.
+  that is stored in an Amazon Web Services S3 bucket.
 
 - A :class:`~psynet.asset.CachedFunctionAsset` is a special type of :class:`~psynet.asset.CachedAsset`
-where the source is not a file on the computer, but rather a function responsible for generating
-such a file. This means that you can write your stimulus generation code transparently as part
-of your experiment code.
+  where the source is not a file on the computer, but rather a function responsible for generating
+  such a file. This means that you can write your stimulus generation code transparently as part
+  of your experiment code.
 
-A :class:`~psynet.asset.FastFunctionAsset` is like a :class:`~psynet.asset.CachedFunctionAsset`
-but has no caching at all; instead, the file is (re)generated on demand whenever it is requested
-from the front-end. This is suitable for files that can be generated very quickly.
+- A :class:`~psynet.asset.FastFunctionAsset` is like a :class:`~psynet.asset.CachedFunctionAsset`
+  but has no caching at all; instead, the file is (re)generated on demand whenever it is requested
+  from the front-end. This is suitable for files that can be generated very quickly.
 
 
 Accessing assets
@@ -185,7 +185,7 @@ We will now describe both scenarios in turn.
 
 
 Creating an asset before launching the experiment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When you create an asset in advance, you can either make it a property of a
 :class:`~psynet.timeline.Module` or a property of a :class:`psynet.trial.main.TrialNode`.

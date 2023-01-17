@@ -99,6 +99,7 @@ but see the sidebar for a full list.
    tutorials/assets
    tutorials/command_line
    tutorials/specifying_dependencies
+   tutorials/internationalization
    tutorials/ad_page
    tutorials/modular_page
    tutorials/graphics
