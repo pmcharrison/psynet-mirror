@@ -1,0 +1,61 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-13/01/ 11:33:24\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: DeepL API\n"
+"Language-Team: DeepL\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. {"msgid": ["Welkom bij de vertaaldemo!", "Welkom bij de vertaalde demo!",
+#. "Welkom bij de vertalingsdemo!"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:22
+#, fuzzy
+msgctxt "welcome-page"
+msgid "Welcome to the translation demo!"
+msgstr "Welkom bij de vertaaldemo!"
+
+#. {"msgid": ["Hieronder ziet u deze tekst vertaald!", "Hieronder wordt deze
+#. tekst vertaald!", "Hieronder ziet u de tekst vertaald!", "Hieronder ziet u
+#. de vertaling van deze tekst!"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:31
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:45
+#, fuzzy
+msgid "Below you will see this text translated!"
+msgstr "Hieronder ziet u deze tekst vertaald!"
+
+#. {"msgid": ["U kunt ook tekst vertalen in drukknoppen of eender welke
+#. pagina!", "U kunt ook tekst vertalen in drukknoppen of elke soort pagina!",
+#. "U kunt ook tekst vertalen in drukknoppen of op elke soort pagina!", "U
+#. kunt ook tekst vertalen in drukknoppen of elke andere soort pagina!"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:54
+#, fuzzy
+msgid "You can also translate text in push buttons or any kind of page!"
+msgstr "U kunt ook tekst vertalen in drukknoppen of eender welke pagina!"
+
+#. {"msgid": ["Klik op", "Klik", "Click", "Klik op ."]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:57
+#, fuzzy
+msgctxt "button"
+msgid "Click"
+msgstr "Klik op"
+
+#. {"msgid": ["op", "Op", "naar", "op ."]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:57
+#, fuzzy
+msgctxt "button"
+msgid "on"
+msgstr "op"
+
+#. {"msgid": ["vertaling", "Vertaling"]}
+#: /Users/pol.van-rijn/psynet-package/demos/translation/experiment.py:57
+#, fuzzy
+msgctxt "button"
+msgid "translation"
+msgstr "vertaling"
