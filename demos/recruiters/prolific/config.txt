@@ -1,6 +1,3 @@
-[Launch mode]
-mode = sandbox
-
 [Payment information]
 id = Prolific hearing test demo
 title = Prolific hearing test demo
