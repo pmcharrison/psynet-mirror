@@ -1,5 +1,4 @@
-import gettext
-import os
+from os.path import abspath
 
 from flask import Markup
 
@@ -7,47 +6,25 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Timeline
-from psynet.utils import get_logger
-
-from .parts import textLib
-
-# from psynet.utils import get_language
-
+from psynet.timeline import PageMaker, Timeline, join
+from psynet.utils import get_logger, get_translator
 
 logger = get_logger()
 
-# Load language parameter from config.txt file
-# LANGUAGE = get_language()
-LANGUAGE = "en"
 
-# Load translation files
-domain_name = os.path.basename(__file__)[
-    :-3
-]  # strip ".py" extension, this returns the name of the file e.g. "experiment"
-lang = gettext.translation(domain_name, localedir="locale", languages=[LANGUAGE])
-lang.install()  # install _() function
-
-###################
-# Translation files
-# 1) .pot are the template files that just contain the strings for
-# translation that are found in a python module through the _() function.
-# 2) .po are based on .pot files and contain the actuall translations.
-# 3) .mo files are created from the .po files and are used at runtime
-# to load the translation.
-# We refer you to Psynet Learning to see how you can create these files.
-
-
-class Exp(psynet.experiment.Experiment):
-    label = "Translation demo"
-
-    timeline = Timeline(
-        NoConsent(),
-        InfoPage(_("Welcome to the translation demo!"), time_estimate=2),
+def timeline(participant):
+    locale = participant.get_locale()
+    _, _p, _np = get_translator(
+        locale=locale, module="experiment", localedir=abspath("locales")
+    )
+    return join(
+        InfoPage(
+            _p("welcome-page", "Welcome to the translation demo!"), time_estimate=2
+        ),
         InfoPage(
             Markup(
                 "<h2>"
-                + f"You have chosen to translate this experiment from English (en) to {LANGUAGE}"
+                + f"You have chosen to translate this experiment from English (en) to {locale}"
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
@@ -61,18 +38,12 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             Markup(
                 "<h2>"
-                + "Translation imported from another file"
+                + "You can also change the translation during the experiment if you like. Try switching to another language!"
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
-                + """Sometimes you might want to spread your experiment implementation over multiple files.
-                        You can just translate every file on its own, so that each file has a corresponding .po and .mo file.
-                        These files should also be in the locale directory of the specified language!
-                    """
-                "Here we see a text line from another file in the experiment directory:<br>"
-                + "</p>"
-                + "<p>"
-                + textLib["info_translation_1"]
+                + "Below you will see this text translated! <br>"
+                + _("Below you will see this text translated!")
                 + "</p>"
                 + "<hr>"
             ),
@@ -84,10 +55,27 @@ class Exp(psynet.experiment.Experiment):
                 "You can also translate text in push buttons or any kind of page!"
             ),
             control=PushButtonControl(
-                [_("Click"), _("on"), _("translation")],
+                [
+                    _p("button", "Click"),
+                    _p("button", "on"),
+                    _p("button", "translation"),
+                ],
                 arrange_vertically=False,
             ),
             time_estimate=4,
         ),
+    )
+
+
+class Exp(psynet.experiment.Experiment):
+    label = "Translation demo"
+
+    variables = {
+        "supported_locales": ["en", "de", "nl"],
+        "allow_switching_locale": True,
+    }
+    timeline = Timeline(
+        NoConsent(),
+        PageMaker(lambda participant: timeline(participant), time_estimate=16),
         SuccessfulEndPage(),
     )

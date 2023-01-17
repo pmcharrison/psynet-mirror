@@ -1,5 +1,19 @@
 # CHANGELOG
 
+# [10.0.0] released on 2023-01-16
+
+#### Added
+- Marked translatable parts of the PsyNet UI, consent, and demographics (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Added a locale variable to the participant (default: experiment language) which can be changed during the experiment (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Added a `currency` variable to the experiment, which allows using a currency different than dollars, e.g., in Prolific (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Wrote documentation for translating experiments (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+
+#### Fixed
+- Updated the translation demo (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Use latin-1 encoding for pickling JSON instead of ASCII to work well with non-ASCII characters (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Add additional dependencies to PsyNet: `babel` and `python-gettext` (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Replaced typo in `participant` (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+
 # [9.4.1] Released on 2023-01-11
 
 #### Added
