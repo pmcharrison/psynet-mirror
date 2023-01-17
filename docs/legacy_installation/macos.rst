@@ -191,7 +191,7 @@ Needed for running the Selenium tests with headless Chrome.
 .. code-block:: bash
 
    brew install wget
-   wget https://chromedriver.storage.googleapis.com/94.0.4606.41/chromedriver_mac64.zip --directory /tmp
+   wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_mac64.zip --directory /tmp
    sudo unzip /tmp/chromedriver_mac64.zip chromedriver -d /usr/local/bin/
 
 Install additional Python packages
