@@ -1059,7 +1059,7 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
-        locale = participant.get_locale()
+        locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
 
         all_template_args = {

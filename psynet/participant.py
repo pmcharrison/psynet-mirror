@@ -358,7 +358,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.experiment = experiment
         self.vars = {}
         self.elt_id = [-1]
         self.elt_id_max = [len(experiment.timeline) - 1]
@@ -515,11 +514,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
-    def get_locale(self):
+    def get_locale(self, experiment):
         if self.var.has("locale"):
             return self.var.locale
         else:
-            locale = self.experiment.var.current_locale
+            locale = experiment.var.current_locale
             self.var.set("locale", locale)
             logger.warning(
                 f"Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}"
