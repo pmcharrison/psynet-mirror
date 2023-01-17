@@ -74,7 +74,6 @@ pages:
   artifacts:
     paths:
     - public
-    - public/low_level
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: '$CI_COMMIT_REF_NAME == "v10-draft"'
