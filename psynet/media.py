@@ -105,7 +105,7 @@ def upload_to_s3(
     public_read: bool,
     create_new_bucket: bool = False,
 ):
-    "If create_new_bucket, then a new bucket is created if the bucket doesn't exist."
+    "If ``create_new_bucket`` is ``True``, then a new bucket is created if the bucket doesn't exist."
     if LOCAL_S3:
         return upload_to_local_s3(
             local_path, bucket_name, key, public_read, create_new_bucket

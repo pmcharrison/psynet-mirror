@@ -181,10 +181,10 @@ A similar approach is used to play audio as part of the graphic.
 You should now have a good high-level perspective on PsyNet's graphics functionality.
 To gain more of an insight into how to use these features, we recommend
 that you explore the ``graphic`` demo and its source code,
-as well as looking through the low-level documentation below.
+as well as looking through the API documentation below.
 
 
-Low-level documentation
+API documentation
 -----------------------
 
 .. automodule:: psynet.graphics

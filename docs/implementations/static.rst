@@ -102,7 +102,7 @@ Implementing a static experiment in this framework comprises the following steps
    with reference to the classes and objects you created above,
    and insert it into your experiment's timeline.
 
-See the low-level documentation (below)
+See the API documentation (below)
 and the demo (``demos/static``)
 for more details.
 
