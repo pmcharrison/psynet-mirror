@@ -11,9 +11,11 @@ from psynet.utils import get_logger, get_translator
 
 logger = get_logger()
 
+supported_locales = ["en", "de", "nl"]
+reference_language = "en"
 
-def timeline(participant):
-    locale = participant.get_locale()
+
+def get_timeline_in_locale(locale):
     _, _p, _np = get_translator(
         locale=locale, module="experiment", localedir=abspath("locales")
     )
@@ -24,7 +26,7 @@ def timeline(participant):
         InfoPage(
             Markup(
                 "<h2>"
-                + f"You have chosen to translate this experiment from English (en) to {locale}"
+                + f"You have chosen to translate this experiment from {reference_language} to {locale}"
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
@@ -67,15 +69,31 @@ def timeline(participant):
     )
 
 
+timeline_by_locale = {
+    locale: get_timeline_in_locale(locale) for locale in supported_locales
+}
+reference_timeline = timeline_by_locale[reference_language]
+
+timeline_time_estimate = 0
+for elt in reference_timeline:
+    if hasattr(elt, "time_estimate"):
+        timeline_time_estimate += elt.time_estimate
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Translation demo"
 
     variables = {
-        "supported_locales": ["en", "de", "nl"],
+        "supported_locales": supported_locales,
         "allow_switching_locale": True,
     }
     timeline = Timeline(
         NoConsent(),
-        PageMaker(lambda participant: timeline(participant), time_estimate=16),
+        PageMaker(
+            lambda participant, experiment: timeline_by_locale[
+                participant.get_locale(experiment)
+            ],
+            time_estimate=timeline_time_estimate,
+        ),
         SuccessfulEndPage(),
     )
