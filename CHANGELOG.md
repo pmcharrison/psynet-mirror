@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [10.0.0] released on 2023-01-16
+# [10.0.0rc0] Release candidate 2023-01-17
 
 #### Added
 - Marked translatable parts of the PsyNet UI, consent, and demographics (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
