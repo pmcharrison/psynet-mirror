@@ -9,4 +9,6 @@
 # dallinger@git+https://github.com/Dallinger/Dallinger.git@98d529e537221bf67bf587c1598578d3ffb7cc3f#egg=dallinger
 
 # Example pinning a particular version of PsyNet
-psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10-draft#egg=psynet
+# psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10-draft#egg=psynet
+
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet

@@ -45,76 +45,37 @@ but see the sidebar for a full list.
    architecture/web_servers
 
 .. toctree::
-   :maxdepth: 2
    :hidden:
-   :caption: Installation (Docker route)
+   :caption: INSTALLATION
 
-   installation/unix_installation
-   installation/windows_installation
+   installation/index
 
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Installation (legacy route)
 
-   legacy_installation/linux
-   legacy_installation/macos
+   legacy_installation/index
 
 .. toctree::
-   :maxdepth: 1
    :hidden:
-   :caption: Demos
+   :caption: EXPERIMENT DEVELOPMENT
 
-   demos/introduction
-   demos/hello_world
-   demos/timeline
-   demos/survey_js
-   demos/trial
-   demos/trial_2
-   demos/gibbs
-   demos/audio_gibbs
-   demos/imitation_chains
-   demos/tapping_imitation_chain
-   demos/mcmcp
-
+   demos/index
 
 .. toctree::
-   :maxdepth: 1
    :hidden:
-   :caption: Example experiments
 
-   example_experiments/introduction
-   example_experiments/carillon
-   example_experiments/emotions-scales
-   example_experiments/pitch-matching
+   example_experiments/index
 
 .. toctree::
-   :maxdepth: 2
    :hidden:
-   :caption: Tutorials
-   :glob:
 
-   tutorials/classes
-   tutorials/timeline
-   tutorials/assets
-   tutorials/command_line
-   tutorials/specifying_dependencies
-   tutorials/ad_page
-   tutorials/modular_page
-   tutorials/graphics
-   tutorials/demography
-   tutorials/prescreening_tasks
-   tutorials/pre_deploy_routines
-   tutorials/experiment_variables
-   tutorials/unity_integration
-   tutorials/writing_custom_frontends
-   tutorials/event_management
-   tutorials/communicating_with_backend
-   tutorials/payment_limits
-   tutorials/deploy_tokens
-   tutorials/introduction_to_sql_alchemy
-   tutorials/version_control_with_git
-   tutorials/upgrading_to_psynet_10
+   tutorials/index
+
+.. toctree::
+   :hidden:
+
+   api/index
 
 .. toctree::
    :maxdepth: 2
@@ -124,18 +85,3 @@ but see the sidebar for a full list.
 
    developer/prescreening_tasks
    developer/updating_documentation
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: API documentation
-   :glob:
-
-   api/overview
-   api/demography
-   api/Experiment
-   api/Participant
-   api/prescreen
-   api/timeline
-   api/trial
-   api/VarStore

@@ -14,8 +14,8 @@ RUN apt update
 RUN apt -f -y install curl redis-server unzip libpq-dev
 RUN service redis-server start
 RUN curl https://cli-assets.heroku.com/install.sh | sh
-RUN wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_101.0.4951.64-1_amd64.deb
-RUN wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_linux64.zip
+RUN wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_109.0.5414.74-1_amd64.deb
+RUN wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip
 RUN apt -f -y install ./chrome.deb
 RUN unzip chrome-driver.zip chromedriver -d /usr/local/bin/
 
