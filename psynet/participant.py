@@ -16,7 +16,7 @@ from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
 from .process import AsyncProcess
-from .utils import get_language, get_logger, organize_by_key
+from .utils import get_logger, organize_by_key
 
 logger = get_logger()
 
@@ -514,11 +514,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
-    def get_locale(self):
+    def get_locale(self, experiment):
         if self.var.has("locale"):
             return self.var.locale
         else:
-            locale = get_language()
+            locale = experiment.var.current_locale
             self.var.set("locale", locale)
             logger.warning(
                 f"Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}"
