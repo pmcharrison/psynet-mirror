@@ -68,13 +68,12 @@ pages:
   needs: [deploy_docker]
   script:
     - pip install -U sphinx
-    - pip install sphinx_rtd_theme
+    - pip install furo
     - pip install sphinx-autodoc-typehints
     - sphinx-build -b html docs public
   artifacts:
     paths:
     - public
-    - public/low_level
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: '$CI_COMMIT_REF_NAME == "v10-draft"'
