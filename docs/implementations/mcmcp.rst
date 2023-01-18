@@ -77,7 +77,7 @@ You can define a custom MCMCP experiment through the following steps:
    with reference to the classes you created above,
    and insert it into your experiment's timeline.
    
-See the low-level documentation (below)
+See the API documentation (below)
 and the demo (``demos/mcmcp``)
 for more details.
 

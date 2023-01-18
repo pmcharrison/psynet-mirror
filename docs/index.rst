@@ -54,13 +54,26 @@ PsyNet Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Low-level documentation
+   :caption: API documentation
    :glob:
 
-   low_level/demography
-   low_level/Experiment
-   low_level/Participant
-   low_level/prescreen
-   low_level/timeline
-   low_level/trial
-   low_level/VarStore
+   api/audio_mixer
+   api/bot
+   api/command_line
+   api/consents
+   api/data
+   api/demography
+   api/experiment
+   api/field
+   api/graphics
+   api/js_synth
+   api/media
+   api/modular_page
+   api/page
+   api/participant
+   api/prescreen
+   api/recruiters
+   api/timeline
+   api/trial
+   api/trial/index
+   api/var_store
