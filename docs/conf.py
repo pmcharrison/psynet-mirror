@@ -173,7 +173,7 @@ texinfo_documents = [
 # to the documentation page.
 html_theme_options = {
     "source_repository": "https://gitlab.com/PsyNetDev/PsyNet/",
-    "source_branch": "10.0.0rc",
+    "source_branch": "dev",
     "source_directory": "docs/",
 }
 
