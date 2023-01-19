@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Added
+- Added RUN.md instructions for running experiments in Docker.
+
 #### Changed
 - Store assets in `static/assets` rather than `static/local_storage`.
 

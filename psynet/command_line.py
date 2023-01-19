@@ -1700,6 +1700,10 @@ def update_scripts():
         "INSTALL.md",
     )
     shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/RUN.md"),
+        "RUN.md",
+    )
+    shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
         "test.py",
     )
