@@ -60,6 +60,3 @@ then you can use the same commands but just omitting `bash docker/`, so for exam
 ```shell
 psynet debug local
 ```
-
-(Note for advanced users: if you make the file _executable_ you can omit the `bash` and just 
-write `docker/psynet debug local`.)
