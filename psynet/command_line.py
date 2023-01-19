@@ -1716,9 +1716,7 @@ def update_scripts():
         "docker",
         dirs_exist_ok=True,
     )
-    os.system("chmod +x docker/psynet")
-    os.system("chmod +x docker/psynet-dev")
-    os.system("chmod +x docker/run")
+    os.system("chmod +x docker/*")
 
     if Path("README.md").exists() and click.confirm("Overwrite existing README file?"):
         click.echo("Updating README.md.")
