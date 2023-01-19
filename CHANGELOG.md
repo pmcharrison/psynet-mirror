@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Changed
+- Store assets in `static/assets` rather than `static/local_storage`.
+
 #### Fixed
 - Make assets display properly in dashboard again.
 

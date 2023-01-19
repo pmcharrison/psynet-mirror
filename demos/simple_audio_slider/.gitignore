@@ -16,7 +16,7 @@ deploy_logs/
 server.log
 
 # Automatically generated resources for debugging experiments with local storage
-static/local_storage
+static/assets
 
 # PyCharm configuration file
 .idea

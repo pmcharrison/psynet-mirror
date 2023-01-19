@@ -2547,7 +2547,7 @@ class LocalStorage(AssetStorage):
     same file system.
     """
 
-    label = "local_storage"
+    label = "assets"
 
     def __init__(self, root=None):
         """
