@@ -1703,14 +1703,15 @@ def update_scripts():
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
         "test.py",
     )
+    shutil.rmtree("docker", ignore_errors=True)
     shutil.copytree(
         resource_filename("psynet", "resources/experiment_scripts/docker"),
         "docker",
         dirs_exist_ok=True,
     )
-    os.system("chmod +x docker/psynet.sh")
-    os.system("chmod +x docker/psynet-dev.sh")
-    os.system("chmod +x docker/run.sh")
+    os.system("chmod +x docker/psynet")
+    os.system("chmod +x docker/psynet-dev")
+    os.system("chmod +x docker/run")
     if Path("README.md").exists() and click.confirm("Replace existing README file?"):
         shutil.copyfile(
             resource_filename("psynet", "resources/experiment_scripts/README.md"),

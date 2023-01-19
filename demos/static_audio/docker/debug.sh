@@ -1,9 +1,9 @@
 # Ensures that the script stops on errors
 set -euo pipefail
 
-. docker/params.sh
-. docker/services.sh
-. docker/build.sh
+. docker/params
+. docker/services
+. docker/build
 
 # Note: any changes to this command should be propagated to terminal.sh
 echo "TODO: wrap error message here"

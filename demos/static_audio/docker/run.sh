@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-. docker/params.sh
-. docker/services.sh
-. docker/build.sh
+. docker/params
+. docker/services
+. docker/build
 
 docker rm dallinger &> /dev/null || true
 
