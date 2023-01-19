@@ -10,6 +10,8 @@ bash docker/psynet debug local  # Debug the experiment locally
 bash docker/pytest test.py  # Run the experiment's automatic tests
 
 bash docker/psynet export local  # Export data from a local experiment
+
+bash docker/
 ```
 
 There are several commands like this that will soon be fully documented on PsyNet's 

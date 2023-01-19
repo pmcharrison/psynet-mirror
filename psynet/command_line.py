@@ -1696,17 +1696,20 @@ def update_scripts():
     #     "psynet-dev.sh",
     # )
     shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/INSTALL.md"),
-        "INSTALL.md",
-    )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/RUN.md"),
-        "RUN.md",
-    )
-    shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
         "test.py",
     )
+
+    if not Path("docs").exists() or click.confirm("Overwrite existing docs directory?"):
+        shutil.rmtree("docs", ignore_errors=True)
+        click.echo("Updating docs.")
+        shutil.copytree(
+            resource_filename("psynet", "resources/experiment_scripts/docs"),
+            "docs",
+            dirs_exist_ok=True,
+        )
+
+    click.echo("Updating Docker scripts.")
     shutil.rmtree("docker", ignore_errors=True)
     shutil.copytree(
         resource_filename("psynet", "resources/experiment_scripts/docker"),
@@ -1716,12 +1719,15 @@ def update_scripts():
     os.system("chmod +x docker/psynet")
     os.system("chmod +x docker/psynet-dev")
     os.system("chmod +x docker/run")
-    if Path("README.md").exists() and click.confirm("Replace existing README file?"):
+
+    if Path("README.md").exists() and click.confirm("Overwrite existing README file?"):
+        click.echo("Updating README.md.")
         shutil.copyfile(
             resource_filename("psynet", "resources/experiment_scripts/README.md"),
             "README.md",
         )
     with open("Dockertag", "w") as file:
+        click.echo("Updating Dockerfile.")
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
