@@ -6,6 +6,8 @@ main principle is that you write commands of the following form:
 
 ```shell
 bash docker/psynet debug local  # Debug the experiment locally
+
+bash docker/psynet export local  # Export data from a local experiment
 ```
 
 There are several commands like this that will soon be fully documented on PsyNet's 
@@ -50,6 +52,8 @@ You can then invoke the commands like this:
 
 ```shell
 docker/psynet debug local
+
+docker/psynet export local
 ```
 
 ### Running without Docker
