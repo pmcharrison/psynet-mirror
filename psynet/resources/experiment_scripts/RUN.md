@@ -7,6 +7,8 @@ main principle is that you write commands of the following form:
 ```shell
 bash docker/psynet debug local  # Debug the experiment locally
 
+bash docker/pytest test.py  # Run the experiment's automatic tests
+
 bash docker/psynet export local  # Export data from a local experiment
 ```
 
