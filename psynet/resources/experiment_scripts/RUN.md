@@ -12,7 +12,7 @@ bash docker/psynet export local  # Export data from a local experiment
 
 There are several commands like this that will soon be fully documented on PsyNet's 
 [documentation website](https://psynetdev.gitlab.io/PsyNet).
-Please make sure you have followed the instructions in INSTALL.md before trying them.
+Please make sure you have followed the instructions in `INSTALL.md` before trying them.
 
 ## Advanced usage
 
