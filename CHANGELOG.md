@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Fixed
+- Make assets display properly in dashboard again.
+
 # [10.0.0rc0] Release candidate 2023-01-17
 
 #### Added

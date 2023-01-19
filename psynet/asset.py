@@ -2470,7 +2470,7 @@ class AssetStorage:
                 prefix = "http://localhost:5000"
             else:
                 prefix = host
-            url = os.path.join(prefix, url)
+            url = prefix + url
         return url
 
     def export_subfile(self, asset, subfile, path):
@@ -2565,7 +2565,6 @@ class LocalStorage(AssetStorage):
 
         self._initialized = False
         self._root = root
-        self.public_path = self._create_public_path()
 
     def setup_files(self):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
@@ -2613,27 +2612,32 @@ class LocalStorage(AssetStorage):
 
         Path(self.root).mkdir(parents=True, exist_ok=True)
 
-    def _create_public_path(self):
+    @property
+    def local_path(self):
+        return os.path.join("static", self.label)
+
+    @property
+    def public_path(self):
         """
         This is the publicly exposed path by which the web browser can access the storage registry.
         This corresponds to a (symlinked) directory inside the experiment directory.
         """
-        return os.path.join("static", self.label)
+        return "/" + self.local_path
 
     def _create_symlink(self):
         try:
-            os.unlink(self.public_path)
+            os.unlink(self.local_path)
         except (FileNotFoundError, IsADirectoryError, PermissionError):
-            # Path(self.public_path).rmdir()
+            # Path(self.local_path).rmdir()
             try:
-                shutil.rmtree(self.public_path)
+                shutil.rmtree(self.local_path)
             except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
                 pass
 
         os.makedirs("static", exist_ok=True)
 
         try:
-            os.symlink(self.root, self.public_path)
+            os.symlink(self.root, self.local_path)
         except FileExistsError:
             pass
 
