@@ -6,6 +6,7 @@ set -euo pipefail
 . docker/services
 . docker/build
 
+#echo "TODO: wrap error message here"
 docker rm dallinger &> /dev/null || true
 
 docker run \

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Shorthand for `docker/run psynet`
+
 set -euo pipefail
 
 ./docker/run psynet "$@"
