@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if test -f Dockertag; then
   export EXPERIMENT_IMAGE=$(cat Dockertag)
 else
