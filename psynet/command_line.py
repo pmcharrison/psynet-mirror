@@ -601,8 +601,12 @@ def _pre_launch(
     log("Preparing for launch...")
 
     redis_vars.clear()
-    deployment_info.init(redeploying_from_archive=archive is not None)
-    deployment_info.write(mode=mode, is_local_deployment=local_, is_ssh_deployment=ssh)
+    deployment_info.init(
+        redeploying_from_archive=archive is not None,
+        mode=mode,
+        is_local_deployment=local_,
+        is_ssh_deployment=ssh,
+    )
 
     if ssh:
         server_info = CONFIGURED_HOSTS[server]
