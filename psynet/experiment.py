@@ -573,10 +573,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def generate_deployment_id(cls):
-        sanitized_label = cls.label.replace(" ", "-").lower()
-        return (
-            sanitized_label + "__launch=" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        mode = deployment_info.read("mode")
+        id_ = f"{cls.label} ({mode})"
+        id_ = id_.replace(" ", "-").lower()
+        id_ += (
+            "__mode= "
+            + mode
+            + "__launch="
+            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         )
+        return id_
 
     @property
     def deployment_id(self):
