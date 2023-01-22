@@ -20,3 +20,10 @@ __pycache__
 
 # MacOS Finder config files
 *.DS_Store
+
+#### The following files are no longer used in PsyNet but they used to be present in old respositories,
+#### so we've kept them in the .gitignore template for now so that people don't accidentally commit them.
+
+develop/
+deploy/
+deploy_logs/
