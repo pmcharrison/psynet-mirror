@@ -1682,6 +1682,14 @@ def update_scripts():
     To be run in an experiment directory; updates a collection of template scripts and help files to their
     latest PsyNet versions.
     """
+    update_scripts_()
+
+
+def update_scripts_():
+    """
+    To be run in an experiment directory; updates a collection of template scripts and help files to their
+    latest PsyNet versions.
+    """
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
     click.echo("...updating Dockerfile.")
