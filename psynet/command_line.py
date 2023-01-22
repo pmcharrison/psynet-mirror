@@ -1692,6 +1692,12 @@ def update_scripts_():
     """
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
+    click.echo("...updating .gitignore.")
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/.gitignore"),
+        ".gitignore",
+    )
+
     click.echo("...updating Dockerfile.")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
