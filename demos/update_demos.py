@@ -7,7 +7,7 @@
 # We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
 # Dallinger back-compatibility.
 # In the meantime, if you want to skip generating constraints and only update other demo files,
-# set skip_contraints = False before running the script.
+# run the following instead: SKIP_CONSTRAINTS=1 python3 demos/update_demos.py
 
 import os
 import pathlib
@@ -18,7 +18,7 @@ from joblib import Parallel, delayed
 import psynet.command_line
 from psynet.utils import working_directory
 
-skip_constraints = False
+skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
 
 
 def find_demo_dirs():
