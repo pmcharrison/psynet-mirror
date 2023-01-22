@@ -1695,10 +1695,14 @@ def update_scripts():
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
-    click.echo("...updating test.py.")
+    click.echo("...updating test.py and pytest.ini.")
     shutil.copyfile(
         resource_filename("psynet", "resources/experiment_scripts/test.py"),
         "test.py",
+    )
+    shutil.copyfile(
+        resource_filename("psynet", "resources/experiment_scripts/pytest.ini"),
+        "pytest.ini",
     )
 
     click.echo("...updating docs directory.")
