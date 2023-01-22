@@ -805,6 +805,14 @@ def docs(force_rebuild):
 ##############
 
 
+def check_prolific_payment(experiment, config):
+    cents = config.get("prolific_reward_cents")
+    minutes = config.get("prolific_estimated_completion_minutes")
+    assert (
+        experiment.var.wage_per_hour * minutes / 60 == cents / 100
+    ), "Wage per hour does not match Prolific reward"
+
+
 def run_pre_checks(mode, local_, heroku=False, docker=False):
     from dallinger.recruiters import MTurkRecruiter
 
@@ -896,6 +904,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                     "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
                     "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
                 )
+            if config.get("recruiter") == "prolific":
+                check_prolific_payment(exp, config)
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
