@@ -228,7 +228,7 @@ msgstr ""
 msgctxt "feedback"
 msgid "Please let us know so we can improve the game."
 msgstr ""
-"Bitte lassen Sie es uns wissen, damit wir das Spiel verbessern können."
+"Bitte lassen Sie es uns wissen, damit wir das Experiment verbessern können."
 
 #. {"msgid": ["Dr\u00fccken Sie \"Weiter\", um den englischen Teil des
 #. Experiments zu starten.", "Dr\u00fccken Sie auf \"Weiter\", um den
