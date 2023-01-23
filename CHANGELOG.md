@@ -2,6 +2,7 @@
 
 #### Added
 - Added RUN.md instructions for running experiments in Docker.
+- Drafted 'generic recruiter', an improved version of Dallinger's hot-air recruiter.
 
 #### Changed
 - Store assets in `static/assets` rather than `static/local_storage`.

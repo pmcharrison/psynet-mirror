@@ -928,10 +928,42 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
+    def render_exit_message(self, participant):
+        """
+        This method is currently only called if the 'generic' recruiter is selected.
+        We may propagate it to other recruiter methods eventually too.
+        If left unchanged, the default recruiter exit message from Dallinger will be shown.
+        Otherwise, one can return a custom message in various ways.
+        If you return a string, this will be escaped appropriately and presented as text.
+        Alternatively, more complex HTML structures can be constructed using the
+        Python package ``dominate``, see Examples for details.
+
+        Examples
+        --------
+
+        # This would be appropriate for experiments with no payment.
+        tags.div(
+            tags.p("Thank you for participating in this experiment!"),
+            tags.p("Your responses have been saved. You may close this window."),
+        )
+
+        # This kind of structure could be used for passing participants to a particular
+        # URL in Prolific.
+        tags.div(
+            tags.p("Thank you for participating in this experiment!"),
+            tags.p("Please click the following URL to continue back to Prolific:"),
+            tags.a("Finish experiment", href="https://prolific.com"),
+        )
+        """
+        return "default_exit_message"
+
     @classmethod
     def extra_files(cls):
+        # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
+        # overwritten if they exist already in Dallinger. We should try and change this.
         files = [
             (
+                # Warning: this won't affect templates that already exist in Dallinger
                 resource_filename("psynet", "templates"),
                 "/templates",
             ),
@@ -1008,6 +1040,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/static/scripts/abc-js",
             ),
             (
+                # This is presumably getting ignored, because Dallinger ignores extra_files specifications if they
+                # overwrite a predefined file -- see dallinger.utils.collate_experiment_files
                 resource_filename("psynet", "templates/mturk_error.html"),
                 "templates/mturk_error.html",
             ),
