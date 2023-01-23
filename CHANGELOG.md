@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# [9.4.2] Released on 2023-01-23
+
+#### Updated
+- Updated `Dallinger` to `v9.3.1` which contains bugfixes and enhancements for Prolific recruitment. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.3.1.
+- Updated API documentation (author: Frank Höger, reviewer: Peter Harrison).
+- Use 'furo' theme in GitLab CI pages deploy stage (author: Frank Höger).
+
 # [9.4.1] Released on 2023-01-11
 
 #### Added
