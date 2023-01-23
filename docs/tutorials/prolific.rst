@@ -90,7 +90,7 @@ Extending a study
 If your study does not autorecruit more participants, you can extend the study by clicking on the "Action" button next to the study name and select "Increase places". By default this value is set to ``initial_recruitment_size``
 
 Terminating a study
-------------------
+-------------------
 Go to Prolific go to your project folder, go to the tab "Active". If it says awaiting review, you can pay the remaining participants where something went wrong. By paying the participants, your experiment automatically moves to the tab "Completed".
 
 You can now export your data locally and destroy your application.
