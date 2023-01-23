@@ -115,6 +115,7 @@ but see the sidebar for a full list.
    tutorials/introduction_to_sql_alchemy
    tutorials/version_control_with_git
    tutorials/upgrading_to_psynet_10
+   tutorials/prolific.rst
 
 .. toctree::
    :maxdepth: 2
