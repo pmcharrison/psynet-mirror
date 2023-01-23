@@ -82,7 +82,7 @@ Finally, you need to add the qualification to your ``config.txt`` file:
     [Prolific]
     prolific_recruitment_config = file:prolific_config.json
 
-If you don't have an existing experiment you want to copy the qualifications from, you can create a draft study in Prolific and then copy it's HIT ID using the identical steps as above.
+If you don't have an existing experiment where you want to copy the qualifications from, you can create a draft study in Prolific and then copy it's HIT ID using the identical steps as above.
 
 
 Extending a study
@@ -91,6 +91,6 @@ If your study does not autorecruit more participants, you can extend the study b
 
 Terminating a study
 -------------------
-Go to Prolific go to your project folder, go to the tab "Active". If it says awaiting review, you can pay the remaining participants where something went wrong. By paying the participants, your experiment automatically moves to the tab "Completed".
+Go to Prolific, go to your project folder, go to the tab "Active". If it says "Awaiting review", you can pay the remaining participants when something went wrong. By paying the participants, your experiment automatically moves to the tab "Completed".
 
 You can now export your data locally and destroy your application.
