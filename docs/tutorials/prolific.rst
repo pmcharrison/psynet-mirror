@@ -24,7 +24,7 @@ Basics
 
 Many experiments will have a flexible duration, to mimic the MTurk behaviour of a small base payment and performance payments only for the done work, can be implemented by setting ``base_payment = 0`` in your ``config.txt``.
 Set ``prolific_estimated_completion_minutes = 1`` and set
-``prolific_reward_cents`` to the amount of cents you want to pay for a minute of work. This value must reflect the ``wage_per_hour`` experiment variable.
+``prolific_reward_cents`` to the amount of cents you want to pay for a minute of work (Note that cents are in the currency of Prolific, see warning box). This value must reflect the ``wage_per_hour`` experiment variable.
 
 
 .. warning::
