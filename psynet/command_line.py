@@ -24,6 +24,7 @@ from dallinger.command_line.docker_ssh import (
 from dallinger.command_line.utils import verify_id
 from dallinger.config import get_config
 from dallinger.heroku.tools import HerokuApp
+from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
 from yaspin import yaspin
@@ -895,6 +896,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
 
         recruiter = exp.recruiter
         is_mturk = isinstance(recruiter, MTurkRecruiter)
+        is_prolific = isinstance(recruiter, ProlificRecruiter)
 
         if mode in ["sandbox", "deploy"]:
             if isinstance(exp.asset_storage, DebugStorage):
@@ -904,7 +906,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                     "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
                     "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
                 )
-            if config.get("recruiter") == "prolific":
+            if is_prolific:
                 check_prolific_payment(exp, config)
 
         if mode == "sandbox":
