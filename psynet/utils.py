@@ -500,7 +500,7 @@ def get_language():
     """
     if not config.ready:
         config.load()
-    return config.get("language")
+    return config.get("language", "en")
 
 
 def _render_with_translations(
