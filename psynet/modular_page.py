@@ -6,6 +6,7 @@ import tempfile
 from typing import Dict, List, Optional, Union
 
 from dominate import tags
+from dominate.dom_tag import dom_tag
 from dominate.util import raw
 from flask import Markup
 
@@ -1344,7 +1345,7 @@ class ModularPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: Union[str, Prompt],
+        prompt: Union[str, dom_tag, Prompt],
         control: Optional[Control] = None,
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,

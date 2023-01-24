@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy
 from dallinger.experiment import experiment_route
+from dominate import tags
 
 import psynet.experiment
 from psynet.consent import MainConsent
@@ -45,7 +46,13 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         MainConsent(),
-        InfoPage("Welcome to the experiment!", time_estimate=5),
+        InfoPage(
+            tags.div(
+                tags.h2("Welcome"),
+                tags.p("Welcome to the experiment!"),
+            ),
+            time_estimate=5,
+        ),
         Module(
             "introduction",
             # You can set arbitrary variables with the participant object
@@ -60,7 +67,11 @@ class Exp(psynet.experiment.Experiment):
             ),
             ModularPage(
                 "message",
-                "Write me a message!",
+                tags.p(
+                    "Write me a ",
+                    tags.span("message", style="color: red"),
+                    "!",
+                ),
                 control=TextControl(one_line=False),
                 time_estimate=5,
                 save_answer=True,
