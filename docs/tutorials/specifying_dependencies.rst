@@ -67,6 +67,6 @@ This is achieved by adding a custom text file to your experiment directory
 entitled ``prepare_docker_image.sh``. This should be a shell script that installs
 any additional software that you need onto your Docker image. You can assume that this
 command will be run on a Linux image. For an example, see the
-:ref:`Consonance and the carillon <consonance_carillon> experiment, which includes a
+:ref:`Consonance and the carillon <consonance_carillon>` experiment, which includes a
 custom ``prepare_docker_image.sh`` script for installing the ``libsndfile1`` utility.
 

@@ -37,7 +37,7 @@ class TestExp(object):
 
             # Page 1
             assert_text(
-                driver, "main-body", "Willkommen bei der Übersetzungsdemo! Nächste"
+                driver, "main-body", "Willkommen bei der Übersetzungsdemo! Weiter"
             )
             next_page(driver, "next-button")
 
@@ -45,7 +45,7 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "You have chosen to translate this experiment from en to de Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! Nächste",
+                "You have chosen to translate this experiment from en to de Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! Weiter",
             )
 
             select = Select(

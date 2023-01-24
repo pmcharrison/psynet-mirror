@@ -582,20 +582,19 @@ class Trial(SQLMixinDallinger, Info):
         This can be overridden to add additional randomized trial properties.
         For example:
 
-        ```
-        definition["bass_note"] = random.sample(10)
-        ```
+        ::
+
+            definition["bass_note"] = random.sample(10)
 
         It can also be used to add FastFunctionAssets:
 
-        ```
-        self.add_assets({
-            "audio": FastFunctionAsset(
-                function=synth_stimulus,
-                extension=".wav",
-            )
-        })
-        ```
+        ::
+
+            self.add_assets({
+                "audio": FastFunctionAsset(
+                    function=synth_stimulus,
+                    extension=".wav",
+                )
         """
         return definition
 

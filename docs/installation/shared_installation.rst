@@ -2,7 +2,7 @@ Step 1: Install Docker Desktop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can get Docker Desktop from the following link: https://www.docker.com/products/docker-desktop/
-Normally Docker Desktop will work out of the box on Linux and MacOS machines,
+Normally Docker Desktop will work out of the box on Linux and macOS machines,
 but there is lots of help available online if you get stuck.
 
 Step 2: Install PyCharm
@@ -33,5 +33,5 @@ Step 4: Try running an experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To check that everything is now running properly, you should try running an experiment.
-You can start by downloading one from the :ref:`Example experiments <example_experiments>` page.
+You can start by downloading one from the :ref:`Example experiments <example_experiments_introduction>` page.
 Follow the instructions in the repository to launch the experiment using Docker.

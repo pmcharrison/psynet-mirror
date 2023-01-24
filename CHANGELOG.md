@@ -1,6 +1,15 @@
 # CHANGELOG
 
-# [10.0.0] released on 2023-01-16
+#### Added
+- Added RUN.md instructions for running experiments in Docker.
+
+#### Changed
+- Store assets in `static/assets` rather than `static/local_storage`.
+
+#### Fixed
+- Make assets display properly in dashboard again.
+
+# [10.0.0rc0] Release candidate 2023-01-17
 
 #### Added
 - Marked translatable parts of the PsyNet UI, consent, and demographics (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).

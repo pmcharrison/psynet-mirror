@@ -1114,11 +1114,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         fewer valid trials.
 
     # balance_strategy
-    #     A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
-    #     If the list contains "across", then the balancing will take into account trials from other participants.
-    #     If it contains "within", then the balancing will take into account trials from the present participant.
-    #     If both are selected, then the balancing strategy will prioritize balancing within the current participant,
-    #     but will use counts from other participants as a tie breaker.
+        #   A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
+        #   If the list contains "across", then the balancing will take into account trials from other participants.
+        #   If it contains "within", then the balancing will take into account trials from the present participant.
+        #   If both are selected, then the balancing strategy will prioritize balancing within the current participant,
+        #   but will use counts from other participants as a tie breaker.
 
     check_performance_at_end
         If ``True``, the participant's performance

@@ -432,8 +432,8 @@ You should use the template provided by default at the bottom of the merge reque
     `format_answer` method.
 
   #### Updated
-  - Updated Dallinger to v7.8.0.
-  - Updated google-chrome and chromedriver to v96.x in .gitlab-ci.yml.
+  - Updated Dallinger to v9.3.0.
+  - Updated google-chrome and chromedriver to version 109.x in .gitlab-ci.yml.
 
 Step 9: Dealing with merge conflicts
 ++++++++++++++++++++++++++++++++++++

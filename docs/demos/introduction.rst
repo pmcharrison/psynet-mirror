@@ -41,7 +41,7 @@ Open the demo directory in PyCharm
 `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_),
 open the repository in PyCharm, and then look around for an object you want to learn more about
 (e.g. ``InfoPage``).
-Ctrl-Click (Windows, Linux) or Cmd-Click (MacOS) that object, and you should be taken to the
+Ctrl-Click (Windows, Linux) or Cmd-Click (macOS) that object, and you should be taken to the
 part of the PsyNet source code that defines the object. The source code should often
 contain some useful documentation, which you can complement by examining the source code directly.
 It's useful to be able to do this so that you can work effectively with undocumented or bleeding-edge

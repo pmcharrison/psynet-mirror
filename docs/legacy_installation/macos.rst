@@ -96,7 +96,7 @@ Activate virtual environment
 Disable AirPlay
 ~~~~~~~~~~~~~~~
 
-MacOS Monterey introduces 'AirPlay Receiver' functionality that clashes with the default ports used by Dallinger and PsyNet.
+macOS Monterey introduces 'AirPlay Receiver' functionality that clashes with the default ports used by Dallinger and PsyNet.
 You should disable this functionality before proceeding. To achieve this, go to System Preferences, then Sharing,
 and then untick the box labeled 'Airplay Receiver'.
 
@@ -149,7 +149,7 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
 Legacy instructions for Big Sur 11.3/M1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Originally when MacOS Big Sur came out, we experienced issues compiling some of PsyNet's dependencies.
+Originally when macOS Big Sur came out, we experienced issues compiling some of PsyNet's dependencies.
 We found that we could resolve these issues by moving to the virtual environment manager `conda`.
 This fix no longer seems to be necessary, but for posterity we give our original instructions below,
 in case they are still useful to some people. By default, though, you should skip this section.
@@ -191,7 +191,7 @@ Needed for running the Selenium tests with headless Chrome.
 .. code-block:: bash
 
    brew install wget
-   wget https://chromedriver.storage.googleapis.com/94.0.4606.41/chromedriver_mac64.zip --directory /tmp
+   wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_mac64.zip --directory /tmp
    sudo unzip /tmp/chromedriver_mac64.zip chromedriver -d /usr/local/bin/
 
 Install additional Python packages

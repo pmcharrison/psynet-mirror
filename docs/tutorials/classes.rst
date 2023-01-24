@@ -237,7 +237,7 @@ The latter is typically used when the participant fails some kind of performance
 and is made to finish the experiment early.
 
 Page Maker
-"""""""""
+""""""""""
 
 :class:`psynet.timeline.PageMaker` objects generate Pages on-demand.
 The resulting pages can be dynamic, incorporating content that depends on the current
@@ -265,7 +265,7 @@ is **idempotent**, i.e. calling it multiple times should have the same effect as
 it just once. It is a bad idea to incorporate random functions in this code.
 
 Code Block
-"""""""""
+""""""""""
 
 :class:`psynet.timeline.CodeBlock` objects define code that runs in between Pages.
 They are similar to Page Makers, but do not return pages. Like Page Makers,
@@ -281,7 +281,7 @@ Unlike Page Makers, they only ever run once, so they're a safe place to put rand
 
 
 Control Flow
-^^^^^^^^^^^
+^^^^^^^^^^^^
 
 Control flow functions determine how these elements are sequenced within the timeline.
 They are currently not implemented as classes, but rather as pure functions;
