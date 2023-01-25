@@ -31,11 +31,12 @@ def show_in_dashboard(cls):
     to show it as a selectable category in the dashboard.
     For example:
 
-    ``` py
-    @show_in_dashboard
-    class Bird(Base, SharedMixin):
-        __tablename__ = "bird"
-    ```
+    ::
+
+        @show_in_dashboard
+        class Bird(Base, SharedMixin):
+            __tablename__ = "bird"
+
     """
     setattr(dallinger.models, cls.__name__, cls)
     dashboard.BROWSEABLE_MODELS.append(cls.__name__)

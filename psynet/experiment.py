@@ -941,19 +941,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Examples
         --------
 
-        # This would be appropriate for experiments with no payment.
-        tags.div(
-            tags.p("Thank you for participating in this experiment!"),
-            tags.p("Your responses have been saved. You may close this window."),
-        )
+        This would be appropriate for experiments with no payment:
 
-        # This kind of structure could be used for passing participants to a particular
-        # URL in Prolific.
-        tags.div(
-            tags.p("Thank you for participating in this experiment!"),
-            tags.p("Please click the following URL to continue back to Prolific:"),
-            tags.a("Finish experiment", href="https://prolific.com"),
-        )
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Your responses have been saved. You may close this window."),
+            )
+
+        This kind of structure could be used for passing participants to a particular
+        URL in Prolific:
+
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Please click the following URL to continue back to Prolific:"),
+                tags.a("Finish experiment", href="https://prolific.com"),
+            )
         """
         return "default_exit_message"
 

@@ -294,6 +294,10 @@ def dump_db_to_disk(dir, scrub_pii: bool):
 
 
 class InvalidDefinitionError(ValueError):
+    """
+    InvalidDefinitionError class
+    """
+
     pass
 
 
@@ -310,12 +314,13 @@ class SQLMixinDallinger(SharedMixin):
     class names instead of having to be specified manually.
     For example:
 
-    ```py
-    from dallinger.models import Info
+    ::
 
-    class CustomInfo(Info)
-        pass
-    ```
+        from dallinger.models import Info
+
+        class CustomInfo(Info)
+            pass
+
     """
 
     polymorphic_identity = (
@@ -494,19 +499,20 @@ class SQLMixinDallinger(SharedMixin):
 
 class SQLMixin(SQLMixinDallinger):
     """
-    We apply this mixin when creating our own SQL-backed
-    classes from scratch. For example:
+    We apply this mixin when creating our own SQL-backed classes from scratch.
+    For example:
 
-    ```
-    from psynet.data import SQLBase, SQLMixin, register_table
+    ::
 
-    @register_table
-    class Bird(SQLBase, SQLMixin):
-        __tablename__ = "bird"
+        from psynet.data import SQLBase, SQLMixin, register_table
 
-    class Sparrow(Bird):
-        pass
-    ```
+        @register_table
+        class Bird(SQLBase, SQLMixin):
+            __tablename__ = "bird"
+
+        class Sparrow(Bird):
+            pass
+
     """
 
     @declared_attr
@@ -714,14 +720,13 @@ def get_sql_base_class(x):
 def register_table(cls):
     """
     This decorator should be applied whenever defining a new
-    SQLAlchemy table.
-    For example:
+    SQLAlchemy table. For example:
 
-    ``` py
-    @register_table
-    class Bird(SQLBase, SQLMixin):
-        __tablename__ = "bird"
-    ```
+    ::
+
+        @register_table
+        class Bird(SQLBase, SQLMixin):
+            __tablename__ = "bird"
     """
     _sql_psynet_base_classes[cls.__tablename__] = cls
     setattr(dallinger.models, cls.__name__, cls)

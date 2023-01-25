@@ -30,10 +30,11 @@ class ADSRTimbre(Timbre):
         Amplitude of the 'sustain' portion of the sound, in seconds,
         where '1' corresponds to the maximum amplitude of the sound
         (as experienced at the transition between the 'attack' and
-        'decay' portions.
+        'decay' portions).
 
     release:
         Duration of the 'release' portion of the sound, in seconds.
+
     """
 
     def __init__(
@@ -67,6 +68,7 @@ class AdditiveTimbre(ADSRTimbre):
 
     **kwargs:
         Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
+
     """
 
     def __init__(
@@ -304,15 +306,19 @@ class Chord(dict):
     timbre:
         The timbre with which to play the chord, specified as a string.
         There are three different configurations that one can use:
+
         - Leave both ``timbre`` arguments at their default values of ``"default"``. In this case the chord
           will be played with a standard harmonic complex tone.
+
         - Set the ``timbre`` argument in :class:`~psynet.js_synth.JSSynth` to a customized timbre,
-          for example ``InstrumentTimbre("piano"), while leaving the timbre argument in :class:`~psynet.js_synth.Chord`
+          for example ``InstrumentTimbre("piano")``, while leaving the timbre argument in :class:`~psynet.js_synth.Chord`
           to its default value. In this case the chord will be played with the customized timbre.
+
         - Set the ``timbre`` argument in :class:`~psynet.js_synth.JSSynth` to a dictionary of customized timbres,
           and select from this dictionary by specifying an appropriate key in the ``timbre`` argument
           of the :class:`~psynet.js_synth.Chord` object. This provides a way to move between multiple timbres
           in the same sequence.
+
         Applying the same logic, one may also pass a list of strings, where each element provides the timbre
         for a different note in the chord.
 
