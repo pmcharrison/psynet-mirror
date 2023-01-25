@@ -441,6 +441,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.add(network)
             db.session.commit()
 
+    @classmethod
+    def config_defaults(cls):
+        return {
+            **super().config_defaults(),
+            "base_payment": 0.0,
+            "clock_on": True,
+            "duration": 100000000.0,
+            "disable_when_duration_exceeded": False,
+        }
+
     @property
     def _default_variables(self):
         return {
