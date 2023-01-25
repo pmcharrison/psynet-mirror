@@ -854,7 +854,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
             raise click.UsageError(
                 "If using PsyNet with Docker, it is mandatory to include a Dockerfile in the experiment directory. "
                 "To add a generic Dockerfile to your experiment directory, run the following command:\n"
-                "psynet update-docker"
+                "psynet update-scripts"
             )
 
     if not local_:
