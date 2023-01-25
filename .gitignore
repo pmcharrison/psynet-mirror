@@ -147,5 +147,6 @@ psynet/nips/ganspace/.vscode/settings.json
 .Rproj.user
 demos/**/data
 demos/**/snapshots
+demos/**/static
 tmp/*
 typescript
