@@ -23,11 +23,7 @@ from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import (
-    nocache,
-    prepare_advertisement,
-    success_response,
-)
+from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
@@ -1183,6 +1179,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @nocache
     @staticmethod
     def advertisement():
+        from dallinger.experiment_server.experiment_server import prepare_advertisement
+
         is_redirect, kw = prepare_advertisement()
         if is_redirect:
             return kw["redirect"]
