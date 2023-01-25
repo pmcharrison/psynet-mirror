@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [9.4.3] Released on 2023-01-25
+
+#### Fixed
+- Fixed Unity integration with Prolific (author: Peter Harrison).
+
 # [9.4.2] Released on 2023-01-23
 
 #### Updated

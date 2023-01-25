@@ -11,11 +11,26 @@
         <script>
             {
                 // The dallinger.identity functionality is a bit flaky,
-                // so if a participant ID is available from the template,
+                // so if corresponding information is available from the template,
                 // we inject it to be on the safe side.
                 let injectedParticipantId = parseInt("{{ participant.id }}");
                 if (injectedParticipantId) {
                     dallinger.identity.participantId = injectedParticipantId;
+                }
+
+                let injectedAssignmentId = parseInt("{{ participant.assignment_id }}");
+                if (injectedAssignmentId) {
+                    dallinger.identity.assignmentId = injectedAssignmentId;
+                }
+
+                let injectedHitId = parseInt("{{ participant.hit_id }}");
+                if (injectedHitId) {
+                    dallinger.identity.hitId = injectedHitId;
+                }
+
+                let injectedWorkerId = parseInt("{{ participant.worker_id }}");
+                if (injectedWorkerId) {
+                    dallinger.identity.workerId = injectedWorkerId;
                 }
             }
         </script>
