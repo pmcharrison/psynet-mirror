@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-13/01/ 10:08:16\n"
+"POT-Creation-Date: 2023-25/01/ 09:44:20\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -148,7 +148,7 @@ msgstr "Welches ist Ihr höchster formaler Bildungsabschluss?"
 #, fuzzy
 msgctxt "formal-education"
 msgid "None"
-msgstr "Keine"
+msgstr "Keiner"
 
 #. {"msgid": ["H\u00f6here Schule", "Hohe Schule", "Oberschule", "Gymnasium"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:264
@@ -743,6 +743,217 @@ msgstr ""
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Experiment abbrechen"
+
+#. {"msgid": ["Bitte klicken Sie auf der Amazon-Seite oben auf die
+#. Schaltfl\u00e4che \"HIT akzeptieren\", um die Aufgabe zu beginnen.", "Bitte
+#. klicken Sie auf der Amazon-Website oben auf die Schaltfl\u00e4che \"HIT
+#. akzeptieren\", um die Aufgabe zu beginnen.", "Bitte klicken Sie auf der
+#. Amazon-Seite oben auf die Schaltfl\u00e4che \"HIT akzeptieren\", um mit der
+#. Aufgabe zu beginnen.", "Bitte klicken Sie auf der Amazon-Website oben auf
+#. die Schaltfl\u00e4che \"HIT akzeptieren\", um mit der Aufgabe zu
+#. beginnen."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:20
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"Bitte klicken Sie auf der Amazon-Seite oben auf die Schaltfläche \"HIT "
+"akzeptieren\", um die Aufgabe zu beginnen."
+
+#. {"msgid": ["Vielen Dank, dass Sie diese HIT akzeptieren.", "Vielen Dank,
+#. dass Sie diesen HIT akzeptieren.", "Vielen Dank, dass Sie dieses HIT
+#. akzeptieren.", "Danke, dass Sie diese HIT akzeptieren."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:25
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "Vielen Dank, dass Sie diese HIT akzeptieren."
+
+#. {"msgid": ["Wenn Sie auf den folgenden URL-Link klicken, werden Sie zu dem
+#. Experiment weitergeleitet, das vollst\u00e4ndige Anweisungen und eine
+#. Einverst\u00e4ndniserkl\u00e4rung enth\u00e4lt.", "Wenn Sie auf den
+#. folgenden URL-Link klicken, werden Sie zu dem Experiment weitergeleitet,
+#. einschlie\u00dflich der vollst\u00e4ndigen Anweisungen und einer
+#. Einverst\u00e4ndniserkl\u00e4rung.", "Wenn Sie auf den folgenden URL-Link
+#. klicken, werden Sie zum Experiment weitergeleitet, das vollst\u00e4ndige
+#. Anweisungen und eine Einverst\u00e4ndniserkl\u00e4rung enth\u00e4lt.",
+#. "Wenn Sie auf den folgenden URL-Link klicken, werden Sie zum Experiment
+#. weitergeleitet, einschlie\u00dflich der vollst\u00e4ndigen Anweisungen und
+#. einer Einverst\u00e4ndniserkl\u00e4rung."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:27
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"Wenn Sie auf den folgenden URL-Link klicken, werden Sie zu dem Experiment "
+"weitergeleitet, das vollständige Anweisungen und eine "
+"Einverständniserklärung enthält."
+
+#. {"msgid": ["Bitte deaktivieren Sie Popup-Blocker, bevor Sie fortfahren.",
+#. "Bitte deaktivieren Sie Pop-up-Blocker, bevor Sie fortfahren.", "Bitte
+#. deaktivieren Sie Pop-Up-Blocker, bevor Sie fortfahren.", "Bitte
+#. deaktivieren Sie die Popup-Blocker, bevor Sie fortfahren."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:30
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "Bitte deaktivieren Sie Popup-Blocker, bevor Sie fortfahren."
+
+#. {"msgid": ["Warnung", "Achtung", "Warnhinweis", "Hinweis"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:30
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "Warnung"
+
+#. {"msgid": ["Experiment beginnen", "Experiment starten", "Beginn des
+#. Experiments", "Experiment anfangen"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:33
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "Experiment beginnen"
+
+#. {"msgid": ["Aufruf zur Teilnahme", "Aufruf f\u00fcr Teilnehmer",
+#. "Aufforderung zur Teilnahme", "Aufruf an die Teilnehmer"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:4
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "Aufruf zur Teilnahme"
+
+#. {"msgid": ["Die Voraussetzungen f\u00fcr die Teilnahme sind wie folgt",
+#. "Die Voraussetzungen f\u00fcr eine Teilnahme sind wie folgt", "Die
+#. Anforderungen f\u00fcr die Teilnahme sind wie folgt", "Die Voraussetzungen
+#. f\u00fcr die Teilnahme sind folgende"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:9
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "Die Voraussetzungen für die Teilnahme sind wie folgt"
+
+#. {"msgid": ["Wir werden nun Ihren Browser auf Kompatibilit\u00e4t testen.",
+#. "Wir werden jetzt Ihren Browser auf Kompatibilit\u00e4t testen.", "Wir
+#. werden nun die Kompatibilit\u00e4t Ihres Browsers testen.", "Wir testen nun
+#. Ihren Browser auf Kompatibilit\u00e4t."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:11
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr "Wir werden nun Ihren Browser auf Kompatibilität testen."
+
+#. {"msgid": ["Wenn Ihr Browser nicht kompatibel ist, m\u00fcssen wir die
+#. Umfrage ablehnen.", "Falls Ihr Browser nicht kompatibel ist, m\u00fcssen
+#. wir die Umfrage ablehnen.", "Wenn Ihr Browser nicht kompatibel ist,
+#. m\u00fcssen wir die Umfrage zur\u00fcckweisen.", "Ist Ihr Browser nicht
+#. kompatibel, m\u00fcssen wir die Umfrage ablehnen."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:12
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr ""
+"Wenn Ihr Browser nicht kompatibel ist, müssen wir die Umfrage ablehnen."
+
+#. {"msgid": ["Sie werden auch eine oder mehrere Seiten mit Einwilligungen
+#. sehen und haben bis zu <strong>%(TERMINATION_TIME)s</strong> Zeit, diese zu
+#. lesen und zu akzeptieren/ablehnen.", "Sie sehen auch eine oder mehrere
+#. Seiten mit Einwilligungen und haben bis zu
+#. <strong>%(TERMINATION_TIME)s</strong> Zeit, diese zu lesen und zu
+#. akzeptieren/ablehnen.", "Sie sehen au\u00dferdem eine oder mehrere Seiten
+#. mit Einwilligungen und haben bis zu <strong>%(TERMINATION_TIME)s</strong>
+#. Zeit, diese zu lesen und zu akzeptieren/ablehnen.", "Au\u00dferdem sehen
+#. Sie eine oder mehrere Seiten mit Einwilligungen und haben bis zu
+#. <strong>%(TERMINATION_TIME)s</strong> Zeit, diese zu lesen und zu
+#. akzeptieren/ablehnen."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:16
+#, python-format, fuzzy
+msgid ""
+"You will also see one or more consent pages and have up to "
+"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+"Sie werden auch eine oder mehrere Seiten mit Einwilligungen sehen und haben "
+"bis zu <strong>%(TERMINATION_TIME)s</strong> Zeit, diese zu lesen und zu "
+"akzeptieren/ablehnen."
+
+#. {"msgid": ["Um fortzufahren, klicken Sie auf die Schaltfl\u00e4che unten.",
+#. "Um fortzufahren, klicken Sie bitte auf die Schaltfl\u00e4che unten.", "Um
+#. fortzufahren, klicken Sie auf die untenstehende Schaltfl\u00e4che.",
+#. "Klicken Sie auf die Schaltfl\u00e4che unten, um fortzufahren."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:22
+#, fuzzy
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Um fortzufahren, klicken Sie auf die Schaltfläche unten."
+
+#. {"msgid": ["Es scheint, dass Sie einen anderen Browser als Chrome
+#. verwenden", "Es scheint, dass Sie einen anderen Browser als Chrome
+#. benutzen", "Es scheint, als ob Sie einen anderen Browser als Chrome
+#. verwenden", "Sie scheinen einen anderen Browser als Chrome zu verwenden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:81
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "It seems like you're using a different browser than Chrome"
+msgstr "Es scheint, dass Sie einen anderen Browser als Chrome verwenden"
+
+#. {"msgid": ["Dieses Experiment unterst\u00fctzt nur Chrome.", "Dieses
+#. Experiment unterst\u00fctzt ausschlie\u00dflich Chrome.", "Dieses
+#. Experiment funktioniert nur mit Chrome.", "Das Experiment unterst\u00fctzt
+#. nur Chrome."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:82
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This experiment only supports Chrome."
+msgstr "Dieses Experiment unterstützt nur Chrome."
+
+#. {"msgid": ["Wenn Sie einen anderen Browser verwenden, \u00f6ffnen Sie bitte
+#. dieselbe Seite erneut in Chrome.", "Wenn Sie einen anderen Browser
+#. verwenden, \u00f6ffnen Sie bitte dieselbe Seite noch einmal in Chrome.",
+#. "Wenn Sie einen anderen Browser verwenden, \u00f6ffnen Sie dieselbe Seite
+#. bitte erneut in Chrome.", "Wenn Sie einen anderen Browser verwenden,
+#. \u00f6ffnen Sie dieselbe Seite erneut in Chrome."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:83
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"If you're using a different browser, please reopen the same page in Chrome."
+msgstr ""
+"Wenn Sie einen anderen Browser verwenden, öffnen Sie bitte dieselbe Seite "
+"erneut in Chrome."
+
+#. {"msgid": ["Es scheint, als ob Sie eine veraltete Version von Chrome
+#. verwenden", "Es scheint, dass Sie eine veraltete Version von Chrome
+#. verwenden", "Es scheint, dass Sie eine veraltete Version von Chrome
+#. benutzen", "Sie scheinen eine veraltete Version von Chrome zu verwenden"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:89
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "It seems like you're using an out-of-date version of Chrome "
+msgstr "Es scheint, als ob Sie eine veraltete Version von Chrome verwenden"
+
+#. {"msgid": ["Diese App erfordert mindestens:", "Diese App ben\u00f6tigt
+#. mindestens:", "Diese Anwendung erfordert mindestens:", "Diese Anwendung
+#. ben\u00f6tigt mindestens:"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:90
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This app requires at least: "
+msgstr "Diese App erfordert mindestens:"
+
+#. {"msgid": ["Bitte aktualisieren Sie Ihren Browser und \u00f6ffnen Sie diese
+#. Webseite erneut.", "Bitte aktualisieren Sie Ihren Browser und \u00f6ffnen
+#. Sie diese Seite erneut.", "Bitte aktualisieren Sie Ihren Browser und
+#. \u00f6ffnen Sie die Webseite erneut.", "Bitte aktualisieren Sie Ihren
+#. Browser und \u00f6ffnen Sie die Seite erneut."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:92
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please update your browser and open this web page again."
+msgstr ""
+"Bitte aktualisieren Sie Ihren Browser und öffnen Sie diese Webseite erneut."
 
 #. {"msgid": ["Warnung: Javascript funktioniert in Ihrem Browser nicht",
 #. "Warnung: Javascript ist in Ihrem Browser nicht aktiviert", "Warnung:
@@ -1885,6 +2096,8 @@ msgstr ""
 #. personenbezogenen Daten ohne negative Folgen zur\u00fcckzuziehen."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:33
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:33
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:33
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:33
 #, fuzzy
 msgctxt "consent-cap"
 msgid ""
@@ -1985,6 +2198,16 @@ msgstr ""
 #. "Wir ben\u00f6tigen Ihre Zustimmung, um fortzufahren", "Wir brauchen Ihre
 #. Zustimmung, um fortzufahren", "Wir ben\u00f6tigen Ihre Einwilligung, um
 #. fortzufahren"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:14
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:14
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:14
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:14
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:14
@@ -2912,6 +3135,8 @@ msgstr ""
 #. dieses Projekts, Nori Jacoby, in Verbindung zu setzen:"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
 msgctxt "consent-overview"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
@@ -3663,6 +3888,8 @@ msgstr "Wir schätzen Ihren Beitrag zur Wissenschaft sehr!"
 #. zu machen."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:20
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:20
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:20
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:20
 #, fuzzy
 msgctxt "consent"
 msgid ""
@@ -3682,6 +3909,8 @@ msgstr ""
 #. Beispiel gebeten werden, Ihr Fingertippen als Reaktion auf einen Ton oder
 #. ein Video aufzuzeichnen oder sich selbst beim Sprechen oder Singen zu
 #. filmen."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:21
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:21
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:21
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:21
 #, fuzzy
@@ -3888,6 +4117,8 @@ msgstr ""
 #. \u00d6ffentlichkeit zur Verf\u00fcgung stellen wollen, einschr\u00e4nken.",
 #. "Daher sollten Sie die Informationen, die Sie der \u00d6ffentlichkeit zur
 #. Verf\u00fcgung stellen, einschr\u00e4nken."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:118
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:118
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:118
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:118
 #, fuzzy
@@ -5833,7 +6064,7 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/macros/control.html:41
 #, fuzzy
 msgid "Next"
-msgstr "Nächste"
+msgstr "Weiter"
 
 #. {"msgid": ["Zur\u00fccksetzen", "zur\u00fccksetzen", "Reset",
 #. "R\u00fccksetzen"]}
@@ -6120,8 +6351,22 @@ msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Bitte geben Sie auch die folgenden Informationen an:"
 
+#. {"msgid": ["Fehler-Typ", "Fehlerart", "Fehlertyp", "Fehler Typ"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:27
+#, fuzzy
+msgid "Error type"
+msgstr "Fehler-Typ"
+
+#. {"msgid": ["ID des Arbeitnehmers", "ID des Arbeiters", "Arbeiter-ID",
+#. "Arbeiter ID"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:30
+#, fuzzy
+msgid "Worker ID"
+msgstr "ID des Arbeitnehmers"
+
 #. {"msgid": ["Experiment abbrechen", "Versuch abbrechen", "Abbruch des
 #. Experiments"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:34
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:34
 #, fuzzy
 msgid "Abort Experiment"
@@ -6134,6 +6379,7 @@ msgstr "Experiment abbrechen"
 #. Fehlers entsch\u00e4digt zu werden.", "Klicken Sie auf die obige
 #. Schaltfl\u00e4che, um im Falle eines Fehlers eine Entsch\u00e4digung zu
 #. bekommen."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:37
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:37
 #, fuzzy
 msgctxt "mturk_error"
@@ -8099,6 +8345,8 @@ msgstr "Tokelau"
 #. {"msgid": ["Tonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
 #, fuzzy
 msgctxt "country_name"
 msgid "Tonga"
@@ -8936,6 +9184,8 @@ msgstr "Kurdisch"
 #. {"msgid": ["Laotisch", "Laos", "Lao", "Laote"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
 #, fuzzy
 msgctxt "language_name"
 msgid "Lao"
@@ -9070,6 +9320,8 @@ msgid "Mongolian"
 msgstr "Mongolisch"
 
 #. {"msgid": ["Nauru", "Nauruer"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
 #, fuzzy
