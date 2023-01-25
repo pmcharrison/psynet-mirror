@@ -1,7 +1,7 @@
 ==========
-Experiment
+AudioGibbs
 ==========
 
-.. autoclass:: psynet.experiment.Experiment
+.. automodule:: psynet.trial.audio_gibbs
     :members:
     :show-inheritance:
