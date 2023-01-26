@@ -443,6 +443,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def config_defaults(cls):
+        """
+        Override this classmethod to register new default values for config variables.
+        Remember to call super!
+        """
         return {
             **super().config_defaults(),
             "base_payment": 0.0,
