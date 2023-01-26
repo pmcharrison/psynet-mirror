@@ -78,6 +78,13 @@ but see the sidebar for a full list.
    api/index
 
 .. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: DEPLOYING
+
+   deploy/aws_server_setup
+
+.. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Contributing to PsyNet
