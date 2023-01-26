@@ -453,6 +453,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
+            "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
         }
 
     @property
