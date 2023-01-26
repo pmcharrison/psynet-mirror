@@ -5,10 +5,29 @@ API Documentation
    :maxdepth: 1
 
    overview
+   asset
+   audio_mixer
+   bot
+   command_line
+   consents
+   dashboard
+   data
    demography
-   Experiment
-   Participant
+   error
+   experiment
+   field
+   graphics
+   js_synth
+   media
+   modular_page
+   page
+   participant
    prescreen
+   process
+   recruiters
+   redis
+   serialize
    timeline
-   trial
-   VarStore
+   trial/index
+   utils
+   version

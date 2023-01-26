@@ -441,6 +441,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.add(network)
             db.session.commit()
 
+    @classmethod
+    def config_defaults(cls):
+        """
+        Override this classmethod to register new default values for config variables.
+        Remember to call super!
+        """
+        return {
+            **super().config_defaults(),
+            "base_payment": 0.0,
+            "clock_on": True,
+            "duration": 100000000.0,
+            "disable_when_duration_exceeded": False,
+        }
+
     @property
     def _default_variables(self):
         return {
@@ -941,19 +955,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Examples
         --------
 
-        # This would be appropriate for experiments with no payment.
-        tags.div(
-            tags.p("Thank you for participating in this experiment!"),
-            tags.p("Your responses have been saved. You may close this window."),
-        )
+        This would be appropriate for experiments with no payment:
 
-        # This kind of structure could be used for passing participants to a particular
-        # URL in Prolific.
-        tags.div(
-            tags.p("Thank you for participating in this experiment!"),
-            tags.p("Please click the following URL to continue back to Prolific:"),
-            tags.a("Finish experiment", href="https://prolific.com"),
-        )
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Your responses have been saved. You may close this window."),
+            )
+
+        This kind of structure could be used for passing participants to a particular
+        URL in Prolific:
+
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Please click the following URL to continue back to Prolific:"),
+                tags.a("Finish experiment", href="https://prolific.com"),
+            )
         """
         return "default_exit_message"
 

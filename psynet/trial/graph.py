@@ -17,7 +17,7 @@ class GraphChainNetwork(ChainNetwork):
     a vertex within a graph.
 
     Parameters (for now stating the new ones)
-    ----------
+    -----------------------------------------
 
     vertex_id
         The id of the vertex that the network is representing within the graph.
@@ -99,7 +99,7 @@ class GraphChainNode(ChainNode):
     A Node class for graph chains.
 
     Parameters (for now stating the new ones)
-    ----------
+    -----------------------------------------
 
     vertex_id
         The id of the vertex that the network is representing within the graph.
