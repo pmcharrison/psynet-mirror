@@ -1,56 +1,51 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-25/01/ 09:44:20\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-01-25 20:12+0100\n"
 "Last-Translator: DeepL API\n"
-"Language-Team: DeepL\n"
+"Language-Team: Francesca Lanzarini + DeepL\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #. {"msgid": ["Come si identifica?", "Come si riconosce?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:138
-#, fuzzy
 msgctxt "gender"
 msgid "How do you identify yourself?"
 msgstr "Come si identifica?"
 
 #. {"msgid": ["Donna"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:146
-#, fuzzy
 msgctxt "gender"
 msgid "Female"
-msgstr "Donna"
+msgstr "Femmina"
 
 #. {"msgid": ["Maschile", "maschile"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:147
-#, fuzzy
 msgctxt "gender"
 msgid "Male"
-msgstr "Maschile"
+msgstr "Maschio"
 
 #. {"msgid": ["Non binario", "Non-binario"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:148
-#, fuzzy
 msgctxt "gender"
 msgid "Non-binary"
 msgstr "Non binario"
 
 #. {"msgid": ["Non specificato"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:149
-#, fuzzy
 msgctxt "gender"
 msgid "Not specified"
 msgstr "Non specificato"
 
 #. {"msgid": ["Preferisco non rispondere"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:150
-#, fuzzy
 msgctxt "gender"
 msgid "I prefer not to answer"
 msgstr "Preferisco non rispondere"
@@ -58,14 +53,12 @@ msgstr "Preferisco non rispondere"
 #. {"msgid": ["Specificare se stesso", "Specificare se stessi", "Specifica te
 #. stesso"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:154
-#, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
 msgstr "Specificare se stesso"
 
 #. {"msgid": ["Qual \u00e8 la sua et\u00e0?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:170
-#, fuzzy
 msgctxt "age"
 msgid "What is your age?"
 msgstr "Qual è la sua età?"
@@ -78,7 +71,6 @@ msgstr "Qual è la sua età?"
 #. come un numero intero compreso tra 0 e 120! La sua risposta \u00e8:
 #. '{}'."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:184
-#, fuzzy
 msgctxt "age"
 msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
@@ -89,7 +81,6 @@ msgstr ""
 
 #. {"msgid": ["Altro Paese", "Altro paese", "Un altro Paese", "Altri Paesi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:206
-#, fuzzy
 msgctxt "country-select"
 msgid "Other country"
 msgstr "Altro Paese"
@@ -97,7 +88,6 @@ msgstr "Altro Paese"
 #. {"msgid": ["Selezionare un Paese", "Selezioni un Paese", "Selezionare un
 #. paese", "Selezioni un paese"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:207
-#, fuzzy
 msgctxt "country-select"
 msgid "Select a country"
 msgstr "Selezionare un Paese"
@@ -105,7 +95,6 @@ msgstr "Selezionare un Paese"
 #. {"msgid": ["Deve selezionare un Paese!", "Deve selezionare un paese!",
 #. "\u00c8 necessario selezionare un Paese!", "Deve scegliere un Paese!"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:227
-#, fuzzy
 msgctxt "country-select"
 msgid "You need to select a country!"
 msgstr "Deve selezionare un Paese!"
@@ -113,7 +102,6 @@ msgstr "Deve selezionare un Paese!"
 #. {"msgid": ["Da quale Paese proviene?", "Da che Paese proviene?", "Da quale
 #. paese proviene?", "Di quale Paese \u00e8 originario?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:242
-#, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
 msgstr "Da quale Paese proviene?"
@@ -121,7 +109,6 @@ msgstr "Da quale Paese proviene?"
 #. {"msgid": ["Qual \u00e8 il suo attuale Paese di residenza?", "Qual \u00e8
 #. il suo attuale paese di residenza?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:255
-#, fuzzy
 msgctxt "country-select"
 msgid "What is your current country of residence?"
 msgstr "Qual è il suo attuale Paese di residenza?"
@@ -131,14 +118,12 @@ msgstr "Qual è il suo attuale Paese di residenza?"
 #. alto?", "Qual \u00e8 il suo livello pi\u00f9 alto di istruzione formale?",
 #. "Qual \u00e8 il suo livello di istruzione formale pi\u00f9 elevato?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:267
-#, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "Qual è il suo più alto livello di istruzione formale?"
+msgstr "Qual è il suo più alto livello di istruzione?"
 
 #. {"msgid": ["Nessuna", "Nessuno"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:280
-#, fuzzy
 msgctxt "formal-education"
 msgid "None"
 msgstr "Nessuna"
@@ -146,33 +131,29 @@ msgstr "Nessuna"
 #. {"msgid": ["Scuola superiore", "Scuola media superiore", "scuola
 #. superiore"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:281
-#, fuzzy
 msgctxt "formal-education"
 msgid "High school"
 msgstr "Scuola superiore"
 
 #. {"msgid": ["Universit\u00e0"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:282
-#, fuzzy
 msgctxt "formal-education"
 msgid "College"
-msgstr "Università"
+msgstr "Laurea"
 
 #. {"msgid": ["Scuola di specializzazione", "Scuola superiore", "Laurea"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:283
-#, fuzzy
 msgctxt "formal-education"
 msgid "Graduate School"
-msgstr "Scuola di specializzazione"
+msgstr "Scuola di specializzazione/Master/Laurea magistrale"
 
 #. {"msgid": ["Diploma post-laurea o superiore", "Laurea post-laurea o
 #. superiore", "Laurea specialistica o superiore", "Laurea o diploma
 #. superiore"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:284
-#, fuzzy
 msgctxt "formal-education"
 msgid "Postgraduate degree or higher"
-msgstr "Diploma post-laurea o superiore"
+msgstr "Dottorato di ricerca o superiore"
 
 #. {"msgid": ["Qual \u00e8 la sua lingua madre, ossia la lingua che ha parlato
 #. fin dalla prima infanzia?)", "Qual \u00e8 la sua lingua madre, cio\u00e8 la
@@ -181,18 +162,16 @@ msgstr "Diploma post-laurea o superiore"
 #. infanzia?)", "Qual \u00e8 la sua lingua madre, cio\u00e8 la lingua che
 #. \u00e8 cresciuto parlando fin dalla prima infanzia?)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:306
-#, fuzzy
 msgctxt "language-select"
 msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood)?"
 msgstr ""
 "Qual è la sua lingua madre, ossia la lingua che ha parlato fin dalla prima "
-"infanzia?)"
+"infanzia?"
 
 #. {"msgid": ["Selezionare una lingua", "Scegliere una lingua"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:315
-#, fuzzy
 msgctxt "language-select"
 msgid "Select a language"
 msgstr "Selezionare una lingua"
@@ -200,14 +179,12 @@ msgstr "Selezionare una lingua"
 #. {"msgid": ["Deve selezionare una lingua!", "\u00c8 necessario selezionare
 #. una lingua!", "Deve scegliere una lingua!"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:326
-#, fuzzy
 msgctxt "language-select"
 msgid "You need to select a language!"
 msgstr "Deve selezionare una lingua!"
 
 #. {"msgid": ["Parla pi\u00f9 di una lingua?", "Parla pi\u00f9 lingue?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:339
-#, fuzzy
 msgctxt "language-select"
 msgid "Do you speak more than one language?"
 msgstr "Parla più di una lingua?"
@@ -217,7 +194,6 @@ msgstr "Parla più di una lingua?"
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:465
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:553
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:576
-#, fuzzy
 msgid "No"
 msgstr "No"
 
@@ -227,7 +203,6 @@ msgstr "No"
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:465
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:553
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:576
-#, fuzzy
 msgid "Yes"
 msgstr "Sì"
 
@@ -238,336 +213,26 @@ msgstr "Sì"
 #. lingua, ...)", "Elenchi le lingue che parla in ordine di competenza (prima
 #. lingua, seconda lingua,...)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:364
-#, fuzzy
 msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
 msgstr ""
-"Elenchi le lingue che parla in ordine di competenza (prima lingua, seconda "
-"lingua, ...)."
+"Elenchi le lingue che parla in ordine di competenza (prima lingua al primo "
+"posto, seconda lingua al secondo posto, ...)."
 
 #. {"msgid": ["La preghiamo di elencare almeno una lingua!", "La prego di
 #. elencare almeno una lingua!", "Per favore, elenchi almeno una lingua!", "La
 #. preghiamo di indicare almeno una lingua!"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:379
-#, fuzzy
 msgctxt "language-select"
 msgid "Please list at least one language!"
 msgstr "La preghiamo di elencare almeno una lingua!"
-
-#. {"msgid": ["Quanti anni di formazione formale su uno strumento musicale
-#. (inclusa la voce) ha avuto nel corso della sua vita?", "Quanti anni di
-#. formazione formale su uno strumento musicale (compresa la voce) ha avuto
-#. nel corso della sua vita?", "Quanti anni di formazione formale su uno
-#. strumento musicale (inclusa la voce) ha avuto durante la sua vita?",
-#. "Quanti anni di formazione formale su uno strumento musicale (compresa la
-#. voce) ha avuto durante la sua vita?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:396
-#, fuzzy
-msgctxt "music"
-msgid ""
-"How many years of formal training on a musical instrument (including voice) "
-"have you had during your lifetime?"
-msgstr ""
-"Quanti anni di formazione formale su uno strumento musicale (inclusa la "
-"voce) ha avuto nel corso della sua vita?"
-
-#. {"msgid": ["In media, quante ore ascolta musica al giorno?", "In media,
-#. quante ore ascolta quotidianamente la musica?", "In media, quante ore
-#. ascolta la musica ogni giorno?", "In media, quante ore ascolta la musica
-#. quotidianamente?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:417
-#, fuzzy
-msgctxt "music"
-msgid "On average, how many hours do you listen to music daily?"
-msgstr "In media, quante ore ascolta musica al giorno?"
-
-#. {"msgid": ["Guadagna soldi con la musica?", "Guadagna denaro con la
-#. musica?", "Guadagna con la musica?", "Guadagna soldi suonando?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:436
-#, fuzzy
-msgctxt "music"
-msgid "Do you make money from playing music?"
-msgstr "Guadagna soldi con la musica?"
-
-#. {"msgid": ["Spesso", "Frequentemente"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:441
-#, fuzzy
-msgctxt "music"
-msgid "Frequently"
-msgstr "Spesso"
-
-#. {"msgid": ["Mai", "mai", "Non \u00e8 mai successo", "Non \u00e8 mai stato
-#. cos\u00ec"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:441
-#, fuzzy
-msgctxt "music"
-msgid "Never"
-msgstr "Mai"
-
-#. {"msgid": ["A volte", "Qualche volta", "Talvolta"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:441
-#, fuzzy
-msgctxt "music"
-msgid "Sometimes"
-msgstr "A volte"
-
-#. {"msgid": ["Ha una perdita dell'udito o altri problemi di udito?", "Ha una
-#. perdita di udito o altri problemi di udito?", "Soffre di perdita dell'udito
-#. o di altri problemi uditivi?", "Ha una perdita dell'udito o altri problemi
-#. uditivi?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:459
-#, fuzzy
-msgctxt "music"
-msgid "Do you have hearing loss or any other hearing issues?"
-msgstr "Ha una perdita dell'udito o altri problemi di udito?"
-
-#. {"msgid": ["Balla a livello sociale o professionale?", "Danza a livello
-#. sociale o professionale?", "Balla in modo sociale o professionale?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:482
-#, fuzzy
-msgctxt "dance"
-msgid "Do you dance socially or professionally?"
-msgstr "Balla a livello sociale o professionale?"
-
-#. {"msgid": ["Socialmente", "A livello sociale", "In modo sociale"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:488
-#, fuzzy
-msgctxt "dance"
-msgid "Socially"
-msgstr "Socialmente"
-
-#. {"msgid": ["Professionalmente", "A livello professionale",
-#. "professionalmente", "In modo professionale"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:489
-#, fuzzy
-msgctxt "dance"
-msgid "Professionally"
-msgstr "Professionalmente"
-
-#. {"msgid": ["Non ballo mai"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:490
-#, fuzzy
-msgctxt "dance"
-msgid "I never dance"
-msgstr "Non ballo mai"
-
-#. {"msgid": ["Quando \u00e8 stata l'ultima volta che ha ballato? (scelga la
-#. risposta pi\u00f9 precisa):", "Quando ha ballato per l'ultima volta?
-#. (scelga la risposta pi\u00f9 precisa):", "Quando ha ballato per l'ultima
-#. volta? (scelga la risposta pi\u00f9 accurata):", "Quand'\u00e8 stata
-#. l'ultima volta che ha ballato? (scelga la risposta pi\u00f9 precisa):"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:509
-#, fuzzy
-msgctxt "dance"
-msgid "When was the last time you danced? (choose the most accurate answer):"
-msgstr ""
-"Quando è stata l'ultima volta che ha ballato? (scelga la risposta più "
-"precisa):"
-
-#. {"msgid": ["Questa settimana"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:523
-#, fuzzy
-msgctxt "dance"
-msgid "This week"
-msgstr "Questa settimana"
-
-#. {"msgid": ["Questo mese"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:524
-#, fuzzy
-msgctxt "dance"
-msgid "This month"
-msgstr "Questo mese"
-
-#. {"msgid": ["Quest'anno", "Questo anno"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:525
-#, fuzzy
-msgctxt "dance"
-msgid "This year"
-msgstr "Quest'anno"
-
-#. {"msgid": ["Alcuni anni fa", "Qualche anno fa"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:526
-#, fuzzy
-msgctxt "dance"
-msgid "Some years ago"
-msgstr "Alcuni anni fa"
-
-#. {"msgid": ["Molti anni fa"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:527
-#, fuzzy
-msgctxt "dance"
-msgid "Many years ago"
-msgstr "Molti anni fa"
-
-#. {"msgid": ["Non ho mai ballato", "non ho mai ballato"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:528
-#, fuzzy
-msgctxt "dance"
-msgid "I never danced"
-msgstr "Non ho mai ballato"
-
-#. {"msgid": ["Ha fatto terapia logopedica da bambino?", "Ha seguito una
-#. terapia logopedica da bambino?", "Ha fatto terapia linguistica da
-#. bambino?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:547
-#, fuzzy
-msgctxt "speech-disorder"
-msgid "Did you get speech-language therapy as a child?"
-msgstr "Ha fatto terapia logopedica da bambino?"
-
-#. {"msgid": ["Non lo so", "Non so", "Non lo so...", "Non lo so."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:553
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:576
-#, fuzzy
-msgid "I don’t know"
-msgstr "Non lo so"
-
-#. {"msgid": ["Le \u00e8 mai stata diagnosticata la dislessia?", "Le \u00e8
-#. mai stata diagnosticata una dislessia?", "Le \u00e8 stata mai diagnosticata
-#. la dislessia?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:570
-#, fuzzy
-msgctxt "speech-disorder"
-msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Le è mai stata diagnosticata la dislessia?"
-
-#. {"msgid": ["Qual \u00e8 il suo reddito familiare totale all'anno?", "Qual
-#. \u00e8 il suo reddito familiare complessivo all'anno?", "Qual \u00e8 il suo
-#. reddito familiare totale annuo?", "Qual \u00e8 il reddito familiare totale
-#. annuo?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:594
-#, fuzzy
-msgctxt "income"
-msgid "What is your total household income per year?"
-msgstr "Qual è il suo reddito familiare totale all'anno?"
-
-#. {"msgid": ["Meno di 10.000 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:613
-#, fuzzy
-msgctxt "income"
-msgid "Less than 10,000 {}"
-msgstr "Meno di 10.000 {}"
-
-#. {"msgid": ["Da 10.000 a 19.999 {}", "da 10.000 a 19.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:614
-#, fuzzy
-msgctxt "income"
-msgid "10,000 to 19,999 {}"
-msgstr "Da 10.000 a 19.999 {}"
-
-#. {"msgid": ["Da 20.000 a 29.999 {}", "da 20.000 a 29.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:615
-#, fuzzy
-msgctxt "income"
-msgid "20,000 to 29,999 {}"
-msgstr "Da 20.000 a 29.999 {}"
-
-#. {"msgid": ["Da 30.000 a 39.999 {}", "da 30.000 a 39.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:616
-#, fuzzy
-msgctxt "income"
-msgid "30,000 to 39,999 {}"
-msgstr "Da 30.000 a 39.999 {}"
-
-#. {"msgid": ["Da 40.000 a 49.999 {}", "da 40.000 a 49.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:617
-#, fuzzy
-msgctxt "income"
-msgid "40,000 to 49,999 {}"
-msgstr "Da 40.000 a 49.999 {}"
-
-#. {"msgid": ["Da 50.000 a 59.999 {}", "da 50.000 a 59.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:618
-#, fuzzy
-msgctxt "income"
-msgid "50,000 to 59,999 {}"
-msgstr "Da 50.000 a 59.999 {}"
-
-#. {"msgid": ["Da 60.000 a 69.999 {}", "da 60.000 a 69.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:619
-#, fuzzy
-msgctxt "income"
-msgid "60,000 to 69,999 {}"
-msgstr "Da 60.000 a 69.999 {}"
-
-#. {"msgid": ["Da 70.000 a 79.999 {}", "da 70.000 a 79.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:620
-#, fuzzy
-msgctxt "income"
-msgid "70,000 to 79,999 {}"
-msgstr "Da 70.000 a 79.999 {}"
-
-#. {"msgid": ["Da 80.000 a 89.999 {}", "da 80.000 a 89.999 {}", "80.000 a
-#. 89.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:621
-#, fuzzy
-msgctxt "income"
-msgid "80,000 to 89,999 {}"
-msgstr "Da 80.000 a 89.999 {}"
-
-#. {"msgid": ["Da 90.000 a 99.999 {}", "da 90.000 a 99.999 {}", "90.000 a
-#. 99.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:622
-#, fuzzy
-msgctxt "income"
-msgid "90,000 to 99,999 {}"
-msgstr "Da 90.000 a 99.999 {}"
-
-#. {"msgid": ["Da 100.000 a 149.999 {}", "da 100.000 a 149.999 {}"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:623
-#, fuzzy
-msgctxt "income"
-msgid "100,000 to 149,999 {}"
-msgstr "Da 100.000 a 149.999 {}"
-
-#. {"msgid": ["150.000 {} o pi\u00f9", "150.000 {} e oltre"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:624
-#, fuzzy
-msgctxt "income"
-msgid "150,000 {} or more"
-msgstr "150.000 {} o più"
-
-#. {"msgid": ["Le \u00e8 piaciuto l'esperimento?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:642
-#, fuzzy
-msgctxt "experiment-feedback"
-msgid "Did you like the experiment?"
-msgstr "Le è piaciuto l'esperimento?"
-
-#. {"msgid": ["Ha trovato l'esperimento difficile?", "Ha trovato difficile
-#. l'esperimento?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:663
-#, fuzzy
-msgctxt "experiment-feedback"
-msgid "Did you find the experiment difficult?"
-msgstr "Ha trovato l'esperimento difficile?"
-
-#. {"msgid": ["Ha riscontrato problemi tecnici durante l'esperimento? In caso
-#. affermativo, la preghiamo di fornire qualche parola che descriva il
-#. problema.", "Ha riscontrato qualche problema tecnico durante l'esperimento?
-#. In caso affermativo, la preghiamo di fornire qualche parola che descriva il
-#. problema.", "Ha riscontrato problemi tecnici durante l'esperimento? In caso
-#. affermativo, la preghiamo di fornire alcune parole che descrivano il
-#. problema.", "Ha riscontrato qualche problema tecnico durante l'esperimento?
-#. In caso affermativo, la preghiamo di fornire alcune parole che descrivano
-#. il problema."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:685
-#, fuzzy
-msgctxt "experiment-feedback"
-msgid ""
-"Did you encounter any technical problems during the experiment? If so, "
-"please provide a few words describing the problem."
-msgstr ""
-"Ha riscontrato problemi tecnici durante l'esperimento? In caso affermativo, "
-"la preghiamo di fornire qualche parola che descriva il problema."
 
 #. {"msgid": ["L'interruzione non \u00e8 possibile.", "Non \u00e8 possibile
 #. interrompere l'esperimento.", "L'interruzione dell'esperimento non \u00e8
 #. possibile.", "Interruzione non possibile."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:34
-#, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
 msgstr "L'interruzione non è possibile."
@@ -580,7 +245,6 @@ msgstr "L'interruzione non è possibile."
 #. "L'interruzione dell'esperimento non \u00e8 possibile, in quanto lo
 #. sperimentatore non lo consente in questo momento!"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:37
-#, fuzzy
 msgctxt "abort_possible"
 msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
@@ -594,9 +258,12 @@ msgstr ""
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
+"Deve accumulare <strong>almeno "
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> di bonus per poter "
+"esser compensato."
 
 #. {"msgid": ["Veda di seguito le informazioni sul suo bonus attualmente
 #. accumulato.", "Veda qui di seguito le informazioni sul suo bonus
@@ -604,7 +271,6 @@ msgstr ""
 #. attualmente accumulato.", "Veda di seguito le informazioni relative al suo
 #. bonus attualmente accumulato."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:40
-#, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated bonus."
 msgstr "Veda di seguito le informazioni sul suo bonus attualmente accumulato."
@@ -614,22 +280,19 @@ msgstr "Veda di seguito le informazioni sul suo bonus attualmente accumulato."
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:44
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:43
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:29
-#, fuzzy
 msgid "Assignment ID"
-msgstr "ID incarico"
+msgstr "Assignment ID"
 
 #. {"msgid": ["ID HIT"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:45
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:44
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:28
-#, fuzzy
 msgid "HIT ID"
-msgstr "ID HIT"
+msgstr "HIT ID"
 
 #. {"msgid": ["Bonus accumulato", "Bonus accumulati"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:46
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:45
-#, fuzzy
 msgid "Accumulated bonus"
 msgstr "Bonus accumulato"
 
@@ -637,14 +300,12 @@ msgstr "Bonus accumulato"
 #. finestra"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:50
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:49
-#, fuzzy
 msgid "Close window"
-msgstr "Chiudere la finestra"
+msgstr "Chiudi finestra"
 
 #. {"msgid": ["\u00c8 sicuro di voler interrompere l'esperimento?", "\u00c8
 #. sicuro di voler annullare l'esperimento?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:34
-#, fuzzy
 msgctxt "abort_possible"
 msgid "Are you sure you want to abort the experiment?"
 msgstr "È sicuro di voler interrompere l'esperimento?"
@@ -660,7 +321,6 @@ msgstr "È sicuro di voler interrompere l'esperimento?"
 #. in anticipo e le verr\u00e0 automaticamente corrisposto il compenso
 #. guadagnato finora."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:37
-#, fuzzy
 msgctxt "abort_possible"
 msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
@@ -676,7 +336,6 @@ msgstr ""
 #. "La preghiamo di contattarci solo in caso di problemi nel ricevere il
 #. pagamento."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:38
-#, fuzzy
 msgctxt "abort_possible"
 msgid "Please only contact us if you have trouble receiving your payment."
 msgstr "Ci contatti solo se ha problemi a ricevere il pagamento."
@@ -687,7 +346,6 @@ msgstr "Ci contatti solo se ha problemi a ricevere il pagamento."
 #. informazioni riportate di seguito.", "Per i dettagli sul suo compenso,
 #. consulti le informazioni qui sotto."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:39
-#, fuzzy
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Veda le informazioni qui sotto per i dettagli del suo compenso."
@@ -695,9 +353,8 @@ msgstr "Veda le informazioni qui sotto per i dettagli del suo compenso."
 #. {"msgid": ["Interrompere l'esperimento", "Annullare l'esperimento",
 #. "Interrompi l'esperimento", "Interruzione dell'esperimento"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html:52
-#, fuzzy
 msgid "Abort experiment"
-msgstr "Interrompere l'esperimento"
+msgstr "Interrompi l'esperimento"
 
 #. {"msgid": ["Clicchi sul pulsante \"Accetta HIT\" sul sito Amazon qui sopra
 #. per iniziare il compito.", "Clicchi sul pulsante \"Accetta HIT\" sul sito
@@ -706,19 +363,17 @@ msgstr "Interrompere l'esperimento"
 #. "Clicchi sul pulsante \"Accetta HIT\" sul sito di Amazon qui sopra per
 #. iniziare l'attivit\u00e0."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:20
-#, fuzzy
 msgctxt "ad"
 msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
-" task."
+"Please click the \"Accept HIT\" button on the Amazon site above to begin "
+"the task."
 msgstr ""
 "Clicchi sul pulsante \"Accetta HIT\" sul sito Amazon qui sopra per iniziare "
-"il compito."
+"l'attività."
 
 #. {"msgid": ["Grazie per aver accettato questo HIT.", "Grazie per aver
 #. accettato questo esperimento.", "Grazie per aver accettato questa HIT."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:25
-#, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
 msgstr "Grazie per aver accettato questo HIT."
@@ -733,14 +388,13 @@ msgstr "Grazie per aver accettato questo HIT."
 #. all'esperimento, che comprende istruzioni complete e un accordo di consenso
 #. informato."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:27
-#, fuzzy
 msgctxt "ad"
 msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Cliccando sul seguente link URL, verrà portato all'esperimento, che include "
-"istruzioni complete e un accordo di consenso informato."
+"Cliccando sul seguente link URL, verrà trasferito all'esperimento, che "
+"include istruzioni complete e un accordo di consenso informato."
 
 #. {"msgid": ["La preghiamo di disattivare i blocchi pop-up prima di
 #. continuare.", "La preghiamo di disabilitare i blocchi pop-up prima di
@@ -748,47 +402,41 @@ msgstr ""
 #. pop-up.", "La invitiamo a disattivare i blocchi pop-up prima di
 #. continuare."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:30
-#, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
 msgstr "La preghiamo di disattivare i blocchi pop-up prima di continuare."
 
 #. {"msgid": ["Avvertimento", "Avvertenza", "Attenzione", "Avvertenze"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:30
-#, fuzzy
 msgctxt "ad"
 msgid "Warning"
-msgstr "Avvertimento"
+msgstr "Attenzione"
 
 #. {"msgid": ["Iniziare l'esperimento", "Iniziare esperimento", "Inizia
 #. l'esperimento", "Inizio esperimento"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:33
-#, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "Iniziare l'esperimento"
+msgstr "Inizia l'esperimento"
 
 #. {"msgid": ["Interrompere l'esperimento", "Interrompi l'esperimento",
 #. "Interrompi esperimento", "Annullare l'esperimento"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:37
-#, fuzzy
 msgctxt "ad"
 msgid "Abort Experiment"
-msgstr "Interrompere l'esperimento"
+msgstr "Interrompi l'esperimento"
 
 #. {"msgid": ["Invito a partecipare", "Invito ai partecipanti", "Richiesta di
 #. partecipanti", "Chiamata per i partecipanti"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:4
-#, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Invito a partecipare"
+msgstr "Invito ai partecipanti"
 
 #. {"msgid": ["Clicchi sul pulsante qui sopra per essere risarcito in caso di
 #. errore.", "Clicchi sul pulsante qui sopra per essere compensato in caso di
 #. errore."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:40
-#, fuzzy
 msgctxt "ad"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
@@ -797,7 +445,6 @@ msgstr ""
 #. {"msgid": ["I requisiti per partecipare sono i seguenti", "I requisiti per
 #. la partecipazione sono i seguenti"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/ad.html:9
-#, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
 msgstr "I requisiti per partecipare sono i seguenti"
@@ -806,7 +453,6 @@ msgstr "I requisiti per partecipare sono i seguenti"
 #. verifichiamo la compatibilit\u00e0 del suo browser.", "Ora verificheremo la
 #. compatibilit\u00e0 con il suo browser."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:11
-#, fuzzy
 msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Ora verificheremo la compatibilità del suo browser."
@@ -817,7 +463,6 @@ msgstr "Ora verificheremo la compatibilità del suo browser."
 #. rifiutare l'indagine.", "Se il suo browser non \u00e8 compatibile, dovremo
 #. rifiutare l'indagine."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:12
-#, fuzzy
 msgctxt "browser_compatibility"
 msgid "If your browser is not compatible we have to reject the survey."
 msgstr "Se il suo browser non è compatibile, dobbiamo rifiutare il sondaggio."
@@ -834,7 +479,7 @@ msgstr "Se il suo browser non è compatibile, dobbiamo rifiutare il sondaggio."
 #. <strong>%(TERMINATION_TIME)s</strong> per leggerlo e
 #. accettarlo/rifiutarlo."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:16
-#, python-format, fuzzy
+#, python-format
 msgid ""
 "You will also see one or more consent pages and have up to "
 "<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
@@ -847,7 +492,6 @@ msgstr ""
 #. pulsante in basso.", "Per procedere, clicchi sul pulsante qui di
 #. seguito."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:22
-#, fuzzy
 msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Per procedere, clicchi sul pulsante sottostante."
@@ -856,133 +500,356 @@ msgstr "Per procedere, clicchi sul pulsante sottostante."
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:31
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/macros.html:10
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/macros/control.html:41
-#, fuzzy
 msgid "Next"
 msgstr "Avanti"
 
-#. {"msgid": ["Sembra che stia utilizzando un browser diverso da Chrome.",
-#. "Sembra che lei stia utilizzando un browser diverso da Chrome.", "Sembra
-#. che stia utilizzando un browser diverso da Chrome", "Sembra che lei stia
-#. utilizzando un browser diverso da Chrome"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:81
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "It seems like you're using a different browser than Chrome"
-msgstr "Sembra che stia utilizzando un browser diverso da Chrome."
+#. {"msgid": ["Invio del Sondaggio Lucid", "Invio del sondaggio Lucid",
+#. "Presentazione del Sondaggio Lucid", "Invio di un sondaggio Lucid"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html:38
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Invio del Sondaggio Lucid"
 
-#. {"msgid": ["Questo esperimento supporta solo Chrome.", "Questo esperimento
-#. supporta soltanto Chrome."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:82
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "This experiment only supports Chrome."
-msgstr "Questo esperimento supporta solo Chrome."
-
-#. {"msgid": ["Se sta utilizzando un browser diverso, riapra la stessa pagina
-#. in Chrome.", "Se sta utilizzando un browser diverso, la preghiamo di
-#. riaprire la stessa pagina in Chrome.", "Se sta utilizzando un altro
-#. browser, riapra la stessa pagina in Chrome.", "Se sta utilizzando un altro
-#. browser, la preghiamo di riaprire la stessa pagina in Chrome."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:83
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid ""
-"If you're using a different browser, please reopen the same page in Chrome."
+#. {"msgid": ["Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui
+#. sotto.", "Per completare il suo Sondaggio Lucid, clicchi sul pulsante
+#. sottostante.", "Per completare il Sondaggio Lucid, clicchi sul pulsante qui
+#. sotto.", "Per completare il Sondaggio Lucid, clicchi sul pulsante
+#. sottostante."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
 msgstr ""
-"Se sta utilizzando un browser diverso, riapra la stessa pagina in Chrome."
+"Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui sotto."
 
-#. {"msgid": ["Sembra che stia utilizzando una versione non aggiornata di
-#. Chrome", "Sembra che stia usando una versione non aggiornata di Chrome",
-#. "Sembra che stia utilizzando una versione di Chrome non aggiornata",
-#. "Sembra che stia usando una versione di Chrome non aggiornata"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:89
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "It seems like you're using an out-of-date version of Chrome "
-msgstr "Sembra che stia utilizzando una versione non aggiornata di Chrome"
+#. {"msgid": ["Completare il sondaggio", "Completa il sondaggio", "Completi il
+#. sondaggio", "Completa il Sondaggio"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html:41
+msgid "Complete Survey"
+msgstr "Completa il sondaggio"
 
-#. {"msgid": ["Questa applicazione ne richiede almeno una:", "Questa
-#. applicazione richiede almeno:", "Questa applicazione richiede almeno una
-#. versione di Chrome:", "Questa applicazione richiede almeno una versione:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:90
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "This app requires at least: "
-msgstr "Questa applicazione ne richiede almeno una:"
+#. ""
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:4
+#, python-format
+msgid ""
+"In addition to your base payment of <strong>%(currency)s%(BASE_PAYMENT)s</"
+"strong>, you will receive a bonus of <strong>%(currency)s%(BONUS)s</strong> "
+"for the time you spent on the experiment."
+msgstr ""
+"Oltre al suo compenso base di <strong>%(currency)s%(BASE_PAYMENT)s</"
+"strong>, riceverà un bonus di <strong>%(currency)s%(BONUS)s</strong> per il "
+"tempo utilizzato per l'esperimento."
 
-#. {"msgid": ["Aggiorni il suo browser e riapra questa pagina web.", "Aggiorni
-#. il browser e riapra questa pagina web.", "La preghiamo di aggiornare il suo
-#. browser e di riaprire questa pagina web.", "Aggiorni il browser e riapra la
-#. pagina web."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html:92
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please update your browser and open this web page again."
-msgstr "Aggiorni il suo browser e riapra questa pagina web."
+#. ""
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:7
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"È stato premiato per la performance con un bonus di "
+"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
 
-#. {"msgid": ["Attenzione: Javascript non funziona nel suo browser",
-#. "Attenzione: Javascript non funziona sul suo browser", "Attenzione:
-#. Javascript non funziona nel browser", "Attenzione: Javascript non funziona
-#. sul browser"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:10
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:10
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Attenzione: Javascript non funziona nel suo browser"
+#. {"msgid": ["Finitura", "Finiture"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:13
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:17
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:17
+msgid "Finish"
+msgstr "Fine"
 
-#. {"msgid": ["Lo studio non funzioner\u00e0 se Javascript \u00e8 abilitato
-#. nel suo browser.", "Lo studio non funziona se Javascript \u00e8 abilitato
-#. nel suo browser.", "Lo studio non funzioner\u00e0 se Javascript \u00e8
-#. abilitato sul suo browser.", "Lo studio non funziona se Javascript \u00e8
-#. abilitato sul suo browser."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:11
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:11
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "Lo studio non funzionerà se Javascript è abilitato nel suo browser."
+#. {"msgid": ["Il consenso \u00e8 stato rifiutato.", "Il consenso \u00e8 stato
+#. respinto."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:4
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Il consenso è stato rifiutato."
 
-#. {"msgid": ["Per favore, abiliti Javascript e poi aggiorni questa pagina.",
-#. "La preghiamo di abilitare Javascript e poi di aggiornare la pagina.",
-#. "Abiliti Javascript e poi aggiorni questa pagina.", "Abiliti Javascript e
-#. poi aggiorni la pagina."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:12
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Per favore, abiliti Javascript e poi aggiorni questa pagina."
+#. {"msgid": ["Fine dell'esperimento."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:5
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Fine dell'esperimento."
 
-#. {"msgid": ["Abbiamo bisogno del suo consenso per procedere", "Per procedere
-#. abbiamo bisogno del suo consenso", "Per procedere, abbiamo bisogno del suo
-#. consenso"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:14
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "We need your consent to proceed"
-msgstr "Abbiamo bisogno del suo consenso per procedere"
+#. {"msgid": ["Clicchi su \"Fine\" per completare l'HIT."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:9
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:12
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:13
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Clicchi su \"Fine\" per completare l'HIT."
+
+#. {"msgid": ["Questa \u00e8 la fine dell'esperimento!"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:4
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Questa è la fine dell'esperimento!"
+
+#. {"msgid": ["Grazie per aver partecipato.", "Grazie per la partecipazione.",
+#. "Grazie per la sua partecipazione.", "La ringrazio per aver partecipato."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:8
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:9
+msgid "Thank you for taking part."
+msgstr "Grazie per aver partecipato."
+
+#. {"msgid": ["Purtroppo l'esperimento deve terminare prima.", "Purtroppo
+#. l'esperimento deve terminare in anticipo.", "Purtroppo l'esperimento deve
+#. finire prima.", "Purtroppo l'esperimento deve terminare prima del
+#. previsto."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:4
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Purtroppo l'esperimento deve terminare in anticipo."
+
+#. {"msgid": ["Tuttavia, sar\u00e0 comunque pagato per il tempo gi\u00e0
+#. trascorso.", "Tuttavia, sar\u00e0 comunque pagato per il tempo che ha
+#. gi\u00e0 trascorso.", "Tuttavia, sar\u00e0 comunque retribuito per il tempo
+#. gi\u00e0 trascorso.", "Tuttavia, sar\u00e0 comunque retribuito per il tempo
+#. che ha gi\u00e0 trascorso."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:6
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Tuttavia, sarà comunque pagato per il tempo già trascorso."
+
+#. {"msgid": ["Potr\u00e0 interrompere l'esperimento utilizzando il pulsante
+#. <strong>Abort experiment</strong> <strong>sulla pagina dell'annuncio
+#. MTurk</strong>.", "Potrebbe essere in grado di interrompere l'esperimento
+#. utilizzando il pulsante <strong>Abort experiment</strong> <strong>sulla
+#. pagina dell'annuncio MTurk</strong>.", "Potr\u00e0 interrompere
+#. l'esperimento utilizzando il pulsante <strong>Abort experiment</strong>
+#. <strong>sulla pagina degli annunci MTurk</strong>.", "Potrebbe essere in
+#. grado di interrompere l'esperimento utilizzando il pulsante <strong>Abort
+#. experiment</strong> <strong>sulla pagina degli annunci MTurk</strong>."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:17
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort experiment</"
+"strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Potrà interrompere l'esperimento utilizzando il pulsante <strong>Interrompi "
+"l'esperimento</strong> <strong>sulla pagina dell'annuncio MTurk</strong>."
+
+#. {"msgid": ["Una volta interrotto, non \u00e8 necessario contattarci per
+#. ricevere il compenso; questo dovrebbe esserle assegnato automaticamente
+#. tramite MTurk pochi minuti dopo.", "Una volta interrotto, non \u00e8
+#. necessario contattarci per ricevere il compenso; questo dovrebbe esserle
+#. assegnato automaticamente via MTurk pochi minuti dopo.", "Una volta
+#. interrotto, non c'\u00e8 bisogno di contattarci per ricevere il compenso;
+#. questo dovrebbe esserle assegnato automaticamente tramite MTurk pochi
+#. minuti dopo.", "Una volta interrotto, non \u00e8 necessario contattarci per
+#. ricevere il compenso; questo dovrebbe esserle assegnato automaticamente
+#. tramite MTurk qualche minuto dopo."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:18
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Una volta interrotto l'esperimento, non è necessario contattarci per "
+"ricevere il compenso; le verrà assegnato automaticamente tramite MTurk "
+"pochi minuti dopo."
+
+#. {"msgid": ["In caso contrario, la preghiamo di contattarci all'indirizzo
+#. %(EMAIL)s citando le seguenti informazioni:", "In caso contrario, la
+#. preghiamo di contattarci al numero %(EMAIL)s citando le seguenti
+#. informazioni:", "In caso contrario, la invitiamo a contattarci al numero
+#. %(EMAIL)s citando le seguenti informazioni:", "In caso contrario, la
+#. preghiamo di contattarci all'indirizzo %(EMAIL)s citando i seguenti
+#. dati:"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:19
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"In caso contrario, la preghiamo di contattarci all'indirizzo %(EMAIL)s "
+"citando le seguenti informazioni:"
+
+#. {"msgid": ["Per richiedere un risarcimento, contatti il ricercatore
+#. all'indirizzo %(EMAIL)s e descriva la causa di questo errore.", "Per
+#. richiedere un risarcimento, la preghiamo di contattare il ricercatore
+#. all'indirizzo %(EMAIL)s e di descrivere la causa di questo errore.", "Per
+#. richiedere un risarcimento, la preghiamo di contattare il ricercatore
+#. all'indirizzo %(EMAIL)s e di descrivere la causa dell'errore.", "Per
+#. richiedere un risarcimento, la preghiamo di contattare il ricercatore
+#. all'indirizzo %(EMAIL)s e di descrivere il motivo di questo errore."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:22
+#, python-format
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Per richiedere il compenso, contatti il ricercatore all'indirizzo %(EMAIL)s "
+"e descriva la causa di questo errore."
+
+#. {"msgid": ["La preghiamo inoltre di citare le seguenti informazioni:", "La
+#. preghiamo di citare anche le seguenti informazioni:", "La preghiamo inoltre
+#. di riportare le seguenti informazioni:", "La preghiamo di riportare anche
+#. le seguenti informazioni:"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:23
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "La preghiamo inoltre di riportare le seguenti informazioni:"
+
+#. {"msgid": ["Tipo di errore"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:27
+msgid "Error type"
+msgstr "Tipo di errore"
+
+#. {"msgid": ["ID lavoratore", "ID del lavoratore"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:30
+msgid "Worker ID"
+msgstr "Worker ID"
+
+#. {"msgid": ["Interrompere l'esperimento", "Interruzione dell'esperimento",
+#. "Interrompi l'esperimento", "Annullare l'esperimento"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:34
+msgid "Abort Experiment"
+msgstr "Interrompi l'esperimento"
+
+#. {"msgid": ["Clicchi sul pulsante qui sopra per essere risarcito in caso di
+#. errore.", "Clicchi sul pulsante qui sopra per ricevere il risarcimento in
+#. caso di errore.", "Clicchi sul pulsante qui sopra per ricevere un
+#. risarcimento in caso di errore.", "Clicchi sul pulsante di cui sopra per
+#. essere risarcito in caso di errore."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:37
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Clicchi sul pulsante qui sopra per ricevere il compenso in caso di errore."
+
+#. {"msgid": ["Errore!"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:9
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Errore!"
+
+#. {"msgid": ["Riprendere l'esperimento ...", "Riprendere l'esperimento...",
+#. "Riprendendo l'esperimento ...", "Ripresa dell'esperimento ..."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/resume.html:8
+msgid "Resuming experiment ..."
+msgstr "Riprendi l'esperimento ..."
+
+#. {"msgid": ["Esperimento iniziale...", "Iniziare l'esperimento...", "Inizio
+#. esperimento...", "Esperimento di partenza..."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/start.html:8
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Iniziando l'esperimento..."
+
+#. {"msgid": ["Il suo ID partecipante non \u00e8 definito, forse perch\u00e9
+#. ha cambiato browser durante il test.", "L'ID del partecipante non \u00e8
+#. definito, forse perch\u00e9 ha cambiato browser durante il test.", "L'ID
+#. del suo partecipante non \u00e8 definito, forse perch\u00e9 ha cambiato
+#. browser durante il test."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:1230
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Il suo ID partecipante non è definito, forse perché ha cambiato browser "
+"durante il test."
+
+#. {"msgid": ["Purtroppo questo comportamento non \u00e8 attualmente
+#. supportato.", "Purtroppo, questo comportamento non \u00e8 attualmente
+#. supportato.", "Purtroppo questo comportamento non \u00e8 al momento
+#. supportato.", "Sfortunatamente, questo comportamento non \u00e8 attualmente
+#. supportato."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:1231
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Sfortunatamente questa azione non è attualmente supportata."
+
+#. {"msgid": ["In caso di problemi, provi quanto segue:", "In caso di
+#. problemi, provi a fare quanto segue:", "In caso di problemi, provi a
+#. seguire:", "In caso di problemi, provi a fare come segue:"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:136
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "In caso di problemi, provi quanto segue:"
+
+#. {"msgid": ["Ricarichi la pagina.", "Ricaricare la pagina.", "Ricarica la
+#. pagina."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:138
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Ricarichi la pagina."
+
+#. {"msgid": ["Verifichi che la sua connessione internet funzioni.",
+#. "Verifichi che la sua connessione a Internet funzioni.", "Verifichi che la
+#. sua connessione a Internet sia funzionante.", "Verifichi che la sua
+#. connessione a Internet sia attiva."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:139
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Verifichi che la sua connessione internet funzioni."
+
+#. {"msgid": ["Se quanto sopra non \u00e8 di aiuto, ci invii un'e-mail con le
+#. seguenti informazioni:", "Se quanto sopra non aiuta, ci invii un'e-mail con
+#. le seguenti informazioni:", "Se quanto sopra non \u00e8 d'aiuto, ci invii
+#. un'e-mail con le seguenti informazioni:"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:145
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Se quanto sopra non è di aiuto, ci invii un'e-mail con le seguenti "
+"informazioni:"
+
+#. {"msgid": ["Un link alla pagina web corrente;", "Un link alla pagina web
+#. attuale;", "un link alla pagina web corrente;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:149
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Il link della pagina web corrente;"
+
+#. {"msgid": ["Il suo ID lavoratore;", "Il suo ID Lavoratore;", "Il suo ID di
+#. lavoratore;", "il suo ID lavoratore;"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:150
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Il suo Worker ID;"
+
+#. {"msgid": ["Il problema che sta riscontrando.", "Il problema riscontrato.",
+#. "il problema che sta riscontrando.", "Il problema che sta incontrando."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:151
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Il problema che sta riscontrando."
+
+#. {"msgid": ["\u00c8 pronto?", "\u00c8 pronta?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:163
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Sei pronto?"
+
+#. {"msgid": ["Clicchi sul pulsante quando \u00e8 pronto per continuare
+#. l'esperimento.", "Clicchi sul pulsante quando \u00e8 pronto a continuare
+#. l'esperimento.", "Clicchi sul pulsante quando \u00e8 pronto a proseguire
+#. l'esperimento.", "Clicchi il pulsante quando \u00e8 pronto per continuare
+#. l'esperimento."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:165
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Clicchi sul pulsante quando è pronto per continuare l'esperimento."
+
+#. {"msgid": ["Riprendere", "Ripresa", "Riprendi", "Riprendete"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:168
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Riprendi"
+
+#. {"msgid": ["Bonus"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:214
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#. {"msgid": ["Aiuto!"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:240
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Aiuto!"
+
+
 
 #. {"msgid": ["In questo esperimento, potrebbe esserle chiesto di effettuare
 #. una registrazione vocale o video.", "In questo esperimento, potrebbe
@@ -1398,153 +1265,6 @@ msgstr ""
 "audiovisivi e criptate con un protocollo di crittografia forte (come "
 "l'Advanced Encryption Standard)."
 
-#. {"msgid": ["Informazioni di contatto"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:54
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:113
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:109
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:131
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:41
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:102
-#, fuzzy
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "Informazioni di contatto"
-
-#. {"msgid": ["Se ha domande su questa ricerca, non esiti a contattare la
-#. ricercatrice principale di questo progetto, Nori Jacoby, all'indirizzo:",
-#. "Per qualsiasi domanda su questa ricerca, non esiti a contattare la
-#. ricercatrice principale di questo progetto, Nori Jacoby, all'indirizzo:",
-#. "In caso di domande su questa ricerca, non esiti a contattare la
-#. ricercatrice principale di questo progetto, Nori Jacoby, all'indirizzo:",
-#. "Per qualsiasi domanda su questa ricerca, non esiti a contattare la
-#. ricercatrice principale di questo progetto, Nori Jacoby, all'indirizzo
-#. e-mail:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:56
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
-msgstr ""
-"Se ha domande su questa ricerca, non esiti a contattare la ricercatrice "
-"principale di questo progetto, Nori Jacoby, all'indirizzo:"
-
-#. {"msgid": ["Consenso"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:59
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:91
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:60
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:114
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:47
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:137
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:46
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:107
-#, fuzzy
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "Consenso"
-
-#. {"msgid": ["Accettando di partecipare, lei dichiara di avere almeno 18
-#. anni, di aver letto questo modulo di consenso, di accettarne il contenuto e
-#. di accettare di prendere parte a questa ricerca.", "Accettando di
-#. partecipare, lei dichiara di avere almeno 18 anni, di aver letto il
-#. presente modulo di consenso, di accettarne il contenuto e di accettare di
-#. prendere parte a questa ricerca.", "Accettando di partecipare, lei dichiara
-#. di avere almeno 18 anni, di aver letto il presente modulo di consenso, di
-#. accettarne il contenuto e di essere d'accordo a partecipare a questa
-#. ricerca."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:61
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:93
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:62
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:116
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:49
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:139
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:48
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:109
-#, fuzzy
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"Accettando di partecipare, lei dichiara di avere almeno 18 anni, di aver "
-"letto questo modulo di consenso, di accettarne il contenuto e di accettare "
-"di prendere parte a questa ricerca."
-
-#. {"msgid": ["Se non desidera acconsentire, la preghiamo di chiudere questa
-#. pagina.", "Se non desidera dare il consenso, la preghiamo di chiudere
-#. questa pagina.", "Se non desidera acconsentire, chiuda questa pagina.", "Se
-#. non desidera dare il suo consenso, la preghiamo di chiudere questa
-#. pagina."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:62
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:94
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:63
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:117
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:49
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:110
-#, fuzzy
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "Se non desidera acconsentire, la preghiamo di chiudere questa pagina."
-
-#. {"msgid": ["Scorra su/gi\u00f9 per vedere tutto il testo", "Scorra verso
-#. l'alto/il basso per vedere tutto il testo", "Scorra verso l'alto/il basso
-#. per visualizzare tutto il testo"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:67
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:120
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:122
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:54
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:115
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "Scorra su/giù per vedere tutto il testo"
-
-#. {"msgid": ["Comprende e accetta questi termini?", "Comprende e acconsente a
-#. questi termini?", "Capisce e acconsente a questi termini?", "Capisce e
-#. accetta questi termini?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:70
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:98
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:67
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:123
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:125
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:54
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:144
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:57
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:118
-#, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "Comprende e accetta questi termini?"
-
-#. {"msgid": ["Accetto", "Sono d'accordo", "Acconsento"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:73
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:114
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:70
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:126
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:128
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:57
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:147
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:60
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:121
-#, fuzzy
-msgctxt "consent"
-msgid "I agree"
-msgstr "Accetto"
-
-#. {"msgid": ["No, grazie (restituire il compito)", "No, grazie (restituisca
-#. il compito)", "No, grazie (restituire l'incarico)"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html:76
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html:117
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:73
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:129
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:131
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:60
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:150
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:63
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:124
-#, fuzzy
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "No, grazie (restituire il compito)"
 
 #. {"msgid": ["Modulo di consenso del partecipante alla ricerca per le
 #. registrazioni di immagini/suoni", "Modulo di consenso per i partecipanti
@@ -2906,904 +2626,8 @@ msgstr ""
 "preghiamo di contattare il Responsabile della protezione dei dati della "
 "Società Max Planck:"
 
-#. {"msgid": ["I suoi diritti", "I Suoi diritti"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:100
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:121
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:94
-#, fuzzy
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "I suoi diritti"
 
-#. {"msgid": ["Lei ha il diritto di ricevere informazioni sui dati che la
-#. riguardano e che sono conservati presso il Max-Planck-Institut, il diritto
-#. di correggere i dati inesatti e il diritto di chiedere la cancellazione dei
-#. dati in caso di conservazione inammissibile e il diritto alla
-#. portabilit\u00e0 dei dati.", "Lei ha il diritto di ricevere informazioni
-#. sui dati che la riguardano e che sono conservati presso il Max-Planck-
-#. Institut, il diritto di correggere i dati inesatti e il diritto di
-#. richiedere la cancellazione dei dati in caso di archiviazione inammissibile
-#. e il diritto alla portabilit\u00e0 dei dati.", "Lei ha il diritto di
-#. ricevere informazioni sui dati che la riguardano e che sono conservati
-#. presso il Max-Planck-Institut, il diritto di correggere i dati inesatti e
-#. il diritto di chiedere la cancellazione dei dati in caso di conservazione
-#. inammissibile dei dati e il diritto alla portabilit\u00e0 dei dati."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:102
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:123
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:96
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"Lei ha il diritto di ricevere informazioni sui dati che la riguardano e che "
-"sono conservati presso il Max-Planck-Institut, il diritto di correggere i "
-"dati inesatti e il diritto di chiedere la cancellazione dei dati in caso di "
-"conservazione inammissibile e il diritto alla portabilità dei dati."
 
-#. {"msgid": ["Si noti che in alcuni studi la cancellazione dei dati non
-#. sar\u00e0 possibile, in questo caso le chiederemo specificamente di
-#. acconsentire a questa procedura in un modulo di consenso separato.", "Si
-#. noti che in alcuni studi la cancellazione dei dati non sar\u00e0 possibile,
-#. in questo caso le chiederemo specificamente di acconsentire a tale
-#. procedura in un modulo di consenso separato.", "Si noti che in alcuni studi
-#. la cancellazione dei dati non sar\u00e0 possibile; in questo caso le
-#. chiederemo di acconsentire specificamente a questa procedura in un modulo
-#. di consenso separato.", "Si noti che in alcuni studi la cancellazione dei
-#. dati non sar\u00e0 possibile, in questo caso le chiederemo di acconsentire
-#. specificamente a questa procedura in un modulo di consenso separato."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:103
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:97
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"Si noti che in alcuni studi la cancellazione dei dati non sarà possibile, in"
-" questo caso le chiederemo specificamente di acconsentire a questa procedura"
-" in un modulo di consenso separato."
-
-#. {"msgid": ["Ha anche il diritto di presentare un'obiezione
-#. all'autorit\u00e0 di vigilanza.", "Ha inoltre il diritto di presentare
-#. un'obiezione all'autorit\u00e0 di vigilanza.", "Ha anche il diritto di
-#. presentare un'obiezione all'autorit\u00e0 di controllo.", "Inoltre, ha il
-#. diritto di presentare un'obiezione all'autorit\u00e0 di vigilanza."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:104
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:124
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr ""
-"Ha anche il diritto di presentare un'obiezione all'autorità di vigilanza."
-
-#. {"msgid": ["Per la Societ\u00e0 Max-Planck, questa \u00e8:", "Per la
-#. Societ\u00e0 Max-Planck, si tratta di:", "Per la Societ\u00e0 Max-Planck,
-#. questo \u00e8:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:105
-#, fuzzy
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "Per la Società Max-Planck, questa è:"
-
-#. {"msgid": ["Panoramica"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:18
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:18
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:18
-#, fuzzy
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "Panoramica"
-
-#. {"msgid": ["Questa ricerca \u00e8 condotta dai ricercatori del Max-Planck-
-#. Institute for Empirical Aesthetics.", "Questa ricerca \u00e8 condotta dai
-#. ricercatori dell'Istituto Max-Planck per l'Estetica Empirica.", "Questa
-#. ricerca \u00e8 condotta dai ricercatori del Max-Planck-Institut per
-#. l'Estetica Empirica.", "Questa ricerca \u00e8 condotta dai ricercatori del
-#. Max-Planck-Institute for Empirical Aesthetics (Istituto di Estetica
-#. Empirica)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:20
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:20
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:20
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-"Questa ricerca è condotta dai ricercatori del Max-Planck-Institute for "
-"Empirical Aesthetics."
-
-#. {"msgid": ["Se ha domande su questa ricerca, non esiti a contattare la
-#. ricercatrice principale di questo progetto, Nori Jacoby, all'indirizzo:",
-#. "Se ha delle domande su questa ricerca, non esiti a contattare la
-#. ricercatrice principale di questo progetto, Nori Jacoby, all'indirizzo:",
-#. "Se ha domande su questa ricerca, non esiti a contattare il ricercatore
-#. principale di questo progetto, Nori Jacoby, all'indirizzo:", "Se ha domande
-#. su questa ricerca, non esiti a contattare la ricercatrice principale di
-#. questo progetto, Nori Jacoby, all'indirizzo e-mail:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:21
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-"Se ha domande su questa ricerca, non esiti a contattare la ricercatrice "
-"principale di questo progetto, Nori Jacoby, all'indirizzo:"
-
-#. {"msgid": ["Lo scopo di questo modulo online \u00e8 quello di fornirle
-#. informazioni per aiutarla a decidere se desidera partecipare ad uno studio
-#. di ricerca.", "Lo scopo di questo modulo online \u00e8 quello di fornirle
-#. informazioni per aiutarla a decidere se desidera partecipare a uno studio
-#. di ricerca.", "Lo scopo di questo modulo online \u00e8 quello di fornirle
-#. informazioni per aiutarla a decidere se vuole partecipare ad uno studio di
-#. ricerca.", "Lo scopo di questo modulo online \u00e8 quello di fornirle
-#. informazioni che la aiutino a decidere se desidera partecipare ad uno
-#. studio di ricerca."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:24
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:25
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:24
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-"Lo scopo di questo modulo online è quello di fornirle informazioni per "
-"aiutarla a decidere se desidera partecipare ad uno studio di ricerca."
-
-#. {"msgid": ["Scopo", "Scopo del progetto"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:27
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:36
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:27
-#, fuzzy
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "Scopo"
-
-#. {"msgid": ["Lo scopo di questo progetto \u00e8 studiare come le persone
-#. provenienti da luoghi diversi del mondo percepiscono i suoni (ad esempio,
-#. il parlato, la musica) e le immagini (ad esempio, i volti, i colori).", "Lo
-#. scopo di questo progetto \u00e8 studiare come le persone provenienti da
-#. luoghi diversi del mondo percepiscono i suoni (ad esempio, il parlato, la
-#. musica) e le immagini (ad esempio, i volti, il colore).", "Lo scopo di
-#. questo progetto \u00e8 quello di studiare come le persone provenienti da
-#. diversi luoghi del mondo percepiscono i suoni (ad esempio, il parlato, la
-#. musica) e le immagini (ad esempio, i volti, i colori).", "Lo scopo di
-#. questo progetto \u00e8 quello di studiare come le persone provenienti da
-#. luoghi diversi del mondo percepiscono i suoni (ad esempio, il parlato, la
-#. musica) e le immagini (ad esempio, i volti, i colori)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:29
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr ""
-"Lo scopo di questo progetto è studiare come le persone provenienti da luoghi"
-" diversi del mondo percepiscono i suoni (ad esempio, il parlato, la musica) "
-"e le immagini (ad esempio, i volti, i colori)."
-
-#. {"msgid": ["Procedura"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:32
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:44
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:34
-#, fuzzy
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "Procedura"
-
-#. {"msgid": ["Se si offre volontario per partecipare a questo studio, le
-#. verr\u00e0 chiesto di eseguire semplici compiti utilizzando la tastiera o
-#. il mouse mentre ascolta i suoni o osserva immagini o video.", "Se si offre
-#. volontario per partecipare a questo studio, le verr\u00e0 chiesto di
-#. eseguire semplici compiti utilizzando la tastiera o il mouse mentre ascolta
-#. i suoni o osserva le immagini o i video.", "Se si offre volontario per
-#. partecipare a questo studio, le verr\u00e0 chiesto di eseguire dei semplici
-#. compiti utilizzando la tastiera o il mouse mentre ascolta dei suoni o
-#. osserva delle immagini o dei video.", "Se si offre volontario per
-#. partecipare a questo studio, le verr\u00e0 chiesto di eseguire dei compiti
-#. semplici utilizzando la tastiera o il mouse mentre ascolta dei suoni o
-#. osserva delle immagini o dei video."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:34
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:46
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:36
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"Se si offre volontario per partecipare a questo studio, le verrà chiesto di "
-"eseguire semplici compiti utilizzando la tastiera o il mouse mentre ascolta "
-"i suoni o osserva immagini o video."
-
-#. {"msgid": ["Ad esempio, potrebbe esserle chiesto di giudicare quanto sia
-#. piacevole un particolare suono o un'immagine, o di classificare suoni o
-#. immagini (ad esempio, se un suono o un'immagine \u00e8 quella di
-#. un'automobile o di una mucca), o di giudicare altre caratteristiche di base
-#. dei suoni o delle immagini (ad esempio, quanto frequentemente incontra
-#. questo tipo di suono o immagine? quanto considera esteticamente piacevole
-#. un particolare suono o immagine?).", "Ad esempio, potrebbe esserle chiesto
-#. di giudicare quanto sia piacevole un particolare suono o un'immagine, o di
-#. classificare suoni o immagini (ad esempio, se un suono o un'immagine \u00e8
-#. quella di un'automobile o di una mucca), o di giudicare altre
-#. caratteristiche di base dei suoni o delle immagini (ad esempio, quanto
-#. frequentemente incontra questo tipo di suono o immagine? quanto considera
-#. esteticamente gradevole un particolare suono o immagine?).", "Ad esempio,
-#. potrebbe esserle chiesto di giudicare quanto sia piacevole un particolare
-#. suono o un'immagine, o di classificare suoni o immagini (ad esempio, se un
-#. suono o un'immagine \u00e8 quella di un'automobile o di una mucca), o di
-#. giudicare altre caratteristiche di base dei suoni o delle immagini (ad
-#. esempio, quanto frequentemente incontra questo tipo di suono o immagine?
-#. Quanto considera esteticamente piacevole un particolare suono o
-#. immagine?).", "Ad esempio, potrebbe esserle chiesto di giudicare quanto sia
-#. piacevole un particolare suono o un'immagine, o di classificare suoni o
-#. immagini (ad esempio, se un suono o un'immagine \u00e8 quella di
-#. un'automobile o di una mucca), o di giudicare altre caratteristiche di base
-#. dei suoni o delle immagini (ad esempio, con quale frequenza incontra questo
-#. tipo di suono o immagine? quanto considera esteticamente piacevole un
-#. particolare suono o immagine?)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:35
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:47
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:37
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"Ad esempio, potrebbe esserle chiesto di giudicare quanto sia piacevole un "
-"particolare suono o un'immagine, o di classificare suoni o immagini (ad "
-"esempio, se un suono o un'immagine è quella di un'automobile o di una "
-"mucca), o di giudicare altre caratteristiche di base dei suoni o delle "
-"immagini (ad esempio, quanto frequentemente incontra questo tipo di suono o "
-"immagine? quanto considera esteticamente piacevole un particolare suono o "
-"immagine?)."
-
-#. {"msgid": ["I suoni, le immagini e i video specifici utilizzati varieranno,
-#. ma possono includere: registrazioni di suoni ambientali, esplosioni di
-#. rumore, discorsi, musica, toni semplici, immagini naturalistiche, immagini
-#. animate, fumetti, volti, oggetti, forme geometriche, immagini frattali o
-#. video di ambienti naturali.", "I suoni, le immagini e i video specifici
-#. utilizzati varieranno, ma possono includere: registrazioni di suoni
-#. ambientali, rumori, discorsi, musica, toni semplici, immagini
-#. naturalistiche, immagini animate, fumetti, volti, oggetti, forme
-#. geometriche, immagini frattali o video di ambienti naturali.", "I suoni, le
-#. immagini e i video specifici utilizzati varieranno, ma possono includere:
-#. registrazioni di suoni ambientali, esplosioni di rumori, discorsi, musica,
-#. toni semplici, immagini naturalistiche, immagini animate, fumetti, volti,
-#. oggetti, forme geometriche, immagini frattali o video di ambienti
-#. naturali.", "I suoni, le immagini e i video specifici utilizzati
-#. varieranno, ma possono includere: registrazioni di suoni ambientali,
-#. rumori, discorsi, musica, toni semplici, immagini naturalistiche, immagini
-#. animate, fumetti, volti, oggetti, forme geometriche, immagini frattali, o
-#. video di ambienti naturali."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:36
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:48
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:38
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"I suoni, le immagini e i video specifici utilizzati varieranno, ma possono "
-"includere: registrazioni di suoni ambientali, esplosioni di rumore, "
-"discorsi, musica, toni semplici, immagini naturalistiche, immagini animate, "
-"fumetti, volti, oggetti, forme geometriche, immagini frattali o video di "
-"ambienti naturali."
-
-#. {"msgid": ["In alcuni esperimenti, potremo utilizzare un inganno lieve,
-#. ossia non spiegheremo la verit\u00e0 completa su un compito sperimentale
-#. (ad esempio, non le diremo che un'immagine \u00e8 stata generata da un
-#. sistema informatico artificiale e non da un essere umano).", "In alcuni
-#. esperimenti, potremo usare un inganno lieve, cio\u00e8 non spiegheremo la
-#. verit\u00e0 completa su un compito sperimentale (ad esempio, non le diremo
-#. che un'immagine \u00e8 stata generata da un sistema informatico artificiale
-#. e non da un essere umano).", "In alcuni esperimenti, potremo utilizzare un
-#. inganno lieve, ossia non spiegheremo la verit\u00e0 completa su un compito
-#. sperimentale (per esempio, non le diremo che un'immagine \u00e8 stata
-#. generata da un sistema informatico artificiale e non da un essere umano).",
-#. "In alcuni esperimenti, potremo utilizzare un inganno lieve, ossia non
-#. spiegheremo la verit\u00e0 completa su un compito sperimentale (ad esempio,
-#. non le diremo che un'immagine \u00e8 stata generata da un sistema
-#. informatico artificiale e non da un umano)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:37
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:53
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:39
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"In alcuni esperimenti, potremo utilizzare un inganno lieve, ossia non "
-"spiegheremo la verità completa su un compito sperimentale (ad esempio, non "
-"le diremo che un'immagine è stata generata da un sistema informatico "
-"artificiale e non da un essere umano)."
-
-#. {"msgid": ["L'inganno lieve sar\u00e0 utilizzato solo in alcuni esperimenti
-#. in cui dobbiamo evitare di influenzare i partecipanti prima di fare
-#. l'esperimento.", "L'inganno lieve sar\u00e0 usato solo in alcuni
-#. esperimenti in cui dobbiamo evitare di influenzare i partecipanti prima di
-#. fare l'esperimento.", "L'inganno leggero sar\u00e0 utilizzato solo in
-#. alcuni esperimenti in cui dobbiamo evitare di influenzare i partecipanti
-#. prima di fare l'esperimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:38
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:54
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:40
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-"L'inganno lieve sarà utilizzato solo in alcuni esperimenti in cui dobbiamo "
-"evitare di influenzare i partecipanti prima di fare l'esperimento."
-
-#. {"msgid": ["Infine, in alcuni esperimenti potrebbe esserle chiesto di
-#. effettuare una registrazione vocale o video; ad esempio, potrebbe esserle
-#. chiesto di registrare il suo battito di dita in risposta a un suono o a un
-#. video, oppure di registrarsi mentre parla o canta.", "Infine, in alcuni
-#. esperimenti potrebbe esserle chiesto di effettuare una registrazione vocale
-#. o video; ad esempio, potrebbe esserle chiesto di registrare il battito
-#. delle sue dita in risposta a un suono o a un video, oppure di registrarsi
-#. mentre parla o canta.", "Infine, in alcuni esperimenti potrebbe esserle
-#. chiesto di effettuare una registrazione vocale o video; ad esempio,
-#. potrebbe esserle chiesto di registrare il suo battito di dita in risposta
-#. ad un suono o ad un video, oppure di registrarsi mentre parla o canta.",
-#. "Infine, in alcuni esperimenti potrebbe esserle chiesto di effettuare una
-#. registrazione vocale o video; ad esempio, potrebbe esserle chiesto di
-#. registrare il battito delle sue dita in risposta a un suono o a un video,
-#. oppure di registrare se stesso mentre parla o canta."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:39
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:41
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Infine, in alcuni esperimenti potrebbe esserle chiesto di effettuare una "
-"registrazione vocale o video; ad esempio, potrebbe esserle chiesto di "
-"registrare il suo battito di dita in risposta a un suono o a un video, "
-"oppure di registrarsi mentre parla o canta."
-
-#. {"msgid": ["Se l'esperimento conterr\u00e0 questi elementi, le chiederemo
-#. un ulteriore consenso.", "Se l'esperimento contiene questi elementi, le
-#. chiederemo un ulteriore consenso.", "Se l'esperimento conterr\u00e0 questi
-#. elementi, le chiederemo un consenso aggiuntivo.", "Se l'esperimento
-#. contiene questi elementi, le chiederemo un consenso aggiuntivo."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:40
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:42
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr ""
-"Se l'esperimento conterrà questi elementi, le chiederemo un ulteriore "
-"consenso."
-
-#. {"msgid": ["Partecipazione volontaria"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:43
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:59
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:45
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "Partecipazione volontaria"
-
-#. {"msgid": ["La sua partecipazione a questa ricerca \u00e8 volontaria.", "La
-#. sua partecipazione alla ricerca \u00e8 volontaria."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:45
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:61
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:47
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "La sua partecipazione a questa ricerca è volontaria."
-
-#. {"msgid": ["\u00c8 libero di rifiutare di partecipare e pu\u00f2 smettere
-#. di farlo in qualsiasi momento.", "\u00c8 libero di rifiutarsi di
-#. partecipare e pu\u00f2 smettere di farlo in qualsiasi momento.", "\u00c8
-#. libero di rifiutarsi di partecipare e pu\u00f2 interrompere la
-#. partecipazione in qualsiasi momento.", "\u00c8 libero di rifiutare di
-#. partecipare e pu\u00f2 interrompere la partecipazione in qualsiasi
-#. momento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:46
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:48
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-"È libero di rifiutare di partecipare e può smettere di farlo in qualsiasi "
-"momento."
-
-#. {"msgid": ["\u00c8 libero di interrompere la partecipazione a questo studio
-#. in qualsiasi momento, senza alcuna penalit\u00e0.", "\u00c8 libero di
-#. interrompere la partecipazione a questo studio in qualsiasi momento, senza
-#. alcuna sanzione.", "\u00c8 libero di interrompere la partecipazione a
-#. questo studio in qualsiasi momento, senza alcuna penalizzazione.", "\u00c8
-#. libero di interrompere la sua partecipazione a questo studio in qualsiasi
-#. momento, senza alcuna penalit\u00e0."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:47
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:63
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:49
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-"È libero di interrompere la partecipazione a questo studio in qualsiasi "
-"momento, senza alcuna penalità."
-
-#. {"msgid": ["Lo sperimentatore pu\u00f2 ritirarla da questa ricerca se si
-#. verificano circostanze che lo giustificano.", "Il ricercatore pu\u00f2
-#. ritirarla da questa ricerca se si verificano circostanze che lo
-#. giustificano.", "Lo sperimentatore pu\u00f2 ritirarla da questa ricerca se
-#. si presentano circostanze che lo giustificano.", "Lo sperimentatore
-#. pu\u00f2 ritirarla dalla ricerca se si verificano circostanze che lo
-#. giustificano."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:48
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:64
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:50
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-"Lo sperimentatore può ritirarla da questa ricerca se si verificano "
-"circostanze che lo giustificano."
-
-#. {"msgid": ["Nessun identificativo personale (ad esempio il suo nome o i
-#. dati di contatto) sar\u00e0 raccolto o utilizzato in nessuna fase
-#. dell'esperimento.", "Nessun identificatore personale (ad esempio il suo
-#. nome o i dati di contatto) sar\u00e0 raccolto o utilizzato in nessuna fase
-#. dell'esperimento.", "Nessun identificativo personale (ad esempio il suo
-#. nome o i suoi dati di contatto) sar\u00e0 raccolto o utilizzato in nessuna
-#. fase dell'esperimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:53
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:69
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:55
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-"Nessun identificativo personale (ad esempio il suo nome o i dati di "
-"contatto) sarà raccolto o utilizzato in nessuna fase dell'esperimento."
-
-#. {"msgid": ["Pertanto, i dati sperimentali sono anonimi.", "Pertanto, i dati
-#. dell'esperimento sono anonimi.", "Pertanto, i dati della sperimentazione
-#. sono anonimi.", "I dati sperimentali sono quindi anonimi."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:54
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:70
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:56
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "Pertanto, i dati sperimentali sono anonimi."
-
-#. {"msgid": ["Potremmo raccogliere alcuni dati demografici (ad esempio,
-#. et\u00e0, sesso, Paese di residenza), nonch\u00e9 informazioni sulla sua
-#. storia di apprendimento e di esposizione (ad esempio, esperienza musicale
-#. nel suonare uno strumento, anni di istruzione formale, lingue parlate).",
-#. "Potremmo raccogliere alcuni dati demografici (ad esempio, et\u00e0, sesso,
-#. Paese di residenza) e informazioni sulla sua storia di apprendimento e di
-#. esposizione (ad esempio, esperienza musicale nel suonare uno strumento,
-#. anni di istruzione formale, lingue parlate).", "Potremmo raccogliere alcuni
-#. dati demografici (ad esempio, et\u00e0, sesso, Paese di residenza),
-#. nonch\u00e9 informazioni sulla sua storia di apprendimento ed esposizione
-#. (ad esempio, esperienza musicale nel suonare uno strumento, anni di
-#. istruzione formale, lingue parlate).", "Potremmo raccogliere alcuni dati
-#. demografici (ad esempio, et\u00e0, sesso, Paese di residenza), nonch\u00e9
-#. informazioni sulla sua storia di apprendimento e di esposizione (ad
-#. esempio, esperienza musicale nel suonare uno strumento, anni di educazione
-#. formale, lingue parlate)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:55
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:57
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Potremmo raccogliere alcuni dati demografici (ad esempio, età, sesso, Paese "
-"di residenza), nonché informazioni sulla sua storia di apprendimento e di "
-"esposizione (ad esempio, esperienza musicale nel suonare uno strumento, anni"
-" di istruzione formale, lingue parlate)."
-
-#. {"msgid": ["Se un esperimento raccoglie dati che non possono essere
-#. completamente anonimizzati, la informeremo e le chiederemo anche un
-#. ulteriore consenso.", "Se un esperimento raccoglie dati che non possono
-#. essere completamente anonimizzati, la informeremo e le chiederemo un
-#. ulteriore consenso.", "Se un esperimento raccoglie dati che non possono
-#. essere completamente anonimizzati, la informeremo e le chiederemo anche un
-#. consenso aggiuntivo.", "Se un esperimento sta raccogliendo dati che non
-#. possono essere completamente anonimizzati, la informeremo e le chiederemo
-#. anche un ulteriore consenso."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:58
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-"Se un esperimento raccoglie dati che non possono essere completamente "
-"anonimizzati, la informeremo e le chiederemo anche un ulteriore consenso."
-
-#. {"msgid": ["Anche il consenso a questi requisiti aggiuntivi \u00e8 del
-#. tutto volontario.", "Anche il consenso a questi requisiti aggiuntivi \u00e8
-#. completamente volontario.", "Anche il consenso a questi requisiti
-#. aggiuntivi \u00e8 totalmente volontario.", "Il consenso a questi requisiti
-#. aggiuntivi \u00e8 completamente volontario."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:59
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr ""
-"Anche il consenso a questi requisiti aggiuntivi è del tutto volontario."
-
-#. {"msgid": ["Questi includono gli esperimenti in cui effettuiamo
-#. registrazioni audiovisive o in cui abbiamo bisogno dei suoi dati di
-#. contatto per contattarla in futuro per effettuare un altro esperimento.",
-#. "Questi includono gli esperimenti in cui effettuiamo registrazioni
-#. audiovisive o in cui abbiamo bisogno dei suoi dati di contatto per
-#. contattarla in futuro per un altro esperimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:60
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:61
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-"Questi includono gli esperimenti in cui effettuiamo registrazioni "
-"audiovisive o in cui abbiamo bisogno dei suoi dati di contatto per "
-"contattarla in futuro per effettuare un altro esperimento."
-
-#. {"msgid": ["Tutte le informazioni ottenute durante la ricerca saranno
-#. mantenute riservate.", "Tutte le informazioni che otteniamo durante la
-#. ricerca saranno mantenute riservate.", "Tutte le informazioni ottenute
-#. durante la ricerca saranno mantenute confidenziali.", "Tutte le
-#. informazioni che otteniamo durante la ricerca saranno mantenute
-#. confidenziali."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:63
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:76
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr ""
-"Tutte le informazioni ottenute durante la ricerca saranno mantenute "
-"riservate."
-
-#. {"msgid": ["Salveremo solo il suo codice alfa numerico anonimo nel nostro
-#. sistema, al fine di distinguere i partecipanti che hanno gi\u00e0 preso
-#. parte a questo o ad altri esperimenti.", "Salveremo solo il suo codice alfa
-#. numerico anonimo nel nostro sistema, per distinguere i partecipanti che
-#. hanno gi\u00e0 preso parte a questo o ad altri esperimenti.", "Salveremo
-#. nel nostro sistema solo il suo codice alfa numerico anonimizzato, per
-#. distinguere i partecipanti che hanno gi\u00e0 preso parte a questo o ad
-#. altri esperimenti.", "Salveremo solo il suo codice alfa numerico anonimo
-#. nel nostro sistema, al fine di distinguere i partecipanti che hanno
-#. gi\u00e0 preso parte a questo o altri esperimenti."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:64
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr ""
-"Salveremo solo il suo codice alfa numerico anonimo nel nostro sistema, al "
-"fine di distinguere i partecipanti che hanno già preso parte a questo o ad "
-"altri esperimenti."
-
-#. {"msgid": ["Questo codice non sar\u00e0 utilizzato per ricavare la sua vera
-#. identit\u00e0, non sar\u00e0 condiviso con nessuno al di fuori del team di
-#. ricerca e sar\u00e0 cancellato dopo l'uso.", "Questo codice non sar\u00e0
-#. utilizzato per ricavare la sua identit\u00e0 reale, non sar\u00e0 condiviso
-#. con nessuno al di fuori del team di ricerca e sar\u00e0 cancellato dopo
-#. l'uso.", "Questo codice non sar\u00e0 utilizzato per ricavare la sua vera
-#. identit\u00e0, non sar\u00e0 condiviso con nessuno al di fuori del team di
-#. ricerca e sar\u00e0 eliminato dopo l'uso.", "Questo codice non sar\u00e0
-#. utilizzato per ricavare la sua vera identit\u00e0, non sar\u00e0 condiviso
-#. con nessuno al di fuori del team di ricerca e sar\u00e0 cancellato dopo
-#. l'utilizzo."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:65
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr ""
-"Questo codice non sarà utilizzato per ricavare la sua vera identità, non "
-"sarà condiviso con nessuno al di fuori del team di ricerca e sarà cancellato"
-" dopo l'uso."
-
-#. {"msgid": ["Sebbene i ricercatori non utilizzeranno il suo codice alfa
-#. numerico per ricavare la sua vera identit\u00e0, questo record potrebbe
-#. essere collegato in alcuni casi alla pagina del suo profilo pubblico, in
-#. caso di violazione dei dati.", "Anche se i ricercatori non utilizzeranno il
-#. suo codice alfa numerico per ricavare la sua vera identit\u00e0, questo
-#. record potrebbe essere collegato in alcuni casi alla pagina del suo profilo
-#. pubblico, in caso di violazione dei dati.", "Anche se i ricercatori non
-#. utilizzeranno il suo codice alfa numerico per ricavare la sua vera
-#. identit\u00e0, questo record potrebbe essere collegato in alcuni casi alla
-#. pagina del suo profilo pubblico, se si verifica una violazione dei dati.",
-#. "Sebbene i ricercatori non utilizzeranno il suo codice alfa numerico per
-#. ricavare la sua vera identit\u00e0, questo record potrebbe essere collegato
-#. in alcuni casi alla pagina del suo profilo pubblico, se si verifica una
-#. violazione dei dati."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:66
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr ""
-"Sebbene i ricercatori non utilizzeranno il suo codice alfa numerico per "
-"ricavare la sua vera identità, questo record potrebbe essere collegato in "
-"alcuni casi alla pagina del suo profilo pubblico, in caso di violazione dei "
-"dati."
-
-#. {"msgid": ["Pertanto, potrebbe voler limitare le informazioni che sceglie
-#. di condividere pubblicamente.", "Pertanto, potrebbe desiderare di limitare
-#. le informazioni che sceglie di condividere pubblicamente.", "Per questo
-#. motivo, potrebbe voler limitare le informazioni che sceglie di condividere
-#. pubblicamente.", "Per questo motivo, potrebbe desiderare di limitare le
-#. informazioni che sceglie di condividere pubblicamente."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:67
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Pertanto, potrebbe voler limitare le informazioni che sceglie di condividere"
-" pubblicamente."
-
-#. {"msgid": ["In questi casi, condivideremo solo dati completamente
-#. anonimizzati, come dati demografici, aggregati o estratti senza
-#. identificatori personali.", "In questi casi, condivideremo solo dati
-#. completamente anonimizzati, come dati demografici, aggregati o estratti,
-#. senza identificatori personali.", "In questi casi, condivideremo solo dati
-#. completamente anonimizzati, come dati demografici, aggregati o estratti,
-#. senza alcun identificatore personale.", "In questi casi, condivideremo solo
-#. dati completamente anonimizzati, come i dati demografici, aggregati o
-#. estratti, senza identificatori personali."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:73
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:67
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-"In questi casi, condivideremo solo dati completamente anonimizzati, come "
-"dati demografici, aggregati o estratti senza identificatori personali."
-
-#. {"msgid": ["I dati saranno archiviati temporaneamente su server esterni e
-#. su desktop/laptop protetti da password.", "I dati saranno archiviati
-#. temporaneamente su server esterni e su computer desktop/laptop protetti da
-#. password.", "I dati saranno archiviati temporaneamente su server esterni e
-#. su computer fissi/laptop protetti da password.", "I dati verranno
-#. archiviati temporaneamente su server esterni e su computer desktop/laptop
-#. protetti da password."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:78
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:90
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:73
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-"I dati saranno archiviati temporaneamente su server esterni e su "
-"desktop/laptop protetti da password."
-
-#. {"msgid": ["I dati saranno poi archiviati in modo permanente nei server
-#. dell'Istituto, con dischi rigidi crittografati utilizzando un software di
-#. crittografia standard del settore.", "I dati saranno poi archiviati in modo
-#. permanente nei server dell'istituto, con dischi rigidi crittografati
-#. utilizzando un software di crittografia standard del settore.", "I dati
-#. saranno poi archiviati in modo permanente nei server dell'istituto, con
-#. dischi rigidi criptati utilizzando un software di crittografia standard del
-#. settore.", "I dati saranno poi archiviati in modo permanente nei server
-#. dell'Istituto, con dischi rigidi crittografati utilizzando un software di
-#. crittografia standard."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:79
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:91
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:74
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-"I dati saranno poi archiviati in modo permanente nei server dell'Istituto, "
-"con dischi rigidi crittografati utilizzando un software di crittografia "
-"standard del settore."
-
-#. {"msgid": ["Nessun dato sar\u00e0 archiviato in modo permanente su server
-#. esterni.", "Nessun dato sar\u00e0 conservato in modo permanente su server
-#. esterni.", "Nessun dato verr\u00e0 archiviato in modo permanente su server
-#. esterni.", "Nessun dato verr\u00e0 conservato in modo permanente su server
-#. esterni."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:80
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:92
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:75
-#, fuzzy
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "Nessun dato sarà archiviato in modo permanente su server esterni."
-
-#. {"msgid": ["Rischi/disagi", "Rischi/Disagi"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:82
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:98
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:78
-#, fuzzy
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "Rischi/disagi"
-
-#. {"msgid": ["Non ci sono rischi per la partecipazione a questo studio, oltre
-#. a quelli associati al normale utilizzo del computer.", "Non ci sono rischi
-#. per la partecipazione a questo studio, oltre a quelli associati al normale
-#. uso del computer.", "Non ci sono rischi per la partecipazione a questo
-#. studio oltre a quelli associati al normale utilizzo del computer.", "Non ci
-#. sono rischi per la partecipazione a questo studio oltre a quelli associati
-#. al normale uso del computer."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:84
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:100
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:80
-#, fuzzy
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-"Non ci sono rischi per la partecipazione a questo studio, oltre a quelli "
-"associati al normale utilizzo del computer."
-
-#. {"msgid": ["Benefici", "Vantaggi"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:87
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:103
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:83
-#, fuzzy
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "Benefici"
-
-#. {"msgid": ["Sebbene non possa giovare direttamente a lei, questo studio
-#. pu\u00f2 giovare alla societ\u00e0, aiutandoci a capire come gli esseri
-#. umani ricavano informazioni dal suono e dalla vista, e potenzialmente per
-#. aiutare a progettare macchine in grado di replicare le nostre capacit\u00e0
-#. (ad esempio, nel riconoscimento del suono e nella visione computerizzata) e
-#. per aiutare a migliorare le capacit\u00e0 percettive nelle persone con
-#. problemi di udito o di vista.", "Sebbene non possa giovare direttamente a
-#. lei, questo studio pu\u00f2 giovare alla societ\u00e0, aiutandoci a capire
-#. come gli esseri umani ricavano informazioni dal suono e dalla vista, e
-#. potenzialmente per aiutare a progettare macchine in grado di replicare le
-#. nostre capacit\u00e0 (ad esempio, nel riconoscimento del suono e nella
-#. visione computerizzata) e per aiutare a migliorare le capacit\u00e0
-#. percettive delle persone con problemi di udito o di vista.", "Sebbene non
-#. possa giovare direttamente a lei, questo studio pu\u00f2 giovare alla
-#. societ\u00e0, aiutandoci a capire come gli esseri umani ricavano
-#. informazioni dal suono e dalla vista, e potenzialmente per aiutare a
-#. progettare macchine in grado di replicare le nostre capacit\u00e0 (ad
-#. esempio, nel riconoscimento del suono e nella visione computerizzata) e per
-#. aiutare a migliorare le capacit\u00e0 percettive nelle persone che hanno
-#. problemi di udito o di vista.", "Sebbene non possa giovare direttamente a
-#. lei, questo studio pu\u00f2 giovare alla societ\u00e0, aiutandoci a capire
-#. come gli esseri umani ricavano informazioni dal suono e dalla vista, e
-#. potenzialmente per aiutare a progettare macchine in grado di replicare le
-#. nostre capacit\u00e0 (ad esempio, nel riconoscimento del suono e nella
-#. visione computerizzata) e per aiutare a migliorare le capacit\u00e0
-#. percettive delle persone che hanno problemi di udito o di vista."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:89
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:105
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:85
-#, fuzzy
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"Sebbene non possa giovare direttamente a lei, questo studio può giovare alla"
-" società, aiutandoci a capire come gli esseri umani ricavano informazioni "
-"dal suono e dalla vista, e potenzialmente per aiutare a progettare macchine "
-"in grado di replicare le nostre capacità (ad esempio, nel riconoscimento del"
-" suono e nella visione computerizzata) e per aiutare a migliorare le "
-"capacità percettive nelle persone con problemi di udito o di vista."
-
-#. {"msgid": ["Compenso", "Compensazione", "Compensi", "Indennit\u00e0"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:92
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:108
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html:88
-#, fuzzy
-msgctxt "consent-compensation"
-msgid "Compensation"
-msgstr "Compenso"
-
-#. {"msgid": ["Se completa in modo soddisfacente lo studio, la ricompensiamo
-#. per la sua partecipazione:", "Se completa in modo soddisfacente lo studio,
-#. la ricompenseremo per la sua partecipazione:", "Se completa lo studio in
-#. modo soddisfacente, la ricompensiamo per la sua partecipazione:", "Se
-#. completer\u00e0 lo studio in modo soddisfacente, la ricompenseremo per la
-#. sua partecipazione:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:94
-#, fuzzy
-msgctxt "consent-compensation"
-msgid ""
-"If you satisfactorily complete the study, we compensate you for your "
-"participation:"
-msgstr ""
-"Se completa in modo soddisfacente lo studio, la ricompensiamo per la sua "
-"partecipazione:"
-
-#. {"msgid": ["all'ora", "per ora"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:95
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:112
-#, fuzzy
-msgid "per hour"
-msgstr "all'ora"
-
-#. {"msgid": ["Potrebbe anche ricevere un pagamento aggiuntivo in base alle
-#. sue prestazioni nel compito.", "Pu\u00f2 anche ricevere un pagamento
-#. aggiuntivo in base alle sue prestazioni nel compito.", "Potr\u00e0 anche
-#. ricevere un pagamento aggiuntivo in base alle sue prestazioni nel
-#. compito.", "Pu\u00f2 anche ricevere un pagamento aggiuntivo in base alla
-#. sua prestazione nel compito."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:96
-#, fuzzy
-msgctxt "consent-compensation"
-msgid ""
-"You may also receive an additional payment based on your performance in the "
-"task."
-msgstr ""
-"Potrebbe anche ricevere un pagamento aggiuntivo in base alle sue prestazioni"
-" nel compito."
-
-#. {"msgid": ["Apprezziamo il suo contributo alla scienza!"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:97
-#, fuzzy
-msgctxt "consent-compensation"
-msgid "We appreciate your contribution to science!"
-msgstr "Apprezziamo il suo contributo alla scienza!"
 
 #. {"msgid": ["In questo esperimento, potrebbe esserle chiesto di effettuare
 #. una registrazione vocale o video.", "Nel corso di questo esperimento,
@@ -4865,382 +3689,315 @@ msgstr ""
 "Ha anche il diritto di presentare un'obiezione all'autorità di vigilanza. "
 "Per la Società Max-Planck, questo è:"
 
-#. {"msgid": ["Invio del Sondaggio Lucid", "Invio del sondaggio Lucid",
-#. "Presentazione del Sondaggio Lucid", "Invio di un sondaggio Lucid"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html:38
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "Invio del Sondaggio Lucid"
 
-#. {"msgid": ["Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui
-#. sotto.", "Per completare il suo Sondaggio Lucid, clicchi sul pulsante
-#. sottostante.", "Per completare il Sondaggio Lucid, clicchi sul pulsante qui
-#. sotto.", "Per completare il Sondaggio Lucid, clicchi sul pulsante
-#. sottostante."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html:40
+#### RARE QUESTIONAIRES
+#. {"msgid": ["Quanti anni di formazione formale su uno strumento musicale
+#. (inclusa la voce) ha avuto nel corso della sua vita?", "Quanti anni di
+#. formazione formale su uno strumento musicale (compresa la voce) ha avuto
+#. nel corso della sua vita?", "Quanti anni di formazione formale su uno
+#. strumento musicale (inclusa la voce) ha avuto durante la sua vita?",
+#. "Quanti anni di formazione formale su uno strumento musicale (compresa la
+#. voce) ha avuto durante la sua vita?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:396
 #, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-"Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui sotto."
-
-#. {"msgid": ["Completare il sondaggio", "Completa il sondaggio", "Completi il
-#. sondaggio", "Completa il Sondaggio"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html:41
-#, fuzzy
-msgid "Complete Survey"
-msgstr "Completare il sondaggio"
-
-#. ""
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:4
-#, python-format
+msgctxt "music"
 msgid ""
-"In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
+"How many years of formal training on a musical instrument (including voice) "
+"have you had during your lifetime?"
 msgstr ""
+"Quanti anni di formazione formale su uno strumento musicale (inclusa la "
+"voce) ha avuto nel corso della sua vita?"
 
-#. ""
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:7
-#, python-format
+#. {"msgid": ["In media, quante ore ascolta musica al giorno?", "In media,
+#. quante ore ascolta quotidianamente la musica?", "In media, quante ore
+#. ascolta la musica ogni giorno?", "In media, quante ore ascolta la musica
+#. quotidianamente?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:417
+#, fuzzy
+msgctxt "music"
+msgid "On average, how many hours do you listen to music daily?"
+msgstr "In media, quante ore ascolta musica al giorno?"
+
+#. {"msgid": ["Guadagna soldi con la musica?", "Guadagna denaro con la
+#. musica?", "Guadagna con la musica?", "Guadagna soldi suonando?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:436
+#, fuzzy
+msgctxt "music"
+msgid "Do you make money from playing music?"
+msgstr "Guadagna soldi con la musica?"
+
+#. {"msgid": ["Spesso", "Frequentemente"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:441
+#, fuzzy
+msgctxt "music"
+msgid "Frequently"
+msgstr "Spesso"
+
+#. {"msgid": ["Mai", "mai", "Non \u00e8 mai successo", "Non \u00e8 mai stato
+#. cos\u00ec"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:441
+#, fuzzy
+msgctxt "music"
+msgid "Never"
+msgstr "Mai"
+
+#. {"msgid": ["A volte", "Qualche volta", "Talvolta"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:441
+#, fuzzy
+msgctxt "music"
+msgid "Sometimes"
+msgstr "A volte"
+
+#. {"msgid": ["Ha una perdita dell'udito o altri problemi di udito?", "Ha una
+#. perdita di udito o altri problemi di udito?", "Soffre di perdita dell'udito
+#. o di altri problemi uditivi?", "Ha una perdita dell'udito o altri problemi
+#. uditivi?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:459
+#, fuzzy
+msgctxt "music"
+msgid "Do you have hearing loss or any other hearing issues?"
+msgstr "Ha una perdita dell'udito o altri problemi di udito?"
+
+#. {"msgid": ["Balla a livello sociale o professionale?", "Danza a livello
+#. sociale o professionale?", "Balla in modo sociale o professionale?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:482
+#, fuzzy
+msgctxt "dance"
+msgid "Do you dance socially or professionally?"
+msgstr "Balla a livello sociale o professionale?"
+
+#. {"msgid": ["Socialmente", "A livello sociale", "In modo sociale"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:488
+#, fuzzy
+msgctxt "dance"
+msgid "Socially"
+msgstr "Socialmente"
+
+#. {"msgid": ["Professionalmente", "A livello professionale",
+#. "professionalmente", "In modo professionale"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:489
+#, fuzzy
+msgctxt "dance"
+msgid "Professionally"
+msgstr "Professionalmente"
+
+#. {"msgid": ["Non ballo mai"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:490
+#, fuzzy
+msgctxt "dance"
+msgid "I never dance"
+msgstr "Non ballo mai"
+
+#. {"msgid": ["Quando \u00e8 stata l'ultima volta che ha ballato? (scelga la
+#. risposta pi\u00f9 precisa):", "Quando ha ballato per l'ultima volta?
+#. (scelga la risposta pi\u00f9 precisa):", "Quando ha ballato per l'ultima
+#. volta? (scelga la risposta pi\u00f9 accurata):", "Quand'\u00e8 stata
+#. l'ultima volta che ha ballato? (scelga la risposta pi\u00f9 precisa):"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:509
+#, fuzzy
+msgctxt "dance"
+msgid "When was the last time you danced? (choose the most accurate answer):"
+msgstr ""
+"Quando è stata l'ultima volta che ha ballato? (scelga la risposta più "
+"precisa):"
+
+#. {"msgid": ["Questa settimana"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:523
+#, fuzzy
+msgctxt "dance"
+msgid "This week"
+msgstr "Questa settimana"
+
+#. {"msgid": ["Questo mese"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:524
+#, fuzzy
+msgctxt "dance"
+msgid "This month"
+msgstr "Questo mese"
+
+#. {"msgid": ["Quest'anno", "Questo anno"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:525
+#, fuzzy
+msgctxt "dance"
+msgid "This year"
+msgstr "Quest'anno"
+
+#. {"msgid": ["Alcuni anni fa", "Qualche anno fa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:526
+#, fuzzy
+msgctxt "dance"
+msgid "Some years ago"
+msgstr "Alcuni anni fa"
+
+#. {"msgid": ["Molti anni fa"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:527
+#, fuzzy
+msgctxt "dance"
+msgid "Many years ago"
+msgstr "Molti anni fa"
+
+#. {"msgid": ["Non ho mai ballato", "non ho mai ballato"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:528
+#, fuzzy
+msgctxt "dance"
+msgid "I never danced"
+msgstr "Non ho mai ballato"
+
+#. {"msgid": ["Ha fatto terapia logopedica da bambino?", "Ha seguito una
+#. terapia logopedica da bambino?", "Ha fatto terapia linguistica da
+#. bambino?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:547
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Did you get speech-language therapy as a child?"
+msgstr "Ha fatto terapia logopedica da bambino?"
+
+#. {"msgid": ["Non lo so", "Non so", "Non lo so...", "Non lo so."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:553
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:576
+#, fuzzy
+msgid "I don’t know"
+msgstr "Non lo so"
+
+#. {"msgid": ["Le \u00e8 mai stata diagnosticata la dislessia?", "Le \u00e8
+#. mai stata diagnosticata una dislessia?", "Le \u00e8 stata mai diagnosticata
+#. la dislessia?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:570
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Have you ever been diagnosed with dyslexia?"
+msgstr "Le è mai stata diagnosticata la dislessia?"
+
+#. {"msgid": ["Qual \u00e8 il suo reddito familiare totale all'anno?", "Qual
+#. \u00e8 il suo reddito familiare complessivo all'anno?", "Qual \u00e8 il suo
+#. reddito familiare totale annuo?", "Qual \u00e8 il reddito familiare totale
+#. annuo?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:594
+#, fuzzy
+msgctxt "income"
+msgid "What is your total household income per year?"
+msgstr "Qual è il suo reddito familiare totale all'anno?"
+
+#. {"msgid": ["Meno di 10.000 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:613
+#, fuzzy
+msgctxt "income"
+msgid "Less than 10,000 {}"
+msgstr "Meno di 10.000 {}"
+
+#. {"msgid": ["Da 10.000 a 19.999 {}", "da 10.000 a 19.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:614
+#, fuzzy
+msgctxt "income"
+msgid "10,000 to 19,999 {}"
+msgstr "Da 10.000 a 19.999 {}"
+
+#. {"msgid": ["Da 20.000 a 29.999 {}", "da 20.000 a 29.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:615
+#, fuzzy
+msgctxt "income"
+msgid "20,000 to 29,999 {}"
+msgstr "Da 20.000 a 29.999 {}"
+
+#. {"msgid": ["Da 30.000 a 39.999 {}", "da 30.000 a 39.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:616
+#, fuzzy
+msgctxt "income"
+msgid "30,000 to 39,999 {}"
+msgstr "Da 30.000 a 39.999 {}"
+
+#. {"msgid": ["Da 40.000 a 49.999 {}", "da 40.000 a 49.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:617
+#, fuzzy
+msgctxt "income"
+msgid "40,000 to 49,999 {}"
+msgstr "Da 40.000 a 49.999 {}"
+
+#. {"msgid": ["Da 50.000 a 59.999 {}", "da 50.000 a 59.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:618
+#, fuzzy
+msgctxt "income"
+msgid "50,000 to 59,999 {}"
+msgstr "Da 50.000 a 59.999 {}"
+
+#. {"msgid": ["Da 60.000 a 69.999 {}", "da 60.000 a 69.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:619
+#, fuzzy
+msgctxt "income"
+msgid "60,000 to 69,999 {}"
+msgstr "Da 60.000 a 69.999 {}"
+
+#. {"msgid": ["Da 70.000 a 79.999 {}", "da 70.000 a 79.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:620
+#, fuzzy
+msgctxt "income"
+msgid "70,000 to 79,999 {}"
+msgstr "Da 70.000 a 79.999 {}"
+
+#. {"msgid": ["Da 80.000 a 89.999 {}", "da 80.000 a 89.999 {}", "80.000 a
+#. 89.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:621
+#, fuzzy
+msgctxt "income"
+msgid "80,000 to 89,999 {}"
+msgstr "Da 80.000 a 89.999 {}"
+
+#. {"msgid": ["Da 90.000 a 99.999 {}", "da 90.000 a 99.999 {}", "90.000 a
+#. 99.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:622
+#, fuzzy
+msgctxt "income"
+msgid "90,000 to 99,999 {}"
+msgstr "Da 90.000 a 99.999 {}"
+
+#. {"msgid": ["Da 100.000 a 149.999 {}", "da 100.000 a 149.999 {}"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:623
+#, fuzzy
+msgctxt "income"
+msgid "100,000 to 149,999 {}"
+msgstr "Da 100.000 a 149.999 {}"
+
+#. {"msgid": ["150.000 {} o pi\u00f9", "150.000 {} e oltre"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:624
+#, fuzzy
+msgctxt "income"
+msgid "150,000 {} or more"
+msgstr "150.000 {} o più"
+
+#. {"msgid": ["Le \u00e8 piaciuto l'esperimento?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:642
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you like the experiment?"
+msgstr "Le è piaciuto l'esperimento?"
+
+#. {"msgid": ["Ha trovato l'esperimento difficile?", "Ha trovato difficile
+#. l'esperimento?"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:663
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you find the experiment difficult?"
+msgstr "Ha trovato l'esperimento difficile?"
+
+#. {"msgid": ["Ha riscontrato problemi tecnici durante l'esperimento? In caso
+#. affermativo, la preghiamo di fornire qualche parola che descriva il
+#. problema.", "Ha riscontrato qualche problema tecnico durante l'esperimento?
+#. In caso affermativo, la preghiamo di fornire qualche parola che descriva il
+#. problema.", "Ha riscontrato problemi tecnici durante l'esperimento? In caso
+#. affermativo, la preghiamo di fornire alcune parole che descrivano il
+#. problema.", "Ha riscontrato qualche problema tecnico durante l'esperimento?
+#. In caso affermativo, la preghiamo di fornire alcune parole che descrivano
+#. il problema."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:685
+#, fuzzy
+msgctxt "experiment-feedback"
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+"Did you encounter any technical problems during the experiment? If so, "
+"please provide a few words describing the problem."
 msgstr ""
+"Ha riscontrato problemi tecnici durante l'esperimento? In caso affermativo, "
+"la preghiamo di fornire qualche parola che descriva il problema."
 
-#. {"msgid": ["Finitura", "Finiture"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:13
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:17
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:17
-#, fuzzy
-msgid "Finish"
-msgstr "Finitura"
-
-#. {"msgid": ["Il consenso \u00e8 stato rifiutato.", "Il consenso \u00e8 stato
-#. respinto."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:4
-#, fuzzy
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr "Il consenso è stato rifiutato."
-
-#. {"msgid": ["Fine dell'esperimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:5
-#, fuzzy
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr "Fine dell'esperimento."
-
-#. {"msgid": ["Clicchi su \"Fine\" per completare l'HIT."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html:9
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:12
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:13
-#, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Clicchi su \"Fine\" per completare l'HIT."
-
-#. {"msgid": ["Questa \u00e8 la fine dell'esperimento!"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:4
-#, fuzzy
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr "Questa è la fine dell'esperimento!"
-
-#. {"msgid": ["Grazie per aver partecipato.", "Grazie per la partecipazione.",
-#. "Grazie per la sua partecipazione.", "La ringrazio per aver partecipato."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html:8
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:9
-#, fuzzy
-msgid "Thank you for taking part."
-msgstr "Grazie per aver partecipato."
-
-#. {"msgid": ["Purtroppo l'esperimento deve terminare prima.", "Purtroppo
-#. l'esperimento deve terminare in anticipo.", "Purtroppo l'esperimento deve
-#. finire prima.", "Purtroppo l'esperimento deve terminare prima del
-#. previsto."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:4
-#, fuzzy
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr "Purtroppo l'esperimento deve terminare prima."
-
-#. {"msgid": ["Tuttavia, sar\u00e0 comunque pagato per il tempo gi\u00e0
-#. trascorso.", "Tuttavia, sar\u00e0 comunque pagato per il tempo che ha
-#. gi\u00e0 trascorso.", "Tuttavia, sar\u00e0 comunque retribuito per il tempo
-#. gi\u00e0 trascorso.", "Tuttavia, sar\u00e0 comunque retribuito per il tempo
-#. che ha gi\u00e0 trascorso."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html:6
-#, fuzzy
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr "Tuttavia, sarà comunque pagato per il tempo già trascorso."
-
-#. {"msgid": ["Potr\u00e0 interrompere l'esperimento utilizzando il pulsante
-#. <strong>Abort experiment</strong> <strong>sulla pagina dell'annuncio
-#. MTurk</strong>.", "Potrebbe essere in grado di interrompere l'esperimento
-#. utilizzando il pulsante <strong>Abort experiment</strong> <strong>sulla
-#. pagina dell'annuncio MTurk</strong>.", "Potr\u00e0 interrompere
-#. l'esperimento utilizzando il pulsante <strong>Abort experiment</strong>
-#. <strong>sulla pagina degli annunci MTurk</strong>.", "Potrebbe essere in
-#. grado di interrompere l'esperimento utilizzando il pulsante <strong>Abort
-#. experiment</strong> <strong>sulla pagina degli annunci MTurk</strong>."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:17
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Potrà interrompere l'esperimento utilizzando il pulsante <strong>Abort "
-"experiment</strong> <strong>sulla pagina dell'annuncio MTurk</strong>."
-
-#. {"msgid": ["Una volta interrotto, non \u00e8 necessario contattarci per
-#. ricevere il compenso; questo dovrebbe esserle assegnato automaticamente
-#. tramite MTurk pochi minuti dopo.", "Una volta interrotto, non \u00e8
-#. necessario contattarci per ricevere il compenso; questo dovrebbe esserle
-#. assegnato automaticamente via MTurk pochi minuti dopo.", "Una volta
-#. interrotto, non c'\u00e8 bisogno di contattarci per ricevere il compenso;
-#. questo dovrebbe esserle assegnato automaticamente tramite MTurk pochi
-#. minuti dopo.", "Una volta interrotto, non \u00e8 necessario contattarci per
-#. ricevere il compenso; questo dovrebbe esserle assegnato automaticamente
-#. tramite MTurk qualche minuto dopo."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:18
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Una volta interrotto, non è necessario contattarci per ricevere il compenso;"
-" questo dovrebbe esserle assegnato automaticamente tramite MTurk pochi "
-"minuti dopo."
-
-#. {"msgid": ["In caso contrario, la preghiamo di contattarci all'indirizzo
-#. %(EMAIL)s citando le seguenti informazioni:", "In caso contrario, la
-#. preghiamo di contattarci al numero %(EMAIL)s citando le seguenti
-#. informazioni:", "In caso contrario, la invitiamo a contattarci al numero
-#. %(EMAIL)s citando le seguenti informazioni:", "In caso contrario, la
-#. preghiamo di contattarci all'indirizzo %(EMAIL)s citando i seguenti
-#. dati:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:19
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"In caso contrario, la preghiamo di contattarci all'indirizzo %(EMAIL)s "
-"citando le seguenti informazioni:"
-
-#. {"msgid": ["Per richiedere un risarcimento, contatti il ricercatore
-#. all'indirizzo %(EMAIL)s e descriva la causa di questo errore.", "Per
-#. richiedere un risarcimento, la preghiamo di contattare il ricercatore
-#. all'indirizzo %(EMAIL)s e di descrivere la causa di questo errore.", "Per
-#. richiedere un risarcimento, la preghiamo di contattare il ricercatore
-#. all'indirizzo %(EMAIL)s e di descrivere la causa dell'errore.", "Per
-#. richiedere un risarcimento, la preghiamo di contattare il ricercatore
-#. all'indirizzo %(EMAIL)s e di descrivere il motivo di questo errore."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:22
-#, python-format, fuzzy
-msgid ""
-"To enquire about compensation, please contact the researcher at %(EMAIL)s "
-"and describe what led to this error."
-msgstr ""
-"Per richiedere un risarcimento, contatti il ricercatore all'indirizzo "
-"%(EMAIL)s e descriva la causa di questo errore."
-
-#. {"msgid": ["La preghiamo inoltre di citare le seguenti informazioni:", "La
-#. preghiamo di citare anche le seguenti informazioni:", "La preghiamo inoltre
-#. di riportare le seguenti informazioni:", "La preghiamo di riportare anche
-#. le seguenti informazioni:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:23
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "La preghiamo inoltre di citare le seguenti informazioni:"
-
-#. {"msgid": ["Tipo di errore"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:27
-#, fuzzy
-msgid "Error type"
-msgstr "Tipo di errore"
-
-#. {"msgid": ["ID lavoratore", "ID del lavoratore"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:30
-#, fuzzy
-msgid "Worker ID"
-msgstr "ID lavoratore"
-
-#. {"msgid": ["Interrompere l'esperimento", "Interruzione dell'esperimento",
-#. "Interrompi l'esperimento", "Annullare l'esperimento"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:34
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Interrompere l'esperimento"
-
-#. {"msgid": ["Clicchi sul pulsante qui sopra per essere risarcito in caso di
-#. errore.", "Clicchi sul pulsante qui sopra per ricevere il risarcimento in
-#. caso di errore.", "Clicchi sul pulsante qui sopra per ricevere un
-#. risarcimento in caso di errore.", "Clicchi sul pulsante di cui sopra per
-#. essere risarcito in caso di errore."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:37
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-"Clicchi sul pulsante qui sopra per essere risarcito in caso di errore."
-
-#. {"msgid": ["Errore!"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html:9
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Errore!"
-
-#. {"msgid": ["Riprendere l'esperimento ...", "Riprendere l'esperimento...",
-#. "Riprendendo l'esperimento ...", "Ripresa dell'esperimento ..."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/resume.html:8
-#, fuzzy
-msgid "Resuming experiment ..."
-msgstr "Riprendere l'esperimento ..."
-
-#. {"msgid": ["Esperimento iniziale...", "Iniziare l'esperimento...", "Inizio
-#. esperimento...", "Esperimento di partenza..."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/start.html:8
-#, fuzzy
-msgctxt "start"
-msgid "Starting experiment..."
-msgstr "Esperimento iniziale..."
-
-#. {"msgid": ["Il suo ID partecipante non \u00e8 definito, forse perch\u00e9
-#. ha cambiato browser durante il test.", "L'ID del partecipante non \u00e8
-#. definito, forse perch\u00e9 ha cambiato browser durante il test.", "L'ID
-#. del suo partecipante non \u00e8 definito, forse perch\u00e9 ha cambiato
-#. browser durante il test."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:1230
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Il suo ID partecipante non è definito, forse perché ha cambiato browser "
-"durante il test."
-
-#. {"msgid": ["Purtroppo questo comportamento non \u00e8 attualmente
-#. supportato.", "Purtroppo, questo comportamento non \u00e8 attualmente
-#. supportato.", "Purtroppo questo comportamento non \u00e8 al momento
-#. supportato.", "Sfortunatamente, questo comportamento non \u00e8 attualmente
-#. supportato."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:1231
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Purtroppo questo comportamento non è attualmente supportato."
-
-#. {"msgid": ["In caso di problemi, provi quanto segue:", "In caso di
-#. problemi, provi a fare quanto segue:", "In caso di problemi, provi a
-#. seguire:", "In caso di problemi, provi a fare come segue:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:136
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "In caso di problemi, provi quanto segue:"
-
-#. {"msgid": ["Ricarichi la pagina.", "Ricaricare la pagina.", "Ricarica la
-#. pagina."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:138
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Ricarichi la pagina."
-
-#. {"msgid": ["Verifichi che la sua connessione internet funzioni.",
-#. "Verifichi che la sua connessione a Internet funzioni.", "Verifichi che la
-#. sua connessione a Internet sia funzionante.", "Verifichi che la sua
-#. connessione a Internet sia attiva."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:139
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Verifichi che la sua connessione internet funzioni."
-
-#. {"msgid": ["Se quanto sopra non \u00e8 di aiuto, ci invii un'e-mail con le
-#. seguenti informazioni:", "Se quanto sopra non aiuta, ci invii un'e-mail con
-#. le seguenti informazioni:", "Se quanto sopra non \u00e8 d'aiuto, ci invii
-#. un'e-mail con le seguenti informazioni:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:145
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Se quanto sopra non è di aiuto, ci invii un'e-mail con le seguenti "
-"informazioni:"
-
-#. {"msgid": ["Un link alla pagina web corrente;", "Un link alla pagina web
-#. attuale;", "un link alla pagina web corrente;"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:149
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Un link alla pagina web corrente;"
-
-#. {"msgid": ["Il suo ID lavoratore;", "Il suo ID Lavoratore;", "Il suo ID di
-#. lavoratore;", "il suo ID lavoratore;"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:150
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Il suo ID lavoratore;"
-
-#. {"msgid": ["Il problema che sta riscontrando.", "Il problema riscontrato.",
-#. "il problema che sta riscontrando.", "Il problema che sta incontrando."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:151
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Il problema che sta riscontrando."
-
-#. {"msgid": ["\u00c8 pronto?", "\u00c8 pronta?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:163
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr "È pronto?"
-
-#. {"msgid": ["Clicchi sul pulsante quando \u00e8 pronto per continuare
-#. l'esperimento.", "Clicchi sul pulsante quando \u00e8 pronto a continuare
-#. l'esperimento.", "Clicchi sul pulsante quando \u00e8 pronto a proseguire
-#. l'esperimento.", "Clicchi il pulsante quando \u00e8 pronto per continuare
-#. l'esperimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:165
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr "Clicchi sul pulsante quando è pronto per continuare l'esperimento."
-
-#. {"msgid": ["Riprendere", "Ripresa", "Riprendi", "Riprendete"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:168
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr "Riprendere"
-
-#. {"msgid": ["Bonus"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:214
-#, fuzzy
-msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#. {"msgid": ["Aiuto!"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/timeline-page.html:240
-#, fuzzy
-msgctxt "timeline"
-msgid "Help!"
-msgstr "Aiuto!"
 
 #. {"msgid": ["Sanscrito"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:1000
