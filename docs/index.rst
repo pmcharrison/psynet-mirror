@@ -54,7 +54,7 @@ but see the sidebar for a full list.
    :maxdepth: 2
    :hidden:
 
-   legacy_installation/index
+   developer_installation/index
 
 .. toctree::
    :hidden:
