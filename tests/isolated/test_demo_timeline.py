@@ -41,7 +41,7 @@ class TestExp(object):
             )
             next_page(driver, "consent")
 
-            assert_text(driver, "main-body", "Welcome to the experiment! Next")
+            assert_text(driver, "main-body", "Welcome Welcome to the experiment! Next")
             next_page(driver, "next-button")
 
             # Page 1

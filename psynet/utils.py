@@ -40,7 +40,7 @@ DEFAULT_LOCALE = "en"
 
 
 class NoArgumentProvided:
-    """ "
+    """
     We use this class as a replacement for ``None`` as a default argument,
     to distinguish cases where the user doesn't provide an argument
     from cases where they intentionally provide ``None`` as an argument.
@@ -79,7 +79,7 @@ def dict_to_js_vars(x):
 
 def call_function(function, *args, **kwargs):
     """
-    Calls a function with *args and **kwargs, but omits any **kwargs that are
+    Calls a function with ``*args`` and ``**kwargs``, but omits any ``**kwargs`` that are
     not requested explicitly.
     """
     kwargs = {key: value for key, value in kwargs.items() if key in get_args(function)}
@@ -301,10 +301,12 @@ class DisableLogger:
 
 
 def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
+    """
+    Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
+
         It must be "yes" (the default), "no" or None (meaning
         an answer is required of the user).
 
@@ -500,7 +502,7 @@ def get_language():
     """
     if not config.ready:
         config.load()
-    return config.get("language")
+    return config.get("language", "en")
 
 
 def _render_with_translations(
@@ -588,10 +590,11 @@ def get_translator(
 def countries(locale=None):
     """
     List compiled using the pycountry package v20.7.3 with
-    ``
-    sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
-        if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
-    ``
+
+    ::
+
+        sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
+            if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
     _, _p, _np = get_translator(locale)
     return [
@@ -850,10 +853,11 @@ def countries(locale=None):
 def languages(locale=None):
     """
     List compiled using the pycountry package v20.7.3 with
-    ``
-    sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
-        if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
-    ``
+
+    ::
+
+        sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
+            if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
     _, _p, _np = get_translator(locale)
     return [

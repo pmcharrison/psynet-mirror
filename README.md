@@ -55,10 +55,3 @@ pytest -s test.py
 
 # Close the Docker container with CTRL-D
 ```
-
-# Building documentation locally
-
-```
-make -C docs html
-open docs/_build/html/index.html
-```

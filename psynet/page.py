@@ -4,6 +4,7 @@ import warnings
 from math import ceil
 from typing import List, Optional, Union
 
+from dominate.dom_tag import dom_tag
 from flask import Markup, escape
 from pkg_resources import resource_filename
 
@@ -56,7 +57,7 @@ class InfoPage(Page):
 
     def __init__(
         self,
-        content: Union[str, Markup],
+        content: Union[str, Markup, dom_tag],
         time_estimate: Optional[float] = None,
         **kwargs,
     ):

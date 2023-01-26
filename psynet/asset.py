@@ -122,7 +122,7 @@ class InheritedAssets(AssetCollection):
 
     path : str
         Path to a CSV file specifying the previous assets. This CSV file should come
-        from the ``db/asset.csv` file of an experiment export. The CSV file can
+        from the ``db/asset.csv`` file of an experiment export. The CSV file can
         optionally be customized by deleting rows corresponding to unneeded assets,
         or it can be merged with analogous CSV files from other experiments.
         Importantly, however, the ``key`` column must not contain any duplicates.
@@ -222,7 +222,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -281,26 +281,30 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
 
-    # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
-    # Inheriting from NullElt means that the Asset object can be placed in the timeline.
+    # Inheriting from ``SQLBase`` and ``SQLMixin`` means that the ``Asset`` object is stored in the database.
+    # Inheriting from ``NullElt`` means that the ``Asset`` object can be placed in the timeline.
 
     __tablename__ = "asset"
     __extra_vars__ = {}
@@ -875,7 +879,7 @@ class ManagedAsset(Asset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     personal : bool
@@ -920,7 +924,7 @@ class ManagedAsset(Asset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -979,20 +983,24 @@ class ManagedAsset(Asset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1134,6 +1142,7 @@ class ExperimentAsset(ManagedAsset):
     --------
 
     ::
+
         import tempfile
 
         with tempfile.NamedTemporaryFile("w") as file:
@@ -1182,7 +1191,7 @@ class ExperimentAsset(ManagedAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     personal : bool
@@ -1217,7 +1226,7 @@ class ExperimentAsset(ManagedAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -1276,20 +1285,24 @@ class ExperimentAsset(ManagedAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1321,6 +1334,7 @@ class CachedAsset(ManagedAsset):
     experiment launch. For example:
 
     ::
+
          asset = CachedAsset(
             local_key="bier",
             input_path="bier.wav",
@@ -1373,7 +1387,7 @@ class CachedAsset(ManagedAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     personal : bool
@@ -1418,7 +1432,7 @@ class CachedAsset(ManagedAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -1477,20 +1491,24 @@ class CachedAsset(ManagedAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1727,7 +1745,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     module_id : str
@@ -1776,7 +1794,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -1835,20 +1853,24 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1966,7 +1988,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     module_id : str
@@ -2021,7 +2043,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -2080,20 +2102,24 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -2166,7 +2192,7 @@ class ExternalAsset(Asset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -2225,20 +2251,24 @@ class ExternalAsset(Asset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -2470,7 +2500,7 @@ class AssetStorage:
                 prefix = "http://localhost:5000"
             else:
                 prefix = host
-            url = os.path.join(prefix, url)
+            url = prefix + url
         return url
 
     def export_subfile(self, asset, subfile, path):
@@ -2547,7 +2577,7 @@ class LocalStorage(AssetStorage):
     same file system.
     """
 
-    label = "local_storage"
+    label = "assets"
 
     def __init__(self, root=None):
         """
@@ -2565,7 +2595,6 @@ class LocalStorage(AssetStorage):
 
         self._initialized = False
         self._root = root
-        self.public_path = self._create_public_path()
 
     def setup_files(self):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
@@ -2613,27 +2642,32 @@ class LocalStorage(AssetStorage):
 
         Path(self.root).mkdir(parents=True, exist_ok=True)
 
-    def _create_public_path(self):
+    @property
+    def local_path(self):
+        return os.path.join("static", self.label)
+
+    @property
+    def public_path(self):
         """
         This is the publicly exposed path by which the web browser can access the storage registry.
         This corresponds to a (symlinked) directory inside the experiment directory.
         """
-        return os.path.join("static", self.label)
+        return "/" + self.local_path
 
     def _create_symlink(self):
         try:
-            os.unlink(self.public_path)
+            os.unlink(self.local_path)
         except (FileNotFoundError, IsADirectoryError, PermissionError):
-            # Path(self.public_path).rmdir()
+            # Path(self.local_path).rmdir()
             try:
-                shutil.rmtree(self.public_path)
+                shutil.rmtree(self.local_path)
             except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
                 pass
 
         os.makedirs("static", exist_ok=True)
 
         try:
-            os.symlink(self.root, self.public_path)
+            os.symlink(self.root, self.local_path)
         except FileExistsError:
             pass
 
