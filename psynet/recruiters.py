@@ -3,6 +3,7 @@ import os
 from math import ceil
 
 import dallinger.recruiters
+import dominate
 import flask
 import requests
 from dallinger import db
@@ -137,7 +138,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     """
     The LucidRecruiter base class
 
-    ...
 
     Attributes
     ----------
@@ -352,3 +352,44 @@ class LucidRecruiter(BaseLucidRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
+
+
+class GenericRecruiter(PsyNetRecruiter):
+    """
+    An improved version of Dallinger's Hot-Air Recruiter.
+    """
+
+    nickname = "generic"
+
+    def exit_response(self, experiment, participant):
+        from psynet.timeline import Page
+
+        message = experiment.render_exit_message(participant)
+
+        if message is None:
+            raise ValueError(
+                "experiment.render_exit_message returned None. Did you forget to use 'return'?"
+            )
+
+        elif isinstance(message, Page):
+            raise ValueError(
+                "Sorry, you can't return a Page from experiment.render_exit_message."
+            )
+
+        elif message == "default_exit_message":
+            return super().exit_response(experiment, participant)
+
+        elif isinstance(message, str):
+            html = dominate.tags.p(message).render()
+
+        elif isinstance(message, dominate.dom_tag.dom_tag):
+            html = message.render()
+
+        else:
+            raise ValueError(
+                f"Invalid value of experiment.render_exit_message: {message}. "
+                "You should return either a string or an HTML specification created using dominate tags "
+                "(see https://pypi.org/project/dominate/)."
+            )
+
+        return flask.render_template("custom_html.html", html=html)

@@ -1,10 +1,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-13/01/ 10:08:16\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-01-22 12:56+0100\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
 "Language: de\n"
@@ -12,6 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #. {"msgid": ["Wie identifizieren Sie sich?", "Wie geben Sie sich zu
 #. erkennen?", "Wie identifizieren Sie sich selbst?", "Wie erkennen Sie sich
@@ -87,8 +88,8 @@ msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
 "was: '{}'"
 msgstr ""
-"Sie müssen Ihr Alter als ganze Zahl zwischen 0 und 120 angeben! Ihre Antwort"
-" war: '{}'."
+"Sie müssen Ihr Alter als ganze Zahl zwischen 0 und 120 angeben! Ihre Antwort "
+"war: '{}'."
 
 #. {"msgid": ["Aus welchem Land kommen Sie?", "Aus welchem Land sind Sie?",
 #. "Aus welchem Land stammen Sie?", "Woher kommen Sie?"]}
@@ -148,7 +149,7 @@ msgstr "Welches ist Ihr höchster formaler Bildungsabschluss?"
 #, fuzzy
 msgctxt "formal-education"
 msgid "None"
-msgstr "Keine"
+msgstr "Keiner"
 
 #. {"msgid": ["H\u00f6here Schule", "Hohe Schule", "Oberschule", "Gymnasium"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py:264
@@ -281,8 +282,8 @@ msgid ""
 "How many years of formal training on a musical instrument (including voice) "
 "have you had during your lifetime?"
 msgstr ""
-"Wie viele Jahre formale Ausbildung auf einem Musikinstrument (einschließlich"
-" Gesang) haben Sie im Laufe Ihres Lebens genossen?"
+"Wie viele Jahre formale Ausbildung auf einem Musikinstrument (einschließlich "
+"Gesang) haben Sie im Laufe Ihres Lebens genossen?"
 
 #. {"msgid": ["Wie viele Stunden h\u00f6ren Sie im Durchschnitt t\u00e4glich
 #. Musik?", "Wie viele Stunden h\u00f6ren Sie durchschnittlich t\u00e4glich
@@ -610,8 +611,8 @@ msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
 msgstr ""
-"Ein Abbruch des Experiments ist nicht möglich, da der Experimentator dies zu"
-" diesem Zeitpunkt nicht zulässt!"
+"Ein Abbruch des Experiments ist nicht möglich, da der Experimentator dies zu "
+"diesem Zeitpunkt nicht zulässt!"
 
 #. {"msgid": ["Sie m\u00fcssen <strong>mindestens
 #. $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> an Bonus anh\u00e4ufen, um
@@ -625,8 +626,8 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html:39
 #, fuzzy, python-format
 msgid ""
-"You have to accumulate <strong>at least "
-"$%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
+"You have to accumulate <strong>at least $"
+"%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able to be "
 "compensated."
 msgstr ""
 "Sie müssen <strong>mindestens $%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> "
@@ -637,8 +638,8 @@ msgstr ""
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able "
+"to be compensated."
 msgstr ""
 "Sie müssen <strong>mindestens "
 "%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> an Bonus anhäufen, "
@@ -827,8 +828,8 @@ msgstr "Vertraulichkeit"
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"All the recordings we obtain during this research will be kept confidential,"
-" and nobody outside the group of researchers will be able to share or store "
+"All the recordings we obtain during this research will be kept confidential, "
+"and nobody outside the group of researchers will be able to share or store "
 "them."
 msgstr ""
 "Alle Aufnahmen, die wir im Rahmen dieser Forschung erhalten, werden "
@@ -859,15 +860,14 @@ msgstr ""
 msgctxt "consent-confidentiality"
 msgid ""
 "However, in some experiments, your recordings may be seen or heard by other "
-"participants in order to evaluate them in different attributes or create new"
-" materials (for example replicate a rhythm that you created, or continue a "
+"participants in order to evaluate them in different attributes or create new "
+"materials (for example replicate a rhythm that you created, or continue a "
 "melody that you sang)."
 msgstr ""
 "Bei einigen Experimenten können Ihre Aufnahmen jedoch von anderen "
 "Teilnehmern gesehen oder gehört werden, um sie in verschiedenen Attributen "
-"zu bewerten oder neues Material zu erstellen (z.B. einen von Ihnen kreierten"
-" Rhythmus zu wiederholen oder eine von Ihnen gesungene Melodie "
-"fortzusetzen)."
+"zu bewerten oder neues Material zu erstellen (z.B. einen von Ihnen kreierten "
+"Rhythmus zu wiederholen oder eine von Ihnen gesungene Melodie fortzusetzen)."
 
 #. {"msgid": ["Ihre Aufnahmen werden in keiner Weise mit Ihrem Namen oder
 #. anderen Identifikatoren in Verbindung gebracht.", "Ihre Aufnahmen werden in
@@ -901,8 +901,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"Your recordings will not be used to derive your real identity, and they will"
-" not be made public."
+"Your recordings will not be used to derive your real identity, and they will "
+"not be made public."
 msgstr ""
 "Ihre Aufnahmen werden nicht verwendet, um auf Ihre wahre Identität zu "
 "schließen, und sie werden nicht veröffentlicht."
@@ -950,12 +950,12 @@ msgstr ""
 msgctxt "consent-confidentiality"
 msgid ""
 "Although researchers will not use your recordings to derive your real "
-"identity, personal information could be leaked if you are not in an isolated"
-" environment."
+"identity, personal information could be leaked if you are not in an isolated "
+"environment."
 msgstr ""
-"Obwohl die Forscher Ihre Aufnahmen nicht verwenden werden, um auf Ihre wahre"
-" Identität zu schließen, könnten persönliche Informationen durchsickern, "
-"wenn Sie sich nicht in einer isolierten Umgebung befinden."
+"Obwohl die Forscher Ihre Aufnahmen nicht verwenden werden, um auf Ihre wahre "
+"Identität zu schließen, könnten persönliche Informationen durchsickern, wenn "
+"Sie sich nicht in einer isolierten Umgebung befinden."
 
 #. {"msgid": ["Sie sollten darauf achten, dass keine Ger\u00e4usche oder
 #. visuelles Material in Ihrer Umgebung mit Ihren pers\u00f6nlichen Daten in
@@ -986,11 +986,11 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information. In addition, while you "
-"perform a recording, the microphone or camera can capture unintended audio "
-"or video, for example the camera can capture another family member, or the "
-"microphone can capture something you say to another person."
+"You may wish to make sure that no sounds/visual material in your environment "
+"could be linked to your personal information. In addition, while you perform "
+"a recording, the microphone or camera can capture unintended audio or video, "
+"for example the camera can capture another family member, or the microphone "
+"can capture something you say to another person."
 msgstr ""
 "Sie sollten darauf achten, dass keine Geräusche oder visuelles Material in "
 "Ihrer Umgebung mit Ihren persönlichen Daten in Verbindung gebracht werden "
@@ -1035,8 +1035,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"For example, you may want to sit in a room that is isolated from the rest of"
-" the house."
+"For example, you may want to sit in a room that is isolated from the rest of "
+"the house."
 msgstr ""
 "Vielleicht möchten Sie zum Beispiel in einem Raum sitzen, der vom Rest des "
 "Hauses isoliert ist."
@@ -1087,8 +1087,8 @@ msgstr "Zusammenarbeit in der Forschung"
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:72
 msgctxt "consent-collaborations"
 msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
+"For the purpose of helping scientific progress and replication, sometimes we "
+"may share the data with research collaborators."
 msgstr ""
 "Um Experimente zu replizieren, werden manchmal Daten an Forschungspartner "
 "weitergegeben."
@@ -1166,8 +1166,8 @@ msgstr "Sicherheit"
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server."
+"During data collection, audio-visual material will be recorded on a separate "
+"server."
 msgstr ""
 "Während der Datenerfassung wird das audiovisuelle Material auf einem "
 "separaten Server aufgezeichnet."
@@ -1215,8 +1215,8 @@ msgid ""
 "Encryption Standard)."
 msgstr ""
 "Persönliche Daten werden getrennt von audiovisuellem Material gespeichert "
-"und mit einem starken Verschlüsselungsprotokoll verschlüsselt (z.B. Advanced"
-" Encryption Standard)."
+"und mit einem starken Verschlüsselungsprotokoll verschlüsselt (z.B. Advanced "
+"Encryption Standard)."
 
 #. {"msgid": ["Kontaktinformationen", "Kontakt Informationen",
 #. "Kontaktinformation", "Kontakt Information"]}
@@ -1285,8 +1285,8 @@ msgstr "Einverständnis"
 msgctxt "consent-consent"
 msgid ""
 "By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
+"older, have read this consent form, agree to its contents, and agree to take "
+"part in this research."
 msgstr ""
 "Durch Ihre Zustimmung zur Teilnahme bestätigen Sie, dass Sie mindestens 18 "
 "Jahre alt sind, diese Einverständniserklärung gelesen haben, mit ihrem "
@@ -1421,8 +1421,8 @@ msgid ""
 "The recording serves the purpose of understanding how humans perceive and "
 "process information from sound and visual."
 msgstr ""
-"Die Aufnahmen dienen dem Zweck, zu verstehen, wie Menschen Informationen aus"
-" Ton und Bild wahrnehmen und verarbeiten."
+"Die Aufnahmen dienen dem Zweck, zu verstehen, wie Menschen Informationen aus "
+"Ton und Bild wahrnehmen und verarbeiten."
 
 #. {"msgid": ["Wir m\u00f6chten zum Beispiel verstehen, wie pr\u00e4diktive
 #. Mechanismen in der Wahrnehmung auf Erfahrung, Lernen und Ged\u00e4chtnis
@@ -1488,15 +1488,15 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
-"I have been informed that the storage and processing of the "
-"<i>audiovisual</i> recording will be carried out in pseudonymized form, "
-"i.e., using a number and without containing my name, and that there is a "
-"coding list that links my name to the number."
+"I have been informed that the storage and processing of the <i>audiovisual</"
+"i> recording will be carried out in pseudonymized form, i.e., using a number "
+"and without containing my name, and that there is a coding list that links "
+"my name to the number."
 msgstr ""
-"Ich bin darüber informiert worden, dass die Speicherung und Verarbeitung der"
-" <i>audiovisuellen</i> Aufnahme in pseudonymisierter Form erfolgt, d.h. "
-"unter Verwendung einer Nummer und ohne meinen Namen zu enthalten, und dass "
-"es eine Codierungsliste gibt, die meinen Namen mit der Nummer verknüpft."
+"Ich bin darüber informiert worden, dass die Speicherung und Verarbeitung der "
+"<i>audiovisuellen</i> Aufnahme in pseudonymisierter Form erfolgt, d.h. unter "
+"Verwendung einer Nummer und ohne meinen Namen zu enthalten, und dass es eine "
+"Codierungsliste gibt, die meinen Namen mit der Nummer verknüpft."
 
 #. {"msgid": ["Die Forscher sind die einzigen Personen, die Zugang zu dieser
 #. Kodierungsliste haben, die nach Abschluss des Forschungsprojekts vernichtet
@@ -1656,9 +1656,9 @@ msgid ""
 "be other negative consequences; however, in this case, participation in the "
 "study will not be possible."
 msgstr ""
-"Im Falle einer Verweigerung oder eines Widerrufs entstehen weder Kosten noch"
-" andere negative Folgen; allerdings ist in diesem Fall eine Teilnahme an der"
-" Studie nicht möglich."
+"Im Falle einer Verweigerung oder eines Widerrufs entstehen weder Kosten noch "
+"andere negative Folgen; allerdings ist in diesem Fall eine Teilnahme an der "
+"Studie nicht möglich."
 
 #. {"msgid": ["Ich hatte ausreichend Zeit f\u00fcr diese Entscheidung.", "Ich
 #. hatte gen\u00fcgend Zeit f\u00fcr diese Entscheidung.", "F\u00fcr diese
@@ -1683,8 +1683,8 @@ msgstr "Ich hatte ausreichend Zeit für diese Entscheidung."
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
-"I have read and understood everything and hereby agree that "
-"<i>audiovisual</i> recordings of me may be taken."
+"I have read and understood everything and hereby agree that <i>audiovisual</"
+"i> recordings of me may be taken."
 msgstr ""
 "Ich habe alles gelesen und verstanden und stimme hiermit zu, dass "
 "<i>audiovisuelle</i> Aufnahmen von mir gemacht werden dürfen."
@@ -1737,8 +1737,8 @@ msgstr "Einwilligungsformular für Forschungsteilnehmer"
 #, fuzzy
 msgctxt "consent-cap"
 msgid ""
-"I have received written information about the study and the procedure of the"
-" study."
+"I have received written information about the study and the procedure of the "
+"study."
 msgstr ""
 "Ich habe schriftliche Informationen über die Studie und den Ablauf der "
 "Studie erhalten."
@@ -1769,8 +1769,8 @@ msgid ""
 "If I had questions concerning the upcoming study, they were answered "
 "completely and to my satisfaction."
 msgstr ""
-"Wenn ich Fragen zu der bevorstehenden Studie hatte, wurden diese vollständig"
-" und zu meiner Zufriedenheit beantwortet."
+"Wenn ich Fragen zu der bevorstehenden Studie hatte, wurden diese vollständig "
+"und zu meiner Zufriedenheit beantwortet."
 
 #. {"msgid": ["Ich bin mit der beschriebenen Erfassung und Verarbeitung meines
 #. Alters, meines Geschlechts und meines Geburtslandes einverstanden.", "Ich
@@ -1871,8 +1871,8 @@ msgid ""
 "From this point on, my data are anonymous, which means that they cannot be "
 "linked to my person any longer."
 msgstr ""
-"Von diesem Zeitpunkt an sind meine Daten anonym, das heißt, sie können nicht"
-" mehr mit meiner Person in Verbindung gebracht werden."
+"Von diesem Zeitpunkt an sind meine Daten anonym, das heißt, sie können nicht "
+"mehr mit meiner Person in Verbindung gebracht werden."
 
 #. {"msgid": ["Mir ist bekannt, dass es mir freisteht, meine Zustimmung zur
 #. Erhebung und Speicherung meiner pers\u00f6nlichen Daten ohne negative
@@ -1883,7 +1883,6 @@ msgstr ""
 #. Daten ohne negative Folgen zur\u00fcckzuziehen.", "Mir ist bekannt, dass es
 #. mir freisteht, meine Zustimmung zur Erhebung und Speicherung meiner
 #. personenbezogenen Daten ohne negative Folgen zur\u00fcckzuziehen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:33
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html:33
 #, fuzzy
 msgctxt "consent-cap"
@@ -1923,8 +1922,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-cap"
 msgid ""
-"However, if the coding list has already been destroyed, it will no longer be"
-" possible to identify and thus to delete my data set."
+"However, if the coding list has already been destroyed, it will no longer be "
+"possible to identify and thus to delete my data set."
 msgstr ""
 "Wenn die Kodierliste jedoch bereits vernichtet wurde, ist es nicht mehr "
 "möglich, meinen Datensatz zu identifizieren und somit zu löschen."
@@ -1975,8 +1974,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-protection"
 msgid ""
-"You may also address your inquiries directly to the Max Planck Institute for"
-" Empirical Aesthetics:"
+"You may also address your inquiries directly to the Max Planck Institute for "
+"Empirical Aesthetics:"
 msgstr ""
 "Sie können sich mit Ihren Anfragen auch direkt an das Max-Planck-Institut "
 "für empirische Ästhetik wenden:"
@@ -1985,11 +1984,6 @@ msgstr ""
 #. "Wir ben\u00f6tigen Ihre Zustimmung, um fortzufahren", "Wir brauchen Ihre
 #. Zustimmung, um fortzufahren", "Wir ben\u00f6tigen Ihre Einwilligung, um
 #. fortzufahren"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:14
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:14
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:14
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:14
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html:14
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:14
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:14
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:14
@@ -2070,8 +2064,8 @@ msgid ""
 "for Empirical Aesthetics (MPIEA)."
 msgstr ""
 "Wir speichern und verarbeiten Ihre Daten nur, um mit Ihnen in Kontakt zu "
-"treten und um Studien am Max-Planck-Institut für empirische Ästhetik (MPIEA)"
-" zu planen."
+"treten und um Studien am Max-Planck-Institut für empirische Ästhetik (MPIEA) "
+"zu planen."
 
 #. {"msgid": ["Diese Daten werden niemals an Dritte weitergegeben.", "Diese
 #. Daten werden nie an Dritte weitergegeben.", "Diese Daten werden nicht an
@@ -2133,8 +2127,8 @@ msgctxt "consent-data"
 msgid ""
 "In addition, we save the date and time when you verified your email address."
 msgstr ""
-"Darüber hinaus speichern wir das Datum und die Uhrzeit, zu der Sie Ihre "
-"E-Mail-Adresse verifiziert haben."
+"Darüber hinaus speichern wir das Datum und die Uhrzeit, zu der Sie Ihre E-"
+"Mail-Adresse verifiziert haben."
 
 #. {"msgid": ["Wenn wir Sie zur Teilnahme an einer Studie einladen, speichern
 #. wir das Datum und die Uhrzeit dieser Mitteilung.", "Wenn wir Sie zur
@@ -2150,8 +2144,8 @@ msgid ""
 "If we invite you to participate in a study, we will store the date and time "
 "of this communication."
 msgstr ""
-"Wenn wir Sie zur Teilnahme an einer Studie einladen, speichern wir das Datum"
-" und die Uhrzeit dieser Mitteilung."
+"Wenn wir Sie zur Teilnahme an einer Studie einladen, speichern wir das Datum "
+"und die Uhrzeit dieser Mitteilung."
 
 #. {"msgid": ["Wenn Sie der Teilnahme zustimmen, speichern wir auch das Datum
 #. und die Uhrzeit Ihrer Mitteilung \u00fcber diese Entscheidung und ob Sie
@@ -2192,9 +2186,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-data"
 msgid ""
-"Of course, before you participate in a study, you will be informed in detail"
-" about the procedure of the study and the collection of data during the "
-"study."
+"Of course, before you participate in a study, you will be informed in detail "
+"about the procedure of the study and the collection of data during the study."
 msgstr ""
 "Bevor Sie an einer Studie teilnehmen, werden Sie natürlich ausführlich über "
 "den Ablauf der Studie und die Erhebung von Daten während der Studie "
@@ -2295,8 +2288,8 @@ msgstr "Ihre persönlichen Daten werden dann sofort gelöscht."
 #, fuzzy
 msgctxt "consent-duration"
 msgid ""
-"You can also delete your data from the database by deleting your account "
-"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
+"You can also delete your data from the database by deleting your account (i."
+"e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "Sie können Ihre Daten auch aus der Datenbank löschen, indem Sie Ihr Konto "
 "löschen (d.h. drücken Sie auf der cap-recruiter Anmeldeseite auf 'Konto "
@@ -2315,8 +2308,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-duration"
 msgid ""
-"Note that all information, including the experiment and payment history will"
-" be removed from our database."
+"Note that all information, including the experiment and payment history will "
+"be removed from our database."
 msgstr ""
 "Beachten Sie, dass alle Informationen, einschließlich des Experiments und "
 "der Zahlungshistorie, aus unserer Datenbank entfernt werden."
@@ -2351,11 +2344,11 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
-"We will then send you an e-mail with a confirmation link to verify your "
-"e-mail address."
+"We will then send you an e-mail with a confirmation link to verify your e-"
+"mail address."
 msgstr ""
-"Wir senden Ihnen dann eine E-Mail mit einem Bestätigungslink, um Ihre "
-"E-Mail-Adresse zu verifizieren."
+"Wir senden Ihnen dann eine E-Mail mit einem Bestätigungslink, um Ihre E-Mail-"
+"Adresse zu verifizieren."
 
 #. {"msgid": ["Wir ergreifen alle notwendigen technischen und
 #. organisatorischen Sicherheitsma\u00dfnahmen, um Ihre pers\u00f6nlichen
@@ -2406,8 +2399,7 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:59
 #, fuzzy
 msgctxt "consent-security"
-msgid ""
-"All connections between your computer and the web server are encrypted."
+msgid "All connections between your computer and the web server are encrypted."
 msgstr ""
 "Alle Verbindungen zwischen Ihrem Computer und dem Webserver sind "
 "verschlüsselt."
@@ -2462,8 +2454,8 @@ msgstr ""
 msgctxt "consent-protection"
 msgid ""
 "As a data subject whose personal data are processed with regard to your "
-"participation in our studies, you have the following rights in principle and"
-" insofar as no legal exceptions apply in individual cases:"
+"participation in our studies, you have the following rights in principle and "
+"insofar as no legal exceptions apply in individual cases:"
 msgstr ""
 "Als betroffene Person, deren personenbezogene Daten im Zusammenhang mit "
 "Ihrer Teilnahme an unseren Studien verarbeitet werden, haben Sie "
@@ -2531,8 +2523,7 @@ msgstr "Widerruf der Einwilligung (GDPR Art. 7, Abs. 3)"
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html:75
 #, fuzzy
 msgctxt "consent-protection"
-msgid ""
-"Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
+msgid "Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
 msgstr "Recht auf Beschwerde bei einer Aufsichtsbehörde (GDPR Art. 77)."
 
 #. {"msgid": ["F\u00fcr die Max-Planck-Gesellschaft ist dies das Bayerische
@@ -2575,10 +2566,9 @@ msgid ""
 "a participant, please do not hesitate to contact the Computational Auditory "
 "Perception Group at the Max Planck Institute for Empirical Aesthetics:"
 msgstr ""
-"Wenn Sie Fragen zu dieser Forschung, Ihren Rechten oder Ihrer Behandlung als"
-" Teilnehmer haben, zögern Sie bitte nicht, sich an die Computational "
-"Auditory Perception Group am Max-Planck-Institut für empirische Ästhetik zu "
-"wenden:"
+"Wenn Sie Fragen zu dieser Forschung, Ihren Rechten oder Ihrer Behandlung als "
+"Teilnehmer haben, zögern Sie bitte nicht, sich an die Computational Auditory "
+"Perception Group am Max-Planck-Institut für empirische Ästhetik zu wenden:"
 
 #. {"msgid": ["Zahlung und Entsch\u00e4digung", "Bezahlung und
 #. Entsch\u00e4digung", "Zahlung und Verg\u00fctung", "Zahlung und
@@ -2614,8 +2604,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-payment"
 msgid ""
-"However we do store completion records and payment details of every task you"
-" completed."
+"However we do store completion records and payment details of every task you "
+"completed."
 msgstr ""
 "Wir speichern jedoch Erledigungsprotokolle und Zahlungsinformationen zu "
 "jeder von Ihnen erledigten Aufgabe."
@@ -2699,10 +2689,9 @@ msgid ""
 "please search your bank in their website to ensure that you will be able to "
 "receive payment prior to taking part in our experiments."
 msgstr ""
-"Dieses System unterstützt Überweisungen an die meisten Banken auf der ganzen"
-" Welt. Bitte suchen Sie auf der Website Ihrer Bank, um sicherzustellen, dass"
-" Sie Zahlungen erhalten können, bevor Sie an unseren Experimenten "
-"teilnehmen."
+"Dieses System unterstützt Überweisungen an die meisten Banken auf der ganzen "
+"Welt. Bitte suchen Sie auf der Website Ihrer Bank, um sicherzustellen, dass "
+"Sie Zahlungen erhalten können, bevor Sie an unseren Experimenten teilnehmen."
 
 #. {"msgid": ["Wir empfehlen Ihnen auch, die Nutzungsbedingungen und die
 #. Datenschutzerkl\u00e4rung Ihrer Bank zu lesen und zu pr\u00fcfen, ob Sie
@@ -2743,9 +2732,9 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-payment"
 msgid ""
-"If you cannot or would not like to receive payment via this system, we would"
-" not be able to pay you, however you can still participate in our "
-"experiments voluntarily, without payment."
+"If you cannot or would not like to receive payment via this system, we would "
+"not be able to pay you, however you can still participate in our experiments "
+"voluntarily, without payment."
 msgstr ""
 "Wenn Sie keine Zahlungen über dieses System erhalten können oder möchten, "
 "können wir Sie nicht bezahlen, aber Sie können trotzdem freiwillig und ohne "
@@ -2785,8 +2774,8 @@ msgid ""
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
 "Wenn Sie weitere Fragen zur Allgemeinen Datenschutzverordnung im "
-"Zusammenhang mit der Verarbeitung personenbezogener Daten in unseren Studien"
-" haben, wenden Sie sich bitte an den Datenschutzbeauftragten der Max-Planck-"
+"Zusammenhang mit der Verarbeitung personenbezogener Daten in unseren Studien "
+"haben, wenden Sie sich bitte an den Datenschutzbeauftragten der Max-Planck-"
 "Gesellschaft:"
 
 #. {"msgid": ["Ihre Rechte", "Ihr Recht", "Deine Rechte", "Ihre Rechte als
@@ -2819,14 +2808,14 @@ msgstr "Ihre Rechte"
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:123
 msgctxt "consent-rights"
 msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"You have the right to information regarding the data relating to you that is "
+"stored at the Max-Planck-Institute, the right to correct inaccurate data, "
 "and the right to demand the deletion of data in cases of inadmissible data "
 "storage and the right to data portability."
 msgstr ""
 "Sie haben das Recht auf Auskunft über die Sie betreffenden Daten, die beim "
-"Max-Planck-Institut gespeichert sind, das Recht auf Berichtigung unrichtiger"
-" Daten und das Recht, bei unzulässiger Datenspeicherung die Löschung der "
+"Max-Planck-Institut gespeichert sind, das Recht auf Berichtigung unrichtiger "
+"Daten und das Recht, bei unzulässiger Datenspeicherung die Löschung der "
 "Daten zu verlangen sowie das Recht auf Datenübertragbarkeit."
 
 #. {"msgid": ["Beachten Sie, dass bei einigen Studien eine Datenl\u00f6schung
@@ -2910,7 +2899,6 @@ msgstr ""
 #. Hauptforscherin dieses Projekts, Nori Jacoby, zu wenden:", "Wenn Sie Fragen
 #. zu dieser Studie haben, z\u00f6gern Sie nicht, sich mit der Hauptforscherin
 #. dieses Projekts, Nori Jacoby, in Verbindung zu setzen:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:21
 msgctxt "consent-overview"
 msgid ""
@@ -2999,8 +2987,8 @@ msgid ""
 "while observing images or videos."
 msgstr ""
 "Wenn Sie freiwillig an dieser Studie teilnehmen, werden Sie gebeten, "
-"einfache Aufgaben mit Ihrer Tastatur oder Maus auszuführen, während Sie Töne"
-" hören oder Bilder oder Videos anschauen."
+"einfache Aufgaben mit Ihrer Tastatur oder Maus auszuführen, während Sie Töne "
+"hören oder Bilder oder Videos anschauen."
 
 #. {"msgid": ["Sie werden zum Beispiel gebeten, zu beurteilen, wie angenehm
 #. ein bestimmtes Ger\u00e4usch oder ein Bild ist, oder Ger\u00e4usche oder
@@ -3032,17 +3020,17 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:47
 msgctxt "consent-procedure"
 msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
+"For example, you may be asked to judge how pleasant a particular sound or an "
+"image is, or to categorize sounds or images (e.g., if a sound or an image is "
+"that of a car or a cow), or to judge other basic features of sounds or "
 "images (e.g., how frequently do you encounter this type of sound or image? "
 "how aesthetically pleasing you consider a particular sound or image?)."
 msgstr ""
 "Sie werden zum Beispiel gebeten, zu beurteilen, wie angenehm ein bestimmtes "
 "Geräusch oder ein Bild ist, oder sie werden gebeten, um Geräusche oder "
 "Bilder zu kategorisieren (z.B. ob es sich bei einem Geräusch um ein Auto "
-"oder eine Kuh handelt) oder andere grundlegende Merkmale von Geräuschen oder"
-" Bildern zu beurteilen (z.B. wie oft sehen sie ähnliche Bilder? Oder wie "
+"oder eine Kuh handelt) oder andere grundlegende Merkmale von Geräuschen oder "
+"Bildern zu beurteilen (z.B. wie oft sehen sie ähnliche Bilder? Oder wie "
 "ästhetisch Sie ein bestimmtes Geräusch finden?)."
 
 #. {"msgid": ["Die verwendeten Ger\u00e4usche, Bilder und Videos werden
@@ -3103,9 +3091,9 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:53
 msgctxt "consent-procedure"
 msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
+"In some experiments, we may use mild deception, i.e., we may not explain the "
+"full truth regarding an experimental task (for example we will not tell you "
+"that an image was generated by an artificial computer system and not a "
 "human)."
 msgstr ""
 "Um unsere Forschungsfragen nachzugehen, werden wir in einigen Experimenten "
@@ -3319,8 +3307,8 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:58
 msgctxt "consent-confidentiality"
 msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
+"If an experiment is collecting data that cannot be fully anonymized, we will "
+"inform you and also ask for additional consent."
 msgstr ""
 "Falls doch Daten erhoben werden, die nicht vollständig anonymisiert werden "
 "können, werden wir Sie darüber informieren und Sie um eine zusätzliche "
@@ -3393,8 +3381,8 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html:64
 msgctxt "consent-confidentiality"
 msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
+"We will only save your anonymized alpha numeric code in our system, in order "
+"to distinguish participants who have already taken part in this or other "
 "experiments."
 msgstr ""
 "Wir werden nur Ihren anonymisierten alphanumerischen Code in unserem System "
@@ -3468,9 +3456,9 @@ msgid ""
 "In these cases, we will only share fully anonymized data, such as "
 "demographic, aggregated, or extracted data without any personal identifiers."
 msgstr ""
-"In diesen Fällen werden wir nur vollständig anonymisierte Daten weitergeben,"
-" wie z.B. demografische, aggregierte oder extrahierte Daten ohne persönliche"
-" Informationen."
+"In diesen Fällen werden wir nur vollständig anonymisierte Daten weitergeben, "
+"wie z.B. demografische, aggregierte oder extrahierte Daten ohne persönliche "
+"Informationen."
 
 #. {"msgid": ["Die Daten werden vor\u00fcbergehend auf externen Servern und
 #. Desktops/Laptops gespeichert, die durch ein Passwort gesch\u00fctzt sind.",
@@ -3591,8 +3579,8 @@ msgid ""
 "abilities (e.g. in sound recognition and computer vision) and to help "
 "improve perceptual abilities in people whose hearing or sight is impaired."
 msgstr ""
-"Auch wenn Sie vielleicht nicht direkt von dieser Studie profitieren, so kann"
-" sie doch für die Gesellschaft von Nutzen sein, indem sie uns hilft zu "
+"Auch wenn Sie vielleicht nicht direkt von dieser Studie profitieren, so kann "
+"sie doch für die Gesellschaft von Nutzen sein, indem sie uns hilft zu "
 "verstehen, wie Menschen Informationen aus Tönen und Bildern ableiten, und "
 "möglicherweise dazu beiträgt, Maschinen zu entwickeln, die unsere "
 "Fähigkeiten nachahmen können (z.B. bei der Tonerkennung) und die "
@@ -3662,7 +3650,6 @@ msgstr "Wir schätzen Ihren Beitrag zur Wissenschaft sehr!"
 #. werden Sie m\u00f6glicherweise gebeten, eine Sprach- oder Videoaufzeichnung
 #. zu machen."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:20
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:20
 #, fuzzy
 msgctxt "consent"
 msgid ""
@@ -3683,12 +3670,11 @@ msgstr ""
 #. ein Video aufzuzeichnen oder sich selbst beim Sprechen oder Singen zu
 #. filmen."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:21
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html:21
 #, fuzzy
 msgctxt "consent"
 msgid ""
-"For example, you may be asked to record your finger-tapping in response to a"
-" sound or video, or to record yourself speaking or singing."
+"For example, you may be asked to record your finger-tapping in response to a "
+"sound or video, or to record yourself speaking or singing."
 msgstr ""
 "So können Sie zum Beispiel aufgefordert werden, Ihr Fingertippen als "
 "Reaktion auf einen Ton oder ein Video aufzuzeichnen oder sich selbst beim "
@@ -3707,11 +3693,11 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information."
+"You may wish to make sure that no sounds/visual material in your environment "
+"could be linked to your personal information."
 msgstr ""
-"Sie sollten dafür sorgen, dass kein Ton- oder Bildmaterial in Ihrer Umgebung"
-" mit Ihren persönlichen Daten in Verbindung gebracht werden kann."
+"Sie sollten dafür sorgen, dass kein Ton- oder Bildmaterial in Ihrer Umgebung "
+"mit Ihren persönlichen Daten in Verbindung gebracht werden kann."
 
 #. {"msgid": ["Au\u00dferdem kann das Mikrofon oder die Kamera, w\u00e4hrend
 #. Sie eine Aufnahme machen, unbeabsichtigte Audio- oder Videoaufnahmen
@@ -3793,8 +3779,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server and encrypted using a strong encryption protocol (such as Advanced "
+"During data collection, audio-visual material will be recorded on a separate "
+"server and encrypted using a strong encryption protocol (such as Advanced "
 "Encryption Standard)."
 msgstr ""
 "Während der Datenerhebung wird audiovisuelles Material auf einem separaten "
@@ -3889,12 +3875,10 @@ msgstr ""
 #. "Daher sollten Sie die Informationen, die Sie der \u00d6ffentlichkeit zur
 #. Verf\u00fcgung stellen, einschr\u00e4nken."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:118
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:118
 #, fuzzy
 msgctxt "consent-disclaimer"
 msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
+"Thus, you may wish to restrict what information you choose to share publicly."
 msgstr ""
 "Daher sollten Sie die Informationen, die Sie der Öffentlichkeit zur "
 "Verfügung stellen möchten, einschränken."
@@ -3932,8 +3916,8 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html:134
 msgctxt "consent-contact"
 msgid ""
-"If you have any questions about Your rights or treatment as a participant in"
-" this research project, please contact:"
+"If you have any questions about Your rights or treatment as a participant in "
+"this research project, please contact:"
 msgstr ""
 "Wenn Sie Fragen zu Ihren Rechten als Teilnehmer in diesem Forschungsprojekt "
 "haben, wenden Sie sich bitte an:"
@@ -4089,8 +4073,8 @@ msgstr ""
 msgctxt "consent-purpose"
 msgid ""
 "The long-term goals of this project are to understand how humans derive "
-"information from sound and vision, and potentially to help engineer machines"
-" that can replicate our abilities (e.g. in sound/image recognition and "
+"information from sound and vision, and potentially to help engineer machines "
+"that can replicate our abilities (e.g. in sound/image recognition and "
 "computer vision) and to help improve perceptual abilities in people whose "
 "hearing or sight is impaired."
 msgstr ""
@@ -4124,8 +4108,8 @@ msgid ""
 "example, you may be asked to record your finger-tapping in response to a "
 "sound or video, or to record yourself speaking or singing."
 msgstr ""
-"In einigen Fällen können Sie gebeten werden, eine Sprach- oder Videoaufnahme"
-" zu machen, z.B. wenn Sie gebeten werden, Ihr Fingertippen als Reaktion auf "
+"In einigen Fällen können Sie gebeten werden, eine Sprach- oder Videoaufnahme "
+"zu machen, z.B. wenn Sie gebeten werden, Ihr Fingertippen als Reaktion auf "
 "einen Ton oder ein Video aufzunehmen oder sich selbst beim Sprechen oder "
 "Singen aufzunehmen."
 
@@ -4209,10 +4193,10 @@ msgid ""
 "(e.g. musical experience playing an instrument, years of formal education, "
 "languages spoken)."
 msgstr ""
-"Wir werden auch einige demografische Daten (z.B. Alter, Geschlecht, Land des"
-" Wohnsitzes) sowie Informationen über Ihre Lern- und Erfahrungsgeschichte "
-"(z.B. musikalische Erfahrung beim Spielen eines Instruments, Jahre der "
-"formalen Ausbildung, gesprochene Sprachen) erfassen."
+"Wir werden auch einige demografische Daten (z.B. Alter, Geschlecht, Land des "
+"Wohnsitzes) sowie Informationen über Ihre Lern- und Erfahrungsgeschichte (z."
+"B. musikalische Erfahrung beim Spielen eines Instruments, Jahre der formalen "
+"Ausbildung, gesprochene Sprachen) erfassen."
 
 #. {"msgid": ["Wir werden nur Ihre anonymisierten Amazon's Mechanical Turk IDs
 #. in unserem System speichern, um Teilnehmer zu unterscheiden, die bereits an
@@ -4234,8 +4218,8 @@ msgid ""
 "this or other experiments."
 msgstr ""
 "Wir werden nur Ihre anonymisierten Amazon's Mechanical Turk IDs in unserem "
-"System speichern, um Teilnehmer zu unterscheiden, die bereits an diesem oder"
-" anderen Experimenten teilgenommen haben."
+"System speichern, um Teilnehmer zu unterscheiden, die bereits an diesem oder "
+"anderen Experimenten teilgenommen haben."
 
 #. {"msgid": ["Die MTurk-Arbeiter-IDs werden nicht verwendet, um Ihre
 #. wirkliche Identit\u00e4t abzuleiten, werden nicht an Personen
@@ -4491,11 +4475,11 @@ msgstr ""
 msgctxt "consent-confidentiality"
 msgid ""
 "However, your data will not be directly associated with your name or other "
-"identifiers in any way (we will not specify your name when presenting "
-"audio/video materials of yours)."
+"identifiers in any way (we will not specify your name when presenting audio/"
+"video materials of yours)."
 msgstr ""
-"Ihre Daten werden jedoch in keiner Weise direkt mit Ihrem Namen oder anderen"
-" Identifikationsmerkmalen in Verbindung gebracht (wir werden Ihren Namen "
+"Ihre Daten werden jedoch in keiner Weise direkt mit Ihrem Namen oder anderen "
+"Identifikationsmerkmalen in Verbindung gebracht (wir werden Ihren Namen "
 "nicht nennen, wenn wir Ihre Audio-/Videomaterialien präsentieren)."
 
 #. {"msgid": ["Die Daten werden auf Open-Science-Frameworks/Websites wie OSF
@@ -4515,9 +4499,8 @@ msgid ""
 "Data will be published on open science frameworks/websites such as OSF "
 "(https://osf.io/) and will be available to everybody with internet access."
 msgstr ""
-"Die Daten werden auf Open-Science-Frameworks/Websites wie OSF "
-"(https://osf.io/) veröffentlicht und sind für jeden mit Internetzugang "
-"zugänglich."
+"Die Daten werden auf Open-Science-Frameworks/Websites wie OSF (https://osf."
+"io/) veröffentlicht und sind für jeden mit Internetzugang zugänglich."
 
 #. {"msgid": ["Da einige Materialien als Teil der wissenschaftlichen
 #. Publikation ver\u00f6ffentlicht werden, k\u00f6nnen Sie diese Materialien
@@ -4559,8 +4542,8 @@ msgid ""
 "Thus, you may wish to make sure you do not record any materials you do not "
 "want to make public."
 msgstr ""
-"Daher sollten Sie sicherstellen, dass Sie kein Material aufzeichnen, das Sie"
-" nicht veröffentlichen möchten."
+"Daher sollten Sie sicherstellen, dass Sie kein Material aufzeichnen, das Sie "
+"nicht veröffentlichen möchten."
 
 #. {"msgid": ["Indem Sie sich auf dieses Experiment einlassen, verpflichten
 #. Sie sich, bei Audioaufnahmen keine Obsz\u00f6nit\u00e4ten und bei
@@ -4628,9 +4611,9 @@ msgid ""
 "problems arise which you do not feel you can discuss with the Investigator, "
 "please contact the Institutional Review Board at:"
 msgstr ""
-"Wenn Sie Fragen zu Ihren Rechten als Versuchsperson haben oder wenn Probleme"
-" auftreten, die Sie nicht mit dem Forscher besprechen können, wenden Sie "
-"sich bitte an das Institutional Review Board unter:"
+"Wenn Sie Fragen zu Ihren Rechten als Versuchsperson haben oder wenn Probleme "
+"auftreten, die Sie nicht mit dem Forscher besprechen können, wenden Sie sich "
+"bitte an das Institutional Review Board unter:"
 
 #. {"msgid": ["Ich habe die Informationen, die mir gegeben wurden, verstanden
 #. und wei\u00df, dass:", "Ich habe die Informationen verstanden, die mir
@@ -4657,8 +4640,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent"
 msgid ""
-"My participation is voluntary, and I may withdraw my consent and discontinue"
-" participation in the project at any time."
+"My participation is voluntary, and I may withdraw my consent and discontinue "
+"participation in the project at any time."
 msgstr ""
 "Meine Teilnahme ist freiwillig, und ich kann meine Zustimmung jederzeit "
 "zurückziehen und die Teilnahme an dem Projekt beenden."
@@ -4688,12 +4671,11 @@ msgstr ""
 #, fuzzy
 msgctxt "consent"
 msgid ""
-"I do not waive any legal rights or release Princeton University, its agents,"
-" or you from liability for negligence."
+"I do not waive any legal rights or release Princeton University, its agents, "
+"or you from liability for negligence."
 msgstr ""
 "Ich verzichte auf keine gesetzlichen Rechte und entbinde die Princeton "
-"University, ihre Vertreter oder Sie nicht von der Haftung für "
-"Fahrlässigkeit."
+"University, ihre Vertreter oder Sie nicht von der Haftung für Fahrlässigkeit."
 
 #. {"msgid": ["Ich gebe hiermit mein Einverst\u00e4ndnis, Gegenstand Ihrer
 #. Forschung zu sein.", "Ich erkl\u00e4re hiermit mein Einverst\u00e4ndnis,
@@ -4842,8 +4824,8 @@ msgctxt "consent-purpose"
 msgid ""
 "This project aims to collect data that can be used to evaluate formal "
 "accounts of causal learning, categorization, and language learning and to "
-"track how knowledge about these areas is transformed when passed from person"
-" to person."
+"track how knowledge about these areas is transformed when passed from person "
+"to person."
 msgstr ""
 "Dieses Projekt zielt darauf ab, Daten zu sammeln, die dazu verwendet werden "
 "können, formale Darstellungen des kausalen Lernens, der Kategorisierung und "
@@ -4897,8 +4879,8 @@ msgid ""
 "In some cases you will be asked to provide explanations or justifications "
 "for your responses, typically in the form of a short paragraph."
 msgstr ""
-"In einigen Fällen werden Sie gebeten, Erklärungen oder Begründungen für Ihre"
-" Antworten zu geben, normalerweise in Form eines kurzen Absatzes."
+"In einigen Fällen werden Sie gebeten, Erklärungen oder Begründungen für Ihre "
+"Antworten zu geben, normalerweise in Form eines kurzen Absatzes."
 
 #. {"msgid": ["Die Aufgabe beinhaltet keine T\u00e4uschung oder emotional
 #. beunruhigendes Material - nur einfache Fragen zu Kategorien, kausalen
@@ -5045,11 +5027,11 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
-"6. Being presented with one or more visual puzzles and re-arranging elements"
-" on a screen to solve them."
+"6. Being presented with one or more visual puzzles and re-arranging elements "
+"on a screen to solve them."
 msgstr ""
-"6. ein oder mehrere visuelle Rätsel vorgesetzt bekommen und die Elemente auf"
-" einem Bildschirm neu anordnen, um sie zu lösen."
+"6. ein oder mehrere visuelle Rätsel vorgesetzt bekommen und die Elemente auf "
+"einem Bildschirm neu anordnen, um sie zu lösen."
 
 #. {"msgid": ["7. mit visuellen Reizen konfrontiert zu werden und auf der
 #. Grundlage dieser Reize ein quantitatives oder qualitatives Urteil zu
@@ -5188,14 +5170,14 @@ msgstr "Nutzen und Risiken:"
 #, fuzzy
 msgctxt "consent"
 msgid ""
-"There are no direct benefits to you as a participant; however, by furthering"
-" our understanding of human cognition, this research will benefit society by"
-" helping with the development of automated systems that can better solve "
+"There are no direct benefits to you as a participant; however, by furthering "
+"our understanding of human cognition, this research will benefit society by "
+"helping with the development of automated systems that can better solve "
 "problems that are computationally challenging, but that people can solve "
 "easily with little formal guidance."
 msgstr ""
-"Es gibt keinen direkten Nutzen für Sie als Teilnehmer. Allerdings wird diese"
-" Forschung durch die Vertiefung unseres Verständnisses der menschlichen "
+"Es gibt keinen direkten Nutzen für Sie als Teilnehmer. Allerdings wird diese "
+"Forschung durch die Vertiefung unseres Verständnisses der menschlichen "
 "Kognition der Gesellschaft zugute kommen, indem sie zur Entwicklung "
 "automatisierter Systeme beiträgt, die Probleme besser lösen können, die "
 "rechnerisch anspruchsvoll sind, aber von Menschen mit wenig formaler "
@@ -5236,8 +5218,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent"
 msgid ""
-"You may feel slight discomfort answering some questions, but you may refrain"
-" from answering any questions that make you uncomfortable and may withdraw "
+"You may feel slight discomfort answering some questions, but you may refrain "
+"from answering any questions that make you uncomfortable and may withdraw "
 "your participation at any time even after completing the experiment without "
 "penalty."
 msgstr ""
@@ -5327,8 +5309,8 @@ msgstr ""
 msgctxt "consent-confidentiality"
 msgid ""
 "To minimize this risk, data containing anything that might be personally "
-"identifiable (e.g. Worker IDs) will be encrypted on transfer and storage and"
-" will only be accessible to qualified lab personnel."
+"identifiable (e.g. Worker IDs) will be encrypted on transfer and storage and "
+"will only be accessible to qualified lab personnel."
 msgstr ""
 "Um dieses Risiko zu minimieren, werden Daten, die persönliche Daten "
 "enthalten (z.B. die Mitarbeiter-IDs), bei der Übertragung und Speicherung "
@@ -5363,11 +5345,11 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"This anonymized data (containing neither Worker IDs nor IP addresses) may be"
-" shared with the scientific community and corporate sponsors."
+"This anonymized data (containing neither Worker IDs nor IP addresses) may be "
+"shared with the scientific community and corporate sponsors."
 msgstr ""
-"Diese anonymisierten Daten (die weder Worker-IDs noch IP-Adressen enthalten)"
-" können an die wissenschaftliche Gemeinschaft und an Unternehmenssponsoren "
+"Diese anonymisierten Daten (die weder Worker-IDs noch IP-Adressen enthalten) "
+"können an die wissenschaftliche Gemeinschaft und an Unternehmenssponsoren "
 "weitergegeben werden."
 
 #. {"msgid": ["Am Ende der Umfrage werden Sie m\u00f6glicherweise gefragt, ob
@@ -5488,8 +5470,8 @@ msgid ""
 "If you have any questions about the study, feel free to contact the "
 "researcher or the Principal Investigator:"
 msgstr ""
-"Wenn Sie Fragen zur Studie haben, können Sie sich gerne an den Forscher oder"
-" den Principal Investigator wenden:"
+"Wenn Sie Fragen zur Studie haben, können Sie sich gerne an den Forscher oder "
+"den Principal Investigator wenden:"
 
 #. {"msgid": ["An wen Sie sich bei Fragen wenden k\u00f6nnen:",
 #. "Ansprechpartner f\u00fcr Fragen:", "Ansprechpartner bei Fragen:",
@@ -5545,16 +5527,16 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-purpose"
 msgid ""
-"Specifically, we aim to combine a wide range of behavioural methodologies to"
-" characterize the ways in which people from diverse backgrounds internalize "
+"Specifically, we aim to combine a wide range of behavioural methodologies to "
+"characterize the ways in which people from diverse backgrounds internalize "
 "and process external conditions, both in the auditory (e.g., speech, music) "
 "and visual (e.g., faces, color) domains."
 msgstr ""
 "Konkret wollen wir eine breite Palette von Verhaltensmethoden kombinieren, "
 "um die Art und Weise zu charakterisieren, in der Menschen mit "
 "unterschiedlichem Hintergrund externe Bedingungen verinnerlichen und "
-"verarbeiten, sowohl im auditiven (z.B. Sprache, Musik) als auch im visuellen"
-" Bereich (z.B. Gesichter, Farben)."
+"verarbeiten, sowohl im auditiven (z.B. Sprache, Musik) als auch im visuellen "
+"Bereich (z.B. Gesichter, Farben)."
 
 #. {"msgid": ["Wir interessieren uns auch f\u00fcr die Art und Weise, wie
 #. diese internen Repr\u00e4sentationen die menschliche Entscheidungsfindung
@@ -5570,8 +5552,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-purpose"
 msgid ""
-"We are also interested in the way that these internal representations affect"
-" human decision making and behaviour."
+"We are also interested in the way that these internal representations affect "
+"human decision making and behaviour."
 msgstr ""
 "Wir interessieren uns auch für die Art und Weise, wie diese internen "
 "Repräsentationen die menschliche Entscheidungsfindung und das Verhalten "
@@ -5599,8 +5581,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
+"If an experiment is collecting data that cannot be fully anonymized, we will "
+"inform you and also ask for additional consent. Consenting to these "
 "additional requirements is also fully voluntary."
 msgstr ""
 "Wenn im Rahmen eines Experiments Daten gesammelt werden, die nicht "
@@ -5670,8 +5652,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
+"You also have the right to submit an objection to the supervisory authority. "
+"For the Max-Planck-Society, this is:"
 msgstr ""
 "Sie haben auch das Recht, bei der Aufsichtsbehörde Widerspruch einzulegen. "
 "Für die Max-Planck-Gesellschaft ist dies:"
@@ -5719,10 +5701,9 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:4
 #, python-format
 msgid ""
-"In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
+"In addition to your base payment of <strong>%(currency)s%(BASE_PAYMENT)s</"
+"strong>, you will receive a bonus of <strong>%(currency)s%(BONUS)s</strong> "
+"for the time you spent on the experiment."
 msgstr ""
 "Zur Basisbezahlung <strong>%(currency)s%(BASE_PAYMENT)s</strong>, bekommen "
 "Sie einen Bonus von: <strong>%(currency)s%(BONUS)s</strong>."
@@ -5737,11 +5718,11 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:7
 #, fuzzy, python-format
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>$%(PERFORMANCE_BONUS)s</strong>!"
+"You have also been awarded a performance bonus of <strong>$"
+"%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
-"Sie haben außerdem einen Leistungsbonus von "
-"<strong>$%(PERFORMANCE_BONUS)s</strong> erhalten!"
+"Sie haben außerdem einen Leistungsbonus von <strong>$%(PERFORMANCE_BONUS)s</"
+"strong> erhalten!"
 
 #. ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html:7
@@ -5833,7 +5814,7 @@ msgstr ""
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/macros/control.html:41
 #, fuzzy
 msgid "Next"
-msgstr "Nächste"
+msgstr "Weiter"
 
 #. {"msgid": ["Zur\u00fccksetzen", "zur\u00fccksetzen", "Reset",
 #. "R\u00fccksetzen"]}
@@ -5869,8 +5850,8 @@ msgstr "Dokumentation"
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
-"The <strong>decay</strong> parameters determine the amount of smoothing that"
-" happens to the signal, and have units of seconds."
+"The <strong>decay</strong> parameters determine the amount of smoothing that "
+"happens to the signal, and have units of seconds."
 msgstr ""
 "Die <strong>Decay</strong>-Parameter bestimmen das Ausmaß der Glättung des "
 "Signals und werden in Sekunden angegeben."
@@ -5884,8 +5865,8 @@ msgstr ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
-"A high decay parameter means that the signal takes a long time to decay "
-"(i.e. high smoothing)."
+"A high decay parameter means that the signal takes a long time to decay (i."
+"e. high smoothing)."
 msgstr ""
 "Ein hoher Decay-Parameter bedeutet, dass das Signal lange zum Abklingen "
 "braucht (d.h. starke Glättung)."
@@ -5903,8 +5884,8 @@ msgstr ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
-"There are three decay parameters: one for the displayed audio meter, one for"
-" the 'too-high' detector, and one for the 'too-low' detector."
+"There are three decay parameters: one for the displayed audio meter, one for "
+"the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
 "Es gibt drei Decay-Parameter: einen für die angezeigte Audioanzeige, einen "
 "für den 'too-high' Detektor und einen für den 'too-low' Detektor."
@@ -5925,8 +5906,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Die <strong>Schwellenwert</strong>-Parameter bestimmen den Punkt, an dem die"
-" Lautstärke als 'zu hoch' oder 'zu niedrig' eingestuft wird."
+"Die <strong>Schwellenwert</strong>-Parameter bestimmen den Punkt, an dem die "
+"Lautstärke als 'zu hoch' oder 'zu niedrig' eingestuft wird."
 
 #. {"msgid": ["Die <strong>Grace</strong> Parameter bestimmen, wie lange die
 #. Lautst\u00e4rke au\u00dferhalb des jeweiligen Schwellenwertes liegen muss,
@@ -5947,8 +5928,8 @@ msgid ""
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
 "Die <strong>Grace</strong> Parameter bestimmen, wie lange die Lautstärke "
-"außerhalb des jeweiligen Schwellenwertes liegen muss, damit eine Warnmeldung"
-" ausgelöst wird."
+"außerhalb des jeweiligen Schwellenwertes liegen muss, damit eine Warnmeldung "
+"ausgelöst wird."
 
 #. {"msgid": ["Die Parameter <strong>Meldungsdauer</strong> bestimmen, wie
 #. lange die Warnmeldungen angezeigt werden.", "Die Parameter
@@ -6044,12 +6025,12 @@ msgstr "Von Anfang an spielen"
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
+"You may be able to abort the experiment using the <strong>Abort experiment</"
+"strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
 "Möglicherweise können Sie das Experiment über die Schaltfläche "
-"<strong>Experiment abbrechen</strong> <strong>auf der MTurk-"
-"Anzeigenseite</strong> abbrechen."
+"<strong>Experiment abbrechen</strong> <strong>auf der MTurk-Anzeigenseite</"
+"strong> abbrechen."
 
 #. {"msgid": ["Sobald Sie das Experiment abgebrochen haben, brauchen Sie uns
 #. nicht mehr zu kontaktieren, um die Entsch\u00e4digung zu erhalten; diese
@@ -8098,7 +8079,6 @@ msgstr "Tokelau"
 
 #. {"msgid": ["Tonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
-#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:796
 #, fuzzy
 msgctxt "country_name"
 msgid "Tonga"
@@ -8935,7 +8915,6 @@ msgstr "Kurdisch"
 
 #. {"msgid": ["Laotisch", "Laos", "Lao", "Laote"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
-#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:928
 #, fuzzy
 msgctxt "language_name"
 msgid "Lao"
@@ -9070,7 +9049,6 @@ msgid "Mongolian"
 msgstr "Mongolisch"
 
 #. {"msgid": ["Nauru", "Nauruer"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py:947
 #, fuzzy
 msgctxt "language_name"

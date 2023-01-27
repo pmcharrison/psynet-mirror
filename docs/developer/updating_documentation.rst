@@ -9,7 +9,7 @@ To update PsyNet's documentation first change into your project's ``docs`` direc
 
 .. code-block:: console
 
-  cd ~/psynet/docs
+  cd ~/PsyNet/docs
 
 The ``docs`` directory and its subdirectories contain files in `rst` format which stands for `reStructuredText`. See `this primer`_ which introduces the most basic syntax elements of `reStructuredText` documents. For a detailed reference check out the `complete technical specification`_.
 

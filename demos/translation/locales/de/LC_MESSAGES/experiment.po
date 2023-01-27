@@ -90,7 +90,7 @@ msgstr ""
 msgctxt "instructions3"
 msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
 msgstr ""
-"Drücken Sie <kbd>L</kbd>, wenn das präsentierte Wort <strong>nicht "
+"Drücken Sie <kbd>L</kbd>, wenn das angezeigte Wort <strong>nicht "
 "existiert</strong>"
 
 #. {"msgid": ["Machen Sie sich mit den beiden Tasten auf Ihrer Tastatur
@@ -228,7 +228,7 @@ msgstr ""
 msgctxt "feedback"
 msgid "Please let us know so we can improve the game."
 msgstr ""
-"Bitte lassen Sie es uns wissen, damit wir das Spiel verbessern können."
+"Bitte lassen Sie es uns wissen, damit wir das Experiment verbessern können."
 
 #. {"msgid": ["Dr\u00fccken Sie \"Weiter\", um den englischen Teil des
 #. Experiments zu starten.", "Dr\u00fccken Sie auf \"Weiter\", um den
@@ -307,7 +307,7 @@ msgstr "Für jede Sprache sehen Sie eine Zeichenfolge."
 #: /Users/pol.van-rijn/MPI/PhD/tools/MISC5-WikiVocab/wikivocab-german-pilot/experiment.py:83
 msgctxt "instructions1"
 msgid "The word will disappear after two seconds."
-msgstr "Das Wort verschwindet nach zwei Sekunden."
+msgstr "Jedes Wort verschwindet nach zwei Sekunden."
 
 #. {"msgid": ["Ihre Aufgabe ist es, zu entscheiden, ob dieses Wort in der
 #. Sprache existiert oder nicht.", "Ihre Aufgabe ist es zu entscheiden, ob
@@ -320,7 +320,7 @@ msgctxt "instructions1"
 msgid ""
 "Your task is to decide whether this word exists in the language or not."
 msgstr ""
-"Ihre Aufgabe ist es, zu entscheiden, ob dieses Wort in der Sprache existiert"
+"Ihre Aufgabe ist es, zu entscheiden, ob das jeweilige Wort in der Sprache existiert"
 " oder nicht."
 
 #. {"msgid": ["Wenn Sie die genaue Bedeutung des Wortes nicht kennen, aber

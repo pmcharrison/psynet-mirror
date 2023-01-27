@@ -6,7 +6,8 @@
 {% macro next_button() %}
     <p class="vspace"></p>
 
-    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onClick="psynet.nextPage();">
+    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onClick="psynet.nextPage();" style="margin-bottom: 30px">
         {{ gettext("Next") }}
     </button>
+
 {% endmacro %}

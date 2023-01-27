@@ -11,6 +11,7 @@ and the University of Cambridge.
 
 - `Peter Harrison <https://cms.mus.cam.ac.uk/staff/dr-peter-harrison>`_: Project creator, co-director, developer, and maintainer
 - Frank Höger: Project development and maintenance
+- `Pol van Rijn <https://pol.works/>`_: Project development and maintenance
 - `Nori Jacoby <https://norijacoby.com/>`_: Project co-director
 
 **Additional contributors (A-Z)**
@@ -19,7 +20,6 @@ and the University of Cambridge.
 - `Harin Lee <https://www.cbs.mpg.de/employees/hlee>`_
 - `Manuel Anglada-Tort <https://www.manuelangladatort.com/>`_
 - `Ofer Tchernichovski <https://www.hunter.cuny.edu/psychology/people/faculty/physiological/tchernichovski>`_
-- `Pol van Rijn <https://pol.works/>`_
 - `Raja Marjieh <https://il.linkedin.com/in/raja-marjieh-505b0781>`_
 
 We also collaborate regularly with the Dallinger initiative,

@@ -7,13 +7,14 @@ import jsonpickle
 path = ".deploy/deployment_info.json"
 
 
-def init(redeploying_from_archive: bool):
-    write_all(
-        {
-            "redeploying_from_archive": redeploying_from_archive,
-            "secret": uuid.uuid4(),
-        }
-    )
+def init(
+    redeploying_from_archive: bool,
+    mode: bool,
+    is_local_deployment: bool,
+    is_ssh_deployment: bool,
+):
+    secret = uuid.uuid4()
+    write_all(locals())
 
 
 def reset():
