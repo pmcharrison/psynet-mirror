@@ -284,9 +284,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("Calling Exp.on_first_launch()...")
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
-        if not redis_vars.get("deployment_db_ingested", False):
+        deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
+        print(f"deployment_db_ingested: {deployment_db_ingested}")
+        if not deployment_db_ingested:
             ingest_zip(database_template_path, db.engine)
             redis_vars.set("deployment_db_ingested", True)
+            assert ExperimentConfig.query.count() > 0
         self._nodes_on_deploy()
 
     def on_every_launch(self):
@@ -453,6 +456,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
+            "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
         }
 
     @property
