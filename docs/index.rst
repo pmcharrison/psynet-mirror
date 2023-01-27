@@ -54,7 +54,7 @@ but see the sidebar for a full list.
    :maxdepth: 2
    :hidden:
 
-   legacy_installation/index
+   developer_installation/index
 
 .. toctree::
    :hidden:
@@ -76,6 +76,13 @@ but see the sidebar for a full list.
    :hidden:
 
    api/index
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: DEPLOYING
+
+   deploy/aws_server_setup
 
 .. toctree::
    :maxdepth: 2

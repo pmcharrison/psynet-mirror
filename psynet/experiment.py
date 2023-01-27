@@ -284,9 +284,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("Calling Exp.on_first_launch()...")
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
-        if not redis_vars.get("deployment_db_ingested", False):
+        deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
+        print(f"deployment_db_ingested: {deployment_db_ingested}")
+        if not deployment_db_ingested:
             ingest_zip(database_template_path, db.engine)
             redis_vars.set("deployment_db_ingested", True)
+            assert ExperimentConfig.query.count() > 0
         self._nodes_on_deploy()
 
     def on_every_launch(self):
@@ -440,6 +443,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             network = ExperimentConfig()
             db.session.add(network)
             db.session.commit()
+
+    @classmethod
+    def config_defaults(cls):
+        """
+        Override this classmethod to register new default values for config variables.
+        Remember to call super!
+        """
+        return {
+            **super().config_defaults(),
+            "base_payment": 0.0,
+            "clock_on": True,
+            "duration": 100000000.0,
+            "disable_when_duration_exceeded": False,
+            "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
+        }
 
     @property
     def _default_variables(self):
@@ -941,19 +959,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Examples
         --------
 
-        # This would be appropriate for experiments with no payment.
-        tags.div(
-            tags.p("Thank you for participating in this experiment!"),
-            tags.p("Your responses have been saved. You may close this window."),
-        )
+        This would be appropriate for experiments with no payment:
 
-        # This kind of structure could be used for passing participants to a particular
-        # URL in Prolific.
-        tags.div(
-            tags.p("Thank you for participating in this experiment!"),
-            tags.p("Please click the following URL to continue back to Prolific:"),
-            tags.a("Finish experiment", href="https://prolific.com"),
-        )
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Your responses have been saved. You may close this window."),
+            )
+
+        This kind of structure could be used for passing participants to a particular
+        URL in Prolific:
+
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Please click the following URL to continue back to Prolific:"),
+                tags.a("Finish experiment", href="https://prolific.com"),
+            )
         """
         return "default_exit_message"
 

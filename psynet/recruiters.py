@@ -138,7 +138,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     """
     The LucidRecruiter base class
 
-    ...
 
     Attributes
     ----------
