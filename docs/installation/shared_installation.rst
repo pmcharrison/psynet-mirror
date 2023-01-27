@@ -34,4 +34,29 @@ Step 4: Try running an experiment
 
 To check that everything is now running properly, you should try running an experiment.
 You can start by downloading one from the :ref:`Example experiments <example_experiments_introduction>` page.
-Follow the instructions in the repository to launch the experiment using Docker.
+Follow the instructions in the repository to launch the experiment using Docker,
+or just try running the following command:
+
+::
+
+    bash docker/psynet debug local
+
+
+Step 5 (Optional): Install editable PsyNet and Dallinger repositories
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes it is useful to edit PsyNet and Dallinger source code as part of debugging an experiment.
+To do this, you should ``git clone`` the PsyNet and Dallinger repositories from their corresponding hosts:
+
+- https://gitlab.com/PsyNetDev/PsyNet
+- https://github.com/Dallinger/Dallinger/
+
+You should place these repositories in your working directory, and leave their names exactly
+as their defaults ('PsyNet' and 'Dallinger').
+Now, if you run an experiment using the following command:
+
+::
+
+    bash docker/psynet-dev debug local
+
+it will use these local repositories for PsyNet and for Dallinger.
