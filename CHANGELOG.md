@@ -1,5 +1,7 @@
 # CHANGELOG
 
+# [10.0.0rc2] Release candidate 2023-xx-xx
+
 # [10.0.0rc1] Release candidate 2023-01-27
 
 #### Added
