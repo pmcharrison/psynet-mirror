@@ -1,12 +1,12 @@
 # CHANGELOG
 
-# [10.0.0rc1] Release candidate 2023-xx-xx
+# [10.0.0rc1] Release candidate 2023-01-27
 
 #### Added
 - Added RUN.md instructions for running experiments in Docker (author: Peter Harrison).
 - Drafted 'generic recruiter', an improved version of Dallinger's hot-air recruiter (author: Peter Harrison).
 - Added missing parts of API documentation to Sphinx website (author: Frank Höger, reviewer: Peter Harrison).
-- Added `config_defaults` to experiment class, which allows for specifying default config variables programmatically. 
+- Added `config_defaults` to experiment class, which allows for specifying default config variables programmatically (author: Peter Harrison, reviewer: Frank Höger).
 
 #### Changed
 - Store assets in `static/assets` rather than `static/local_storage` (author: Peter Harrison).
