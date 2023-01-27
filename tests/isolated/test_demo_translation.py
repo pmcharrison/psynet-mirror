@@ -56,7 +56,7 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "You have chosen to translate this experiment from en to nl Below you will see this text translated! Hieronder ziet u deze tekst vertaald! Next",
+                "You have chosen to translate this experiment from en to nl Below you will see this text translated! Hieronder ziet u deze tekst vertaald! Volgende",
             )
 
             select = Select(
