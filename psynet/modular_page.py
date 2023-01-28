@@ -2648,7 +2648,7 @@ class MusicNotationPrompt(Prompt):
     def __init__(
         self,
         content: str,
-        text: Union[None, str, Markup] = None,
+        text: Union[None, str, Markup, dom_tag] = None,
         text_align: str = "left",
     ):
         super().__init__(text=text, text_align=text_align)
