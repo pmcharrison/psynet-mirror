@@ -342,15 +342,9 @@ class Chord(dict):
     ):
         if isinstance(pan, list):
             assert len(pan) == len(pitches)
-        else:
-            pan = [pan for _ in pitches]
 
         if isinstance(timbre, list):
-            print(timbre)
-            print(pitches)
             assert len(timbre) == len(pitches)
-        else:
-            timbre = [timbre for _ in pitches]
 
         super().__init__(
             pitches=pitches,
@@ -473,7 +467,12 @@ class JSSynth(Prompt):
                 raise ValueError(
                     "Each element in 'sequence' must be an object of type 'Chord' or 'Note'."
                 )
-            uses_panning = uses_panning or any([p != 0.0 for p in elt["pan"]])
+            if isinstance(elt["pan"], list):
+                if any([p != 0.0 for p in elt["pan"]]):
+                    uses_panning = True
+            else:
+                if elt["pan"] != 0.0:
+                    uses_panning = True
 
         if uses_panning:
             for t in timbre.values():
@@ -534,18 +533,37 @@ class JSSynth(Prompt):
         note_sequence = []
         onset = 0
         for chord in chord_sequence:
-            for i, pitch in enumerate(chord["pitches"]):
-                note = chord.copy()
-                note["pitches"] = [pitch]
-                note["onset"] = onset
+            chord["onset"] = onset
 
-                if isinstance(note["channel"], list):
-                    note["channel"] = note["channel"][i]
+            uses_multiple_channels = isinstance(chord["channel"], list)
 
-                if isinstance(note["pan"], list):
-                    note["pan"] = [note["pan"][i]]
+            if uses_multiple_channels:
+                for t in timbre.values():
+                    if isinstance(t, ADSRTimbre):
+                        raise ValueError(
+                            "Mixing multiple timbres within chords is not supported for ADSRTimbres"
+                        )
 
-                note_sequence.append(note)
+                for i, pitch in enumerate(chord["pitches"]):
+                    note = chord.copy()
+                    note["pitches"] = [pitch]
+
+                    if isinstance(note["channel"], list):
+                        note["channel"] = note["channel"][i]
+
+                    if isinstance(note["pan"], list):
+                        note["pan"] = [note["pan"][i]]
+
+                    note_sequence.append(note)
+
+            else:
+                assert isinstance(chord["pitches"], list)
+                assert not isinstance(chord["channel"], list)
+
+                if not isinstance(chord["pan"], list):
+                    chord["pan"] = [chord["pan"]]
+
+                note_sequence.append(chord)
 
             onset += chord["duration"] + chord["silence"]
 
