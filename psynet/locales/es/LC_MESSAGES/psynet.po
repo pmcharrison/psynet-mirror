@@ -5397,21 +5397,18 @@ msgstr ""
 
 #. {"msgid": ["Afganist\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Afghanistan"
 msgstr "Afganistán"
 
 #. {"msgid": ["Albania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Albania"
 msgstr "Albania"
 
 #. {"msgid": ["Argelia", "Algeria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Algeria"
 msgstr "Argelia"
@@ -5419,161 +5416,138 @@ msgstr "Argelia"
 #. {"msgid": ["Samoa Americana", "Samoa americana", "Samoa estadounidense",
 #. "Samoa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "American Samoa"
 msgstr "Samoa Americana"
 
 #. {"msgid": ["Andorra"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Andorra"
 msgstr "Andorra"
 
 #. {"msgid": ["Angola"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Angola"
 msgstr "Angola"
 
 #. {"msgid": ["Anguila", "Anguilla"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Anguilla"
 msgstr "Anguila"
 
 #. {"msgid": ["Ant\u00e1rtida", "Ant\u00e1rtica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Antarctica"
 msgstr "Antártida"
 
 #. {"msgid": ["Antigua y Barbuda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Antigua and Barbuda"
 msgstr "Antigua y Barbuda"
 
 #. {"msgid": ["Argentina"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Argentina"
 msgstr "Argentina"
 
 #. {"msgid": ["Armenia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Armenia"
 msgstr "Armenia"
 
 #. {"msgid": ["Aruba"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Aruba"
 msgstr "Aruba"
 
 #. {"msgid": ["Australia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Australia"
 msgstr "Australia"
 
 #. {"msgid": ["Austria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Austria"
 msgstr "Austria"
 
 #. {"msgid": ["Azerbaiy\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Azerbaijan"
 msgstr "Azerbaiyán"
 
 #. {"msgid": ["Bahamas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bahamas"
 msgstr "Bahamas"
 
 #. {"msgid": ["Bahrein", "Bahr\u00e9in", "Bahrain", "Bahr\u00e1in"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bahrain"
 msgstr "Bahrein"
 
 #. {"msgid": ["Bangladesh", "Banglad\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bangladesh"
 msgstr "Bangladesh"
 
 #. {"msgid": ["Barbados"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Barbados"
 msgstr "Barbados"
 
 #. {"msgid": ["Bielorrusia", "Belar\u00fas", "Belarr\u00fas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Belarus"
 msgstr "Bielorrusia"
 
 #. {"msgid": ["B\u00e9lgica", "B\u00c3\u00a9lgica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Belgium"
 msgstr "Bélgica"
 
 #. {"msgid": ["Belice"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Belize"
 msgstr "Belice"
 
 #. {"msgid": ["Ben\u00edn", "Benin"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Benin"
 msgstr "Benín"
 
 #. {"msgid": ["Bermudas", "Bermuda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bermuda"
 msgstr "Bermudas"
 
 #. {"msgid": ["But\u00e1n", "Bhut\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bhutan"
 msgstr "Bután"
 
 #. {"msgid": ["Bolivia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bolivia"
 msgstr "Bolivia"
@@ -5581,7 +5555,6 @@ msgstr "Bolivia"
 #. {"msgid": ["Bonaire, San Eustaquio y Saba", "Bonaire, Sint Eustatius y
 #. Saba"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bonaire, Sint Eustatius and Saba"
 msgstr "Bonaire, San Eustaquio y Saba"
@@ -5589,28 +5562,24 @@ msgstr "Bonaire, San Eustaquio y Saba"
 #. {"msgid": ["Bosnia y Hercegovina", "Bosnia y Herzegovina", "Bosnia-
 #. Herzegovina"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bosnia and Herzegovina"
 msgstr "Bosnia y Hercegovina"
 
 #. {"msgid": ["Botsuana", "Botswana"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Botswana"
 msgstr "Botsuana"
 
 #. {"msgid": ["Isla Bouvet", "Isla de Bouvet", "Bouvet", "Islas Bouvet"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bouvet Island"
 msgstr "Isla Bouvet"
 
 #. {"msgid": ["Brasil"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Brazil"
 msgstr "Brasil"
@@ -5620,63 +5589,54 @@ msgstr "Brasil"
 #. brit\u00e1nico del oc\u00e9ano \u00cdndico", "Territorio Brit\u00e1nico del
 #. Oc\u00e9ano Indico"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "British Indian Ocean Territory"
 msgstr "Territorio Británico del Océano Índico"
 
 #. {"msgid": ["Brunei Darussalam", "Brun\u00e9i Darussalam"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Brunei Darussalam"
 msgstr "Brunei Darussalam"
 
 #. {"msgid": ["Bulgaria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Bulgaria"
 msgstr "Bulgaria"
 
 #. {"msgid": ["Burkina Faso"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Burkina Faso"
 msgstr "Burkina Faso"
 
 #. {"msgid": ["Burundi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Burundi"
 msgstr "Burundi"
 
 #. {"msgid": ["Cabo Verde", "Cabo verde"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cabo Verde"
 msgstr "Cabo Verde"
 
 #. {"msgid": ["Camboya"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cambodia"
 msgstr "Camboya"
 
 #. {"msgid": ["Camer\u00fan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cameroon"
 msgstr "Camerún"
 
 #. {"msgid": ["Canad\u00e1", "Canada"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Canada"
 msgstr "Canadá"
@@ -5684,7 +5644,6 @@ msgstr "Canadá"
 #. {"msgid": ["Islas Caim\u00e1n", "Camer\u00fan", "Caim\u00e1n, Islas",
 #. "Caim\u00e1n (Islas)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cayman Islands"
 msgstr "Islas Caimán"
@@ -5692,28 +5651,24 @@ msgstr "Islas Caimán"
 #. {"msgid": ["Rep\u00fablica Centroafricana", "Central African Republic",
 #. "Rep\u00fablica centroafricana", "Centroafricana, Rep\u00fablica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Central African Republic"
 msgstr "República Centroafricana"
 
 #. {"msgid": ["Chad"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Chad"
 msgstr "Chad"
 
 #. {"msgid": ["Chile"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Chile"
 msgstr "Chile"
 
 #. {"msgid": ["China"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "China"
 msgstr "China"
@@ -5721,35 +5676,30 @@ msgstr "China"
 #. {"msgid": ["Isla de Navidad", "Isla Christmas", "Islas Christmas", "Isla
 #. Navidad"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Christmas Island"
 msgstr "Isla de Navidad"
 
 #. {"msgid": ["Islas Cocos", "Islas del Coco", "Cocos", "Cocos (Islas)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cocos  Islands"
 msgstr "Islas Cocos"
 
 #. {"msgid": ["Colombia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Colombia"
 msgstr "Colombia"
 
 #. {"msgid": ["Comoras", "Comores", "Comoros"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Comoros"
 msgstr "Comoras"
 
 #. {"msgid": ["Congo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Congo"
 msgstr "Congo"
@@ -5758,7 +5708,6 @@ msgstr "Congo"
 #. Democr\u00e1tica del Congo", "Congo (Rep\u00fablica Democr\u00e1tica del)",
 #. "Congo (Rep\u00fablica democr\u00e1tica)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Congo (Democratic Republic)"
 msgstr "Congo (República Democrática)"
@@ -5766,49 +5715,42 @@ msgstr "Congo (República Democrática)"
 #. {"msgid": ["Islas Cook", "Costa de Marfil", "Corea del Sur", "Cook
 #. (Islas)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cook Islands"
 msgstr "Islas Cook"
 
 #. {"msgid": ["Costa Rica", "Costa de Marfil", "Corea del Sur", "Croacia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Costa Rica"
 msgstr "Costa Rica"
 
 #. {"msgid": ["Croacia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Croatia"
 msgstr "Croacia"
 
 #. {"msgid": ["Cuba"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cuba"
 msgstr "Cuba"
 
 #. {"msgid": ["Cura\u00e7ao", "Curazao", "Curasao"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Curaçao"
 msgstr "Curaçao"
 
 #. {"msgid": ["Chipre"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Cyprus"
 msgstr "Chipre"
 
 #. {"msgid": ["Chequia", "Checa", "Rep\u00fablica Checa", "Checoslovaquia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Czechia"
 msgstr "Chequia"
@@ -5816,28 +5758,24 @@ msgstr "Chequia"
 #. {"msgid": ["Costa de Marfil", "C\u00f4te d'Ivoire", "Costa de marfil",
 #. "Corea del Sur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Côte d'Ivoire"
 msgstr "Costa de Marfil"
 
 #. {"msgid": ["Dinamarca"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Denmark"
 msgstr "Dinamarca"
 
 #. {"msgid": ["Yibuti", "Djibouti"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Djibouti"
 msgstr "Yibuti"
 
 #. {"msgid": ["Dominica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Dominica"
 msgstr "Dominica"
@@ -5845,28 +5783,24 @@ msgstr "Dominica"
 #. {"msgid": ["Rep\u00fablica Dominicana", "Dominica", "Dominica,
 #. Rep\u00fablica", "Dominica (Rep\u00fablica)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Dominican Republic"
 msgstr "República Dominicana"
 
 #. {"msgid": ["Ecuador"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Ecuador"
 msgstr "Ecuador"
 
 #. {"msgid": ["Egipto"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Egypt"
 msgstr "Egipto"
 
 #. {"msgid": ["El Salvador", "Ecuador", "Egipto"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "El Salvador"
 msgstr "El Salvador"
@@ -5874,35 +5808,30 @@ msgstr "El Salvador"
 #. {"msgid": ["Guinea Ecuatorial", "Guinea ecuatorial", "Equatorial Guinea",
 #. "Emiratos \u00c1rabes Unidos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Equatorial Guinea"
 msgstr "Guinea Ecuatorial"
 
 #. {"msgid": ["Eritrea"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Eritrea"
 msgstr "Eritrea"
 
 #. {"msgid": ["Estonia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Estonia"
 msgstr "Estonia"
 
 #. {"msgid": ["Eswatini"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Eswatini"
 msgstr "Eswatini"
 
 #. {"msgid": ["Etiop\u00eda", "Etiopia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Ethiopia"
 msgstr "Etiopía"
@@ -5910,35 +5839,30 @@ msgstr "Etiopía"
 #. {"msgid": ["Islas Malvinas (Falkland Islands)", "Islas Malvinas
 #. (Falkland)", "Malvinas (Islas)", "Islas Malvinas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Falkland Islands (Malvinas)"
 msgstr "Islas Malvinas (Falkland Islands)"
 
 #. {"msgid": ["Islas Feroe", "Feroe (Islas)", "Islas Faroe", "Feroe, Islas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Faroe Islands"
 msgstr "Islas Feroe"
 
 #. {"msgid": ["Fiyi", "Fiji", "Fidji"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Fiji"
 msgstr "Fiyi"
 
 #. {"msgid": ["Finlandia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Finland"
 msgstr "Finlandia"
 
 #. {"msgid": ["Francia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "France"
 msgstr "Francia"
@@ -5946,7 +5870,6 @@ msgstr "Francia"
 #. {"msgid": ["Guayana Francesa", "Guayana francesa", "Guyana Francesa",
 #. "Guyana francesa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "French Guiana"
 msgstr "Guayana Francesa"
@@ -5954,7 +5877,6 @@ msgstr "Guayana Francesa"
 #. {"msgid": ["Polinesia Francesa", "Polinesia francesa", "Polinesia
 #. franc\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "French Polynesia"
 msgstr "Polinesia Francesa"
@@ -5963,126 +5885,108 @@ msgstr "Polinesia Francesa"
 #. Franceses", "Territorios franceses del Sur", "Territorios franceses del
 #. sur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "French Southern Territories"
 msgstr "Territorios Franceses del Sur"
 
 #. {"msgid": ["Gab\u00f3n", "Gabon"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Gabon"
 msgstr "Gabón"
 
 #. {"msgid": ["Gambia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Gambia"
 msgstr "Gambia"
 
 #. {"msgid": ["Georgia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Georgia"
 msgstr "Georgia"
 
 #. {"msgid": ["Alemania", "Georgia del Sur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Germany"
 msgstr "Alemania"
 
 #. {"msgid": ["Ghana", "Gana"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Ghana"
 msgstr "Ghana"
 
 #. {"msgid": ["Gibraltar"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Gibraltar"
 msgstr "Gibraltar"
 
 #. {"msgid": ["Grecia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Greece"
 msgstr "Grecia"
 
 #. {"msgid": ["Groenlandia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Greenland"
 msgstr "Groenlandia"
 
 #. {"msgid": ["Granada", "Grenada"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Grenada"
 msgstr "Granada"
 
 #. {"msgid": ["Guadalupe", "Guadeloupe"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guadeloupe"
 msgstr "Guadalupe"
 
 #. {"msgid": ["Guam"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guam"
 msgstr "Guam"
 
 #. {"msgid": ["Guatemala"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guatemala"
 msgstr "Guatemala"
 
 #. {"msgid": ["Guernesey", "Guernsey"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guernsey"
 msgstr "Guernesey"
 
 #. {"msgid": ["Guinea"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guinea"
 msgstr "Guinea"
 
 #. {"msgid": ["Guinea-Bissau", "Guinea Bissau", "Guinea-Bis\u00e1u"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guinea-Bissau"
 msgstr "Guinea-Bissau"
 
 #. {"msgid": ["Guyana", "Guayana", "Guinea Ecuatorial Guyana"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Guyana"
 msgstr "Guyana"
 
 #. {"msgid": ["Hait\u00ed", "Haiti"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Haiti"
 msgstr "Haití"
@@ -6090,259 +5994,222 @@ msgstr "Haití"
 #. {"msgid": ["Islas Heard y McDonald", "Isla Heard e Islas McDonald", "Isla
 #. Heard e islas McDonald", "Isla Heard y las islas McDonald"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Heard Island and McDonald Islands"
 msgstr "Islas Heard y McDonald"
 
 #. {"msgid": ["Honduras"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Honduras"
 msgstr "Honduras"
 
 #. {"msgid": ["Hong Kong", "Hong-Kong", "Hongkong", "Hungria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Hong Kong"
 msgstr "Hong Kong"
 
 #. {"msgid": ["Hungr\u00eda", "Hungria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Hungary"
 msgstr "Hungría"
 
 #. {"msgid": ["Islandia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Iceland"
 msgstr "Islandia"
 
 #. {"msgid": ["India"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "India"
 msgstr "India"
 
 #. {"msgid": ["Indonesia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Indonesia"
 msgstr "Indonesia"
 
 #. {"msgid": ["Ir\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Iran"
 msgstr "Irán"
 
 #. {"msgid": ["Iraq", "Irak"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Iraq"
 msgstr "Iraq"
 
 #. {"msgid": ["Irlanda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Ireland"
 msgstr "Irlanda"
 
 #. {"msgid": ["Isla de Man", "Islas de Man", "Irlanda", "Isla de man"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Isle of Man"
 msgstr "Isla de Man"
 
 #. {"msgid": ["Israel"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Israel"
 msgstr "Israel"
 
 #. {"msgid": ["Italia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Italy"
 msgstr "Italia"
 
 #. {"msgid": ["Jamaica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Jamaica"
 msgstr "Jamaica"
 
 #. {"msgid": ["Jap\u00f3n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Japan"
 msgstr "Japón"
 
 #. {"msgid": ["Jersey"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Jersey"
 msgstr "Jersey"
 
 #. {"msgid": ["Jordania", "Jordan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Jordan"
 msgstr "Jordania"
 
 #. {"msgid": ["Kazajst\u00e1n", "Kazajist\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Kazakhstan"
 msgstr "Kazajstán"
 
 #. {"msgid": ["Kenia", "Kenya"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Kenya"
 msgstr "Kenia"
 
 #. {"msgid": ["Kiribati", "Kirguist\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Kiribati"
 msgstr "Kiribati"
 
 #. {"msgid": ["Kuwait"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Kuwait"
 msgstr "Kuwait"
 
 #. {"msgid": ["Kirguist\u00e1n", "Kirguizist\u00e1n", "Kirguizst\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Kyrgyzstan"
 msgstr "Kirguistán"
 
 #. {"msgid": ["Letonia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Latvia"
 msgstr "Letonia"
 
 #. {"msgid": ["L\u00edbano", "Libano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Lebanon"
 msgstr "Líbano"
 
 #. {"msgid": ["Lesotho", "Lesoto"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Lesotho"
 msgstr "Lesotho"
 
 #. {"msgid": ["Liberia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Liberia"
 msgstr "Liberia"
 
 #. {"msgid": ["Libia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Libya"
 msgstr "Libia"
 
 #. {"msgid": ["Liechtenstein"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Liechtenstein"
 msgstr "Liechtenstein"
 
 #. {"msgid": ["Lituania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Lithuania"
 msgstr "Lituania"
 
 #. {"msgid": ["Luxemburgo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Luxembourg"
 msgstr "Luxemburgo"
 
 #. {"msgid": ["Macao"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Macao"
 msgstr "Macao"
 
 #. {"msgid": ["Madagascar"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Madagascar"
 msgstr "Madagascar"
 
 #. {"msgid": ["Malaui", "Malawi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Malawi"
 msgstr "Malaui"
 
 #. {"msgid": ["Malasia", "Malaisia", "Malaysia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Malaysia"
 msgstr "Malasia"
 
 #. {"msgid": ["Maldivas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Maldives"
 msgstr "Maldivas"
 
 #. {"msgid": ["Mal\u00ed", "Mali"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mali"
 msgstr "Malí"
 
 #. {"msgid": ["Malta"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Malta"
 msgstr "Malta"
@@ -6350,126 +6217,108 @@ msgstr "Malta"
 #. {"msgid": ["Islas Marshall", "Marshall, Islas", "Marruecos", "Marshall
 #. (Islas)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Marshall Islands"
 msgstr "Islas Marshall"
 
 #. {"msgid": ["Martinica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Martinique"
 msgstr "Martinica"
 
 #. {"msgid": ["Mauritania", "Mauricio"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mauritania"
 msgstr "Mauritania"
 
 #. {"msgid": ["Mauricio", "Isla Mauricio", "Mauritania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mauritius"
 msgstr "Mauricio"
 
 #. {"msgid": ["Mayotte"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mayotte"
 msgstr "Mayotte"
 
 #. {"msgid": ["M\u00e9xico", "M\u00e9jico", "Mexico", "M\u00c3\u00a9xico"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mexico"
 msgstr "México"
 
 #. {"msgid": ["Micronesia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Micronesia"
 msgstr "Micronesia"
 
 #. {"msgid": ["Moldavia", "Moldova"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Moldova"
 msgstr "Moldavia"
 
 #. {"msgid": ["M\u00f3naco", "Monaco"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Monaco"
 msgstr "Mónaco"
 
 #. {"msgid": ["Mongolia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mongolia"
 msgstr "Mongolia"
 
 #. {"msgid": ["Montenegro"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Montenegro"
 msgstr "Montenegro"
 
 #. {"msgid": ["Montserrat"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Montserrat"
 msgstr "Montserrat"
 
 #. {"msgid": ["Marruecos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Morocco"
 msgstr "Marruecos"
 
 #. {"msgid": ["Mozambique"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Mozambique"
 msgstr "Mozambique"
 
 #. {"msgid": ["Myanmar"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Myanmar"
 msgstr "Myanmar"
 
 #. {"msgid": ["Namibia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Namibia"
 msgstr "Namibia"
 
 #. {"msgid": ["Nepal"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Nepal"
 msgstr "Nepal"
 
 #. {"msgid": ["Pa\u00edses Bajos", "Paises Bajos", "Holanda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Netherlands"
 msgstr "Países Bajos"
@@ -6477,7 +6326,6 @@ msgstr "Países Bajos"
 #. {"msgid": ["Nueva Caledonia", "Nueva caledonia", "New Caledonia",
 #. "N\u00edger"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "New Caledonia"
 msgstr "Nueva Caledonia"
@@ -6485,35 +6333,30 @@ msgstr "Nueva Caledonia"
 #. {"msgid": ["Nueva Caledonia", "Nueva Zelanda", "Nicaragua", "Nueva
 #. Zelandia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "New Zealand"
 msgstr "Nueva Caledonia"
 
 #. {"msgid": ["Nicaragua"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Nicaragua"
 msgstr "Nicaragua"
 
 #. {"msgid": ["N\u00edger", "Niger"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Niger"
 msgstr "Níger"
 
 #. {"msgid": ["Nigeria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Nigeria"
 msgstr "Nigeria"
 
 #. {"msgid": ["Niue"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Niue"
 msgstr "Niue"
@@ -6521,7 +6364,6 @@ msgstr "Niue"
 #. {"msgid": ["Isla Norfolk", "Isla de Norfolk", "Norfolk, Isla", "Norfolk,
 #. isla"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Norfolk Island"
 msgstr "Isla Norfolk"
@@ -6529,7 +6371,6 @@ msgstr "Isla Norfolk"
 #. {"msgid": ["Corea del Norte", "Corea del norte", "Korea del Norte", "Corea
 #. Del Norte"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "North Korea"
 msgstr "Corea del Norte"
@@ -6537,7 +6378,6 @@ msgstr "Corea del Norte"
 #. {"msgid": ["Macedonia del Norte", "Norte de Macedonia", "Macedonia
 #. septentrional", "Macedonia del norte"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "North Macedonia"
 msgstr "Macedonia del Norte"
@@ -6545,49 +6385,42 @@ msgstr "Macedonia del Norte"
 #. {"msgid": ["Islas Marianas del Norte", "Marianas del Norte (Islas)",
 #. "Marianas del Norte, Islas", "Marianas del Norte"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Northern Mariana Islands"
 msgstr "Islas Marianas del Norte"
 
 #. {"msgid": ["Noruega"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Norway"
 msgstr "Noruega"
 
 #. {"msgid": ["Om\u00e1n", "Oman"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Oman"
 msgstr "Omán"
 
 #. {"msgid": ["Pakist\u00e1n", "Paquist\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Pakistan"
 msgstr "Pakistán"
 
 #. {"msgid": ["Palau", "Palaos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Palau"
 msgstr "Palau"
 
 #. {"msgid": ["Palestina"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Palestine"
 msgstr "Palestina"
 
 #. {"msgid": ["Panam\u00e1", "Panama"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Panama"
 msgstr "Panamá"
@@ -6595,91 +6428,78 @@ msgstr "Panamá"
 #. {"msgid": ["Pap\u00faa Nueva Guinea", "Papua Nueva Guinea", "Pap\u00faa-
 #. Nueva Guinea", "Pap\u00faa nueva Guinea"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Papua New Guinea"
 msgstr "Papúa Nueva Guinea"
 
 #. {"msgid": ["Paraguay"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Paraguay"
 msgstr "Paraguay"
 
 #. {"msgid": ["Per\u00fa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Peru"
 msgstr "Perú"
 
 #. {"msgid": ["Filipinas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Philippines"
 msgstr "Filipinas"
 
 #. {"msgid": ["Pitcairn"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Pitcairn"
 msgstr "Pitcairn"
 
 #. {"msgid": ["Polonia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Poland"
 msgstr "Polonia"
 
 #. {"msgid": ["Portugal"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Portugal"
 msgstr "Portugal"
 
 #. {"msgid": ["Puerto Rico", "Portugal"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Puerto Rico"
 msgstr "Puerto Rico"
 
 #. {"msgid": ["Qatar"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Qatar"
 msgstr "Qatar"
 
 #. {"msgid": ["Ruman\u00eda", "Rumania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Romania"
 msgstr "Rumanía"
 
 #. {"msgid": ["Federaci\u00f3n de Rusia", "Rusia", "Ruman\u00eda", "Rumania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Russian Federation"
 msgstr "Federación de Rusia"
 
 #. {"msgid": ["Ruanda", "Rwanda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Rwanda"
 msgstr "Ruanda"
 
 #. {"msgid": ["Reuni\u00f3n", "La Reuni\u00f3n", "R\u00e9union"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Réunion"
 msgstr "Reunión"
@@ -6687,7 +6507,6 @@ msgstr "Reunión"
 #. {"msgid": ["San Bartolom\u00e9", "Santa Bartolom\u00e9", "San Bartolomeo",
 #. "Saint Barth\u00e9lemy"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Barthélemy"
 msgstr "San Bartolomé"
@@ -6697,7 +6516,6 @@ msgstr "San Bartolomé"
 #. Ascensi\u00f3n y Tristan da Cunha", "Santa Helena, Ascensi\u00f3n y Tristan
 #. da Cunha"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Helena, Ascension and Tristan da Cunha"
 msgstr "Santa Elena, Ascensión y Tristán da Cunha"
@@ -6705,7 +6523,6 @@ msgstr "Santa Elena, Ascensión y Tristán da Cunha"
 #. {"msgid": ["San Crist\u00f3bal y Nieves", "Saint Kitts y Nevis", "San Kitts
 #. y Nevis", "San Cristobal y Nieves"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Kitts and Nevis"
 msgstr "San Cristóbal y Nieves"
@@ -6713,7 +6530,6 @@ msgstr "San Cristóbal y Nieves"
 #. {"msgid": ["Santa Luc\u00eda", "Santa Lucia", "Santa L\u00facia", "San
 #. Mart\u00edn"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Lucia"
 msgstr "Santa Lucía"
@@ -6721,7 +6537,6 @@ msgstr "Santa Lucía"
 #. {"msgid": ["San Mart\u00edn", "San Martin", "Saint Martin", "Santo
 #. Mart\u00edn"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Martin"
 msgstr "San Martín"
@@ -6729,7 +6544,6 @@ msgstr "San Martín"
 #. {"msgid": ["San Pedro y Miquel\u00f3n", "San Pedro y Miquelon", "Saint
 #. Pierre y Miquelon", "San Pierre y Miquel\u00f3n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Pierre and Miquelon"
 msgstr "San Pedro y Miquelón"
@@ -6737,14 +6551,12 @@ msgstr "San Pedro y Miquelón"
 #. {"msgid": ["San Vicente y las Granadinas", "San Vincente y las Granadinas",
 #. "San Vicente y Granadinas", "San Vicente y Las Granadinas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saint Vincent and the Grenadines"
 msgstr "San Vicente y las Granadinas"
 
 #. {"msgid": ["Samoa", "Santa Sede", "San Marino"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Samoa"
 msgstr "Samoa"
@@ -6752,7 +6564,6 @@ msgstr "Samoa"
 #. {"msgid": ["San Marino", "Santo Tom\u00e9 y Pr\u00edncipe", "Samoa", "Santo
 #. Marino"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "San Marino"
 msgstr "San Marino"
@@ -6761,7 +6572,6 @@ msgstr "San Marino"
 #. Pr\u00c3ncipe", "Sao Tom\u00e9 y Pr\u00edncipe", "San Tom\u00e9 y
 #. Pr\u00edncipe"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Sao Tome and Principe"
 msgstr "Santo Tomé y Príncipe"
@@ -6769,28 +6579,24 @@ msgstr "Santo Tomé y Príncipe"
 #. {"msgid": ["Arabia Saud\u00ed", "Santo Tom\u00e9 y Pr\u00edncipe", "San
 #. Marino", "Arabia Saudita"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Saudi Arabia"
 msgstr "Arabia Saudí"
 
 #. {"msgid": ["Senegal"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Senegal"
 msgstr "Senegal"
 
 #. {"msgid": ["Serbia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Serbia"
 msgstr "Serbia"
 
 #. {"msgid": ["Seychelles"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Seychelles"
 msgstr "Seychelles"
@@ -6798,14 +6604,12 @@ msgstr "Seychelles"
 #. {"msgid": ["Sierra Leona", "Sierra Leone", "Sierra leona", "Santa
 #. Luc\u00eda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Sierra Leone"
 msgstr "Sierra Leona"
 
 #. {"msgid": ["Singapur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Singapore"
 msgstr "Singapur"
@@ -6813,21 +6617,18 @@ msgstr "Singapur"
 #. {"msgid": ["San Mart\u00edn", "Sint Maarten", "Singapur", "Santa
 #. Luc\u00eda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Sint Maarten"
 msgstr "San Martín"
 
 #. {"msgid": ["Eslovaquia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Slovakia"
 msgstr "Eslovaquia"
 
 #. {"msgid": ["Eslovenia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Slovenia"
 msgstr "Eslovenia"
@@ -6835,21 +6636,18 @@ msgstr "Eslovenia"
 #. {"msgid": ["Islas Salom\u00f3n", "Salom\u00f3n (Islas)", "Salom\u00f3n,
 #. Islas", "Solomon Islands"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Solomon Islands"
 msgstr "Islas Salomón"
 
 #. {"msgid": ["Somalia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Somalia"
 msgstr "Somalia"
 
 #. {"msgid": ["Sud\u00e1frica", "Sudafrica", "Sur\u00e1frica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "South Africa"
 msgstr "Sudáfrica"
@@ -6858,7 +6656,6 @@ msgstr "Sudáfrica"
 #. y las islas Sandwich del Sur", "Georgia del Sur e Islas Sandwich del Sur",
 #. "Georgia del Sur y Sandwich del Sur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "South Georgia and the South Sandwich Islands"
 msgstr "Georgia del Sur y las Islas Sandwich del Sur"
@@ -6866,7 +6663,6 @@ msgstr "Georgia del Sur y las Islas Sandwich del Sur"
 #. {"msgid": ["Corea del Sur", "Corea del sur", "Korea del Sur", "Corea Del
 #. Sur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "South Korea"
 msgstr "Corea del Sur"
@@ -6874,14 +6670,12 @@ msgstr "Corea del Sur"
 #. {"msgid": ["Sud\u00e1n del Sur", "Sur de Sud\u00e1n", "Sud\u00e1n del sur",
 #. "Sud\u00e1frica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "South Sudan"
 msgstr "Sudán del Sur"
 
 #. {"msgid": ["Espa\u00f1a", "Espa\u00c3\u00b1a"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Spain"
 msgstr "España"
@@ -6889,98 +6683,84 @@ msgstr "España"
 #. {"msgid": ["Sri Lanka", "Sud\u00e1n", "Sud\u00e1n del Sur",
 #. "Sur\u00e1frica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Sri Lanka"
 msgstr "Sri Lanka"
 
 #. {"msgid": ["Sud\u00e1n", "Sudan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Sudan"
 msgstr "Sudán"
 
 #. {"msgid": ["Surinam", "Suriname"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Suriname"
 msgstr "Surinam"
 
 #. {"msgid": ["Svalbard y Jan Mayen"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Svalbard and Jan Mayen"
 msgstr "Svalbard y Jan Mayen"
 
 #. {"msgid": ["Suecia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Sweden"
 msgstr "Suecia"
 
 #. {"msgid": ["Suiza"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Switzerland"
 msgstr "Suiza"
 
 #. {"msgid": ["Siria"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Syria"
 msgstr "Siria"
 
 #. {"msgid": ["Taiw\u00e1n", "Taiwan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Taiwan"
 msgstr "Taiwán"
 
 #. {"msgid": ["Tayikist\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Tajikistan"
 msgstr "Tayikistán"
 
 #. {"msgid": ["Tanzania", "Tanzan\u00eda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Tanzania"
 msgstr "Tanzania"
 
 #. {"msgid": ["Tailandia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Thailand"
 msgstr "Tailandia"
 
 #. {"msgid": ["Timor Oriental", "Timor-Leste", "Timor Leste"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Timor-Leste"
 msgstr "Timor Oriental"
 
 #. {"msgid": ["Togo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Togo"
 msgstr "Togo"
 
 #. {"msgid": ["Tokelau"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Tokelau"
 msgstr "Tokelau"
@@ -6988,28 +6768,24 @@ msgstr "Tokelau"
 #. {"msgid": ["Trinidad y Tobago", "Trinidad y Tabago", "Tonga", "Trinit\u00e9
 #. et Tobago"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Trinidad and Tobago"
 msgstr "Trinidad y Tobago"
 
 #. {"msgid": ["T\u00fanez"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Tunisia"
 msgstr "Túnez"
 
 #. {"msgid": ["Turqu\u00eda", "Turquia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Turkey"
 msgstr "Turquía"
 
 #. {"msgid": ["Turkmenist\u00e1n", "Turkmenistan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Turkmenistan"
 msgstr "Turkmenistán"
@@ -7017,28 +6793,24 @@ msgstr "Turkmenistán"
 #. {"msgid": ["Islas Turcas y Caicos", "Turcas y Caicos", "Turkmenist\u00e1n",
 #. "Turcos y Caicos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Turks and Caicos Islands"
 msgstr "Islas Turcas y Caicos"
 
 #. {"msgid": ["Tuvalu"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Tuvalu"
 msgstr "Tuvalu"
 
 #. {"msgid": ["Uganda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Uganda"
 msgstr "Uganda"
 
 #. {"msgid": ["Ucrania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Ukraine"
 msgstr "Ucrania"
@@ -7046,7 +6818,6 @@ msgstr "Ucrania"
 #. {"msgid": ["Emiratos \u00c1rabes Unidos", "Emiratos Arabes Unidos",
 #. "Emiratos \u00c3rabes Unidos", "Emiratos \u00e1rabes unidos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "United Arab Emirates"
 msgstr "Emiratos Árabes Unidos"
@@ -7054,7 +6825,6 @@ msgstr "Emiratos Árabes Unidos"
 #. {"msgid": ["Reino Unido", "Reino Unido de Gran Breta\u00f1a e Irlanda del
 #. Norte", "Estados Unidos", "Emiratos \u00c1rabes Unidos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "United Kingdom"
 msgstr "Reino Unido"
@@ -7062,7 +6832,6 @@ msgstr "Reino Unido"
 #. {"msgid": ["Estados Unidos", "Estados Unidos de Am\u00e9rica", "Estados
 #. unidos", "Estados Unidos de America"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "United States"
 msgstr "Estados Unidos"
@@ -7072,28 +6841,24 @@ msgstr "Estados Unidos"
 #. Menores de Estados Unidos", "Islas Ultramarinas Menores de Estados
 #. Unidos"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "United States Minor Outlying Islands"
 msgstr "Islas periféricas menores de Estados Unidos"
 
 #. {"msgid": ["Uruguay"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Uruguay"
 msgstr "Uruguay"
 
 #. {"msgid": ["Uzbekist\u00e1n", "Uzbekistan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Uzbekistan"
 msgstr "Uzbekistán"
 
 #. {"msgid": ["Vanuatu"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Vanuatu"
 msgstr "Vanuatu"
@@ -7101,21 +6866,18 @@ msgstr "Vanuatu"
 #. {"msgid": ["Ciudad del Vaticano", "Estado de la Ciudad del Vaticano",
 #. "Vaticano", "Estado de la ciudad del Vaticano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Vatican City State"
 msgstr "Ciudad del Vaticano"
 
 #. {"msgid": ["Venezuela"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Venezuela"
 msgstr "Venezuela"
 
 #. {"msgid": ["Vietnam", "Viet Nam"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Vietnam"
 msgstr "Vietnam"
@@ -7124,7 +6886,6 @@ msgstr "Vietnam"
 #. (Brit\u00e1nicas)", "Islas V\u00c3rgenes (brit\u00c3\u00a1nicas)", "Islas
 #. V\u00edrgenes Brit\u00e1nicas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Virgin Islands (British)"
 msgstr "Islas Vírgenes (británicas)"
@@ -7132,14 +6893,12 @@ msgstr "Islas Vírgenes (británicas)"
 #. {"msgid": ["Islas V\u00edrgenes (EE.UU.)", "Islas V\u00edrgenes (EE. UU.)",
 #. "Islas V\u00edrgenes (EE UU)", "Islas V\u00edrgenes (EEUU)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Virgin Islands (U.S.)"
 msgstr "Islas Vírgenes (EE.UU.)"
 
 #. {"msgid": ["Wallis y Futuna"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Wallis and Futuna"
 msgstr "Wallis y Futuna"
@@ -7147,28 +6906,24 @@ msgstr "Wallis y Futuna"
 #. {"msgid": ["Sahara Occidental", "S\u00e1hara Occidental", "Sahara
 #. occidental", "S\u00e1hara occidental"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Western Sahara"
 msgstr "Sahara Occidental"
 
 #. {"msgid": ["Yemen", "Yem\u00e9n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Yemen"
 msgstr "Yemen"
 
 #. {"msgid": ["Zambia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Zambia"
 msgstr "Zambia"
 
 #. {"msgid": ["Zimbabue", "Zimbabwe", "Zimbawe"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Zimbabwe"
 msgstr "Zimbabue"
@@ -7176,7 +6931,6 @@ msgstr "Zimbabue"
 #. {"msgid": ["Islas \u00c5land", "\u00c5land (Islas)", "Las Islas
 #. \u00c5land"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Islas Åland"
@@ -7187,42 +6941,36 @@ msgstr "Islas Åland"
 #. continuar, \u00a1lo sentimos!", "Se ha producido un error por lo que no
 #. puede continuar, \u00a1lo sentimos!"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
 msgstr "Se ha producido un error y no puede continuar, ¡lo sentimos!"
 
 #. {"msgid": ["Abjasio", "Abjaso", "Abjazio", "Abkhazian"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Abkhazian"
 msgstr "Abjasio"
 
 #. {"msgid": ["Afar", "afar"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Afar"
 msgstr "Afar"
 
 #. {"msgid": ["Afrikaans", "Afrik\u00e1ans", "Afrikaan", "afrikaans"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Afrikaans"
 msgstr "Afrikaans"
 
 #. {"msgid": ["Akan", "Ak\u00e1n", "Akano", "akan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Akan"
 msgstr "Akan"
 
 #. {"msgid": ["Alban\u00e9s", "Albano", "alban\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Albanian"
 msgstr "Albanés"
@@ -7230,147 +6978,126 @@ msgstr "Albanés"
 #. {"msgid": ["Am\u00e1rico", "am\u00e1rico", "Amh\u00e1rico",
 #. "amh\u00e1rico"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Amharic"
 msgstr "Amárico"
 
 #. {"msgid": ["\u00c1rabe", "\u00e1rabe"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Arabic"
 msgstr "Árabe"
 
 #. {"msgid": ["Aragon\u00e9s", "aragon\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Aragonese"
 msgstr "Aragonés"
 
 #. {"msgid": ["Armenio", "armenio"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Armenian"
 msgstr "Armenio"
 
 #. {"msgid": ["Asam\u00e9s", "Assam\u00e9s", "asam\u00e9s", "Asameo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Assamese"
 msgstr "Asamés"
 
 #. {"msgid": ["Avar", "\u00c1varo", "Av\u00e1rico"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
 msgstr "Avar"
 
 #. {"msgid": ["Av\u00e9stico", "Avestano", "Avar\u00e9s", "Avest\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
 msgstr "Avéstico"
 
 #. {"msgid": ["Aymara", "Aimara", "aymara", "aimara"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Aymara"
 msgstr "Aymara"
 
 #. {"msgid": ["Azerbaiyano", "Azer\u00ed", "azerbaiyano", "Azerbaiy\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Azerbaijani"
 msgstr "Azerbaiyano"
 
 #. {"msgid": ["Bambara", "bambara", "B\u00e1mbara"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Bambara"
 msgstr "Bambara"
 
 #. {"msgid": ["Baskir", "Bashkir", "Basquiro"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Bashkir"
 msgstr "Baskir"
 
 #. {"msgid": ["Vasco", "Euskera", "Vascuence"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Basque"
 msgstr "Vasco"
 
 #. {"msgid": ["Bielorruso", "Bieloruso", "Belar\u00fas"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Belarusian"
 msgstr "Bielorruso"
 
 #. {"msgid": ["Bengal\u00ed", "Bengali"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Bengali"
 msgstr "Bengalí"
 
 #. {"msgid": ["Bislama"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Bislama"
 msgstr "Bislama"
 
 #. {"msgid": ["Bosnio", "bosnio", "Bosnia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Bosnian"
 msgstr "Bosnio"
 
 #. {"msgid": ["Bret\u00f3n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Breton"
 msgstr "Bretón"
 
 #. {"msgid": ["B\u00falgaro"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Bulgarian"
 msgstr "Búlgaro"
 
 #. {"msgid": ["Birmano", "birmano", "Burm\u00e9s", "Birm\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Burmese"
 msgstr "Birmano"
 
 #. {"msgid": ["Catal\u00e1n", "catal\u00e1n", "Catalan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Catalan"
 msgstr "Catalán"
 
 #. {"msgid": ["Cebuano", "Ceb\u00faano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Cebuano"
 msgstr "Cebuano"
@@ -7378,28 +7105,24 @@ msgstr "Cebuano"
 #. {"msgid": ["Jemer central", "Khmer central", "J\u00e9mer central", "Jemer
 #. Central"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Central Khmer"
 msgstr "Jemer central"
 
 #. {"msgid": ["Chamorro", "chamorro"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Chamorro"
 msgstr "Chamorro"
 
 #. {"msgid": ["Checheno", "checheno"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Chechen"
 msgstr "Checheno"
 
 #. {"msgid": ["Chino", "chino"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Chinese"
 msgstr "Chino"
@@ -7407,574 +7130,492 @@ msgstr "Chino"
 #. {"msgid": ["Eslavo eclesi\u00e1stico", "Iglesia eslava", "Eslavo de la
 #. Iglesia", "Eslava eclesi\u00e1stica"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Church Slavic"
 msgstr "Eslavo eclesiástico"
 
 #. {"msgid": ["Chuvash", "chuvash"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Chuvash"
 msgstr "Chuvash"
 
 #. {"msgid": ["C\u00f3rcega", "Cornualles", "Cornish", "C\u00f3rnico"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Cornish"
 msgstr "Córcega"
 
 #. {"msgid": ["Corso", "C\u00f3rcega", "C\u00f3rcego", "Corsa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Corsican"
 msgstr "Corso"
 
 #. {"msgid": ["Cree", "Griego", "Cris", "Crio"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Cree"
 msgstr "Cree"
 
 #. {"msgid": ["Croata", "croata"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Croatian"
 msgstr "Croata"
 
 #. {"msgid": ["Checo", "checo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Czech"
 msgstr "Checo"
 
 #. {"msgid": ["Dan\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Danish"
 msgstr "Danés"
 
 #. {"msgid": ["Dhivehi", "Divehi", "dhivehi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Dhivehi"
 msgstr "Dhivehi"
 
 #. {"msgid": ["Holand\u00e9s", "Neerland\u00e9s", "neerland\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Dutch"
 msgstr "Holandés"
 
 #. {"msgid": ["Dzongkha", "dzongkha", "Dzongjha"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Dzongkha"
 msgstr "Dzongkha"
 
 #. {"msgid": ["Ingl\u00e9s", "Espa\u00f1ol", "ingl\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "English"
 msgstr "Inglés"
 
 #. {"msgid": ["Esperanto"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Esperanto"
 msgstr "Esperanto"
 
 #. {"msgid": ["Estonio", "estonio", "Estonia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Estonian"
 msgstr "Estonio"
 
 #. {"msgid": ["Ewe", "ewe"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ewe"
 msgstr "Ewe"
 
 #. {"msgid": ["Fero\u00e9s", "Faro\u00e9s", "fero\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Faroese"
 msgstr "Feroés"
 
 #. {"msgid": ["Fiyiano", "Fijiano", "Fidji", "Fidjiano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Fijian"
 msgstr "Fiyiano"
 
 #. {"msgid": ["Finland\u00e9s", "Fin\u00e9s", "finland\u00e9s", "fin\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Finnish"
 msgstr "Finlandés"
 
 #. {"msgid": ["Franc\u00e9s", "franc\u00e9s", "Frances"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "French"
 msgstr "Francés"
 
 #. {"msgid": ["Fulah", "fulah", "Ful\u00e1", "F\u00falah"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Fulah"
 msgstr "Fulah"
 
 #. {"msgid": ["Gallego", "Galego", "gallego"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Galician"
 msgstr "Gallego"
 
 #. {"msgid": ["Ganda", "ganda", "gandiense", "Gand\u00e1"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ganda"
 msgstr "Ganda"
 
 #. {"msgid": ["Georgiano", "georgiano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Georgian"
 msgstr "Georgiano"
 
 #. {"msgid": ["Alem\u00e1n", "alem\u00e1n", "Aleman"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "German"
 msgstr "Alemán"
 
 #. {"msgid": ["G\u00f3tico", "Godo", "g\u00f3tico"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Gothic"
 msgstr "Gótico"
 
 #. {"msgid": ["Griego"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Greek"
 msgstr "Griego"
 
 #. {"msgid": ["Guaran\u00ed", "guaran\u00ed", "Guarani"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Guarani"
 msgstr "Guaraní"
 
 #. {"msgid": ["Gujarati", "Guyarat\u00ed", "Gujarat\u00ed"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Gujarati"
 msgstr "Gujarati"
 
 #. {"msgid": ["Haitiano", "haitiano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Haitian"
 msgstr "Haitiano"
 
 #. {"msgid": ["Hausa", "hausa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hausa"
 msgstr "Hausa"
 
 #. {"msgid": ["Hawaiano", "hawaiano", "Haitiano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hawaiian"
 msgstr "Hawaiano"
 
 #. {"msgid": ["Hebreo", "hebreo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hebrew"
 msgstr "Hebreo"
 
 #. {"msgid": ["Herero", "herero", "Herer\u00f3"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Herero"
 msgstr "Herero"
 
 #. {"msgid": ["Hindi", "Hind\u00fa", "hindi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hindi"
 msgstr "Hindi"
 
 #. {"msgid": ["Hiri Motu", "Hiri motu", "hiri motu", "Motu hiri"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hiri Motu"
 msgstr "Hiri Motu"
 
 #. {"msgid": ["Hmong", "hmong"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hmong"
 msgstr "Hmong"
 
 #. {"msgid": ["H\u00fangaro"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Hungarian"
 msgstr "Húngaro"
 
 #. {"msgid": ["Island\u00e9s", "island\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Icelandic"
 msgstr "Islandés"
 
 #. {"msgid": ["Ido", "ido", "iodo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ido"
 msgstr "Ido"
 
 #. {"msgid": ["Igbo", "igbo", "Igb\u00f3"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Igbo"
 msgstr "Igbo"
 
 #. {"msgid": ["Indonesio", "indonesio", "Indonesia", "Indon\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Indonesian"
 msgstr "Indonesio"
 
 #. {"msgid": ["Interlingua", "Interlinguo", "interlingua"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Interlingua"
 msgstr "Interlingua"
 
 #. {"msgid": ["Interlingue", "Interling\u00fce", "interlingue"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
 msgstr "Interlingue"
 
 #. {"msgid": ["Inuktitut"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Inuktitut"
 msgstr "Inuktitut"
 
 #. {"msgid": ["Inupiaq", "inupiaq"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Inupiaq"
 msgstr "Inupiaq"
 
 #. {"msgid": ["Irland\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Irish"
 msgstr "Irlandés"
 
 #. {"msgid": ["Italiano", "italiano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Italian"
 msgstr "Italiano"
 
 #. {"msgid": ["Japon\u00e9s", "japon\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Japanese"
 msgstr "Japonés"
 
 #. {"msgid": ["Javan\u00e9s", "javan\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Javanese"
 msgstr "Javanés"
 
 #. {"msgid": ["Kalaallisut", "kalaallisut"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
 msgstr "Kalaallisut"
 
 #. {"msgid": ["Canar\u00e9s", "Kannada", "Kanada", "kannada"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kannada"
 msgstr "Canarés"
 
 #. {"msgid": ["Kanuri", "kanuri"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kanuri"
 msgstr "Kanuri"
 
 #. {"msgid": ["Cachemir", "Cachemira", "Cachemiro"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kashmiri"
 msgstr "Cachemir"
 
 #. {"msgid": ["Kazajo", "kazajo", "Kazajst\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kazakh"
 msgstr "Kazajo"
 
 #. {"msgid": ["Kikuyu", "kikuyu", "Kikuyo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kikuyu"
 msgstr "Kikuyu"
 
 #. {"msgid": ["Kinyarwanda", "Kinyaruanda", "kinyarwanda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kinyarwanda"
 msgstr "Kinyarwanda"
 
 #. {"msgid": ["Kirgu\u00eds", "Kirguiz", "Kirghiz", "Kirguizo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
 msgstr "Kirguís"
 
 #. {"msgid": ["Komi", "komi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Komi"
 msgstr "Komi"
 
 #. {"msgid": ["Kongo", "kongo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kongo"
 msgstr "Kongo"
 
 #. {"msgid": ["Coreano", "Corea", "Koreano", "coreano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Korean"
 msgstr "Coreano"
 
 #. {"msgid": ["Kuanyama", "kuanyama"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kuanyama"
 msgstr "Kuanyama"
 
 #. {"msgid": ["Kurdo", "Curdo", "kurdo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Kurdish"
 msgstr "Kurdo"
 
 #. {"msgid": ["Lat\u00edn", "Latino", "Lato"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Latin"
 msgstr "Latín"
 
 #. {"msgid": ["Let\u00f3n", "Latviano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Latvian"
 msgstr "Letón"
 
 #. {"msgid": ["Limburgu\u00e9s", "Limburgan", "Limburgo", "Limburguano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Limburgan"
 msgstr "Limburgués"
 
 #. {"msgid": ["Lingala", "lingala", "L\u00edngala"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Lingala"
 msgstr "Lingala"
 
 #. {"msgid": ["Lituano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Lithuanian"
 msgstr "Lituano"
 
 #. {"msgid": ["Luba-Katanga", "luba-katanga", "Luba-katanga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Luba-Katanga"
 msgstr "Luba-Katanga"
 
 #. {"msgid": ["Luxemburgu\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Luxembourgish"
 msgstr "Luxemburgués"
 
 #. {"msgid": ["Macedonio", "Macedonia"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Macedonian"
 msgstr "Macedonio"
 
 #. {"msgid": ["Malgache"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Malagasy"
 msgstr "Malgache"
 
 #. {"msgid": ["Malayo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Malay"
 msgstr "Malayo"
 
 #. {"msgid": ["Malayalam", "Malayo", "malayalam"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Malayalam"
 msgstr "Malayalam"
 
 #. {"msgid": ["Malt\u00e9s", "Malta"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Maltese"
 msgstr "Maltés"
 
 #. {"msgid": ["Man\u00e9s", "Manx", "man\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Manx"
 msgstr "Manés"
 
 #. {"msgid": ["Maor\u00ed", "maor\u00ed", "Maori"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Maori"
 msgstr "Maorí"
 
 #. {"msgid": ["Marathi", "marathi", "Marat\u00ed", "marat\u00ed"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Marathi"
 msgstr "Marathi"
 
 #. {"msgid": ["Marshal\u00e9s", "marshal\u00e9s", "Marshall\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Marshallese"
 msgstr "Marshalés"
 
 #. {"msgid": ["Mongol", "mongol"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Mongolian"
 msgstr "Mongol"
 
 #. {"msgid": ["Navajo", "Navarro", "Navalo", "Navega"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Navajo"
 msgstr "Navajo"
 
 #. {"msgid": ["Ndonga", "ndonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ndonga"
 msgstr "Ndonga"
 
 #. {"msgid": ["Nepal\u00ed", "Nepal\u00e9s", "Nepali"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Nepali"
 msgstr "Nepalí"
@@ -7982,7 +7623,6 @@ msgstr "Nepalí"
 #. {"msgid": ["Ndebele septentrional", "Ndebele del norte", "Ndebele del
 #. Norte", "Ndonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "North Ndebele"
 msgstr "Ndebele septentrional"
@@ -7990,14 +7630,12 @@ msgstr "Ndebele septentrional"
 #. {"msgid": ["Sami septentrional", "Sami del norte", "Sami del Norte", "Sami
 #. norte\u00f1o"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Northern Sami"
 msgstr "Sami septentrional"
 
 #. {"msgid": ["Noruego", "Noruega", "noruego", "Norwegian"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Norwegian"
 msgstr "Noruego"
@@ -8005,7 +7643,6 @@ msgstr "Noruego"
 #. {"msgid": ["Noruego Bokm\u00e5l", "Bokm\u00e5l noruego", "Noruego
 #. bokm\u00e5l", "noruego bokm\u00e5l"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
 msgstr "Noruego Bokmål"
@@ -8013,140 +7650,120 @@ msgstr "Noruego Bokmål"
 #. {"msgid": ["Nynorsk noruego", "Noruego Nynorsk", "Noruego nynorsk",
 #. "Nynorsk Noruego"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Nynorsk"
 msgstr "Nynorsk noruego"
 
 #. {"msgid": ["Nyanja", "nyanja"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Nyanja"
 msgstr "Nyanja"
 
 #. {"msgid": ["Occitano", "occitano", "Ocitano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Occitan"
 msgstr "Occitano"
 
 #. {"msgid": ["Ojibwa", "ojibwa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ojibwa"
 msgstr "Ojibwa"
 
 #. {"msgid": ["Oriya"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Oriya"
 msgstr "Oriya"
 
 #. {"msgid": ["Oromo", "oromo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Oromo"
 msgstr "Oromo"
 
 #. {"msgid": ["Osetia", "Osetio", "Oseto", "osetio"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ossetian"
 msgstr "Osetia"
 
 #. {"msgid": ["Pali", "Pal\u00ed", "pali"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Pali"
 msgstr "Pali"
 
 #. {"msgid": ["Panyab\u00ed", "Panyabi", "Panjabi", "Panjab\u00ed"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Panjabi"
 msgstr "Panyabí"
 
 #. {"msgid": ["Persa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Persian"
 msgstr "Persa"
 
 #. {"msgid": ["Polaco"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Polish"
 msgstr "Polaco"
 
 #. {"msgid": ["Portugu\u00e9s", "portugu\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Portuguese"
 msgstr "Portugués"
 
 #. {"msgid": ["Pushto", "Past\u00fan", "Pashto", "Pustu"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
 msgstr "Pushto"
 
 #. {"msgid": ["Quechua", "quechua"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Quechua"
 msgstr "Quechua"
 
 #. {"msgid": ["Rumano", "rumano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Romanian"
 msgstr "Rumano"
 
 #. {"msgid": ["Romano", "Romanche", "Rom\u00e1nico", "Romansh"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Romansh"
 msgstr "Romano"
 
 #. {"msgid": ["Rundi", "rundi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Rundi"
 msgstr "Rundi"
 
 #. {"msgid": ["Ruso", "ruso"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Russian"
 msgstr "Ruso"
 
 #. {"msgid": ["Samoano", "samoano", "Samoa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Samoan"
 msgstr "Samoano"
 
 #. {"msgid": ["Sango", "sango"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sango"
 msgstr "Sango"
@@ -8154,14 +7771,12 @@ msgstr "Sango"
 #. {"msgid": ["S\u00e1nscrito", "En s\u00e1nscrito", "s\u00e1nscrito",
 #. "Sanscrito"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sanskrit"
 msgstr "Sánscrito"
 
 #. {"msgid": ["Sardo", "Cerde\u00f1a", "Cerde\u00f1o", "sardo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sardinian"
 msgstr "Sardo"
@@ -8169,28 +7784,24 @@ msgstr "Sardo"
 #. {"msgid": ["Ga\u00e9lico escoc\u00e9s", "ga\u00e9lico escoc\u00e9s",
 #. "Ga\u00e9lico Escoc\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Scottish Gaelic"
 msgstr "Gaélico escocés"
 
 #. {"msgid": ["Serbio", "Servio", "serbio"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Serbian"
 msgstr "Serbio"
 
 #. {"msgid": ["Serbocroata", "Serbo-croata", "serbocroata", "Croata serbio"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Serbo-Croatian"
 msgstr "Serbocroata"
 
 #. {"msgid": ["Shona", "shona"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Shona"
 msgstr "Shona"
@@ -8198,42 +7809,36 @@ msgstr "Shona"
 #. {"msgid": ["Yi de Sichuan", "Sichuan Yi", "Yi de Sichu\u00e1n", "yi de
 #. Sichuan"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sichuan Yi"
 msgstr "Yi de Sichuan"
 
 #. {"msgid": ["Sindhi", "sindhi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sindhi"
 msgstr "Sindhi"
 
 #. {"msgid": ["Cingal\u00e9s", "Sinhala", "cingal\u00e9s", "Cingalo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sinhala"
 msgstr "Cingalés"
 
 #. {"msgid": ["Eslovaco", "eslovaco"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Slovak"
 msgstr "Eslovaco"
 
 #. {"msgid": ["Esloveno", "esloveno"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Slovenian"
 msgstr "Esloveno"
 
 #. {"msgid": ["Somal\u00ed"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Somali"
 msgstr "Somalí"
@@ -8241,7 +7846,6 @@ msgstr "Somalí"
 #. {"msgid": ["Ndebele meridional", "Ndebele del sur", "Ndebele del Sur",
 #. "Ndebele Meridional"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "South Ndebele"
 msgstr "Ndebele meridional"
@@ -8249,217 +7853,186 @@ msgstr "Ndebele meridional"
 #. {"msgid": ["Sotho meridional", "Sotho del sur", "Sotho del Sur", "Sotho
 #. Meridional"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
 msgstr "Sotho meridional"
 
 #. {"msgid": ["Espa\u00f1ol", "espa\u00f1ol", "Castellano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Spanish"
 msgstr "Español"
 
 #. {"msgid": ["Sundan\u00e9s", "Sudan\u00e9s", "Sundanes"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Sundanese"
 msgstr "Sundanés"
 
 #. {"msgid": ["Suajili", "Swahili", "Suahili", "swahili"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Swahili"
 msgstr "Suajili"
 
 #. {"msgid": ["Swati", "swati", "Suazi", "Suaziland\u00e9s"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Swati"
 msgstr "Swati"
 
 #. {"msgid": ["Sueco", "sueco"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Swedish"
 msgstr "Sueco"
 
 #. {"msgid": ["Tagalo", "tagalo"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tagalog"
 msgstr "Tagalo"
 
 #. {"msgid": ["Tahitiano", "tahitiano", "Tahit\u00ed"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tahitian"
 msgstr "Tahitiano"
 
 #. {"msgid": ["Taiwan\u00e9s", "Taiwanes", "Taiw\u00e1n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Taiwanese"
 msgstr "Taiwanés"
 
 #. {"msgid": ["Tayiko", "Tajik", "tayiko"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tajik"
 msgstr "Tayiko"
 
 #. {"msgid": ["Tamil", "tamil", "Tamul"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tamil"
 msgstr "Tamil"
 
 #. {"msgid": ["T\u00e1rtaro", "t\u00e1rtaro", "Tatar"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tatar"
 msgstr "Tártaro"
 
 #. {"msgid": ["Telugu", "Telug\u00fa", "telug\u00fa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Telugu"
 msgstr "Telugu"
 
 #. {"msgid": ["Tailand\u00e9s", "tailand\u00e9s", "Thai", "Tai"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Thai"
 msgstr "Tailandés"
 
 #. {"msgid": ["Tibetano", "T\u00edbet", "tibetano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tibetan"
 msgstr "Tibetano"
 
 #. {"msgid": ["Tigri\u00f1a", "Tigrinya", "tigri\u00f1a", "Tigr\u00edn"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tigrinya"
 msgstr "Tigriña"
 
 #. {"msgid": ["Tsonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tsonga"
 msgstr "Tsonga"
 
 #. {"msgid": ["Tswana", "Tsuana", "tswana", "Suana"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Tswana"
 msgstr "Tswana"
 
 #. {"msgid": ["Turco", "turco"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Turkish"
 msgstr "Turco"
 
 #. {"msgid": ["Turcomano", "Turkmen", "Turkmeno", "turcomano"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Turkmen"
 msgstr "Turcomano"
 
 #. {"msgid": ["Twi", "twi"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Twi"
 msgstr "Twi"
 
 #. {"msgid": ["Uigur", "uigur", "Uighur"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Uighur"
 msgstr "Uigur"
 
 #. {"msgid": ["Ucraniano", "Ucranio", "ucraniano", "Ucrania"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Ukrainian"
 msgstr "Ucraniano"
 
 #. {"msgid": ["Urdu", "urdu", "Urd\u00fa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Urdu"
 msgstr "Urdu"
 
 #. {"msgid": ["Uzbeko", "uzbeko", "Uzbeco", "Uzbek"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Uzbek"
 msgstr "Uzbeko"
 
 #. {"msgid": ["Venda", "venda"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Venda"
 msgstr "Venda"
 
 #. {"msgid": ["Vietnamita", "vietnamita", "Vietnames"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Vietnamese"
 msgstr "Vietnamita"
 
 #. {"msgid": ["Volap\u00fck", "volap\u00fck"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Volapük"
 msgstr "Volapük"
 
 #. {"msgid": ["Val\u00f3n", "val\u00f3n", "Wal\u00f3n"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Walloon"
 msgstr "Valón"
 
 #. {"msgid": ["Gal\u00e9s", "Galo", "Gales"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Welsh"
 msgstr "Galés"
 
 #. {"msgid": ["Armenio occidental", "Armenio Occidental"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Western Armenian"
 msgstr "Armenio occidental"
@@ -8467,70 +8040,60 @@ msgstr "Armenio occidental"
 #. {"msgid": ["Fris\u00f3n occidental", "fris\u00f3n occidental", "frisio
 #. occidental", "Frisio occidental"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Western Frisian"
 msgstr "Frisón occidental"
 
 #. {"msgid": ["Wolof", "wolof"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Wolof"
 msgstr "Wolof"
 
 #. {"msgid": ["Xhosa", "xhosa"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Xhosa"
 msgstr "Xhosa"
 
 #. {"msgid": ["Yiddish", "Yidis", "Yidish", "Idish"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Yiddish"
 msgstr "Yiddish"
 
 #. {"msgid": ["Yoruba", "yoruba"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Yoruba"
 msgstr "Yoruba"
 
 #. {"msgid": ["Zhuang", "zhuang"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Zhuang"
 msgstr "Zhuang"
 
 #. {"msgid": ["Zul\u00fa", "zul\u00fa", "Zulu"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Zulu"
 msgstr "Zulú"
 
 #. {"msgid": ["Tonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "country_name"
 msgid "Tonga"
 msgstr "Tonga"
 
 #. {"msgid": ["Lao", "Laos", "lao"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Lao"
 msgstr "Lao"
 
 #. {"msgid": ["Nauru"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
-#, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
 msgstr "Nauru"
