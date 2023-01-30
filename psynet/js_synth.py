@@ -471,8 +471,10 @@ class JSSynth(Prompt):
                 if any([p != 0.0 for p in elt["pan"]]):
                     uses_panning = True
             else:
-                if elt["pan"] != 0.0:
+                _pan = elt["pan"]
+                if _pan != 0.0:
                     uses_panning = True
+                elt["pan"] = [_pan for _ in elt["pitches"]]
 
         if uses_panning:
             for t in timbre.values():

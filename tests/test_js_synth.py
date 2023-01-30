@@ -19,12 +19,15 @@ from psynet.js_synth import ADSRTimbre, Chord, InstrumentTimbre, JSSynth
 def test_pan_mixing_adsr():
     with pytest.raises(
         ValueError,
-        match="Mixing multiple pans or timbres within chords is not supported for ADSRTimbres",
+        match="Mixing multiple timbres within chords is not supported for ADSRTimbres",
     ):
         JSSynth(
             text="",
-            sequence=[Chord([60, 64, 67], pan=[-1, 0, 1])],
-            timbre=ADSRTimbre(),
+            sequence=[Chord([60, 64], timbre=["t1", "t2"])],
+            timbre={
+                "t1": ADSRTimbre(release=1),
+                "t2": ADSRTimbre(release=2),
+            },
         )
 
 
@@ -41,7 +44,7 @@ def test_chord_representations_adsr():
                 "duration": 0.75,
                 "silence": 0.0,
                 "channel": "default",
-                "pan": 0.0,
+                "pan": [0.0, 0.0, 0.0],
                 "volume": 1.0,
                 "onset": 0,
             }
@@ -75,7 +78,7 @@ def test_chord_representations_instrument():
                 "duration": 0.75,
                 "silence": 0.0,
                 "channel": "a",
-                "pan": 0.0,
+                "pan": [0.0],
                 "volume": 1.0,
                 "onset": 0,
             },
@@ -84,7 +87,7 @@ def test_chord_representations_instrument():
                 "duration": 0.75,
                 "silence": 0.0,
                 "channel": "b",
-                "pan": 0.0,
+                "pan": [0.0],
                 "volume": 1.0,
                 "onset": 0,
             },
@@ -93,7 +96,7 @@ def test_chord_representations_instrument():
                 "duration": 0.75,
                 "silence": 0.0,
                 "channel": "a",
-                "pan": 0.0,
+                "pan": [0.0],
                 "volume": 1.0,
                 "onset": 0,
             },
