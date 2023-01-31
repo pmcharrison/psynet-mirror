@@ -886,6 +886,12 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                 "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
             ):
                 raise click.Abort
+            if config.get("host") != "0.0.0.0" and not click.confirm(
+                "For deploying PsyNet experiments with Docker, you should typically have host = 0.0.0.0 in config.txt. "
+                "You are advised to change this line then retry launching the experiment. "
+                "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
+            ):
+                raise click.Abort
 
         exp = get_experiment()
 
