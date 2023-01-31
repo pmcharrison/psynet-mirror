@@ -70,7 +70,7 @@ header = r"""
            /____/
                                  {:>8}
 
-        Taking online experiments to the next level
+        The online human behaviour lab of the future
 """.format(
     f"v{__version__}"
 )
