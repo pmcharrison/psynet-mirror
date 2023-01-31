@@ -1070,6 +1070,7 @@
                                     clearTimeout(stopTimer);
                                     psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
                                     psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
+                                    psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
                                     if (sound.options.loop && !sound.manuallyStopped) {
                                         psynet.log.debug("Looping sound with ID = " + out.stimulusId);
                                         out.play(sound.options);
