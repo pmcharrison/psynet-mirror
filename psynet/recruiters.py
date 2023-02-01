@@ -264,11 +264,11 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         # Save RID info into the database
         try:
             LucidRID.query.filter_by(rid=rid).one()
-        except (NoResultFound):
+        except NoResultFound:
             self.lucidservice.log(f"Saving RID '{rid}' into the database.")
             db.session.add(LucidRID(rid=rid))
             db.session.commit()
-        except (MultipleResultsFound):
+        except MultipleResultsFound:
             raise MultipleResultsFound(
                 f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
             )

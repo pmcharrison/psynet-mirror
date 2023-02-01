@@ -945,7 +945,6 @@ class VolumeCalibration(Module):
         time_estimate=5.0,
         id_="volume_calibration",
     ):
-
         super().__init__(
             id_,
             self.page(min_time, time_estimate, id_),
