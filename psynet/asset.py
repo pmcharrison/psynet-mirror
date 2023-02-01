@@ -2459,7 +2459,7 @@ class AssetStorage:
         )
 
     def export(self, asset, path):
-        self._http_export(asset, path)
+        asset.export(path)
 
     def prepare_for_deployment(self):
         pass
@@ -2483,13 +2483,14 @@ class AssetStorage:
         """
         raise NotImplementedError
 
-    def _http_export(self, asset, path):
-        url = self._prepare_url_for_http_export(asset.url)
+    @classmethod
+    def http_export(cls, asset, path):
+        url = cls._prepare_url_for_http_export(asset.url)
 
         if asset.is_folder:
-            self._http_folder_export(url, path)
+            cls._http_folder_export(url, path)
         else:
-            self._http_file_export(url, path)
+            cls._http_file_export(url, path)
 
     @staticmethod
     def _prepare_url_for_http_export(url):
@@ -2760,6 +2761,20 @@ class LocalStorage(AssetStorage):
         from psynet.experiment import in_deployment_package
 
         return in_deployment_package()
+
+    def export(self, asset, path):
+        if self.on_deployed_server():
+            self._export_via_copying(asset, path)
+        else:
+            AssetStorage.http_export(asset, path)
+
+    def _export_via_copying(self, asset: Asset, path):
+        from_ = self.get_file_system_path(asset.host_path)
+        to_ = path
+        if asset.is_folder:
+            shutil.copytree(from_, to_, dirs_exist_ok=True)
+        else:
+            shutil.copyfile(from_, to_)
 
     # def export_subfile(self, asset, subfile, path):
     #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
