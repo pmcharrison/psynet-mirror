@@ -154,7 +154,11 @@ class Gender(ModularPage):
             placeholder_text_free_text=_p("gender", "Specify yourself"),
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -174,6 +178,7 @@ class Age(ModularPage):
             self.prompt,
             control=NumberControl(),
             time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
     def validate(self, response, **kwargs):
@@ -212,6 +217,7 @@ class CountryDropdown(ModularPage):
             self.get_prompt(),
             control=control,
             time_estimate=self.time_estimate,
+            save_answer="country",
         )
 
     def get_translator(self):
@@ -286,7 +292,11 @@ class FormalEducation(ModularPage):
             name="formal_education",
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -316,7 +326,11 @@ class MotherTongue(ModularPage):
             name=self.label,
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
     def validate(self, response, **kwargs):
@@ -345,7 +359,11 @@ class MoreThanOneLanguage(ModularPage):
             arrange_vertically=False,
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -370,6 +388,7 @@ class LanguagesInOrderOfProficiency(ModularPage):
             self.prompt,
             control=TextControl(),
             time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
     def validate(self, response, **kwargs):
@@ -402,6 +421,7 @@ class YearsOfFormalTraining(ModularPage):
             self.prompt,
             control=NumberControl(),
             time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -422,6 +442,7 @@ class HoursOfDailyMusicListening(ModularPage):
             self.prompt,
             control=NumberControl(),
             time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -442,7 +463,11 @@ class MoneyFromPlayingMusic(ModularPage):
             name="money_from_playing_music",
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -466,7 +491,11 @@ class HearingLoss(ModularPage):
             arrange_vertically=False,
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -492,7 +521,11 @@ class DanceSociallyOrProfessionally(ModularPage):
             name="dance_socially_or_professionally",
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -530,7 +563,11 @@ class LastTimeDanced(ModularPage):
             name="last_time_danced",
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -554,7 +591,11 @@ class SpeechLanguageTherapy(ModularPage):
             arrange_vertically=False,
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -577,7 +618,11 @@ class DiagnosedWithDyslexia(ModularPage):
             arrange_vertically=False,
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -626,7 +671,11 @@ class HouseholdIncomePerYear(ModularPage):
             name="household_income_per_year",
         )
         super().__init__(
-            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+            self.label,
+            self.prompt,
+            control=control,
+            time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -648,6 +697,7 @@ class LikedExperiment(ModularPage):
                 bot_response=lambda: "I'm a bot so I don't really have feelings..."
             ),
             time_estimate=self.time_estimate,
+            save_answer=label,
         )
 
 
@@ -669,6 +719,7 @@ class FoundExperimentDifficult(ModularPage):
             control=TextControl(),
             time_estimate=self.time_estimate,
             bot_response=lambda: "I'm a bot so I found it pretty easy...",
+            save_answer=label,
         )
 
 
@@ -691,4 +742,5 @@ class EncounteredTechnicalProblems(ModularPage):
             control=TextControl(),
             time_estimate=self.time_estimate,
             bot_response=lambda: "No technical problems.",
+            save_answer=label,
         )

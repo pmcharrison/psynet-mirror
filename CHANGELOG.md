@@ -2,6 +2,9 @@
 
 # [10.0.0rc2] Release candidate 2023-xx-xx
 
+#### Changed
+- Demographics are now saved in the participant table (author: Peter Harrison).
+
 # [10.0.0rc1] Release candidate 2023-01-27
 
 #### Added
