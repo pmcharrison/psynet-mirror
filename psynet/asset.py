@@ -604,7 +604,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             If set to ``True``, then the input file will be deleted after it has been deposited.
         """
         try:
-
             if replace is None:
                 replace = self.replace_existing
 

@@ -622,6 +622,7 @@ dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 #     yield
 #     db.session.execute("SET session_replication_role = DEFAULT;")
 
+
 # This would have been useful for importing data, however in practice
 # it caused the import process to hang.
 #

@@ -152,7 +152,6 @@ class Bot(Participant):
         if not isinstance(page, EndPage):
             try:
                 with time_logger("process_response"):
-
                     experiment.process_response(
                         participant_id=self.id,
                         raw_answer=response.raw_answer,
