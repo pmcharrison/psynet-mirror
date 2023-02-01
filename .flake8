@@ -7,7 +7,6 @@ exclude =
     build,
     .cache,
     dist,
-    docs/conf.py,
     *.egg-info,
     .eggs,
     .git,
