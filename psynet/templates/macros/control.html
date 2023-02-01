@@ -1503,7 +1503,9 @@
 
         survey.onAfterRenderPage.add(() => {
             $(".sd-navigation__complete-btn").addClass("submit");
-            $(".sd-navigation__complete-btn").attr("disabled", true);
+            if (!psynet.trial.events.submitEnable.happened) {
+                $(".sd-navigation__complete-btn").attr("disabled", true);
+            }
         });
         survey.onComplete.add(submitSurveyResults);
 
