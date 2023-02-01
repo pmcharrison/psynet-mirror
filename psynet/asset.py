@@ -12,6 +12,7 @@ from functools import cached_property
 from typing import Optional
 
 import boto3
+import paramiko
 import psutil
 import requests
 import sqlalchemy
@@ -722,9 +723,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
 
-    def export(self, path):
+    def export(self, path, ssh_host=None, ssh_user=None):
         try:
-            self.storage.export(self, path)
+            self.storage.export(self, path, ssh_host=ssh_host, ssh_user=ssh_user)
         except Exception:
             from .command_line import log
 
@@ -2762,11 +2763,24 @@ class LocalStorage(AssetStorage):
 
         return in_deployment_package()
 
-    def export(self, asset, path):
+    def export(self, asset, path, ssh_host=None, ssh_user=None):
         if self.on_deployed_server():
             self._export_via_copying(asset, path)
         else:
-            AssetStorage.http_export(asset, path)
+            self._export_via_ssh(asset, path, ssh_host, ssh_user)
+
+    def _export_via_ssh(self, asset, local_path, ssh_host=None, ssh_user=None):
+        if ssh_host is None or ssh_user is None:
+            raise ValueError(
+                "To export via SSH you need to provide an ssh_host and ssh_user. If you are seeing this error "
+                "it means that probably these values haven't been propagated properly through their caller functions."
+            )
+        docker_host_path = "/home/" + ssh_user + asset.var.file_system_path
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+        paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(
+            2, 22
+        )  # 4 MB per chunk, prevents SFTPError('Garbage packet received')
+        sftp.get(docker_host_path, local_path)
 
     def _export_via_copying(self, asset: Asset, path):
         from_ = self.get_file_system_path(asset.host_path)

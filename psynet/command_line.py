@@ -182,17 +182,13 @@ def _validate_location(ctx, param, value):
 
 
 @psynet.command("experiment-variables")
-@click.argument("location", default="local", callback=_validate_location)
+@click.argument("location", default="local")  # , callback=_validate_location)
 @click.option(
     "--app",
     default=None,
     help="Name of the experiment app (required for non-local deployments)",
 )
-@click.option(
-    "--server",
-    default=None,
-    help="Name of the remote server (only relevant for ssh deployments)",
-)
+@server_option
 def experiment_variables(location, app, server):
     with db_connection(location, app, server) as connection:
         return _experiment_variables(connection, echo=True)
@@ -1500,6 +1496,7 @@ def _export_(
             experiment_assets_only,
             include_fast_function_assets,
             n_parallel,
+            server,
         )
 
     log(f"Export complete. You can find your results at: {export_path}")
@@ -1609,6 +1606,7 @@ def export_assets(
     experiment_assets_only,
     include_fast_function_assets,
     n_parallel,
+    server,
 ):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -1626,6 +1624,7 @@ def export_assets(
         experiment_assets_only,
         include_fast_function_assets,
         n_parallel,
+        server,
     )
 
 
