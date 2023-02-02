@@ -37,5 +37,6 @@ docker run \
   -e PSYNET_DEVELOPER_MODE="${PSYNET_DEVELOPER_MODE:-}" \
   -v "${PSYNET_LOCAL_PATH}":/PsyNet \
   -v "${DALLINGER_LOCAL_PATH}":/dallinger \
+  --add-host=host.docker.internal:host-gateway \
   "${EXPERIMENT_IMAGE}" \
   "$@"
