@@ -1923,7 +1923,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     def generate_input_path(self):
         return None
 
-    def export(self, path):
+    def export(self, path, **kwargs):
         self.function(path=path, **self.arguments)
 
     def export_subfile(self, subfile, path):
@@ -2460,7 +2460,7 @@ class AssetStorage:
         )
 
     def export(self, asset, path, **kwargs):
-        asset.export(path)
+        raise NotImplementedError
 
     def prepare_for_deployment(self):
         pass
@@ -2552,7 +2552,8 @@ class WebStorage(AssetStorage):
     The notional storage back-end for external web-hosted assets.
     """
 
-    pass
+    def export(self, asset, path, **kwargs):
+        self.http_export(asset, path)
 
 
 class NoStorage(AssetStorage):
@@ -2766,8 +2767,10 @@ class LocalStorage(AssetStorage):
     def export(self, asset, path, ssh_host=None, ssh_user=None):
         if self.on_deployed_server():
             self._export_via_copying(asset, path)
-        else:
+        elif deployment_info.read("is_ssh_deployment"):
             self._export_via_ssh(asset, path, ssh_host, ssh_user)
+        else:
+            AssetStorage.http_export(asset, path)
 
     def _export_via_ssh(self, asset, local_path, ssh_host=None, ssh_user=None):
         if ssh_host is None or ssh_user is None:

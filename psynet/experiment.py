@@ -303,8 +303,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # get the launch data from the command-line invocation.
             export_launch_data(
                 self.var.deployment_id,
-                config.get("dashboard_user"),
-                config.get("dashboard_password"),
+                dashboard_user=config.get("dashboard_user"),
+                dashboard_password=config.get("dashboard_password"),
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
