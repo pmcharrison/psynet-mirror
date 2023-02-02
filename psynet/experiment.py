@@ -453,7 +453,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {
             **super().config_defaults(),
             "host": "0.0.0.0",
-            "base_payment": 0.0,
+            "base_payment": 0.10,
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
