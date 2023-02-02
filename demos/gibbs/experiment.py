@@ -14,8 +14,8 @@ from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback
-from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
-from psynet.page import InfoPage, Prompt, SuccessfulEndPage
+from psynet.modular_page import ModularPage, Prompt, PushButtonControl, SliderControl
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline

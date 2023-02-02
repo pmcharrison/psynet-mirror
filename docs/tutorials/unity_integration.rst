@@ -70,7 +70,7 @@ Note that in the PsyNet timeline the Unity app is simply the trial maker, for ex
    class Exp(psynet.experiment.Experiment):
       consent_audiovisual_recordings = False
       timeline = Timeline(
-          MTurkStandardConsent(),
+          MainConsent(),
           trial_maker, # The Unity game
           InfoPage("You finished the experiment!", time_estimate=0),
           SuccessfulEndPage(),

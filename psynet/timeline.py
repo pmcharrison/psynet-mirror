@@ -3,7 +3,6 @@
 import json
 import random
 import time
-import warnings
 from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
@@ -1231,54 +1230,6 @@ class PageMaker(Elt):
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
-
-
-def multi_page_maker(
-    label: str,
-    function,
-    expected_num_pages: int,
-    total_time_estimate: int,
-    accumulate_answers: bool = False,
-    check_num_pages: bool = True,
-):
-    """
-    .. deprecated:: 8.1.0
-        Use :class:`psynet.timeline.PageMaker` instead.
-
-    Parameters
-    ----------
-
-    label
-        Label for the multi-page-maker.
-
-    function
-        Function to generate the pages, taking the arguments ``experiment`` and ``participant``.
-        The function should return a list of pages and/or code blocks.
-
-    expected_num_pages
-        IGNORED
-
-    total_time_estimate
-        Overall time estimate for the sequence of pages.
-
-    accumulate_answers
-        If ``False`` (default), then the final ``answer`` is simply the answer delivered by the final
-        page. If ``True``, then the answers to all the pages are accumulated in a dict.
-
-    check_num_pages
-        IGNORED
-
-    Returns
-    -------
-
-    A list of test elements that can be incorporated into a timeline using ``join``.
-
-    """
-    warnings.warn(
-        "psynet.timeline.multi_page_maker is deprecated. Use :class:`psynet.timeline.PageMaker` instead.",
-        DeprecationWarning,
-    )
-    return PageMaker(function, total_time_estimate, accumulate_answers)
 
 
 class PageMakerFinishedError(Exception):
