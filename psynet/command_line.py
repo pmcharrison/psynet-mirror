@@ -731,14 +731,14 @@ def _post_deploy(result):
     )
 
 
-def export_launch_data(deployment_id, dashboard_user, dashboard_password, **kwargs):
+def export_launch_data(deployment_id, **kwargs):
     """
     Retrieves dashboard credentials from the current config and
     saves them to disk.
     """
     directory = Path("~/psynet-data/launch-data").expanduser() / deployment_id
     directory.mkdir(parents=True, exist_ok=True)
-    _export_launch_info(directory, dashboard_user, dashboard_password)
+    _export_launch_info(directory, **kwargs)
     if deployment_info.read("mode") == "live":
         _export_code(directory)
 
