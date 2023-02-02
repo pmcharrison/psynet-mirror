@@ -303,8 +303,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # get the launch data from the command-line invocation.
             export_launch_data(
                 self.var.deployment_id,
-                config.get("dashboard_user"),
-                config.get("dashboard_password"),
+                dashboard_user=config.get("dashboard_user"),
+                dashboard_password=config.get("dashboard_password"),
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
@@ -453,7 +453,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {
             **super().config_defaults(),
             "host": "0.0.0.0",
-            "base_payment": 0.0,
+            "base_payment": 0.10,
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
@@ -593,10 +593,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def generate_deployment_id(cls):
         mode = deployment_info.read("mode")
-        id_ = f"{cls.label} ({mode})"
+        id_ = f"{cls.label}"
         id_ = id_.replace(" ", "-").lower()
         id_ += (
-            "__mode= "
+            "__mode="
             + mode
             + "__launch="
             + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
