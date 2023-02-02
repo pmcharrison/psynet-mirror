@@ -2459,7 +2459,7 @@ class AssetStorage:
             asset=asset,
         )
 
-    def export(self, asset, path):
+    def export(self, asset, path, **kwargs):
         asset.export(path)
 
     def prepare_for_deployment(self):
@@ -3028,7 +3028,7 @@ class S3Storage(AssetStorage):
     # def regex_pattern(self):
     #     return re.compile("https://s3.amazonaws.com/(.*)/(.*)")
 
-    def export(self, asset, path):
+    def export(self, asset, path, **kwargs):
         s3_key = self.get_s3_key(asset.host_path)
         if asset.is_folder:
             self.download_folder(s3_key, path)
