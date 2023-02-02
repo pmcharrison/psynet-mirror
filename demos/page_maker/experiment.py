@@ -1,7 +1,7 @@
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.modular_page import NumberControl, PushButtonControl
-from psynet.page import CodeBlock, InfoPage, ModularPage, Prompt, SuccessfulEndPage
+from psynet.modular_page import NumberControl, Prompt, PushButtonControl
+from psynet.page import CodeBlock, InfoPage, ModularPage, SuccessfulEndPage
 from psynet.timeline import PageMaker, Timeline, while_loop
 from psynet.utils import get_logger
 

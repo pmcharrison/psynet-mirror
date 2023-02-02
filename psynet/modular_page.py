@@ -1055,15 +1055,6 @@ class TimedPushButtonControl(PushButtonControl):
         return html.render()
 
 
-class NAFCControl(PushButtonControl):
-    """
-    .. deprecated:: 1.7.0
-        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
-    """
-
-    pass
-
-
 class PushButton:
     def __init__(
         self,
