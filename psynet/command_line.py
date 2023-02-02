@@ -568,7 +568,7 @@ def run_pre_checks_deploy(exp, config, is_mturk):
     if (
         is_mturk
         and initial_recruitment_size <= 10
-        and not click.confirm(
+        and not user_confirms(
             f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
             f"You will not be able to recruit more than {initial_recruitment_size} participant(s), "
             "due to a restriction in the MTurk pricing scheme.",
@@ -814,7 +814,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
     try:
         with open("requirements.txt", "r") as f:
             for line in f.readlines():
-                if "computational-audition-lab/psynet" in line.lower() and not click.confirm(
+                if "computational-audition-lab/psynet" in line.lower() and not user_confirms(
                     "It looks like you're using an old version of PsyNet in requirements.txt "
                     "(computational-audition-lab/psynet); "
                     "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
@@ -826,7 +826,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
         )
 
     if heroku:
-        if docker and not click.confirm(
+        if docker and not user_confirms(
             "Heroku deployment with Docker hasn't been working well recently; experiments have been failing to launch "
             "and returning a psutil version error. Are you sure you want to continue?"
         ):
@@ -836,7 +836,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
             with open(".gitignore", "r") as f:
                 for line in f.readlines():
                     if line.startswith(".deploy"):
-                        if not click.confirm(
+                        if not user_confirms(
                             "The .gitignore file contains '.deploy'; "
                             "in order to deploy on Heroku without Docker this line must ordinarily be removed. "
                             "Are you sure you want to continue?"
@@ -874,7 +874,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
             _expected_docker_volumes = "${HOME}/psynet-data/assets:/psynet-data/assets"
             if _expected_docker_volumes not in config.get(
                 "docker_volumes", ""
-            ) and not click.confirm(
+            ) and not user_confirms(
                 "For deploying PsyNet experiments with Docker, you should typically have the following line "
                 "in your config.txt: \n"
                 f"docker_volumes = {_expected_docker_volumes}\n"
@@ -882,7 +882,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                 "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
             ):
                 raise click.Abort
-            if config.get("host") != "0.0.0.0" and not click.confirm(
+            if config.get("host") != "0.0.0.0" and not user_confirms(
                 "For deploying PsyNet experiments with Docker, you should typically have host = 0.0.0.0 in config.txt. "
                 "You are advised to change this line then retry launching the experiment. "
                 "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
@@ -915,7 +915,7 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
     if (
         is_mturk
         and us_only
-        and not click.confirm(
+        and not user_confirms(
             "Are you sure you want to sandbox with us_only = True? "
             "Only people with US accounts will be able to test the experiment.",
             default=True,
@@ -1399,7 +1399,7 @@ def export_(
     local_exp_label = import_local_experiment()["class"].label
 
     if not remote_exp_label == local_exp_label:
-        if not click.confirm(
+        if not user_confirms(
             f"The remote experiment's label ({remote_exp_label}) does not seem consistent with the "
             f"local experiment's label ({local_exp_label}). Are you sure you are running the export command from "
             "the right experiment folder? If not, the export process is likely to fail. "
@@ -1666,7 +1666,7 @@ def load(path):
 def generate_config(ctx):
     path = os.path.expanduser("~/.dallingerconfig")
     if os.path.exists(path):
-        if not click.confirm(
+        if not user_confirms(
             f"Are you sure you want to overwrite your existing config file at '{path}'?",
             default=False,
         ):
@@ -1776,6 +1776,14 @@ def destroy__heroku(ctx, app, expire_hit):
     )
 
 
+def user_confirms(question, default=False):
+    """
+    Like click.confirm but safe for using within our wrapped Docker commands.
+    """
+    print(question + " Enter 'y' for yes, 'n' for no.")
+    return click.confirm("", default=default)
+
+
 def _destroy(
     ctx,
     f_destroy,
@@ -1783,9 +1791,8 @@ def _destroy(
     app,
     expire_hit,
 ):
-    if click.confirm(
-        "Would you like to delete the app from the web server? Select 'N' if the app is already deleted.",
-        default=True,
+    if user_confirms(
+        "Would you like to delete the app from the web server?", default=True
     ):
         with yaspin("Destroying app...") as spinner:
             try:
@@ -1808,13 +1815,13 @@ def _destroy(
                 )
 
     if expire_hit is None:
-        if click.confirm(
+        if user_confirms(
             "Would you like to look for a related MTurk HIT to expire?", default=True
         ):
             expire_hit = True
 
     if expire_hit:
-        sandbox = click.confirm("Is this a sandbox HIT?", default=True)
+        sandbox = user_confirms("Is this a sandbox HIT?", default=True)
 
         with yaspin("Expiring hit...") as spinner:
             ctx.invoke(
