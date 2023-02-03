@@ -115,9 +115,9 @@ example_js_synth_4 = ModularPage(
     JSSynth(
         "These chords are played with Shepard tones.",
         [
-            Chord([60, 64, 67]),
-            Chord([59, 62, 67]),
-            Chord([60, 64, 67]),
+            Chord([60, 64, 67], pan=-1),
+            Chord([59, 62, 67], pan=1),
+            Chord([60, 64, 67], pan=[-1, 0, 1]),
         ],
         timbre=ShepardTimbre(),
     ),
@@ -455,9 +455,9 @@ class Exp(psynet.experiment.Experiment):
         AudiovisualConsent(),
         Module(
             "audio_demo",
-            example_js_synth_1,
-            example_js_synth_2,
-            example_js_synth_3,
+            # example_js_synth_1,
+            # example_js_synth_2,
+            # example_js_synth_3,
             example_js_synth_4,
             example_js_synth_5,
             example_audio_page,

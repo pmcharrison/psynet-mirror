@@ -20,9 +20,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(".."))
+from psynet import __version__ as version
 
-import psynet
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ---------------------------------------------
 
@@ -61,8 +61,7 @@ author = "Peter Harrison"
 # the built documents.
 #
 # The short X.Y version.
-from psynet import __version__ as version
-
+#
 # The full version, including alpha/beta/rc tags.
 release = version
 

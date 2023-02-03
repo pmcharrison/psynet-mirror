@@ -345,7 +345,8 @@ hash_object = md5_object
 # MD5 hashing code:
 # https://stackoverflow.com/a/54477583/8454486
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
-    assert Path(filename).is_file()
+    if not Path(filename).is_file():
+        raise FileNotFoundError(f"File not found: {filename}")
     with open(str(filename), "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash.update(chunk)

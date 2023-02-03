@@ -202,11 +202,11 @@ class LucidService(object):
 
         try:
             participant = Participant.query.filter_by(worker_id=rid.rid).one()
-        except (NoResultFound):
+        except NoResultFound:
             raise NoResultFound(
                 f"No participant for Lucid RID '{rid}' found. This should never happen."
             )
-        except (MultipleResultsFound):
+        except MultipleResultsFound:
             raise MultipleResultsFound(
                 f"Multiple participants for Lucid RID '{rid}' found. This should never happen."
             )
