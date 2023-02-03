@@ -159,7 +159,7 @@ class AudioPrompt(Prompt):
     def __init__(
         self,
         audio,
-        text: Union[str, Markup],
+        text: Union[str, Markup, dom_tag],
         loop: bool = False,
         text_align="left",
         play_window: Optional[List] = None,
