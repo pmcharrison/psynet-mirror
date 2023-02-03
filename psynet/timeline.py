@@ -2182,7 +2182,7 @@ class ModuleAssets:
     def __getitem__(self, item):
         from psynet.asset import Asset
 
-        return Asset.query.filter_by(local_key=item).one()
+        return Asset.query.filter_by(module_id=self.module_id, local_key=item).one()
 
 
 class Module:
