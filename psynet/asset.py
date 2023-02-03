@@ -3144,6 +3144,11 @@ class AssetRegistry:
         # if inspector.has_table("asset") and Asset.query.count() == 0:
         #     self.populate_db_with_initial_assets()
 
+    def __getitem__(self, item):
+        from psynet.asset import Asset
+
+        return Asset.query.filter_by(key=item).one()
+
     @property
     def deployment_id(self):
         return self.storage.deployment_id
