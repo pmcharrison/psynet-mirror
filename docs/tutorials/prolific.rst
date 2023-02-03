@@ -89,8 +89,70 @@ Extending a study
 -----------------
 If your study does not autorecruit more participants, you can extend the study by clicking on the "Action" button next to the study name and select "Increase places". By default this value is set to ``initial_recruitment_size``
 
+
+
+.. image:: ../_static/images/prolific/increase_places_1.png
+  :width: 800
+  :alt: Increase places in the survey
+
+Solving underpayment
+--------------------
+Prolific will warn you if you are paying less than you specified as an hourly rate (i.e. ``(prolific_reward_cents * (60 / prolific_estimated_completion_minutes)) / 100``).
+
+.. image:: ../_static/images/prolific/adjust_pay_1.png
+  :width: 800
+  :alt: Underpayment warning
+
+Click on "Adjust reward per hour" and set the right hourly rate.
+
+.. image:: ../_static/images/prolific/adjust_pay_2.png
+  :width: 800
+  :alt: Set the right hourly pay
+
+After adjusting the pay, you see you are paying the right amount:
+
+.. image:: ../_static/images/prolific/adjust_pay_3.png
+  :width: 800
+  :alt: Confirmation you pay the right hourly pay
+
+
+
 Terminating a study
 -------------------
-Go to Prolific, go to your project folder, go to the tab "Active". If it says "Awaiting review", you can pay the remaining participants when something went wrong. By paying the participants, your experiment automatically moves to the tab "Completed".
+First set the experiment variable ``auto_recruit`` to ``False``, you can do this by going to your Heroku app, go to "Settings", scroll down to "Config Vars", click on "Reveal Config Vars" and set ``auto_recruit = False``.
+
+.. warning::
+    Config vars in Heroku are case sensitive, so make sure you use the exact same capitalization as above.
+
+Now go to Prolific, go to your project folder, go to the tab "Active". You can stop the survey.
+
+
+.. image:: ../_static/images/prolific/awaiting_review_1.png
+  :width: 800
+  :alt: Awaiting review
+
+If it says "Awaiting review", you can pay the remaining participants when something went wrong. To do so click on the survey and mark the participants you want to pay.
+
+
+.. image:: ../_static/images/prolific/awaiting_review_2.png
+  :width: 800
+  :alt: Pay participants who are awaiting review
+
+By paying the participants, your experiment automatically moves to the tab from "Active" to "Completed".
+
+
+
+.. image:: ../_static/images/prolific/awaiting_review_3.png
+  :width: 800
+  :alt: There are no active surveys anymore
+
+
+.. image:: ../_static/images/prolific/awaiting_review_4.png
+  :width: 800
+  :alt: The survey moved to completed
+
+
+.. warning::
+    If don't set ``auto_recruit`` to ``False``, but your experiment does rely on automatic recruitment the stopped survey will be reactivated automatically! So make sure autorecruitment is turned off!
 
 You can now export your data locally and destroy your application.
