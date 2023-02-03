@@ -19,10 +19,18 @@
 #
 import os
 import sys
+from glob import glob
+from os.path import abspath, basename, join
 
-sys.path.insert(0, os.path.abspath(".."))
+import pandas as pd
+import polib
+from rstcloth import RstCloth
 
 import psynet
+from psynet import __version__ as version
+from psynet.utils import get_language_dict
+
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ---------------------------------------------
 
@@ -61,8 +69,7 @@ author = "Peter Harrison"
 # the built documents.
 #
 # The short X.Y version.
-from psynet import __version__ as version
-
+#
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -177,29 +184,9 @@ html_theme_options = {
     "source_directory": "docs/",
 }
 
-# Old version:
-# # See https://docs.readthedocs.io/en/stable/guides/edit-source-links-sphinx.html
-# # for info on this specification.
-# html_context = {
-#     "display_gitlab": True, # Integrate Gitlab
-#     "gitlab_user": "PsyNetDev", # Username
-#     "gitlab_repo": "psynet", # Repo name
-#     "gitlab_version": "master", # Branch to edit
-#     "conf_py_path": "/docs/", # Path in the checkout to the docs root
-# }
-
-from glob import glob
-from os.path import abspath, basename, join
-
-import pandas as pd
-import polib
-from rstcloth import RstCloth
-
-import psynet
-from psynet.utils import get_language_dict
-
 language_dict = get_language_dict('en')
 psynet_init_path = abspath(psynet.__file__)
+
 
 def extract_translation_information():
     locales_dir = join(psynet_init_path.replace(basename(psynet_init_path), ''), 'locales')
@@ -223,12 +210,15 @@ def extract_translation_information():
 
     return pd.DataFrame(results).sort_values('language_name').to_dict('records')
 
+
 def percent(s):
     return f"{s} %"
+
 
 def process_row(row):
     language = f"{row['language_name']} (``{row['language_iso']}``)"
     return language, percent(row['percent_translated']), percent(row['percent_verified']), row['translator']
+
 
 def generate_translation_table():
     with open('dashboards/translation.rst', 'w') as output_file:
@@ -243,4 +233,6 @@ def generate_translation_table():
             ['Language', 'Percent translated', 'Percent verified', 'Translator'],
             data=[process_row(row) for row in table]
         )
+
+
 generate_translation_table()

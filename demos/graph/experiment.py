@@ -323,7 +323,6 @@ class CustomTrialMaker(GraphChainTrialMaker):
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
     ):
-
         network_structure = self.generate_grid(grid_dimension)
         super().__init__(
             id_=id_,

@@ -1445,7 +1445,7 @@ class ColorVocabularyTest(StaticTrialMaker):
     def get_nodes(self, colors: list):
         stimuli = []
         words = [x[0] for x in colors]
-        for (correct_answer, hsl) in colors:
+        for correct_answer, hsl in colors:
             choices = words.copy()
             # Todo - think carefully about whether it's a good idea to have random
             # functions inside get_nodes

@@ -271,6 +271,7 @@ class Trial(SQLMixinDallinger, Info):
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
         backref="all_trials",
+        post_update=True,
     )
     parent_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
@@ -450,22 +451,6 @@ class Trial(SQLMixinDallinger, Info):
 
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
-
-    def mark_as_finalized(self):
-        """
-        Marks a trial as finalized. This means that all relevant data has been stored from the
-        participant's response, and any pending asynchronous processes have completed.
-        """
-        if self.finalized:
-            raise RuntimeError(
-                f"Tried to mark trial {self.id} as finalized, but it was already finalized."
-            )
-        self.finalized = True
-        self._on_finalized()
-
-    def _on_finalized(self):
-        self.score = self.score_answer(answer=self.answer, definition=self.definition)
-        self._allocate_bonus()
 
     def _allocate_bonus(self):
         bonus = self.compute_bonus(score=self.score)
@@ -713,6 +698,11 @@ class Trial(SQLMixinDallinger, Info):
             )
 
     def on_finalized(self):
+        self.score = self.score_answer(answer=self.answer, definition=self.definition)
+        self._allocate_bonus()
+
+        db.session.commit()
+
         if self.trial_maker:
             from psynet.experiment import get_experiment
 
@@ -1639,6 +1629,15 @@ class TrialMaker(Module):
         else:
             return logic
 
+    def get_all_participant_performance_check_results(self):
+        records = (
+            db.session.query(self.state_class.performance_check)
+            .filter_by(module_id=self.id)
+            .filter(self.state_class.performance_check.isnot(None))
+            .all()
+        )
+        return [record[0] for record in records]
+
     def any_pending_async_trials(self, participant):
         trials = self.get_participant_trials(participant)
         return any([t.awaiting_async_process for t in trials])
@@ -2203,6 +2202,10 @@ class NetworkTrialMaker(TrialMaker):
             return self.performance_check_accuracy(
                 experiment, participant, participant_trials
             )
+        elif self.performance_check_type == "score":
+            return self.performance_check_score(
+                experiment, participant, participant_trials
+            )
         else:
             raise NotImplementedError
 
@@ -2216,6 +2219,11 @@ class NetworkTrialMaker(TrialMaker):
             p = 1 - n_failed_trials / n_trials
             passed = p >= self.performance_check_threshold
         return {"score": p, "passed": passed}
+
+    def performance_check_score(self, experiment, participant, participant_trials):
+        score = sum(t.score for t in participant_trials)
+        passed = score >= self.performance_check_threshold
+        return {"score": score, "passed": passed}
 
     def get_answer_for_consistency_check(self, trial):
         # Must return a number

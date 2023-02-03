@@ -57,7 +57,6 @@ class Test:
         self.check_mappers()
 
     def test_serialize_sql(self, trial, node, network, participant):
-
         trial_serialized = serialize(trial)
         assert (
             trial_serialized

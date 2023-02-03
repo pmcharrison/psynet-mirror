@@ -1055,15 +1055,6 @@ class TimedPushButtonControl(PushButtonControl):
         return html.render()
 
 
-class NAFCControl(PushButtonControl):
-    """
-    .. deprecated:: 1.7.0
-        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
-    """
-
-    pass
-
-
 class PushButton:
     def __init__(
         self,
@@ -2648,7 +2639,7 @@ class MusicNotationPrompt(Prompt):
     def __init__(
         self,
         content: str,
-        text: Union[None, str, Markup] = None,
+        text: Union[None, str, Markup, dom_tag] = None,
         text_align: str = "left",
     ):
         super().__init__(text=text, text_align=text_align)
