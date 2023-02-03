@@ -112,6 +112,10 @@ html_css_files = [
     "css/custom.css",
 ]
 
+html_js_files = [
+    'js/custom.js',
+]
+
 # -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
