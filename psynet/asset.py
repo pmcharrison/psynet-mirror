@@ -2746,17 +2746,9 @@ class LocalStorage(AssetStorage):
 
         sftp = self.sftp_connection(ssh_host, ssh_user)
 
-        try:
-            with open(input_path, "rb") as file:
-                sftp.putfo(BytesIO(file.read()), dest_path)
-        except FileNotFoundError:
-            if make_parents:
-                self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
-                self._put_file(
-                    input_path, dest_path, ssh_host, ssh_user, make_parents=False
-                )
-            else:
-                raise
+        self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
+        with open(input_path, "rb") as file:
+            sftp.putfo(BytesIO(file.read()), dest_path)
 
     def _mk_dir_tree(self, dir, ssh_host, ssh_user):
         executor = self.ssh_executor(ssh_host, ssh_user)
@@ -3211,7 +3203,12 @@ class AssetRegistry:
         # FROM pg_stat_activity AS activity
         # JOIN pg_stat_activity AS blocking ON blocking.pid = ANY(pg_blocking_pids(activity.pid));
 
-        # n_jobs = 1
+        # SSH currently fails if we try to open more than one connection at the same time,
+        # so for now we hard-code the number of jobs to zero. It would be good to revisit this.
+        # Uploading all the files over one SSH connection shouldn't be slower than uploading them
+        # over multiple connections. The main limitation with the current situation though
+        # is that we can no longer programmatically generate stimuli in parallel.
+        n_jobs = 1
 
         logger.info("Preparing assets for deployment...")
         Parallel(
