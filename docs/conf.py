@@ -19,8 +19,16 @@
 #
 import os
 import sys
+from glob import glob
+from os.path import abspath, basename, join
 
+import pandas as pd
+import polib
+from rstcloth import RstCloth
+
+import psynet
 from psynet import __version__ as version
+from psynet.utils import get_language_dict
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -180,13 +188,55 @@ html_theme_options = {
     "source_directory": "docs/",
 }
 
-# Old version:
-# # See https://docs.readthedocs.io/en/stable/guides/edit-source-links-sphinx.html
-# # for info on this specification.
-# html_context = {
-#     "display_gitlab": True, # Integrate Gitlab
-#     "gitlab_user": "PsyNetDev", # Username
-#     "gitlab_repo": "psynet", # Repo name
-#     "gitlab_version": "master", # Branch to edit
-#     "conf_py_path": "/docs/", # Path in the checkout to the docs root
-# }
+language_dict = get_language_dict('en')
+psynet_init_path = abspath(psynet.__file__)
+
+
+def extract_translation_information():
+    locales_dir = join(psynet_init_path.replace(basename(psynet_init_path), ''), 'locales')
+    po_files = glob(locales_dir + '/*/*/*.po')
+
+    results = []
+    for po_file in po_files:
+        language_iso = po_file.split('/')[-3]
+        language_name = language_dict[language_iso]
+        po = polib.pofile(po_file)
+        total_entries = len(po)
+        untranslated_entries = len([entry for entry in po if entry.msgstr == ''])
+        unverified_entries = len([entry for entry in po if entry.fuzzy and entry.msgstr != ''])
+        results.append({
+            'language_iso': language_iso,
+            'language_name': language_name,
+            'percent_verified': round((total_entries - unverified_entries) / total_entries * 100, 1),
+            'percent_translated': round((total_entries - untranslated_entries) / total_entries * 100, 1),
+            'translator': po.metadata['Last-Translator']
+        })
+
+    return pd.DataFrame(results).sort_values('language_name').to_dict('records')
+
+
+def percent(s):
+    return f"{s} %"
+
+
+def process_row(row):
+    language = f"{row['language_name']} (``{row['language_iso']}``)"
+    return language, percent(row['percent_translated']), percent(row['percent_verified']), row['translator']
+
+
+def generate_translation_table():
+    with open('dashboards/translation.rst', 'w') as output_file:
+        doc = RstCloth(output_file)
+        doc.title('Translation dashboard')
+        doc.newline()
+
+        table = extract_translation_information()
+        doc.h3(f'PsyNet is available in {len(table)} languages:')
+
+        doc.table(
+            ['Language', 'Percent translated', 'Percent verified', 'Translator'],
+            data=[process_row(row) for row in table]
+        )
+
+
+generate_translation_table()
