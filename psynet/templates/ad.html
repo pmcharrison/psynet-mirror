@@ -1,12 +1,12 @@
 {% extends "base/ad.html" %}
 
 {% block no_assignment %}
-<h1>Call for participants</h1>
+<h1>{{ pgettext("ad", "Call for participants") }}</h1>
 <p>
     {{ experiment.description|safe }}
 </p>
 <p>
-    <span style="font-weight: bold;">The requirements to participate are as follows</span>:
+    <span style="font-weight: bold;">{{ pgettext("ad", "The requirements to participate are as follows") }}</span>:
 </p>
 <ul>
     {% for requirement in experiment.ad_requirements %}
@@ -17,29 +17,27 @@
     {{ experiment.ad_payment_information|safe }}
 </p>
 <p>
-    Please click the "Accept HIT" button on the Amazon site
-    above to begin the task.
+    {{ pgettext("ad", 'Please click the "Accept HIT" button on the Amazon site above to begin the task.') }}
 </p>
 {% endblock no_assignment %}
 
 {% block live %}
-<h1>Thanks for accepting this HIT.</h1>
+<h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
 <p>
-    By clicking the following URL link, you will be taken to the experiment,
-    including complete instructions and an informed consent agreement.
+    {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
 </p>
 <div class="alert alert-warning">
-    <span style="font-weight: bold;">Warning</span>: Please disable pop-up blockers before continuing.
+    <span style="font-weight: bold;">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
 </div>
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
-Begin Experiment
+{{ pgettext("ad", "Begin Experiment") }}
 </button>
 {% if experiment.var.show_abort_button %}
 <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
-Abort Experiment
+{{ pgettext("ad", "Abort Experiment") }}
 </button>
 <div style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
-    <span class="alert-danger">Click the above button to be compensated in case of an error.</span>
+    <span class="alert-danger">{{ pgettext("ad", "Click the above button to be compensated in case of an error.") }}</span>
 </div>
 <script>
     function abortExperiment(event) {
