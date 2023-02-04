@@ -12,7 +12,7 @@
         {{ pgettext("browser_compatibility", "If your browser is not compatible we have to reject the survey.") }}
         </p>
         <p style="text-align: left;">
-        {% set TERMINATION_TIME =  experiment.recruiter.termination_time_in_min %}
+        {% set TERMINATION_TIME = experiment.recruiter.termination_time_in_min %}
         {% trans name="consent" %}You will also see one or more consent pages and have up to <strong>{{ TERMINATION_TIME }}</strong> to read and accept/reject them.{% endtrans %}
 
         </p>

@@ -231,7 +231,7 @@ def generate_translation_table():
         doc.newline()
 
         table = extract_translation_information()
-        doc.h3(f'PsyNet is avaible in {len(table)} languages:')
+        doc.h3(f'PsyNet is available in {len(table)} languages:')
 
         doc.table(
             ['Language', 'Percent translated', 'Percent verified', 'Translator'],
