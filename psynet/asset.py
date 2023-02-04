@@ -1524,15 +1524,16 @@ class CachedAsset(ManagedAsset):
     def generate_host_path(self, deployment_id: str):
         key = self.key  # e.g. big-audio-file.wav
         cache_key = self.cache_key
-        base, extension = os.path.splitext(key)
 
         if self.obfuscate == 2:
             base = "private"
+        else:
+            base = key
 
         host_path = os.path.join("cached", base, cache_key)
 
         if self.type != "folder":
-            host_path += extension
+            host_path += self.extension
 
         return host_path
 
