@@ -563,6 +563,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
+                elt.deposit_on_the_fly = False
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)

@@ -452,6 +452,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         replace_existing=False,
         personal=False,
     ):
+        self.deposit_on_the_fly = True
         self.local_key = local_key
 
         if key is None:
@@ -558,7 +559,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.module_id = participant.module_id
         if not self.has_key:
             self.set_keys()
-        self.deposit()
+        if self.deposit_on_the_fly:
+            self.deposit()
 
     def infer_data_type(self):
         if self.extension in ["wav", "mp3"]:
