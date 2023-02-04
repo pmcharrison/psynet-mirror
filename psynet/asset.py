@@ -2811,11 +2811,44 @@ class LocalStorage(AssetStorage):
         return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
     def check_cache(self, host_path: str, is_folder: bool):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            return self.check_local_cache(host_path, is_folder)
+        elif deployment_info.read("is_ssh_deployment"):
+            return self.check_ssh_cache(host_path, is_folder)
+        else:
+            raise RuntimeError(
+                f"Not sure how to check cache given the current run configuration: {deployment_info.read_all()}"
+            )
+
+    def check_local_cache(self, host_path: str, is_folder: bool):
         file_system_path = self.get_file_system_path(host_path)
         return os.path.exists(file_system_path) and (
             (is_folder and os.path.isdir(file_system_path))
             or (not is_folder and os.path.isfile(file_system_path))
         )
+
+    def check_ssh_cache(self, host_path: str, is_folder: bool):
+        ssh_host = "musix.mus.cam.ac.uk"  # todo - propagate properly
+        ssh_user = "pmch2"
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        # At some point, we need to refactor the logic for get_file_system_path to clarify
+        # whether we are running in Docker or not.
+        # Docker: /psynet-data/assets
+        # SSH: /home/pmch2/psynet-data/assets
+        # local machine: ~/psynet-data/assets
+        #
+        # For now we hard-code...
+        file_system_path = "/home/" + ssh_user + self.get_file_system_path(host_path)
+
+        try:
+            if is_folder:
+                sftp.listdir(file_system_path)
+            else:
+                sftp.stat(file_system_path)
+            return True
+        except FileNotFoundError:
+            return False
 
 
 class DebugStorage(LocalStorage):
