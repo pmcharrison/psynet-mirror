@@ -23,7 +23,7 @@ from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import success_response
+from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
@@ -1218,6 +1218,39 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The corresponding participant object.
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
+
+    @experiment_route("/consent")
+    @staticmethod
+    def consent():
+        config = get_config()
+
+        entry_information = request.args.to_dict()
+        exp = get_experiment()
+        entry_data = exp.normalize_entry_information(entry_information)
+
+        hit_id = entry_data.get("hit_id")
+        assignment_id = entry_data.get("assignment_id")
+        worker_id = entry_data.get("worker_id")
+        return render_template_with_translations(
+            "consent.html",
+            hit_id=hit_id,
+            assignment_id=assignment_id,
+            worker_id=worker_id,
+            mode=config.get("mode"),
+            query_string=request.query_string.decode(),
+        )
+
+    @experiment_route("/ad", methods=["GET"])
+    @nocache
+    @staticmethod
+    def advertisement():
+        from dallinger.experiment_server.experiment_server import prepare_advertisement
+
+        is_redirect, kw = prepare_advertisement()
+        if is_redirect:
+            return kw["redirect"]
+        else:
+            return render_template_with_translations("ad.html", **kw)
 
     @experiment_route("/app_deployment_id", methods=["GET"])
     @staticmethod
