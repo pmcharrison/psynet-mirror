@@ -82,7 +82,7 @@ Finally, you need to add the qualification to your ``config.txt`` file:
     [Prolific]
     prolific_recruitment_config = file:prolific_config.json
 
-If you don't have an existing experiment where you want to copy the qualifications from, you can create a draft study in Prolific and then copy it's HIT ID using the identical steps as above.
+If you don't have an existing experiment from which you want to copy the qualifications, you can create a draft study in Prolific and then copy its HIT ID using the same steps as before.
 
 
 Extending a study
