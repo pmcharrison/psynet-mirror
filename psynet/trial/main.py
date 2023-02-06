@@ -490,7 +490,8 @@ class Trial(SQLMixinDallinger, Info):
 
         db.session.commit()
 
-        asset.deposit()
+        if not asset.deposited:
+            asset.deposit()
 
     def score_answer(self, answer, definition):
         """

@@ -452,6 +452,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         replace_existing=False,
         personal=False,
     ):
+        self.deposit_on_the_fly = True
         self.local_key = local_key
 
         if key is None:
@@ -558,7 +559,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.module_id = participant.module_id
         if not self.has_key:
             self.set_keys()
-        self.deposit()
+        if self.deposit_on_the_fly:
+            self.deposit()
 
     def infer_data_type(self):
         if self.extension in ["wav", "mp3"]:
@@ -1522,15 +1524,16 @@ class CachedAsset(ManagedAsset):
     def generate_host_path(self, deployment_id: str):
         key = self.key  # e.g. big-audio-file.wav
         cache_key = self.cache_key
-        base, extension = os.path.splitext(key)
 
         if self.obfuscate == 2:
             base = "private"
+        else:
+            base = key
 
         host_path = os.path.join("cached", base, cache_key)
 
         if self.type != "folder":
-            host_path += extension
+            host_path += self.extension
 
         return host_path
 
@@ -2743,17 +2746,9 @@ class LocalStorage(AssetStorage):
 
         sftp = self.sftp_connection(ssh_host, ssh_user)
 
-        try:
-            with open(input_path, "rb") as file:
-                sftp.putfo(BytesIO(file.read()), dest_path)
-        except FileNotFoundError:
-            if make_parents:
-                self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
-                self._put_file(
-                    input_path, dest_path, ssh_host, ssh_user, make_parents=False
-                )
-            else:
-                raise
+        self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
+        with open(input_path, "rb") as file:
+            sftp.putfo(BytesIO(file.read()), dest_path)
 
     def _mk_dir_tree(self, dir, ssh_host, ssh_user):
         executor = self.ssh_executor(ssh_host, ssh_user)
@@ -2816,11 +2811,44 @@ class LocalStorage(AssetStorage):
         return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
     def check_cache(self, host_path: str, is_folder: bool):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            return self.check_local_cache(host_path, is_folder)
+        elif deployment_info.read("is_ssh_deployment"):
+            return self.check_ssh_cache(host_path, is_folder)
+        else:
+            raise RuntimeError(
+                f"Not sure how to check cache given the current run configuration: {deployment_info.read_all()}"
+            )
+
+    def check_local_cache(self, host_path: str, is_folder: bool):
         file_system_path = self.get_file_system_path(host_path)
         return os.path.exists(file_system_path) and (
             (is_folder and os.path.isdir(file_system_path))
             or (not is_folder and os.path.isfile(file_system_path))
         )
+
+    def check_ssh_cache(self, host_path: str, is_folder: bool):
+        ssh_host = "musix.mus.cam.ac.uk"  # todo - propagate properly
+        ssh_user = "pmch2"
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        # At some point, we need to refactor the logic for get_file_system_path to clarify
+        # whether we are running in Docker or not.
+        # Docker: /psynet-data/assets
+        # SSH: /home/pmch2/psynet-data/assets
+        # local machine: ~/psynet-data/assets
+        #
+        # For now we hard-code...
+        file_system_path = "/home/" + ssh_user + self.get_file_system_path(host_path)
+
+        try:
+            if is_folder:
+                sftp.listdir(file_system_path)
+            else:
+                sftp.stat(file_system_path)
+            return True
+        except FileNotFoundError:
+            return False
 
 
 class DebugStorage(LocalStorage):
@@ -3144,6 +3172,11 @@ class AssetRegistry:
         # if inspector.has_table("asset") and Asset.query.count() == 0:
         #     self.populate_db_with_initial_assets()
 
+    def __getitem__(self, item):
+        from psynet.asset import Asset
+
+        return Asset.query.filter_by(key=item).one()
+
     @property
     def deployment_id(self):
         return self.storage.deployment_id
@@ -3203,7 +3236,12 @@ class AssetRegistry:
         # FROM pg_stat_activity AS activity
         # JOIN pg_stat_activity AS blocking ON blocking.pid = ANY(pg_blocking_pids(activity.pid));
 
-        # n_jobs = 1
+        # SSH currently fails if we try to open more than one connection at the same time,
+        # so for now we hard-code the number of jobs to zero. It would be good to revisit this.
+        # Uploading all the files over one SSH connection shouldn't be slower than uploading them
+        # over multiple connections. The main limitation with the current situation though
+        # is that we can no longer programmatically generate stimuli in parallel.
+        n_jobs = 1
 
         logger.info("Preparing assets for deployment...")
         Parallel(
