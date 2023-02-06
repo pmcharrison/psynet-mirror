@@ -2182,7 +2182,7 @@ class ModuleAssets:
     def __getitem__(self, item):
         from psynet.asset import Asset
 
-        return Asset.query.filter_by(local_key=item).one()
+        return Asset.query.filter_by(module_id=self.module_id, local_key=item).one()
 
 
 class Module:
@@ -2244,15 +2244,18 @@ class Module:
         db.session.commit()
 
     def deposit_assets_on_the_fly(self):
-        if len(self._staged_assets) > 0:
+        assets_to_deposit = [
+            asset for asset in self._staged_assets if not asset.deposited
+        ]
+        if len(assets_to_deposit) > 0:
             logger.info(
                 "Depositing %i assets on-the-fly (i.e. while the participant waits for the "
                 "experiment to continue. This is a bad idea if the number of assets is large "
                 "and if they need to be uploaded to a remote server. "
                 "To avoid this, avoid defining your module/trial maker within a page maker.",
-                len(self._staged_assets),
+                len(assets_to_deposit),
             )
-            for asset in self._staged_assets:
+            for asset in assets_to_deposit:
                 # TODO - parallelize this deposit, see code in Experiment class
                 asset.deposit()
             db.session.commit()

@@ -15,7 +15,7 @@ with open("psynet/version.py", "r") as fp:
 setuptools.setup(
     name="psynet",
     version=version["psynet_version"],
-    author="Peter Harrison, Raja Marjieh, Nori Jacoby",
+    author="Peter Harrison, Frank Höger, Pol van Rijn, Raja Marjieh, Nori Jacoby",
     author_email="pmch2@cam.ac.uk",
     description="A framework for running advanced psychological experiments.",
     long_description=long_description,
