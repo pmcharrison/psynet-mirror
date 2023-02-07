@@ -4,6 +4,9 @@
 
 #### Changed
 - Demographics are now saved in the participant table (author: Peter Harrison).
+- Check if amount in cents/predicted duration in minutes for prolific is identical to the hourly rate of the experiment (author: Pol van Rijn).
+- Remove unnecessary field `mode` in config.txt of all demos (author: Pol van Rijn).
+- Wrote prolific documentation with screenshots (author: Pol van Rijn).
 
 # [10.0.0rc1] Release candidate 2023-01-27
 
