@@ -1,24 +1,10 @@
 import collections
-import math
-
-import numpy as np
 
 from psynet.timeline import FailedValidation
 from psynet.trial.imitation_chain import ImitationChainNode
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-
-def find_nearest(array, value):
-    idx = np.searchsorted(array, value, side="left")
-    if idx > 0 and (
-        idx == len(array)
-        or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])
-    ):
-        return array[idx - 1]
-    else:
-        return array[idx]
 
 
 def sort_dict_by_key(d):
@@ -42,13 +28,21 @@ class CreateAndRateTrial:
     def show_rate_trial(self):
         raise NotImplementedError
 
+    @staticmethod
+    def get_previous_iteration(trial):
+        return trial.origin.definition
+
+    @staticmethod
+    def get_creation(create_trial):
+        return create_trial.answer
+
     def is_create_trial(self, trial):
         if not (trial.var.has(ROLE_KEY) and trial.var.has(ROLE_ID_KEY)):
             infos_at_iter = trial.node.infos()
             info_dict = {info.id: info for info in infos_at_iter}
             # Sort the values
             infos_at_iter = list(sort_dict_by_key(info_dict).values())
-            creations = [
+            creation_trials = [
                 info
                 for info in infos_at_iter
                 if info.var.has(ROLE_KEY)
@@ -56,9 +50,18 @@ class CreateAndRateTrial:
                 and not info.failed
                 and info.id != trial.id
             ]
-            num_creators = self.trial_maker.num_creators
-            if len(creations) < num_creators:
-                taken_roles = [creation.var.get(ROLE_ID_KEY) for creation in creations]
+
+            trial_maker = self.trial_maker
+            num_creators = trial_maker.num_creators
+
+            # TODO for future: you do not have to wait for all creations to be finished if rate_mode == "select",
+            #  however this will require some additional bookkeeping. I.e., once you register a creation to one rater,
+            #  it needs to be blocked until it finished or timed out.
+            if len(creation_trials) < num_creators:
+                taken_roles = [
+                    creation_trial.var.get(ROLE_ID_KEY)
+                    for creation_trial in creation_trials
+                ]
                 possible_roles = [f"creation{i + 1}" for i in range(num_creators)]
                 available_roles = [
                     _id for _id in possible_roles if _id not in taken_roles
@@ -76,10 +79,67 @@ class CreateAndRateTrial:
                 ]
                 role = f"rating{len(raters) + 1}"
 
+                creations_to_validate = []
+
+                if trial_maker.rate_mode == "select":
+                    if trial_maker.include_previous_iteration:
+                        creations_to_validate.append(self.get_previous_iteration(self))
+                    for creation_trial in creation_trials:
+                        creations_to_validate.append(self.get_creation(creation_trial))
+                else:
+                    keys = [f"creation{i + 1}" for i in range(num_creators)]
+                    if trial_maker.include_previous_iteration:
+                        keys.append("previous_iteration")
+
+                    rating_count_dict = {}
+                    for key in keys:
+                        rating_count_dict[key] = sum(
+                            [
+                                1
+                                for rater in raters
+                                if rater.var.has(ROLE_ID_KEY)
+                                and rater.var.get(ROLE_ID_KEY).endswith(key)
+                            ]
+                        )
+
+                    rating_count_dict = sort_dict_by_value(rating_count_dict)
+                    key = list(rating_count_dict.keys())[
+                        0
+                    ]  # prioritize the one with the smallest number of ratings
+
+                    logger.info(
+                        f"""For network {self.network_id} at iteration {self.node.degree} we have the following
+                    ratings for: {rating_count_dict}. We therefore selected: {key}."""
+                    )
+
+                    # nth_rating = rating_count_dict[key] + 1
+                    if key == "previous_iteration":
+                        # _id = f"rating{nth_rating}_previous_iteration"
+                        creation = self.get_previous_iteration(self)
+                    elif key.startswith("creation"):
+                        nth_creation = int(key.replace("creation", ""))
+                        # _id = f"rating{nth_rating}_creation{nth_creation}"
+                        selected_creation = [
+                            creation
+                            for creation in creation_trials
+                            if creation.var.get(ROLE_ID_KEY)
+                            == f"creation{nth_creation}"
+                        ]
+                        assert len(selected_creation) == 1
+                        creation = self.get_creation(selected_creation[0])
+                    else:
+                        raise Exception(f"Unknown key: {key}")
+                    creations_to_validate.append(creation)
+
+                assert len(creations_to_validate) > 0
+                trial.var.set("creations_to_validate", creations_to_validate)
+
             trial.var.set(ROLE_ID_KEY, role)
             logger.info(f"""We assign role ID '{role}' to Trial {trial.id}""")
         if trial.var.has(ROLE_KEY) and trial.var.has(ROLE_ID_KEY):
-            return trial.var.get(ROLE_KEY) == CREATOR_KEY
+            is_creator = trial.var.get(ROLE_KEY) == CREATOR_KEY
+
+            return is_creator
         else:
             # TODO not sure how to deal with this as it causes a runtime error…
             raise FailedValidation(f"""Trial {trial.id} has no type or role""")
@@ -98,15 +158,19 @@ class CreateAndRateNode(ImitationChainNode):
 
 
 class CreateAndRateTrialMaker:
-    num_creators = None
-    num_raters = None
-    rate_mode = "rate"
-    role_separation = False
+    num_creators = None  # Number of creators
+    num_raters = None  # Number of raters
+    rate_mode = "rate"  # Either "rate" each stimulus is rated individually or "select" where each rater selects one stimulus
+    num_rate_stimuli = None  # Number of stimuli to rate, TODO not implemented yet
+    include_previous_iteration = (
+        False  # Whether to include the previous iteration in the rate trial
+    )
+    role_separation = False  # Whether to separate the roles of creators and raters, TODO to be implemented
     role_separation_var_name = (
         None  # default is participant.var.get(trialmaker id + '_role_separation')
     )
 
-    def __init__(self, _id):
+    def __init__(self, id_):
         assert (
             type(self.num_creators) == int and self.num_creators > 0
         ), "num_creators must be a positive integer"
@@ -114,15 +178,37 @@ class CreateAndRateTrialMaker:
             type(self.num_raters) == int and self.num_raters > 0
         ), "num_raters must be a positive integer"
         RATE_MODES = ["rate", "select"]
-        assert self.rate_mode in RATE_MODES, f"rate_mode must be in {RATE_MODES}"
+
+        assert self.num_rate_stimuli is None, "num_rate_stimuli is not implemented yet"
+        if self.rate_mode == "select":
+            self.num_rate_stimuli = self.num_creators
+            self.num_validations_per_creation = self.num_creators
+        elif self.rate_mode == "rate":
+            if self.include_previous_iteration:
+                assert (
+                    self.num_raters % (self.num_creators + 1) == 0
+                ), "num_raters must be a multiple of num_creators + 1 (since include_previous_iteration == True) if rate_mode is 'rate'"
+            else:
+                assert (
+                    self.num_raters % self.num_creators == 0
+                ), "num_raters must be a multiple of num_creators if rate_mode is 'rate'"
+            self.num_rate_stimuli = 1
+            self.num_validations_per_creation = self.num_raters // self.num_creators
+
+        else:
+            raise ValueError(f"rate_mode must be in {RATE_MODES}")
+
         if self.rate_mode == "select":
             assert (
-                self.num_creators > 1
-            ), "num_creators must be greater than 1 if rate_mode is select"
+                self.num_rate_stimuli > 1
+            ), '`num_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
+
         assert type(self.role_separation) == bool, "role_separation must be a boolean"
-        self.trials_per_node = self.num_creators + self.num_raters
+        assert (
+            self.trials_per_node == self.num_creators + self.num_raters
+        ), "trials_per_node must be equal to num_creators + num_raters"
         if self.role_separation_var_name is None:
-            self.role_separation_var_name = f"{_id}_role_separation"
+            self.role_separation_var_name = f"{id_}_role_separation"
 
     def get_iteration_and_finished_trials_from_network(self, network):
         if len(network.all_infos) == 0:
