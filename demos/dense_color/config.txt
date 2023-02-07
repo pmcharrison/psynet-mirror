@@ -1,5 +1,4 @@
 [Launch mode]
-mode = sandbox
 language = en
 
 [Payment information]

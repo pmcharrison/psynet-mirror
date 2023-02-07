@@ -1,6 +1,3 @@
-[Launch mode]
-mode = sandbox
-
 [Payment information]
 title = Short tests (~ 6 min.)
 base_payment = 0.10

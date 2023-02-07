@@ -1,6 +1,3 @@
-[Launch mode]
-mode = sandbox
-
 [Payment information]
 title = Demo of imitation chain with accumulated answers
 base_payment = 0.10
