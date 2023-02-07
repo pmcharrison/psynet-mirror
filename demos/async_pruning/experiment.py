@@ -23,8 +23,8 @@ import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.experiment import scheduled_task
-from psynet.modular_page import SliderControl
-from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
+from psynet.modular_page import Prompt, SliderControl
+from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.process import WorkerAsyncProcess
 from psynet.timeline import Timeline
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker

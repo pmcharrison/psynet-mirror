@@ -159,7 +159,7 @@ class AudioPrompt(Prompt):
     def __init__(
         self,
         audio,
-        text: Union[str, Markup],
+        text: Union[str, Markup, dom_tag],
         loop: bool = False,
         text_align="left",
         play_window: Optional[List] = None,
@@ -1053,15 +1053,6 @@ class TimedPushButtonControl(PushButtonControl):
                 ).add(label)
                 tags.br()
         return html.render()
-
-
-class NAFCControl(PushButtonControl):
-    """
-    .. deprecated:: 1.7.0
-        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
-    """
-
-    pass
 
 
 class PushButton:
@@ -2648,7 +2639,7 @@ class MusicNotationPrompt(Prompt):
     def __init__(
         self,
         content: str,
-        text: Union[None, str, Markup] = None,
+        text: Union[None, str, Markup, dom_tag] = None,
         text_align: str = "left",
     ):
         super().__init__(text=text, text_align=text_align)

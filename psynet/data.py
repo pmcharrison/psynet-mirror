@@ -15,6 +15,7 @@ import psutil
 import six
 import sqlalchemy
 from dallinger import db
+from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
 from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
 from dallinger.experiment_server import dashboard
@@ -622,6 +623,7 @@ dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 #     yield
 #     db.session.execute("SET session_replication_role = DEFAULT;")
 
+
 # This would have been useful for importing data, however in practice
 # it caused the import process to hang.
 #
@@ -887,6 +889,7 @@ def export_assets(
     experiment_assets_only: bool,
     include_fast_function_assets: bool,
     n_parallel=None,
+    server=None,
 ):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -906,14 +909,14 @@ def export_assets(
 
     asset_keys = [a.key for a in asset_query]
 
-    # n_jobs = 1  # todo -fix
+    n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now
     Parallel(
         n_jobs=n_jobs,
         verbose=10,
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(key, path, include_fast_function_assets)
+        delayed(export_asset)(key, path, include_fast_function_assets, server)
         for key in asset_keys
     )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -922,10 +925,18 @@ def export_assets(
 # def close_parallel_db_sessions():
 
 
-def export_asset(key, root, include_fast_function_assets):
+def export_asset(key, root, include_fast_function_assets, server):
     from .asset import Asset, FastFunctionAsset
     from .experiment import import_local_experiment
     from .utils import make_parents
+
+    if server is None:
+        ssh_host = None
+        ssh_user = None
+    else:
+        server_info = CONFIGURED_HOSTS[server]
+        ssh_host = server_info["host"]
+        ssh_user = server_info.get("user")
 
     import_local_experiment()
     a = Asset.query.filter_by(key=key).one()
@@ -938,7 +949,7 @@ def export_asset(key, root, include_fast_function_assets):
     make_parents(path)
 
     try:
-        a.export(path)
+        a.export(path, ssh_host=ssh_host, ssh_user=ssh_user)
     except Exception:
         print(f"An error occurred when trying to export the asset with key: {key}")
         raise

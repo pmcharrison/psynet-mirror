@@ -2,8 +2,8 @@ import os
 import re
 
 # Bump versions by changing these two lines. setup.py will read them automatically.
-dallinger_minimum_version = "9.4.0"
-psynet_version = "10.0.0rc1"
+dallinger_minimum_version = "9.4.1"
+psynet_version = "10.0.0rc2"
 
 dallinger_minimum_version_parts = dallinger_minimum_version.split(".")
 dallinger_maximum_major_version = int(dallinger_minimum_version_parts[0]) + 1
@@ -51,9 +51,7 @@ def check_dallinger_version():
     environment_variable = "SKIP_CHECK_DALLINGER_VERSION"
     if not os.environ.get(environment_variable, None):
         if not (
-            version_is_greater(
-                current_dallinger_version, dallinger_minimum_version, strict=False
-            )
+            version_is_greater(current_dallinger_version, dallinger_minimum_version, strict=False)
             and version_is_greater(
                 dallinger_maximum_version, current_dallinger_version, strict=True
             )

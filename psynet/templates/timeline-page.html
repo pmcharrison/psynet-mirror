@@ -1070,6 +1070,7 @@
                                     clearTimeout(stopTimer);
                                     psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
                                     psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
+                                    psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
                                     if (sound.options.loop && !sound.manuallyStopped) {
                                         psynet.log.debug("Looping sound with ID = " + out.stimulusId);
                                         out.play(sound.options);
@@ -1310,7 +1311,9 @@
 
                 psynet.registerErrorHandler = function () {
                     window.onerror = function (msg, url, line, col, error) {
-                        psynet.log.error(error.stack);
+                        if (error) {
+                            psynet.log.error(error.stack);
+                        }
                     }
                 };
 
