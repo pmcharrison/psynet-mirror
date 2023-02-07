@@ -62,6 +62,7 @@ setuptools.setup(
             "pytest",
             "sphinx-autodoc-typehints",
             "furo",
+            "polib",
         ]
     },
     entry_points={
