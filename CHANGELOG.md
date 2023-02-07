@@ -1,12 +1,16 @@
 # CHANGELOG
 
-# [10.0.0rc2] Release candidate 2023-xx-xx
+# [10.0.0rc2] Release candidate 2023-02-07
+
+#### Added
+- Added Prolific documentation with screenshots (author: Pol van Rijn).
 
 #### Changed
 - Demographics are now saved in the participant table (author: Peter Harrison).
-- Check if amount in cents/predicted duration in minutes for prolific is identical to the hourly rate of the experiment (author: Pol van Rijn).
-- Remove unnecessary field `mode` in config.txt of all demos (author: Pol van Rijn).
-- Wrote prolific documentation with screenshots (author: Pol van Rijn).
+- Check if amount in cents/predicted duration in minutes for Prolific is identical to the hourly rate of the experiment (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
+
+#### Removed
+- Removed unnecessary field `mode` in config.txt of all demos (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
 
 # [10.0.0rc1] Release candidate 2023-01-27
 
@@ -303,7 +307,7 @@ There are various ways to configure bots to take part in a real experiment. One 
   (author: Peter Harrison, reviewer: Pol van Rijn)
 
 - Fixed Unity demo by replacing it with a new autoplay version containing updated WebGL files.
-  (author: Ofer Tchernichovski , reviewers: Peter Harrison, Frank Höger)
+  (author: Ofer Tchernichovski, reviewers: Peter Harrison, Frank Höger)
 
 #### Added
 - PsyNet now supports the definition of custom SQL classes that are not subclasses of pre-existing
