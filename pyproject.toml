@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "10.0.0rc1"
+version = "10.0.0rc2"
 authors = [
   { name="Peter Harrison", email="pmch2@cam.ac.uk" },
   { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
