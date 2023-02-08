@@ -52,6 +52,7 @@ setuptools.setup(
         "babel",  # Library used for internationalization
         "python-gettext",  # Library used for internationalization
         "sphinx==5.3.0",
+        "psutil==5.9.3",
     ],
     extras_require={
         "dev": [
@@ -63,6 +64,7 @@ setuptools.setup(
             "sphinx-autodoc-typehints",
             "furo",
             "polib",
+            "rstcloth",
         ]
     },
     entry_points={
