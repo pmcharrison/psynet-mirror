@@ -32,38 +32,38 @@ setuptools.setup(
     package_data={"psynet": ["VERSION"]},
     install_requires=[
         version["dallinger_version_requirement"],
+        "babel",  # Library used for internationalization
         "click",
         "datetime",
         "dominate",
         "flask",
         "importlib_resources",
+        "joblib",  # Library used for internal parallelization of for loops
         "jsonpickle",
+        "numpy",
         "pandas",
         "rpdb",
+        "paramiko",
+        "praat-parselmouth",
         "progress",
+        "python-gettext",  # Library used for internationalization
         "requests",
         "scipy",
-        "numpy",
+        "sphinx==5.3.0",
         "statsmodels",
         "tqdm",
         "yaspin",
-        "praat-parselmouth",
-        "joblib",  # Library used for internal parallelization of for loops
-        "babel",  # Library used for internationalization
-        "python-gettext",  # Library used for internationalization
-        "sphinx==5.3.0",
     ],
     extras_require={
         "dev": [
             "awscli",
+            "furo",
             "isort",
             "mock",
+            "polib",
             "pre-commit",
             "pytest",
             "sphinx-autodoc-typehints",
-            "furo",
-            "polib",
-            "rstcloth",
         ]
     },
     entry_points={
@@ -71,5 +71,3 @@ setuptools.setup(
         "pytest11": ["pytest_psynet = psynet.pytest_psynet"],
     },
 )
-
-# python3.7 setup.py sdist bdist_wheel
