@@ -1416,7 +1416,7 @@ def export_(
                 "__launch.*", "", deployment_id
             )  # Strip the launch date from the path to keep things short
             + "__export="
-            + datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
         )
 
     path = os.path.expanduser(path)
