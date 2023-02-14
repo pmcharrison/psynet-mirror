@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [9.4.4] Released on 2023-02-14
+
+#### Updated
+- Updated `Dallinger` to `v9.4.2` which contains bugfixes and a fix for `pyopenssl` not being updated to the latest version. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.4.2.
+
 # [9.4.3] Released on 2023-01-25
 
 #### Fixed
