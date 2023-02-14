@@ -1458,7 +1458,7 @@ class ColorVocabularyTest(Module):
     def get_stimulus_set(self, colors: list):
         stimuli = []
         words = [x[0] for x in colors]
-        for (correct_answer, hsl) in colors:
+        for correct_answer, hsl in colors:
             choices = words.copy()
             random.shuffle(choices)
             definition = {
