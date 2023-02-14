@@ -1,0 +1,98 @@
+[
+  {
+    "rule_id": 1,
+    "rule": "Only containers.",
+    "positives": [
+      "basket",
+      "box",
+      "bowl"
+    ],
+    "negatives": [
+      "flowers",
+      "water",
+      "fork"
+    ],
+    "group": 0,
+    "num_examples": 3,
+    "predicted_rules": []
+  },
+  {
+    "rule_id": 2,
+    "rule": "Only empty containers.",
+    "positives": [
+      "basket",
+      "box",
+      "bowl",
+      "jug",
+      "carton",
+      "bottle",
+      "jar",
+      "bag",
+      "cup",
+      "briefcase"
+    ],
+    "negatives": [
+      "flowers",
+      "box of fruit",
+      "bowl of water",
+      "chair",
+      "jar of peanut butter",
+      "watch",
+      "phone",
+      "keyboard",
+      "sack of potatos",
+      "mirror"
+    ],
+    "group": 0,
+    "num_examples": 10,
+    "predicted_rules": []
+  },
+  {
+    "rule_id": 3,
+    "rule": "Only items in their appropriate containers.",
+    "positives": [
+      "food in a basket",
+      "coffee in a mug",
+      "flowers in a vase"
+    ],
+    "negatives": [
+      "beer in a bowl",
+      "jam in a shoe",
+      "laundry in a mug"
+    ],
+    "group": 0,
+    "num_examples": 3,
+    "predicted_rules": []
+  },
+  {
+    "rule_id": 4,
+    "rule": "Only items in containers that are inappropriate for them.",
+    "positives": [
+      "beer in a bowl",
+      "jam in a shoe",
+      "laundry in a mug",
+      "soup in a candy wrapper",
+      "foot in a vase",
+      "sword in a jar",
+      "jaguar in a basket",
+      "bowling ball in a jug",
+      "milk in a hamper",
+      "elephant in a box"
+    ],
+    "negatives": [
+      "food in a basket",
+      "coffee in a mug",
+      "flowers in a vase",
+      "beer in a bottle",
+      "groceries in a bag",
+      "laundry in a hamper",
+      "jam in a jar",
+      "soup in a bowl",
+      "sword in a sheath",
+      "foot in a shoe"
+    ],
+    "group": 0,
+    "num_examples": 10,
+    "predicted_rules": []
+  }
+]

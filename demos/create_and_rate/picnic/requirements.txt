@@ -1,0 +1,1 @@
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet.git@picnick_feature_branch#egg=psynet
