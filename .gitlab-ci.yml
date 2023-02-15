@@ -50,11 +50,13 @@ tests:
   parallel: 5
   stage: test
   script:
+  - pip install yaspin
   - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests
 
 tests_isolated:
   stage: test
   script:
+  - pip install yaspin
   - pytest --chrome tests/isolated/test_demo_gibbs.py
 
 pages:
