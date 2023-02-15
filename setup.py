@@ -18,7 +18,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8.0",
+    python_requires=">=3.8",
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[

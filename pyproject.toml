@@ -20,6 +20,14 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "dominate",
+    "progress",
+    "rpdb",
+    "statsmodels",
+    "tqdm",
+    "yaspin",
+]
 
 [project.urls]
 "Homepage" = "https://www.psynet.dev/"
