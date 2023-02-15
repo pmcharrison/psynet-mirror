@@ -26,7 +26,7 @@ class AudioGibbsTrial(MediaGibbsTrial):
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
-                media=self.media.audio,
+                slider_media=self.media.audio,
                 modality="audio",
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,

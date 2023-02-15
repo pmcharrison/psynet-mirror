@@ -166,7 +166,7 @@ class MediaGibbsTrial(GibbsTrial):
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
-                media=self.media.data[self.network.modality],
+                slider_media=self.media.data[self.network.modality],
                 modality=self.network.modality,
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,

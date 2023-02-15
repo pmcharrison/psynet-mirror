@@ -31,7 +31,7 @@ def new_example(description, **kwargs):
                 }
             }
         )
-        multimedia = media.audio
+        slider_media = media.audio
     elif kwargs["modality"] == "video":
         assert len(kwargs["media_locations"]) == N_VIDEO_LOCATIONS
         media = MediaSpec(
@@ -43,7 +43,7 @@ def new_example(description, **kwargs):
                 }
             }
         )
-        multimedia = media.video
+        slider_media = media.video
     else:
         raise NotImplementedError(f"Modality {kwargs['modality']} not implemented")
     prompt = Markup(
@@ -85,7 +85,7 @@ def new_example(description, **kwargs):
             "slider_page",
             prompt,
             # No need to specify modality, as it is already in kwargs
-            control=MediaSliderControl(media=multimedia, **kwargs),
+            control=MediaSliderControl(slider_media=slider_media, **kwargs),
             media=media,
             time_estimate=time_estimate,
         ),

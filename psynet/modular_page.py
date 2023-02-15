@@ -1844,7 +1844,7 @@ class MediaSliderControl(SliderControl):
     max_value:
         Maximum value of the slider.
 
-    media:
+    slider_media:
         A dictionary of media assets (video or sound).
         Each item can either be a string,
         corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
@@ -1929,7 +1929,7 @@ class MediaSliderControl(SliderControl):
         start_value: float,
         min_value: float,
         max_value: float,
-        media: dict,
+        slider_media: dict,
         modality: str,
         media_locations: dict,
         autoplay: Optional[bool] = False,
@@ -1963,10 +1963,10 @@ class MediaSliderControl(SliderControl):
         # also preloaded before the participant can start the trial
         IDs_media_locations = [ID for ID, _ in media_locations.items()]
         IDs_media = []
-        for key, value in media.items():
-            if isinstance(media[key], dict) and "ids" in media[key]:
-                IDs_media.append(media[key]["ids"])
-            elif isinstance(media[key], str):
+        for key, value in slider_media.items():
+            if isinstance(slider_media[key], dict) and "ids" in slider_media[key]:
+                IDs_media.append(slider_media[key]["ids"])
+            elif isinstance(slider_media[key], str):
                 assert any(
                     [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
                 ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
@@ -2000,7 +2000,7 @@ class MediaSliderControl(SliderControl):
         self.autoplay = autoplay
         self.disable_while_playing = disable_while_playing
         self.snap_values = snap_values
-        self.multimedia = media
+        self.multimedia = slider_media
         self.js_vars["modality"] = modality
         self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
@@ -2052,7 +2052,7 @@ class AudioSliderControl(MediaSliderControl):
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
-            media=audio,
+            slider_media=audio,
             modality="audio",
             media_locations=sound_locations,
             autoplay=autoplay,
