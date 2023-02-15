@@ -21,8 +21,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "yaspin",
+    "dominate",
     "tqdm",
+    "yaspin",
 ]
 
 [project.urls]
