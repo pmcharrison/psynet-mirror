@@ -44,7 +44,7 @@ before_script:
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
 # Install PsyNet
-  - pip install -e .[dev]
+  - pip install -e '.[dev]'
 
 tests:
   parallel: 5
