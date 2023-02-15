@@ -216,9 +216,7 @@ class AudioPrompt(Prompt):
         html = (
             super().visualize(trial)
             + "\n"
-            + tags.audio(
-                tags.source(src=src), id="visualize-audio-prompt", controls=True
-            ).render()
+            + tags.audio(tags.source(src=src), id="visualize-audio-prompt", controls=True).render()
         )
         return html
 
@@ -349,9 +347,7 @@ class VideoPrompt(Prompt):
         html = (
             super().visualize(trial)
             + "\n"
-            + tags.video(
-                tags.source(src=src), id="visualize-video-prompt", controls=True
-            ).render()
+            + tags.video(tags.source(src=src), id="visualize-video-prompt", controls=True).render()
         )
         return html
 
@@ -448,14 +444,10 @@ class ImagePrompt(Prompt):
         }
 
     def update_events(self, events):
-        events["promptStart"] = Event(
-            is_triggered_by="trialStart", delay=self.show_after
-        )
+        events["promptStart"] = Event(is_triggered_by="trialStart", delay=self.show_after)
 
         if self.hide_after is not None:
-            events["promptEnd"] = Event(
-                is_triggered_by="promptStart", delay=self.hide_after
-            )
+            events["promptEnd"] = Event(is_triggered_by="promptStart", delay=self.hide_after)
 
 
 class ColorPrompt(Prompt):
@@ -819,9 +811,7 @@ class CheckboxControl(OptionControl):
                     id=choice,
                     name=self.name,
                     value=choice,
-                    checked=(
-                        True if answer is not None and choice in answer else False
-                    ),
+                    checked=(True if answer is not None and choice in answer else False),
                 )
                 tags.span(label)
                 tags.br()
@@ -882,8 +872,7 @@ class DropdownControl(OptionControl):
         self.default_text = default_text
 
         self.dropdown = [
-            DropdownOption(value=value, text=text)
-            for value, text in zip(self.choices, self.labels)
+            DropdownOption(value=value, text=text) for value, text in zip(self.choices, self.labels)
         ]
 
     macro = "dropdown"
@@ -1142,9 +1131,7 @@ class RadioButtonControl(OptionControl):
                 RadioButton(
                     name=self.name,
                     id_="free_text",
-                    label=Markup(
-                        f"<input id='free_text_input' {placeholder_text} type='text'>"
-                    ),
+                    label=Markup(f"<input id='free_text_input' {placeholder_text} type='text'>"),
                     style=self.style,
                 )
             )
@@ -1173,9 +1160,7 @@ class RadioButtonControl(OptionControl):
 
 
 class RadioButton:
-    def __init__(
-        self, id_, *, name, label, start_disabled=False, style="cursor: pointer"
-    ):
+    def __init__(self, id_, *, name, label, start_disabled=False, style="cursor: pointer"):
         self.id = id_
         self.name = name
         self.label = label
@@ -1547,9 +1532,7 @@ class AudioMeterControl(Control):
                         3,
                         0.001,
                     ),
-                    Slider(
-                        "decay-low", "Decay (too low)", self.decay["low"], 0, 3, 0.001
-                    ),
+                    Slider("decay-low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
                     Slider(
                         "threshold-high",
                         "Threshold (high)",
@@ -1582,9 +1565,7 @@ class AudioMeterControl(Control):
                         5,
                         0.001,
                     ),
-                    Slider(
-                        "warn-on-clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1
-                    ),
+                    Slider("warn-on-clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1),
                     Slider(
                         "msg-duration-high",
                         "Message duration (high)",
@@ -1633,9 +1614,7 @@ class AudioMeterControl(Control):
         )
 
     def update_events(self, events):
-        events["audioMeterMinimalTime"] = Event(
-            is_triggered_by="trialStart", delay=self.min_time
-        )
+        events["audioMeterMinimalTime"] = Event(is_triggered_by="trialStart", delay=self.min_time)
         events["submitEnable"].add_trigger("audioMeterMinimalTime")
 
     def get_bot_response(self, experiment, bot, page, prompt):
@@ -1772,9 +1751,7 @@ class SliderControl(Control):
         self.template_args = template_args
         self.minimal_time = minimal_time
 
-        self.snap_values = self.format_snap_values(
-            snap_values, min_value, max_value, n_steps
-        )
+        self.snap_values = self.format_snap_values(snap_values, min_value, max_value, n_steps)
 
         js_vars = {}
         js_vars["snap_values"] = self.snap_values
@@ -1829,12 +1806,8 @@ class SliderControl(Control):
         }
 
     def update_events(self, events):
-        events["sliderMinimalTime"] = Event(
-            is_triggered_by="trialStart", delay=self.minimal_time
-        )
-        events["submitEnable"].add_triggers(
-            "sliderMinimalInteractions", "sliderMinimalTime"
-        )
+        events["sliderMinimalTime"] = Event(is_triggered_by="trialStart", delay=self.minimal_time)
+        events["submitEnable"].add_triggers("sliderMinimalInteractions", "sliderMinimalTime")
 
     def get_bot_response(self, experiment, bot, page, prompt):
         import numpy as np
@@ -1845,17 +1818,18 @@ class SliderControl(Control):
                 n_candidates = self.snap_values
             else:
                 n_candidates = self.n_steps
-            candidates = list(
-                np.linspace(self.min_value, self.max_value, num=n_candidates)
-            )
+            candidates = list(np.linspace(self.min_value, self.max_value, num=n_candidates))
         else:
             candidates = self.snap_values
         return random.sample(candidates, 1)[0]
 
 
-class AudioSliderControl(SliderControl):
+EXTENSIONS = {"audio": ["mp3", "wav"], "video": ["mp4", "ogg"]}
+
+
+class MediaSliderControl(SliderControl):
     """
-    This control solicits a slider response from the user that results in playing some audio.
+    This control solicits a slider response from the user that results in playing some media.
     The slider can either be horizontal or circular.
 
     Parameters
@@ -1870,8 +1844,8 @@ class AudioSliderControl(SliderControl):
     max_value:
         Maximum value of the slider.
 
-    audio:
-        A dictionary of audio assets.
+    media:
+        A dictionary of media assets (video or sound).
         Each item can either be a string,
         corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
         or a dictionary, corresponding to metadata for a batch of media assets.
@@ -1890,11 +1864,14 @@ class AudioSliderControl(SliderControl):
                 }
             }
 
-    sound_locations:
+    modality:
+        Either ``"audio"`` or ``"video"``; `"image"`` is not implemented yet.
+
+    media_locations:
         Dictionary with IDs as keys and locations on the slider as values.
 
     autoplay:
-        The sound closest to the current slider position is played once the page is loaded. Default: `False`.
+        The media closest to the current slider position is played once the page is loaded. Default: `False`.
 
     disable_while_playing:
         If `True`, the slider is disabled while the audio is playing. Default: `False`.
@@ -1903,8 +1880,8 @@ class AudioSliderControl(SliderControl):
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
-        - ``"n_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
-          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
         Default: `10000`.
 
@@ -1930,7 +1907,7 @@ class AudioSliderControl(SliderControl):
         Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
 
     snap_values:
-        - ``"sound_locations"``: slider snaps to nearest sound location.
+        - ``"media_locations"``: slider snaps to nearest sound location.
 
         - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
 
@@ -1938,13 +1915,113 @@ class AudioSliderControl(SliderControl):
 
         - ``None``: don't snap slider.
 
-        Default: `"sound_locations"`.
+        Default: `"media_locations"`.
 
     minimal_interactions:
         Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
 
     minimal_time:
         Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        media: dict,
+        modality: str,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+    ):
+        if modality not in ["audio", "video"]:
+            raise NotImplementedError(f"Modality not implemented: {modality}")
+
+        if isinstance(n_steps, str):
+            if n_steps == "n_media":
+                n_steps = len(media_locations)
+            else:
+                raise ValueError(f"Invalid value of n_steps: {n_steps}")
+
+        if isinstance(snap_values, str):
+            if snap_values == "media_locations":
+                snap_values = list(media_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
+
+        # Check if all stimuli specified in `media_locations` are
+        # also preloaded before the participant can start the trial
+        IDs_media_locations = [ID for ID, _ in media_locations.items()]
+        IDs_media = []
+        for key, value in media.items():
+            if isinstance(media[key], dict) and "ids" in media[key]:
+                IDs_media.append(media[key]["ids"])
+            elif isinstance(media[key], str):
+                assert any(
+                    [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
+                ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
+                IDs_media.append(key)
+            else:
+                raise NotImplementedError("Currently we only support batch files or single files")
+        IDs_media = list(itertools.chain.from_iterable(IDs_media))
+
+        if not any([i in IDs_media for i in IDs_media_locations]):
+            raise ValueError(
+                "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
+            )
+
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_interactions=minimal_interactions,
+            minimal_time=minimal_time,
+        )
+
+        self.media_locations = media_locations
+        self.modality = modality
+        self.autoplay = autoplay
+        self.disable_while_playing = disable_while_playing
+        self.snap_values = snap_values
+        self.multimedia = media
+        self.js_vars["modality"] = modality
+        self.js_vars["media_locations"] = media_locations
+        self.js_vars["autoplay"] = autoplay
+        self.js_vars["disable_while_playing"] = disable_while_playing
+
+    macro = "media_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "media_locations": self.media_locations,
+            "modality": self.modality,
+            "autoplay": self.autoplay,
+            "disable_while_playing": self.disable_while_playing,
+        }
+
+
+class AudioSliderControl(MediaSliderControl):
+    """
+    Audio slider control for backwards compatibility with `AudioSliderControl`.
     """
 
     def __init__(
@@ -1966,42 +2043,20 @@ class AudioSliderControl(SliderControl):
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
     ):
-        if isinstance(n_steps, str):
-            if n_steps == "n_sounds":
-                n_steps = len(sound_locations)
-            else:
-                raise ValueError(f"Invalid value of n_steps: {n_steps}")
-
-        if isinstance(snap_values, str):
-            if snap_values == "sound_locations":
-                snap_values = list(sound_locations.values())
-            else:
-                raise ValueError(f"Invalid value of snap_values: {snap_values}")
-
-        # Check if all stimuli specified in `sound_locations` are
-        # also preloaded before the participant can start the trial
-        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
-        IDs_media = []
-        for key, value in audio.items():
-            if isinstance(audio[key], dict) and "ids" in audio[key]:
-                IDs_media.append(audio[key]["ids"])
-            elif isinstance(audio[key], str):
-                IDs_media.append(key)
-            else:
-                raise NotImplementedError(
-                    "Currently we only support batch files or single files"
-                )
-        IDs_media = list(itertools.chain.from_iterable(IDs_media))
-
-        if not any([i in IDs_media for i in IDs_sound_locations]):
-            raise ValueError(
-                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
-            )
+        if snap_values == "sound_locations":
+            snap_values = "media_locations"
+        if n_steps in ["n_sounds", "num_sounds"]:
+            n_steps = "n_media"
 
         super().__init__(
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
+            media=audio,
+            modality="audio",
+            media_locations=sound_locations,
+            autoplay=autoplay,
+            disable_while_playing=disable_while_playing,
             n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
@@ -2013,22 +2068,13 @@ class AudioSliderControl(SliderControl):
             minimal_time=minimal_time,
         )
 
-        self.sound_locations = sound_locations
-        self.autoplay = autoplay
-        self.disable_while_playing = disable_while_playing
-        self.snap_values = snap_values
-        self.audio = audio
-        self.js_vars["sound_locations"] = sound_locations
-        self.js_vars["autoplay"] = autoplay
-        self.js_vars["disable_while_playing"] = disable_while_playing
-
-    macro = "audio_slider"
+    macro = "media_slider"
 
     @property
     def metadata(self):
         return {
             **super().metadata,
-            "sound_locations": self.sound_locations,
+            "sound_locations": self.media_locations,
             "autoplay": self.autoplay,
             "disable_while_playing": self.disable_while_playing,
         }
@@ -2462,9 +2508,7 @@ class VideoRecordControl(RecordControl):
 
         return BotResponse(
             raw_answer=None,
-            blobs={
-                f"{key}Recording": Blob(files[key]) for key in self.recording_sources
-            },
+            blobs={f"{key}Recording": Blob(files[key]) for key in self.recording_sources},
         )
 
     def get_bot_response_files(self, experiment, bot, page, prompt):
@@ -2553,9 +2597,7 @@ class VideoSliderControl(Control):
         return html
 
     def update_events(self, events):
-        events["sliderMinimalTime"] = Event(
-            is_triggered_by="trialStart", delay=self.minimal_time
-        )
+        events["sliderMinimalTime"] = Event(is_triggered_by="trialStart", delay=self.minimal_time)
         events["submitEnable"].add_triggers(
             "sliderMinimalTime",
         )
