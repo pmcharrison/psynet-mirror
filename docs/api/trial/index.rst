@@ -15,6 +15,7 @@ Trial
    graph
    imitation_chain
    main
+   media_gibbs
    mcmcp
    record
    static
