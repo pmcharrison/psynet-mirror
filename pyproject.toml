@@ -21,6 +21,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+dependencies = [
+    "sphinx==5.3.0",
+]
+
 [project.urls]
 "Homepage" = "https://www.psynet.dev/"
 "Documentation" = "https://psynetdev.gitlab.io/PsyNet/"
