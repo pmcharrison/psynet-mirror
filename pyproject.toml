@@ -24,6 +24,7 @@ dependencies = [
     "dominate",
     "progress",
     "rpdb",
+    "statsmodels",
     "tqdm",
     "yaspin",
 ]
