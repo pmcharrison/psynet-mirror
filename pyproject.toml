@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "10.0.0rc2"
+version = "10.0.0rc2"  # version["psynet_version"],
 authors = [
   { name="Peter Harrison", email="pmch2@cam.ac.uk" },
   { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
@@ -12,7 +12,7 @@ authors = [
   { name="Raja Marjieh", email="raja.marjieh@princeton.edu" },
   { name="Nori Jacoby", email="nori.jacoby@ae.mpg.de" }
 ]
-description = "PsyNet – The online human behaviour lab of the future"
+description = "PsyNet – The online human behaviour lab of the future."  # A framework for running advanced psychological experiments
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -28,6 +28,9 @@ classifiers = [
 
 [project.scripts]
 psynet = "psynet.command_line:psynet"
+
+[tool.setuptools.packages.find]
+
 
 [tool.hatch.build.targets.sdist]
 exclude = [
