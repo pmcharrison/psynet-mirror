@@ -335,7 +335,9 @@ class MediaGibbsNode(GibbsNode):
                 def _synth(value, path):
                     _vector = vector.copy()
                     _vector[active_index] = value
-                    self.synth_function(vector=_vector, output_path=path)
+                    self.synth_function(
+                        vector=_vector, output_path=path, chain_definition=self.context
+                    )
 
                 parallelize = self.n_jobs > 1
                 if parallelize:
@@ -369,7 +371,7 @@ class MediaGibbsNode(GibbsNode):
         paths = [x["path"] for x in stimuli]
         make_batch_file(paths, output_path)
 
-    def synth_function(self, vector, output_path):
+    def synth_function(self, vector, output_path, chain_definition=None):
         raise NotImplementedError
 
 
