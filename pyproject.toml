@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
     "dominate",
     "progress",
+    "rpdb",
     "tqdm",
     "yaspin",
 ]
