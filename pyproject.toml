@@ -25,8 +25,14 @@ classifiers = [
 dependencies = [
     "awscli",
     "dallinger==9.4.2",
+    "dominate",
     "joblib",
+    "progress",
+    "rpdb",
     "sphinx==5.3.0",
+    "statsmodels",
+    "tqdm",
+    "yaspin",
 ]
 
 [project.optional-dependencies]
