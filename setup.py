@@ -56,14 +56,14 @@ setuptools.setup(
     ],
     extras_require={
         "dev": [
-            "awscli",
-            "furo",
-            "isort",
-            "mock",
-            "polib",
-            "pre-commit",
-            "pytest",
-            "sphinx-autodoc-typehints",
+            # "awscli",
+            # "furo",
+            # "isort",
+            # "mock",
+            # "polib",
+            # "pre-commit",
+            # "pytest",
+            # "sphinx-autodoc-typehints",
         ]
     },
     entry_points={

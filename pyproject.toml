@@ -23,6 +23,7 @@ classifiers = [
 
 dependencies = [
     "dallinger==9.4.2",
+    "awscli",
     "sphinx==5.3.0",
 ]
 
