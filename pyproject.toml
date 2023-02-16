@@ -35,10 +35,6 @@ dependencies = [
     "sphinx-autodoc-typehints",
 ]
 
-[project.entry-points]
-console_scripts = ["psynet = psynet.command_line:psynet"]
-pytest11 = ["pytest_psynet = psynet.pytest_psynet"]
-
 [project.optional-dependencies]
 dev = [
     "furo",
@@ -47,6 +43,9 @@ dev = [
     "pre-commit",
     "sphinx-autodoc-typehints",
 ]
+
+[project.entry-points.pytest11]
+pytest_psynet = "psynet.pytest_psynet"
 
 [project.urls]
 "Homepage" = "https://www.psynet.dev/"
