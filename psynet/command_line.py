@@ -24,6 +24,7 @@ from dallinger.command_line.docker_ssh import (
 from dallinger.command_line.utils import verify_id
 from dallinger.config import get_config
 from dallinger.heroku.tools import HerokuApp
+from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
 from yaspin import yaspin
@@ -204,6 +205,14 @@ def db_connection(location, app=None, server=None):
             else:
                 connection = psycopg2.connect(database=db_uri, user="dallinger")
             yield connection
+    except psycopg2.OperationalError as err:
+        if "Connection refused" in str(err):
+            raise ConnectionError(
+                f"Couldn't connect to the experiment database. Are you sure the app name ({app}) is correct? "
+                "You can list all valid apps using the following command:\n\tpsynet apps ssh"
+            )
+        else:
+            raise
     finally:
         if connection:
             connection.close()
@@ -300,7 +309,7 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
             "It is not possible to select both --legacy and --docker modes simultaneously."
         )
 
-    _pre_launch(ctx, mode="debug", archive=archive, local_=True, docker=docker)
+    _pre_launch(ctx, mode="debug", archive=archive, local_=True, docker=docker, app=None)
     _cleanup_before_debug()
 
     try:
@@ -377,9 +386,7 @@ def run_pre_auto_reload_checks():
 
 def _debug_legacy(ctx, archive, no_browsers):
     if archive:
-        raise click.UsageError(
-            "Legacy debug mode doesn't currently support loading from archive."
-        )
+        raise click.UsageError("Legacy debug mode doesn't currently support loading from archive.")
 
     from dallinger.command_line import debug as dallinger_debug
 
@@ -424,9 +431,7 @@ def _debug_docker(ctx, archive, no_browsers):
 
 def _debug_auto_reload(ctx, archive, no_browsers):
     if no_browsers:
-        raise click.UsageError(
-            "--no-browsers option is not supported in this debug mode."
-        )
+        raise click.UsageError("--no-browsers option is not supported in this debug mode.")
 
     run_pre_auto_reload_checks()
 
@@ -446,9 +451,7 @@ def _debug_auto_reload(ctx, archive, no_browsers):
 def patch_dallinger_develop():
     from dallinger.deployment import DevelopmentDeployment
 
-    if not (
-        hasattr(DevelopmentDeployment, "patched") and DevelopmentDeployment.patched
-    ):
+    if not (hasattr(DevelopmentDeployment, "patched") and DevelopmentDeployment.patched):
         old_run = DevelopmentDeployment.run
 
         def new_run(self):
@@ -479,9 +482,7 @@ def safely_kill_process(p):
 def kill_psynet_worker_processes():
     processes = list_psynet_worker_processes()
     if len(processes) > 0:
-        log(
-            f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
-        )
+        log(f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now.")
     for p in processes:
         safely_kill_process(p)
 
@@ -489,9 +490,7 @@ def kill_psynet_worker_processes():
 def kill_psynet_chrome_processes():
     processes = list_psynet_chrome_processes()
     if len(processes) > 0:
-        log(
-            f"Found {len(processes)} remaining PsyNet Chrome process(es), terminating them now."
-        )
+        log(f"Found {len(processes)} remaining PsyNet Chrome process(es), terminating them now.")
     for p in processes:
         safely_kill_process(p)
 
@@ -593,6 +592,7 @@ def _pre_launch(
     docker=False,
     heroku=False,
     server=None,
+    app=None,
 ):
     log("Preparing for launch...")
 
@@ -613,7 +613,7 @@ def _pre_launch(
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
     log("Running pre-launch checks...")
-    run_pre_checks(mode, local_, heroku, docker)
+    run_pre_checks(mode, local_, heroku, docker, app)
     log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
@@ -648,7 +648,7 @@ def deploy__heroku(ctx, app, archive, docker):
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
-        _pre_launch(ctx, mode="live", archive=archive, local_=False, heroku=True)
+        _pre_launch(ctx, mode="live", archive=archive, local_=False, heroku=True, app=app)
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=archive)
         _post_deploy(result)
     finally:
@@ -667,7 +667,7 @@ def _deploy__docker_heroku(ctx, app, archive):
             )
 
         _pre_launch(
-            ctx, mode="live", archive=archive, local_=False, docker=True, heroku=True
+            ctx, mode="live", archive=archive, local_=False, docker=True, heroku=True, app=app
         )
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app)
         _post_deploy(result)
@@ -699,6 +699,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
             ssh=True,
             docker=True,
             server=server,
+            app=app,
         )
 
         from dallinger.command_line.docker_ssh import (
@@ -759,9 +760,7 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
 
 def _export_code(directory):
     file = directory.joinpath("code")
-    with yaspin(
-        text=f"Saving a snapshot of the code to {file}...", color="green"
-    ) as spinner:
+    with yaspin(text=f"Saving a snapshot of the code to {file}...", color="green") as spinner:
         shutil.make_archive(file, "zip", os.getcwd())
         spinner.ok("✔")
 
@@ -805,7 +804,15 @@ def docs(force_rebuild):
 ##############
 
 
-def run_pre_checks(mode, local_, heroku=False, docker=False):
+def check_prolific_payment(experiment, config):
+    cents = config.get("prolific_reward_cents")
+    minutes = config.get("prolific_estimated_completion_minutes")
+    assert (
+        experiment.var.wage_per_hour * minutes / 60 == cents / 100
+    ), "Wage per hour does not match Prolific reward"
+
+
+def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
     from .asset import DebugStorage
@@ -891,8 +898,11 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
 
         exp = get_experiment()
 
+        config.set("id", exp.make_uuid(app))
+
         recruiter = exp.recruiter
         is_mturk = isinstance(recruiter, MTurkRecruiter)
+        is_prolific = isinstance(recruiter, ProlificRecruiter)
 
         if mode in ["sandbox", "deploy"]:
             if isinstance(exp.asset_storage, DebugStorage):
@@ -902,6 +912,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False):
                     "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
                     "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
                 )
+            if is_prolific:
+                check_prolific_payment(exp, config)
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
@@ -939,10 +951,8 @@ def debug__heroku(ctx, app, docker, archive):
         from dallinger.command_line import sandbox as dallinger_sandbox
 
         try:
-            _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, heroku=True)
-            result = ctx.invoke(
-                dallinger_sandbox, verbose=True, app=app, archive=archive
-            )
+            _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, heroku=True, app=app)
+            result = ctx.invoke(dallinger_sandbox, verbose=True, app=app, archive=archive)
             _post_deploy(result)
         finally:
             _cleanup_exp_directory()
@@ -958,7 +968,7 @@ def debug__docker_heroku(ctx, app, archive):
                 "Unfortunately docker-heroku sandbox doesn't yet support deploying from archive. "
                 "This shouldn't be hard to fix..."
             )
-        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True)
+        _pre_launch(ctx, mode="sandbox", archive=archive, local_=False, docker=True, app=app)
         result = ctx.invoke(dallinger_sandbox, verbose=True, app=app)
         _post_deploy(result)
     finally:
@@ -994,6 +1004,7 @@ def debug__docker_ssh(ctx, app, archive, server):
             ssh=True,
             docker=True,
             server=server,
+            app=app,
         )
 
         result = ctx.invoke(
@@ -1059,9 +1070,7 @@ def update(dallinger_version, psynet_version, verbose):
 
     def _git_needs_stashing(cwd):
         return (
-            subprocess.check_output(["git", "diff", "--name-only"], cwd=cwd)
-            .decode("utf-8")
-            .strip()
+            subprocess.check_output(["git", "diff", "--name-only"], cwd=cwd).decode("utf-8").strip()
             != ""
         )
 
@@ -1170,9 +1179,7 @@ def psynet_dir():
 
 def get_version(project_name):
     return (
-        subprocess.check_output([f"{project_name} --version"], shell=True)
-        .decode("utf-8")
-        .strip()
+        subprocess.check_output([f"{project_name} --version"], shell=True).decode("utf-8").strip()
     )
 
 
@@ -1204,17 +1211,11 @@ def estimate(mode):
     experiment_class = import_local_experiment()["class"]
     experiment = setup_experiment_variables(experiment_class)
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(
-            experiment.var.wage_per_hour
-        )
+        maximum_bonus = experiment_class.estimated_max_bonus(experiment.var.wage_per_hour)
         log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
-        completion_time = experiment_class.estimated_completion_time(
-            experiment.var.wage_per_hour
-        )
-        log(
-            f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
-        )
+        completion_time = experiment_class.estimated_completion_time(experiment.var.wage_per_hour)
+        log(f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}.")
 
 
 def setup_experiment_variables(experiment_class):
@@ -1422,7 +1423,7 @@ def export_(
                 "__launch.*", "", deployment_id
             )  # Strip the launch date from the path to keep things short
             + "__export="
-            + datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
         )
 
     path = os.path.expanduser(path)
@@ -1502,9 +1503,7 @@ def _export_(
     log(f"Export complete. You can find your results at: {export_path}")
 
 
-def export_database(
-    ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
-):
+def export_database(ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host):
     if local:
         app = "local"
 
@@ -1791,9 +1790,7 @@ def _destroy(
     app,
     expire_hit,
 ):
-    if user_confirms(
-        "Would you like to delete the app from the web server?", default=True
-    ):
+    if user_confirms("Would you like to delete the app from the web server?", default=True):
         with yaspin("Destroying app...") as spinner:
             try:
                 if expire_hit in get_args(f_destroy):
@@ -1815,9 +1812,7 @@ def _destroy(
                 )
 
     if expire_hit is None:
-        if user_confirms(
-            "Would you like to look for a related MTurk HIT to expire?", default=True
-        ):
+        if user_confirms("Would you like to look for a related MTurk HIT to expire?", default=True):
             expire_hit = True
 
     if expire_hit:

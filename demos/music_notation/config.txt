@@ -1,6 +1,3 @@
-[Launch mode]
-mode = sandbox
-
 [Payment information]
 title = SurveyJS demo
 base_payment = 0.10
