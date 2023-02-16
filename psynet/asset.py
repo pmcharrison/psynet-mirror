@@ -646,9 +646,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                     else:
                         raise
 
-            if asset_to_use == self or not self.deposited:
-                self._deposit(self.storage, async_, delete_input)
-
             if self.parent:
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
@@ -658,6 +655,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.node_id = ancestors["node"]
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
+
+            if asset_to_use == self or not self.deposited:
+                # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
+                # which may rely on the asset being in its complete state. Any information that may be needed
+                # by these post-deposit actions must be saved before this step.
+                self._deposit(self.storage, async_, delete_input)
 
             if not self.content_id:
                 self.content_id = self.get_content_id()
