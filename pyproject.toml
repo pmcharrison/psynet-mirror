@@ -25,6 +25,7 @@ classifiers = [
 dependencies = [
     "awscli",
     "dallinger==9.4.2",
+    "joblib",
     "sphinx==5.3.0",
 ]
 
@@ -40,13 +41,13 @@ dev = [
 [project.entry-points.pytest11]
 pytest_psynet = "psynet.pytest_psynet"
 
+[project.scripts]
+psynet = "psynet.command_line:psynet"
+
 [project.urls]
 "Homepage" = "https://www.psynet.dev/"
 "Documentation" = "https://psynetdev.gitlab.io/PsyNet/"
 "Bug Tracker" = "https://gitlab.com/PsyNetDev/PsyNet/-/issues"
-
-[project.scripts]
-psynet = "psynet.command_line:psynet"
 
 [tool.setuptools.packages.find]
 
