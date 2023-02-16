@@ -66,8 +66,8 @@ setuptools.setup(
             # "sphinx-autodoc-typehints",
         ]
     },
-    entry_points={
-        "console_scripts": ["psynet = psynet.command_line:psynet"],
-        "pytest11": ["pytest_psynet = psynet.pytest_psynet"],
-    },
+    # entry_points={
+    #     "console_scripts": ["psynet = psynet.command_line:psynet"],
+    #     "pytest11": ["pytest_psynet = psynet.pytest_psynet"],
+    # },
 )
