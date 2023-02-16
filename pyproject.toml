@@ -22,9 +22,18 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger==9.4.2",
     "awscli",
+    "dallinger==9.4.2",
     "sphinx==5.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "furo",
+    "isort",
+    "mock",
+    "pre-commit",
+    "sphinx-autodoc-typehints",
 ]
 
 [project.urls]
@@ -36,7 +45,6 @@ dependencies = [
 psynet = "psynet.command_line:psynet"
 
 [tool.setuptools.packages.find]
-
 
 [tool.hatch.build.targets.sdist]
 exclude = [
