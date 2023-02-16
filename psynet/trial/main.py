@@ -652,6 +652,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def call_async_post_trial(self):
         dallinger.experiment.load()
+        db.session.commit()
         self.async_post_trial()
         self.check_if_can_mark_as_finalized()
 
