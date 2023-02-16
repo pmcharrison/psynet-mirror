@@ -2442,12 +2442,13 @@ class AssetStorage:
         # Without it, SQLAlchemy complains that the object has become disconnected
         # from the SQLAlchemy session. This command 'merges' it back into the session.
         asset = db.session.merge(asset)
-
         self._receive_deposit(asset, host_path)
-        asset.after_deposit()
         asset.deposited = True
 
-        # if db_commit:
+        db.session.commit()
+        logger.info("Asset deposit complete.")
+
+        asset.after_deposit()
         db.session.commit()
 
         if delete_input:
