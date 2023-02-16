@@ -1,357 +1,262 @@
-import collections
-from typing import List
+from random import sample
 
 import numpy as np
-from markupsafe import Markup
+from sqlalchemy import Column
+from sqlalchemy.orm import declared_attr, deferred
 
-from psynet.modular_page import PushButtonControl
-from psynet.timeline import Event, FailedValidation, ProgressDisplay, ProgressStage
+from psynet.field import PythonObject
+from psynet.trial import ChainNode
+from psynet.trial.chain import ChainTrial
 from psynet.utils import get_logger
 
 logger = get_logger()
 
-
-def sort_dict_by_key(d):
-    return dict(sorted((d.items())))
+# Constants
+RATE_MODES = ["rate", "select"]
 
 
 def sort_dict_by_value(d):
     return dict(sorted(d.items(), key=lambda item: item[1]))
 
 
-CREATOR_KEY = "creator"
-RATER_KEY = "rater"
-ROLE_ID_KEY = "role_id"
-ROLE_KEY = "role"
+class CreateAndRateTrialMixin(object):
+    trial_maker = None
+    node = None
+    node_id = None
+    network = None
 
-PREVIOUS_ITERATION_KEY = "previous_iteration"
-CREATION_KEY = "creation"
-
-
-class CreateAndRateTrial(object):
-    def show_create_trial(self):
-        raise NotImplementedError
-
-    def show_rate_trial(self):
-        raise NotImplementedError
-
-    @staticmethod
-    def get_previous_iteration(trial):
-        return trial.origin.definition
-
-    @staticmethod
-    def get_creation(create_trial):
-        return create_trial.answer
-
-    def get_trials_at_iteration(self):
-        infos_at_iter = self.node.infos()
-        info_dict = {info.id: info for info in infos_at_iter}
-        # Sort the values
-        return list(sort_dict_by_key(info_dict).values())
-
-    def get_creation_trials(self, trials):
-        return [
-            info
-            for info in trials
-            if info.var.has(ROLE_KEY)
-            and info.var.get(ROLE_KEY) == CREATOR_KEY
-            and not info.failed
-            and info.id != self.id
-        ]
-
-    def is_create_trial(self):
-        if not (self.var.has(ROLE_KEY) and self.var.has(ROLE_ID_KEY)):
-            # The assignment of roles is done once, to avoid flickering between roles
-            trials = self.get_trials_at_iteration()
-            creation_trials = self.get_creation_trials(trials)
-
-            trial_maker = self.trial_maker
-            num_creators = trial_maker.num_creators
-
-            if len(creation_trials) < num_creators:
-                taken_roles = [
-                    creation_trial.var.get(ROLE_ID_KEY)
-                    for creation_trial in creation_trials
-                ]
-                possible_roles = [f"{CREATION_KEY}{i + 1}" for i in range(num_creators)]
-                available_roles = [
-                    _id for _id in possible_roles if _id not in taken_roles
-                ]
-                self.var.set(ROLE_KEY, CREATOR_KEY)
-                role = available_roles[0]
-            else:
-                self.var.set(ROLE_KEY, RATER_KEY)
-                raters = [
-                    trial
-                    for trial in trials
-                    if trial.var.has(ROLE_KEY)
-                    and trial.var.get(ROLE_KEY) == RATER_KEY
-                    and not trial.failed
-                ]
-
-                creations_to_validate = []
-                creation_keys_to_validate = []
-
-                if trial_maker.rate_mode == "select":
-                    role = f"rating{len(raters)}"
-                    if trial_maker.include_previous_iteration:
-                        creations_to_validate.append(self.get_previous_iteration(self))
-                        creation_keys_to_validate.append(PREVIOUS_ITERATION_KEY)
-                    for idx, creation_trial in enumerate(creation_trials):
-                        creations_to_validate.append(self.get_creation(creation_trial))
-                        creation_keys_to_validate.append(f"{CREATION_KEY}{idx + 1}")
-                else:
-                    keys = [f"creation{i + 1}" for i in range(num_creators)]
-                    if trial_maker.include_previous_iteration:
-                        keys.append(PREVIOUS_ITERATION_KEY)
-
-                    rating_count_dict = {}
-                    for key in keys:
-                        rating_count_dict[key] = sum(
-                            [
-                                1
-                                for rater in raters
-                                if rater.var.has(ROLE_ID_KEY)
-                                and rater.var.get(ROLE_ID_KEY).endswith(key)
-                            ]
-                        )
-
-                    rating_count_dict = sort_dict_by_value(rating_count_dict)
-                    key = list(rating_count_dict.keys())[
-                        0
-                    ]  # prioritize the one with the smallest number of ratings
-
-                    role = f"rating{len(raters)}_{key}"
-
-                    logger.info(
-                        f"""For network {self.network_id} at iteration {self.node.degree} we have the following
-                    ratings for: {rating_count_dict}. We therefore selected: {key}."""
-                    )
-
-                    # nth_rating = rating_count_dict[key] + 1
-                    if key == PREVIOUS_ITERATION_KEY:
-                        creation = self.get_previous_iteration(self)
-                    elif key.startswith(CREATION_KEY):
-                        nth_creation = int(key.replace(CREATION_KEY, ""))
-                        selected_creation = [
-                            creation
-                            for creation in creation_trials
-                            if creation.var.get(ROLE_ID_KEY)
-                            == f"{CREATION_KEY}{nth_creation}"
-                        ]
-                        assert len(selected_creation) == 1
-                        creation = self.get_creation(selected_creation[0])
-                    else:
-                        raise Exception(f"Unknown key: {key}")
-                    creations_to_validate.append(creation)
-
-                assert len(creations_to_validate) > 0
-                self.var.set("creations_to_validate", creations_to_validate)
-
-            self.var.set(ROLE_ID_KEY, role)
-            logger.info(f"""We assign role ID '{role}' to Trial {self.id}""")
-        if self.var.has(ROLE_KEY) and self.var.has(ROLE_ID_KEY):
-            is_creator = self.var.get(ROLE_KEY) == CREATOR_KEY
-            return is_creator
-        else:
-            # TODO not sure how to deal with this as it causes a runtime error…
-            raise FailedValidation(f"""Trial {self.id} has no type or role""")
-
-    @staticmethod
-    def autoplay_media(
-        media_type,
-        media_keys,
-        media_duration,
-        base_label="Recording",
-        reorder_list=None,
-        stage_colors=["blue", "red"],
-    ):
-        assert media_type in ["audio", "video"]
-
-        if type(reorder_list) == list:
-            media_keys = [media_keys[i] for i in reorder_list]
-
-        # Prepare events and stages
-        # disable all buttons before start
-        events = {
-            "hideButtons": Event(
-                is_triggered_by="trialStart",
-                js="document.getElementsByClassName('push-button-container')[0].hidden = true",
-            )
-        }
-        stages = []
-        time_past = 0
-        count = 0
-        for idx, media_key in enumerate(media_keys):
-            # Alternate colors
-            color_idx = count % len(stage_colors)
-            color = stage_colors[color_idx]
-            label = f"{base_label} {idx + 1}"
-            stages.append(
-                ProgressStage(media_duration, Markup(f"""Listen to {label}"""), color)
-            )
-
-            media_key = media_keys[idx]
-            key = "play_" + media_key
-            events[key] = Event(
-                is_triggered_by="trialStart",
-                delay=time_past,
-                js="psynet."
-                + media_type
-                + "."
-                + media_key.replace(" ", "_").lower()
-                + ".play()",
-            )
-            time_past += media_duration
-            count += 1
-
-        # enable the buttons
-        events["showButtons"] = Event(
-            is_triggered_by="trialStart",
-            delay=time_past,
-            js="document.getElementsByClassName('push-button-container')[0].hidden = false",
-        )
-        progress_display = ProgressDisplay(stages=stages)
-        return events, progress_display
-
-
-class RateControl(PushButtonControl):
-    def __init__(
-        self,
-        choices: List[int],
-        labels: List[str] = None,
-        style: str = "min-width: 100px; margin: 10px",
-        arrange_vertically: bool = True,
-        **kwargs,
-    ):
-        assert all(
-            [isinstance(choice, int) for choice in choices]
-        ), "Choices must be integers"
-        super().__init__(choices, labels, style, arrange_vertically, **kwargs)
-
-
-class SelectControl(RateControl):
-    def __init__(
-        self,
-        reorder_list: List[int],
-        base_label="Recording",
-        style: str = "min-width: 100px; margin: 10px",
-        arrange_vertically: bool = True,
-    ):
-        ordered_choices = sorted(reorder_list)
-        assert (
-            ordered_choices[0] == 0
-        ), "Choices must start at 0 as they are used as indices"
-        assert all(
-            np.diff(ordered_choices) == 1
-        ), f"Choices must be consecutive, got: {ordered_choices}"
-        labels = [f"{base_label} {i + 1}" for i in ordered_choices]
-        super().__init__(reorder_list, labels, style, arrange_vertically)
-
-
-class CreateAndRateNode(object):
+    # TODO: test if those properties are overriden by the child class?
     def __init__(self):
-        pass
+        super().__init__()
+
+
+class CreateTrialMixin(CreateAndRateTrialMixin):
+    pass
+
+
+class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
+    # targets = deferred(Column(PythonObject))
+    def __init__(self):
+        super().__init__()
+        self.targets = self.get_targets()
+
+    __table_args__ = {"extend_existing": True}
+
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+    @declared_attr
+    def targets(cls):
+        return deferred(Column(PythonObject))
+
+    def get_targets(self):
+        return self.get_all_targets()
+
+    def get_all_targets(self):
+        # TODO check if the querying works in inherited classes
+        targets = self.__class__.query.filter_by(
+            node_id=self.node_id, failed=False, finalized=True
+        ).all()
+        if self.trial_maker.include_previous_iteration:
+            targets += self.node
+        return targets
 
     @staticmethod
-    def get_rating_trials(trials):
-        return [
-            trial
-            for trial in trials
-            if trial.var.has(ROLE_KEY) and trial.var.get(ROLE_KEY) == RATER_KEY
-        ]
-
-    @staticmethod
-    def get_mean_rating(trials, key):
-        rating_trials = CreateAndRateNode.get_rating_trials(trials)
-        return np.array(
-            [
-                int(t.answer)
-                for t in rating_trials
-                if t.var.get(ROLE_ID_KEY).endswith(key)
-            ]
-        ).mean()
-
-    def get_next_creation(self, trials: list):
-        trial_maker = self.trial_maker
-        finished_creations = [
-            trial
-            for trial in trials
-            if not trial.failed
-            and trial.var.has(ROLE_KEY)
-            and trial.var.get(ROLE_KEY) == CREATOR_KEY
-            and trial.answer is not None
-        ]
-        num_creators = trial_maker.num_creators
-        included_previous_iteration = trial_maker.include_previous_iteration
-        rated_creations = finished_creations
-        if included_previous_iteration:
-            previous_creation = finished_creations[
-                0
-            ].node  # TODO not sure if this is valid for all use cases
-            rated_creations = [previous_creation] + rated_creations
-        assert len(finished_creations) == num_creators
-
-        if trial_maker.rate_mode == "select":
-            rating_trials = CreateAndRateNode.get_rating_trials(trials)
-            answers = [
-                trial.var.reorder_list[int(trial.answer)] for trial in rating_trials
-            ]
-            c = collections.Counter(answers)
-            counts = list(c.values())
-            keys = list(c.keys())
-            idx = keys[np.argmax(counts)]
-            return rated_creations[idx]
+    def get_target_answer(target):
+        if issubclass(target.__class__, ChainNode):
+            return target.context["answer"]
+        elif issubclass(target.__class__, ChainTrial):
+            return target.answer
         else:
-            mean_ratings = []
-            rated_items = []
-            if included_previous_iteration:
-                mean_ratings.append(
-                    CreateAndRateNode.get_mean_rating(trials, PREVIOUS_ITERATION_KEY)
-                )
-                rated_items.append(PREVIOUS_ITERATION_KEY)
-            for i in range(trial_maker.num_creators):
-                nth_creator = i + 1
-                current_creation_key = f"{CREATION_KEY}{nth_creator}"
-                mean_ratings.append(
-                    CreateAndRateNode.get_mean_rating(trials, current_creation_key)
-                )
-                rated_items.append(current_creation_key)
+            raise NotImplementedError()
 
-            observation_idx = mean_ratings.index(max(mean_ratings))
-            selected_item = rated_items[observation_idx]
-            rating_dict = dict(zip(rated_items, mean_ratings))
-            logger.info(
-                f"""
-                    For network {self.network_id} at iteration {self.degree} we obtained the following average
-                     ratings: {rating_dict}. We therefore selected: {selected_item}.
-                    """
+    @staticmethod
+    def get_eid(entity):
+        return f"{entity.__class__.__name__} {entity.id}"
+
+
+class SelectTrialMixin(RateOrSelectTrialMixin):
+    def get_targets(self):
+        assert self.trial_maker.target_selection_method == "all"
+        return self.get_all_targets()
+
+
+class RateTrialMixin(RateOrSelectTrialMixin):
+    def get_targets(self):
+        target_selection_method = self.trial_maker.target_selection_method
+        if target_selection_method == "all":
+            return self.get_all_targets()
+        # elif target_selection_method == 'random':
+        #     return self.get_random_target()
+        elif target_selection_method == "load_balanced":
+            return self.get_load_balanced_target()
+        else:
+            raise NotImplementedError(
+                f"Unknown rated_targets value: {target_selection_method}"
             )
 
-            return rated_creations[observation_idx]
+    def get_all_targets(self, shuffle=True):
+
+        trial_maker = self.trial_maker
+        assert issubclass(trial_maker.__class__, CreateAndRateTrialmakerMixin)
+        creator_class = trial_maker.creator_class
+        targets = creator_class.query.filter_by(
+            node_id=self.node_id, failed=False, finalized=True
+        ).all()
+        if self.trial_maker.include_previous_iteration:
+            targets += self.node
+        if shuffle:
+            targets = sample(targets, len(targets))
+        return targets
+
+    # def get_random_target(self):
+    #     return sample(self.get_all_targets(), 1)
+
+    def get_eids_from_entities(self, entities):
+        return [self.get_eid(entity) for entity in entities]
+
+    def count_rated_creations(self, available_creation_eids):
+        rater_class = self.trial_maker.rater_class
+        all_rating_trials = rater_class.query.filter_by(
+            node_id=self.node_id, failed=False
+        ).all()
+        all_rated_creation_eids = [
+            self.get_eid(creation)
+            for rating in all_rating_trials
+            for creation in rating.targets
+        ]
+        rated_creations = dict(
+            zip(available_creation_eids, [0] * len(available_creation_eids))
+        )
+        for creation_eid in all_rated_creation_eids:
+            rated_creations[creation_eid] += 1
+        return rated_creations
+
+    def select_creation_with_least_ratings(self, all_creation_trials):
+        all_creation_eids = self.get_eids_from_entities(all_creation_trials)
+        rated_creations = self.count_rated_creations(all_creation_eids)
+
+        creation_eid_with_least_ratings = min(rated_creations, key=rated_creations.get)
+
+        if self.trial_maker.verbose:
+            logger.info(
+                f"For network {self.network.id} at iteration {self.node.degree} we have the following"
+                + f" ratings for: {rated_creations}. We therefore selected: {creation_eid_with_least_ratings}."
+            )
+
+        creation_idx = all_creation_eids.index(creation_eid_with_least_ratings)
+        return all_creation_trials[creation_idx]
+
+    def get_load_balanced_target(self):
+        # TODO to test in a real experiment
+        return [self.select_creation_with_least_ratings(self.get_all_targets())]
 
 
-class CreateAndRateTrialMaker(object):
-    num_creators = None  # Number of creators
-    num_raters = None  # Number of raters
-    rate_mode = "rate"  # Either "rate" each stimulus is rated individually or "select" where each rater selects one stimulus
-    include_previous_iteration = (
-        False  # Whether to include the previous iteration in the rate trial
-    )
-    role_separation = False  # Whether to separate the roles of creators and raters, TODO to be implemented
-    role_separation_var_name = (
-        None  # default is participant.var.get(trialmaker id + '_role_separation')
-    )
+class CreateAndRateNodeMixin(object):
+    @staticmethod
+    def get_eid_mapping_from_trials(trials):
+        trial = trials[0]
+        all_targets = trial.get_all_targets()
+        all_target_eids = [trial.get_eid(target) for target in all_targets]
+        return dict(zip(all_target_eids, all_targets))
 
-    def __init__(self, id_):
+    @staticmethod
+    def summarize_rate_trials(node, rate_trials):
+        eid2target = CreateAndRateNodeMixin.get_eid_mapping_from_trials(rate_trials)
+        all_target_eids = list(eid2target.keys())
+        rating_dict = {eid: [] for eid in all_target_eids}
+        for rate_trial in rate_trials:
+            for eid, rating in rate_trial.answer.items():
+                rating_dict[eid] += [rating]
+        mean_rating_dict = {
+            eid: np.mean(ratings) for eid, ratings in rating_dict.items()
+        }
+        eid_with_highest_rating = max(mean_rating_dict, key=mean_rating_dict.get)
+
+        if node.trial_maker.verbose:
+            logger.info(
+                f"For network {node.network_id} at iteration {node.degree} we have the following"
+                + f" ratings for: {mean_rating_dict}. We therefore selected: {eid_with_highest_rating}."
+            )
+        return eid2target[eid_with_highest_rating]
+
+    @staticmethod
+    def summarize_select_trials(node, select_trials):
+        eid2target = CreateAndRateNodeMixin.get_eid_mapping_from_trials(select_trials)
+        count_dict = {eid: 0 for eid in eid2target.keys()}
+        for trial in select_trials:
+            count_dict[trial.answer] += 1
+        eid_with_highest_count = max(count_dict, key=count_dict.get)
+        if node.trial_maker.verbose:
+            logger.info(
+                f"For network {node.network_id} at iteration {node.degree} we have the following"
+                + f" ratings for: {count_dict}. We therefore selected: {eid_with_highest_count}."
+            )
+        return eid2target[eid_with_highest_count]
+
+    @staticmethod
+    def summarize_trials(node):
+        node_class = node.__class__
+        all_rate_trials = node_class.query.filter_by(
+            node_id=node.id, failed=False, finalized=True
+        ).all()
+        unique_rate_classes = set([type(trial) for trial in all_rate_trials])
         assert (
-            type(self.num_creators) == int and self.num_creators > 0
-        ), "num_creators must be a positive integer"
-        assert (
-            type(self.num_raters) == int and self.num_raters > 0
-        ), "num_raters must be a positive integer"
-        RATE_MODES = ["rate", "select"]
+            len(unique_rate_classes) == 1
+        ), f"You can't mix create and select trials, we got {unique_rate_classes}"
 
+        rate_mode = node.trial_maker.rate_mode
+
+        if rate_mode == "rate":
+            return CreateAndRateNodeMixin.summarize_rate_trials(node, all_rate_trials)
+        elif rate_mode == "select":
+            return CreateAndRateNodeMixin.summarize_select_trials(node, all_rate_trials)
+        else:
+            raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
+
+
+class CreateAndRateNode(ChainNode, CreateAndRateNodeMixin):
+    def summarize_trials(self, trials: list, experiment, participant):
+        return CreateAndRateNodeMixin.summarize_trials(self)
+
+    def create_initial_seed(self, experiment, participant):
+        return None
+
+    def create_definition_from_seed(self, seed, experiment, participant):
+        return None
+
+
+class CreateAndRateTrialmakerMixin(object):
+    def __init__(
+        self,
+        num_creators,
+        num_raters,
+        node_class,
+        creator_class,
+        rater_class,
+        rate_mode="rate",
+        include_previous_iteration=False,
+        target_selection_method="load_balanced",
+        verbose=True,  # TODO turn off in production
+    ):
+        self.assert_is_positive_integer(num_creators)
+        self.num_creators = num_creators
+        self.assert_is_positive_integer(num_raters)
+        self.num_raters = num_raters
+
+        self.assert_correct_inheritance(creator_class, ChainTrial, CreateTrialMixin)
+        self.creator_class = creator_class
+
+        self.assert_correct_inheritance(rater_class, ChainTrial, RateTrialMixin)
+        self.rater_class = rater_class
+
+        self.assert_correct_inheritance(node_class, ChainNode, CreateAndRateNodeMixin)
+        self.node_class = node_class
+
+        assert rate_mode in ["rate", "select"]
+        self.rate_mode = rate_mode
+        self.include_previous_iteration = include_previous_iteration
         if self.rate_mode == "select":
             self.num_rate_stimuli = self.num_creators + int(
                 self.include_previous_iteration
@@ -377,152 +282,80 @@ class CreateAndRateTrialMaker(object):
                 self.num_rate_stimuli > 1
             ), '`num_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
 
-        assert type(self.role_separation) == bool, "role_separation must be a boolean"
-        assert (
-            self.trials_per_node == self.num_creators + self.num_raters
-        ), "trials_per_node must be equal to num_creators + num_raters"
-        if self.role_separation_var_name is None:
-            self.role_separation_var_name = f"{id_}_role_separation"
+        assert target_selection_method in ["load_balanced", "random", "all"]
+        self.target_selection_method = target_selection_method
+        self.verbose = verbose
 
-    def get_iteration_and_finished_trials_from_network(self, network):
-        if len(network.all_infos) == 0:
-            return 1, []
+    @staticmethod
+    def assert_is_positive_integer(x):
+        assert type(x) == int and x > 0, f"{x} must be a positive integer"
+
+    @staticmethod
+    def assert_correct_inheritance(clc, base_class, mixin_class):
+        assert issubclass(clc, mixin_class)
+        assert issubclass(clc, base_class)
+
+    def update_trial_maker_kwargs(self, trial_maker_kwargs):
+        trials_per_node = self.num_creators + self.num_raters
+        trial_maker_kwargs["trials_per_node"] = trials_per_node
+        trial_maker_kwargs["trial_class"] = self.creator_class
+        trial_maker_kwargs["node_class"] = trial_maker_kwargs.get(
+            "node_class", self.node_class
+        )
+        return trial_maker_kwargs
+
+    def get_role(self, node, participant, experiment):
+        create_trials = self.get_non_failed_creations(node)
+        finished_creations = self.filter_finished_creations(create_trials)
+        need_creators = len(create_trials) < self.num_creators
+        waiting_for_creators = len(finished_creations) < len(create_trials)
+
+        if need_creators:
+            return self.creator_class
         else:
-            iteration = max([info.node.degree for info in network.all_infos])
-            finished_trials_at_iter = [
-                info
-                for info in network.all_infos
-                if info.node.degree == iteration
-                and info.var.has(ROLE_KEY)
-                and not info.failed
-                and info.answer is not None
-            ]
-            counter = collections.Counter(
-                [trial.var.get(ROLE_KEY) for trial in finished_trials_at_iter]
-            )
-            if (
-                counter[CREATOR_KEY] == self.num_creators
-                and counter[RATER_KEY] == self.num_raters
-            ):
-                # This means the old iteration is already full, so there are no finished_trials_at_iter at the current level
-                return iteration + 1, []
+            if waiting_for_creators:
+                return None
             else:
-                return iteration, finished_trials_at_iter
+                return self.rater_class
 
-    def store_visited_networks(self, trial, participant):
-        visited_networks = participant.var.get("visited_networks", {})
-        net_key = str(trial.network_id)
-        if net_key not in visited_networks:
-            visited_networks[net_key] = []
-        trial_role = trial.var.get(ROLE_KEY)
-        visited_networks[net_key].append(trial_role)
-        participant.var.set("visited_networks", visited_networks)
-
-    def filter_networks(
-        self, networks, participant, allow_revisit_with_different_role=False
-    ):
-        if type(networks) is str:
-            # return "exit", "wait"
-            return networks
-
-        visited_networks = {}
-        if allow_revisit_with_different_role:
-            assert (
-                self.allow_revisiting_networks_in_across_chains is True
-            ), "allow_revisit_with_different_role is only possible if allow_revisiting_networks_in_across_chains is True"
-            visited_networks = participant.var.get("visited_networks", {})
-
-        # TODO implement role_separation
-        role_name = None
-        if self.role_separation:
-            # TODO skip if participant has already been assigned a role
-            # TODO estimate the need of creators and raters
-            participant.set(self.role_separation_var_name, CREATOR_KEY)
-
-            role_name = participant.get(self.role_separation_var_name)
-
-        new_networks = []
-
-        for network in networks:
-            if len(network.all_infos) == 0:
-                # I.e., empty network
-                new_networks.append(network)
-            else:
-                if not all([info.var.has(ROLE_KEY) for info in network.all_infos]):
-                    # If there are undefined infos for a network skip it for now
-                    continue
-
-                iteration, _ = self.get_iteration_and_finished_trials_from_network(
-                    network
-                )
-                pending_and_finished_creations = [
-                    info
-                    for info in network.all_infos
-                    if info.node.degree == iteration
-                    and not info.failed
-                    and info.var.has(ROLE_KEY)
-                    and info.var.get(ROLE_KEY) == CREATOR_KEY
-                ]
-                n_promised_creations = len(pending_and_finished_creations)
-                n_pending_creations = sum(
-                    [
-                        creator.answer is None
-                        for creator in pending_and_finished_creations
-                    ]
-                )
-
-                pending_and_finished_ratings = [
-                    info
-                    for info in network.all_infos
-                    if info.node.degree == iteration
-                    and not info.failed
-                    and info.var.has(ROLE_KEY)
-                    and info.var.get(ROLE_KEY) == RATER_KEY
-                ]
-                n_promised_ratings = len(pending_and_finished_ratings)
-                n_pending_ratings = sum(
-                    [rater.answer is None for rater in pending_and_finished_ratings]
-                )
-
-                if (
-                    n_promised_creations == self.num_creators
-                    and n_pending_creations > 0
-                ):
-                    # If all creations have already been assigned, but not all workers are done, we have to wait for
-                    # the last creator to finish
-                    logger.info(
-                        f"Skipping network {network.id} with {n_pending_creations}/{n_promised_creations} pending creations."
-                    )
-                elif n_promised_ratings == self.num_raters and n_pending_ratings > 0:
-                    # We'll wait for the last rater to be done
-                    logger.info(
-                        f"Skipping network {network.id} with {n_pending_ratings}/{n_promised_ratings} pending ratings."
-                    )
+    @staticmethod
+    def finalize_create_and_rate_trial(trial_maker, trial):
+        answer = trial.answer
+        if issubclass(trial.__class__, trial_maker.rater_class):
+            rated_eids = [trial.get_eid(target) for target in trial.targets]
+            rate_mode = trial_maker.rate_mode
+            if rate_mode == "rate":
+                if len(trial.targets) > 1:
+                    assert type(answer) == list, "The answer must be a list of ratings"
+                    assert len(answer) == len(
+                        rated_eids
+                    ), "The answer must have the same length as the number of targets"
+                    assert all(
+                        [type(rating) in [int, float] for rating in answer]
+                    ), "The answer must be a list of numbers"
+                    answer = dict(zip(rated_eids, answer))
                 else:
-                    network_state = (
-                        CREATOR_KEY
-                        if n_promised_creations < self.num_creators
-                        else RATER_KEY
-                    )
-                    net_key = str(network.id)
-                    skip_network = (
-                        allow_revisit_with_different_role
-                        and net_key in visited_networks
-                        and network_state in visited_networks[net_key]
-                    )
-                    if skip_network:
-                        continue
+                    assert type(answer) in [int, float], "The answer must be a number"
+                    assert len(rated_eids) == 1
+                    answer = {rated_eids[0]: answer}
+            elif rate_mode == "select":
+                assert answer in rated_eids, "The answer must be one of the rated eids"
+        return answer
 
-                    if self.role_separation:
-                        if role_name == CREATOR_KEY and network_state == CREATOR_KEY:
-                            new_networks.append(network)
-                        elif role_name == RATER_KEY and network_state == RATER_KEY:
-                            new_networks.append(network)
-                        else:
-                            logger.warning(f"Unknown role {role_name}")
-                    else:
-                        new_networks.append(network)
-        if len(new_networks) == 0:
-            return "exit"
-        else:
-            return new_networks
+    def get_non_failed_creations(self, node):
+        return [
+            trial
+            for trial in node.all_trials
+            if isinstance(trial, self.creator_class) and trial.failed is False
+        ]
+
+    def filter_finished_creations(self, trials):
+        return [
+            trial
+            for trial in trials
+            if trial.answer is not None and trial.finalized is True
+        ]
+
+    def get_finished_creations(self, node):
+        trials = self.get_non_failed_creations(node)
+        return self.filter_finished_creations(trials)
