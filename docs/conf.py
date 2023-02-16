@@ -24,7 +24,6 @@ from os.path import abspath, basename, join
 
 import pandas as pd
 import polib
-from rstcloth import RstCloth
 
 import psynet
 from psynet import __version__ as version
@@ -91,7 +90,6 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-
 # -- Options for HTML output -------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -129,7 +127,6 @@ html_js_files = [
 # Output file base name for HTML help builder.
 htmlhelp_basename = "psynetdoc"
 
-
 # -- Options for LaTeX output ------------------------------------------
 
 latex_elements = {
@@ -154,13 +151,11 @@ latex_documents = [
     (master_doc, "psynet.tex", "PsyNet Documentation", "Peter Harrison", "manual"),
 ]
 
-
 # -- Options for manual page output ------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [(master_doc, "psynet", "PsyNet Documentation", [author], 1)]
-
 
 # -- Options for Texinfo output ----------------------------------------
 
@@ -221,7 +216,39 @@ def percent(s):
 
 def process_row(row):
     language = f"{row['language_name']} (``{row['language_iso']}``)"
-    return language, percent(row['percent_translated']), percent(row['percent_verified']), row['translator']
+    return [language, percent(row['percent_translated']), percent(row['percent_verified']), row['translator']]
+
+
+class RstCloth:
+    def __init__(self, output_file):
+        self.output_file = output_file
+
+    def title(self, title):
+        self.output_file.write(f'''{"=" * len(title)}\n{title}\n{"=" * len(title)}\n''')
+
+    def h3(self, title):
+        self.output_file.write(f'''{title}\n{"-" * len(title)}\n''')
+
+    def write_rows(self, rows):
+        first = True
+        for row in rows:
+            if first:
+                self.output_file.write(f'''   * - {row}\n''')
+                first = False
+            else:
+                self.output_file.write(f'''     - {row}\n''')
+
+    def table(self, header, rows):
+        self.output_file.write('''.. list-table::\n''')
+        self.output_file.write('''   :header-rows: 1\n''')
+        self.output_file.write('''   :widths: 15 15 15 55\n''')
+        self.newline()
+        self.write_rows(header)
+        for row in rows:
+            self.write_rows(row)
+
+    def newline(self):
+        self.output_file.write('\n')
 
 
 def generate_translation_table():
@@ -235,7 +262,7 @@ def generate_translation_table():
 
         doc.table(
             ['Language', 'Percent translated', 'Percent verified', 'Translator'],
-            data=[process_row(row) for row in table]
+            [process_row(row) for row in table]
         )
 
 
