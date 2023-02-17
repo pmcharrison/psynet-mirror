@@ -1,10 +1,10 @@
+import inspect
 from random import sample
 
 import numpy as np
-from sqlalchemy import Column
-from sqlalchemy.orm import declared_attr, deferred
+from dallinger import db
+from dallinger.transformations import Transformation
 
-from psynet.field import PythonObject
 from psynet.trial import ChainNode
 from psynet.trial.chain import ChainTrial
 from psynet.utils import get_logger
@@ -20,52 +20,72 @@ def sort_dict_by_value(d):
 
 
 class CreateAndRateTrialMixin(object):
+    var = None
     trial_maker = None
-    node = None
     node_id = None
+    node = None
     network = None
-
-    # TODO: test if those properties are overriden by the child class?
-    def __init__(self):
-        super().__init__()
 
 
 class CreateTrialMixin(CreateAndRateTrialMixin):
-    pass
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        pass
 
 
 class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        targets = self.get_targets()
+        self.var.targets = targets
+        self.register_transformations(targets)
+
+    # __table_args__ = {"extend_existing": True}
+    # @declared_attr
+    # def targets(cls):
+    #     return deferred(Column(PythonObject))
+    # def __init__(self, experiment, node, participant, *args, **kwargs):
+    #     self.targets = self.get_targets()
+
     # targets = deferred(Column(PythonObject))
-    def __init__(self):
-        super().__init__()
-        self.targets = self.get_targets()
+    # TODO: sqlalchemy.exc.InvalidRequestError: Row with identity key (<class 'dallinger.models.Info'>, (1,), None) can't be loaded into an object; the polymorphic discriminator column 'info.type' refers to mapped class CreateTrial->info, which is not a sub-mapper of the requested mapped class SingleRateTrial->info
+    #  current workaround is to use trial var
+    # __table_args__ = {"extend_existing": True}
+    #
+    # @declared_attr
+    # def __tablename__(cls):
+    #     return cls.__name__.lower()
+    #
+    # @declared_attr
+    # def targets(cls):
+    #     return deferred(Column(PythonObject))
 
-    __table_args__ = {"extend_existing": True}
-
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
-
-    @declared_attr
-    def targets(cls):
-        return deferred(Column(PythonObject))
+    def register_transformations(self, targets):
+        # Register the transformations
+        for target in targets:
+            if issubclass(target.__class__, ChainTrial):
+                transformation = Transformation(info_out=self, info_in=target)
+                db.session.add(transformation)
+        db.session.commit()
 
     def get_targets(self):
         return self.get_all_targets()
 
-    def get_all_targets(self):
-        # TODO check if the querying works in inherited classes
-        targets = self.__class__.query.filter_by(
+    def get_all_targets(self, shuffle=True):
+        trial_maker = self.trial_maker
+        assert issubclass(trial_maker.__class__, CreateAndRateTrialmakerMixin)
+        creator_class = trial_maker.creator_class
+        targets = creator_class.query.filter_by(
             node_id=self.node_id, failed=False, finalized=True
         ).all()
         if self.trial_maker.include_previous_iteration:
-            targets += self.node
+            targets += [self.node]
+        if shuffle:
+            targets = sample(targets, len(targets))
         return targets
 
     @staticmethod
     def get_target_answer(target):
         if issubclass(target.__class__, ChainNode):
-            return target.context["answer"]
+            return target.definition
         elif issubclass(target.__class__, ChainTrial):
             return target.answer
         else:
@@ -96,20 +116,6 @@ class RateTrialMixin(RateOrSelectTrialMixin):
                 f"Unknown rated_targets value: {target_selection_method}"
             )
 
-    def get_all_targets(self, shuffle=True):
-
-        trial_maker = self.trial_maker
-        assert issubclass(trial_maker.__class__, CreateAndRateTrialmakerMixin)
-        creator_class = trial_maker.creator_class
-        targets = creator_class.query.filter_by(
-            node_id=self.node_id, failed=False, finalized=True
-        ).all()
-        if self.trial_maker.include_previous_iteration:
-            targets += self.node
-        if shuffle:
-            targets = sample(targets, len(targets))
-        return targets
-
     # def get_random_target(self):
     #     return sample(self.get_all_targets(), 1)
 
@@ -121,10 +127,13 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         all_rating_trials = rater_class.query.filter_by(
             node_id=self.node_id, failed=False
         ).all()
+        all_rating_trials = [
+            trial for trial in all_rating_trials if trial.id != self.id
+        ]
         all_rated_creation_eids = [
             self.get_eid(creation)
             for rating in all_rating_trials
-            for creation in rating.targets
+            for creation in rating.var.targets
         ]
         rated_creations = dict(
             zip(available_creation_eids, [0] * len(available_creation_eids))
@@ -137,7 +146,13 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         all_creation_eids = self.get_eids_from_entities(all_creation_trials)
         rated_creations = self.count_rated_creations(all_creation_eids)
 
-        creation_eid_with_least_ratings = min(rated_creations, key=rated_creations.get)
+        min_rating = min(rated_creations.values())
+        creations_with_min_rating = [
+            creation_eid
+            for creation_eid, rating in rated_creations.items()
+            if rating == min_rating
+        ]
+        creation_eid_with_least_ratings = sample(creations_with_min_rating, 1)[0]
 
         if self.trial_maker.verbose:
             logger.info(
@@ -149,7 +164,6 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         return all_creation_trials[creation_idx]
 
     def get_load_balanced_target(self):
-        # TODO to test in a real experiment
         return [self.select_creation_with_least_ratings(self.get_all_targets())]
 
 
@@ -193,20 +207,17 @@ class CreateAndRateNodeMixin(object):
                 f"For network {node.network_id} at iteration {node.degree} we have the following"
                 + f" ratings for: {count_dict}. We therefore selected: {eid_with_highest_count}."
             )
-        return eid2target[eid_with_highest_count]
+        return eid2target[eid_with_highest_count].answer
 
     @staticmethod
     def summarize_trials(node):
-        node_class = node.__class__
-        all_rate_trials = node_class.query.filter_by(
+        trial_maker = node.trial_maker
+        rater_class = trial_maker.rater_class
+        all_rate_trials = rater_class.query.filter_by(
             node_id=node.id, failed=False, finalized=True
         ).all()
-        unique_rate_classes = set([type(trial) for trial in all_rate_trials])
-        assert (
-            len(unique_rate_classes) == 1
-        ), f"You can't mix create and select trials, we got {unique_rate_classes}"
 
-        rate_mode = node.trial_maker.rate_mode
+        rate_mode = trial_maker.rate_mode
 
         if rate_mode == "rate":
             return CreateAndRateNodeMixin.summarize_rate_trials(node, all_rate_trials)
@@ -221,10 +232,10 @@ class CreateAndRateNode(ChainNode, CreateAndRateNodeMixin):
         return CreateAndRateNodeMixin.summarize_trials(self)
 
     def create_initial_seed(self, experiment, participant):
-        return None
+        return {}
 
     def create_definition_from_seed(self, seed, experiment, participant):
-        return None
+        return seed
 
 
 class CreateAndRateTrialmakerMixin(object):
@@ -235,10 +246,11 @@ class CreateAndRateTrialmakerMixin(object):
         node_class,
         creator_class,
         rater_class,
+        start_nodes,
         rate_mode="rate",
         include_previous_iteration=False,
         target_selection_method="load_balanced",
-        verbose=True,  # TODO turn off in production
+        verbose=False,
     ):
         self.assert_is_positive_integer(num_creators)
         self.num_creators = num_creators
@@ -248,20 +260,35 @@ class CreateAndRateTrialmakerMixin(object):
         self.assert_correct_inheritance(creator_class, ChainTrial, CreateTrialMixin)
         self.creator_class = creator_class
 
-        self.assert_correct_inheritance(rater_class, ChainTrial, RateTrialMixin)
+        if rate_mode == "select":
+            self.assert_correct_inheritance(rater_class, ChainTrial, SelectTrialMixin)
+        elif rate_mode == "rate":
+            self.assert_correct_inheritance(rater_class, ChainTrial, RateTrialMixin)
+        else:
+            raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
         self.rater_class = rater_class
 
         self.assert_correct_inheritance(node_class, ChainNode, CreateAndRateNodeMixin)
         self.node_class = node_class
 
-        assert rate_mode in ["rate", "select"]
-        self.rate_mode = rate_mode
+        if include_previous_iteration:
+            error_msg = (
+                "If you want to include previous iterations, you need to specify the seed, e.g."
+                " CreateAndRateNode(seed='My initial response shown to the participant')"
+            )
+            num_nodes_with_seed = sum(
+                [node.seed is not None and len(node.seed) > 0 for node in start_nodes]
+            )
+            assert len(start_nodes) == num_nodes_with_seed, error_msg
+
         self.include_previous_iteration = include_previous_iteration
+        self.rate_mode = rate_mode
         if self.rate_mode == "select":
             self.num_rate_stimuli = self.num_creators + int(
                 self.include_previous_iteration
             )
             self.num_validations_per_creation = self.num_creators
+
         elif self.rate_mode == "rate":
             if self.include_previous_iteration:
                 assert (
@@ -295,14 +322,24 @@ class CreateAndRateTrialmakerMixin(object):
         assert issubclass(clc, mixin_class)
         assert issubclass(clc, base_class)
 
-    def update_trial_maker_kwargs(self, trial_maker_kwargs):
-        trials_per_node = self.num_creators + self.num_raters
+    @staticmethod
+    def filter_relevant_kwargs(kwargs, clc):
+        params = inspect.getfullargspec(clc.__init__)
+        keys = params.args + params.kwonlyargs
+        return {key: kwargs[key] for key in keys if key in kwargs}
+
+    def split_kwargs(self, kwargs, trial_maker_class, mixin_class):
+        required_parameters = inspect.getfullargspec(self.__init__).args
+        required_parameters.remove("self")
+        for param in required_parameters:
+            assert param in kwargs, f"Missing required parameter: {param}"
+        trial_maker_kwargs = self.filter_relevant_kwargs(kwargs, trial_maker_class)
+        mixin_kwargs = self.filter_relevant_kwargs(kwargs, mixin_class)
+        trials_per_node = kwargs["num_creators"] + kwargs["num_raters"]
         trial_maker_kwargs["trials_per_node"] = trials_per_node
-        trial_maker_kwargs["trial_class"] = self.creator_class
-        trial_maker_kwargs["node_class"] = trial_maker_kwargs.get(
-            "node_class", self.node_class
-        )
-        return trial_maker_kwargs
+        trial_maker_kwargs["trial_class"] = kwargs["creator_class"]
+        trial_maker_kwargs["node_class"] = kwargs["node_class"]
+        return trial_maker_kwargs, mixin_kwargs
 
     def get_role(self, node, participant, experiment):
         create_trials = self.get_non_failed_creations(node)
@@ -322,10 +359,10 @@ class CreateAndRateTrialmakerMixin(object):
     def finalize_create_and_rate_trial(trial_maker, trial):
         answer = trial.answer
         if issubclass(trial.__class__, trial_maker.rater_class):
-            rated_eids = [trial.get_eid(target) for target in trial.targets]
+            rated_eids = [trial.get_eid(target) for target in trial.var.targets]
             rate_mode = trial_maker.rate_mode
             if rate_mode == "rate":
-                if len(trial.targets) > 1:
+                if len(trial.var.targets) > 1:
                     assert type(answer) == list, "The answer must be a list of ratings"
                     assert len(answer) == len(
                         rated_eids
@@ -335,11 +372,19 @@ class CreateAndRateTrialmakerMixin(object):
                     ), "The answer must be a list of numbers"
                     answer = dict(zip(rated_eids, answer))
                 else:
+                    if isinstance(answer, str):
+                        float_answer = float(answer)
+                        int_answer = int(answer)
+                        answer = (
+                            float_answer if float_answer != int_answer else int_answer
+                        )
                     assert type(answer) in [int, float], "The answer must be a number"
                     assert len(rated_eids) == 1
                     answer = {rated_eids[0]: answer}
             elif rate_mode == "select":
                 assert answer in rated_eids, "The answer must be one of the rated eids"
+            trial.answer = answer
+            db.session.commit()
         return answer
 
     def get_non_failed_creations(self, node):
