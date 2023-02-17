@@ -50,11 +50,9 @@ def new_example(description, **kwargs):
         slider_media = media.video
     else:
         raise NotImplementedError(f"Modality {kwargs['modality']} not implemented")
-    prompt = Markup(
-        escape(description)
-        + print_dict(kwargs)
-        + """
-        <p>
+    prompt = f"{escape(description)} {print_dict(kwargs)}"
+    prompt += """
+    <p>
             Raw slider value is <strong id="slider-raw-value">NA</strong> <br>
             Output slider value is <strong id="slider-output-value">NA</strong>
             (phase = <strong id="phase">NA</strong>, random wrap = <strong id="random-wrap">NA</strong>)
@@ -81,7 +79,7 @@ def new_example(description, **kwargs):
         }
         </style>
         """
-    )
+    prompt = Markup(prompt)
     time_estimate = kwargs.pop("time_estimate")
 
     return join(
