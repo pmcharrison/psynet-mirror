@@ -42,7 +42,7 @@ COPY . .
 RUN pip install -e '.[dev]'
 
 # The following code can be used to reinstall Dallinger from a particular development branch or commit
-# RUN pip install "git+https://github.com/Dallinger/Dallinger.git@pmch-dev"
+# RUN pip install "git+https://github.com/Dallinger/Dallinger.git@v9.4.2"
 
 WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
