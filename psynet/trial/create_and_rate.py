@@ -68,8 +68,7 @@ class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
             targets = sample(targets, len(targets))
         return targets
 
-    @staticmethod
-    def get_target_answer(target):
+    def get_target_answer(self, target):
         if issubclass(target.__class__, ChainNode):
             return target.definition
         elif issubclass(target.__class__, ChainTrial):
@@ -193,7 +192,7 @@ class CreateAndRateNodeMixin(object):
                 f"For network {node.network_id} at iteration {node.degree} we have the following"
                 + f" ratings for: {count_dict}. We therefore selected: {eid_with_highest_count}."
             )
-        return eid2target[eid_with_highest_count].answer
+        return eid2target[eid_with_highest_count]
 
     @staticmethod
     def summarize_trials(node):
