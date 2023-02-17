@@ -15,7 +15,7 @@ with open("psynet/version.py", "r") as fp:
 setuptools.setup(
     name="psynet",
     version=version["psynet_version"],
-    author="Peter Harrison, Raja Marjieh, Nori Jacoby",
+    author="Peter Harrison, Frank Höger, Pol van Rijn, Raja Marjieh, Nori Jacoby",
     author_email="pmch2@cam.ac.uk",
     description="A framework for running advanced psychological experiments.",
     long_description=long_description,
@@ -32,36 +32,38 @@ setuptools.setup(
     package_data={"psynet": ["VERSION"]},
     install_requires=[
         version["dallinger_version_requirement"],
+        "babel",  # Library used for internationalization
         "click",
         "datetime",
         "dominate",
         "flask",
         "importlib_resources",
+        "joblib",  # Library used for internal parallelization of for loops
         "jsonpickle",
+        "numpy",
         "pandas",
         "rpdb",
+        "paramiko",
+        "praat-parselmouth",
         "progress",
+        "python-gettext",  # Library used for internationalization
         "requests",
         "scipy",
-        "numpy",
+        "sphinx==5.3.0",
         "statsmodels",
         "tqdm",
         "yaspin",
-        "praat-parselmouth",
-        "joblib",  # Library used for internal parallelization of for loops
-        "babel",  # Library used for internationalization
-        "python-gettext",  # Library used for internationalization
-        "sphinx==5.3.0",
     ],
     extras_require={
         "dev": [
             "awscli",
+            "furo",
             "isort",
             "mock",
+            "polib",
             "pre-commit",
             "pytest",
             "sphinx-autodoc-typehints",
-            "furo",
         ]
     },
     entry_points={
@@ -69,5 +71,3 @@ setuptools.setup(
         "pytest11": ["pytest_psynet = psynet.pytest_psynet"],
     },
 )
-
-# python3.7 setup.py sdist bdist_wheel

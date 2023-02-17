@@ -30,10 +30,11 @@ class ADSRTimbre(Timbre):
         Amplitude of the 'sustain' portion of the sound, in seconds,
         where '1' corresponds to the maximum amplitude of the sound
         (as experienced at the transition between the 'attack' and
-        'decay' portions.
+        'decay' portions).
 
     release:
         Duration of the 'release' portion of the sound, in seconds.
+
     """
 
     def __init__(
@@ -67,6 +68,7 @@ class AdditiveTimbre(ADSRTimbre):
 
     **kwargs:
         Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
+
     """
 
     def __init__(
@@ -304,15 +306,19 @@ class Chord(dict):
     timbre:
         The timbre with which to play the chord, specified as a string.
         There are three different configurations that one can use:
+
         - Leave both ``timbre`` arguments at their default values of ``"default"``. In this case the chord
           will be played with a standard harmonic complex tone.
+
         - Set the ``timbre`` argument in :class:`~psynet.js_synth.JSSynth` to a customized timbre,
-          for example ``InstrumentTimbre("piano"), while leaving the timbre argument in :class:`~psynet.js_synth.Chord`
+          for example ``InstrumentTimbre("piano")``, while leaving the timbre argument in :class:`~psynet.js_synth.Chord`
           to its default value. In this case the chord will be played with the customized timbre.
+
         - Set the ``timbre`` argument in :class:`~psynet.js_synth.JSSynth` to a dictionary of customized timbres,
           and select from this dictionary by specifying an appropriate key in the ``timbre`` argument
           of the :class:`~psynet.js_synth.Chord` object. This provides a way to move between multiple timbres
           in the same sequence.
+
         Applying the same logic, one may also pass a list of strings, where each element provides the timbre
         for a different note in the chord.
 
@@ -336,15 +342,9 @@ class Chord(dict):
     ):
         if isinstance(pan, list):
             assert len(pan) == len(pitches)
-        else:
-            pan = [pan for _ in pitches]
 
         if isinstance(timbre, list):
-            print(timbre)
-            print(pitches)
             assert len(timbre) == len(pitches)
-        else:
-            timbre = [timbre for _ in pitches]
 
         super().__init__(
             pitches=pitches,
@@ -467,7 +467,14 @@ class JSSynth(Prompt):
                 raise ValueError(
                     "Each element in 'sequence' must be an object of type 'Chord' or 'Note'."
                 )
-            uses_panning = uses_panning or any([p != 0.0 for p in elt["pan"]])
+            if isinstance(elt["pan"], list):
+                if any([p != 0.0 for p in elt["pan"]]):
+                    uses_panning = True
+            else:
+                _pan = elt["pan"]
+                if _pan != 0.0:
+                    uses_panning = True
+                elt["pan"] = [_pan for _ in elt["pitches"]]
 
         if uses_panning:
             for t in timbre.values():
@@ -528,18 +535,37 @@ class JSSynth(Prompt):
         note_sequence = []
         onset = 0
         for chord in chord_sequence:
-            for i, pitch in enumerate(chord["pitches"]):
-                note = chord.copy()
-                note["pitches"] = [pitch]
-                note["onset"] = onset
+            chord["onset"] = onset
 
-                if isinstance(note["channel"], list):
-                    note["channel"] = note["channel"][i]
+            uses_multiple_channels = isinstance(chord["channel"], list)
 
-                if isinstance(note["pan"], list):
-                    note["pan"] = [note["pan"][i]]
+            if uses_multiple_channels:
+                for t in timbre.values():
+                    if isinstance(t, ADSRTimbre):
+                        raise ValueError(
+                            "Mixing multiple timbres within chords is not supported for ADSRTimbres"
+                        )
 
-                note_sequence.append(note)
+                for i, pitch in enumerate(chord["pitches"]):
+                    note = chord.copy()
+                    note["pitches"] = [pitch]
+
+                    if isinstance(note["channel"], list):
+                        note["channel"] = note["channel"][i]
+
+                    if isinstance(note["pan"], list):
+                        note["pan"] = [note["pan"][i]]
+
+                    note_sequence.append(note)
+
+            else:
+                assert isinstance(chord["pitches"], list)
+                assert not isinstance(chord["channel"], list)
+
+                if not isinstance(chord["pan"], list):
+                    chord["pan"] = [chord["pan"]]
+
+                note_sequence.append(chord)
 
             onset += chord["duration"] + chord["silence"]
 

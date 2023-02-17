@@ -56,13 +56,13 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "You have chosen to translate this experiment from en to nl Below you will see this text translated! Hieronder ziet u deze tekst vertaald! Next",
+                "You have chosen to translate this experiment from en to nl Below you will see this text translated! Hieronder ziet u deze tekst vertaald! Volgende",
             )
 
             select = Select(
                 driver.find_element(By.ID, "iso-language")
             )  # Switch back to German
-            select.select_by_visible_text("German")
+            select.select_by_visible_text("Duits")
             time.sleep(1)
             next_page(driver, "next-button")
 

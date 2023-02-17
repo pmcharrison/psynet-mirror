@@ -6,10 +6,11 @@ import tempfile
 from typing import Dict, List, Optional, Union
 
 from dominate import tags
+from dominate.dom_tag import dom_tag
 from dominate.util import raw
 from flask import Markup
 
-from .asset import Asset
+from .asset import Asset, LocalStorage
 from .bot import BotResponse
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
@@ -158,7 +159,7 @@ class AudioPrompt(Prompt):
     def __init__(
         self,
         audio,
-        text: Union[str, Markup],
+        text: Union[str, Markup, dom_tag],
         loop: bool = False,
         text_align="left",
         play_window: Optional[List] = None,
@@ -1054,15 +1055,6 @@ class TimedPushButtonControl(PushButtonControl):
         return html.render()
 
 
-class NAFCControl(PushButtonControl):
-    """
-    .. deprecated:: 1.7.0
-        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
-    """
-
-    pass
-
-
 class PushButton:
     def __init__(
         self,
@@ -1344,7 +1336,7 @@ class ModularPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: Union[str, Prompt],
+        prompt: Union[str, dom_tag, Prompt],
         control: Optional[Control] = None,
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
@@ -2248,7 +2240,8 @@ class AudioRecordControl(RecordControl):
             )
 
             try:
-                asset.deposit(async_=True, delete_input=True)
+                async_ = not isinstance(asset.default_storage, LocalStorage)
+                asset.deposit(async_=async_, delete_input=True)
             except Asset.InconsistentContentError:
                 raise ValueError(
                     f"This participant already has an asset with the label '{label}'. "
@@ -2647,7 +2640,7 @@ class MusicNotationPrompt(Prompt):
     def __init__(
         self,
         content: str,
-        text: Union[None, str, Markup] = None,
+        text: Union[None, str, Markup, dom_tag] = None,
         text_align: str = "left",
     ):
         super().__init__(text=text, text_align=text_align)

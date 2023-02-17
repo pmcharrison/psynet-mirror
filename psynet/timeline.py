@@ -3,12 +3,11 @@
 import json
 import random
 import time
-import warnings
 from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
 from statistics import median
-from typing import Callable, Dict, List, Optional, Type, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import flask
 import importlib_resources
@@ -1233,54 +1232,6 @@ class PageMaker(Elt):
         return self
 
 
-def multi_page_maker(
-    label: str,
-    function,
-    expected_num_pages: int,
-    total_time_estimate: int,
-    accumulate_answers: bool = False,
-    check_num_pages: bool = True,
-):
-    """
-    .. deprecated:: 8.1.0
-        Use :class:`psynet.timeline.PageMaker` instead.
-
-    Parameters
-    ----------
-
-    label
-        Label for the multi-page-maker.
-
-    function
-        Function to generate the pages, taking the arguments ``experiment`` and ``participant``.
-        The function should return a list of pages and/or code blocks.
-
-    expected_num_pages
-        IGNORED
-
-    total_time_estimate
-        Overall time estimate for the sequence of pages.
-
-    accumulate_answers
-        If ``False`` (default), then the final ``answer`` is simply the answer delivered by the final
-        page. If ``True``, then the answers to all the pages are accumulated in a dict.
-
-    check_num_pages
-        IGNORED
-
-    Returns
-    -------
-
-    A list of test elements that can be incorporated into a timeline using ``join``.
-
-    """
-    warnings.warn(
-        "psynet.timeline.multi_page_maker is deprecated. Use :class:`psynet.timeline.PageMaker` instead.",
-        DeprecationWarning,
-    )
-    return PageMaker(function, total_time_estimate, accumulate_answers)
-
-
 class PageMakerFinishedError(Exception):
     pass
 
@@ -2231,7 +2182,7 @@ class ModuleAssets:
     def __getitem__(self, item):
         from psynet.asset import Asset
 
-        return Asset.query.filter_by(local_key=item).one()
+        return Asset.query.filter_by(module_id=self.module_id, local_key=item).one()
 
 
 class Module:
@@ -2293,15 +2244,18 @@ class Module:
         db.session.commit()
 
     def deposit_assets_on_the_fly(self):
-        if len(self._staged_assets) > 0:
+        assets_to_deposit = [
+            asset for asset in self._staged_assets if not asset.deposited
+        ]
+        if len(assets_to_deposit) > 0:
             logger.info(
                 "Depositing %i assets on-the-fly (i.e. while the participant waits for the "
                 "experiment to continue. This is a bad idea if the number of assets is large "
                 "and if they need to be uploaded to a remote server. "
                 "To avoid this, avoid defining your module/trial maker within a page maker.",
-                len(self._staged_assets),
+                len(assets_to_deposit),
             )
-            for asset in self._staged_assets:
+            for asset in assets_to_deposit:
                 # TODO - parallelize this deposit, see code in Experiment class
                 asset.deposit()
             db.session.commit()

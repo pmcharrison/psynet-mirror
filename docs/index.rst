@@ -54,7 +54,7 @@ but see the sidebar for a full list.
    :maxdepth: 2
    :hidden:
 
-   legacy_installation/index
+   developer_installation/index
 
 .. toctree::
    :hidden:
@@ -78,6 +78,13 @@ but see the sidebar for a full list.
    api/index
 
 .. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: DEPLOYING
+
+   deploy/aws_server_setup
+
+.. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Contributing to PsyNet
@@ -86,3 +93,11 @@ but see the sidebar for a full list.
    developer/running_tests
    developer/prescreening_tasks
    developer/updating_documentation
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Dashboards
+   :glob:
+
+   dashboards/translation

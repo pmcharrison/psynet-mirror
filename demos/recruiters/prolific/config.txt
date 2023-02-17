@@ -1,9 +1,6 @@
-[Launch mode]
-mode = sandbox
-
 [Payment information]
 title = Prolific hearing test demo
-base_payment = 0.10
+base_payment = 0
 
 [Recruitment strategy]
 recruiter = prolific
@@ -38,5 +35,5 @@ clock_on = true
 [Prolific]
 id = Prolific hearing test demo
 prolific_reward_cents = 25
-prolific_estimated_completion_minutes = 2
+prolific_estimated_completion_minutes = 1
 prolific_maximum_allowed_minutes = 60

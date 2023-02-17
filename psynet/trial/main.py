@@ -271,6 +271,7 @@ class Trial(SQLMixinDallinger, Info):
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
         backref="all_trials",
+        post_update=True,
     )
     parent_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
@@ -451,22 +452,6 @@ class Trial(SQLMixinDallinger, Info):
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
 
-    def mark_as_finalized(self):
-        """
-        Marks a trial as finalized. This means that all relevant data has been stored from the
-        participant's response, and any pending asynchronous processes have completed.
-        """
-        if self.finalized:
-            raise RuntimeError(
-                f"Tried to mark trial {self.id} as finalized, but it was already finalized."
-            )
-        self.finalized = True
-        self._on_finalized()
-
-    def _on_finalized(self):
-        self.score = self.score_answer(answer=self.answer, definition=self.definition)
-        self._allocate_bonus()
-
     def _allocate_bonus(self):
         bonus = self.compute_bonus(score=self.score)
         assert isinstance(bonus, (float, int))
@@ -505,7 +490,8 @@ class Trial(SQLMixinDallinger, Info):
 
         db.session.commit()
 
-        asset.deposit()
+        if not asset.deposited:
+            asset.deposit()
 
     def score_answer(self, answer, definition):
         """
@@ -666,6 +652,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def call_async_post_trial(self):
         dallinger.experiment.load()
+        db.session.commit()
         self.async_post_trial()
         self.check_if_can_mark_as_finalized()
 
@@ -687,22 +674,38 @@ class Trial(SQLMixinDallinger, Info):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
-        if self.failed or self.awaiting_asset_deposit or self.awaiting_async_process:
-            pass
+        if self.failed:
+            logger.info("Cannot mark as finalized because the trial is failed.")
+        elif self.awaiting_asset_deposit:
+            logger.info(
+                "Cannot mark as finalized yet because the trial is awaiting an asset deposit."
+            )
+        elif self.awaiting_async_process:
+            logger.info(
+                "Cannot mark as finalized yet because the trial is awaiting an async process."
+            )
         else:
             self.finalized = True
             db.session.commit()
             self.on_finalized()
 
     def check_if_can_run_async_post_trial(self):
+        logger.info("Checking if can run async_post_trial.")
         db.session.commit()
         if self.run_async_post_trial is not None and not self.run_async_post_trial:
-            return
+            logger.info(
+                "run_async_post_trial is False, so we won't run async_post_trial."
+            )
         elif self.awaiting_asset_deposit:
-            return
+            logger.info(
+                "The trial is awaiting an asset deposit, so we won't run async_post_trial."
+            )
         elif not is_method_overridden(self, Trial, "async_post_trial"):
-            return
+            logger.info("No async_post_trial method is defined, skipping.")
         else:
+            logger.info(
+                "All conditions seem to be satisfied, calling call_async_post_trial if it hasn't been called already."
+            )
             WorkerAsyncProcess(
                 self.call_async_post_trial,
                 label="post_trial",
@@ -713,6 +716,11 @@ class Trial(SQLMixinDallinger, Info):
             )
 
     def on_finalized(self):
+        self.score = self.score_answer(answer=self.answer, definition=self.definition)
+        self._allocate_bonus()
+
+        db.session.commit()
+
         if self.trial_maker:
             from psynet.experiment import get_experiment
 
@@ -875,6 +883,8 @@ class Trial(SQLMixinDallinger, Info):
     @classmethod
     def _finalize_trial(cls, trial_maker=None):
         def f(participant, experiment):
+            logger.info("Calling _finalize_trial.")
+
             trial = participant.current_trial
             answer = participant.answer
 
@@ -893,7 +903,11 @@ class Trial(SQLMixinDallinger, Info):
 
             db.session.commit()
 
+            logger.info(
+                "Calling check_if_can_run_async_post_trial as part of _finalize_trial."
+            )
             trial.check_if_can_run_async_post_trial()
+
             trial.check_if_can_mark_as_finalized()
 
         return CodeBlock(f)
@@ -1639,6 +1653,15 @@ class TrialMaker(Module):
         else:
             return logic
 
+    def get_all_participant_performance_check_results(self):
+        records = (
+            db.session.query(self.state_class.performance_check)
+            .filter_by(module_id=self.id)
+            .filter(self.state_class.performance_check.isnot(None))
+            .all()
+        )
+        return [record[0] for record in records]
+
     def any_pending_async_trials(self, participant):
         trials = self.get_participant_trials(participant)
         return any([t.awaiting_async_process for t in trials])
@@ -2214,6 +2237,10 @@ class NetworkTrialMaker(TrialMaker):
             return self.performance_check_accuracy(
                 experiment, participant, participant_trials
             )
+        elif self.performance_check_type == "score":
+            return self.performance_check_score(
+                experiment, participant, participant_trials
+            )
         else:
             raise NotImplementedError
 
@@ -2227,6 +2254,11 @@ class NetworkTrialMaker(TrialMaker):
             p = 1 - n_failed_trials / n_trials
             passed = p >= self.performance_check_threshold
         return {"score": p, "passed": passed}
+
+    def performance_check_score(self, experiment, participant, participant_trials):
+        score = sum(t.score for t in participant_trials)
+        passed = score >= self.performance_check_threshold
+        return {"score": score, "passed": passed}
 
     def get_answer_for_consistency_check(self, trial):
         # Must return a number

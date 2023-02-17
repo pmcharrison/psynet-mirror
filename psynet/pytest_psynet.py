@@ -228,6 +228,17 @@ def in_experiment_directory(experiment_directory):
     clear_all_caches()
 
 
+@pytest.fixture(scope="class")
+def skip_constraints_check():
+    original = os.getenv("SKIP_DEPENDENCY_CHECK", None)
+    os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    yield
+    if original is None:
+        del os.environ["SKIP_DEPENDENCY_CHECK"]
+    else:
+        os.environ["SKIP_DEPENDENCY_CHECK"] = original
+
+
 # dallinger_clear_workers = pytest_dallinger.clear_workers.__wrapped__
 
 
@@ -271,7 +282,14 @@ def patch_pexpect_error_reporter(p):
 
 
 @pytest.fixture(scope="class")
-def debug_experiment(request, env, clear_workers, in_experiment_directory, db_session):
+def debug_experiment(
+    request,
+    env,
+    clear_workers,
+    in_experiment_directory,
+    db_session,
+    skip_constraints_check,
+):
     """
     This overrides the debug_experiment fixture in Dallinger to
     use PsyNet debug instead. Note that we use legacy mode for now.

@@ -23,9 +23,11 @@ from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import success_response
+from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
+from dallinger.recruiters import ProlificRecruiter
 from dallinger.utils import get_base_url
+from dominate import tags
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
 
@@ -284,9 +286,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("Calling Exp.on_first_launch()...")
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
-        if not redis_vars.get("deployment_db_ingested", False):
+        deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
+        print(f"deployment_db_ingested: {deployment_db_ingested}")
+        if not deployment_db_ingested:
             ingest_zip(database_template_path, db.engine)
             redis_vars.set("deployment_db_ingested", True)
+            assert ExperimentConfig.query.count() > 0
         self._nodes_on_deploy()
 
     def on_every_launch(self):
@@ -300,8 +305,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # get the launch data from the command-line invocation.
             export_launch_data(
                 self.var.deployment_id,
-                config.get("dashboard_user"),
-                config.get("dashboard_password"),
+                dashboard_user=config.get("dashboard_user"),
+                dashboard_password=config.get("dashboard_password"),
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
@@ -367,6 +372,53 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
+
+    def error_page_content(
+        self,
+        gettext,
+        pgettext,
+        contact_address,
+        error_type,
+        hit_id,
+        assignment_id,
+        worker_id,
+    ):
+        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
+        if isinstance(self.recruiter, ProlificRecruiter):
+            return self.error_page_content__prolific(gettext, pgettext)
+
+        html = tags.div()
+        with html:
+            tags.p(
+                pgettext(
+                    "mturk_error",
+                    "To enquire about compensation, please contact the researcher at %(EMAIL)s and describe what led to this error."
+                    % {"EMAIL": contact_address},
+                )
+            )
+            tags.p(
+                pgettext("mturk_error", "Please also quote the following information:")
+            )
+            tags.ul(
+                tags.li(f'{gettext("Error type")}: {error_type}'),
+                tags.li(f'{gettext("HIT ID")}: {hit_id}'),
+                tags.li(f'{gettext("Assignment ID")}: {assignment_id}'),
+                tags.li(f'{gettext("Worker ID")}: {worker_id}'),
+            )
+
+        return html
+
+    def error_page_content__prolific(self, gettext, pgettext):
+        html = tags.div()
+        with html:
+            tags.p(
+                """
+                Don't worry, your progress has been recorded.
+                To enquire about compensation, please send the researcher a message via the Prolific website
+                and describe what led to your error.
+                """
+            )
+        return html
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
@@ -440,6 +492,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             network = ExperimentConfig()
             db.session.add(network)
             db.session.commit()
+
+    @classmethod
+    def config_defaults(cls):
+        """
+        Override this classmethod to register new default values for config variables.
+        Remember to call super!
+        """
+        return {
+            **super().config_defaults(),
+            "host": "0.0.0.0",
+            "base_payment": 0.10,
+            "clock_on": True,
+            "duration": 100000000.0,
+            "disable_when_duration_exceeded": False,
+            "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
+        }
 
     @property
     def _default_variables(self):
@@ -544,6 +612,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
+                elt.deposit_on_the_fly = False
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
@@ -574,10 +643,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def generate_deployment_id(cls):
         mode = deployment_info.read("mode")
-        id_ = f"{cls.label} ({mode})"
+        id_ = f"{cls.label}"
         id_ = id_.replace(" ", "-").lower()
         id_ += (
-            "__mode= "
+            "__mode="
             + mode
             + "__launch="
             + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
@@ -928,10 +997,48 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
+    def render_exit_message(self, participant):
+        """
+        This method is currently only called if the 'generic' recruiter is selected.
+        We may propagate it to other recruiter methods eventually too.
+        If left unchanged, the default recruiter exit message from Dallinger will be shown.
+        Otherwise, one can return a custom message in various ways.
+        If you return a string, this will be escaped appropriately and presented as text.
+        Alternatively, more complex HTML structures can be constructed using the
+        Python package ``dominate``, see Examples for details.
+
+        Examples
+        --------
+
+        This would be appropriate for experiments with no payment:
+
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Your responses have been saved. You may close this window."),
+            )
+
+        This kind of structure could be used for passing participants to a particular
+        URL in Prolific:
+
+        ::
+
+            tags.div(
+                tags.p("Thank you for participating in this experiment!"),
+                tags.p("Please click the following URL to continue back to Prolific:"),
+                tags.a("Finish experiment", href="https://prolific.com"),
+            )
+        """
+        return "default_exit_message"
+
     @classmethod
     def extra_files(cls):
+        # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
+        # overwritten if they exist already in Dallinger. We should try and change this.
         files = [
             (
+                # Warning: this won't affect templates that already exist in Dallinger
                 resource_filename("psynet", "templates"),
                 "/templates",
             ),
@@ -1008,6 +1115,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/static/scripts/abc-js",
             ),
             (
+                # This is presumably getting ignored, because Dallinger ignores extra_files specifications if they
+                # overwrite a predefined file -- see dallinger.utils.collate_experiment_files
                 resource_filename("psynet", "templates/mturk_error.html"),
                 "templates/mturk_error.html",
             ),
@@ -1159,6 +1268,42 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The corresponding participant object.
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
+
+    @experiment_route("/consent")
+    @staticmethod
+    def consent():
+        config = get_config()
+
+        entry_information = request.args.to_dict()
+        exp = get_experiment()
+        entry_data = exp.normalize_entry_information(entry_information)
+
+        hit_id = entry_data.get("hit_id")
+        assignment_id = entry_data.get("assignment_id")
+        worker_id = entry_data.get("worker_id")
+        return render_template_with_translations(
+            "consent.html",
+            hit_id=hit_id,
+            assignment_id=assignment_id,
+            worker_id=worker_id,
+            mode=config.get("mode"),
+            query_string=request.query_string.decode(),
+        )
+
+    @experiment_route("/ad", methods=["GET"])
+    @nocache
+    @staticmethod
+    def advertisement():
+        from dallinger.experiment_server.experiment_server import prepare_advertisement
+
+        try:
+            is_redirect, kw = prepare_advertisement()
+            if is_redirect:
+                return kw["redirect"]
+            else:
+                return render_template_with_translations("ad.html", **kw)
+        except ExperimentError:
+            return error_page()
 
     @experiment_route("/app_deployment_id", methods=["GET"])
     @staticmethod

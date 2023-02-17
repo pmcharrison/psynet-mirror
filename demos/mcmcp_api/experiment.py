@@ -11,8 +11,8 @@ import flask
 
 import psynet.experiment
 from psynet.consent import MainConsent
-from psynet.modular_page import PushButtonControl
-from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
+from psynet.modular_page import Prompt, PushButtonControl
+from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.mcmcp import MCMCPNode, MCMCPTrial, MCMCPTrialMaker
 from psynet.utils import get_logger

@@ -12,6 +12,7 @@ from functools import cached_property
 from typing import Optional
 
 import boto3
+import paramiko
 import psutil
 import requests
 import sqlalchemy
@@ -122,7 +123,7 @@ class InheritedAssets(AssetCollection):
 
     path : str
         Path to a CSV file specifying the previous assets. This CSV file should come
-        from the ``db/asset.csv` file of an experiment export. The CSV file can
+        from the ``db/asset.csv`` file of an experiment export. The CSV file can
         optionally be customized by deleting rows corresponding to unneeded assets,
         or it can be merged with analogous CSV files from other experiments.
         Importantly, however, the ``key`` column must not contain any duplicates.
@@ -222,7 +223,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -281,26 +282,30 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
 
-    # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
-    # Inheriting from NullElt means that the Asset object can be placed in the timeline.
+    # Inheriting from ``SQLBase`` and ``SQLMixin`` means that the ``Asset`` object is stored in the database.
+    # Inheriting from ``NullElt`` means that the ``Asset`` object can be placed in the timeline.
 
     __tablename__ = "asset"
     __extra_vars__ = {}
@@ -447,6 +452,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         replace_existing=False,
         personal=False,
     ):
+        self.deposit_on_the_fly = True
         self.local_key = local_key
 
         if key is None:
@@ -553,7 +559,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.module_id = participant.module_id
         if not self.has_key:
             self.set_keys()
-        self.deposit()
+        if self.deposit_on_the_fly:
+            self.deposit()
 
     def infer_data_type(self):
         if self.extension in ["wav", "mp3"]:
@@ -600,7 +607,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             If set to ``True``, then the input file will be deleted after it has been deposited.
         """
         try:
-
             if replace is None:
                 replace = self.replace_existing
 
@@ -640,9 +646,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                     else:
                         raise
 
-            if asset_to_use == self or not self.deposited:
-                self._deposit(self.storage, async_, delete_input)
-
             if self.parent:
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
@@ -652,6 +655,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.node_id = ancestors["node"]
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
+
+            if asset_to_use == self or not self.deposited:
+                # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
+                # which may rely on the asset being in its complete state. Any information that may be needed
+                # by these post-deposit actions must be saved before this step.
+                self._deposit(self.storage, async_, delete_input)
 
             if not self.content_id:
                 self.content_id = self.get_content_id()
@@ -719,9 +728,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
 
-    def export(self, path):
+    def export(self, path, ssh_host=None, ssh_user=None):
         try:
-            self.storage.export(self, path)
+            self.storage.export(self, path, ssh_host=ssh_host, ssh_user=ssh_user)
         except Exception:
             from .command_line import log
 
@@ -875,7 +884,7 @@ class ManagedAsset(Asset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     personal : bool
@@ -920,7 +929,7 @@ class ManagedAsset(Asset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -979,20 +988,24 @@ class ManagedAsset(Asset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1096,7 +1109,11 @@ class ManagedAsset(Asset):
         return True
 
     def after_deposit(self):
+        # logger.info("Calling after_deposit.")
         if self.trial:
+            logger.info(
+                "Calling check_if_can_run_async_post_trial as part of after_deposit."
+            )
             self.trial.check_if_can_run_async_post_trial()
             self.trial.check_if_can_mark_as_finalized()
 
@@ -1134,6 +1151,7 @@ class ExperimentAsset(ManagedAsset):
     --------
 
     ::
+
         import tempfile
 
         with tempfile.NamedTemporaryFile("w") as file:
@@ -1182,7 +1200,7 @@ class ExperimentAsset(ManagedAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     personal : bool
@@ -1217,7 +1235,7 @@ class ExperimentAsset(ManagedAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -1276,20 +1294,24 @@ class ExperimentAsset(ManagedAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1321,6 +1343,7 @@ class CachedAsset(ManagedAsset):
     experiment launch. For example:
 
     ::
+
          asset = CachedAsset(
             local_key="bier",
             input_path="bier.wav",
@@ -1373,7 +1396,7 @@ class CachedAsset(ManagedAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     personal : bool
@@ -1418,7 +1441,7 @@ class CachedAsset(ManagedAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -1477,20 +1500,24 @@ class CachedAsset(ManagedAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1504,15 +1531,16 @@ class CachedAsset(ManagedAsset):
     def generate_host_path(self, deployment_id: str):
         key = self.key  # e.g. big-audio-file.wav
         cache_key = self.cache_key
-        base, extension = os.path.splitext(key)
 
         if self.obfuscate == 2:
             base = "private"
+        else:
+            base = key
 
         host_path = os.path.join("cached", base, cache_key)
 
         if self.type != "folder":
-            host_path += extension
+            host_path += self.extension
 
         return host_path
 
@@ -1727,7 +1755,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     module_id : str
@@ -1776,7 +1804,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -1835,20 +1863,24 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -1901,7 +1933,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     def generate_input_path(self):
         return None
 
-    def export(self, path):
+    def export(self, path, **kwargs):
         self.function(path=path, **self.arguments)
 
     def export_subfile(self, subfile, path):
@@ -1966,7 +1998,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 
     key : str
         A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id and the ``local_key``, the latter
+        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
         of which may itself be automatically generated from ``parent``.
 
     module_id : str
@@ -2021,7 +2053,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -2080,20 +2112,24 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -2166,7 +2202,7 @@ class ExternalAsset(Asset):
 
     inherited : bool
         Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets` functionality.
+        ``InheritedAssets`` functionality.
 
     inherited_from : str
         Identifies the source of an inherited asset.
@@ -2225,20 +2261,24 @@ class ExternalAsset(Asset):
     errors : list
         Lists the errors associated with the asset.
 
+
     Linking assets to other database objects
     ----------------------------------------
 
     PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
     First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
     may not possess more than one parent.
+
     However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
     of additional database objects. These latter links have a key-value construction, meaning that one can access
     a given asset by reference to a given key, for example: ``node.assets["response"]``.
+
     Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
     for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
     the following:
 
     ::
+
         participant.assets["stimulus"] = my_asset
         db.session.commit()
     """
@@ -2400,16 +2440,18 @@ class AssetStorage:
         host_path: str,
         delete_input: bool,  # , db_commit: bool = False
     ):
+        # logger.info("Calling _call_receive_deposit...")
         # We include this for compatibility with threaded dispatching.
         # Without it, SQLAlchemy complains that the object has become disconnected
         # from the SQLAlchemy session. This command 'merges' it back into the session.
         asset = db.session.merge(asset)
-
         self._receive_deposit(asset, host_path)
-        asset.after_deposit()
         asset.deposited = True
 
-        # if db_commit:
+        db.session.commit()
+        logger.info("Asset deposit complete.")
+
+        asset.after_deposit()
         db.session.commit()
 
         if delete_input:
@@ -2429,8 +2471,8 @@ class AssetStorage:
             asset=asset,
         )
 
-    def export(self, asset, path):
-        self._http_export(asset, path)
+    def export(self, asset, path, **kwargs):
+        raise NotImplementedError
 
     def prepare_for_deployment(self):
         pass
@@ -2454,13 +2496,14 @@ class AssetStorage:
         """
         raise NotImplementedError
 
-    def _http_export(self, asset, path):
-        url = self._prepare_url_for_http_export(asset.url)
+    @classmethod
+    def http_export(cls, asset, path):
+        url = cls._prepare_url_for_http_export(asset.url)
 
         if asset.is_folder:
-            self._http_folder_export(url, path)
+            cls._http_folder_export(url, path)
         else:
-            self._http_file_export(url, path)
+            cls._http_file_export(url, path)
 
     @staticmethod
     def _prepare_url_for_http_export(url):
@@ -2521,7 +2564,8 @@ class WebStorage(AssetStorage):
     The notional storage back-end for external web-hosted assets.
     """
 
-    pass
+    def export(self, asset, path, **kwargs):
+        self.http_export(asset, path)
 
 
 class NoStorage(AssetStorage):
@@ -2711,17 +2755,9 @@ class LocalStorage(AssetStorage):
 
         sftp = self.sftp_connection(ssh_host, ssh_user)
 
-        try:
-            with open(input_path, "rb") as file:
-                sftp.putfo(BytesIO(file.read()), dest_path)
-        except FileNotFoundError:
-            if make_parents:
-                self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
-                self._put_file(
-                    input_path, dest_path, ssh_host, ssh_user, make_parents=False
-                )
-            else:
-                raise
+        self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
+        with open(input_path, "rb") as file:
+            sftp.putfo(BytesIO(file.read()), dest_path)
 
     def _mk_dir_tree(self, dir, ssh_host, ssh_user):
         executor = self.ssh_executor(ssh_host, ssh_user)
@@ -2731,6 +2767,35 @@ class LocalStorage(AssetStorage):
         from psynet.experiment import in_deployment_package
 
         return in_deployment_package()
+
+    def export(self, asset, path, ssh_host=None, ssh_user=None):
+        if self.on_deployed_server():
+            self._export_via_copying(asset, path)
+        elif ssh_host is not None:
+            self._export_via_ssh(asset, path, ssh_host, ssh_user)
+        else:
+            AssetStorage.http_export(asset, path)
+
+    def _export_via_ssh(self, asset, local_path, ssh_host=None, ssh_user=None):
+        if ssh_host is None or ssh_user is None:
+            raise ValueError(
+                "To export via SSH you need to provide an ssh_host and ssh_user. If you are seeing this error "
+                "it means that probably these values haven't been propagated properly through their caller functions."
+            )
+        docker_host_path = "/home/" + ssh_user + asset.var.file_system_path
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+        paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(
+            2, 22
+        )  # 4 MB per chunk, prevents SFTPError('Garbage packet received')
+        sftp.get(docker_host_path, local_path)
+
+    def _export_via_copying(self, asset: Asset, path):
+        from_ = self.get_file_system_path(asset.host_path)
+        to_ = path
+        if asset.is_folder:
+            shutil.copytree(from_, to_, dirs_exist_ok=True)
+        else:
+            shutil.copyfile(from_, to_)
 
     # def export_subfile(self, asset, subfile, path):
     #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
@@ -2755,11 +2820,44 @@ class LocalStorage(AssetStorage):
         return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
     def check_cache(self, host_path: str, is_folder: bool):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            return self.check_local_cache(host_path, is_folder)
+        elif deployment_info.read("is_ssh_deployment"):
+            return self.check_ssh_cache(host_path, is_folder)
+        else:
+            raise RuntimeError(
+                f"Not sure how to check cache given the current run configuration: {deployment_info.read_all()}"
+            )
+
+    def check_local_cache(self, host_path: str, is_folder: bool):
         file_system_path = self.get_file_system_path(host_path)
         return os.path.exists(file_system_path) and (
             (is_folder and os.path.isdir(file_system_path))
             or (not is_folder and os.path.isfile(file_system_path))
         )
+
+    def check_ssh_cache(self, host_path: str, is_folder: bool):
+        ssh_host = "musix.mus.cam.ac.uk"  # todo - propagate properly
+        ssh_user = "pmch2"
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        # At some point, we need to refactor the logic for get_file_system_path to clarify
+        # whether we are running in Docker or not.
+        # Docker: /psynet-data/assets
+        # SSH: /home/pmch2/psynet-data/assets
+        # local machine: ~/psynet-data/assets
+        #
+        # For now we hard-code...
+        file_system_path = "/home/" + ssh_user + self.get_file_system_path(host_path)
+
+        try:
+            if is_folder:
+                sftp.listdir(file_system_path)
+            else:
+                sftp.stat(file_system_path)
+            return True
+        except FileNotFoundError:
+            return False
 
 
 class DebugStorage(LocalStorage):
@@ -2970,7 +3068,7 @@ class S3Storage(AssetStorage):
     # def regex_pattern(self):
     #     return re.compile("https://s3.amazonaws.com/(.*)/(.*)")
 
-    def export(self, asset, path):
+    def export(self, asset, path, **kwargs):
         s3_key = self.get_s3_key(asset.host_path)
         if asset.is_folder:
             self.download_folder(s3_key, path)
@@ -3083,6 +3181,11 @@ class AssetRegistry:
         # if inspector.has_table("asset") and Asset.query.count() == 0:
         #     self.populate_db_with_initial_assets()
 
+    def __getitem__(self, item):
+        from psynet.asset import Asset
+
+        return Asset.query.filter_by(key=item).one()
+
     @property
     def deployment_id(self):
         return self.storage.deployment_id
@@ -3142,7 +3245,12 @@ class AssetRegistry:
         # FROM pg_stat_activity AS activity
         # JOIN pg_stat_activity AS blocking ON blocking.pid = ANY(pg_blocking_pids(activity.pid));
 
-        # n_jobs = 1
+        # SSH currently fails if we try to open more than one connection at the same time,
+        # so for now we hard-code the number of jobs to zero. It would be good to revisit this.
+        # Uploading all the files over one SSH connection shouldn't be slower than uploading them
+        # over multiple connections. The main limitation with the current situation though
+        # is that we can no longer programmatically generate stimuli in parallel.
+        n_jobs = 1
 
         logger.info("Preparing assets for deployment...")
         Parallel(
