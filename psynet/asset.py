@@ -2771,7 +2771,7 @@ class LocalStorage(AssetStorage):
     def export(self, asset, path, ssh_host=None, ssh_user=None):
         if self.on_deployed_server():
             self._export_via_copying(asset, path)
-        elif deployment_info.read("is_ssh_deployment"):
+        elif ssh_host is not None:
             self._export_via_ssh(asset, path, ssh_host, ssh_user)
         else:
             AssetStorage.http_export(asset, path)
