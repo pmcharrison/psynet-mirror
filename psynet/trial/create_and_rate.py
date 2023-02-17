@@ -37,32 +37,14 @@ class CreateTrialMixin(CreateAndRateTrialMixin):
 
 class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
     def __init__(self, experiment, node, participant, *args, **kwargs):
-        targets = self.get_targets()
-        self.var.targets = targets
-        self.register_transformations(targets)
+        self.targets = self.get_targets()
+        self.register_transformations(self.targets)
 
-    # __table_args__ = {"extend_existing": True}
     @declared_attr
     def targets(cls):
         # See the mixin section of https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
         # return deferred(Column(PythonObject))
         return deferred(cls.__table__.c.get("targets", Column(PythonObject)))
-
-    # def __init__(self, experiment, node, participant, *args, **kwargs):
-    #     self.targets = self.get_targets()
-
-    # targets = deferred(Column(PythonObject))
-    # TODO: sqlalchemy.exc.InvalidRequestError: Row with identity key (<class 'dallinger.models.Info'>, (1,), None) can't be loaded into an object; the polymorphic discriminator column 'info.type' refers to mapped class CreateTrial->info, which is not a sub-mapper of the requested mapped class SingleRateTrial->info
-    #  current workaround is to use trial var
-    # __table_args__ = {"extend_existing": True}
-    #
-    # @declared_attr
-    # def __tablename__(cls):
-    #     return cls.__name__.lower()
-    #
-    # @declared_attr
-    # def targets(cls):
-    #     return deferred(Column(PythonObject))
 
     def register_transformations(self, targets):
         # Register the transformations
@@ -139,7 +121,7 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         all_rated_creation_eids = [
             self.get_eid(creation)
             for rating in all_rating_trials
-            for creation in rating.var.targets
+            for creation in rating.targets
         ]
         rated_creations = dict(
             zip(available_creation_eids, [0] * len(available_creation_eids))
@@ -349,7 +331,7 @@ class CreateAndRateTrialmakerMixin(object):
 
     def get_role(self, node, participant, experiment):
         create_trials = self.get_non_failed_creations(node)
-        finished_creations = self.filter_finished_creations(create_trials)
+        finished_creations = self.get_finished_creations(node)
         need_creators = len(create_trials) < self.num_creators
         waiting_for_creators = len(finished_creations) < len(create_trials)
 
@@ -365,10 +347,10 @@ class CreateAndRateTrialmakerMixin(object):
     def finalize_create_and_rate_trial(trial_maker, trial):
         answer = trial.answer
         if issubclass(trial.__class__, trial_maker.rater_class):
-            rated_eids = [trial.get_eid(target) for target in trial.var.targets]
+            rated_eids = [trial.get_eid(target) for target in trial.targets]
             rate_mode = trial_maker.rate_mode
             if rate_mode == "rate":
-                if len(trial.var.targets) > 1:
+                if len(trial.targets) > 1:
                     assert type(answer) == list, "The answer must be a list of ratings"
                     assert len(answer) == len(
                         rated_eids
@@ -394,19 +376,9 @@ class CreateAndRateTrialmakerMixin(object):
         return answer
 
     def get_non_failed_creations(self, node):
-        return [
-            trial
-            for trial in node.all_trials
-            if isinstance(trial, self.creator_class) and trial.failed is False
-        ]
-
-    def filter_finished_creations(self, trials):
-        return [
-            trial
-            for trial in trials
-            if trial.answer is not None and trial.finalized is True
-        ]
+        return self.creator_class.query.filter_by(node_id=node.id, failed=False).all()
 
     def get_finished_creations(self, node):
-        trials = self.get_non_failed_creations(node)
-        return self.filter_finished_creations(trials)
+        return self.creator_class.query.filter_by(
+            node_id=node.id, failed=False, finalized=True
+        ).all()

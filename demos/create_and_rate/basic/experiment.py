@@ -57,8 +57,8 @@ class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
     def show_trial(self, experiment, participant):
         assert self.trial_maker.target_selection_method == "one"
 
-        assert len(self.var.targets) == 1
-        target = self.var.targets[0]
+        assert len(self.targets) == 1
+        target = self.targets[0]
         creation = self.get_target_answer(target)
         return ModularPage(
             "rate_trial",
@@ -82,8 +82,8 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
         SelectTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def show_trial(self, experiment, participant):
-        eids = [self.get_eid(target) for target in self.var.targets]
-        answers = [self.get_target_answer(target) for target in self.var.targets]
+        eids = [self.get_eid(target) for target in self.targets]
+        answers = [self.get_target_answer(target) for target in self.targets]
         return ModularPage(
             "select_trial",
             animal_prompt(
