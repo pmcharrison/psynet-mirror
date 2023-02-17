@@ -216,7 +216,9 @@ class AudioPrompt(Prompt):
         html = (
             super().visualize(trial)
             + "\n"
-            + tags.audio(tags.source(src=src), id="visualize-audio-prompt", controls=True).render()
+            + tags.audio(
+                tags.source(src=src), id="visualize-audio-prompt", controls=True
+            ).render()
         )
         return html
 
@@ -347,7 +349,9 @@ class VideoPrompt(Prompt):
         html = (
             super().visualize(trial)
             + "\n"
-            + tags.video(tags.source(src=src), id="visualize-video-prompt", controls=True).render()
+            + tags.video(
+                tags.source(src=src), id="visualize-video-prompt", controls=True
+            ).render()
         )
         return html
 
@@ -444,10 +448,14 @@ class ImagePrompt(Prompt):
         }
 
     def update_events(self, events):
-        events["promptStart"] = Event(is_triggered_by="trialStart", delay=self.show_after)
+        events["promptStart"] = Event(
+            is_triggered_by="trialStart", delay=self.show_after
+        )
 
         if self.hide_after is not None:
-            events["promptEnd"] = Event(is_triggered_by="promptStart", delay=self.hide_after)
+            events["promptEnd"] = Event(
+                is_triggered_by="promptStart", delay=self.hide_after
+            )
 
 
 class ColorPrompt(Prompt):
@@ -811,7 +819,9 @@ class CheckboxControl(OptionControl):
                     id=choice,
                     name=self.name,
                     value=choice,
-                    checked=(True if answer is not None and choice in answer else False),
+                    checked=(
+                        True if answer is not None and choice in answer else False
+                    ),
                 )
                 tags.span(label)
                 tags.br()
@@ -872,7 +882,8 @@ class DropdownControl(OptionControl):
         self.default_text = default_text
 
         self.dropdown = [
-            DropdownOption(value=value, text=text) for value, text in zip(self.choices, self.labels)
+            DropdownOption(value=value, text=text)
+            for value, text in zip(self.choices, self.labels)
         ]
 
     macro = "dropdown"
@@ -1131,7 +1142,9 @@ class RadioButtonControl(OptionControl):
                 RadioButton(
                     name=self.name,
                     id_="free_text",
-                    label=Markup(f"<input id='free_text_input' {placeholder_text} type='text'>"),
+                    label=Markup(
+                        f"<input id='free_text_input' {placeholder_text} type='text'>"
+                    ),
                     style=self.style,
                 )
             )
@@ -1160,7 +1173,9 @@ class RadioButtonControl(OptionControl):
 
 
 class RadioButton:
-    def __init__(self, id_, *, name, label, start_disabled=False, style="cursor: pointer"):
+    def __init__(
+        self, id_, *, name, label, start_disabled=False, style="cursor: pointer"
+    ):
         self.id = id_
         self.name = name
         self.label = label
@@ -1532,7 +1547,9 @@ class AudioMeterControl(Control):
                         3,
                         0.001,
                     ),
-                    Slider("decay-low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
+                    Slider(
+                        "decay-low", "Decay (too low)", self.decay["low"], 0, 3, 0.001
+                    ),
                     Slider(
                         "threshold-high",
                         "Threshold (high)",
@@ -1565,7 +1582,9 @@ class AudioMeterControl(Control):
                         5,
                         0.001,
                     ),
-                    Slider("warn-on-clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1),
+                    Slider(
+                        "warn-on-clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1
+                    ),
                     Slider(
                         "msg-duration-high",
                         "Message duration (high)",
@@ -1614,7 +1633,9 @@ class AudioMeterControl(Control):
         )
 
     def update_events(self, events):
-        events["audioMeterMinimalTime"] = Event(is_triggered_by="trialStart", delay=self.min_time)
+        events["audioMeterMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.min_time
+        )
         events["submitEnable"].add_trigger("audioMeterMinimalTime")
 
     def get_bot_response(self, experiment, bot, page, prompt):
@@ -1751,7 +1772,9 @@ class SliderControl(Control):
         self.template_args = template_args
         self.minimal_time = minimal_time
 
-        self.snap_values = self.format_snap_values(snap_values, min_value, max_value, n_steps)
+        self.snap_values = self.format_snap_values(
+            snap_values, min_value, max_value, n_steps
+        )
 
         js_vars = {}
         js_vars["snap_values"] = self.snap_values
@@ -1806,8 +1829,12 @@ class SliderControl(Control):
         }
 
     def update_events(self, events):
-        events["sliderMinimalTime"] = Event(is_triggered_by="trialStart", delay=self.minimal_time)
-        events["submitEnable"].add_triggers("sliderMinimalInteractions", "sliderMinimalTime")
+        events["sliderMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.minimal_time
+        )
+        events["submitEnable"].add_triggers(
+            "sliderMinimalInteractions", "sliderMinimalTime"
+        )
 
     def get_bot_response(self, experiment, bot, page, prompt):
         import numpy as np
@@ -1818,7 +1845,9 @@ class SliderControl(Control):
                 n_candidates = self.snap_values
             else:
                 n_candidates = self.n_steps
-            candidates = list(np.linspace(self.min_value, self.max_value, num=n_candidates))
+            candidates = list(
+                np.linspace(self.min_value, self.max_value, num=n_candidates)
+            )
         else:
             candidates = self.snap_values
         return random.sample(candidates, 1)[0]
@@ -1972,7 +2001,9 @@ class MediaSliderControl(SliderControl):
                 ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
                 IDs_media.append(key)
             else:
-                raise NotImplementedError("Currently we only support batch files or single files")
+                raise NotImplementedError(
+                    "Currently we only support batch files or single files"
+                )
         IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
         if not any([i in IDs_media for i in IDs_media_locations]):
@@ -2000,7 +2031,7 @@ class MediaSliderControl(SliderControl):
         self.autoplay = autoplay
         self.disable_while_playing = disable_while_playing
         self.snap_values = snap_values
-        self.multimedia = slider_media
+        self.slider_media = slider_media
         self.js_vars["modality"] = modality
         self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
@@ -2509,7 +2540,9 @@ class VideoRecordControl(RecordControl):
 
         return BotResponse(
             raw_answer=None,
-            blobs={f"{key}Recording": Blob(files[key]) for key in self.recording_sources},
+            blobs={
+                f"{key}Recording": Blob(files[key]) for key in self.recording_sources
+            },
         )
 
     def get_bot_response_files(self, experiment, bot, page, prompt):
@@ -2598,7 +2631,9 @@ class VideoSliderControl(Control):
         return html
 
     def update_events(self, events):
-        events["sliderMinimalTime"] = Event(is_triggered_by="trialStart", delay=self.minimal_time)
+        events["sliderMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.minimal_time
+        )
         events["submitEnable"].add_triggers(
             "sliderMinimalTime",
         )
