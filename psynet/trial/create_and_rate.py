@@ -4,7 +4,10 @@ from random import sample
 import numpy as np
 from dallinger import db
 from dallinger.transformations import Transformation
+from sqlalchemy import Column
+from sqlalchemy.orm import declared_attr, deferred
 
+from psynet.field import PythonObject
 from psynet.trial import ChainNode
 from psynet.trial.chain import ChainTrial
 from psynet.utils import get_logger
@@ -39,9 +42,12 @@ class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
         self.register_transformations(targets)
 
     # __table_args__ = {"extend_existing": True}
-    # @declared_attr
-    # def targets(cls):
-    #     return deferred(Column(PythonObject))
+    @declared_attr
+    def targets(cls):
+        # See the mixin section of https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
+        # return deferred(Column(PythonObject))
+        return deferred(cls.__table__.c.get("targets", Column(PythonObject)))
+
     # def __init__(self, experiment, node, participant, *args, **kwargs):
     #     self.targets = self.get_targets()
 
