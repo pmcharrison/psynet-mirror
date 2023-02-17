@@ -12,14 +12,20 @@ authors = [
   { name="Raja Marjieh", email="raja.marjieh@princeton.edu" },
   { name="Nori Jacoby", email="nori.jacoby@ae.mpg.de" }
 ]
+maintainers = [
+  {name = "Peter Harrison", email = "pmch2@cam.ac.uk"}
+]
 license = {file = "LICENSE"}
 description = "PsyNet – The online human behaviour lab of the future."  # A framework for running advanced psychological experiments
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "Framework :: Flask",
     "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
 ]
 
 dependencies = [
