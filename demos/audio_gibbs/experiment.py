@@ -65,8 +65,8 @@ class CustomNode(AudioGibbsNode):
     granularity = GRANULARITY
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-    def synth_function(self, vector, output_path):
-        custom_synth.synth_stimulus(vector, output_path)
+    def synth_function(self, vector, output_path, chain_definition):
+        custom_synth.synth_stimulus(vector, output_path, chain_definition)
 
 
 class CustomTrialMaker(AudioGibbsTrialMaker):

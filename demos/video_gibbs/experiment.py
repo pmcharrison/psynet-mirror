@@ -44,9 +44,7 @@ GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = (
-    True  # set this to False if you deploy online, so that the stimuli will be stored in S3
-)
+psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
 
 NUM_CHAINS_PER_EXPERIMENT = 2
@@ -75,7 +73,7 @@ class CustomNode(VideoGibbsNode):
     granularity = GRANULARITY
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-    def synth_function(self, vector, output_path):
+    def synth_function(self, vector, output_path, chain_definition):
         custom_synth.synth_stimulus(vector, output_path, {})
 
 
