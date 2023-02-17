@@ -1,16 +1,11 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
-import math
-import urllib
-from random import sample
-
 import numpy as np
-from flask import Markup
 
 import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
 from psynet.consent import NoConsent
-from psynet.modular_page import ImagePrompt, ModularPage
+from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline
 from psynet.trial.audio_gibbs import (
@@ -19,15 +14,23 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsTrialMaker,
 )
 from psynet.trial.create_and_rate import (
-    CreateAndRateNode,
-    CreateAndRateTrial,
-    CreateAndRateTrialMaker,
-    RateControl,
-    SelectControl,
+    CreateAndRateNodeMixin,
+    CreateAndRateTrialMakerMixin,
+    CreateTrialMixin,
+    RateTrialMixin,
+    SelectTrialMixin,
 )
+from psynet.trial.imitation_chain import ImitationChainTrial
 from psynet.utils import get_logger
 
 from . import custom_synth
+from .utils import (
+    find_nearest,
+    get_prompt,
+    get_target_gibbs_answer,
+    main_experiment_urls,
+    prepare_audio_events,
+)
 
 # Note: parselmouth must be installed with pip install praat-parselmouth
 
@@ -48,97 +51,51 @@ DEBUG = False
 psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 AUDIO_DURATION = 0.75
 
-
-def readlines(filename):
-    with open(filename, "r") as f:
-        lines = f.readlines()
-    return [line.replace("\n", "") for line in lines]
+RATE_MODE = "select"  # 'rate' or 'select'
 
 
-# Make sure all images are used
-main_experiment_urls = [
-    "static/" + urllib.parse.quote(file) for file in readlines("robot_names.txt")
-]
-
-NUM_TRIALS_PER_PARTICIPANT = 3
-NUM_ITERATIONS_PER_CHAIN = 2
-
-INCLUDE_PREVIOUS_ITERATION = True
-CREATE_TRIALS = 1
-RATE_TRIALS = 1 + INCLUDE_PREVIOUS_ITERATION
-TRIALS_PER_NODE = CREATE_TRIALS + RATE_TRIALS
-
-
-def find_nearest(array, value):
-    idx = np.searchsorted(array, value, side="left")
-    if idx > 0 and (
-        idx == len(array)
-        or math.fabs(value - array[idx - 1]) < math.fabs(value - array[idx])
-    ):
-        return array[idx - 1]
-    else:
-        return array[idx]
-
-
-class CustomCreateAndRateTrial(AudioGibbsTrial, CreateAndRateTrial):
+class CreateTrial(AudioGibbsTrial, CreateTrialMixin):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
     minimal_time = 3.0
     time_estimate = 5.0
 
-    def get_prompt(self, experiment, participant, is_rate_trial=False):
-        prompt = """
-                <style>
-                    #prompt-text {
-                        text-align: center;
-                        font-size: 1.5em;
-                    }
-                    #prompt-image, .prompt_img {
-                        image-rendering: -moz-crisp-edges; /* Firefox */
-                        image-rendering: -o-crisp-edges; /* Opera */
-                        image-rendering: -webkit-optimize-contrast; /* Webkit (non-standard naming) */
-                        image-rendering: crisp-edges;
-                        -ms-interpolation-mode: nearest-neighbor; /* IE (non-standard property) */
-                        width: 100%;
-                        max-width: 350px;
-                        max-height: 350px;
-                    }
-                </style>
-                """
-        if is_rate_trial:
-            prompt += "How well does the voice match the robot?"
-        else:
-            prompt += (
-                "Adjust the slider to make the voice match the robot as best as you can"
-            )
-        return ImagePrompt(self.context["img_url"], Markup(prompt), width="", height="")
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        CreateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
-    @staticmethod
-    def get_previous_iteration(trial):
-        definition = trial.origin.definition
-        vector = definition["vector"]
-        active_index = definition["active_index"]
-        return vector[active_index]
+    def get_prompt(self, experiment, participant):
+        return get_prompt(self)
 
-    def show_create_trial(self, experiment, participant):
-        return super().show_trial(experiment, participant)
 
-    def show_rate_trial(self, experiment, participant):
-        ranges = RANGE
-        possible_values = list(np.linspace(ranges[0], ranges[1], GRANULARITY))
-        creations_to_validate = self.var.get("creations_to_validate")
-        assert len(creations_to_validate) == 1
-        observation = creations_to_validate[0]
-        slider_idx = possible_values.index(find_nearest(possible_values, observation))
+class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
+    time_estimate = 5
+
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
+
+    def get_target_answer(self, target):
+        return get_target_gibbs_answer(target)
+
+    def show_trial(self, experiment, participant):
+        assert len(self.targets) == 1
+        target = self.targets[0]
+        # in gsp in each node creators listen to the same stimulus, so we can do this
+        gsp_trial = self.trial_maker.get_finished_creations(self.node)[0]
+        creation = self.get_target_answer(target)
+
+        possible_values = list(np.linspace(RANGE[0], RANGE[1], GRANULARITY))
+        slider_idx = possible_values.index(find_nearest(possible_values, creation))
         slider_key = f"slider_stimulus_{slider_idx}"
-        events, progress_display = self.autoplay_media(
-            "audio", [slider_key], media_duration=AUDIO_DURATION
+        events, progress_display = prepare_audio_events(
+            [slider_key], expected_duration=AUDIO_DURATION
         )
         return ModularPage(
             "rating",
-            self.get_prompt(experiment, participant, is_rate_trial=True),
-            control=RateControl(
+            get_prompt(self),
+            control=PushButtonControl(
                 choices=[5, 4, 3, 2, 1],
                 labels=[
                     "Excellent match",
@@ -149,63 +106,60 @@ class CustomCreateAndRateTrial(AudioGibbsTrial, CreateAndRateTrial):
                 ],
                 arrange_vertically=False,
             ),
-            media=MediaSpec(audio={"batch": self.media.audio["slider_stimuli"]}),
+            media=MediaSpec(audio={"batch": gsp_trial.media.audio["slider_stimuli"]}),
             events=events,
             progress_display=progress_display,
-            time_estimate=5,  # TODO
+            time_estimate=5,
         )
+
+
+class SelectTrial(ImitationChainTrial, SelectTrialMixin):
+    time_estimate = 5
+
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        SelectTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
+
+    def get_target_answer(self, target):
+        return get_target_gibbs_answer(target)
 
     def show_trial(self, experiment, participant):
-        is_creator = super().is_create_trial()
-        if is_creator:
-            return self.show_create_trial(experiment, participant)
-        else:
+        assert len(self.targets) == self.trial_maker.num_rate_stimuli
+        answers = [self.get_target_answer(target) for target in self.targets]
+        possible_values = list(np.linspace(RANGE[0], RANGE[1], GRANULARITY))
 
-            return self.show_rate_trial(experiment, participant)
-
-
-class CustomCreateAndSelectTrial(CustomCreateAndRateTrial):
-    def show_rate_trial(self, experiment, participant):
-        ranges = RANGE
-        possible_values = list(np.linspace(ranges[0], ranges[1], GRANULARITY))
-        creations_to_validate = self.var.get("creations_to_validate")
-        trial_maker = self.trial_maker
-        expected_creations_to_validate = trial_maker.num_creators + int(
-            trial_maker.include_previous_iteration
-        )
-        assert len(creations_to_validate) == expected_creations_to_validate
         slider_keys = []
-        for observation in creations_to_validate:
+        for observation in answers:
             slider_idx = possible_values.index(
                 find_nearest(possible_values, observation)
             )
             slider_key = f"slider_stimulus_{slider_idx}"
             slider_keys.append(slider_key)
 
-        slider_keys = list(set(slider_keys))  # remove duplicates
-        reorder_list = sample(
-            list(range(expected_creations_to_validate)), expected_creations_to_validate
+        events, progress_display = prepare_audio_events(
+            slider_keys, expected_duration=AUDIO_DURATION
         )
-        self.var.set("reorder_list", reorder_list)
-        events, progress_display = self.autoplay_media(
-            "audio",
-            slider_keys,
-            media_duration=AUDIO_DURATION,
-            reorder_list=reorder_list,
-        )
+
+        gsp_trial = self.trial_maker.get_finished_creations(self.node)[0]
+
+        # practical for debugging, but in real experiments you should rather do something like this:
+        labels = [f"Recording {i + 1}" for i in range(len(self.targets))]
+        eids = [self.get_eid(target) for target in self.targets]
 
         return ModularPage(
             "selection",
-            self.get_prompt(experiment, participant, is_rate_trial=True),
-            control=SelectControl(reorder_list=reorder_list, arrange_vertically=False),
-            media=MediaSpec(audio={"batch": self.media.audio["slider_stimuli"]}),
+            get_prompt(self),
+            control=PushButtonControl(
+                choices=eids, labels=labels, arrange_vertically=False
+            ),
+            media=MediaSpec(audio={"batch": gsp_trial.media.audio["slider_stimuli"]}),
             events=events,
             progress_display=progress_display,
-            time_estimate=5,  # TODO
+            time_estimate=len(self.targets) * AUDIO_DURATION + 2,
         )
 
 
-class CustomNode(AudioGibbsNode, CreateAndRateNode):
+class CreateAndRateNode(AudioGibbsNode, CreateAndRateNodeMixin):
     vector_length = DIMENSIONS
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
@@ -213,25 +167,49 @@ class CustomNode(AudioGibbsNode, CreateAndRateNode):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        CreateAndRateNode.__init__(self)
+        CreateAndRateNodeMixin.__init__(self)
 
     def synth_function(self, vector, output_path):
         custom_synth.synth_stimulus(vector, output_path)
 
     def summarize_trials(self, trials: list, experiment, participant):
-        creation = super().get_next_creation(trials)
-        if isinstance(creation, CustomNode):
+        winning_target = CreateAndRateNodeMixin.summarize_trials(self)
+        if isinstance(winning_target, CreateAndRateNode):
             # is previous iteration
-            return creation.definition
+            return winning_target.definition
         else:
             active_index = trials[0].active_index
             vector = trials[0].updated_vector.copy()
-            vector[active_index] = creation.answer
+            vector[active_index] = winning_target.answer
             return {"vector": vector, "active_index": active_index}
+
+    def create_initial_seed(self, experiment, participant):
+        return super().create_initial_seed(experiment, participant)
+
+    def create_definition_from_seed(self, seed, experiment, participant):
+        return super().create_definition_from_seed(seed, experiment, participant)
+
+
+class CustomCreateAndRateTrialMaker(AudioGibbsTrialMaker, CreateAndRateTrialMakerMixin):
+    def __init__(self, **kwargs):
+        trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
+            kwargs, AudioGibbsTrialMaker, CreateAndRateTrialMakerMixin
+        )
+        CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
+        super().__init__(**trial_maker_kwargs)
+
+    def finalize_trial(self, answer, trial, experiment, participant):
+        answer = self.finalize_create_and_rate_trial(
+            self, answer, trial, experiment, participant
+        )
+        return super().finalize_trial(answer, trial, experiment, participant)
+
+    def get_trial_class(self, node, participant, experiment):
+        return self.get_role(node, participant, experiment)
 
 
 start_nodes = [
-    CustomNode(
+    CreateAndRateNode(
         context={
             "img_url": url,
         }
@@ -240,54 +218,40 @@ start_nodes = [
 ]
 
 
-class CustomCreateAndRateTrialMaker(AudioGibbsTrialMaker, CreateAndRateTrialMaker):
-    num_creators = CREATE_TRIALS
-    num_raters = RATE_TRIALS
+def make_trial_maker(rate_mode):
+    num_trials_per_participant = 3
+    num_iterations_per_chain = 2
+
     include_previous_iteration = True
-
-    def __init__(self, *args, **kwargs):
-        kwargs["trials_per_node"] = self.num_creators + self.num_raters
-        super().__init__(*args, **kwargs)
-        CreateAndRateTrialMaker.__init__(self, id_=kwargs["id_"])
-
-    def finalize_trial(self, answer, trial, experiment, participant):
-        self.store_visited_networks(trial, participant)
-
-    def find_networks(self, participant, experiment):
-        # Obtain available networks
-        networks = super().find_networks(
-            participant, experiment, return_one_network=False
-        )
-        return super().filter_networks(
-            networks, participant, allow_revisit_with_different_role=True
-        )
-
-
-class CustomCreateAndSelectTrialMaker(CustomCreateAndRateTrialMaker):
-    rate_mode = "select"
-
-
-def make_trial_maker(paradigm_type):
-    if paradigm_type == "create_and_rate":
+    if rate_mode == "rate":
         nodes = [start_nodes[0]]
-        trial_class = CustomCreateAndRateTrial
-        trial_maker_class = CustomCreateAndRateTrialMaker
-    elif paradigm_type == "create_and_select":
+        rater_class = SingleRateTrial
+    elif rate_mode == "select":
         nodes = [start_nodes[1]]
-        trial_class = CustomCreateAndSelectTrial
-        trial_maker_class = CustomCreateAndSelectTrialMaker
+        rater_class = SelectTrial
     else:
         raise ValueError("Invalid type")
 
-    return trial_maker_class(
-        id_=paradigm_type + "_trial_maker",
-        trial_class=trial_class,
-        node_class=CustomNode,
+    target_selection_method = "all" if rate_mode == "select" else "one"
+    _id = rate_mode + "_trial_maker"
+
+    return CustomCreateAndRateTrialMaker(
+        num_creators=1,
+        num_raters=1 + include_previous_iteration,
+        node_class=CreateAndRateNode,
+        creator_class=CreateTrial,
+        rater_class=rater_class,
+        include_previous_iteration=include_previous_iteration,
+        rate_mode=rate_mode,
+        target_selection_method=target_selection_method,
+        verbose=True,
+        # GSP trial maker parameters
+        id_=_id,
         chain_type="across",
         start_nodes=nodes,
-        expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
-        max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
-        max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
+        expected_trials_per_participant=num_trials_per_participant,
+        max_trials_per_participant=num_trials_per_participant,
+        max_nodes_per_chain=num_iterations_per_chain,
         chains_per_experiment=None,  # set to None if chain_type="within"
         balance_across_chains=True,
         check_performance_at_end=True,
@@ -312,7 +276,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        make_trial_maker("create_and_rate"),
-        # make_trial_maker("create_and_select"),
+        make_trial_maker(RATE_MODE),
         SuccessfulEndPage(),
     )
