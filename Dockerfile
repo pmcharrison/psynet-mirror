@@ -8,7 +8,7 @@ FROM ghcr.io/dallinger/dallinger:9.4.2
 RUN mkdir /PsyNet
 WORKDIR /PsyNet
 
-COPY setup.py setup.py
+COPY pyproject.toml pyproject.toml
 
 RUN apt update
 RUN apt -f -y install curl redis-server unzip libpq-dev
