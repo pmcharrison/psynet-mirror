@@ -13,7 +13,7 @@ from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.create_and_rate import (
     CreateAndRateNode,
-    CreateAndRateTrialmakerMixin,
+    CreateAndRateTrialMakerMixin,
     CreateTrialMixin,
     RateTrialMixin,
 )
@@ -144,12 +144,12 @@ class RateTrial(ImitationChainTrial, RateTrialMixin):
 start_nodes = [CreateAndRateNode(context=d) for d in dummy_data]
 
 
-class CreateAndRateTrialmaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
     def __init__(self, **kwargs):
         trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-            kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
+            kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
         )
-        CreateAndRateTrialmakerMixin.__init__(self, **mixin_kwargs)
+        CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
         super().__init__(**trial_maker_kwargs)
 
     def finalize_trial(self, answer, trial, experiment, participant):
@@ -177,7 +177,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         instructions,
-        CreateAndRateTrialmaker(
+        CreateAndRateTrialMaker(
             num_creators=CREATE_TRIALS,
             num_raters=RATE_TRIALS,
             node_class=CreateAndRateNode,

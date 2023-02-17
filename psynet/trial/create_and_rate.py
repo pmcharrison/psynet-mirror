@@ -57,7 +57,7 @@ class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
     def get_all_targets(self):
         trial_maker = self.trial_maker
         shuffle = trial_maker.randomize_target_presentation_order
-        assert issubclass(trial_maker.__class__, CreateAndRateTrialmakerMixin)
+        assert issubclass(trial_maker.__class__, CreateAndRateTrialMakerMixin)
         creator_class = trial_maker.creator_class
         targets = creator_class.query.filter_by(
             node_id=self.node_id, failed=False, finalized=True
@@ -224,7 +224,7 @@ class CreateAndRateNode(ChainNode, CreateAndRateNodeMixin):
         return seed
 
 
-class CreateAndRateTrialmakerMixin(object):
+class CreateAndRateTrialMakerMixin(object):
     def __init__(
         self,
         num_creators,

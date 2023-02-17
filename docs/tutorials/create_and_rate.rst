@@ -146,6 +146,33 @@ The trial maker can look like this:
        def get_trial_class(self, node, participant, experiment):
            return self.get_role(node, participant, experiment)
 
+It is also possible to customize the behaviour. For example, say we want to separate raters and creators into two
+different groups which is set in ``participant.var.is_creator``. We can then implement the following:
+
+::
+
+   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+       def __init__(self, **kwargs):
+           trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
+               kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
+           )
+           CreateAndRateTrialmakerMixin.__init__(self, **mixin_kwargs)
+           super().__init__(**trial_maker_kwargs)
+
+       def finalize_trial(self, answer, trial, experiment, participant):
+           answer = self.finalize_create_and_rate_trial(self, trial)
+           return super().finalize_trial(answer, trial, experiment, participant)
+
+      def get_trial_class(self, node, participant, experiment):
+            proposed_role_class = self.get_role(node, participant, experiment)
+            if participant.var.is_creator:
+                if proposed_role_class == self.creator_class:
+                    return self.creator_class
+            else:
+                if proposed_role_class == self.rater_class:
+                    return self.rater_class
+            return None
+
 Let’s now put all pieces together:
 
 ::
