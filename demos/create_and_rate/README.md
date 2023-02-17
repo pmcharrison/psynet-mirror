@@ -1,6 +1,6 @@
 # Create and Rate demos
 
-Here is a list of demos that show the create and rate paradigm in action:
+Here is a list of demos that show the Create and Rate paradigm in action:
 
 | Name          | Description                                                                                                                                                                                                          | Type of creation | Type of rating                                                             | Number of ratings per creation | Number of iterations | Role separation | Include previous iteration in rating | Allow revisit networks                                       |
 |---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|----------------------------------------------------------------------------|--------------------------------|----------------------|-----------------|--------------------------------------|--------------------------------------------------------------|
@@ -8,3 +8,5 @@ Here is a list of demos that show the create and rate paradigm in action:
 | `robot_voice` | The audio GSP example ported to create and rate. Creators need to create a voice for a robot, raters pick which voice best matches the robot.                                                                        | Audio GSP        | Select (`PushButtonControl`) or Rate on Likert scale (`PushButtonControl`) | single                         | > 1                  | ❌               | ✅                                    | To speed up the process previous creators can become raters. |
 | `gap`         |                                                                                                                                                                                                                      | Voice recording  | Select, forced choice (`PushButtonControl`)                                | single                         | > 1                  | ✅               | ✅                                    | Not recommended                                              |
 
+
+Also check out the tutorial in the documentation.
