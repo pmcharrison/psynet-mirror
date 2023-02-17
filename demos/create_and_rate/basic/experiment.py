@@ -55,7 +55,7 @@ class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
         RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def show_trial(self, experiment, participant):
-        assert self.trial_maker.target_selection_method == "load_balanced"
+        assert self.trial_maker.target_selection_method == "one"
 
         assert len(self.var.targets) == 1
         target = self.var.targets[0]
@@ -124,7 +124,7 @@ def get_trial_maker(option):
     num_raters = 2
     rate_mode = "rate"
     include_previous_iteration = True
-    target_selection_method = "load_balanced"
+    target_selection_method = "one"
 
     if option == "include_previous_iteration":
         num_creators = 1

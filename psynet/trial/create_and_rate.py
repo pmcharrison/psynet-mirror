@@ -115,8 +115,8 @@ class RateTrialMixin(RateOrSelectTrialMixin):
             return self.get_all_targets()
         # elif target_selection_method == 'random':
         #     return self.get_random_target()
-        elif target_selection_method == "load_balanced":
-            return self.get_load_balanced_target()
+        elif target_selection_method == "one":
+            return self.get_one_target()
         else:
             raise NotImplementedError(
                 f"Unknown rated_targets value: {target_selection_method}"
@@ -169,7 +169,7 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         creation_idx = all_creation_eids.index(creation_eid_with_least_ratings)
         return all_creation_trials[creation_idx]
 
-    def get_load_balanced_target(self):
+    def get_one_target(self):
         return [self.select_creation_with_least_ratings(self.get_all_targets())]
 
 
@@ -255,7 +255,7 @@ class CreateAndRateTrialmakerMixin(object):
         start_nodes,
         rate_mode="rate",
         include_previous_iteration=False,
-        target_selection_method="load_balanced",
+        target_selection_method="one",
         verbose=False,
     ):
         self.assert_is_positive_integer(num_creators)
@@ -315,7 +315,7 @@ class CreateAndRateTrialmakerMixin(object):
                 self.num_rate_stimuli > 1
             ), '`num_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
 
-        assert target_selection_method in ["load_balanced", "random", "all"]
+        assert target_selection_method in ["one", "random", "all"]
         self.target_selection_method = target_selection_method
         self.verbose = verbose
 
