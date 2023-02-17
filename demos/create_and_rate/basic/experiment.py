@@ -97,7 +97,7 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
         )
 
 
-class CreateAndRateTrialmaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
     def __init__(self, **kwargs):
         trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
             kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
@@ -144,7 +144,7 @@ def get_trial_maker(option):
         CreateAndRateNode(context={"img_url": "static/dog.jpg"}, seed=seed_definition)
     ]
 
-    return CreateAndRateTrialmaker(
+    return CreateAndRateTrialMaker(
         num_creators=num_creators,
         num_raters=num_raters,
         node_class=CreateAndRateNode,
