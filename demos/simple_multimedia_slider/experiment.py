@@ -13,7 +13,11 @@ N_VIDEO_LOCATIONS = 17
 
 
 def print_dict(x, **kwargs):
-    return "<pre style='overflow: scroll; max-height: 200px'>" + json.dumps(x, indent=4) + "</pre>"
+    return (
+        "<pre style='overflow: scroll; max-height: 200px'>"
+        + json.dumps(x, indent=4)
+        + "</pre>"
+    )
 
 
 def new_example(description, **kwargs):
@@ -47,9 +51,9 @@ def new_example(description, **kwargs):
     else:
         raise NotImplementedError(f"Modality {kwargs['modality']} not implemented")
     prompt = Markup(
-        f"""
-        {escape(description)}
-        {print_dict(kwargs)}
+        escape(description)
+        + print_dict(kwargs)
+        + """
         <p>
             Raw slider value is <strong id="slider-raw-value">NA</strong> <br>
             Output slider value is <strong id="slider-output-value">NA</strong>
@@ -59,22 +63,22 @@ def new_example(description, **kwargs):
             Just played <strong id="slider-audio">NA</strong>
         </p>
         <script>
-            update_value = function() {{
+            update_value = function() {
                 document.getElementById("slider-audio").innerHTML = slider.audio;
                 document.getElementById("slider-raw-value").innerHTML = parseFloat(slider.getAttribute("raw-value")).toFixed(2);
                 document.getElementById("slider-output-value").innerHTML = parseFloat(slider.getAttribute("output-value")).toFixed(2);
                 document.getElementById("phase").innerHTML = parseFloat(slider.getAttribute("phase")).toFixed(2);
                 document.getElementById("random-wrap").innerHTML = slider.getAttribute("random-wrap");
-            }};
+            };
             psynet.trial.onEvent("trialConstruct", () => setInterval(update_value, 100));
 
         </script>
         <style>
-        .video {{
+        .video {
             width:256px;
             height: 256px;
             margin: 20px auto;
-        }}
+        }
         </style>
         """
     )
