@@ -1109,7 +1109,7 @@ class ManagedAsset(Asset):
         return True
 
     def after_deposit(self):
-        logger.info("Calling after_deposit.")
+        # logger.info("Calling after_deposit.")
         if self.trial:
             logger.info(
                 "Calling check_if_can_run_async_post_trial as part of after_deposit."
@@ -2440,7 +2440,7 @@ class AssetStorage:
         host_path: str,
         delete_input: bool,  # , db_commit: bool = False
     ):
-        logger.info("Calling _call_receive_deposit...")
+        # logger.info("Calling _call_receive_deposit...")
         # We include this for compatibility with threaded dispatching.
         # Without it, SQLAlchemy complains that the object has become disconnected
         # from the SQLAlchemy session. This command 'merges' it back into the session.
