@@ -25,7 +25,7 @@ up with a description of that animal:
    from psynet.modular_page import ImagePrompt, ModularPage, TextControl, PushButtonControl
    from psynet.trial.create_and_rate import (
        CreateAndRateNode,
-       CreateAndRateTrialmakerMixin,
+       CreateAndRateTrialMakerMixin,
        CreateTrialMixin,
        RateTrialMixin,
    )
@@ -123,7 +123,7 @@ Optionally, you can set
 
 The TrialMaker class needs to implement:
 
-- the initialization not only setting up the creation trial maker but also the ``CreateAndRateTrialmakerMixin``
+- the initialization not only setting up the creation trial maker but also the ``CreateAndRateTrialMakerMixin``
 - ``finalize_trial()`` which makes sure that the rating trial answers are stored in the correct format, and
 - ``get_trial_class()`` which assigns the appropriate class to raters or creators
 
@@ -131,16 +131,16 @@ The trial maker can look like this:
 
 ::
 
-   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
        def __init__(self, **kwargs):
            trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-               kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
+               kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
            )
-           CreateAndRateTrialmakerMixin.__init__(self, **mixin_kwargs)
+           CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
            super().__init__(**trial_maker_kwargs)
 
        def finalize_trial(self, answer, trial, experiment, participant):
-           answer = self.finalize_create_and_rate_trial(self, trial)
+           answer = self.finalize_create_and_rate_trial(self, answer, trial, experiment, participant)
            return super().finalize_trial(answer, trial, experiment, participant)
 
        def get_trial_class(self, node, participant, experiment):
@@ -151,16 +151,16 @@ different groups which is set in ``participant.var.is_creator``. We can then imp
 
 ::
 
-   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
        def __init__(self, **kwargs):
            trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-               kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
+               kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
            )
-           CreateAndRateTrialmakerMixin.__init__(self, **mixin_kwargs)
+           CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
            super().__init__(**trial_maker_kwargs)
 
        def finalize_trial(self, answer, trial, experiment, participant):
-           answer = self.finalize_create_and_rate_trial(self, trial)
+           answer = self.finalize_create_and_rate_trial(self, answer, trial, experiment, participant)
            return super().finalize_trial(answer, trial, experiment, participant)
 
       def get_trial_class(self, node, participant, experiment):
@@ -185,7 +185,7 @@ Let’s now put all pieces together:
    from psynet.timeline import Timeline
    from psynet.trial.create_and_rate import (
        CreateAndRateNode,
-       CreateAndRateTrialmakerMixin,
+       CreateAndRateTrialMakerMixin,
        CreateTrialMixin,
        RateTrialMixin,
    )
@@ -242,16 +242,16 @@ Let’s now put all pieces together:
            )
 
 
-   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
        def __init__(self, **kwargs):
            trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-               kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
+               kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
            )
-           CreateAndRateTrialmakerMixin.__init__(self, **mixin_kwargs)
+           CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
            super().__init__(**trial_maker_kwargs)
 
        def finalize_trial(self, answer, trial, experiment, participant):
-           answer = self.finalize_create_and_rate_trial(self, trial)
+           answer = self.finalize_create_and_rate_trial(self, answer, trial, experiment, participant)
            return super().finalize_trial(answer, trial, experiment, participant)
 
        def get_trial_class(self, node, participant, experiment):
