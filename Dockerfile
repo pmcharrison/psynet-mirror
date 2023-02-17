@@ -9,6 +9,7 @@ RUN mkdir /PsyNet
 WORKDIR /PsyNet
 
 COPY pyproject.toml pyproject.toml
+COPY LICENSE LICENSE
 
 RUN apt update
 RUN apt -f -y install curl redis-server unzip libpq-dev
