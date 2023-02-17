@@ -106,7 +106,9 @@ class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialmakerM
         super().__init__(**trial_maker_kwargs)
 
     def finalize_trial(self, answer, trial, experiment, participant):
-        answer = self.finalize_create_and_rate_trial(self, trial)
+        answer = self.finalize_create_and_rate_trial(
+            self, answer, trial, experiment, participant
+        )
         return super().finalize_trial(answer, trial, experiment, participant)
 
     def get_trial_class(self, node, participant, experiment):

@@ -11,13 +11,11 @@ from psynet.consent import NoConsent
 from psynet.modular_page import Control, ModularPage, Prompt
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial import ChainNode
 from psynet.trial.create_and_rate import (
-    CREATOR_KEY,
-    ROLE_KEY,
     CreateAndRateNode,
-    CreateAndRateTrial,
-    CreateAndRateTrialMaker,
+    CreateAndRateTrialmakerMixin,
+    CreateTrialMixin,
+    RateTrialMixin,
 )
 from psynet.trial.imitation_chain import ImitationChainTrial, ImitationChainTrialMaker
 from psynet.utils import get_logger
@@ -39,7 +37,25 @@ MAX_TIME = 60 * 5  # 5 minutes
 AVG_TIME_ESTIMATE = 20
 
 
-class CreatorPrompt(Prompt):
+def get_prompt_args(node):
+    context = node.context
+    trial_maker = node.trial_maker
+    predicted_rules = [
+        t.answer["rule"] for t in trial_maker.get_finished_creations(node)
+    ]
+    return (
+        context["positives"],
+        context["negatives"],
+        predicted_rules,
+        node.id,
+        context["rule"],
+    )
+
+
+###################################################
+# Creator
+###################################################
+class CreatePrompt(Prompt):
     macro = "creator_prompt"
     external_template = "custom-macros.html"
 
@@ -69,119 +85,84 @@ class CreatorPrompt(Prompt):
         }
 
 
-class CreatorControl(Control):
+class CreateControl(Control):
     macro = "creator_control"
     external_template = "custom-macros.html"
 
-    def get_bot_response(self, experiment, bot, page, prompt):
-        context = prompt.metadata
-        node_id = context["node_id"]
-        node = [node for node in CreateAndRateNode.query.all() if node.id == node_id][0]
 
-        non_failed_creations = get_non_failed_creations(node)
-        gpt3_rules = prompt.metadata["predicted_rules"]
-        if len(non_failed_creations) < len(gpt3_rules):
-            return {"rule": gpt3_rules[len(non_failed_creations)]}
+class CreateTrial(ImitationChainTrial, CreateTrialMixin):
+    time_estimate = 20
+
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        CreateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "create_trial",
+            CreatePrompt(*get_prompt_args(self.node)),
+            CreateControl(),
+            time_estimate=self.time_estimate,
+        )
 
 
-class RaterPrompt(CreatorPrompt):
+###################################################
+# Rater
+###################################################
+
+
+class RatePrompt(CreatePrompt):
     macro = "rater_prompt"
     external_template = "custom-macros.html"
 
 
-class RaterControl(Control):
+class RateControl(Control):
     macro = "rater_control"
     external_template = "custom-macros.html"
 
 
-class CustomTrial(ImitationChainTrial, CreateAndRateTrial):
-    time_estimate = AVG_TIME_ESTIMATE
+class RateTrial(ImitationChainTrial, RateTrialMixin):
+    time_estimate = 20
 
-    def _get_prompt_args(self):
-        context = self.node.context
-        predicted_rules = [
-            t.answer["rule"] for t in get_non_failed_creations(self.node)
-        ]
-        return (
-            context["positives"],
-            context["negatives"],
-            predicted_rules,
-            self.node.id,
-            context["rule"],
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
+
+    def show_trial(self, experiment, participant):
+        positives, negatives, predicted_rules, node_id, rule = get_prompt_args(
+            self.node
         )
-
-    def show_create_trial(self, experiment, participant):
-        return ModularPage(
-            "create_trial",
-            CreatorPrompt(*self._get_prompt_args()),
-            CreatorControl(),
-            time_estimate=self.time_estimate,
-        )
-
-    def show_rate_trial(self, experiment, participant):
-        positives, negatives, predicted_rules, node_id, rule = self._get_prompt_args()
-        predicted_rules = sample(predicted_rules, len(predicted_rules))
         predicted_rules += sample(predicted_rules, N_REPEAT_ITEMS)
         return ModularPage(
             "rate_trial",
-            RaterPrompt(positives, negatives, predicted_rules, node_id, rule),
-            RaterControl(),
+            RatePrompt(positives, negatives, predicted_rules, node_id, rule),
+            RateControl(),
             time_estimate=self.time_estimate,
         )
 
-    def show_trial(self, experiment, participant):
-        is_creator = super().is_create_trial()
-        if is_creator:
-            return self.show_create_trial(experiment, participant)
-        else:
-            return self.show_rate_trial(experiment, participant)
+
+start_nodes = [CreateAndRateNode(context=d) for d in dummy_data]
 
 
-def get_non_failed_creations(node):
-    return [
-        t
-        for t in node.all_trials
-        if t.var.has(ROLE_KEY)
-        and t.var.get(ROLE_KEY) == CREATOR_KEY
-        and t.answer is not None
-        and t.failed is False
-    ]
-
-
-class CustomNode(ChainNode, CreateAndRateNode):
-    def create_initial_seed(self, experiment, participant):
-        pass
-
-    def create_definition_from_seed(self, seed, experiment, participant):
-        pass
-
-    def summarize_trials(self, trials: list, experiment, participant):
-        pass
-
-
-start_nodes = [CustomNode(context=d) for d in dummy_data]
-
-
-class CustomTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMaker):
-    response_timeout_sec = MAX_TIME
-    num_creators = CREATE_TRIALS
-    num_raters = RATE_TRIALS
-
-    def find_networks(self, participant, experiment):
-        # Obtain available networks
-        networks = super().find_networks(
-            participant, experiment, return_one_network=False
+class CreateAndRateTrialmaker(ImitationChainTrialMaker, CreateAndRateTrialmakerMixin):
+    def __init__(self, **kwargs):
+        trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
+            kwargs, ImitationChainTrialMaker, CreateAndRateTrialmakerMixin
         )
-        if type(networks) is str:
-            # return "exit", "wait"
-            return networks
-        return super().filter_networks(networks, participant)
+        CreateAndRateTrialmakerMixin.__init__(self, **mixin_kwargs)
+        super().__init__(**trial_maker_kwargs)
 
     def finalize_trial(self, answer, trial, experiment, participant):
-        super().finalize_trial(answer, trial, experiment, participant)
-        visited_rule_ids = participant.var.get(VISITED_RULE_IDS_KEY, [])
-        visited_rule_ids.append(trial.node.context["rule_id"])
-        participant.var.set(VISITED_RULE_IDS_KEY, visited_rule_ids)
+        answer = [int(checkbox["checked"]) for checkbox in answer.values()][
+            : self.num_rate_stimuli
+        ]
+        answer = self.finalize_create_and_rate_trial(
+            self, answer, trial, experiment, participant
+        )
+        return super().finalize_trial(answer, trial, experiment, participant)
+
+    def get_trial_class(self, node, participant, experiment):
+        return self.get_role(node, participant, experiment)
 
 
 ##########################################################################################
@@ -196,10 +177,19 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         instructions,
-        CustomTrialMaker(
+        CreateAndRateTrialmaker(
+            num_creators=CREATE_TRIALS,
+            num_raters=RATE_TRIALS,
+            node_class=CreateAndRateNode,
+            creator_class=CreateTrial,
+            rater_class=RateTrial,
+            # mixin params
+            include_previous_iteration=False,
+            rate_mode="rate",
+            target_selection_method="all",
+            randomize_target_presentation_order=True,
+            # trial_maker params
             id_="picnic",
-            trial_class=CustomTrial,
-            node_class=CustomNode,
             chain_type="across",
             expected_trials_per_participant=len(start_nodes),
             max_trials_per_participant=len(start_nodes),
@@ -213,7 +203,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=None,
             wait_for_networks=True,
             max_nodes_per_chain=NUM_ITERATIONS,
-            trials_per_node=CREATE_TRIALS + RATE_TRIALS,
         ),
         final_questionnaire,
         SuccessfulEndPage(),

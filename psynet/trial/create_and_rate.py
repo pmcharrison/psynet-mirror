@@ -14,9 +14,6 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-# Constants
-RATE_MODES = ["rate", "select"]
-
 
 def sort_dict_by_value(d):
     return dict(sorted(d.items(), key=lambda item: item[1]))
@@ -273,33 +270,29 @@ class CreateAndRateTrialmakerMixin(object):
 
         self.include_previous_iteration = include_previous_iteration
         self.rate_mode = rate_mode
-        if self.rate_mode == "select":
-            self.num_rate_stimuli = self.num_creators + int(
-                self.include_previous_iteration
-            )
-            self.num_validations_per_creation = self.num_creators
-
-        elif self.rate_mode == "rate":
-            if self.include_previous_iteration:
-                assert (
-                    self.num_raters % (self.num_creators + 1) == 0
-                ), "num_raters must be a multiple of num_creators + 1 (since include_previous_iteration == True) if rate_mode is 'rate'"
-            else:
-                assert (
-                    self.num_raters % self.num_creators == 0
-                ), "num_raters must be a multiple of num_creators if rate_mode is 'rate'"
-            self.num_rate_stimuli = 1
-            self.num_validations_per_creation = self.num_raters // self.num_creators
-
-        else:
-            raise ValueError(f"rate_mode must be in {RATE_MODES}")
-
-        if self.rate_mode == "select":
+        self.num_rate_stimuli = self.num_creators + int(self.include_previous_iteration)
+        if self.rate_mode == "rate":
+            if target_selection_method == "one":
+                if self.include_previous_iteration:
+                    error_msg = (
+                        "num_raters must be a multiple of num_creators + 1 (since include_previous_iteration == "
+                        "True) if rate_mode is 'rate' and target_selection_method is 'one'."
+                    )
+                else:
+                    error_msg = (
+                        "num_raters must be a multiple of num_creators if rate_mode is 'rate' and "
+                        "target_selection_method is 'one'."
+                    )
+                assert self.num_raters % (self.num_rate_stimuli) == 0, error_msg
+                self.num_rate_stimuli = 1
+        elif self.rate_mode == "select":
             assert (
                 self.num_rate_stimuli > 1
             ), '`num_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
+        else:
+            raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
 
-        assert target_selection_method in ["one", "random", "all"]
+        assert target_selection_method in ["one", "all"]
         self.target_selection_method = target_selection_method
         self.randomize_target_presentation_order = randomize_target_presentation_order
         self.verbose = verbose
