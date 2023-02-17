@@ -25,6 +25,7 @@ from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
+from dallinger.recruiters import ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request
@@ -382,6 +383,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id,
         worker_id,
     ):
+        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
+        if isinstance(self.recruiter, ProlificRecruiter):
+            return self.error_page_content__prolific(gettext, pgettext)
+
         html = tags.div()
         with html:
             tags.p(
@@ -401,6 +406,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 tags.li(f'{gettext("Worker ID")}: {worker_id}'),
             )
 
+        return html
+
+    def error_page_content__prolific(self, gettext, pgettext):
+        html = tags.div()
+        with html:
+            tags.p(
+                """
+                Don't worry, your progress has been recorded.
+                To enquire about compensation, please send the researcher a message via the Prolific website
+                and describe what led to your error.
+                """
+            )
         return html
 
     @scheduled_task("interval", minutes=1, max_instances=1)
