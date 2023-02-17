@@ -646,9 +646,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                     else:
                         raise
 
-            if asset_to_use == self or not self.deposited:
-                self._deposit(self.storage, async_, delete_input)
-
             if self.parent:
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
@@ -658,6 +655,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.node_id = ancestors["node"]
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
+
+            if asset_to_use == self or not self.deposited:
+                # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
+                # which may rely on the asset being in its complete state. Any information that may be needed
+                # by these post-deposit actions must be saved before this step.
+                self._deposit(self.storage, async_, delete_input)
 
             if not self.content_id:
                 self.content_id = self.get_content_id()
@@ -1106,7 +1109,11 @@ class ManagedAsset(Asset):
         return True
 
     def after_deposit(self):
+        # logger.info("Calling after_deposit.")
         if self.trial:
+            logger.info(
+                "Calling check_if_can_run_async_post_trial as part of after_deposit."
+            )
             self.trial.check_if_can_run_async_post_trial()
             self.trial.check_if_can_mark_as_finalized()
 
@@ -2433,16 +2440,18 @@ class AssetStorage:
         host_path: str,
         delete_input: bool,  # , db_commit: bool = False
     ):
+        # logger.info("Calling _call_receive_deposit...")
         # We include this for compatibility with threaded dispatching.
         # Without it, SQLAlchemy complains that the object has become disconnected
         # from the SQLAlchemy session. This command 'merges' it back into the session.
         asset = db.session.merge(asset)
-
         self._receive_deposit(asset, host_path)
-        asset.after_deposit()
         asset.deposited = True
 
-        # if db_commit:
+        db.session.commit()
+        logger.info("Asset deposit complete.")
+
+        asset.after_deposit()
         db.session.commit()
 
         if delete_input:
@@ -2762,7 +2771,7 @@ class LocalStorage(AssetStorage):
     def export(self, asset, path, ssh_host=None, ssh_user=None):
         if self.on_deployed_server():
             self._export_via_copying(asset, path)
-        elif deployment_info.read("is_ssh_deployment"):
+        elif ssh_host is not None:
             self._export_via_ssh(asset, path, ssh_host, ssh_user)
         else:
             AssetStorage.http_export(asset, path)
