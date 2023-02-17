@@ -57,8 +57,9 @@ class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
     def get_targets(self):
         return self.get_all_targets()
 
-    def get_all_targets(self, shuffle=True):
+    def get_all_targets(self):
         trial_maker = self.trial_maker
+        shuffle = trial_maker.randomize_target_presentation_order
         assert issubclass(trial_maker.__class__, CreateAndRateTrialmakerMixin)
         creator_class = trial_maker.creator_class
         targets = creator_class.query.filter_by(
@@ -95,17 +96,12 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         target_selection_method = self.trial_maker.target_selection_method
         if target_selection_method == "all":
             return self.get_all_targets()
-        # elif target_selection_method == 'random':
-        #     return self.get_random_target()
         elif target_selection_method == "one":
             return self.get_one_target()
         else:
             raise NotImplementedError(
                 f"Unknown rated_targets value: {target_selection_method}"
             )
-
-    # def get_random_target(self):
-    #     return sample(self.get_all_targets(), 1)
 
     def get_eids_from_entities(self, entities):
         return [self.get_eid(entity) for entity in entities]
@@ -140,7 +136,12 @@ class RateTrialMixin(RateOrSelectTrialMixin):
             for creation_eid, rating in rated_creations.items()
             if rating == min_rating
         ]
-        creation_eid_with_least_ratings = sample(creations_with_min_rating, 1)[0]
+        shuffle = self.trial_maker.randomize_target_presentation_order
+
+        if shuffle:
+            creation_eid_with_least_ratings = sample(creations_with_min_rating, 1)[0]
+        else:
+            creation_eid_with_least_ratings = creations_with_min_rating[0]
 
         if self.trial_maker.verbose:
             logger.info(
@@ -238,6 +239,7 @@ class CreateAndRateTrialmakerMixin(object):
         rate_mode="rate",
         include_previous_iteration=False,
         target_selection_method="one",
+        randomize_target_presentation_order=True,
         verbose=False,
     ):
         self.assert_is_positive_integer(num_creators)
@@ -299,6 +301,7 @@ class CreateAndRateTrialmakerMixin(object):
 
         assert target_selection_method in ["one", "random", "all"]
         self.target_selection_method = target_selection_method
+        self.randomize_target_presentation_order = randomize_target_presentation_order
         self.verbose = verbose
 
     @staticmethod
@@ -344,8 +347,9 @@ class CreateAndRateTrialmakerMixin(object):
                 return self.rater_class
 
     @staticmethod
-    def finalize_create_and_rate_trial(trial_maker, trial):
-        answer = trial.answer
+    def finalize_create_and_rate_trial(
+        trial_maker, answer, trial, experiment, participant
+    ):
         if issubclass(trial.__class__, trial_maker.rater_class):
             rated_eids = [trial.get_eid(target) for target in trial.targets]
             rate_mode = trial_maker.rate_mode

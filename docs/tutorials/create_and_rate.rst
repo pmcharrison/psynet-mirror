@@ -117,6 +117,7 @@ Optionally, you can set
    ``rate_mode=="rate"``) indicating that raters rate all creations or
    set to ``"one"`` which randomly selects one target (internally it
    prioritizes creations that obtained least ratings)
+- ``randomize_target_presentation_order`` (default ``True``) which indicates if the presentation order of the targets is randomized. In most cases this should be set to ``True``.
 -  ``verbose`` can be set to ``True`` to print the Create and Rate
    decisions to the experiment log
 
