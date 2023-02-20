@@ -103,7 +103,7 @@ class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerM
             kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
         )
         CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
-        ImitationChainTrialMaker.__init__(**trial_maker_kwargs)
+        ImitationChainTrialMaker.__init__(self, **trial_maker_kwargs)
 
     def finalize_trial(self, answer, trial, experiment, participant):
         answer = self.finalize_create_and_rate_trial(
