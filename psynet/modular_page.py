@@ -2179,8 +2179,8 @@ class AudioRecordControl(RecordControl):
         Whether in-browser playback of the recording should have looping enabled by default
         (default = ``False``). Ignored if ``controls`` is ``False``.
 
-    num_channels
-        The number of channels used to record the audio. Default is mono (`num_channels=1`).
+    n_channels
+        The number of channels used to record the audio. Default is mono (`n_channels=1`).
 
     personal
         Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
@@ -2198,7 +2198,7 @@ class AudioRecordControl(RecordControl):
         *,
         controls: bool = False,
         loop_playback: bool = False,
-        num_channels: int = 1,
+        n_channels: int = 1,
         personal=True,
         bot_response_media: Optional[Union[dict, str]] = None,
         **kwargs,
@@ -2207,7 +2207,7 @@ class AudioRecordControl(RecordControl):
 
         self.controls = controls
         self.loop_playback = loop_playback
-        self.num_channels = num_channels
+        self.n_channels = n_channels
         self.personal = personal
         self.bot_response_media = bot_response_media
 
