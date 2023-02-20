@@ -98,7 +98,7 @@ class RateTrialMixin(RateOrSelectTrialMixin):
     def get_eids_from_entities(self, entities):
         return [self.get_eid(entity) for entity in entities]
 
-    def count_rated_creations(self, available_creation_eids):
+    def count_rated_targets(self, available_target_eids):
         rater_class = self.trial_maker.rater_class
         all_rating_trials = rater_class.query.filter_by(
             node_id=self.node_id, failed=False
@@ -106,46 +106,46 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         all_rating_trials = [
             trial for trial in all_rating_trials if trial.id != self.id
         ]
-        all_rated_creation_eids = [
-            self.get_eid(creation)
+        all_rated_target_eids = [
+            self.get_eid(target)
             for rating in all_rating_trials
-            for creation in rating.targets
+            for target in rating.targets
         ]
-        rated_creations = dict(
-            zip(available_creation_eids, [0] * len(available_creation_eids))
+        target2count = dict(
+            zip(available_target_eids, [0] * len(available_target_eids))
         )
-        for creation_eid in all_rated_creation_eids:
-            rated_creations[creation_eid] += 1
-        return rated_creations
+        for target_eid in all_rated_target_eids:
+            target2count[target_eid] += 1
+        return target2count
 
-    def select_creation_with_least_ratings(self, all_creation_trials):
-        all_creation_eids = self.get_eids_from_entities(all_creation_trials)
-        rated_creations = self.count_rated_creations(all_creation_eids)
+    def select_target_with_least_ratings(self, all_targets):
+        all_target_eids = self.get_eids_from_entities(all_targets)
+        target2count = self.count_rated_targets(all_target_eids)
 
-        min_rating = min(rated_creations.values())
-        creations_with_min_rating = [
-            creation_eid
-            for creation_eid, rating in rated_creations.items()
-            if rating == min_rating
+        min_count = min(target2count.values())
+        targets_with_min_count = [
+            target_eid
+            for target_eid, count in target2count.items()
+            if count == min_count
         ]
         shuffle = self.trial_maker.randomize_target_presentation_order
 
         if shuffle:
-            creation_eid_with_least_ratings = sample(creations_with_min_rating, 1)[0]
+            target_eid_with_least_ratings = sample(targets_with_min_count, 1)[0]
         else:
-            creation_eid_with_least_ratings = creations_with_min_rating[0]
+            target_eid_with_least_ratings = targets_with_min_count[0]
 
         if self.trial_maker.verbose:
             logger.info(
                 f"For network {self.network.id} at iteration {self.node.degree} we have the following"
-                + f" ratings for: {rated_creations}. We therefore selected: {creation_eid_with_least_ratings}."
+                + f" ratings for: {target2count}. We therefore selected: {target_eid_with_least_ratings}."
             )
 
-        creation_idx = all_creation_eids.index(creation_eid_with_least_ratings)
-        return all_creation_trials[creation_idx]
+        target_idx = all_target_eids.index(target_eid_with_least_ratings)
+        return all_targets[target_idx]
 
     def get_one_target(self):
-        return [self.select_creation_with_least_ratings(self.get_all_targets())]
+        return [self.select_target_with_least_ratings(self.get_all_targets())]
 
 
 class CreateAndRateNodeMixin(object):
