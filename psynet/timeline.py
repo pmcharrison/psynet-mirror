@@ -2604,7 +2604,7 @@ def for_loop(
     assert callable(iterate_over)
     assert callable(logic)
 
-    def estimate_num_repetitions(iterate_over):
+    def estimate_n_repetitions(iterate_over):
         if len(get_args(iterate_over)) > 0:
             raise ValueError(
                 "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
@@ -2683,7 +2683,7 @@ def for_loop(
             ),
             expected_repetitions=expected_repetitions
             if expected_repetitions
-            else estimate_num_repetitions(iterate_over),
+            else estimate_n_repetitions(iterate_over),
             fix_time_credit=False,
         ),
         CodeBlock(wrapup),
