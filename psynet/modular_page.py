@@ -10,7 +10,7 @@ from dominate.dom_tag import dom_tag
 from dominate.util import raw
 from flask import Markup
 
-from .asset import Asset
+from .asset import Asset, LocalStorage
 from .bot import BotResponse
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
@@ -2240,7 +2240,8 @@ class AudioRecordControl(RecordControl):
             )
 
             try:
-                asset.deposit(async_=True, delete_input=True)
+                async_ = not isinstance(asset.default_storage, LocalStorage)
+                asset.deposit(async_=async_, delete_input=True)
             except Asset.InconsistentContentError:
                 raise ValueError(
                     f"This participant already has an asset with the label '{label}'. "

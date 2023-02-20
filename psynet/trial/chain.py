@@ -1371,7 +1371,9 @@ class ChainTrialMaker(NetworkTrialMaker):
                 raise RuntimeError(
                     f"Couldn't find any networks for the trial maker '{participant.module_state.module_id}'. "
                     "A common reason for this is deploying your experiment using 'dallinger deploy' instead of "
-                    "'psynet deploy'."
+                    "'psynet deploy'. "
+                    "Another common reason is reloading the experiment in debug mode after adding a new trial maker. "
+                    "In the latter case you need to restart the debug session before continuing."
                 )
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
