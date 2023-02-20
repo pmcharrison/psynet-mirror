@@ -673,7 +673,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         analysis = json.dumps(analysis, cls=NumpySerializer)
         return {
             "failed": correct_answer != n_markers_detected,
-            "num_detected_markers": n_markers_detected,
+            "n_detected_markers": n_markers_detected,
             "output": output,
             "analysis": analysis,
         }
