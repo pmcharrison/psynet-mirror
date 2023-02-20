@@ -155,8 +155,8 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
       }
     }
     
-    console.assert(N <= specs["max_num_pitches"], "Number of pitches in a chord must not exceed max_num_pitches=%d!",specs["max_num_pitches"])
-    console.assert(specs["num_octave_transpositions"] <= specs["max_num_octave_transpositions"], "Number of transpositions must not exceed max_num_octave_transpositions=%d!",specs["max_num_octave_transpositions"])
+    console.assert(N <= specs["max_n_pitches"], "Number of pitches in a chord must not exceed max_n_pitches=%d!",specs["max_n_pitches"])
+    console.assert(specs["n_octave_transpositions"] <= specs["max_n_octave_transpositions"], "Number of transpositions must not exceed max_n_octave_transpositions=%d!",specs["max_n_octave_transpositions"])
 
     freqs = []
     for (i=0;i<N;i++){
@@ -165,7 +165,7 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     
     if (specs["type"] in ADDITIVE_TYPES) {
       let synthesizer = new ADDITIVE_TYPES[specs["type"]](specs)
-      freqs = util.post_pad(freqs, specs["max_num_pitches"], 0) // 0 frequency signifies no output
+      freqs = util.post_pad(freqs, specs["max_n_pitches"], 0) // 0 frequency signifies no output
       custom_timbre_synth(active_nodes, freqs, synthesizer, specs, time, duration, pan, volume)
     } else if (Object.keys(LOADED_INSTRUMENTS).includes(specs["type"])) {
       let instrument = LOADED_INSTRUMENTS[specs["type"]]
@@ -199,13 +199,13 @@ util_complex = function (n_harmonics,roll_off) {
 
 }
 
-util_shepard = function (num_octave_transpositions,max_num_octave_transpositions,freq,octave_definition) {
+util_shepard = function (n_octave_transpositions,max_n_octave_transpositions,freq,octave_definition) {
   var weights = []
   var norm = 0
   gamma = Math.log2(octave_definition) // inharmonic rescaling factor
 
-  for (n=0;n<2*num_octave_transpositions+1;n++){
-      curr_freq = util.freq2midi(freq * Math.pow(octave_definition,n - num_octave_transpositions))
+  for (n=0;n<2*n_octave_transpositions+1;n++){
+      curr_freq = util.freq2midi(freq * Math.pow(octave_definition,n - n_octave_transpositions))
       weight = util.gaussian(curr_freq, gamma * DEFAULT_PARAMS["shepard_center"], gamma * DEFAULT_PARAMS["shepard_width"]) // a Gaussian weight centered at the mid point of the midi scale, rescaled if needed for inharmonic compatability
       weights = weights.concat([weight])
       norm = norm + Math.pow(weight,2)
@@ -213,7 +213,7 @@ util_shepard = function (num_octave_transpositions,max_num_octave_transpositions
 
   weights = weights.map(x => x/Math.sqrt(norm))
 
-  padding = new Array(max_num_octave_transpositions-num_octave_transpositions).fill(0); // symmetric padding around the central weights to keep a fixed size
+  padding = new Array(max_n_octave_transpositions-n_octave_transpositions).fill(0); // symmetric padding around the central weights to keep a fixed size
   weights = padding.concat(weights)
   weights = weights.concat(padding)
 
@@ -235,18 +235,18 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan,
 
   console.assert(synth.duration - synth.attack - synth.decay - synth.release >= 0, "The sum of attack, decay and release phases cannot exceed the full duration of the tone!")
 
-  for (i = 0; i < specs["max_num_pitches"]; i++){
+  for (i = 0; i < specs["max_n_pitches"]; i++){
     freq = freqs[i]
     tone_nodes = active_nodes["complex_" + String(i)]
 
     if (freq == 0) {
-      sweights = util.post_pad([], 2 * specs["max_num_octave_transpositions"] + 1, 0)
+      sweights = util.post_pad([], 2 * specs["max_n_octave_transpositions"] + 1, 0)
     } else {
-      sweights = util.shepard(specs["num_octave_transpositions"], specs["max_num_octave_transpositions"], freq, synth.octave_definition) // generate shepard weight tower around freq of width num_octave_transpositions, and then zero-pad to width max_num_octave_transpositions
+      sweights = util.shepard(specs["n_octave_transpositions"], specs["max_n_octave_transpositions"], freq, synth.octave_definition) // generate shepard weight tower around freq of width n_octave_transpositions, and then zero-pad to width max_n_octave_transpositions
     }
     
-    for (j = 0; j < 2 * specs["max_num_octave_transpositions"] + 1; j++){ 
-      curr_freq = freq * Math.pow(synth.octave_definition, j - specs["max_num_octave_transpositions"]); // generate Shepard octave compatible with stretching 
+    for (j = 0; j < 2 * specs["max_n_octave_transpositions"] + 1; j++){ 
+      curr_freq = freq * Math.pow(synth.octave_definition, j - specs["max_n_octave_transpositions"]); // generate Shepard octave compatible with stretching 
       
       for (k = 0; k < specs["max_n_harmonics"]; k++) { 
         osc = tone_nodes[j][k][0];
@@ -283,9 +283,9 @@ generate_additive_nodes = function(options){
     "releaseCurve" : DEFAULT_PARAMS["releaseCurve"]
   }).toDestination();
 
-  for (i = 0; i < DEFAULT_PARAMS["max_num_pitches"]; i++){
-    var tone_nodes = util.array(2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1, DEFAULT_PARAMS["max_n_harmonics"])
-    for (j = 0; j < 2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1; j++){
+  for (i = 0; i < DEFAULT_PARAMS["max_n_pitches"]; i++){
+    var tone_nodes = util.array(2 * DEFAULT_PARAMS["max_n_octave_transpositions"] + 1, DEFAULT_PARAMS["max_n_harmonics"])
+    for (j = 0; j < 2 * DEFAULT_PARAMS["max_n_octave_transpositions"] + 1; j++){
       for (k = 0; k < DEFAULT_PARAMS["max_n_harmonics"]; k++){
         var osc = new Tone.Oscillator({"type": "sine", "volume": -17});
         var gain = new Tone.Gain();

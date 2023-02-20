@@ -364,9 +364,9 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
             audio_file, plot_title, output_plot
         )
         # output
-        num_resp_onsets_detected = stats["num_resp_onsets_detected"]
+        n_resp_onsets_detected = stats["n_resp_onsets_detected"]
         min_responses_ok = (
-            num_resp_onsets_detected > self.definition["min_num_detected_taps"]
+            n_resp_onsets_detected > self.definition["min_n_detected_taps"]
         )
         median_ok = stats["median_ioi"] != 9999
         failed = not (min_responses_ok and median_ok)
@@ -374,21 +374,21 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
         return {
             "failed": failed,
             "stats": stats,
-            "num_resp_onsets_detected": num_resp_onsets_detected,
+            "n_resp_onsets_detected": n_resp_onsets_detected,
         }
 
     def gives_feedback(self, experiment, participant):
         return self.position == 0
 
     def show_feedback(self, experiment, participant):
-        num_resp_onsets_detected = self.analysis["num_resp_onsets_detected"]
+        n_resp_onsets_detected = self.analysis["n_resp_onsets_detected"]
 
         if self.failed:
             return InfoPage(
                 Markup(
                     f"""
                     <h4>Your tapping was bad...</h4>
-                    We detected {num_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
+                    We detected {n_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
                     Please try to do one or more of the following:
                     <ol><li>Tap a steady beat, providing at least 5-10 taps.</li>
                         <li>Make sure your laptop microphone is working and you are not using headphones or earplugs.</li>
@@ -405,7 +405,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 Markup(
                     f"""
                     <h4>Good!</h4>
-                    We could detect {num_resp_onsets_detected} taps in the recording.
+                    We could detect {n_resp_onsets_detected} taps in the recording.
                     """
                 ),
                 time_estimate=5,
@@ -439,7 +439,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
     duration_rec_sec : float
         Length of the recording, default: 8 sec.
 
-    min_num_detected_taps : float
+    min_n_detected_taps : float
         Mininum number of detected taps to pass the test, default: 1.
 
     n_repeat_trials : float
@@ -457,7 +457,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
         label="free_tapping_record_test",
         performance_threshold: int = 0.5,
         duration_rec_sec: int = 8,
-        min_num_detected_taps: int = 3,
+        min_n_detected_taps: int = 3,
         n_repeat_trials: int = 1,
         time_estimate_per_trial: float = 10.0,
         trial_class=FreeTappingRecordTrial,
@@ -467,7 +467,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
         self.give_end_feedback_passed = False
         self.time_estimate_per_trial = time_estimate_per_trial
 
-        nodes = self.get_nodes(duration_rec_sec, min_num_detected_taps)
+        nodes = self.get_nodes(duration_rec_sec, min_n_detected_taps)
 
         super().__init__(
             id_=label,
@@ -563,12 +563,12 @@ class FreeTappingRecordTest(StaticTrialMaker):
             ),
         )
 
-    def get_nodes(self, duration_rec_sec: float, min_num_detected_taps: int):
+    def get_nodes(self, duration_rec_sec: float, min_n_detected_taps: int):
         return [
             Node(
                 definition={
                     "duration_rec_sec": duration_rec_sec,
-                    "min_num_detected_taps": min_num_detected_taps,
+                    "min_n_detected_taps": min_n_detected_taps,
                     "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",  # Redundant but keeping for back-compatibility
                 },
                 assets={
@@ -666,14 +666,14 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         output, analysis, is_failed = analysis.do_analysis(
             info, audio_file, title_in_graph, output_plot
         )
-        num_markers_detected = int(analysis["num_markers_detected"])
+        n_markers_detected = int(analysis["n_markers_detected"])
         correct_answer = self.definition["correct_answer"]
 
         output = json.dumps(output, cls=NumpySerializer)
         analysis = json.dumps(analysis, cls=NumpySerializer)
         return {
-            "failed": correct_answer != num_markers_detected,
-            "num_detected_markers": num_markers_detected,
+            "failed": correct_answer != n_markers_detected,
+            "num_detected_markers": n_markers_detected,
             "output": output,
             "analysis": analysis,
         }

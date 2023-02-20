@@ -107,7 +107,7 @@ def test_chord_representations_instrument():
                     "type": "flute",
                     "samples": None,
                     "base_url": "",
-                    "num_octave_transpositions": 0,
+                    "n_octave_transpositions": 0,
                 }
             },
             "b": {
@@ -115,7 +115,7 @@ def test_chord_representations_instrument():
                     "type": "guitar",
                     "samples": None,
                     "base_url": "",
-                    "num_octave_transpositions": 0,
+                    "n_octave_transpositions": 0,
                 }
             },
         },
