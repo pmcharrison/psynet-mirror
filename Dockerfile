@@ -40,8 +40,7 @@ RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
 
 COPY . .
-# RUN pip install --no-dependencies -e .
-RUN pip install -e .
+RUN pip install --no-dependencies -e .
 
 # The following code can be used to reinstall Dallinger from a particular development branch or commit
 # RUN pip install "git+https://github.com/Dallinger/Dallinger.git@pmch-dev"
