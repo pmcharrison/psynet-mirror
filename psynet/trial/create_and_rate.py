@@ -193,8 +193,7 @@ class CreateAndRateNodeMixin(object):
     @staticmethod
     def summarize_trials(node):
         trial_maker = node.trial_maker
-        rater_class = trial_maker.rater_class
-        all_rate_trials = rater_class.query.filter_by(
+        all_rate_trials = trial_maker.rater_class.query.filter_by(
             node_id=node.id, failed=False, finalized=True
         ).all()
 
