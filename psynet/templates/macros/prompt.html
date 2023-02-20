@@ -272,8 +272,8 @@
             "attackCurve": "linear", // Amplitude curve profile for attack portion
             "decayCurve": "exponential", // Amplitude curve profile for decay portion
             "releaseCurve": "exponential", // Amplitude curve profile for release portion
-            "max_num_harmonics": 10, // Maximum number of partial harmonics per tone
-            "num_harmonics": 10, // Actual number of partial harmonics to use
+            "max_n_harmonics": 10, // Maximum number of partial harmonics per tone
+            "n_harmonics": 10, // Actual number of partial harmonics to use
             "max_num_pitches": 3, // Maximum number of pitches in a chord
             "type": "harmonic", // Synthesis type
             "octave_definition": 2, // 2 is the harmonic series
@@ -283,7 +283,7 @@
             "shepard_center": 65.5, // Center of the gaussian weights used in octave transpositions
             "shepard_width": 8.2, // Width of the gaussian weights used in octave transpositions
         }
-        DEFAULT_PARAMS.max_num_harmonics = options.max_num_harmonics;
+        DEFAULT_PARAMS.max_n_harmonics = options.max_n_harmonics;
         DEFAULT_PARAMS.max_num_octave_transpositions = options.max_num_octave_transpositions;
         DEFAULT_PARAMS.max_num_pitches = options.max_num_pitches;
 

@@ -1,21 +1,21 @@
 class AdditiveComplexTone {
   constructor(specs){
-    this.num_harmonics = specs["num_harmonics"];
-    this.max_num_harmonics = specs["max_num_harmonics"];
+    this.n_harmonics = specs["n_harmonics"];
+    this.max_n_harmonics = specs["max_n_harmonics"];
     this.attack = specs["attack"];
     this.decay = specs["decay"];
     this.release = specs["release"];
     this.sustain_amp = specs["sustain_amp"];
     this.type = "additive";
 
-    console.assert(specs["num_harmonics"] <= specs["max_num_harmonics"], "Number of harmonics must not exceed max_num_harmonics=%d!",specs["max_num_harmonics"])
+    console.assert(specs["n_harmonics"] <= specs["max_n_harmonics"], "Number of harmonics must not exceed max_n_harmonics=%d!",specs["max_n_harmonics"])
 
     if ("params" in specs) {
-      console.assert(specs["max_num_harmonics"] - specs["params"]["amps"].length >= 0, "Length of custom timbre must not exceed %d!",specs["max_num_harmonics"])
+      console.assert(specs["max_n_harmonics"] - specs["params"]["amps"].length >= 0, "Length of custom timbre must not exceed %d!",specs["max_n_harmonics"])
       console.assert(specs["params"]["amps"].length == specs["params"]["freqs"].length, "Number of amplitudes must be equal to number of frequency partials!")
       
-      this.amps = util.post_pad(specs["params"]["amps"], specs["max_num_harmonics"], 0);
-      this.freqs = util.post_pad(specs["params"]["freqs"], specs["max_num_harmonics"], 0);
+      this.amps = util.post_pad(specs["params"]["amps"], specs["max_n_harmonics"], 0);
+      this.freqs = util.post_pad(specs["params"]["freqs"], specs["max_n_harmonics"], 0);
       this.octave_definition = 2;
       this.roll_off = undefined;
     } else {
@@ -28,15 +28,15 @@ class AdditiveComplexTone {
 
   get_relative_freqs() {
     let freqs = []
-    for (let i = 0; i < this.max_num_harmonics; i++) {
+    for (let i = 0; i < this.max_n_harmonics; i++) {
       freqs = freqs.concat(Math.pow(this.octave_definition, Math.log2(i + 1)))
     }
     return freqs
   }
 
   get_relative_amps() {
-    let weights = util.complex(this.num_harmonics,this.roll_off);
-    return util.post_pad(weights, this.max_num_harmonics,0)
+    let weights = util.complex(this.n_harmonics,this.roll_off);
+    return util.post_pad(weights, this.max_n_harmonics,0)
   }
 }
 
@@ -80,8 +80,8 @@ class PureTone extends AdditiveComplexTone {
   }
 
   get_relative_amps() {
-    let weights = util.complex(this.num_harmonics, this.roll_off);
-    return util.post_pad([weights[0]], this.max_num_harmonics, 0)
+    let weights = util.complex(this.n_harmonics, this.roll_off);
+    return util.post_pad([weights[0]], this.max_n_harmonics, 0)
   }
 }
 
@@ -97,12 +97,12 @@ class BonangTone extends AdditiveComplexTone {
 
   get_upper_relative_freqs() {
     let freqs = [1,1.52,3.46,3.92]
-    freqs = freqs.concat(new Array(this.max_num_harmonics - 4).fill(1))
+    freqs = freqs.concat(new Array(this.max_n_harmonics - 4).fill(1))
     return freqs
   }
 
   get_relative_amps() {
-    let weights = util.post_pad([], this.max_num_harmonics,0);
+    let weights = util.post_pad([], this.max_n_harmonics,0);
     for (let n = 0; n < 4; n++) {
       weights[n] = 1
     }
@@ -184,11 +184,11 @@ util_midi2freq = function (midi) {
     return (Math.pow(2, (midi - 69) / 12)) * 440
 }
 
-util_complex = function (num_harmonics,roll_off) {
+util_complex = function (n_harmonics,roll_off) {
     var partials = []
     var norm = 0
 
-    for (i=1;i<=num_harmonics;i++){
+    for (i=1;i<=n_harmonics;i++){
         weight = - Math.log2(i) * roll_off
         weight = Math.pow(10,weight/20) 
         partials = partials.concat([weight])
@@ -248,7 +248,7 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan,
     for (j = 0; j < 2 * specs["max_num_octave_transpositions"] + 1; j++){ 
       curr_freq = freq * Math.pow(synth.octave_definition, j - specs["max_num_octave_transpositions"]); // generate Shepard octave compatible with stretching 
       
-      for (k = 0; k < specs["max_num_harmonics"]; k++) { 
+      for (k = 0; k < specs["max_n_harmonics"]; k++) { 
         osc = tone_nodes[j][k][0];
         gain = tone_nodes[j][k][1];
 
@@ -284,9 +284,9 @@ generate_additive_nodes = function(options){
   }).toDestination();
 
   for (i = 0; i < DEFAULT_PARAMS["max_num_pitches"]; i++){
-    var tone_nodes = util.array(2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1, DEFAULT_PARAMS["max_num_harmonics"])
+    var tone_nodes = util.array(2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1, DEFAULT_PARAMS["max_n_harmonics"])
     for (j = 0; j < 2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1; j++){
-      for (k = 0; k < DEFAULT_PARAMS["max_num_harmonics"]; k++){
+      for (k = 0; k < DEFAULT_PARAMS["max_n_harmonics"]; k++){
         var osc = new Tone.Oscillator({"type": "sine", "volume": -17});
         var gain = new Tone.Gain();
         var panner = new Tone.Panner(0);

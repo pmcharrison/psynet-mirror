@@ -82,7 +82,7 @@ class AdditiveTimbre(ADSRTimbre):
 
         self.frequencies = frequencies
         self.amplitudes = amplitudes
-        self.num_harmonics = len(frequencies)
+        self.n_harmonics = len(frequencies)
 
         self["type"] = "additive"
         self["freqs"] = frequencies
@@ -97,7 +97,7 @@ class HarmonicTimbre(ADSRTimbre):
     Parameters
     ----------
 
-    num_harmonics:
+    n_harmonics:
         Number of harmonics; defaults to 10.
 
     roll_off:
@@ -109,17 +109,17 @@ class HarmonicTimbre(ADSRTimbre):
 
     def __init__(
         self,
-        num_harmonics=10,
+        n_harmonics=10,
         roll_off=12.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        self.num_harmonics = num_harmonics
+        self.n_harmonics = n_harmonics
         self.roll_off = roll_off
 
         self["type"] = "harmonic"
-        self["num_harmonics"] = num_harmonics
+        self["n_harmonics"] = n_harmonics
         self["roll_off"] = roll_off
 
 
@@ -131,7 +131,7 @@ class CompressedTimbre(ADSRTimbre):
     Parameters
     ----------
 
-    num_harmonics:
+    n_harmonics:
         Number of harmonics; defaults to 10.
 
     roll_off:
@@ -143,18 +143,18 @@ class CompressedTimbre(ADSRTimbre):
 
     def __init__(
         self,
-        num_harmonics=10,
+        n_harmonics=10,
         roll_off=12.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        self.num_harmonics = num_harmonics
+        self.n_harmonics = n_harmonics
         self.roll_off = roll_off
 
         self["type"] = "compressed"
-        self["num_harmonics"] = num_harmonics
-        self["max_num_harmonics"] = 10
+        self["n_harmonics"] = n_harmonics
+        self["max_n_harmonics"] = 10
         self["roll_off"] = roll_off
 
 
@@ -166,7 +166,7 @@ class StretchedTimbre(ADSRTimbre):
     Parameters
     ----------
 
-    num_harmonics:
+    n_harmonics:
         Number of harmonics; defaults to 10.
 
     roll_off:
@@ -178,18 +178,18 @@ class StretchedTimbre(ADSRTimbre):
 
     def __init__(
         self,
-        num_harmonics=10,
+        n_harmonics=10,
         roll_off=12.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        self.num_harmonics = num_harmonics
+        self.n_harmonics = n_harmonics
         self.roll_off = roll_off
 
         self["type"] = "stretched"
-        self["num_harmonics"] = num_harmonics
-        self["max_num_harmonics"] = num_harmonics
+        self["n_harmonics"] = n_harmonics
+        self["max_n_harmonics"] = n_harmonics
         self["roll_off"] = roll_off
 
 
@@ -227,7 +227,7 @@ class ShepardTimbre(ADSRTimbre):
     ):
         super().__init__(**kwargs)
 
-        self["num_harmonics"] = 1
+        self["n_harmonics"] = 1
         self.num_octave_transpositions = num_octave_transpositions
         self["num_octave_transpositions"] = num_octave_transpositions
         self.shepard_center = shepard_center
@@ -484,7 +484,7 @@ class JSSynth(Prompt):
 
         options = dict(
             max_num_pitches=0,
-            max_num_harmonics=1,
+            max_n_harmonics=1,
             max_num_octave_transpositions=0,
             instruments=[],
         )
@@ -520,9 +520,9 @@ class JSSynth(Prompt):
             self.total_duration += chord["duration"] + chord["silence"]
 
         for t in timbre.values():
-            if hasattr(t, "num_harmonics"):
-                options["max_num_harmonics"] = max(
-                    options["max_num_harmonics"], t.num_harmonics
+            if hasattr(t, "n_harmonics"):
+                options["max_n_harmonics"] = max(
+                    options["max_n_harmonics"], t.n_harmonics
                 )
             if hasattr(t, "num_octave_transpositions"):
                 options["max_num_octave_transpositions"] = max(
