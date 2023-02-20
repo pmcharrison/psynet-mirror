@@ -15,10 +15,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-def sort_dict_by_value(d):
-    return dict(sorted(d.items(), key=lambda item: item[1]))
-
-
 class CreateAndRateTrialMixin(object):
     var = None
     trial_maker = None
