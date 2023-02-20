@@ -397,7 +397,7 @@ class MediaSpec:
         return res
 
     @property
-    def num_files(self):
+    def n_files(self):
         counter = 0
         for modality in self.data.values():
             counter += len(modality)
@@ -834,7 +834,7 @@ class Page(Elt):
 
     @property
     def initial_download_progress(self):
-        if self.media.num_files > 0:
+        if self.media.n_files > 0:
             return 0
         else:
             return 100
