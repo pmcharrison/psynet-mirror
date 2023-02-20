@@ -221,8 +221,8 @@ class CreateAndRateNode(ChainNode, CreateAndRateNodeMixin):
 class CreateAndRateTrialMakerMixin(object):
     def __init__(
         self,
-        num_creators,
-        num_raters,
+        n_creators,
+        n_raters,
         node_class,
         creator_class,
         rater_class,
@@ -233,10 +233,10 @@ class CreateAndRateTrialMakerMixin(object):
         randomize_target_presentation_order=True,
         verbose=False,
     ):
-        self.assert_is_positive_integer(num_creators)
-        self.num_creators = num_creators
-        self.assert_is_positive_integer(num_raters)
-        self.num_raters = num_raters
+        self.assert_is_positive_integer(n_creators)
+        self.n_creators = n_creators
+        self.assert_is_positive_integer(n_raters)
+        self.n_raters = n_raters
 
         self.assert_correct_inheritance(creator_class, ChainTrial, CreateTrialMixin)
         self.creator_class = creator_class
@@ -257,32 +257,32 @@ class CreateAndRateTrialMakerMixin(object):
                 "If you want to include previous iterations, you need to specify the seed, e.g."
                 " CreateAndRateNode(seed='My initial response shown to the participant')"
             )
-            num_nodes_with_seed = sum(
+            n_nodes_with_seed = sum(
                 [node.seed is not None and len(node.seed) > 0 for node in start_nodes]
             )
-            assert len(start_nodes) == num_nodes_with_seed, error_msg
+            assert len(start_nodes) == n_nodes_with_seed, error_msg
 
         self.include_previous_iteration = include_previous_iteration
         self.rate_mode = rate_mode
-        self.num_rate_stimuli = self.num_creators + int(self.include_previous_iteration)
+        self.n_rate_stimuli = self.n_creators + int(self.include_previous_iteration)
         if self.rate_mode == "rate":
             if target_selection_method == "one":
                 if self.include_previous_iteration:
                     error_msg = (
-                        "num_raters must be a multiple of num_creators + 1 (since include_previous_iteration == "
+                        "n_raters must be a multiple of n_creators + 1 (since include_previous_iteration == "
                         "True) if rate_mode is 'rate' and target_selection_method is 'one'."
                     )
                 else:
                     error_msg = (
-                        "num_raters must be a multiple of num_creators if rate_mode is 'rate' and "
+                        "n_raters must be a multiple of n_creators if rate_mode is 'rate' and "
                         "target_selection_method is 'one'."
                     )
-                assert self.num_raters % (self.num_rate_stimuli) == 0, error_msg
-                self.num_rate_stimuli = 1
+                assert self.n_raters % (self.n_rate_stimuli) == 0, error_msg
+                self.n_rate_stimuli = 1
         elif self.rate_mode == "select":
             assert (
-                self.num_rate_stimuli > 1
-            ), '`num_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
+                self.n_rate_stimuli > 1
+            ), '`n_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
         else:
             raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
 
@@ -313,7 +313,7 @@ class CreateAndRateTrialMakerMixin(object):
             assert param in kwargs, f"Missing required parameter: {param}"
         trial_maker_kwargs = self.filter_relevant_kwargs(kwargs, trial_maker_class)
         mixin_kwargs = self.filter_relevant_kwargs(kwargs, mixin_class)
-        trials_per_node = kwargs["num_creators"] + kwargs["num_raters"]
+        trials_per_node = kwargs["n_creators"] + kwargs["n_raters"]
         trial_maker_kwargs["trials_per_node"] = trials_per_node
         trial_maker_kwargs["trial_class"] = kwargs["creator_class"]
         trial_maker_kwargs["node_class"] = kwargs["node_class"]
@@ -322,7 +322,7 @@ class CreateAndRateTrialMakerMixin(object):
     def get_role(self, node, participant, experiment):
         create_trials = self.get_non_failed_creations(node)
         finished_creations = self.get_finished_creations(node)
-        need_creators = len(create_trials) < self.num_creators
+        need_creators = len(create_trials) < self.n_creators
         waiting_for_creators = len(finished_creations) < len(create_trials)
 
         if need_creators:

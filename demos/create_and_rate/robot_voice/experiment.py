@@ -124,7 +124,7 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
         return get_target_gibbs_answer(target)
 
     def show_trial(self, experiment, participant):
-        assert len(self.targets) == self.trial_maker.num_rate_stimuli
+        assert len(self.targets) == self.trial_maker.n_rate_stimuli
         answers = [self.get_target_answer(target) for target in self.targets]
         possible_values = list(np.linspace(RANGE[0], RANGE[1], GRANULARITY))
 
@@ -219,8 +219,8 @@ start_nodes = [
 
 
 def make_trial_maker(rate_mode):
-    num_trials_per_participant = 3
-    num_iterations_per_chain = 2
+    n_trials_per_participant = 3
+    n_iterations_per_chain = 2
 
     include_previous_iteration = True
     if rate_mode == "rate":
@@ -236,8 +236,8 @@ def make_trial_maker(rate_mode):
     _id = rate_mode + "_trial_maker"
 
     return CustomCreateAndRateTrialMaker(
-        num_creators=1,
-        num_raters=1 + include_previous_iteration,
+        n_creators=1,
+        n_raters=1 + include_previous_iteration,
         node_class=CreateAndRateNode,
         creator_class=CreateTrial,
         rater_class=rater_class,
@@ -249,9 +249,9 @@ def make_trial_maker(rate_mode):
         id_=_id,
         chain_type="across",
         start_nodes=nodes,
-        expected_trials_per_participant=num_trials_per_participant,
-        max_trials_per_participant=num_trials_per_participant,
-        max_nodes_per_chain=num_iterations_per_chain,
+        expected_trials_per_participant=n_trials_per_participant,
+        max_trials_per_participant=n_trials_per_participant,
+        max_nodes_per_chain=n_iterations_per_chain,
         chains_per_experiment=None,  # set to None if chain_type="within"
         balance_across_chains=True,
         check_performance_at_end=True,

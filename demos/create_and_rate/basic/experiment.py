@@ -122,20 +122,20 @@ class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerM
 
 def get_trial_maker(option):
     rater_class = SingleRateTrial
-    num_creators = 2
-    num_raters = 2
+    n_creators = 2
+    n_raters = 2
     rate_mode = "rate"
     include_previous_iteration = True
     target_selection_method = "one"
 
     if option == "include_previous_iteration":
-        num_creators = 1
+        n_creators = 1
         pass
     elif option == "rate":
         include_previous_iteration = False
     elif option == "select":
         rater_class = SelectTrial
-        num_raters = 3
+        n_raters = 3
         target_selection_method = "all"
         rate_mode = "select"
     else:
@@ -147,8 +147,8 @@ def get_trial_maker(option):
     ]
 
     return CreateAndRateTrialMaker(
-        num_creators=num_creators,
-        num_raters=num_raters,
+        n_creators=n_creators,
+        n_raters=n_raters,
         node_class=CreateAndRateNode,
         creator_class=CreateTrial,
         rater_class=rater_class,

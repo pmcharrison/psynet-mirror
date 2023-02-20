@@ -28,10 +28,10 @@ with open("data.json") as f:
     dummy_data = json.load(f)
 
 
-CREATE_TRIALS = 2
-RATE_TRIALS = 2
+N_CREATORS = 2
+N_RATERS = 2
 N_REPEAT_ITEMS = 0
-NUM_ITERATIONS = 1
+N_ITERATIONS = 1
 VISITED_RULE_IDS_KEY = "visited_rule_ids"
 MAX_TIME = 60 * 5  # 5 minutes
 AVG_TIME_ESTIMATE = 20
@@ -126,7 +126,7 @@ class RateControl(Control):
     def get_bot_response(self, experiment, bot, page, prompt):
         return {
             f"Rule {i+1}": {"checked": True, "rule": f"Rule {i+1}"}
-            for i in range(CREATE_TRIALS + 1)
+            for i in range(N_CREATORS + 1)
         }
 
 
@@ -166,7 +166,7 @@ class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerM
             answer = answer["rule"]
         else:
             answer = [int(checkbox["checked"]) for checkbox in answer.values()][
-                : self.num_rate_stimuli
+                : self.n_rate_stimuli
             ]
         answer = self.finalize_create_and_rate_trial(
             self, answer, trial, experiment, participant
@@ -190,8 +190,8 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         instructions,
         CreateAndRateTrialMaker(
-            num_creators=CREATE_TRIALS,
-            num_raters=RATE_TRIALS,
+            n_creators=N_CREATORS,
+            n_raters=N_RATERS,
             node_class=CreateAndRateNode,
             creator_class=CreateTrial,
             rater_class=RateTrial,
@@ -214,7 +214,7 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="n_trials",
             target_n_participants=None,
             wait_for_networks=True,
-            max_nodes_per_chain=NUM_ITERATIONS,
+            max_nodes_per_chain=N_ITERATIONS,
         ),
         final_questionnaire,
         SuccessfulEndPage(),
