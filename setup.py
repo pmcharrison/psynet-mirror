@@ -43,6 +43,7 @@ setuptools.setup(
         "numpy",
         "pandas",
         "rpdb",
+        "rq==1.12.0",
         "paramiko",
         "praat-parselmouth",
         "progress",
