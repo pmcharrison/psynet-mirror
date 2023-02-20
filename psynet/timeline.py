@@ -1423,7 +1423,7 @@ class Timeline:
         # going to the corresponding element within that list,
         # resolving it, and so on.
         #
-        num_levels = len(participant.elt_id)
+        n_levels = len(participant.elt_id)
         for depth, index in enumerate(participant.elt_id):
             # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
             # then:
@@ -1464,7 +1464,7 @@ class Timeline:
                     # raise a ``PageMakerFinishedError``.
                     # However, if this happens at a higher level of ``participant.elt_id``,
                     # something weird has happened.
-                    assert depth + 1 == num_levels
+                    assert depth + 1 == n_levels
 
                     raise PageMakerFinishedError
 
