@@ -725,7 +725,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
     @property
-    def num_working_participants(self):
+    def n_working_participants(self):
         return Participant.query.filter_by(status="working", failed=False).count()
 
     def recruit(self):
@@ -854,7 +854,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
     def is_complete(self):
-        return (not self.need_more_participants) and self.num_working_participants == 0
+        return (not self.need_more_participants) and self.n_working_participants == 0
 
     def assignment_abandoned(self, participant):
         participant.append_failure_tags("assignment_abandoned", "premature_exit")
@@ -920,7 +920,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return bonus
 
     def outstanding_base_payments(self):
-        return self.num_working_participants * self.base_payment
+        return self.n_working_participants * self.base_payment
 
     def with_lucid_recruitment(self):
         return self.recruiter.__class__.__name__ in [
