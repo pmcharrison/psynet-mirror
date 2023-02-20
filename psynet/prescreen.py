@@ -1669,7 +1669,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
 
         nodes = self.get_nodes(label, stimuli, specific_stimuli)
 
-        num_trials = n_stimuli_to_use if n_stimuli_to_use else len(nodes)
+        n_trials = n_stimuli_to_use if n_stimuli_to_use else len(nodes)
 
         super().__init__(
             id_=label,
@@ -1677,8 +1677,8 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             nodes=nodes,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
-            expected_trials_per_participant=num_trials,
-            max_trials_per_participant=num_trials,
+            expected_trials_per_participant=n_trials,
+            max_trials_per_participant=n_trials,
         )
 
     def load_stimuli(self, csv_path, question):
