@@ -32,6 +32,10 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             "You passed the headphone screening task! Congratulations.", time_estimate=3
         ),
+        HeadphoneTest(
+            label="Woods",
+            test="antiphase",
+        ),
         SuccessfulEndPage(),
     )
 
