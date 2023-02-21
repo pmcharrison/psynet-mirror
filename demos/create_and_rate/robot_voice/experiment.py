@@ -144,13 +144,13 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
 
         # practical for debugging, but in real experiments you should rather do something like this:
         labels = [f"Recording {i + 1}" for i in range(len(self.targets))]
-        eids = [self.get_eid(target) for target in self.targets]
+        target_strs = [f"{target}" for target in self.targets]
 
         return ModularPage(
             "selection",
             get_prompt(self),
             control=PushButtonControl(
-                choices=eids, labels=labels, arrange_vertically=False
+                choices=target_strs, labels=labels, arrange_vertically=False
             ),
             media=MediaSpec(audio={"batch": gsp_trial.media.audio["slider_stimuli"]}),
             events=events,
