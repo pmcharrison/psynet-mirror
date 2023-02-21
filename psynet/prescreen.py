@@ -1,6 +1,7 @@
 import json
 import random
 from os.path import exists as file_exists
+from os.path import join as join_path
 from random import shuffle
 from typing import List, Optional
 
@@ -36,6 +37,9 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
+from .utils import get_logger
+
+logger = get_logger()
 
 
 class REPPVolumeCalibration(Module):
@@ -569,7 +573,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
-                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",  # Redundant but keeping for back-compatibility
+                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                    # Redundant but keeping for back-compatibility
                 },
                 assets={
                     "stimulus": ExternalAsset(
@@ -1460,13 +1465,24 @@ class ColorVocabularyTest(StaticTrialMaker):
 
 
 class HeadphoneTrial(StaticTrial):
+    def get_prompt(self):
+        if self.trial_maker.test == "antiphase":
+            prompt_text = "Which sound was softest (quietest) -- 1, 2, or 3?"
+        elif self.trial_maker.test == "huggins":
+            prompt_text = "Which noise contains the hidden beep -- 1, 2, or 3?"
+        else:
+            raise NotImplementedError(
+                f"Unknown headphone test: {self.trial_maker.test}"
+            )
+        return AudioPrompt(
+            self.assets["stimulus"],
+            prompt_text,
+        )
+
     def show_trial(self, experiment, participant):
         return ModularPage(
             "headphone_trial",
-            AudioPrompt(
-                self.assets["stimulus"],
-                "Which sound was softest (quietest) -- 1, 2, or 3?",
-            ),
+            self.get_prompt(),
             PushButtonControl(["1", "2", "3"]),
             events={
                 "responseEnable": Event(is_triggered_by="promptEnd"),
@@ -1494,6 +1510,10 @@ class HeadphoneTest(StaticTrialMaker):
     label : string
         The label for the color headphone check, default: "headphone_test".
 
+    test : string
+        The test to use, either "huggins" or "antiphase", default: "huggins". We highly recommend using the "huggins"
+        test as the "antiphase" test can be succesfully completed without headphones.
+
     media_url : string
         The url under which the images to be displayed can be referenced, default:
         "https://s3.amazonaws.com/headphone-check"
@@ -1511,12 +1531,32 @@ class HeadphoneTest(StaticTrialMaker):
     def __init__(
         self,
         label="headphone_test",
-        media_url: str = "https://s3.amazonaws.com/headphone-check",
+        test="huggins",
+        media_url: Optional[str] = None,
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
         trial_class=HeadphoneTrial,
     ):
+        if test not in ["huggins", "antiphase"]:
+            raise ValueError(
+                (
+                    "The test headphone test only supports anti-phase (test='antiphase') as proposed by Woods et al. "
+                    "(2017) or huggins pitch (test='huggins') as proposed by Milne et al. (2020)."
+                )
+            )
+        if test == "antiphase":
+            logger.warning(
+                """
+            The antiphase test is not recommended as it can be successfully completed without headphones.
+            """
+            )
+
+        self.test = test
+
+        if media_url is None:
+            media_url = f"https://s3.amazonaws.com/headphone-check/{test}"
+
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
@@ -1532,19 +1572,47 @@ class HeadphoneTest(StaticTrialMaker):
 
     @property
     def instruction_page(self):
+        if self.test == "huggins":
+            task = (
+                "One of the noises has a faint beep hidden within. "
+                "Your task will be to judge <strong> which sound had the beep.</strong>"
+            )
+        elif self.test == "antiphase":
+            task = "Your task will be to judge <strong> which sound was the softest (quietest).</strong>"
+        else:
+            raise NotImplementedError("Unknown test type")
+
         return InfoPage(
             Markup(
-                """
+                f"""
             <p>We will now perform a quick test to check that you are wearing headphones.</p>
             <p>
                 In each trial, you will hear three sounds separated by silences.
-                Your task will be to judge
-                <strong>which sound was softest (quietest).</strong>
+                {task}
             </p>
             """
             ),
             time_estimate=10,
         )
+
+    def get_test_definition(self):
+        if self.test == "huggins":
+            return [
+                (f"HugginsPitch_set{set_id}_{sound_position}", f"{sound_position}")
+                for set_id in range(1, 7)
+                for sound_position in range(1, 4)
+            ]
+        elif self.test == "antiphase":
+            return [
+                ("antiphase_HC_ISO", "2"),
+                ("antiphase_HC_IOS", "3"),
+                ("antiphase_HC_SOI", "1"),
+                ("antiphase_HC_SIO", "1"),
+                ("antiphase_HC_OSI", "2"),
+                ("antiphase_HC_OIS", "3"),
+            ]
+        else:
+            raise NotImplementedError("Unknown test type")
 
     def get_nodes(self, media_url: str):
         return [
@@ -1555,18 +1623,11 @@ class HeadphoneTest(StaticTrialMaker):
                 },
                 assets={
                     "stimulus": ExternalAsset(
-                        f"{media_url}/antiphase_HC_{label}.wav",
+                        join_path(media_url, f"{label}.wav"),
                     )
                 },
             )
-            for label, answer in [
-                ("ISO", "2"),
-                ("IOS", "3"),
-                ("SOI", "1"),
-                ("SIO", "1"),
-                ("OSI", "2"),
-                ("OIS", "3"),
-            ]
+            for label, answer in self.get_test_definition()
         ]
 
 
