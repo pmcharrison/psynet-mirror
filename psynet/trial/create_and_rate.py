@@ -72,15 +72,18 @@ class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
         else:
             raise NotImplementedError()
 
-    @staticmethod
-    def get_eid(entity):
-        return f"{entity.__class__.__name__} {entity.id}"
-
 
 class SelectTrialMixin(RateOrSelectTrialMixin):
     def get_targets(self):
         assert self.trial_maker.target_selection_method == "all"
         return self.get_all_targets()
+
+    def format_answer(self, answer, **kwargs):
+        rated_target_strs = [f"{target}" for target in self.targets]
+        assert (
+            answer in rated_target_strs
+        ), "The answer must be one of the rated target_strs"
+        return answer
 
 
 class RateTrialMixin(RateOrSelectTrialMixin):
@@ -95,10 +98,7 @@ class RateTrialMixin(RateOrSelectTrialMixin):
                 f"Unknown rated_targets value: {target_selection_method}"
             )
 
-    def get_eids_from_entities(self, entities):
-        return [self.get_eid(entity) for entity in entities]
-
-    def count_rated_targets(self, available_target_eids):
+    def count_rated_targets(self, available_targets_str):
         rater_class = self.trial_maker.rater_class
         all_rating_trials = rater_class.query.filter_by(
             node_id=self.node_id, failed=False
@@ -106,103 +106,116 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         all_rating_trials = [
             trial for trial in all_rating_trials if trial.id != self.id
         ]
-        all_rated_target_eids = [
-            self.get_eid(target)
-            for rating in all_rating_trials
-            for target in rating.targets
+        all_rated_target_strs = [
+            f"{target}" for rating in all_rating_trials for target in rating.targets
         ]
         target2count = dict(
-            zip(available_target_eids, [0] * len(available_target_eids))
+            zip(available_targets_str, [0] * len(available_targets_str))
         )
-        for target_eid in all_rated_target_eids:
-            target2count[target_eid] += 1
+        for target_str in all_rated_target_strs:
+            target2count[target_str] += 1
         return target2count
 
     def select_target_with_least_ratings(self, all_targets):
-        all_target_eids = self.get_eids_from_entities(all_targets)
-        target2count = self.count_rated_targets(all_target_eids)
+        all_targets_str = [f"{target}" for target in all_targets]
+        target2count = self.count_rated_targets(all_targets_str)
 
         min_count = min(target2count.values())
         targets_with_min_count = [
-            target_eid
-            for target_eid, count in target2count.items()
+            target_str
+            for target_str, count in target2count.items()
             if count == min_count
         ]
         shuffle = self.trial_maker.randomize_target_presentation_order
 
         if shuffle:
-            target_eid_with_least_ratings = sample(targets_with_min_count, 1)[0]
+            target_str_with_least_ratings = sample(targets_with_min_count, 1)[0]
         else:
-            target_eid_with_least_ratings = targets_with_min_count[0]
+            target_str_with_least_ratings = targets_with_min_count[0]
 
         if self.trial_maker.verbose:
             logger.info(
                 f"For network {self.network.id} at iteration {self.node.degree} we have the following"
-                + f" ratings for: {target2count}. We therefore selected: {target_eid_with_least_ratings}."
+                + f" ratings for: {target2count}. We therefore selected: {target_str_with_least_ratings}."
             )
 
-        target_idx = all_target_eids.index(target_eid_with_least_ratings)
+        target_idx = all_targets_str.index(target_str_with_least_ratings)
         return all_targets[target_idx]
 
     def get_one_target(self):
         return [self.select_target_with_least_ratings(self.get_all_targets())]
 
+    def format_answer(self, answer, **kwargs):
+        rated_target_strs = [f"{target}" for target in self.targets]
+        if len(self.targets) > 1:
+            assert type(answer) == list, "The answer must be a list of ratings"
+            assert len(answer) == len(
+                self.targets
+            ), "The answer must have the same length as the number of targets"
+            assert all(
+                [type(rating) in [int, float] for rating in answer]
+            ), "The answer must be a list of numbers"
+            answer = dict(zip(rated_target_strs, answer))
+        else:
+            if isinstance(answer, str):
+                float_answer = float(answer)
+                int_answer = int(answer)
+                answer = float_answer if float_answer != int_answer else int_answer
+            assert type(answer) in [int, float], "The answer must be a number"
+            assert len(rated_target_strs) == 1
+            answer = {rated_target_strs[0]: answer}
+        return answer
+
 
 class CreateAndRateNodeMixin(object):
-    @staticmethod
-    def get_eid_mapping_from_trials(trials):
-        trial = trials[0]
-        all_targets = trial.get_all_targets()
-        all_target_eids = [trial.get_eid(target) for target in all_targets]
-        return dict(zip(all_target_eids, all_targets))
+    def get_str2target(self, rate_or_select_trials):
+        all_targets = rate_or_select_trials[0].get_all_targets()
+        return {f"{target}": target for target in all_targets}
 
-    @staticmethod
-    def summarize_rate_trials(node, rate_trials):
-        eid2target = CreateAndRateNodeMixin.get_eid_mapping_from_trials(rate_trials)
-        all_target_eids = list(eid2target.keys())
-        rating_dict = {eid: [] for eid in all_target_eids}
+    def summarize_rate_trials(self, rate_trials):
+        str2target = self.get_str2target(rate_trials)
+        all_target_strs = list(str2target.keys())
+        rating_dict = {target_str: [] for target_str in all_target_strs}
         for rate_trial in rate_trials:
-            for eid, rating in rate_trial.answer.items():
-                rating_dict[eid] += [rating]
+            for target_str, rating in rate_trial.answer.items():
+                rating_dict[target_str] += [rating]
         mean_rating_dict = {
-            eid: np.mean(ratings) for eid, ratings in rating_dict.items()
+            target_str: np.mean(ratings) for target_str, ratings in rating_dict.items()
         }
-        eid_with_highest_rating = max(mean_rating_dict, key=mean_rating_dict.get)
+        target_str_with_highest_rating = max(mean_rating_dict, key=mean_rating_dict.get)
 
-        if node.trial_maker.verbose:
+        if self.trial_maker.verbose:
             logger.info(
-                f"For network {node.network_id} at iteration {node.degree} we have the following"
-                + f" ratings for: {mean_rating_dict}. We therefore selected: {eid_with_highest_rating}."
+                f"For network {self.network_id} at iteration {self.degree} we have the following"
+                + f" ratings for: {mean_rating_dict}. We therefore selected: {target_str_with_highest_rating}."
             )
-        return eid2target[eid_with_highest_rating]
+        return str2target[target_str_with_highest_rating]
 
-    @staticmethod
-    def summarize_select_trials(node, select_trials):
-        eid2target = CreateAndRateNodeMixin.get_eid_mapping_from_trials(select_trials)
-        count_dict = {eid: 0 for eid in eid2target.keys()}
+    def summarize_select_trials(self, select_trials):
+        str2target = self.get_str2target(select_trials)
+        count_dict = {target_str: 0 for target_str in str2target.keys()}
         for trial in select_trials:
             count_dict[trial.answer] += 1
-        eid_with_highest_count = max(count_dict, key=count_dict.get)
-        if node.trial_maker.verbose:
+        target_str_with_highest_count = max(count_dict, key=count_dict.get)
+        if self.trial_maker.verbose:
             logger.info(
-                f"For network {node.network_id} at iteration {node.degree} we have the following"
-                + f" ratings for: {count_dict}. We therefore selected: {eid_with_highest_count}."
+                f"For network {self.network_id} at iteration {self.degree} we have the following"
+                + f" ratings for: {count_dict}. We therefore selected: {target_str_with_highest_count}."
             )
-        return eid2target[eid_with_highest_count]
+        return str2target[target_str_with_highest_count]
 
-    @staticmethod
-    def summarize_trials(node):
-        trial_maker = node.trial_maker
+    def summarize_trials(self):
+        trial_maker = self.trial_maker
         all_rate_trials = trial_maker.rater_class.query.filter_by(
-            node_id=node.id, failed=False, finalized=True
+            node_id=self.id, failed=False, finalized=True
         ).all()
 
         rate_mode = trial_maker.rate_mode
 
         if rate_mode == "rate":
-            return CreateAndRateNodeMixin.summarize_rate_trials(node, all_rate_trials)
+            return self.summarize_rate_trials(all_rate_trials)
         elif rate_mode == "select":
-            return CreateAndRateNodeMixin.summarize_select_trials(node, all_rate_trials)
+            return self.summarize_select_trials(all_rate_trials)
         else:
             raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
 
@@ -332,39 +345,6 @@ class CreateAndRateTrialMakerMixin(object):
                 return None
             else:
                 return self.rater_class
-
-    @staticmethod
-    def finalize_create_and_rate_trial(
-        trial_maker, answer, trial, experiment, participant
-    ):
-        if issubclass(trial.__class__, trial_maker.rater_class):
-            rated_eids = [trial.get_eid(target) for target in trial.targets]
-            rate_mode = trial_maker.rate_mode
-            if rate_mode == "rate":
-                if len(trial.targets) > 1:
-                    assert type(answer) == list, "The answer must be a list of ratings"
-                    assert len(answer) == len(
-                        rated_eids
-                    ), "The answer must have the same length as the number of targets"
-                    assert all(
-                        [type(rating) in [int, float] for rating in answer]
-                    ), "The answer must be a list of numbers"
-                    answer = dict(zip(rated_eids, answer))
-                else:
-                    if isinstance(answer, str):
-                        float_answer = float(answer)
-                        int_answer = int(answer)
-                        answer = (
-                            float_answer if float_answer != int_answer else int_answer
-                        )
-                    assert type(answer) in [int, float], "The answer must be a number"
-                    assert len(rated_eids) == 1
-                    answer = {rated_eids[0]: answer}
-            elif rate_mode == "select":
-                assert answer in rated_eids, "The answer must be one of the rated eids"
-            trial.answer = answer
-            db.session.commit()
-        return answer
 
     def get_non_failed_creations(self, node):
         return self.creator_class.query.filter_by(node_id=node.id, failed=False).all()

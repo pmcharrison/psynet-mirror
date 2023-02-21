@@ -149,6 +149,9 @@ class RateTrial(ImitationChainTrial, RateTrialMixin):
             time_estimate=self.time_estimate,
         )
 
+    def format_answer(self, raw_answer, **kwargs):
+        return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
+
 
 start_nodes = [CreateAndRateNode(context=d) for d in dummy_data]
 
@@ -168,9 +171,6 @@ class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerM
             answer = [int(checkbox["checked"]) for checkbox in answer.values()][
                 : self.n_rate_stimuli
             ]
-        answer = self.finalize_create_and_rate_trial(
-            self, answer, trial, experiment, participant
-        )
         return super().finalize_trial(answer, trial, experiment, participant)
 
     def get_trial_class(self, node, participant, experiment):

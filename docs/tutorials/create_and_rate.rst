@@ -86,6 +86,9 @@ image:
                ),
            )
 
+       def format_answer(self, raw_answer, **kwargs):
+           return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
+
 The last thing we need to implement is the trial maker. You need to
 decide how the ratings are made, whether the raters select or rate (here
 they do the latter). If they rate, do they validate one stimulus or all
@@ -139,10 +142,6 @@ The trial maker can look like this:
            CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
            super().__init__(**trial_maker_kwargs)
 
-       def finalize_trial(self, answer, trial, experiment, participant):
-           answer = self.finalize_create_and_rate_trial(self, answer, trial, experiment, participant)
-           return super().finalize_trial(answer, trial, experiment, participant)
-
        def get_trial_class(self, node, participant, experiment):
            return self.get_role(node, participant, experiment)
 
@@ -158,10 +157,6 @@ different groups which is set in ``participant.var.is_creator``. We can then imp
            )
            CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
            super().__init__(**trial_maker_kwargs)
-
-       def finalize_trial(self, answer, trial, experiment, participant):
-           answer = self.finalize_create_and_rate_trial(self, answer, trial, experiment, participant)
-           return super().finalize_trial(answer, trial, experiment, participant)
 
       def get_trial_class(self, node, participant, experiment):
             proposed_role_class = self.get_role(node, participant, experiment)
@@ -241,6 +236,9 @@ Let’s now put all pieces together:
                ),
            )
 
+       def format_answer(self, raw_answer, **kwargs):
+           return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
+
 
    class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
        def __init__(self, **kwargs):
@@ -249,10 +247,6 @@ Let’s now put all pieces together:
            )
            CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
            super().__init__(**trial_maker_kwargs)
-
-       def finalize_trial(self, answer, trial, experiment, participant):
-           answer = self.finalize_create_and_rate_trial(self, answer, trial, experiment, participant)
-           return super().finalize_trial(answer, trial, experiment, participant)
 
        def get_trial_class(self, node, participant, experiment):
            return self.get_role(node, participant, experiment)

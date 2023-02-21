@@ -112,6 +112,9 @@ class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
             time_estimate=5,
         )
 
+    def format_answer(self, raw_answer, **kwargs):
+        return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
+
 
 class SelectTrial(ImitationChainTrial, SelectTrialMixin):
     time_estimate = 5
@@ -158,6 +161,9 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
             time_estimate=len(self.targets) * AUDIO_DURATION + 2,
         )
 
+    def format_answer(self, raw_answer, **kwargs):
+        return SelectTrialMixin.format_answer(self, raw_answer, **kwargs)
+
 
 class CreateAndRateNode(AudioGibbsNode, CreateAndRateNodeMixin):
     vector_length = DIMENSIONS
@@ -178,8 +184,9 @@ class CreateAndRateNode(AudioGibbsNode, CreateAndRateNodeMixin):
             # is previous iteration
             return winning_target.definition
         else:
-            active_index = trials[0].active_index
-            vector = trials[0].updated_vector.copy()
+            trial = self.trial_maker.get_finished_creations(self)[0]
+            active_index = trial.active_index
+            vector = trial.updated_vector.copy()
             vector[active_index] = winning_target.answer
             return {"vector": vector, "active_index": active_index}
 
@@ -197,12 +204,6 @@ class CustomCreateAndRateTrialMaker(AudioGibbsTrialMaker, CreateAndRateTrialMake
         )
         CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
         super().__init__(**trial_maker_kwargs)
-
-    def finalize_trial(self, answer, trial, experiment, participant):
-        answer = self.finalize_create_and_rate_trial(
-            self, answer, trial, experiment, participant
-        )
-        return super().finalize_trial(answer, trial, experiment, participant)
 
     def get_trial_class(self, node, participant, experiment):
         return self.get_role(node, participant, experiment)

@@ -73,6 +73,9 @@ class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
             ),
         )
 
+    def format_answer(self, raw_answer, **kwargs):
+        return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
+
 
 class SelectTrial(ImitationChainTrial, SelectTrialMixin):
     time_estimate = 5
@@ -82,7 +85,7 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
         SelectTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def show_trial(self, experiment, participant):
-        eids = [self.get_eid(target) for target in self.targets]
+        target_strs = [f"{target}" for target in self.targets]
         answers = [self.get_target_answer(target) for target in self.targets]
         return ModularPage(
             "select_trial",
@@ -91,10 +94,13 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
                 img_url=self.context["img_url"],
             ),
             PushButtonControl(
-                choices=eids,
+                choices=target_strs,
                 labels=answers,
             ),
         )
+
+    def format_answer(self, raw_answer, **kwargs):
+        return SelectTrialMixin.format_answer(self, raw_answer, **kwargs)
 
 
 class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
@@ -104,12 +110,6 @@ class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerM
         )
         CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
         ImitationChainTrialMaker.__init__(self, **trial_maker_kwargs)
-
-    def finalize_trial(self, answer, trial, experiment, participant):
-        answer = self.finalize_create_and_rate_trial(
-            self, answer, trial, experiment, participant
-        )
-        return super().finalize_trial(answer, trial, experiment, participant)
 
     def get_trial_class(self, node, participant, experiment):
         return self.get_role(node, participant, experiment)
