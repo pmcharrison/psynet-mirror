@@ -33,6 +33,7 @@ dependencies = [
     "dallinger==9.4.2",
     "dominate",
     "joblib",
+    "paramiko",
     "progress",
     "rpdb",
     "rq==1.12.0",
