@@ -29,8 +29,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "awscli",
     "dallinger==9.4.2",
+    "awscli",
     "dominate",
     "importlib_resources",
     "joblib",
