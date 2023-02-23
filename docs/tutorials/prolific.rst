@@ -18,7 +18,7 @@ Basics
 3. Update the follwing lines in your ``config.txt`` file:
 
 - ``recruiter = prolific``
-- ``title = Your experiment title (Chrome browser required, 5-10 minutes)`` (this is the title that will appear on Prolific). Make sure you include the words "Chrome browser required" in the title as there is no way to filter for Chrome users on Prolific. Also, make sure you include the time estimate for the experiment, so people will know how long it will take. If you need any specific hardware (e.g., headphones), make sure to include that as well.
+- ``title = Your experiment title (Chrome browser required, 5-10 minutes, £10/hr)`` (this is the title that will appear on Prolific). Make sure you include the words "Chrome browser required" in the title as there is no way to filter for Chrome users on Prolific. Also, make sure you include the time estimate for the experiment, so people will know how long it will take. If you need any specific hardware (e.g., headphones), make sure to include that as well.
 
 - ``description`` description of your study which will appear on Prolific
 
