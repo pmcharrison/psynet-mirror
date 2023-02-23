@@ -142,7 +142,7 @@
                                         href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant.id }}%29"
                                         target="_top"
                                 >
-                                {{ pgettext("timeline_problem", "If the above doesn't help, send us an email with the following information:") }}
+                                    {{ pgettext("timeline_problem", "If the above doesn't help, send us an email with the following information:") }}
                                 </a>
 
                                 <ol>
@@ -225,35 +225,38 @@
                         {% endif %}
 
                         {% if allow_switching_locale and supported_language_dict|length > 1 %}
-                        <div>
-                            <select id="iso-language" class="form-control">
-                                {% for iso, language in supported_language_dict.items() %}
-                                    {% if iso == current_locale %}
-                                        <option value="{{ iso }}" selected>{{ language }}️</option>
-                                    {% else %}
-                                        <option value="{{ iso }}">{{ language }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                        </div>
+                            <div>
+                                <select id="iso-language" class="form-control">
+                                    {% for iso, language in supported_language_dict.items() %}
+                                        {% if iso == current_locale %}
+                                            <option value="{{ iso }}" selected>{{ language }}️</option>
+                                        {% else %}
+                                            <option value="{{ iso }}">{{ language }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary" id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+                        <button type="button" class="btn btn-primary"
+                                id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
                 </div>
             </nav>
         {% endif %}
         <script>
-        // Allows the user to switch the language of the experiment if this setting is enabled.
-        $('#iso-language').on('change', function (x){
-            var $_GET=[];
-            window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(a,name,value){$_GET[name]=value;});
-            var participant_id = $_GET['participant_id'];
-            $.get('/set_locale_participant/' + participant_id + '?locale=' + $(this).val(), function (data) {
-                location.reload();
-            });
-            $('#iso-language').val()
-        })
-    </script>
+            // Allows the user to switch the language of the experiment if this setting is enabled.
+            $('#iso-language').on('change', function (x) {
+                var $_GET = [];
+                window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (a, name, value) {
+                    $_GET[name] = value;
+                });
+                var participant_id = $_GET['participant_id'];
+                $.get('/set_locale_participant/' + participant_id + '?locale=' + $(this).val(), function (data) {
+                    location.reload();
+                });
+                $('#iso-language').val()
+            })
+        </script>
     {% endblock %}
 {% endblock %}
 
@@ -922,6 +925,11 @@
                         throw Error("Unsupported media type: " + mediaType);
                     }
 
+                    // Make sure all batches are processed as arraybuffers
+                    if (args["batchId"] !== null) {
+                        request.responseType = "arraybuffer";
+                    }
+
                     request.onprogress = function (e) {
                         psynet.media.downloadProgress.set(args["mediaType"], args["fileId"], e.loaded * 100 / e.total);
                     };
@@ -1156,6 +1164,7 @@
                             "Associating video '" + stimulusId
                             + "' with the player of the same name.'"
                         );
+                        data = new Blob([data])  // convert to blob
                         player.src = URL.createObjectURL(data);
                         player.classList.remove("loader");
                         player.load();
@@ -1172,7 +1181,7 @@
 
                 let processMediaBatch = {};
 
-                processMediaBatch.audio = function (data, args) { //, ids,) {
+                processMediaBatch.extract_stimuli = function (data, args) {
                     let stimulusIds = args["stimulusIds"];
                     let mediaType = args["mediaType"];
                     let fileId = args["fileId"];
@@ -1186,7 +1195,7 @@
                     }
 
                     let numFiles = 0;
-                    psynet.log.debug('Unpacking the audio batch "' + fileId + '".');
+                    psynet.log.debug('Unpacking the ' + mediaType + ' batch "' + fileId + '".');
                     let bb = new DataView(data);
                     let offset = 0;
                     let promises = [];
@@ -1195,7 +1204,7 @@
                         let stimulusId = stimulusIds[numFiles];
                         let length = bb.getUint32(offset, true);
                         offset += 4;
-                        let sound = extractBuffer(data, offset, length);
+                        let media = extractBuffer(data, offset, length);
                         offset += length;
                         numFiles++;
 
@@ -1213,7 +1222,12 @@
                             fileId: fileId
                         };
 
-                        promises.push(createMediaFromBuffer.audio(sound.buffer, args));
+                        // In contrast to audio, video is not loaded into the DOM, so we need to create a player
+                        if (mediaType === 'video') {
+                            $('#main-body').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
+                        }
+
+                        promises.push(createMediaFromBuffer[mediaType](media.buffer, args));
                     }
                     if (numFiles < stimulusIds.length) {
                         throw Error(
@@ -1223,6 +1237,14 @@
                         );
                     }
                     return Promise.all(promises);
+                };
+
+                processMediaBatch.audio = function (data, args) { //, ids,) {
+                    return processMediaBatch.extract_stimuli(data, args);
+                };
+
+                processMediaBatch.video = function (data, args) { //, ids,) {
+                    return processMediaBatch.extract_stimuli(data, args);
                 };
 
                 let checkParticipantId = function () {
@@ -1634,8 +1656,9 @@
 
 {% block libs %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}" type="text/javascript"> </script>
-    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}" type="text/javascript"> </script>
+    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}"
+            type="text/javascript"></script>
 {% endblock %}
 
 {% block scripts %}
