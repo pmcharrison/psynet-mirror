@@ -306,12 +306,12 @@
 {% endmacro %}
 
 
-{% macro audio_slider(config) %}
+{% macro media_slider(config) %}
     {{ slider(config) }}
 
     <script>
         {% autoescape off %}
-        var soundLocations = {{ config.js_vars.sound_locations }};
+        var mediaLocations = {{ config.js_vars.media_locations }};
         var autoplay = {{ config.js_vars.autoplay | lower }};
         var disableWhilePlaying = {{ config.js_vars.disable_while_playing | lower }};
         {% endautoescape %}
@@ -321,42 +321,63 @@
             slider.log.push({
                 'time': new Date(),
                 'value': slider.value,
-                'audio': slider.audio
+                'media': slider.media
             })
         }
 
-        findClosestAudio = function (slider) {
-            var locations = Object.values(soundLocations);
+        findClosestMedia = function (slider) {
+            var locations = Object.values(mediaLocations);
             if (!randomWrap) {
                  valueToPlay =  slider.value
             } else {
                 valueToPlay = slider.getAttribute("output-value")
             }
             var nearest = psynet.utils.closest(parseFloat(valueToPlay), locations);
-            var selectedAudio = Object.keys(soundLocations)[nearest.index];
-            return selectedAudio
+            return Object.keys(mediaLocations)[nearest.index];
         };
 
-        playSound = function () {
-            var id = slider.audio;
-            var sound = psynet.audio[id];
+        {% if config.js_vars.modality == "audio" %}
+            playMedia = function () {
+                var id = slider.media;
+                var sound = psynet.audio[id];
 
-            if (!sound.playing) {
-                psynet.media.stopAllAudio();
-                psynet.log.debug('Playing sound with ID = ' + id);
+                if (!sound.playing) {
+                    psynet.media.stopAllAudio();
+                    psynet.log.debug('Playing sound with ID = ' + id);
+                    disableSlider();
+                    sound.play().source.addEventListener("ended", enableSlider);
+                }
+            };
+        {% elif config.js_vars.modality == "video" %}
+
+
+            playMedia = function () {
+                var id = slider.media;
+                var video = psynet.video[id];
+
+
+                $('video').each(function (idx, elem){
+                    elem.pause()
+                    elem.style.display='none'
+                })
+                psynet.log.debug('Playing video with ID = ' + id);
                 disableSlider();
-                sound.play().source.addEventListener("ended", enableSlider);
-            }
-        };
+                video.player.style.display = 'block'
+                video.player.pause();
+                video.player.currentTime = 0;
+                video.player.play();
+                setTimeout(enableSlider, video.player.duration)
+            };
+        {% endif %}
 
         onSliderEvent = function (eventType) {
-            slider.audio = findClosestAudio(slider);
+            slider.media = findClosestMedia(slider);
             if (eventType == "initialise") {
                 if (autoplay) {
-                    playSound();
+                    playMedia();
                 }
             } else if (eventType == "sliderChanged") {
-                playSound();
+                playMedia();
             }
         };
     </script>

@@ -9,7 +9,7 @@ import numpy as np
 TIMESTAMPS = [0.0, 0.071, 0.142, 0.213, 0.284, 0.355, 0.426]
 
 
-def synth_stimulus(vector, output_path):
+def synth_stimulus(vector, output_path, chain_definition=None):
     """
     Synthesises a stimulus.
 
@@ -26,6 +26,9 @@ def synth_stimulus(vector, output_path):
 
     output_path : str
         The output path for the generated file.
+
+    chain_definition
+        The chain's definition object.
     """
     times = np.array(TIMESTAMPS)
     assert len(vector) == len(times)
@@ -79,9 +82,7 @@ def synth_batch(
 
     # Do some checks
     supported_effects = ["fade-out"]
-    if not all(
-        ["name" in e.keys() and e["name"] in supported_effects for e in effects]
-    ):
+    if not all(["name" in e.keys() and e["name"] in supported_effects for e in effects]):
         raise ValueError(
             "Your effect must have a name. Currently we only support the following effects: %s"
             % ", ".join(supported_effects)
@@ -97,9 +98,7 @@ def synth_batch(
         raise FileNotFoundError("Specified `prepend_path` not found on this system")
 
     if not os.path.exists(baseline_audio_path):
-        raise FileNotFoundError(
-            "Specified `baseline_audio_path` not found on this system"
-        )
+        raise FileNotFoundError("Specified `baseline_audio_path` not found on this system")
 
     def cent2herz(ct, base=reference_tone):
         """Converts deviation in cents to a value in Hertz"""
