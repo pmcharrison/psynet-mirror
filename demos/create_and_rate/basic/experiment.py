@@ -31,12 +31,8 @@ def animal_prompt(text, img_url):
     )
 
 
-class CreateTrial(ImitationChainTrial, CreateTrialMixin):
+class CreateTrial(CreateTrialMixin, ImitationChainTrial):
     time_estimate = 5
-
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        CreateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def show_trial(self, experiment, participant):
         return ModularPage(
@@ -47,12 +43,8 @@ class CreateTrial(ImitationChainTrial, CreateTrialMixin):
         )
 
 
-class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
+class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
     time_estimate = 5
-
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def show_trial(self, experiment, participant):
         assert self.trial_maker.target_selection_method == "one"
@@ -73,16 +65,9 @@ class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
             ),
         )
 
-    def format_answer(self, raw_answer, **kwargs):
-        return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
 
-
-class SelectTrial(ImitationChainTrial, SelectTrialMixin):
+class SelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
-
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        SelectTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def show_trial(self, experiment, participant):
         target_strs = [f"{target}" for target in self.targets]
@@ -99,20 +84,9 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
             ),
         )
 
-    def format_answer(self, raw_answer, **kwargs):
-        return SelectTrialMixin.format_answer(self, raw_answer, **kwargs)
 
-
-class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
-    def __init__(self, **kwargs):
-        trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-            kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
-        )
-        CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
-        ImitationChainTrialMaker.__init__(self, **trial_maker_kwargs)
-
-    def get_trial_class(self, node, participant, experiment):
-        return self.get_role(node, participant, experiment)
+class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
+    pass
 
 
 ##########################################################################################
