@@ -518,9 +518,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.key = self.local_key
 
     def generate_local_key(self):
-        return os.path.join(
-            self.generate_local_key_parents(), self.generate_local_key_child()
-        )
+        return os.path.join(self.generate_local_key_parents(), self.generate_local_key_child())
 
     def generate_local_key_parents(self):
         ids = []
@@ -744,9 +742,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         except Exception:
             from .command_line import log
 
-            log(
-                f"Failed to export the subfile {subfile} from asset {self.key} to path {path}."
-            )
+            log(f"Failed to export the subfile {subfile} from asset {self.key} to path {path}.")
             raise
 
     def export_subfolder(self, subfolder, path):
@@ -755,9 +751,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         except Exception:
             from .command_line import log
 
-            log(
-                f"Failed to export the subfolder {subfolder} from asset {self.key} to path {path}."
-            )
+            log(f"Failed to export the subfolder {subfolder} from asset {self.key} to path {path}.")
             raise
 
     def receive_node_definition(self, definition):
@@ -799,9 +793,7 @@ class AssetParticipant(AssetLink, SQLBase, SQLMixin):
     __tablename__ = "asset_participant"
 
     participant_id = Column(Integer, ForeignKey("participant.id"), primary_key=True)
-    participant = relationship(
-        "psynet.participant.Participant", back_populates="asset_links"
-    )
+    participant = relationship("psynet.participant.Participant", back_populates="asset_links")
 
     asset = relationship("Asset", back_populates="participant_links")
 
@@ -1111,9 +1103,7 @@ class ManagedAsset(Asset):
     def after_deposit(self):
         # logger.info("Calling after_deposit.")
         if self.trial:
-            logger.info(
-                "Calling check_if_can_run_async_post_trial as part of after_deposit."
-            )
+            logger.info("Calling check_if_can_run_async_post_trial as part of after_deposit.")
             self.trial.check_if_can_run_async_post_trial()
             self.trial.check_if_can_mark_as_finalized()
 
@@ -1545,9 +1535,7 @@ class CachedAsset(ManagedAsset):
         return host_path
 
     def _needs_depositing(self):
-        exists_in_cache = self.storage.check_cache(
-            self.host_path, is_folder=self.is_folder
-        )
+        exists_in_cache = self.storage.check_cache(self.host_path, is_folder=self.is_folder)
         self.used_cache = exists_in_cache
         return not exists_in_cache
 
@@ -2457,9 +2445,7 @@ class AssetStorage:
         if delete_input:
             asset.delete_input()
 
-    def _async__call_receive_deposit(
-        self, asset: Asset, host_path: str, delete_input: bool
-    ):
+    def _async__call_receive_deposit(self, asset: Asset, host_path: str, delete_input: bool):
         LocalAsyncProcess(
             self._call_receive_deposit,
             arguments=dict(
@@ -2553,9 +2539,7 @@ class AssetStorage:
             with open(path, "wb") as file:
                 file.write(r.content)
         except Exception:
-            print(
-                f"An error occurred when trying to download from the following URL: {url}"
-            )
+            print(f"An error occurred when trying to download from the following URL: {url}")
             raise
 
 
@@ -2814,9 +2798,7 @@ class LocalStorage(AssetStorage):
             return None
 
     def get_url(self, host_path):
-        assert (
-            self.root
-        )  # Makes sure that the root storage location has been instantiated
+        assert self.root  # Makes sure that the root storage location has been instantiated
         return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
     def check_cache(self, host_path: str, is_folder: bool):
@@ -2924,9 +2906,7 @@ def list_files_in_s3_bucket(
     A generator that yields keys.
 
     """
-    logger.info(
-        "Listing files in S3 bucket %s with prefix '%s'...", bucket_name, prefix
-    )
+    logger.info("Listing files in S3 bucket %s with prefix '%s'...", bucket_name, prefix)
     paginator = get_boto3_s3_client().get_paginator("list_objects_v2")
 
     return list(
@@ -2977,9 +2957,7 @@ class S3Storage(AssetStorage):
 
     def get_url(self, host_path: str):
         s3_key = self.get_s3_key(host_path)
-        return os.path.join(
-            "https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key)
-        )
+        return os.path.join("https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key))
 
     @staticmethod
     def bucket_exists(bucket_name):
@@ -3035,9 +3013,7 @@ class S3Storage(AssetStorage):
                 # so doesn't need to be optimized for just yet.
                 return [
                     x
-                    for x in list_files_in_s3_bucket__cached(
-                        self.s3_bucket, prefix=self.root
-                    )
+                    for x in list_files_in_s3_bucket__cached(self.s3_bucket, prefix=self.root)
                     if x.startswith(prefix)
                 ]
             else:
@@ -3109,7 +3085,7 @@ class S3Storage(AssetStorage):
 
     def _download(self, s3_key, target_path, recursive):
         """
-        This function relies on the AWS CLI. You can install it with pip install awscli.
+        This function relies on the AWS CLI .
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
         cmd = ["aws", "s3", "cp", url, target_path]
@@ -3128,7 +3104,7 @@ class S3Storage(AssetStorage):
 
     def _upload(self, path, s3_key, recursive):
         """
-        This function relies on the AWS CLI. You can install it with pip install awscli.
+        This function relies on the AWS CLI.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
         cmd = ["aws", "s3", "cp", path, url]
@@ -3205,9 +3181,7 @@ class AssetRegistry:
     def update_asset_metadata(self, asset: Asset):
         pass
 
-    def receive_deposit(
-        self, asset: Asset, host_path: str, async_: bool, delete_input: bool
-    ):
+    def receive_deposit(self, asset: Asset, host_path: str, async_: bool, delete_input: bool):
         return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
     # def get(self, key):
@@ -3259,11 +3233,7 @@ class AssetRegistry:
             backend="threading",
             # backend="multiprocessing",  # Slow compared to threading
         )(
-            delayed(
-                lambda a: threadsafe__prepare_asset_for_deployment(
-                    asset=a, registry=self
-                )
-            )(a)
+            delayed(lambda a: threadsafe__prepare_asset_for_deployment(asset=a, registry=self))(a)
             for a in self._staged_asset_specifications
         )
         # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))

@@ -20,6 +20,11 @@ RUN wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/109.0.
 RUN apt -f -y install ./chrome.deb
 RUN unzip chrome-driver.zip chromedriver -d /usr/local/bin/
 
+# AWS
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN ./aws/install
+
 # TODO - Remove melody package and demo from PsyNet
 RUN pip install --upgrade pip
 RUN pip install "git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments[extract]"
