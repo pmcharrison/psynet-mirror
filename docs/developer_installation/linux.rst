@@ -160,6 +160,16 @@ Needed for running the Selenium tests with headless Chrome.
    wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip --directory /tmp
    sudo unzip /tmp/chromedriver_linux64.zip chromedriver -d /usr/local/bin/
 
+Install AWS CLI v2
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+   unzip awscliv2.zip
+   sudo ./aws/install
+   rm awscliv2.zip
+
 Install additional Python packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

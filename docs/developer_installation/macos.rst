@@ -26,6 +26,15 @@ Install Google Chrome
 
    brew install --cask google-chrome
 
+Install AWS CLI v2
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+   sudo installer -pkg AWSCLIV2.pkg -target /
+   rm AWSCLIV2.pkg
+
 Install and setup PostgreSQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
