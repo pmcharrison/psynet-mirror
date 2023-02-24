@@ -20,7 +20,7 @@ RUN wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/109.0.
 RUN apt -f -y install ./chrome.deb
 RUN unzip chrome-driver.zip chromedriver -d /usr/local/bin/
 
-# AWS
+# AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 RUN unzip awscliv2.zip
 RUN ./aws/install
