@@ -9,8 +9,8 @@ import psynet.experiment
 from psynet.asset import DebugStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.prescreen import AntiphaseHeadphoneTrial, HeadphoneTest
+from psynet.page import SuccessfulEndPage, VolumeCalibration
+from psynet.prescreen import AntiphaseHeadphoneTest, HugginsHeadphoneTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
@@ -28,14 +28,8 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         VolumeCalibration(),
-        HeadphoneTest(),
-        InfoPage(
-            "You passed the headphone screening task! Congratulations.", time_estimate=3
-        ),
-        HeadphoneTest(
-            label="Woods",
-            trial_class=AntiphaseHeadphoneTrial,
-        ),
+        HugginsHeadphoneTest(),
+        AntiphaseHeadphoneTest(),
         SuccessfulEndPage(),
     )
 
