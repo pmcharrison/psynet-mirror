@@ -10,26 +10,86 @@ from sqlalchemy.orm import declared_attr, deferred
 from psynet.field import PythonObject
 from psynet.trial import ChainNode
 from psynet.trial.chain import ChainTrial
+from psynet.trial.main import TrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
 
 
+def get_super_classes(cls):
+    return inspect.getmro(cls)
+
+
+def get_extended_class(obj):
+    super_classes = get_super_classes(obj.__class__)
+    mixin_class = super_classes[1]
+    extended_class_idx = len(inspect.getmro(mixin_class))
+    return super_classes[extended_class_idx]
+
+
+def assert_correct_inheritance(sub_class, super_class):
+    super_classes = get_super_classes(sub_class)
+    assert len(super_classes) >= 3, "The class must inherit from at least two classes"
+    error_msg = (
+        "The mixin must be the first class you inherit from, for example:\n"
+        "class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker) would be correct and \n"
+        "class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin) would be incorrect."
+    )
+    assert super_classes[1] == super_class, error_msg
+
+
+def filter_relevant_kwargs(kwargs, func):
+    params = inspect.getfullargspec(func)
+    keys = params.args + params.kwonlyargs
+    return {key: kwargs[key] for key in keys if key in kwargs}
+
+
+def get_required_parameters(func):
+    inspected_function = inspect.getfullargspec(func)
+    args = inspected_function.args + [
+        arg
+        for arg in inspected_function.kwonlyargs
+        if arg not in inspected_function.kwonlydefaults
+    ]
+    args.remove("self")
+
+    if inspected_function.defaults is None:
+        return args
+    else:
+        return args[: -len(inspected_function.defaults)]
+
+
+def split_kwargs(obj, kwargs, trial_maker_class, mixin_class):
+    required_parameters = list(
+        set(
+            get_required_parameters(trial_maker_class.__init__)
+            + get_required_parameters(obj.setup)
+        )
+    )
+    for param in required_parameters:
+        assert param in kwargs, f"Missing required parameter: {param}"
+    trial_maker_kwargs = filter_relevant_kwargs(kwargs, trial_maker_class.__init__)
+    mixin_kwargs = filter_relevant_kwargs(kwargs, mixin_class.setup)
+    return trial_maker_kwargs, mixin_kwargs
+
+
 class CreateAndRateTrialMixin(object):
-    var = None
-    trial_maker = None
-    node_id = None
-    node = None
-    network = None
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        trial_class = get_extended_class(self)
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        trial_class.__init__(self, experiment, node, participant, *args, **kwargs)
+        assert issubclass(
+            trial_class, ChainTrial
+        ), "The trial class must inherit from ChainTrial"
 
 
 class CreateTrialMixin(CreateAndRateTrialMixin):
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        pass
+    pass
 
 
 class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
     def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
         self.targets = self.get_targets()
         self.register_transformations(self.targets)
 
@@ -126,12 +186,8 @@ class RateTrialMixin(RateOrSelectTrialMixin):
             for target_str, count in target2count.items()
             if count == min_count
         ]
-        shuffle = self.trial_maker.randomize_target_presentation_order
 
-        if shuffle:
-            target_str_with_least_ratings = sample(targets_with_min_count, 1)[0]
-        else:
-            target_str_with_least_ratings = targets_with_min_count[0]
+        target_str_with_least_ratings = sample(targets_with_min_count, 1)[0]
 
         if self.trial_maker.verbose:
             logger.info(
@@ -168,6 +224,13 @@ class RateTrialMixin(RateOrSelectTrialMixin):
 
 
 class CreateAndRateNodeMixin(object):
+    def __init__(self, **kwargs):
+        extended_class = get_extended_class(self)
+        assert issubclass(
+            extended_class, ChainNode
+        ), "The extended class must be a ChainNode"
+        extended_class.__init__(self, **kwargs)
+
     def get_str2target(self, rate_or_select_trials):
         all_targets = rate_or_select_trials[0].get_all_targets()
         return {f"{target}": target for target in all_targets}
@@ -204,7 +267,7 @@ class CreateAndRateNodeMixin(object):
             )
         return str2target[target_str_with_highest_count]
 
-    def summarize_trials(self):
+    def summarize_trials(self, trials, experiment, participant):
         trial_maker = self.trial_maker
         all_rate_trials = trial_maker.rater_class.query.filter_by(
             node_id=self.id, failed=False, finalized=True
@@ -220,10 +283,7 @@ class CreateAndRateNodeMixin(object):
             raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
 
 
-class CreateAndRateNode(ChainNode, CreateAndRateNodeMixin):
-    def summarize_trials(self, trials: list, experiment, participant):
-        return CreateAndRateNodeMixin.summarize_trials(self)
-
+class CreateAndRateNode(CreateAndRateNodeMixin, ChainNode):
     def create_initial_seed(self, experiment, participant):
         return {}
 
@@ -232,7 +292,33 @@ class CreateAndRateNode(ChainNode, CreateAndRateNodeMixin):
 
 
 class CreateAndRateTrialMakerMixin(object):
-    def __init__(
+    def __init__(self, **kwargs):
+        assert_correct_inheritance(self.__class__, CreateAndRateTrialMakerMixin)
+        extended_class = get_extended_class(self)
+        assert issubclass(
+            extended_class, TrialMaker
+        ), "The extended class must be a TrialMaker"
+        trial_maker_kwargs, mixin_kwargs = self.prepare_kwargs(
+            kwargs, extended_class, CreateAndRateTrialMakerMixin
+        )
+        self.setup(**mixin_kwargs)
+        extended_class.__init__(self, **trial_maker_kwargs)
+
+    def assert_correct_inheritance_elements(self):
+        def check_inheritance(clc, base_class, mixin_class):
+            assert issubclass(clc, mixin_class)
+            assert issubclass(clc, base_class)
+
+        check_inheritance(self.node_class, ChainNode, CreateAndRateNodeMixin)
+        check_inheritance(self.creator_class, ChainTrial, CreateTrialMixin)
+        if self.rate_mode == "select":
+            check_inheritance(self.rater_class, ChainTrial, SelectTrialMixin)
+        elif self.rate_mode == "rate":
+            check_inheritance(self.rater_class, ChainTrial, RateTrialMixin)
+        else:
+            raise NotImplementedError(f"Unknown rate_mode value: {self.rate_mode}")
+
+    def setup(
         self,
         n_creators,
         n_raters,
@@ -243,29 +329,28 @@ class CreateAndRateTrialMakerMixin(object):
         rate_mode="rate",
         include_previous_iteration=False,
         target_selection_method="one",
-        randomize_target_presentation_order=True,
+        randomize_target_order=True,
         verbose=False,
     ):
-        self.assert_is_positive_integer(n_creators)
+        # Set class variables
         self.n_creators = n_creators
-        self.assert_is_positive_integer(n_raters)
         self.n_raters = n_raters
-
-        self.assert_correct_inheritance(creator_class, ChainTrial, CreateTrialMixin)
+        self.rate_mode = rate_mode
         self.creator_class = creator_class
-
-        if rate_mode == "select":
-            self.assert_correct_inheritance(rater_class, ChainTrial, SelectTrialMixin)
-        elif rate_mode == "rate":
-            self.assert_correct_inheritance(rater_class, ChainTrial, RateTrialMixin)
-        else:
-            raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
         self.rater_class = rater_class
-
-        self.assert_correct_inheritance(node_class, ChainNode, CreateAndRateNodeMixin)
         self.node_class = node_class
+        self.include_previous_iteration = include_previous_iteration
+        self.n_rate_stimuli = self.n_creators + int(self.include_previous_iteration)
+        self.target_selection_method = target_selection_method
+        self.randomize_target_presentation_order = randomize_target_order
+        self.verbose = verbose
 
-        if include_previous_iteration:
+        # Assertions
+        self.assert_is_positive_integer(n_creators)
+        self.assert_is_positive_integer(n_raters)
+        self.assert_correct_inheritance_elements()
+
+        if self.include_previous_iteration:
             error_msg = (
                 "If you want to include previous iterations, you need to specify the seed, e.g."
                 " CreateAndRateNode(seed='My initial response shown to the participant')"
@@ -275,11 +360,8 @@ class CreateAndRateTrialMakerMixin(object):
             )
             assert len(start_nodes) == n_nodes_with_seed, error_msg
 
-        self.include_previous_iteration = include_previous_iteration
-        self.rate_mode = rate_mode
-        self.n_rate_stimuli = self.n_creators + int(self.include_previous_iteration)
         if self.rate_mode == "rate":
-            if target_selection_method == "one":
+            if self.target_selection_method == "one":
                 if self.include_previous_iteration:
                     error_msg = (
                         "n_raters must be a multiple of n_creators + 1 (since include_previous_iteration == "
@@ -300,39 +382,22 @@ class CreateAndRateTrialMakerMixin(object):
             raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
 
         assert target_selection_method in ["one", "all"]
-        self.target_selection_method = target_selection_method
-        self.randomize_target_presentation_order = randomize_target_presentation_order
-        self.verbose = verbose
 
     @staticmethod
     def assert_is_positive_integer(x):
         assert type(x) == int and x > 0, f"{x} must be a positive integer"
 
-    @staticmethod
-    def assert_correct_inheritance(clc, base_class, mixin_class):
-        assert issubclass(clc, mixin_class)
-        assert issubclass(clc, base_class)
-
-    @staticmethod
-    def filter_relevant_kwargs(kwargs, clc):
-        params = inspect.getfullargspec(clc.__init__)
-        keys = params.args + params.kwonlyargs
-        return {key: kwargs[key] for key in keys if key in kwargs}
-
-    def split_kwargs(self, kwargs, trial_maker_class, mixin_class):
-        required_parameters = inspect.getfullargspec(self.__init__).args
-        required_parameters.remove("self")
-        for param in required_parameters:
-            assert param in kwargs, f"Missing required parameter: {param}"
-        trial_maker_kwargs = self.filter_relevant_kwargs(kwargs, trial_maker_class)
-        mixin_kwargs = self.filter_relevant_kwargs(kwargs, mixin_class)
+    def prepare_kwargs(self, kwargs, trial_maker_class, mixin_class):
+        kwargs["trial_class"] = kwargs["creator_class"]
+        kwargs["node_class"] = kwargs["node_class"]
+        trial_maker_kwargs, mixin_kwargs = split_kwargs(
+            self, kwargs, trial_maker_class, mixin_class
+        )
         trials_per_node = kwargs["n_creators"] + kwargs["n_raters"]
         trial_maker_kwargs["trials_per_node"] = trials_per_node
-        trial_maker_kwargs["trial_class"] = kwargs["creator_class"]
-        trial_maker_kwargs["node_class"] = kwargs["node_class"]
         return trial_maker_kwargs, mixin_kwargs
 
-    def get_role(self, node, participant, experiment):
+    def get_trial_class(self, node, participant, experiment):
         create_trials = self.get_non_failed_creations(node)
         finished_creations = self.get_finished_creations(node)
         need_creators = len(create_trials) < self.n_creators
