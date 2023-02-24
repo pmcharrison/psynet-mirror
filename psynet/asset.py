@@ -3085,7 +3085,7 @@ class S3Storage(AssetStorage):
 
     def _download(self, s3_key, target_path, recursive):
         """
-        This function relies on the AWS CLI .
+        This function relies on the AWS CLI version 2.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
         cmd = ["aws", "s3", "cp", url, target_path]
@@ -3104,7 +3104,7 @@ class S3Storage(AssetStorage):
 
     def _upload(self, path, s3_key, recursive):
         """
-        This function relies on the AWS CLI.
+        This function relies on the AWS CLI version 2.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
         cmd = ["aws", "s3", "cp", path, url]
