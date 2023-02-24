@@ -10,7 +10,7 @@ from psynet.asset import DebugStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.prescreen import HeadphoneTest
+from psynet.prescreen import AntiphaseHeadphoneTrial, HeadphoneTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
@@ -34,7 +34,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         HeadphoneTest(
             label="Woods",
-            test="antiphase",
+            trial_class=AntiphaseHeadphoneTrial,
         ),
         SuccessfulEndPage(),
     )

@@ -3,7 +3,7 @@ import random
 from os.path import exists as file_exists
 from os.path import join as join_path
 from random import shuffle
-from typing import List, Optional
+from typing import List, Optional, Type
 
 import numpy as np
 import pandas as pd
@@ -1465,37 +1465,92 @@ class ColorVocabularyTest(StaticTrialMaker):
 
 
 class HeadphoneTrial(StaticTrial):
+    prompt_text = None
+    test_name = None
+    submit_early = False
+
     def get_prompt(self):
-        if self.trial_maker.test == "antiphase":
-            prompt_text = "Which sound was softest (quietest) -- 1, 2, or 3?"
-        elif self.trial_maker.test == "huggins":
-            prompt_text = "Which noise contains the hidden beep -- 1, 2, or 3?"
-        else:
-            raise NotImplementedError(
-                f"Unknown headphone test: {self.trial_maker.test}"
-            )
+        assert self.prompt_text is not None
         return AudioPrompt(
             self.assets["stimulus"],
-            prompt_text,
+            self.prompt_text,
         )
 
     def show_trial(self, experiment, participant):
+        events = {
+            "responseEnable": Event(is_triggered_by="promptEnd"),
+        }
+        if not self.submit_early:
+            events["submitEnable"] = Event(is_triggered_by="promptEnd")
+
         return ModularPage(
             "headphone_trial",
             self.get_prompt(),
             PushButtonControl(["1", "2", "3"]),
-            events={
-                "responseEnable": Event(is_triggered_by="promptEnd"),
-                "submitEnable": Event(is_triggered_by="promptEnd"),
-            },
+            events=events,
             bot_response=lambda: self.definition["correct_answer"],
         )
+
+    @staticmethod
+    def get_task_description(self):
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_test_definition():
+        raise NotImplementedError()
 
     def score_answer(self, answer, definition):
         if answer == definition["correct_answer"]:
             return 1
         else:
             return 0
+
+
+class HugginsHeadphoneTrial(HeadphoneTrial):
+    prompt_text = "Which noise contains the hidden beep -- 1, 2, or 3?"
+    test_name = "huggins"
+    submit_early = True
+
+    @staticmethod
+    def get_task_description(self):
+        return (
+            "One of the noises has a faint beep hidden within. "
+            "Your task will be to judge <strong> which sound had the beep.</strong>"
+        )
+
+    @staticmethod
+    def get_test_definition():
+        return [
+            (f"HugginsPitch_set{set_id}_{sound_position}", f"{sound_position}")
+            for set_id in range(1, 7)
+            for sound_position in range(1, 4)
+        ]
+
+
+class AntiphaseHeadphoneTrial(HeadphoneTrial):
+    prompt_text = "Which sound was softest (quietest) -- 1, 2, or 3?"
+    test_name = "antiphase"
+
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        logger.warning(
+            "The antiphase test is not recommended as it can be successfully completed without headphones."
+        )
+        super().__init__(experiment, node, participant, *args, **kwargs)
+
+    @staticmethod
+    def get_task_description(self):
+        return "Your task will be to judge <strong> which sound was the softest (quietest).</strong>"
+
+    @staticmethod
+    def get_test_definition():
+        return [
+            ("antiphase_HC_ISO", "2"),
+            ("antiphase_HC_IOS", "3"),
+            ("antiphase_HC_SOI", "1"),
+            ("antiphase_HC_SIO", "1"),
+            ("antiphase_HC_OSI", "2"),
+            ("antiphase_HC_OIS", "3"),
+        ]
 
 
 class HeadphoneTest(StaticTrialMaker):
@@ -1510,9 +1565,9 @@ class HeadphoneTest(StaticTrialMaker):
     label : string
         The label for the color headphone check, default: "headphone_test".
 
-    test : string
-        The test to use, either "huggins" or "antiphase", default: "huggins". We highly recommend using the "huggins"
-        test as the "antiphase" test can be succesfully completed without headphones.
+    trial_class :
+        Trial class to use, recommended HugginsHeadphoneTrial; AntiphaseHeadphoneTrial is deprecated as it can be
+        successfully completed without headphones.
 
     media_url : string
         The url under which the images to be displayed can be referenced, default:
@@ -1524,39 +1579,24 @@ class HeadphoneTest(StaticTrialMaker):
     performance_threshold : int
         The performance threshold, default: 4.
 
-    trial_class :
-        Trial class to use, default: HeadphoneTrial.
+
     """
 
     def __init__(
         self,
         label="headphone_test",
-        test="huggins",
+        trial_class: Type[HeadphoneTrial] = HugginsHeadphoneTrial,
         media_url: Optional[str] = None,
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
-        trial_class=HeadphoneTrial,
     ):
-        if test not in ["huggins", "antiphase"]:
-            raise ValueError(
-                (
-                    "The test headphone test only supports anti-phase (test='antiphase') as proposed by Woods et al. "
-                    "(2017) or huggins pitch (test='huggins') as proposed by Milne et al. (2020)."
-                )
-            )
-        if test == "antiphase":
-            logger.warning(
-                """
-            The antiphase test is not recommended as it can be successfully completed without headphones.
-            """
-            )
-
-        self.test = test
-
         if media_url is None:
-            media_url = f"https://s3.amazonaws.com/headphone-check/{test}"
-
+            assert trial_class.test_name is not None
+            media_url = (
+                f"https://s3.amazonaws.com/headphone-check/{trial_class.test_name}"
+            )
+        self.trial_class = trial_class
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
@@ -1572,15 +1612,7 @@ class HeadphoneTest(StaticTrialMaker):
 
     @property
     def instruction_page(self):
-        if self.test == "huggins":
-            task = (
-                "One of the noises has a faint beep hidden within. "
-                "Your task will be to judge <strong> which sound had the beep.</strong>"
-            )
-        elif self.test == "antiphase":
-            task = "Your task will be to judge <strong> which sound was the softest (quietest).</strong>"
-        else:
-            raise NotImplementedError("Unknown test type")
+        task = self.trial_class.get_task_description()
 
         return InfoPage(
             Markup(
@@ -1595,25 +1627,6 @@ class HeadphoneTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_test_definition(self):
-        if self.test == "huggins":
-            return [
-                (f"HugginsPitch_set{set_id}_{sound_position}", f"{sound_position}")
-                for set_id in range(1, 7)
-                for sound_position in range(1, 4)
-            ]
-        elif self.test == "antiphase":
-            return [
-                ("antiphase_HC_ISO", "2"),
-                ("antiphase_HC_IOS", "3"),
-                ("antiphase_HC_SOI", "1"),
-                ("antiphase_HC_SIO", "1"),
-                ("antiphase_HC_OSI", "2"),
-                ("antiphase_HC_OIS", "3"),
-            ]
-        else:
-            raise NotImplementedError("Unknown test type")
-
     def get_nodes(self, media_url: str):
         return [
             Node(
@@ -1627,7 +1640,7 @@ class HeadphoneTest(StaticTrialMaker):
                     )
                 },
             )
-            for label, answer in self.get_test_definition()
+            for label, answer in self.trial_class.get_test_definition()
         ]
 
 
