@@ -54,7 +54,7 @@ AUDIO_DURATION = 0.75
 RATE_MODE = "select"  # 'rate' or 'select'
 
 
-class CreateTrial(AudioGibbsTrial, CreateTrialMixin):
+class CreateTrial(CreateTrialMixin, AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -69,7 +69,7 @@ class CreateTrial(AudioGibbsTrial, CreateTrialMixin):
         return get_prompt(self)
 
 
-class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
+class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
@@ -116,7 +116,7 @@ class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
         return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
 
 
-class SelectTrial(ImitationChainTrial, SelectTrialMixin):
+class SelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
@@ -165,21 +165,17 @@ class SelectTrial(ImitationChainTrial, SelectTrialMixin):
         return SelectTrialMixin.format_answer(self, raw_answer, **kwargs)
 
 
-class CreateAndRateNode(AudioGibbsNode, CreateAndRateNodeMixin):
+class CreateAndRateNode(CreateAndRateNodeMixin, AudioGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        CreateAndRateNodeMixin.__init__(self)
-
     def synth_function(self, vector, output_path):
         custom_synth.synth_stimulus(vector, output_path)
 
     def summarize_trials(self, trials: list, experiment, participant):
-        winning_target = CreateAndRateNodeMixin.summarize_trials(self)
+        winning_target = super().summarize_trials(trials, experiment, participant)
         if isinstance(winning_target, CreateAndRateNode):
             # is previous iteration
             return winning_target.definition
@@ -197,16 +193,8 @@ class CreateAndRateNode(AudioGibbsNode, CreateAndRateNodeMixin):
         return super().create_definition_from_seed(seed, experiment, participant)
 
 
-class CustomCreateAndRateTrialMaker(AudioGibbsTrialMaker, CreateAndRateTrialMakerMixin):
-    def __init__(self, **kwargs):
-        trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-            kwargs, AudioGibbsTrialMaker, CreateAndRateTrialMakerMixin
-        )
-        CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
-        super().__init__(**trial_maker_kwargs)
-
-    def get_trial_class(self, node, participant, experiment):
-        return self.get_role(node, participant, experiment)
+class CustomCreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, AudioGibbsTrialMaker):
+    pass
 
 
 start_nodes = [
