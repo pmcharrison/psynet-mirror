@@ -40,12 +40,8 @@ up with a description of that animal:
            height="300px",
        )
 
-   class CreateTrial(ImitationChainTrial, CreateTrialMixin):
+   class CreateTrial(CreateTrialMixin, ImitationChainTrial):
        time_estimate = 5
-
-       def __init__(self, experiment, node, participant, *args, **kwargs):
-           super().__init__(experiment, node, participant, *args, **kwargs)
-           CreateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
        def show_trial(self, experiment, participant):
            return ModularPage(
@@ -61,12 +57,8 @@ image:
 
 ::
 
-   class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
+   class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
        time_estimate = 5
-
-       def __init__(self, experiment, node, participant, *args, **kwargs):
-           super().__init__(experiment, node, participant, *args, **kwargs)
-           RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
        def show_trial(self, experiment, participant):
            assert self.trial_maker.target_selection_method == "load_balanced"
@@ -85,9 +77,6 @@ image:
                    arrange_vertically=False,
                ),
            )
-
-       def format_answer(self, raw_answer, **kwargs):
-           return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
 
 The last thing we need to implement is the trial maker. You need to
 decide how the ratings are made, whether the raters select or rate (here
@@ -120,46 +109,25 @@ Optionally, you can set
    ``rate_mode=="rate"``) indicating that raters rate all creations or
    set to ``"one"`` which randomly selects one target (internally it
    prioritizes creations that obtained least ratings)
-- ``randomize_target_presentation_order`` (default ``True``) which indicates if the presentation order of the targets is randomized. In most cases this should be set to ``True``.
+- ``randomize_target_order`` (default ``True``) which indicates if the presentation order of the targets is randomized. In most cases this should be set to ``True``.
 -  ``verbose`` can be set to ``True`` to print the Create and Rate
    decisions to the experiment log
 
-The TrialMaker class needs to implement:
-
-- the initialization not only setting up the creation trial maker but also the ``CreateAndRateTrialMakerMixin``
-- ``finalize_trial()`` which makes sure that the rating trial answers are stored in the correct format, and
-- ``get_trial_class()`` which assigns the appropriate class to raters or creators
-
-The trial maker can look like this:
+The TrialMaker class just needs to inherit from `CreateAndRateTrialMakerMixin` and some TrialMaker class, e.g. `ImitationChainTrialMaker`:
 
 ::
 
-   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
-       def __init__(self, **kwargs):
-           trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-               kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
-           )
-           CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
-           super().__init__(**trial_maker_kwargs)
-
-       def get_trial_class(self, node, participant, experiment):
-           return self.get_role(node, participant, experiment)
+   class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
+       pass
 
 It is also possible to customize the behaviour. For example, say we want to separate raters and creators into two
 different groups which is set in ``participant.var.is_creator``. We can then implement the following:
 
 ::
 
-   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
-       def __init__(self, **kwargs):
-           trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-               kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
-           )
-           CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
-           super().__init__(**trial_maker_kwargs)
-
+   class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
       def get_trial_class(self, node, participant, experiment):
-            proposed_role_class = self.get_role(node, participant, experiment)
+            proposed_role_class = self.get_trial_class(node, participant, experiment)
             if participant.var.is_creator:
                 if proposed_role_class == self.creator_class:
                     return self.creator_class
@@ -196,12 +164,8 @@ Let’s now put all pieces together:
        )
 
 
-   class CreateTrial(ImitationChainTrial, CreateTrialMixin):
+   class CreateTrial(CreateTrialMixin, ImitationChainTrial):
        time_estimate = 5
-
-       def __init__(self, experiment, node, participant, *args, **kwargs):
-           super().__init__(experiment, node, participant, *args, **kwargs)
-           CreateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
        def show_trial(self, experiment, participant):
            return ModularPage(
@@ -212,12 +176,8 @@ Let’s now put all pieces together:
            )
 
 
-   class SingleRateTrial(ImitationChainTrial, RateTrialMixin):
+   class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
        time_estimate = 5
-
-       def __init__(self, experiment, node, participant, *args, **kwargs):
-           super().__init__(experiment, node, participant, *args, **kwargs)
-           RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
        def show_trial(self, experiment, participant):
            assert len(self.targets) == 1
@@ -236,20 +196,9 @@ Let’s now put all pieces together:
                ),
            )
 
-       def format_answer(self, raw_answer, **kwargs):
-           return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
 
-
-   class CreateAndRateTrialMaker(ImitationChainTrialMaker, CreateAndRateTrialMakerMixin):
-       def __init__(self, **kwargs):
-           trial_maker_kwargs, mixin_kwargs = self.split_kwargs(
-               kwargs, ImitationChainTrialMaker, CreateAndRateTrialMakerMixin
-           )
-           CreateAndRateTrialMakerMixin.__init__(self, **mixin_kwargs)
-           super().__init__(**trial_maker_kwargs)
-
-       def get_trial_class(self, node, participant, experiment):
-           return self.get_role(node, participant, experiment)
+   class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
+       pass
 
 
    start_nodes = [
