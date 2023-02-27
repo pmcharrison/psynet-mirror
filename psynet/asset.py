@@ -3019,7 +3019,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
 
 class S3AwscliTransferBackend(S3TransferBackend):
     def __init__(self, s3_bucket):
-        super(S3AwscliTransferBackend, self).__init__(s3_bucket)
+        super().__init__(s3_bucket)
 
         try:
             self.run_command(["aws", "--version"], verbose=False)
