@@ -2999,7 +2999,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
         client = get_boto3_s3_client()
         if recursive:
             bucket = get_boto3_s3_bucket(self.s3_bucket)
-            for obj in bucket.objects.filter(Prefix=s3_key):
+            for obj in bucket.objects.filter(Prefix=s3_key + "/"):
                 server_path = obj.key
                 relative_path = server_path.replace(s3_key + "/", "")
                 _target_path = os.path.join(target_path, relative_path)
@@ -3012,7 +3012,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
     def delete(self, s3_key, recursive):
         bucket = get_boto3_s3_bucket(self.s3_bucket)
         if recursive:
-            bucket.objects.filter(Prefix=s3_key).delete()
+            bucket.objects.filter(Prefix=s3_key + "/").delete()
         else:
             bucket.Object(s3_key).delete()
 
