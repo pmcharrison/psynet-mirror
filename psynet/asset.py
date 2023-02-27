@@ -2991,7 +2991,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
             client.download_file(self.s3_bucket, s3_key, target_path)
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                return False
+                raise FileNotFoundError
             raise
         return True
 
