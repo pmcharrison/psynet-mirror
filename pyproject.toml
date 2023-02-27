@@ -29,7 +29,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger==9.4.2",
+    "dallinger>=9.4.3",
     "awscli",
     "dominate",
     "importlib_resources",
@@ -39,7 +39,6 @@ dependencies = [
     "praat-parselmouth",
     "progress",
     "rpdb",
-    "rq==1.12.0",
     "sphinx==5.3.0",
     "statsmodels",
     "tqdm",
