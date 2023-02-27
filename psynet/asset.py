@@ -3089,25 +3089,23 @@ class S3Storage(AssetStorage):
         The name of the S3 bucket to use.
     root : str
         The root directory within the bucket to use.
-    transfer_backend : str
+    backend : str
         The backend to use for transferring files to S3. Can be either "boto3" or "awscli". "awscli" relies on aws
         client being installed. It is faster than "boto3" (especially for uploading folders) but requires more
         dependencies which are not supported on Heroku. The default is "boto3".
     """
 
-    def __init__(self, s3_bucket, root, transfer_backend="boto3"):
+    def __init__(self, s3_bucket, root, backend="boto3"):
         super().__init__()
         assert not root.endswith("/")
         self.s3_bucket = s3_bucket
         self.root = root
-        if transfer_backend == "boto3":
-            self.transfer_service = S3Boto3TransferBackend(s3_bucket)
-        elif transfer_backend == "awscli":
-            self.transfer_service = S3AwscliTransferBackend(s3_bucket)
+        if backend == "boto3":
+            self.backend = S3Boto3TransferBackend(s3_bucket)
+        elif backend == "awscli":
+            self.backend = S3AwscliTransferBackend(s3_bucket)
         else:
-            NotImplementedError(
-                f"Transfer backend {transfer_backend} is not supported."
-            )
+            NotImplementedError(f"Transfer backend {backend} is not supported.")
 
     def prepare_for_deployment(self):
         from .media import make_bucket_public
@@ -3240,7 +3238,7 @@ class S3Storage(AssetStorage):
         return self._download(s3_key, target_path, recursive=True)
 
     def _download(self, s3_key, target_path, recursive):
-        return self.transfer_service.download(s3_key, target_path, recursive)
+        return self.backend.download(s3_key, target_path, recursive)
 
     def upload_file(self, path, s3_key):
         return self._upload(path, s3_key, recursive=False)
@@ -3249,7 +3247,7 @@ class S3Storage(AssetStorage):
         return self._upload(path, s3_key, recursive=True)
 
     def _upload(self, path, s3_key, recursive):
-        return self.transfer_service.upload(path, s3_key, recursive)
+        return self.backend.upload(path, s3_key, recursive)
 
     @staticmethod
     def create_bucket(s3_bucket):
@@ -3257,10 +3255,10 @@ class S3Storage(AssetStorage):
         client.create_bucket(Bucket=s3_bucket)
 
     def delete_file(self, s3_key):
-        self.transfer_service.delete(s3_key, recursive=False)
+        self.backend.delete(s3_key, recursive=False)
 
     def delete_folder(self, s3_key):
-        self.transfer_service.delete(s3_key, recursive=True)
+        self.backend.delete(s3_key, recursive=True)
 
     def delete_all(self):
         self.delete_folder(self.root)
