@@ -1508,7 +1508,7 @@ class HeadphoneTrial(StaticTrial):
 
 class HeadphoneTest(StaticTrialMaker):
     """
-        DEPRECATED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; HugginsHeadphoneTest is recommended.
+        DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; HugginsHeadphoneTest is recommended.
 
     The headphone test makes sure that the participant is wearing headphones. In each trial,
     three sounds separated by silences are played and the participant's must judge which sound
@@ -1547,7 +1547,7 @@ class HeadphoneTest(StaticTrialMaker):
     ):
         raise NotImplementedError(
             (
-                "DEPRECATED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; "
+                "DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; "
                 "HugginsHeadphoneTest is recommended."
             )
         )
