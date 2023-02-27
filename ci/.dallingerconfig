@@ -1,4 +1,1 @@
 [Config variables]
-
-debug_storage_root = ~/psynet-debug-storage
-default_export_root = ~/psynet-data/export
