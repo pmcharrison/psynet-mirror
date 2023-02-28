@@ -197,7 +197,9 @@ class MediaGibbsTrial(GibbsTrial):
             )
 
     def _validate(self):
-        if self.snap_slider_before_release and not isinstance(self.network.granularity, int):
+        if self.snap_slider_before_release and not isinstance(
+            self.network.granularity, int
+        ):
             raise ValueError(
                 "<snap_slider_before_release> can only equal <True> if <granularity> is an integer."
             )
@@ -265,9 +267,12 @@ class MediaGibbsNode(GibbsNode):
             raise TypeError("<vector_length> must be a positive integer.")
 
         if not (
-            isinstance(self.vector_ranges, list) and len(self.vector_ranges) == self.vector_length
+            isinstance(self.vector_ranges, list)
+            and len(self.vector_ranges) == self.vector_length
         ):
-            raise TypeError("<vector_ranges> must be a list with length equal to <vector_length>.")
+            raise TypeError(
+                "<vector_ranges> must be a list with length equal to <vector_length>."
+            )
 
         for r in self.vector_ranges:
             if not (len(r) == 2 and r[0] < r[1]):
@@ -346,7 +351,8 @@ class MediaGibbsNode(GibbsNode):
                     logger.info("Using %d processes in parallel" % self.n_jobs)
 
                     Parallel(n_jobs=self.n_jobs, backend="threading")(
-                        delayed(_synth)(_value, _path) for _value, _path in zip(values, paths)
+                        delayed(_synth)(_value, _path)
+                        for _value, _path in zip(values, paths)
                     )
                 else:
                     for _value, _path in zip(values, paths):
