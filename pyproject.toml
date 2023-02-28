@@ -37,6 +37,7 @@ dependencies = [
     "paramiko",
     "praat-parselmouth",
     "progress",
+    "python-gettext",
     "rpdb",
     "sphinx==5.3.0",
     "statsmodels",
