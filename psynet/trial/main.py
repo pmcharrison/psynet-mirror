@@ -452,6 +452,14 @@ class Trial(SQLMixinDallinger, Info):
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
 
+    @property
+    def contents(self):
+        return self.answer
+
+    @contents.setter
+    def contents(self, x):
+        self.answer = x
+
     def _allocate_bonus(self):
         bonus = self.compute_bonus(score=self.score)
         assert isinstance(bonus, (float, int))
