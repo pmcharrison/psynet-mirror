@@ -46,16 +46,12 @@ def run_test(storage):
 
         # File test
         storage.upload_file(test_file_path, remote_test_file_name)
-        assert file_exists_on_s3(
-            storage, remote_test_file_name
-        ), "File was not uploaded to S3"
+        assert file_exists_on_s3(storage, remote_test_file_name), "File was not uploaded to S3"
         storage.download_file(remote_test_file_name, test_file_path_downloaded)
         listed_files = get_test_files(test_folder)
         assert len(listed_files) == 2
         storage.delete_file(remote_test_file_name)
-        assert not file_exists_on_s3(
-            storage, remote_test_file_name
-        ), "File was not removed on S3"
+        assert not file_exists_on_s3(storage, remote_test_file_name), "File was not removed on S3"
 
         # Folder test
         storage.upload_folder(test_folder, remote_test_folder)
