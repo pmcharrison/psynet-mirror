@@ -9,7 +9,7 @@ import numpy as np
 TIMESTAMPS = [0.0, 0.071, 0.142, 0.213, 0.284, 0.355, 0.426]
 
 
-def synth_stimulus(vector, output_path):
+def synth_stimulus(vector, output_path, chain_definition):
     """
     Synthesises a stimulus.
 

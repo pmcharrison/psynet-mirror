@@ -61,20 +61,12 @@ class CreateTrial(CreateTrialMixin, AudioGibbsTrial):
     minimal_time = 3.0
     time_estimate = 5.0
 
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        CreateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
-
     def get_prompt(self, experiment, participant):
         return get_prompt(self)
 
 
 class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
     time_estimate = 5
-
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        RateTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
 
     def get_target_answer(self, target):
         return get_target_gibbs_answer(target)
@@ -119,10 +111,6 @@ class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
 class SelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
-    def __init__(self, experiment, node, participant, *args, **kwargs):
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        SelectTrialMixin.__init__(self, experiment, node, participant, *args, **kwargs)
-
     def get_target_answer(self, target):
         return get_target_gibbs_answer(target)
 
@@ -161,9 +149,6 @@ class SelectTrial(SelectTrialMixin, ImitationChainTrial):
             time_estimate=len(self.targets) * AUDIO_DURATION + 2,
         )
 
-    def format_answer(self, raw_answer, **kwargs):
-        return SelectTrialMixin.format_answer(self, raw_answer, **kwargs)
-
 
 class CreateAndRateNode(CreateAndRateNodeMixin, AudioGibbsNode):
     vector_length = DIMENSIONS
@@ -171,8 +156,8 @@ class CreateAndRateNode(CreateAndRateNodeMixin, AudioGibbsNode):
     granularity = GRANULARITY
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
-    def synth_function(self, vector, output_path):
-        custom_synth.synth_stimulus(vector, output_path)
+    def synth_function(self, vector, output_path, chain_definition):
+        custom_synth.synth_stimulus(vector, output_path, chain_definition)
 
     def summarize_trials(self, trials: list, experiment, participant):
         winning_target = super().summarize_trials(trials, experiment, participant)
@@ -185,12 +170,6 @@ class CreateAndRateNode(CreateAndRateNodeMixin, AudioGibbsNode):
             vector = trial.updated_vector.copy()
             vector[active_index] = winning_target.answer
             return {"vector": vector, "active_index": active_index}
-
-    def create_initial_seed(self, experiment, participant):
-        return super().create_initial_seed(experiment, participant)
-
-    def create_definition_from_seed(self, seed, experiment, participant):
-        return super().create_definition_from_seed(seed, experiment, participant)
 
 
 class CustomCreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, AudioGibbsTrialMaker):
