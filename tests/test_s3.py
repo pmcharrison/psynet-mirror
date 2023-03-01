@@ -72,8 +72,12 @@ def run_test(storage):
 
 
 def test_s3_storage_awscli():
-    storage = get_s3_storage("awscli")
-    run_test(storage)
+    # Only run the test if AWS CLI is installed
+    from shutil import which
+
+    if which("aws") is not None:
+        storage = get_s3_storage("awscli")
+        run_test(storage)
 
 
 def test_s3_storage_boto3():
