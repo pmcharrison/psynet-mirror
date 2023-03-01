@@ -82,7 +82,9 @@ def synth_batch(
 
     # Do some checks
     supported_effects = ["fade-out"]
-    if not all(["name" in e.keys() and e["name"] in supported_effects for e in effects]):
+    if not all(
+        ["name" in e.keys() and e["name"] in supported_effects for e in effects]
+    ):
         raise ValueError(
             "Your effect must have a name. Currently we only support the following effects: %s"
             % ", ".join(supported_effects)
@@ -98,7 +100,9 @@ def synth_batch(
         raise FileNotFoundError("Specified `prepend_path` not found on this system")
 
     if not os.path.exists(baseline_audio_path):
-        raise FileNotFoundError("Specified `baseline_audio_path` not found on this system")
+        raise FileNotFoundError(
+            "Specified `baseline_audio_path` not found on this system"
+        )
 
     def cent2herz(ct, base=reference_tone):
         """Converts deviation in cents to a value in Hertz"""
