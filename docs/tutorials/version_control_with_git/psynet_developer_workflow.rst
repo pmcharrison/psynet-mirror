@@ -548,11 +548,10 @@ Releases are made by following these steps:
   b. Minor (new version includes only only new features and/or bugfixes)
   c. Patch (new version includes only bugfixes)
 
-6. Run bumpversion to upgrade PsyNet’s version numbers correspondingly:
+6. Update PsyNet’s version number in following files:
 
-  a. ``bumpversion major`` for a major release;
-  b. ``bumpversion minor`` for a minor release;
-  c. ``bumpversion patch`` for a patch release.
+  * `pyproject.toml`
+  * `psynet/version.py`
 
 7. Write the new version number as the title of the new CHANGELOG entry.
 8. Commit the changes to the CHANGELOG with the title ‘Release version X.Y.Z’.
