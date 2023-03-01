@@ -46,16 +46,12 @@ def run_test(storage):
 
         # File test
         storage.upload_file(test_file_path, remote_test_file_name)
-        assert file_exists_on_s3(
-            storage, remote_test_file_name
-        ), "File was not uploaded to S3"
+        assert file_exists_on_s3(storage, remote_test_file_name), "File was not uploaded to S3"
         storage.download_file(remote_test_file_name, test_file_path_downloaded)
         listed_files = get_test_files(test_folder)
         assert len(listed_files) == 2
         storage.delete_file(remote_test_file_name)
-        assert not file_exists_on_s3(
-            storage, remote_test_file_name
-        ), "File was not removed on S3"
+        assert not file_exists_on_s3(storage, remote_test_file_name), "File was not removed on S3"
 
         # Folder test
         storage.upload_folder(test_folder, remote_test_folder)
@@ -72,8 +68,12 @@ def run_test(storage):
 
 
 def test_s3_storage_awscli():
-    storage = get_s3_storage("awscli")
-    run_test(storage)
+    # Only run the test if AWS CLI is installed
+    from shutil import which
+
+    if which("aws") is not None:
+        storage = get_s3_storage("awscli")
+        run_test(storage)
 
 
 def test_s3_storage_boto3():
