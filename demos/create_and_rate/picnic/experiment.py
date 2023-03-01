@@ -141,6 +141,12 @@ class RateTrial(RateTrialMixin, ImitationChainTrial):
             time_estimate=self.time_estimate,
         )
 
+    def format_answer(self, answer, **kwargs):
+        answer = [
+            int(answer["checked"]) for answer in list(answer.values())[:N_CREATORS]
+        ]
+        return super(RateTrial, self).format_answer(answer, **kwargs)
+
 
 start_nodes = [CreateAndRateNode(context=d) for d in dummy_data]
 
