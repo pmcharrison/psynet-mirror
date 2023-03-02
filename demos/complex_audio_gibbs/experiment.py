@@ -105,7 +105,7 @@ class CustomNode(AudioGibbsNode):
             "active_index": random.randint(0, self.vector_length),  #
         }
 
-    def synth_function(self, vector, output_path):
+    def synth_function(self, vector, output_path, chain_definition):
         custom_synth.synth_stimulus(vector, output_path, self.context["input_file"])
 
 

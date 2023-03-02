@@ -23,9 +23,11 @@ from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import nocache, success_response
+from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
+from dallinger.recruiters import ProlificRecruiter
 from dallinger.utils import get_base_url
+from dominate import tags
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
 
@@ -370,6 +372,53 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
+
+    def error_page_content(
+        self,
+        gettext,
+        pgettext,
+        contact_address,
+        error_type,
+        hit_id,
+        assignment_id,
+        worker_id,
+    ):
+        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
+        if isinstance(self.recruiter, ProlificRecruiter):
+            return self.error_page_content__prolific(gettext, pgettext)
+
+        html = tags.div()
+        with html:
+            tags.p(
+                pgettext(
+                    "mturk_error",
+                    "To enquire about compensation, please contact the researcher at %(EMAIL)s and describe what led to this error."
+                    % {"EMAIL": contact_address},
+                )
+            )
+            tags.p(
+                pgettext("mturk_error", "Please also quote the following information:")
+            )
+            tags.ul(
+                tags.li(f'{gettext("Error type")}: {error_type}'),
+                tags.li(f'{gettext("HIT ID")}: {hit_id}'),
+                tags.li(f'{gettext("Assignment ID")}: {assignment_id}'),
+                tags.li(f'{gettext("Worker ID")}: {worker_id}'),
+            )
+
+        return html
+
+    def error_page_content__prolific(self, gettext, pgettext):
+        html = tags.div()
+        with html:
+            tags.p(
+                """
+                Don't worry, your progress has been recorded.
+                To enquire about compensation, please send the researcher a message via the Prolific website
+                and describe what led to your error.
+                """
+            )
+        return html
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
@@ -1247,11 +1296,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def advertisement():
         from dallinger.experiment_server.experiment_server import prepare_advertisement
 
-        is_redirect, kw = prepare_advertisement()
-        if is_redirect:
-            return kw["redirect"]
-        else:
-            return render_template_with_translations("ad.html", **kw)
+        try:
+            is_redirect, kw = prepare_advertisement()
+            if is_redirect:
+                return kw["redirect"]
+            else:
+                return render_template_with_translations("ad.html", **kw)
+        except ExperimentError:
+            return error_page()
 
     @experiment_route("/app_deployment_id", methods=["GET"])
     @staticmethod

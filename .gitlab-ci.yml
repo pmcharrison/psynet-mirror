@@ -28,7 +28,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
-  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:v10-draft
+  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:dev
   DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$DOCKER_TAG
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "10.0.0rc2"
+version = "10.0.0rc3"
 authors = [
   { name="Peter Harrison", email="pmch2@cam.ac.uk" },
   { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
@@ -12,22 +12,62 @@ authors = [
   { name="Raja Marjieh", email="raja.marjieh@princeton.edu" },
   { name="Nori Jacoby", email="nori.jacoby@ae.mpg.de" }
 ]
-description = "PsyNet – The online human behaviour lab of the future"
+maintainers = [
+  {name = "Peter Harrison", email = "pmch2@cam.ac.uk"}
+]
+license = {file = "LICENSE"}
+description = "PsyNet – The online human behaviour lab of the future."  # A framework for running advanced psychological experiments
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "Framework :: Flask",
     "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
 ]
 
-[project.urls]
-"Homepage" = "https://www.psynet.dev/"
-"Documentation" = "https://psynetdev.gitlab.io/PsyNet/"
-"Bug Tracker" = "https://gitlab.com/PsyNetDev/PsyNet/-/issues"
+dependencies = [
+    "dallinger>=9.4.3",
+    "dominate",
+    "importlib_resources",
+    "joblib",
+    "jsonpickle",
+    "paramiko",
+    "praat-parselmouth",
+    "progress",
+    "python-gettext",
+    "rpdb",
+    "sphinx==5.3.0",
+    "statsmodels",
+    "tqdm",
+    "yaspin",
+]
+
+[project.optional-dependencies]
+dev = [
+    "furo",
+    "isort",
+    "mock",
+    "pre-commit",
+    "sphinx-autodoc-typehints",
+]
+
+[project.entry-points.pytest11]
+pytest_psynet = "psynet.pytest_psynet"
 
 [project.scripts]
 psynet = "psynet.command_line:psynet"
+
+[project.urls]
+homepage = "https://www.psynet.dev/"
+documentation = "https://psynetdev.gitlab.io/PsyNet/"
+repository = "https://gitlab.com/PsyNetDev/PsyNet/"
+changelog = "https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md"
+issues = "https://gitlab.com/PsyNetDev/PsyNet/-/issues"
+
+[tool.setuptools.packages.find]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -42,8 +82,8 @@ exclude = [
 ]
 
 [tool.black]
-line-length = 100
-target-version = ["py38", "py39", "py310"]
+line-length = 88
+target-version = ["py310"]
 include = '\.pyi?$'
 exclude = '''
 /(

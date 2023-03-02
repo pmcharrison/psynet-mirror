@@ -646,9 +646,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                     else:
                         raise
 
-            if asset_to_use == self or not self.deposited:
-                self._deposit(self.storage, async_, delete_input)
-
             if self.parent:
                 _label = self.label if self.label else self.key
                 self.parent.assets[_label] = asset_to_use
@@ -658,6 +655,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.node_id = ancestors["node"]
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
+
+            if asset_to_use == self or not self.deposited:
+                # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
+                # which may rely on the asset being in its complete state. Any information that may be needed
+                # by these post-deposit actions must be saved before this step.
+                self._deposit(self.storage, async_, delete_input)
 
             if not self.content_id:
                 self.content_id = self.get_content_id()
@@ -1106,7 +1109,11 @@ class ManagedAsset(Asset):
         return True
 
     def after_deposit(self):
+        # logger.info("Calling after_deposit.")
         if self.trial:
+            logger.info(
+                "Calling check_if_can_run_async_post_trial as part of after_deposit."
+            )
             self.trial.check_if_can_run_async_post_trial()
             self.trial.check_if_can_mark_as_finalized()
 
@@ -2433,16 +2440,18 @@ class AssetStorage:
         host_path: str,
         delete_input: bool,  # , db_commit: bool = False
     ):
+        # logger.info("Calling _call_receive_deposit...")
         # We include this for compatibility with threaded dispatching.
         # Without it, SQLAlchemy complains that the object has become disconnected
         # from the SQLAlchemy session. This command 'merges' it back into the session.
         asset = db.session.merge(asset)
-
         self._receive_deposit(asset, host_path)
-        asset.after_deposit()
         asset.deposited = True
 
-        # if db_commit:
+        db.session.commit()
+        logger.info("Asset deposit complete.")
+
+        asset.after_deposit()
         db.session.commit()
 
         if delete_input:
@@ -2762,7 +2771,7 @@ class LocalStorage(AssetStorage):
     def export(self, asset, path, ssh_host=None, ssh_user=None):
         if self.on_deployed_server():
             self._export_via_copying(asset, path)
-        elif deployment_info.read("is_ssh_deployment"):
+        elif ssh_host is not None:
             self._export_via_ssh(asset, path, ssh_host, ssh_user)
         else:
             AssetStorage.http_export(asset, path)
@@ -2938,19 +2947,165 @@ class AwsCliError(RuntimeError):
     pass
 
 
+class S3TransferBackend:
+    def __init__(self, s3_bucket: str):
+        self.s3_bucket = s3_bucket
+
+    def get_s3_url(self, s3_key: str):
+        return f"s3://{self.s3_bucket}/{s3_key}"
+
+    def check_recursive(self, recursive, local_path):
+        assert recursive == os.path.isdir(local_path)
+
+    def upload(self, path, s3_key, recursive):
+        raise NotImplementedError
+
+    def download(self, s3_key, target_path, recursive):
+        raise NotImplementedError
+
+    def delete(self, s3_key, recursive):
+        raise NotImplementedError
+
+
+class S3Boto3TransferBackend(S3TransferBackend):
+    def upload(self, path, s3_key, recursive):
+        client = get_boto3_s3_client()
+        self.check_recursive(recursive, path)
+        if os.path.isfile(path):
+            client.upload_file(path, self.s3_bucket, s3_key)
+        else:
+            for _dir_path, _dir_names, _file_names in os.walk(path):
+                _rel_dir_path = os.path.relpath(_dir_path, path)
+                for _file_name in _file_names:
+                    _local_path = os.path.join(_dir_path, _file_name)
+                    if _rel_dir_path == ".":
+                        _file_key = os.path.join(s3_key, _file_name)
+                    else:
+                        _file_key = os.path.join(s3_key, _rel_dir_path, _file_name)
+                    client.upload_file(_local_path, self.s3_bucket, _file_key)
+
+    def _download(self, client, s3_key, target_path):
+        import botocore
+
+        try:
+            client.download_file(self.s3_bucket, s3_key, target_path)
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                raise FileNotFoundError
+            raise
+        return True
+
+    def download(self, s3_key, target_path, recursive):
+        client = get_boto3_s3_client()
+        if recursive:
+            bucket = get_boto3_s3_bucket(self.s3_bucket)
+            for obj in bucket.objects.filter(Prefix=s3_key + "/"):
+                server_path = obj.key
+                relative_path = server_path.replace(s3_key + "/", "")
+                _target_path = os.path.join(target_path, relative_path)
+                target_dir = os.path.dirname(_target_path)
+                os.makedirs(target_dir, exist_ok=True)
+                self._download(client, server_path, _target_path)
+        else:
+            return self._download(client, s3_key, target_path)
+
+    def delete(self, s3_key, recursive):
+        bucket = get_boto3_s3_bucket(self.s3_bucket)
+        if recursive:
+            bucket.objects.filter(Prefix=s3_key + "/").delete()
+        else:
+            bucket.Object(s3_key).delete()
+
+
+class S3AwscliTransferBackend(S3TransferBackend):
+    def __init__(self, s3_bucket):
+        super().__init__(s3_bucket)
+
+        try:
+            self.run_command(["aws", "--version"], verbose=False)
+        except AwsCliError:
+            raise RuntimeError(
+                "AWS CLI is not installed. Please install it and try again."
+            )
+
+    def copy(self, source, target, recursive):
+        cmd = ["aws", "s3", "cp", source, target]
+        if recursive:
+            cmd.append("--recursive")
+        self.run_command(cmd)
+
+    def upload(self, path, s3_key, recursive):
+        self.check_recursive(recursive, path)
+        url = self.get_s3_url(s3_key)
+        try:
+            self.copy(path, url, recursive)
+        except AwsCliError as err:
+            if "NoSuchBucket" in str(err):
+                S3Storage.create_bucket(self.s3_bucket)
+                self.copy(path, url, recursive)
+            else:
+                raise
+
+    def download(self, s3_key, target_path, recursive):
+        logger.info(f"Downloading from AWS: {s3_key}")
+        url = self.get_s3_url(s3_key)
+        self.copy(url, target_path, recursive)
+
+    def delete(self, s3_key, recursive):
+        url = self.get_s3_url(s3_key)
+        cmd = ["aws", "s3", "rm", url]
+        if recursive:
+            cmd.append("--recursive")
+        self.run_command(cmd)
+
+    def run_command(self, cmd, verbose=True):
+        if verbose:
+            logger.info(f"Running AWS CLI command: {cmd}")
+        try:
+            subprocess.run(
+                cmd,
+                check=True,
+                capture_output=True,
+                env={
+                    **os.environ,
+                    **get_aws_credentials(capitalize=True),
+                },
+            )
+        except subprocess.CalledProcessError as err:
+            message = err.stderr.decode("utf8")
+            raise AwsCliError(message)
+
+
 class S3Storage(AssetStorage):
     """
     A storage back-end that stores assets using Amazon Web Services'
     S3 Storage system. This service is relatively inexpensive as long as your
     file collection does not number more than a few gigabytes. To use this
     service you will need to sign up for an Amazon Web Services account.
+
+    Parameters
+    ----------
+    s3_bucket : str
+        The name of the S3 bucket to use.
+    root : str
+        The root directory within the bucket to use.
+    backend : str
+        The backend to use for transferring files to S3. Can be either "boto3" or "awscli". "awscli" relies on aws
+        client being installed. It is faster than "boto3" (especially for uploading folders) but requires more
+        dependencies which are not supported on Heroku. The default is "boto3".
     """
 
-    def __init__(self, s3_bucket, root):
+    def __init__(self, s3_bucket, root, backend="boto3"):
         super().__init__()
         assert not root.endswith("/")
         self.s3_bucket = s3_bucket
         self.root = root
+        if backend == "boto3":
+            self.backend = S3Boto3TransferBackend(s3_bucket)
+        elif backend == "awscli":
+            self.backend = S3AwscliTransferBackend(s3_bucket)
+        else:
+            NotImplementedError(f"Transfer backend {backend} is not supported.")
 
     def prepare_for_deployment(self):
         from .media import make_bucket_public
@@ -3076,22 +3231,6 @@ class S3Storage(AssetStorage):
         s3_key = self.get_s3_key(asset.host_path) + "/" + subfolder
         self.download_folder(s3_key, path)
 
-    def run_aws_command(self, cmd):
-        logger.info(f"Running AWS CLI command: {cmd}")
-        try:
-            subprocess.run(
-                cmd,
-                check=True,
-                capture_output=True,
-                env={
-                    **os.environ,
-                    **get_aws_credentials(capitalize=True),
-                },
-            )
-        except subprocess.CalledProcessError as err:
-            message = err.stderr.decode("utf8")
-            raise AwsCliError(message)
-
     def download_file(self, s3_key, target_path):
         return self._download(s3_key, target_path, recursive=False)
 
@@ -3099,17 +3238,7 @@ class S3Storage(AssetStorage):
         return self._download(s3_key, target_path, recursive=True)
 
     def _download(self, s3_key, target_path, recursive):
-        """
-        This function relies on the AWS CLI. You can install it with pip install awscli.
-        """
-        url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = ["aws", "s3", "cp", url, target_path]
-
-        if recursive:
-            cmd.append("--recursive")
-
-        logger.info(f"Downloading from AWS with command: {cmd}")
-        self.run_aws_command(cmd)
+        return self.backend.download(s3_key, target_path, recursive)
 
     def upload_file(self, path, s3_key):
         return self._upload(path, s3_key, recursive=False)
@@ -3118,23 +3247,7 @@ class S3Storage(AssetStorage):
         return self._upload(path, s3_key, recursive=True)
 
     def _upload(self, path, s3_key, recursive):
-        """
-        This function relies on the AWS CLI. You can install it with pip install awscli.
-        """
-        url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = ["aws", "s3", "cp", path, url]
-
-        if recursive:
-            cmd.append("--recursive")
-
-        try:
-            self.run_aws_command(cmd)
-        except AwsCliError as err:
-            if "NoSuchBucket" in str(err):
-                self.create_bucket(self.s3_bucket)
-                self.run_aws_command(cmd)
-            else:
-                raise
+        return self.backend.upload(path, s3_key, recursive)
 
     @staticmethod
     def create_bucket(s3_bucket):
@@ -3142,18 +3255,10 @@ class S3Storage(AssetStorage):
         client.create_bucket(Bucket=s3_bucket)
 
     def delete_file(self, s3_key):
-        url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = ["aws", "s3", "rm", url]
-
-        self.run_aws_command(cmd)
+        self.backend.delete(s3_key, recursive=False)
 
     def delete_folder(self, s3_key):
-        url = f"s3://{self.s3_bucket}/{s3_key}/"
-
-        logger.info("Deleting the following folder from S3: {url}")
-
-        cmd = ["aws", "s3", "rm", url, "--recursive"]
-        self.run_aws_command(cmd)
+        self.backend.delete(s3_key, recursive=True)
 
     def delete_all(self):
         self.delete_folder(self.root)

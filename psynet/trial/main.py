@@ -452,6 +452,14 @@ class Trial(SQLMixinDallinger, Info):
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
 
+    @property
+    def contents(self):
+        return self.answer
+
+    @contents.setter
+    def contents(self, x):
+        self.answer = x
+
     def _allocate_bonus(self):
         bonus = self.compute_bonus(score=self.score)
         assert isinstance(bonus, (float, int))
@@ -652,6 +660,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def call_async_post_trial(self):
         dallinger.experiment.load()
+        db.session.commit()
         self.async_post_trial()
         self.check_if_can_mark_as_finalized()
 
@@ -673,22 +682,38 @@ class Trial(SQLMixinDallinger, Info):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
-        if self.failed or self.awaiting_asset_deposit or self.awaiting_async_process:
-            pass
+        if self.failed:
+            logger.info("Cannot mark as finalized because the trial is failed.")
+        elif self.awaiting_asset_deposit:
+            logger.info(
+                "Cannot mark as finalized yet because the trial is awaiting an asset deposit."
+            )
+        elif self.awaiting_async_process:
+            logger.info(
+                "Cannot mark as finalized yet because the trial is awaiting an async process."
+            )
         else:
             self.finalized = True
             db.session.commit()
             self.on_finalized()
 
     def check_if_can_run_async_post_trial(self):
+        logger.info("Checking if can run async_post_trial.")
         db.session.commit()
         if self.run_async_post_trial is not None and not self.run_async_post_trial:
-            return
+            logger.info(
+                "run_async_post_trial is False, so we won't run async_post_trial."
+            )
         elif self.awaiting_asset_deposit:
-            return
+            logger.info(
+                "The trial is awaiting an asset deposit, so we won't run async_post_trial."
+            )
         elif not is_method_overridden(self, Trial, "async_post_trial"):
-            return
+            logger.info("No async_post_trial method is defined, skipping.")
         else:
+            logger.info(
+                "All conditions seem to be satisfied, calling call_async_post_trial if it hasn't been called already."
+            )
             WorkerAsyncProcess(
                 self.call_async_post_trial,
                 label="post_trial",
@@ -866,6 +891,8 @@ class Trial(SQLMixinDallinger, Info):
     @classmethod
     def _finalize_trial(cls, trial_maker=None):
         def f(participant, experiment):
+            logger.info("Calling _finalize_trial.")
+
             trial = participant.current_trial
             answer = participant.answer
 
@@ -884,7 +911,11 @@ class Trial(SQLMixinDallinger, Info):
 
             db.session.commit()
 
+            logger.info(
+                "Calling check_if_can_run_async_post_trial as part of _finalize_trial."
+            )
             trial.check_if_can_run_async_post_trial()
+
             trial.check_if_can_mark_as_finalized()
 
         return CodeBlock(f)
