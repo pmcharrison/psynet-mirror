@@ -67,7 +67,7 @@ pages:
   stage: deploy
   needs: [deploy_docker]
   script:
-    - pip install -U sphinx
+    - pip install -U sphinx==5.3.0
     - pip install furo
     - pip install polib
     - pip install sphinx-autodoc-typehints
