@@ -3,7 +3,7 @@ FROM ghcr.io/dallinger/dallinger:9.4.3
 # Instead pin it below (see comments)
 #
 # To build locally, run something like this (including the period at the end of the line!):
-# docker build -t registry.gitlab.com/psynetdev/psynet:v10-release-candidate .
+# docker build -t registry.gitlab.com/psynetdev/psynet:dev .
 
 RUN mkdir /PsyNet
 WORKDIR /PsyNet
