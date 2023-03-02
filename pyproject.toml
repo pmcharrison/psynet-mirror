@@ -17,6 +17,7 @@ maintainers = [
 ]
 license = {file = "LICENSE"}
 description = "PsyNet – The online human behaviour lab of the future."  # A framework for running advanced psychological experiments
+keywords = ["psychology", "experiments", "online", "networks"]
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
