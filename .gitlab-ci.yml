@@ -28,7 +28,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
-  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:dev
+  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:master
   DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$DOCKER_TAG
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
@@ -67,8 +67,9 @@ pages:
   stage: deploy
   needs: [deploy_docker]
   script:
-    - pip install -U sphinx
+    - pip install -U sphinx==5.3.0
     - pip install furo
+    - pip install polib
     - pip install sphinx-autodoc-typehints
     - sphinx-build -b html docs public
   artifacts:
