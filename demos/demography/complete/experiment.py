@@ -1,6 +1,7 @@
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.demography.general import (
+    AltruismQuestionnaire,
     BasicDemography,
     BasicMusic,
     BigFiveQuestionnaire,
@@ -34,6 +35,7 @@ class Exp(psynet.experiment.Experiment):
         Dance(),
         SpeechDisorders(),
         BigFiveQuestionnaire(),
+        AltruismQuestionnaire(),
         Income(),
         ExperimentFeedback(),
         GMSI(),
