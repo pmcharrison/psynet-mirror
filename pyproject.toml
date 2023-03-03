@@ -50,7 +50,6 @@ dev = [
     "furo",
     "isort",
     "mock",
-    "polib",
     "pre-commit",
     "sphinx-autodoc-typehints",
 ]
