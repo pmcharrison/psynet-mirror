@@ -3,6 +3,7 @@ from psynet.consent import NoConsent
 from psynet.demography.general import (
     BasicDemography,
     BasicMusic,
+    BigFiveQuestionnaire,
     Dance,
     ExperimentFeedback,
     HearingLoss,
@@ -32,6 +33,7 @@ class Exp(psynet.experiment.Experiment):
         HearingLoss(),
         Dance(),
         SpeechDisorders(),
+        BigFiveQuestionnaire(),
         Income(),
         ExperimentFeedback(),
         GMSI(),

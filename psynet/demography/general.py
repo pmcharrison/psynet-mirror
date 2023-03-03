@@ -1,3 +1,6 @@
+import numpy as np
+from markupsafe import Markup
+
 from psynet.modular_page import (
     DropdownControl,
     ModularPage,
@@ -6,7 +9,9 @@ from psynet.modular_page import (
     RadioButtonControl,
     TextControl,
 )
+from psynet.page import InfoPage
 from psynet.timeline import FailedValidation, Module, conditional, join
+from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -589,6 +594,165 @@ class EncounteredTechnicalProblems(ModularPage):
             self.prompt,
             control=TextControl(),
             time_estimate=self.time_estimate,
+        )
+
+
+class BigFiveQuestionnaire(Module):
+    """
+    This is the big five questionnaire.
+
+    Parameters
+    ----------
+
+    label : string, optional
+        The label for the LexTale test, default: "lextale_test".
+
+    time_estimate_per_trial : float, optional
+        The time estimate in seconds per trial, default: 2.0.
+
+    """
+
+    LABELS = [
+        "is reserved",
+        "is generally trusting",
+        "tends to be lazy",
+        "is relaxed, handles stress well",
+        "has few artistic interests",
+        "is outgoing, sociable",
+        "tends to find fault with others",
+        "does a thorough job",
+        "gets nervous easily",
+        "has an active imagination",
+    ]
+
+    def __init__(
+        self,
+        label="big_five_questionnaire",
+        time_estimate_per_trial: float = 2.0,  # TODO Ofer implement this
+    ):
+        self.label = label
+        self.elts = join(
+            self.instruction_page(),
+            self.trial_maker(
+                self.LABELS,
+                time_estimate_per_trial,
+            ),
+        )
+        super().__init__(self.label, self.elts)
+
+    def instruction_page(self):
+        return InfoPage(
+            # TODO
+            Markup(
+                """
+                Ofer add instructions here
+                """
+            ),
+            time_estimate=5,
+        )
+
+    def trial_maker(
+        self,
+        labels: list,
+        time_estimate_per_trial: float,
+    ):
+        def flip_scale(score):
+            return 6 - score
+
+        def mean(scores):
+            return float(np.mean(scores))
+
+        class BigFiveTrialMaker(StaticTrialMaker):
+            def performance_check(self, experiment, participant, participant_trials):
+                responses = {
+                    trial.definition["label"]: int(trial.answer)
+                    for trial in participant_trials
+                }
+                score = {
+                    "Extraversion": mean(
+                        [
+                            flip_scale(responses["is reserved"]),
+                            responses["has few artistic interests"],
+                        ]
+                    ),
+                    "Agreeableness": mean(
+                        [
+                            responses["is generally trusting"],
+                            flip_scale(responses["tends to find fault with others"]),
+                        ]
+                    ),
+                    "Conscientiousness": mean(
+                        [
+                            flip_scale(responses["tends to be lazy"]),
+                            responses["does a thorough job"],
+                        ]
+                    ),
+                    "Neuroticism": mean(
+                        [
+                            flip_scale(responses["is relaxed, handles stress well"]),
+                            responses["gets nervous easily"],
+                        ]
+                    ),
+                    "Openness": mean(
+                        [
+                            flip_scale(responses["has few artistic interests"]),
+                            responses["has an active imagination"],
+                        ]
+                    ),
+                }
+                return {"score": score, "passed": True}
+
+        return BigFiveTrialMaker(
+            id_="big_five",
+            trial_class=self.trial(time_estimate_per_trial),
+            phase="screening",
+            stimulus_set=self.get_stimulus_set(labels),
+            max_trials_per_block=len(labels),
+            check_performance_at_end=True,
+        )
+
+    def trial(self, time_estimate_: float):
+        class BigFiveTrial(StaticTrial):
+            time_estimate = time_estimate_
+
+            def show_trial(self, experiment, participant):
+                labels = [
+                    "1 (Disagree strongly)",
+                    "2 (Disagree a little)",
+                    "3 (Neither agree nor disagree)",
+                    "4 (Agree a little)",
+                    "5 (Agree strongly)",
+                ]
+                choices = list(range(1, len(labels) + 1))
+
+                return ModularPage(
+                    "big_five_trial",
+                    Markup(
+                        "I see myself as someone who <strong>"
+                        + self.definition["label"]
+                        + "</strong>"
+                    ),
+                    PushButtonControl(
+                        choices,
+                        labels,
+                        arrange_vertically=True,
+                        style="min-width: 10px; margin: 10px",
+                    ),
+                    time_estimate=self.time_estimate,
+                )
+
+        return BigFiveTrial
+
+    def get_stimulus_set(self, labels):
+        return StimulusSet(
+            "big_five_questions",
+            [
+                StimulusSpec(
+                    definition={"label": label},
+                    phase="screening",
+                )
+                for label in self.LABELS
+            ],
         )
 
 
