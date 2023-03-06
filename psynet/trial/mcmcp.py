@@ -4,7 +4,7 @@ import random
 from collections import Counter
 
 from ..field import extra_var
-from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 
 class MCMCPNetwork(ChainNetwork):
@@ -117,7 +117,6 @@ class MCMCPNode(ChainNode):
 
     def summarize_trials(self, trials: list, experiment, participant):
         """
-        (Abstract method, to be overridden)
         This method should summarize the answers to the provided trials.
         A default method is implemented for cases when there is
         just one trial per node; in this case, the method extracts and returns
@@ -147,7 +146,6 @@ class MCMCPNode(ChainNode):
         object
             The derived seed. Should be suitable for serialisation to JSON.
         """
-
         counts = Counter([t.answer["role"] for t in trials])
         max_count = max(counts.values())
         candidates = [item[0] for item in counts.items() if item[1] == max_count]
@@ -160,13 +158,7 @@ class MCMCPNode(ChainNode):
             "proposal": self.get_proposal(seed, experiment, participant),
         }
 
-
-class MCMCPSource(ChainSource):
-    """
-    A Source class for MCMCP chains.
-    """
-
-    def generate_seed(self, network, experiment, participant):
+    def create_initial_seed(self, experiment, participant):
         raise NotImplementedError
 
 
@@ -193,6 +185,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
             "role": trial.definition["ordered"][position]["role"],
             "value": trial.definition["ordered"][position]["value"],
         }
+        trial.answer = answer
         super().finalize_trial(answer, trial, experiment, participant)
 
     def get_answer_for_consistency_check(self, trial):
@@ -202,3 +195,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
 
     performance_check_type = "consistency"
     consistency_check_type = "percent_agreement"
+
+    @property
+    def default_network_class(self):
+        return MCMCPNetwork

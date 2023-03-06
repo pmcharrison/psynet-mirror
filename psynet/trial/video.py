@@ -4,7 +4,6 @@ from ..utils import get_logger
 from .record import (
     MediaImitationChainNetwork,
     MediaImitationChainNode,
-    MediaImitationChainSource,
     MediaImitationChainTrial,
     MediaImitationChainTrialMaker,
     RecordTrial,
@@ -27,13 +26,12 @@ class ScreenRecordTrial(RecordTrial):
     recording_key_name = "screen_key"
 
 
-# Video
 class CameraImitationChainNetwork(MediaImitationChainNetwork):
     """
     A Network class for camera imitation chains.
     """
 
-    media_extension = "webm"
+    media_extension = ".webm"
 
 
 class CameraImitationChainTrial(CameraRecordTrial, MediaImitationChainTrial):
@@ -54,15 +52,7 @@ class CameraImitationChainNode(MediaImitationChainNode):
     :meth:`~psynet.trial.audio.VideoImitationChainNode.synthesize_target` method.
     """
 
-    pass
-
-
-class CameraImitationChainSource(MediaImitationChainSource):
-    """
-    A Source class for camera imitation chains.
-    """
-
-    pass
+    media_extension = ".webm"
 
 
 class CameraImitationChainTrialMaker(MediaImitationChainTrialMaker):
@@ -72,3 +62,7 @@ class CameraImitationChainTrialMaker(MediaImitationChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return CameraImitationChainNetwork

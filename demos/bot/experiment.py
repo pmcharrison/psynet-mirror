@@ -25,6 +25,8 @@ class CustomTextControl(TextControl):
 
 # This demo doesn't actually run any bots; this is currently left to the associated test script.
 class Exp(psynet.experiment.Experiment):
+    label = "Bots demo"
+
     initial_recruitment_size = 1
 
     timeline = Timeline(

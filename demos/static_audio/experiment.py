@@ -1,6 +1,11 @@
 import psynet.experiment
+from psynet.asset import (  # noqa
+    CachedFunctionAsset,
+    DebugStorage,
+    LocalStorage,
+    S3Storage,
+)
 from psynet.consent import NoConsent
-from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -8,62 +13,37 @@ from psynet.modular_page import (
     ModularPage,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.timeline import PreDeployRoutine, Timeline
-from psynet.trial.static import (
-    StaticTrial,
-    StaticTrialMaker,
-    StimulusSet,
-    StimulusSpec,
-    StimulusVersionSpec,
-)
+from psynet.timeline import Timeline
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
-from .custom_synth import synth_stimulus
+from .custom_synth import synth_prosody
 
 ##########################################################################################
 # Stimuli
 ##########################################################################################
 
-# Prepare the audio stimuli by running the following command:
-# python3 experiment.py
+
+def synth_stimulus(path, frequencies):
+    synth_prosody(vector=frequencies, output_path=path)
 
 
-class CustomStimulusVersionSpec(StimulusVersionSpec):
-    has_media = True
-    media_ext = ".wav"
-
-    @classmethod
-    def generate_media(cls, definition, output_path):
-        synth_stimulus(definition["frequencies"], output_path)
-
-
-stimuli = [
-    StimulusSpec(
+nodes = [
+    StaticNode(
         definition={
             "frequency_gradient": frequency_gradient,
+            "start_frequency": start_frequency,
+            "frequencies": [start_frequency + i * frequency_gradient for i in range(5)],
         },
-        version_specs=[
-            CustomStimulusVersionSpec(
-                definition={
-                    "start_frequency": start_frequency,
-                    "frequencies": [
-                        start_frequency + i * frequency_gradient for i in range(5)
-                    ],
-                }
+        assets={
+            "stimulus": CachedFunctionAsset(
+                function=synth_stimulus,
+                extension=".wav",
             )
-            for start_frequency in [-100, 0, 100]
-        ],
-        phase="experiment",
+        },
     )
-    for frequency_gradient in [-100, -50, 0, 50, 100]
+    for frequency_gradient in [-100, 0, 100]
+    for start_frequency in [-100, 0, 100]
 ]
-
-stimulus_set = StimulusSet(
-    "static_audio",
-    stimuli,
-    version="v3",
-    s3_bucket="static-audio-demo-stimuli",
-)
-recordings_s3_bucket = "static-audio-demo-stimuli-recordings"
 
 
 class CustomTrial(StaticTrial):
@@ -71,45 +51,40 @@ class CustomTrial(StaticTrial):
     _time_feedback = 2
 
     time_estimate = _time_trial + _time_feedback
+    wait_for_feedback = True
 
     def show_trial(self, experiment, participant):
         return ModularPage(
-            "question_page",
+            "imitation",
             AudioPrompt(
-                self.media_url, "Please imitate the spoken word as closely as possible."
+                self.assets["stimulus"],
+                "Please imitate the spoken word as closely as possible.",
             ),
-            AudioRecordControl(
-                duration=3.0, s3_bucket=recordings_s3_bucket, public_read=True
-            ),
+            AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav"),
             time_estimate=self._time_trial,
         )
 
     def show_feedback(self, experiment, participant):
         return ModularPage(
-            "feedback_page",
+            "feedback",
             AudioPrompt(
-                participant.answer["url"],
+                self.assets["imitation"],
                 "Listen back to your recording. Did you do a good job?",
             ),
             time_estimate=self._time_feedback,
         )
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Static audio demo"
+
+    asset_storage = S3Storage(
+        "psynet-tests", "static-audio"
+    )  # We use this S3Storage for the CI tests
+    # asset_storage = LocalStorage()
+
     timeline = Timeline(
         NoConsent(),
-        PreDeployRoutine(
-            "prepare_s3_bucket_for_presigned_urls",
-            prepare_s3_bucket_for_presigned_urls,
-            {
-                "bucket_name": recordings_s3_bucket,
-                "public_read": True,
-                "create_new_bucket": True,
-            },
-        ),
         VolumeCalibration(),
         ModularPage(
             "record_calibrate",
@@ -131,10 +106,10 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="static_audio",
             trial_class=CustomTrial,
-            phase="experiment",
-            stimulus_set=stimulus_set,
-            target_num_participants=3,
-            recruit_mode="num_participants",
+            nodes=nodes,
+            expected_trials_per_participant=len(nodes),
+            target_n_participants=3,
+            recruit_mode="n_participants",
         ),
         SuccessfulEndPage(),
     )

@@ -1,1 +1,0 @@
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/PsyNetDev/psynet#egg=psynet

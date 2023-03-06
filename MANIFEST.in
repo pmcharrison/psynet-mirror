@@ -33,5 +33,6 @@ recursive-include psynet *.png
 recursive-include psynet *.py
 recursive-include psynet *.svg
 recursive-include psynet *.txt
+recursive-include psynet/resources *
 recursive-include tests *.py
 recursive-include tests *.wav

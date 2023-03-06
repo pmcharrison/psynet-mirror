@@ -1,5 +1,79 @@
 # CHANGELOG
 
+# [10.0.0rc3] Release candidate 2023-03-02
+
+#### Fixed
+- Removed RSTCloth dependency (author: Pol van Rijn, reviewer: Peter Harrison).
+- Fixed for compatibility with new Dallinger dashboard code (author: Pol van Rijn, reviewer: Peter Harrison).
+
+#### Added
+- Added support in pyproject.toml for making PyPi releases (author: Frank Höger, reviewer: Peter Harrison).
+- Added Video Gibbs support (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
+
+#### Changed
+- Migrated build system requirements and project metadata from setup.py/setup.cfg to pyproject.toml, (see https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/) (author: Frank Höger, reviewer: Peter Harrison).
+- Migrated AWS CLI (awscli) functionality to `boto3` to reduce dependencies (author: Pol van Rijn, reviewer: Peter Harrison).
+
+# [10.0.0rc2] Release candidate 2023-02-07
+
+#### Fixed
+- Scroll current item in sidebar menu into view when navigating Sphinx documentation (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Added
+- Added Prolific documentation with screenshots (author: Pol van Rijn).
+
+#### Changed
+- Demographics are now saved in the participant table (author: Peter Harrison).
+- Check if amount in cents/predicted duration in minutes for Prolific is identical to the hourly rate of the experiment (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
+
+#### Removed
+- Removed unnecessary field `mode` in config.txt of all demos (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
+- Removed old deprecated code (author: Frank Höger, reviewer: Peter Harrison):
+  - psynet/consent.py
+    - `MTurkStandardConsent`
+    - `MTurkStandardConsentPage`
+    - `MTurkAudiovisualConsent`
+    - `MTurkAudiovisualConsentPage`
+  - psynet/modular_page.py
+    - `NAFCControl`
+  - psynet/page.py
+    - `NAFCPage`
+    - `TextInputPage`
+    - `SliderPage`
+    - `AudioSliderPage`
+    - `NumberInputPage`
+  - psynet/timeline.py
+    - `multi_page_maker`
+
+# [10.0.0rc1] Release candidate 2023-01-27
+
+#### Added
+- Added RUN.md instructions for running experiments in Docker (author: Peter Harrison).
+- Drafted 'generic recruiter', an improved version of Dallinger's hot-air recruiter (author: Peter Harrison).
+- Added missing parts of API documentation to Sphinx website (author: Frank Höger, reviewer: Peter Harrison).
+- Added `config_defaults` to experiment class, which allows for specifying default config variables programmatically (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Changed
+- Store assets in `static/assets` rather than `static/local_storage` (author: Peter Harrison).
+
+#### Fixed
+- Make assets display properly in dashboard again (author: Peter Harrison).
+- Fix Unity integration with Prolific (author: Peter Harrison).
+
+# [10.0.0rc0] Release candidate 2023-01-17
+
+#### Added
+- Marked translatable parts of the PsyNet UI, consent, and demographics (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Added a locale variable to the participant (default: experiment language) which can be changed during the experiment (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Added a `currency` variable to the experiment, which allows using a currency different than dollars, e.g., in Prolific (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Wrote documentation for translating experiments (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+
+#### Fixed
+- Updated the translation demo (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Use latin-1 encoding for pickling JSON instead of ASCII to work well with non-ASCII characters (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Add additional dependencies to PsyNet: `babel` and `python-gettext` (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+- Replaced typo in `participant` (author: Pol van Rijn, reviewer: Frank Höger and Peter Harrison).
+
 # [9.4.1] Released on 2023-01-11
 
 #### Added
@@ -12,7 +86,7 @@
 
 #### Added
 - Added MIT license.
-- Added and updated experimenter and developer documentation; changed layout to `furo` theme .
+- Added and updated experimenter and developer documentation; changed layout to `furo` theme (author: Peter Harrison, reviewer: Frank Höger).
 
 #### Fixed
 - Fixed node details visualization in dashboard monitor (author: Peter Harrison).
@@ -266,7 +340,7 @@ There are various ways to configure bots to take part in a real experiment. One 
   (author: Peter Harrison, reviewer: Pol van Rijn)
 
 - Fixed Unity demo by replacing it with a new autoplay version containing updated WebGL files.
-  (author: Ofer Tchernichovski , reviewers: Peter Harrison, Frank Höger)
+  (author: Ofer Tchernichovski, reviewers: Peter Harrison, Frank Höger)
 
 #### Added
 - PsyNet now supports the definition of custom SQL classes that are not subclasses of pre-existing

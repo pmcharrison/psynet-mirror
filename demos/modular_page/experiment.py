@@ -54,11 +54,16 @@ class ColorText(Control):
     def metadata(self):
         return {"color": self.color}
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return "Hello, I am a bot!"
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Modular page demo"
+
     timeline = Timeline(
         NoConsent(),
         ModularPage(
@@ -74,7 +79,7 @@ class Exp(psynet.experiment.Experiment):
         ModularPage(
             "response",
             prompt=AudioPrompt(
-                url="/static/audio/bier.wav",
+                audio="/static/audio/bier.wav",
                 text="Here is an example of an audio prompt combined with a push button control``.",
             ),
             control=PushButtonControl(["Response A", "Response B"]),
@@ -84,7 +89,7 @@ class Exp(psynet.experiment.Experiment):
         ModularPage(
             "timed_push_button",
             AudioPrompt(
-                url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+                audio="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
                 text="""
             This page illustrates the timed push button control combined with an audio prompt.
             """,

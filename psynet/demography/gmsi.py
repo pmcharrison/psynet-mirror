@@ -165,7 +165,8 @@ class GMSI(Module):
 
     @staticmethod
     def calculate_score(question, answer):
-        answer = answer.replace('"', "")
+        if isinstance(answer, str):
+            answer = answer.replace('"', "")
         if question == "q_40" and answer == "19":
             return None
         if question in ["q_32", "q_41"]:

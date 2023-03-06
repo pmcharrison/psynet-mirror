@@ -2,12 +2,12 @@
 Video Imitation Chain Demo
 """
 import random
-import shutil
-import tempfile
+
+from dallinger import db
 
 import psynet.experiment
+from psynet.asset import Asset, CachedAsset, DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
-from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioMeterControl,
     ModularPage,
@@ -16,18 +16,9 @@ from psynet.modular_page import (
     VideoRecordControl,
 )
 from psynet.page import SuccessfulEndPage
-from psynet.timeline import (
-    Event,
-    PreDeployRoutine,
-    ProgressDisplay,
-    ProgressStage,
-    Timeline,
-    join,
-)
+from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.video import (
-    CameraImitationChainNetwork,
     CameraImitationChainNode,
-    CameraImitationChainSource,
     CameraImitationChainTrial,
     CameraImitationChainTrialMaker,
 )
@@ -35,135 +26,124 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-SILENT_RECORDING = "./static/5s_silence.wav"
-
-
-class CustomNetwork(CameraImitationChainNetwork):
-    s3_bucket = "video-screen-recording-dev"
-
-
-class CustomSource(CameraImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
-        return random.choice(possibilities)
-
 
 class CustomVideoRecordControl(VideoRecordControl):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(
             duration=5.0,
-            s3_bucket="video-screen-recording-dev",
             recording_source="camera",
-            audio_num_channels=2,
+            audio_n_channels=2,
             controls=True,
-            public_read=True,
             show_preview=True,
+            **kwargs,
         )
 
 
-class CustomProgressDisplay(ProgressDisplay):
-    def __init__(self):
-        super().__init__(
-            stages=[
-                ProgressStage([0.0, 1.5], "Get ready...", color="grey"),
-                ProgressStage([1.5, 1.5 + 5.0], "Make your gesture!", color="red"),
-                ProgressStage(
-                    [1.5 + 5.0, 1.5 + 5.0],
-                    "Click 'upload' if you're happy with your recording.",
-                    color="green",
-                    persistent=True,
-                ),
-            ],
-        )
+def custom_progress_display():
+    return ProgressDisplay(
+        [
+            ProgressStage([0.0, 1.5], "Get ready...", color="grey"),
+            ProgressStage([1.5, 1.5 + 5.0], "Make your gesture!", color="red"),
+            ProgressStage(
+                [1.5 + 5.0, 1.5 + 5.0],
+                "Click 'Next' if you're happy with your recording.",
+                color="green",
+                persistent=True,
+            ),
+        ]
+    )
 
 
 class CustomTrial(CameraImitationChainTrial):
     time_estimate = 15
 
     def show_trial(self, experiment, participant):
-        if self.origin.degree == 1:
+        if self.degree == 0:
             instruction = f"Please trace out a {self.origin.seed} in the air \
-                            for the camera using you hands or fingers."
+                            for the camera using your hands or fingers."
             return ModularPage(
-                "first-iteration-record",
+                "webcam_recording",
                 Prompt(text=instruction, text_align="center"),
-                CustomVideoRecordControl(),
+                CustomVideoRecordControl(
+                    bot_response_media="assets/example_recording.webm",
+                ),
                 time_estimate=5,
-                progress_display=CustomProgressDisplay(),
+                progress_display=custom_progress_display(),
                 events={"recordStart": Event(is_triggered_by="trialStart", delay=1.5)},
             )
         else:
-            return join(
-                [
-                    ModularPage(
-                        "subsequent-iteration-prompt",
-                        VideoPrompt(
-                            self.origin.target_url,
-                            "When you are ready, press next to imitate the figure that you see.",
-                            text_align="center",
-                            width="360px",
-                        ),
-                        time_estimate=5,
-                    ),
-                    ModularPage(
-                        "subsequent-iteration-record",
-                        prompt="",
-                        control=CustomVideoRecordControl(),
-                        time_estimate=5,
-                        progress_display=CustomProgressDisplay(),
-                    ),
-                ]
+            try:
+                stimulus = self.assets["stimulus"]
+            except KeyError:
+                logger.info(
+                    "Failed to find self.assets['stimulus']. This error happens occasionally in the automated tests "
+                    "and we haven't been able to debug it yet. It may be some kind of race condition. "
+                    "We'll now print some debugging information to try and help solve this mystery. "
+                )
+                logger.info("Does our trial's node have pending async processes?")
+                logger.info(self.node.async_processes)
+                logger.info([x.__json__() for x in self.node.async_processes])
+
+                logger.info("What happens if we refresh the object?")
+                db.session.refresh(self)
+                stimulus = self.assets["stimulus"]
+
+            page_1 = ModularPage(
+                "webcam_prompt",
+                VideoPrompt(
+                    stimulus,
+                    "When you are ready, press next to imitate the figure that you see.",
+                    text_align="center",
+                    width="360px",
+                ),
+                time_estimate=5,
             )
+            page_2 = ModularPage(
+                "webcam_recording",
+                prompt="",
+                control=CustomVideoRecordControl(
+                    bot_response_media="assets/example_recording.webm",
+                ),
+                time_estimate=5,
+                progress_display=custom_progress_display(),
+            )
+            return join(page_1, page_2)
 
     def analyze_recording(self, experiment, participant):
         return {"failed": False}
 
 
-class CustomCameraImitationTrialMaker(CameraImitationChainTrialMaker):
-    pass
-
-
 class CustomNode(CameraImitationChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
+    def create_initial_seed(self, experiment, participant):
+        possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
+        return random.choice(possibilities)
 
     def summarize_trials(self, trials, experiment, participant):
-        recording_info = trials[0].recording_info
-        logger.info("RECORDING INFO: {}".format(recording_info))
-        analysis = trials[0].analysis
-        return dict(recording_info=recording_info, analysis=analysis)
+        assert len(trials) == 1
+        trial = trials[0]
+        return dict(recording_info=trial.recording_info, analysis=trial.analysis)
 
     def synthesize_target(self, output_file):
         """
         This code can be modified to introduce custom video editing before reuploading the video.
         """
-        if self.degree == 1:
-            shutil.copyfile(SILENT_RECORDING, output_file)
-            return output_file
+        if self.degree == 0:
+            self.trial_maker.assets["5s_silence"].export(output_file)
         else:
-            prev_trial = self.definition
-            with tempfile.NamedTemporaryFile() as temp_file:
-                recording = prev_trial["recording_info"]
-                download_from_s3(
-                    temp_file.name, recording["s3_bucket"], recording["key"]
-                )
-                # Processing of temp_file.name file.
-                shutil.copyfile(temp_file.name, output_file)
-                return output_file
+            self.parent.alive_trials[0].assets["webcam_recording"].export(output_file)
 
 
 ####################################################################################################
 class Exp(psynet.experiment.Experiment):
+    label = "Video imitation chain demo"
+
+    # asset_storage = S3Storage("psynet-tests", "video-imitation-chain")
+    asset_storage = DebugStorage()
+
+    initial_recruitment_size = 1
+
     timeline = Timeline(
         NoConsent(),
-        PreDeployRoutine(
-            "prepare_s3_bucket_for_presigned_urls",
-            prepare_s3_bucket_for_presigned_urls,
-            {
-                "bucket_name": "video-screen-recording-dev",
-                "public_read": True,
-                "create_new_bucket": True,
-            },
-        ),
         ModularPage(
             "record_calibrate",
             """
@@ -174,29 +154,25 @@ class Exp(psynet.experiment.Experiment):
             AudioMeterControl(),
             time_estimate=5,
         ),
-        CustomCameraImitationTrialMaker(
+        CameraImitationChainTrialMaker(
             id_="video-chain",
-            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
-            phase="experiment",
             chain_type="within",
-            num_trials_per_participant=4,
-            num_iterations_per_chain=4,
-            num_chains_per_experiment=None,
-            num_chains_per_participant=2,
+            expected_trials_per_participant=8,
+            max_nodes_per_chain=4,
+            chains_per_experiment=None,
+            chains_per_participant=2,
             trials_per_node=1,
             balance_across_chains=False,
-            recruit_mode="num_participants",
+            recruit_mode="n_participants",
             check_performance_at_end=True,
             check_performance_every_trial=False,
-            target_num_participants=25,
+            target_n_participants=25,
             wait_for_networks=True,
+            assets={
+                "5s_silence": CachedAsset(input_path="assets/5s_silence.wav"),
+            },
         ),
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

@@ -6,8 +6,6 @@ from psynet.consent import (
     DatabaseConsent,
     LucidConsent,
     MainConsent,
-    MTurkAudiovisualConsent,
-    MTurkStandardConsent,
     NoConsent,
     OpenScienceConsent,
     PrincetonCAPRecruiterConsent,
@@ -22,6 +20,8 @@ from psynet.timeline import Timeline
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Consents demo"
+
     timeline = Timeline(
         NoConsent(),
         MainConsent(),
@@ -30,8 +30,6 @@ class Exp(psynet.experiment.Experiment):
         OpenScienceConsent(),
         VoluntaryWithNoCompensationConsent(),
         LucidConsent(),
-        MTurkStandardConsent(),
-        MTurkAudiovisualConsent(),
         CAPRecruiterStandardConsent(),
         CAPRecruiterAudiovisualConsent(),
         PrincetonConsent(),

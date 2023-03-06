@@ -1,17 +1,15 @@
 import os
 import tempfile
-from uuid import uuid4
 
 import dominate.tags as tags
 from dallinger import db
 
+from ..asset import ExperimentAsset
 from ..field import claim_var, extra_var
-from ..media import download_from_s3, get_s3_url, upload_to_s3
 from ..utils import get_logger
 from .imitation_chain import (
     ImitationChainNetwork,
     ImitationChainNode,
-    ImitationChainSource,
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
@@ -19,16 +17,32 @@ from .imitation_chain import (
 logger = get_logger()
 
 
+class Recording(ExperimentAsset):
+    pass
+
+
+class RecordingAnalysisPlot(ExperimentAsset):
+    pass
+
+
 class RecordTrial:
     __extra_vars__ = {}
 
-    run_async_post_trial = True
     analysis = claim_var("analysis", __extra_vars__)
+
+    run_async_post_trial = True
     recording_url_key_name = None
     recording_key_name = None
 
     @property
     def media_answer(self):
+        """
+        This logic is here to cope with cases where the trial contains multiple answers
+        and we need to pluck out the right answer that corresponds to the recording.
+        I'm not a big fan of this logic, but I don't want to refactor it until we've changed
+        the ``accumulate_answers`` functionality into using dictionaries instead of lists
+        (https://gitlab.com/computational-audition-lab/psynet/-/issues/373)
+        """
         if isinstance(self.answer, list):  # multipage
             for a in self.answer:
                 try:
@@ -40,13 +54,42 @@ class RecordTrial:
             return self.answer
 
     @property
+    def recording(self):
+        recordings = [
+            asset for asset in self.assets.values() if isinstance(asset, Recording)
+        ]
+        if len(recordings) == 0:
+            return None
+        elif len(recordings) == 1:
+            return recordings[0]
+        else:
+            raise ValueError(
+                "This trial contains multiple recordings and we don't know which to use."
+            )
+
+    @property
+    def recording_analysis_plot(self):
+        plots = [
+            asset
+            for asset in self.assets.values()
+            if isinstance(asset, RecordingAnalysisPlot)
+        ]
+        if len(plots) == 0:
+            return None
+        elif len(plots) == 1:
+            return plots[0]
+        else:
+            raise ValueError(
+                "This trial contains multiple recording analyses and we don't know which to use."
+            )
+
+    @property
     def recording_info(self):
         answer = self.media_answer
         if answer is None:
             return None
         try:
             return {
-                "s3_bucket": answer["s3_bucket"],
                 "key": answer[self.recording_key_name],
                 "url": answer[self.recording_url_key_name],
             }
@@ -70,15 +113,9 @@ class RecordTrial:
 
     @property
     @extra_var(__extra_vars__)
-    def s3_bucket(self):
-        if self.has_recording:
-            return self.recording_info["s3_bucket"]
-
-    @property
-    @extra_var(__extra_vars__)
     def plot_url(self):
-        if self.has_recording:
-            return get_s3_url(self.s3_bucket, self.plot_key)
+        if self.recording_analysis_plot is not None:
+            return self.recording_analysis_plot.url
 
     @property
     @extra_var(__extra_vars__)
@@ -100,19 +137,36 @@ class RecordTrial:
         pass
 
     def async_post_trial(self):
+        from ..utils import wait_until
+
+        def is_recording_deposited():
+            db.session.commit()
+            return self.recording.deposited
+
+        wait_until(
+            condition=is_recording_deposited,
+            max_wait=45,
+            poll_interval=1.0,
+            error_message="Waited too long for the asset deposit to complete.",
+        )
+
+        logger.info("Asset deposit is complete, ready to continue with the analysis.")
         logger.info("Analyzing recording for trial %i...", self.id)
         with tempfile.NamedTemporaryFile() as temp_recording:
-            with tempfile.NamedTemporaryFile() as temp_plot:
-                self.download_recording(temp_recording.name)
+            with tempfile.NamedTemporaryFile(delete=False) as temp_plot:
+                self.recording.export(temp_recording.name)
                 self.sanitize_recording(temp_recording.name)
                 self.analysis = self.analyze_recording(
                     temp_recording.name, temp_plot.name
                 )
+                db.session.commit()
                 if not (
                     "no_plot_generated" in self.analysis
                     and self.analysis["no_plot_generated"]
                 ):
-                    self.upload_plot(temp_plot.name)
+                    self.upload_plot(temp_plot.name, async_=True)
+                else:
+                    os.path.remove(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
                         self.fail(reason="analysis")
@@ -123,17 +177,14 @@ class RecordTrial:
                 finally:
                     db.session.commit()
 
-    def download_recording(self, local_path):
-        recording_info = self.recording_info
-        download_from_s3(local_path, recording_info["s3_bucket"], recording_info["key"])
-
-    def upload_plot(self, local_path):
-        upload_to_s3(
-            local_path,
-            self.recording_info["s3_bucket"],
-            self.plot_key,
-            public_read=True,
+    def upload_plot(self, local_path, async_):
+        asset = RecordingAnalysisPlot(
+            label="recording_analysis_plot",
+            input_path=local_path,
+            extension=".png",
+            parent=self.recording.trial,
         )
+        asset.deposit(async_=async_, delete_input=True)
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         """
@@ -169,39 +220,7 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
     A Network class for media imitation chains.
     """
 
-    s3_bucket = ""
-
-    media_extension = None
-
-    def validate(self):
-        if self.s3_bucket == "":
-            raise ValueError(
-                "The MediaImitationChainNetwork must possess a valid s3_bucket attribute."
-            )
-
-    run_async_post_grow_network = True
-
-    def async_post_grow_network(self):
-        logger.info("Synthesizing media for network %i...", self.id)
-
-        node = self.head
-
-        if isinstance(node, MediaImitationChainSource):
-            logger.info(
-                "Network %i only contains a Source, no media to be synthesized.",
-                self.id,
-            )
-        else:
-            with tempfile.NamedTemporaryFile() as temp_file:
-                node.synthesize_target(temp_file.name)
-                target_key = f"{uuid4()}.{self.media_extension}"
-                node.target_url = upload_to_s3(
-                    temp_file.name,
-                    self.s3_bucket,
-                    key=target_key,
-                    public_read=True,
-                    create_new_bucket=True,
-                )["url"]
+    pass
 
 
 class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
@@ -226,23 +245,28 @@ class MediaImitationChainNode(ImitationChainNode):
 
     __extra_vars__ = ImitationChainNode.__extra_vars__.copy()
 
-    target_url = claim_var("target_url", __extra_vars__)
+    media_extension = None
 
     def synthesize_target(self, output_file):
         """
         Generates the target stimulus (i.e. the stimulus to be imitated by the participant).
-        This method will typically rely on the ``self.definition`` attribute,
-        which carries the definition of the current node.
         """
         raise NotImplementedError
 
+    def async_on_deploy(self):
+        logger.info("Synthesizing media for node %i...", self.id)
 
-class MediaImitationChainSource(ImitationChainSource):
-    """
-    A Source class for media imitation chains.
-    """
+        with tempfile.NamedTemporaryFile() as temp_file:
+            from ..asset import ExperimentAsset
 
-    pass
+            self.synthesize_target(temp_file.name)
+            asset = ExperimentAsset(
+                label="stimulus",
+                input_path=temp_file.name,
+                extension=self.media_extension,
+                parent=self,
+            )
+            asset.deposit()
 
 
 class MediaImitationChainTrialMaker(ImitationChainTrialMaker):
@@ -252,3 +276,7 @@ class MediaImitationChainTrialMaker(ImitationChainTrialMaker):
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
+
+    @property
+    def default_network_class(self):
+        return MediaImitationChainNetwork

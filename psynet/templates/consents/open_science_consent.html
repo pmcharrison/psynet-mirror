@@ -7,53 +7,60 @@
 {% block main_body %}
   <div class="main-div" style="padding-bottom: 200px;">
     <noscript>
-        <h1>Warning: Javascript is not working on your browser</h1>
-        <p>The study will not work unless Javascript is enabled on your browser.</p>
-        <p>Please enable Javascript then refresh this page.</p>
+        <h1>{{ pgettext("consent-javascript", "Warning: Javascript is not working on your browser") }}</h1>
+        <p>{{ pgettext("consent-javascript", "The study will not work unless Javascript is enabled on your browser.") }}</p>
+        <p>{{ pgettext("consent-javascript", "Please enable Javascript then refresh this page.") }}</p>
     </noscript>
-    <h1>We need your consent to proceed!</h1>
+    <h1>{{ pgettext("consent-title", "We need your consent to proceed") }}</h1>
     <hr>
     <p>
-        Following open science practices to improve science reusability and replicability, we may want to publish the dataset collected in this experiment as soon as the study is finished. This includes audio-visual recordings, such as a recording of your finger-tapping in response to a sound or video, or to record yourself speaking or singing. We may also want to publish certain materials as part of the scientific publication, such as a demo video of the task or part of an interview.
+        {{ pgettext("consent", "Following open science practices to improve science reusability and replicability, we may want to publish the dataset collected in this experiment as soon as the study is finished.") }}
+        {{ pgettext("consent", "This includes audio-visual recordings, such as a recording of your finger-tapping in response to a sound or video, or to record yourself speaking or singing.") }}
+        {{ pgettext("consent", "We may also want to publish certain materials as part of the scientific publication, such as a demo video of the task or part of an interview.") }}
     </p>
     <div class="text-justify">
         <div class="text-left" style="font-size:18px">
-            <h4>CONFIDENTIALITY</h4>
+            <h4>{{ pgettext("consent-confidentiality", "Confidentiality") }}</h4>
             <p class="consent-text">
-                Since the audio-visual recordings collected in this experiment may be made public, we cannot guarantee anonymity of your data if you participate in this experiment. However, your data will  not be directly associated with your name or other identifiers in any way (we will not specify your name when presenting audio/video materials of yours).
+                {{ pgettext("consent-confidentiality", "Since the audio-visual recordings collected in this experiment may be made public, we cannot guarantee anonymity of your data if you participate in this experiment.") }}
+                {{ pgettext("consent-confidentiality", "However, your data will not be directly associated with your name or other identifiers in any way (we will not specify your name when presenting audio/video materials of yours).") }}
             </p>
 
-            <h4>SECURITY</h4>
+            <h4>{{ pgettext("consent-security", "Security") }}</h4>
             <p class="consent-text">
-                Data will be published on open science frameworks/websites such as OSF (https://osf.io/) and will be available to everybody with internet access.
+                {{ pgettext("consent-security", "Data will be published on open science frameworks/websites such as OSF (https://osf.io/) and will be available to everybody with internet access.") }}
 
-            <h4>DISCLAIMER</h4>
+            <h4>{{ pgettext("consent-disclaimer", "Disclaimer") }}</h4>
             <p class="consent-text">
-                Since some materials will be published as part of the scientific publication, you will not be able to delete such materials, as they will become public (either immediately or soon after data collection). Thus, you may wish to make sure you do not record any materials you do not want to make public. By consenting to this experiment you are committing not to use profanity while recording audio or nudity while recording video.  Although your data will not be associated with personal identifiers, it is possible to link your personal information based on audio-visual recordings.
+                {{ pgettext("consent-disclaimer", "Since some materials will be published as part of the scientific publication, you will not be able to delete such materials, as they will become public (either immediately or soon after data collection).") }}
+                {{ pgettext("consent-disclaimer", "Thus, you may wish to make sure you do not record any materials you do not want to make public.") }}
+                {{ pgettext("consent-disclaimer", "By consenting to this experiment you are committing not to use profanity while recording audio or nudity while recording video.") }}
+                {{ pgettext("consent-disclaimer", "Although your data will not be associated with personal identifiers, it is possible to link your personal information based on audio-visual recordings") }}.
             </p>
 
-            <h4>CONTACT INFORMATION</h4>
+            <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
             <p class="consent-text">
-                If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
+                {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
             </p>
 
-            <h4>CONSENT</h4>
+            <h4>{{ pgettext("consent-consent", "Consent") }}</h4>
             <p class="consent-text">
-                By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research. If you do not wish to consent, please close this page.
+                {{ pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
+                {{ pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
             </p>
         </div>
         <div class="fixed-bottom consent-gradient">
             <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
-                Scroll up/down to see all text <span class="up-down-arrows">&#8645;</span>
+                {{ gettext("Scroll up/down to see all text") }} <span class="up-down-arrows">&#8645;</span>
             </div>
             <hr style="margin-top: 5px;">
-            <h4>Do you understand and consent to these terms?</h4>
+            <h4>{{ gettext("Do you understand and consent to these terms?") }}</h4>
             <br>
             <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-                I agree
+                {{ pgettext("consent", "I agree") }}
             </button>
             <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-                No, thank you (return task)
+                {{ pgettext("consent", "No, thank you (return task)") }}
             </button>
         </div>
       </div>

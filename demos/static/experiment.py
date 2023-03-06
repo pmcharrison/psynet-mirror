@@ -5,6 +5,7 @@
 ##########################################################################################
 
 import logging
+import random
 
 from flask import Markup
 
@@ -12,43 +13,34 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.static import (
-    StaticTrial,
-    StaticTrialMaker,
-    StimulusSet,
-    StimulusSpec,
-    StimulusVersionSpec,
-)
+from psynet.timeline import Timeline
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
+from . import test_imports  # noqa  (this is for PsyNet's regression tests)
 
 ##########################################################################################
 # Stimuli
 ##########################################################################################
 
-stimulus_set = StimulusSet(
-    "animals",
-    [
-        StimulusSpec(
-            definition={"animal": animal},
-            version_specs=[
-                StimulusVersionSpec(definition={"text_color": text_color})
-                for text_color in ["red", "green", "blue"]
-            ],
-            phase="experiment",
-            block=block,
-        )
-        for animal in ["cats", "dogs", "fish", "ponies"]
-        for block in ["A", "B", "C"]
-    ],
-)
+nodes = [
+    StaticNode(
+        definition={"animal": animal},
+        block=block,
+    )
+    for animal in ["cats", "dogs", "fish", "ponies"]
+    for block in ["A", "B", "C"]
+]
 
 
 class AnimalTrial(StaticTrial):
     time_estimate = 3
+
+    def finalize_definition(self, definition, experiment, participant):
+        definition["text_color"] = random.choice(["red", "green", "blue"])
+        return definition
 
     def show_trial(self, experiment, participant):
         text_color = self.definition["text_color"]
@@ -60,7 +52,7 @@ class AnimalTrial(StaticTrial):
         if self.is_repeat_trial:
             header = (
                 header
-                + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+                + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.n_repeat_trials}</h3>"
             )
         else:
             header = header + f"<h4>Block {block}</h3>"
@@ -73,7 +65,10 @@ class AnimalTrial(StaticTrial):
                 <p id='question' style='color: {text_color}'>How much do you like {animal}?</p>
                 """
             ),
-            PushButtonControl(["Not at all", "A little", "Very much"]),
+            PushButtonControl(
+                ["Not at all", "A little", "Very much"],
+                bot_response="Very much",
+            ),
             time_estimate=self.time_estimate,
         )
 
@@ -117,38 +112,21 @@ class AnimalTrialMaker(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def custom_stimulus_filter(self, candidates, participant):
-        # If the participant answers "Very much", then the next question will be about ponies
-        if participant.var.custom_filters and participant.answer == "Very much":
-            return [x for x in candidates if x.definition["animal"] == "ponies"]
-        else:
-            return candidates
-
-    def custom_stimulus_version_filter(self, candidates, participant):
-        # If the participant has answered at least three trials, make the text color red.
-        trials = self.get_participant_trials(participant)
-        complete_trials = [t for t in trials if t.complete]
-        if participant.var.custom_filters and len(complete_trials) >= 3:
-            return [x for x in candidates if x.definition["text_color"] == "red"]
-        return candidates
-
 
 trial_maker = AnimalTrialMaker(
     id_="animals",
     trial_class=AnimalTrial,
-    phase="experiment",
-    stimulus_set=stimulus_set,
+    nodes=nodes,
+    expected_trials_per_participant=6,
     max_trials_per_block=2,
-    allow_repeated_stimuli=True,
-    max_unique_stimuli_per_block=None,
-    active_balancing_within_participants=True,
-    active_balancing_across_participants=True,
+    allow_repeated_nodes=True,
+    balance_across_nodes=True,
     check_performance_at_end=True,
     check_performance_every_trial=True,
-    target_num_participants=1,
-    target_num_trials_per_stimulus=None,
-    recruit_mode="num_participants",
-    num_repeat_trials=3,
+    target_n_participants=1,
+    target_trials_per_node=None,
+    recruit_mode="n_participants",
+    n_repeat_trials=3,
 )
 
 ##########################################################################################
@@ -156,27 +134,12 @@ trial_maker = AnimalTrialMaker(
 ##########################################################################################
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Static experiment demo"
+    initial_recruitment_size = 1
+
     timeline = Timeline(
         NoConsent(),
-        ModularPage(
-            "custom_filters",
-            "Do you want to enable custom stimulus and stimulus version filters?",
-            PushButtonControl(["Yes", "No"]),
-            time_estimate=5,
-        ),
-        CodeBlock(
-            lambda participant: participant.var.set(
-                "custom_filters", participant.answer == "Yes"
-            )
-        ),
         trial_maker,
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

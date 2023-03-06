@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import Optional
 
 import psynet.experiment
@@ -6,7 +7,7 @@ from psynet.consent import MainConsent
 from psynet.page import InfoPage, SuccessfulEndPage, UnityPage
 from psynet.participant import Participant
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -20,17 +21,13 @@ game = [1]
 SAME_SESSION_ID = "0"
 
 # Definition of network
-stimulus_set = StimulusSet(
-    "game",
-    [
-        StimulusSpec(
-            definition={"mGame": 1, "rule": mType},
-            phase="experiment",
-            participant_group=mType,
-        )
-        for mType in rules
-    ],
-)
+nodes = [
+    StaticNode(
+        definition={"mGame": 1, "rule": mType},
+        participant_group=mType,
+    )
+    for mType in rules
+]
 
 
 class UnityGamePage(UnityPage):
@@ -50,6 +47,7 @@ class UnityGamePage(UnityPage):
             time_estimate=time_estimate,
             game_container_width="960px",
             game_container_height="600px",
+            **kwargs,
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -63,7 +61,7 @@ class GameTrial(StaticTrial):
     time_estimate = 1
 
     def show_trial(self, experiment, participant):
-        the_rule = self.stimulus.definition["rule"]
+        the_rule = self.node.definition["rule"]
         goal = Goal
         data = {
             "goal": goal,
@@ -76,6 +74,7 @@ class GameTrial(StaticTrial):
             # We stay in the same session.
             session_id=SAME_SESSION_ID,
             time_estimate=1,
+            bot_response={"reward": 50, "expire": True},
         )
         return page  # list_of_pages
 
@@ -86,7 +85,7 @@ class GameTrialMaker(StaticTrialMaker):
     def prepare_trial(self, experiment, participant):
         if participant.var.has("expire"):  # finish the game
             logger.info("Ending game")
-            return None
+            return None, "exit"
         return super().prepare_trial(experiment, participant)
 
     def finalize_trial(self, answer, trial, experiment, participant: Participant):
@@ -119,29 +118,28 @@ class GameTrialMaker(StaticTrialMaker):
 trial_maker = GameTrialMaker(
     id_="game",
     trial_class=GameTrial,
-    phase="experiment",
-    stimulus_set=stimulus_set,
-    max_trials_per_block=3,
-    allow_repeated_stimuli=True,
-    max_unique_stimuli_per_block=None,
-    active_balancing_across_participants=True,
+    nodes=nodes,
+    max_trials_per_participant=3,
+    expected_trials_per_participant=3,
+    allow_repeated_nodes=True,
+    balance_across_nodes=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
-    target_num_participants=3,
-    recruit_mode="num_participants",
-    num_repeat_trials=0,
+    target_n_participants=3,
+    recruit_mode="n_participants",
+    n_repeat_trials=0,
+    choose_participant_group=lambda participant: random.choice(rules),
 )
 
 
 # Experiment
 class Exp(psynet.experiment.Experiment):
+    label = "Unity autoplay demo"
+    initial_recruitment_size = 1
+
     timeline = Timeline(
         MainConsent(),
         trial_maker,  # The Unity game
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

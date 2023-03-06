@@ -1,5 +1,7 @@
 import pytest
-from dallinger.models import Network
+
+from psynet.pytest_psynet import path_to_demo
+from psynet.trial.main import TrialNetwork
 
 
 def make_mcmcp_node(cls, experiment):
@@ -7,7 +9,10 @@ def make_mcmcp_node(cls, experiment):
     return cls(
         seed=seed,
         degree=1,
-        network=Network(),
+        network=TrialNetwork(
+            trial_maker_id="mcmcp",
+            experiment=experiment,
+        ),
         experiment=experiment,
         propagate_failure=False,
         participant=None,
@@ -36,9 +41,8 @@ def summarize_trials(trial_class, experiment_object, node, participant, answers)
     return node.summarize_trials(trials, experiment_object, participant)
 
 
-@pytest.mark.usefixtures(
-    "demo_mcmcp"
-)  # we can replace this with the MCMCP demo eventually
+@pytest.mark.usefixtures("in_experiment_directory")
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 def test_summarize(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
 

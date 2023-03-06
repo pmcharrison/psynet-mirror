@@ -1,7 +1,20 @@
+import jsonpickle
 import pandas as pd
 import pandas.testing as pdt
+import pytest
 
+import psynet.data  # noqa - for the jsonpickle registration
+from psynet.pytest_psynet import path_to_demo
 from psynet.utils import json_to_data_frame
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_jsonpickle(trial):
+    expected = '{"py/object": "dallinger_experiment.experiment.AnimalTrial", "identifiers": {"id": 1}}'
+    assert jsonpickle.encode(trial).replace("\n", "") == expected
 
 
 def test_json_to_data_frame():

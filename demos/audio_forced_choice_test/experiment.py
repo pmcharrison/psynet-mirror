@@ -6,14 +6,28 @@
 
 
 import psynet.experiment
+from psynet.asset import DebugStorage
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.prescreen import AudioForcedChoiceTest
+from psynet.prescreen import AudioForcedChoiceTest, AudioForcedChoiceTrial
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial
 
 QUESTION = "The user should read the sentence: '%s'. Please select the error category."
+
+
+class ReadAudioForcedChoiceTrial(AudioForcedChoiceTrial):
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "read_audio_test_trial",
+            AudioPrompt(
+                self.definition["url"],
+                QUESTION % self.definition["text"],
+            ),
+            PushButtonControl(self.definition["answer_options"]),
+            bot_response=self.definition["answer"],
+        )
 
 
 class ReadAudioTest(AudioForcedChoiceTest):
@@ -25,7 +39,6 @@ class ReadAudioTest(AudioForcedChoiceTest):
         performance_threshold: int,
         question="",
         label="read_audio_test",
-        time_estimate_per_trial: int = 8,
         n_stimuli_to_use: int = None,
         specific_indexes: list = None,
     ):
@@ -36,42 +49,25 @@ class ReadAudioTest(AudioForcedChoiceTest):
             question=question,
             performance_threshold=performance_threshold,
             label=label,
-            time_estimate_per_trial=time_estimate_per_trial,
             n_stimuli_to_use=n_stimuli_to_use,
             specific_stimuli=specific_indexes,
+            trial_class=ReadAudioForcedChoiceTrial,
         )
 
-        # Each stimulus must have the field 'text'
-        assert sum([1 for stimulus in self.stimuli if "text" in stimulus]) == len(
-            self.stimuli
-        )
-
-    def trial(self, time_estimate_: float):
-        class AudioForcedChoiceTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "read_audio_test_trial",
-                    AudioPrompt(
-                        self.definition["url"],
-                        QUESTION % self.definition["text"],
-                    ),
-                    PushButtonControl(self.definition["answer_options"]),
-                    time_estimate=self.time_estimate,
-                )
-
-        return AudioForcedChoiceTrial
+    def check_stimuli(self, stimuli, specific_stimuli):
+        super().check_stimuli(stimuli, specific_stimuli)
+        assert all(["text" in stimulus for stimulus in stimuli])
 
 
 ##########################################################################################
 # Experiment
 ##########################################################################################
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
+
 class Exp(psynet.experiment.Experiment):
+    label = "Audio forced choice demo"
+    asset_storage = DebugStorage()
+
     timeline = Timeline(
         NoConsent(),
         VolumeCalibration(),
@@ -110,3 +106,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You passed all screening tasks! Congratulations.", time_estimate=3),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert len(bot.alive_trials) == 3 + 6
+        assert not bot.failed

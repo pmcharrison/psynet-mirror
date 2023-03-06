@@ -1,27 +1,41 @@
 import itertools
 import json
-import os
 import random
+import shutil
+import tempfile
 from typing import Dict, List, Optional, Union
-from urllib.parse import urlparse
 
 from dominate import tags
+from dominate.dom_tag import dom_tag
 from dominate.util import raw
 from flask import Markup
 
+from .asset import Asset, LocalStorage
 from .bot import BotResponse
-from .media import generate_presigned_url
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
     NoArgumentProvided,
     call_function,
+    call_function_with_context,
     get_logger,
     is_valid_html5_id,
     linspace,
-    strip_url_parameters,
 )
 
 logger = get_logger()
+
+
+class Blob:
+    """
+    Imitates the blob objects which are returned from the Flask front-end;
+    used for testing.
+    """
+
+    def __init__(self, file):
+        self.file = file
+
+    def save(self, dest):
+        shutil.copyfile(self.file, dest)
 
 
 class Prompt:
@@ -105,8 +119,9 @@ class AudioPrompt(Prompt):
     Parameters
     ----------
 
-    url
-        URL of the audio file to play.
+    audio
+        Audio file to play.
+        Can be an ``Asset`` object, or alternatively a URL written as a string.
 
     text
         Text to display to the participant. This can either be a string
@@ -143,8 +158,8 @@ class AudioPrompt(Prompt):
 
     def __init__(
         self,
-        url: str,
-        text: Union[str, Markup],
+        audio,
+        text: Union[str, Markup, dom_tag],
         loop: bool = False,
         text_align="left",
         play_window: Optional[List] = None,
@@ -153,6 +168,8 @@ class AudioPrompt(Prompt):
         fade_out: float = 0.0,
         **kwargs,
     ):
+        from .asset import Asset
+
         if play_window is None:
             play_window = [None, None]
         assert len(play_window) == 2
@@ -160,7 +177,16 @@ class AudioPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
+        if isinstance(audio, Asset):
+            url = audio.url
+            assert url is not None
+        elif isinstance(audio, str):
+            url = audio
+        else:
+            raise TypeError(f"Invalid type for audio argument: {type(audio)}")
+
         super().__init__(text=text, text_align=text_align, **kwargs)
+
         self.url = url
         self.loop = loop
         self.play_window = play_window
@@ -219,8 +245,9 @@ class VideoPrompt(Prompt):
     Parameters
     ----------
 
-    url
-        URL of the video file to play.
+    video
+        Video file to play.
+        Can be an ``Asset`` object, or alternatively a URL written as a string.
 
     text
         Text to display to the participant. This can either be a string
@@ -259,7 +286,7 @@ class VideoPrompt(Prompt):
 
     def __init__(
         self,
-        url: str,
+        video,
         text: Union[str, Markup],
         text_align="left",
         width: str = "560px",
@@ -270,13 +297,23 @@ class VideoPrompt(Prompt):
         mirrored: bool = True,
         **kwargs,
     ):
+        from .asset import Asset
+
         if play_window is None:
             play_window = [0.0, None]
         assert len(play_window) == 2
         assert play_window[0] is not None
         assert play_window[0] >= 0.0
 
+        if isinstance(video, Asset):
+            url = video.url
+        elif isinstance(video, str):
+            url = video
+        else:
+            raise TypeError(f"Invalid type for video argument: {type(video)}")
+
         super().__init__(text=text, text_align=text_align, **kwargs)
+
         self.url = url
         self.width = width
         self.play_window = play_window
@@ -389,6 +426,8 @@ class ImagePrompt(Prompt):
         text_align: str = "left",
     ):
         super().__init__(text=text, text_align=text_align)
+        if isinstance(url, Asset):
+            url = url.url
         self.url = url
         self.width = width
         self.height = height
@@ -518,6 +557,7 @@ class Control:
     external_template = None
 
     def __init__(self, bot_response=NoArgumentProvided):
+        self.page = None
         self._bot_response = bot_response
 
     @property
@@ -559,6 +599,11 @@ class Control:
             4. ``participant``:
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
+
+            5. ``trial``:
+               An instantiation of :class:`psynet.trial.main.Trial`,
+               corresponding to the participant's current trial,
+               or ``None`` if the participant is not currently taking a trial.
 
         Returns
         -------
@@ -619,15 +664,14 @@ class Control:
         if self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot, page, prompt)
         elif callable(self._bot_response):
-            res = call_function(
+            res = call_function_with_context(
                 self._bot_response,
-                args={
-                    "experiment": experiment,
-                    "bot": bot,
-                    "participant": bot,
-                    "page": page,
-                    "prompt": prompt,
-                },
+                experiment=experiment,
+                bot=bot,
+                participant=bot,
+                page=page,
+                prompt=prompt,
+                assets=experiment.assets,
             )
         else:
             res = self._bot_response
@@ -660,7 +704,7 @@ class NullControl(Control):
     macro = "null"
     metadata = {}
 
-    def get_bot_response(self, experiment, bot):
+    def get_bot_response(self, experiment, bot, page, prompt):
         return None
 
 
@@ -896,12 +940,13 @@ class PushButtonControl(OptionControl):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[Union[str, float, int]],
         labels: Optional[List[str]] = None,
         style: str = "min-width: 100px; margin: 10px",
         arrange_vertically: bool = True,
+        **kwargs,
     ):
-        super().__init__(choices, labels, style)
+        super().__init__(choices, labels, style, **kwargs)
         self.arrange_vertically = arrange_vertically
 
         self.push_buttons = [
@@ -1008,15 +1053,6 @@ class TimedPushButtonControl(PushButtonControl):
                 ).add(label)
                 tags.br()
         return html.render()
-
-
-class NAFCControl(PushButtonControl):
-    """
-    .. deprecated:: 1.7.0
-        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
-    """
-
-    pass
 
 
 class PushButton:
@@ -1184,6 +1220,9 @@ class NumberControl(Control):
             return FailedValidation("You need to provide a number!")
         return None
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return random.randint(20, 100)
+
 
 class TextControl(Control):
     """
@@ -1238,6 +1277,9 @@ class TextControl(Control):
             "text_align": self.text_align,
             "block_copy_paste": self.block_copy_paste,
         }
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return "Hello, I am a bot!"
 
 
 class ModularPage(Page):
@@ -1294,8 +1336,8 @@ class ModularPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: Union[str, Prompt],
-        control: Control = NullControl(),
+        prompt: Union[str, dom_tag, Prompt],
+        control: Optional[Control] = None,
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[dict] = None,
@@ -1303,6 +1345,9 @@ class ModularPage(Page):
         start_trial_automatically: bool = True,
         **kwargs,
     ):
+        if control is None:
+            control = NullControl()
+
         if media is None:
             media = MediaSpec()
 
@@ -1314,6 +1359,17 @@ class ModularPage(Page):
 
         self.prompt = prompt
         self.control = control
+
+        if self.control.page is not None:
+            raise ValueError(
+                "This `Control` object already belongs to another `ModularPage` object. "
+                "This usually happens if you create a single `Control` object and assign it "
+                "to multiple modular pages. This pattern is not supported. Please instead "
+                "create a fresh `Control` object to pass to this modular page. "
+                "Hint: try replacing your original `Control` definition with a function that returns "
+                "a fresh `Control` object each time."
+            )
+        self.control.page = self
 
         template_str = f"""
         {{% extends "timeline-page.html" %}}
@@ -1582,6 +1638,9 @@ class AudioMeterControl(Control):
         )
         events["submitEnable"].add_trigger("audioMeterMinimalTime")
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return None
+
 
 class TappingAudioMeterControl(AudioMeterControl):
     decay = {"display": 0.01, "high": 0, "low": 0.01}
@@ -1622,7 +1681,7 @@ class SliderControl(Control):
     max_value:
         Maximum value of the slider.
 
-    num_steps:
+    n_steps:
         Determines the number of steps that the slider can be dragged through. Default: `10000`.
 
     snap_values:
@@ -1671,11 +1730,10 @@ class SliderControl(Control):
 
     def __init__(
         self,
-        label: str,
         start_value: float,
         min_value: float,
         max_value: float,
-        num_steps: int = 10000,
+        n_steps: int = 10000,
         reverse_scale: Optional[bool] = False,
         directional: Optional[bool] = True,
         slider_id: Optional[str] = "sliderpage_slider",
@@ -1700,12 +1758,11 @@ class SliderControl(Control):
                 "Reverse scale is currently not supported for circular sliders, set reverse_scale=False"
             )
 
-        self.label = label
         self.start_value = start_value
         self.min_value = min_value
         self.max_value = max_value
-        self.num_steps = num_steps
-        self.step_size = (max_value - min_value) / (num_steps - 1)
+        self.n_steps = n_steps
+        self.step_size = (max_value - min_value) / (n_steps - 1)
         self.reverse_scale = reverse_scale
         self.directional = directional
         self.slider_id = slider_id
@@ -1716,7 +1773,7 @@ class SliderControl(Control):
         self.minimal_time = minimal_time
 
         self.snap_values = self.format_snap_values(
-            snap_values, min_value, max_value, num_steps
+            snap_values, min_value, max_value, n_steps
         )
 
         js_vars = {}
@@ -1727,10 +1784,10 @@ class SliderControl(Control):
 
     macro = "slider"
 
-    def format_snap_values(self, snap_values, min_value, max_value, num_steps):
+    def format_snap_values(self, snap_values, min_value, max_value, n_steps):
         if snap_values is None:
             return snap_values
-            # return linspace(min_value, max_value, num_steps)
+            # return linspace(min_value, max_value, n_steps)
         elif isinstance(snap_values, int):
             return linspace(min_value, max_value, snap_values)
         else:
@@ -1756,11 +1813,10 @@ class SliderControl(Control):
     @property
     def metadata(self):
         return {
-            "label": self.label,
             "start_value": self.start_value,
             "min_value": self.min_value,
             "max_value": self.max_value,
-            "num_steps": self.num_steps,
+            "n_steps": self.n_steps,
             "step_size": self.step_size,
             "reverse_scale": self.reverse_scale,
             "directional": self.directional,
@@ -1780,17 +1836,33 @@ class SliderControl(Control):
             "sliderMinimalInteractions", "sliderMinimalTime"
         )
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        import numpy as np
 
-class AudioSliderControl(SliderControl):
+        equidistant = not isinstance(self.snap_values, list)
+        if equidistant:
+            if self.snap_values:
+                n_candidates = self.snap_values
+            else:
+                n_candidates = self.n_steps
+            candidates = list(
+                np.linspace(self.min_value, self.max_value, num=n_candidates)
+            )
+        else:
+            candidates = self.snap_values
+        return random.sample(candidates, 1)[0]
+
+
+EXTENSIONS = {"audio": ["mp3", "wav"], "video": ["mp4", "ogg"]}
+
+
+class MediaSliderControl(SliderControl):
     """
-    This control solicits a slider response from the user that results in playing some audio.
+    This control solicits a slider response from the user that results in playing some media.
     The slider can either be horizontal or circular.
 
     Parameters
     ----------
-
-    label:
-        Internal label for the page (used to store results).
 
     start_value:
         Initial position of slider.
@@ -1801,8 +1873,8 @@ class AudioSliderControl(SliderControl):
     max_value:
         Maximum value of the slider.
 
-    audio:
-        A dictionary of audio assets.
+    slider_media:
+        A dictionary of media assets (video or sound).
         Each item can either be a string,
         corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
         or a dictionary, corresponding to metadata for a batch of media assets.
@@ -1821,21 +1893,24 @@ class AudioSliderControl(SliderControl):
                 }
             }
 
-    sound_locations:
+    modality:
+        Either ``"audio"`` or ``"video"``; `"image"`` is not implemented yet.
+
+    media_locations:
         Dictionary with IDs as keys and locations on the slider as values.
 
     autoplay:
-        The sound closest to the current slider position is played once the page is loaded. Default: `False`.
+        The media closest to the current slider position is played once the page is loaded. Default: `False`.
 
     disable_while_playing:
         If `True`, the slider is disabled while the audio is playing. Default: `False`.
 
-    num_steps:
+    n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
-        - ``"num_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
-          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
         Default: `10000`.
 
@@ -1861,7 +1936,7 @@ class AudioSliderControl(SliderControl):
         Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
 
     snap_values:
-        - ``"sound_locations"``: slider snaps to nearest sound location.
+        - ``"media_locations"``: slider snaps to nearest sound location.
 
         - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
 
@@ -1869,7 +1944,7 @@ class AudioSliderControl(SliderControl):
 
         - ``None``: don't snap slider.
 
-        Default: `"sound_locations"`.
+        Default: `"media_locations"`.
 
     minimal_interactions:
         Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
@@ -1880,44 +1955,50 @@ class AudioSliderControl(SliderControl):
 
     def __init__(
         self,
-        label,
         start_value: float,
         min_value: float,
         max_value: float,
-        audio: dict,
-        sound_locations: dict,
+        slider_media: dict,
+        modality: str,
+        media_locations: dict,
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
-        num_steps: Optional[int] = 10000,
+        n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
         random_wrap: Optional[bool] = False,
         reverse_scale: Optional[bool] = False,
         directional: bool = True,
-        snap_values: Optional[Union[int, list]] = "sound_locations",
-        minimal_interactions: Optional[int] = 0,
+        snap_values: Optional[Union[int, list]] = "media_locations",
         minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
     ):
-        if isinstance(num_steps, str):
-            if num_steps == "num_sounds":
-                num_steps = len(sound_locations)
+        if modality not in ["audio", "video"]:
+            raise NotImplementedError(f"Modality not implemented: {modality}")
+
+        if isinstance(n_steps, str):
+            if n_steps == "n_media":
+                n_steps = len(media_locations)
             else:
-                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+                raise ValueError(f"Invalid value of n_steps: {n_steps}")
 
         if isinstance(snap_values, str):
-            if snap_values == "sound_locations":
-                snap_values = list(sound_locations.values())
+            if snap_values == "media_locations":
+                snap_values = list(media_locations.values())
             else:
                 raise ValueError(f"Invalid value of snap_values: {snap_values}")
 
-        # Check if all stimuli specified in `sound_locations` are
+        # Check if all stimuli specified in `media_locations` are
         # also preloaded before the participant can start the trial
-        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media_locations = [ID for ID, _ in media_locations.items()]
         IDs_media = []
-        for key, value in audio.items():
-            if isinstance(audio[key], dict) and "ids" in audio[key]:
-                IDs_media.append(audio[key]["ids"])
-            elif isinstance(audio[key], str):
+        for key, value in slider_media.items():
+            if isinstance(slider_media[key], dict) and "ids" in slider_media[key]:
+                IDs_media.append(slider_media[key]["ids"])
+            elif isinstance(slider_media[key], str):
+                assert any(
+                    [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
+                ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
                 IDs_media.append(key)
             else:
                 raise NotImplementedError(
@@ -1925,17 +2006,16 @@ class AudioSliderControl(SliderControl):
                 )
         IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
-        if not any([i in IDs_media for i in IDs_sound_locations]):
+        if not any([i in IDs_media for i in IDs_media_locations]):
             raise ValueError(
-                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+                "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
             )
 
         super().__init__(
-            label=label,
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
-            num_steps=num_steps,
+            n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
             random_wrap=random_wrap,
@@ -1946,22 +2026,86 @@ class AudioSliderControl(SliderControl):
             minimal_time=minimal_time,
         )
 
-        self.sound_locations = sound_locations
+        self.media_locations = media_locations
+        self.modality = modality
         self.autoplay = autoplay
         self.disable_while_playing = disable_while_playing
         self.snap_values = snap_values
-        self.audio = audio
-        self.js_vars["sound_locations"] = sound_locations
+        self.slider_media = slider_media
+        self.js_vars["modality"] = modality
+        self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
         self.js_vars["disable_while_playing"] = disable_while_playing
 
-    macro = "audio_slider"
+    macro = "media_slider"
 
     @property
     def metadata(self):
         return {
             **super().metadata,
-            "sound_locations": self.sound_locations,
+            "media_locations": self.media_locations,
+            "modality": self.modality,
+            "autoplay": self.autoplay,
+            "disable_while_playing": self.disable_while_playing,
+        }
+
+
+class AudioSliderControl(MediaSliderControl):
+    """
+    Audio slider control for backwards compatibility with `AudioSliderControl`.
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        audio: dict,
+        sound_locations: dict,
+        autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "sound_locations",
+        minimal_interactions: Optional[int] = 0,
+        minimal_time: Optional[int] = 0,
+    ):
+        if snap_values == "sound_locations":
+            snap_values = "media_locations"
+        if n_steps in ["n_sounds", "num_sounds"]:
+            n_steps = "n_media"
+
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=audio,
+            modality="audio",
+            media_locations=sound_locations,
+            autoplay=autoplay,
+            disable_while_playing=disable_while_playing,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_interactions=minimal_interactions,
+            minimal_time=minimal_time,
+        )
+
+    macro = "media_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "sound_locations": self.media_locations,
             "autoplay": self.autoplay,
             "disable_while_playing": self.disable_while_playing,
         }
@@ -1971,7 +2115,6 @@ class AudioSliderControl(SliderControl):
 class ColorSliderControl(SliderControl):
     def __init__(
         self,
-        label,
         start_value: float,
         min_value: float,
         max_value: float,
@@ -1979,7 +2122,6 @@ class ColorSliderControl(SliderControl):
         hidden_inputs: Optional[dict] = {},
     ):
         super().__init__(
-            label=label,
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
@@ -2032,14 +2174,6 @@ class RecordControl(Control):
         Note: the output recording may not be exactly this length, owing to inaccuracies
         in the Javascript recording process.
 
-    s3_bucket
-        Name of the S3 bucket to which the recording should be uploaded.
-
-
-    public_read
-        Whether the audio recording should be uploaded to the S3 bucket
-        with public read permissions.
-
     auto_advance
         Whether the page should automatically advance to the next page
         once the audio recording has been uploaded.
@@ -2049,19 +2183,28 @@ class RecordControl(Control):
         to calibrate their volume.
     """
 
+    file_extension = None
+
     def __init__(
         self,
         duration: float,
-        s3_bucket: str,
-        public_read: bool = False,
         auto_advance: bool = False,
         show_meter: bool = False,
         bot_response=NoArgumentProvided,
+        **kwargs,
     ):
+        if "s3_bucket" in kwargs or "public_read" in kwargs:
+            raise ValueError(
+                "s3_bucket and public_read arguments have been removed from RecordControl classes, ",
+                "please delete them from your implementation. Your S3 bucket is now determined by your "
+                "S3Storage object, for example when you set asset_storage = S3Storage('my-bucket', 'my-root') "
+                "within your Experiment class.",
+            )
+        for arg in kwargs:
+            raise ValueError(f"Unexpected argument: {arg}")
+
         super().__init__(bot_response)
         self.duration = duration
-        self.s3_bucket = s3_bucket
-        self.public_read = public_read
         self.auto_advance = auto_advance
 
         if show_meter:
@@ -2073,15 +2216,30 @@ class RecordControl(Control):
     def metadata(self):
         return {}
 
-    def pre_render(self):
-        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
-        logger.info(f"Generated presigned url: {self.presigned_url}")
-
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("responseEnable"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["submitEnable"].add_triggers("uploadEnd")
-        events["uploadEnd"] = Event(is_triggered_by=[])
+        events["submitEnable"].add_triggers("recordEnd")
+        if self.auto_advance:
+            events["autoSubmit"] = Event(is_triggered_by="submitEnable")
+        # events["uploadEnd"] = Event(is_triggered_by=[])
+
+    def get_bot_response_files(self, experiment, bot, page, prompt):
+        if self.bot_response_media is None:
+            self.raise_bot_response_not_provided_error()
+        elif callable(self.bot_response_media):
+            return call_function(
+                self.bot_response_media,
+                bot=bot,
+                experiment=experiment,
+                page=page,
+                prompt=prompt,
+            )
+        else:
+            return self.bot_response_media
+
+    def raise_bot_response_not_provided_error(self):
+        raise NotImplementedError
 
 
 class AudioRecordControl(RecordControl):
@@ -2101,11 +2259,16 @@ class AudioRecordControl(RecordControl):
     num_channels
         The number of channels used to record the audio. Default is mono (`num_channels=1`).
 
+    personal
+        Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
+        Default: `True`.
+
     **kwargs
         Further arguments passed to :class:`~psynet.modular_page.RecordControl`
     """
 
     macro = "audio_record"
+    file_extension = ".wav"
 
     def __init__(
         self,
@@ -2113,6 +2276,8 @@ class AudioRecordControl(RecordControl):
         controls: bool = False,
         loop_playback: bool = False,
         num_channels: int = 1,
+        personal=True,
+        bot_response_media: Optional[Union[dict, str]] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2120,16 +2285,52 @@ class AudioRecordControl(RecordControl):
         self.controls = controls
         self.loop_playback = loop_playback
         self.num_channels = num_channels
+        self.personal = personal
+        self.bot_response_media = bot_response_media
 
     def format_answer(self, raw_answer, **kwargs):
-        filename = os.path.basename(urlparse(raw_answer).path)
+        blobs = kwargs["blobs"]
+        audio = blobs["audioRecording"]
+        trial = kwargs["trial"]
+        participant = kwargs["participant"]
+
+        if trial:
+            parent = trial
+        else:
+            parent = participant
+
+        # Need to leave file deletion to the depositing process
+        # if we're going to run it asynchronously
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            audio.save(tmp_file.name)
+
+            from .trial.record import Recording
+
+            label = self.page.label
+
+            asset = Recording(
+                label=label,
+                input_path=tmp_file.name,
+                extension=self.file_extension,
+                parent=parent,
+                personal=self.personal,
+            )
+
+            try:
+                async_ = not isinstance(asset.default_storage, LocalStorage)
+                asset.deposit(async_=async_, delete_input=True)
+            except Asset.InconsistentContentError:
+                raise ValueError(
+                    f"This participant already has an asset with the label '{label}'. "
+                    "You should update your AudioRecordControl labels to make them distinct."
+                )
+
         return {
             "origin": "AudioRecordControl",
             "supports_record_trial": True,
-            "s3_bucket": self.s3_bucket,
-            "key": filename,  # Leave key for backward compatibility
-            "url": strip_url_parameters(raw_answer),
-            "duration_sec": self.duration,
+            "key": asset.key,
+            "url": asset.url,
+            "duration_sec": self.duration,  # TODO - base this on the actual audio file?
         }
 
     def visualize_response(self, answer, response, trial):
@@ -2145,6 +2346,24 @@ class AudioRecordControl(RecordControl):
     def update_events(self, events):
         super().update_events(events)
         events["trialFinish"].add_trigger("recordEnd")
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        from .bot import BotResponse
+
+        file = self.get_bot_response_files(experiment, bot, page, prompt)
+
+        return BotResponse(
+            raw_answer=None,
+            blobs={"audioRecording": Blob(file)},
+        )
+
+    def raise_bot_response_not_provided_error(self):
+        raise NotImplementedError(
+            "To use an AudioRecordControl with bots, you should set the bot_response_media argument "
+            "to provide a path to an audio file that the bot should 'return'. "
+            "This can be provided as a string, or alternatively as a function that returns a string, "
+            "taking (optionally) any of the following arguments: bot, experiment, page, prompt."
+        )
 
 
 class VideoRecordControl(RecordControl):
@@ -2164,9 +2383,9 @@ class VideoRecordControl(RecordControl):
         Whether to record audio using the microphone.
         This setting only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
 
-    audio_num_channels
+    audio_n_channels
         The number of channels used to record the audio (if enabled by `record_audio`). Default is
-        mono (`audio_num_channels=1`).
+        mono (`audio_n_channels=1`).
 
     width
         Width of the video frame to be displayed. Default: "560px".
@@ -2182,61 +2401,110 @@ class VideoRecordControl(RecordControl):
 
     mirrored
         Whether the preview of the video is displayed as if looking into a mirror. Default: `True`.
+
+    personal
+        Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
+        Default: `True`.
     """
 
     macro = "video_record"
+    file_extension = ".webm"
 
     def __init__(
         self,
         *,
         recording_source: str = "camera",
         record_audio: bool = True,
-        audio_num_channels: int = 1,
+        audio_n_channels: int = 1,
         width: str = "300px",
         show_preview: bool = False,
         controls: bool = False,
         loop_playback: bool = False,
         mirrored: bool = True,
+        personal: bool = True,
+        bot_response_media: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.recording_source = recording_source
         self.record_audio = record_audio
-        self.audio_num_channels = audio_num_channels
+        self.audio_n_channels = audio_n_channels
         self.width = width
         self.show_preview = show_preview
         self.controls = controls
         self.loop_playback = loop_playback
         self.mirrored = mirrored
-        self.presigned_url_camera = None
-        self.presigned_url_screen = None
+        self.personal = personal
+        self.bot_response_media = bot_response_media
 
         if self.record_audio is False:
-            self.audio_num_channels = 0
+            self.audio_n_channels = 0
 
         assert self.recording_source in ["camera", "screen", "both"]
 
+    @property
+    def recording_sources(self):
+        return dict(camera=["camera"], screen=["screen"], both=["camera", "screen"])[
+            self.recording_source
+        ]
+
     def format_answer(self, raw_answer, **kwargs):
-        camera_key = os.path.basename(urlparse(raw_answer["camera"]).path)
-        screen_key = os.path.basename(urlparse(raw_answer["screen"]).path)
-        return {
-            "s3_bucket": self.s3_bucket,
-            "camera_url": strip_url_parameters(raw_answer["camera"])
-            if raw_answer is not None
-            else None,
-            "screen_url": strip_url_parameters(raw_answer["screen"])
-            if raw_answer is not None
-            else None,
-            "duration_sec": self.duration,
-            "origin": "VideoRecordControl",
-            "supports_record_trial": True,
-            "camera_key": camera_key,
-            "screen_key": screen_key,
-            "recording_source": self.recording_source,
-            "record_audio": self.record_audio,
-            "mirrored": self.mirrored,
-        }
+        blobs = kwargs["blobs"]
+        trial = kwargs["trial"]
+        participant = kwargs["participant"]
+
+        if trial:
+            parent = trial
+        else:
+            parent = participant
+
+        summary = {}
+
+        for source in self.recording_sources:
+            blob_id = source + "Recording"
+            blob = blobs[blob_id]
+
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                blob.save(tmp_file.name)
+
+                from .trial.record import Recording
+
+                label = self.page.label
+                if len(self.recording_sources) > 1:
+                    label += "_" + source
+
+                asset = Recording(
+                    label=label,
+                    input_path=tmp_file.name,
+                    extension=self.file_extension,
+                    parent=parent,
+                    personal=self.personal,
+                )
+
+                try:
+                    asset.deposit(async_=True, delete_input=True)
+                except Asset.InconsistentContentError:
+                    raise ValueError(
+                        f"This participant already has an asset with the label '{label}'. "
+                        "You should update your VideoRecordControl labels to make them distinct."
+                    )
+
+                summary[source + "_key"] = asset.key
+                summary[source + "_url"] = asset.url
+
+        summary.update(
+            {
+                "duration_sec": self.duration,
+                "origin": "VideoRecordControl",
+                "supports_record_trial": True,
+                "recording_source": self.recording_source,
+                "record_audio": self.record_audio,
+                "mirrored": self.mirrored,
+            }
+        )
+
+        return summary
 
     def visualize_response(self, answer, response, trial):
         if answer is None:
@@ -2261,17 +2529,43 @@ class VideoRecordControl(RecordControl):
                 )
             return html.render()
 
-    def pre_render(self):
-        if self.recording_source in ["camera", "both"]:
-            self.presigned_url_camera = generate_presigned_url(self.s3_bucket, "webm")
-            logger.info(f"Generated presigned url: {self.presigned_url_camera}")
-        if self.recording_source in ["screen", "both"]:
-            self.presigned_url_screen = generate_presigned_url(self.s3_bucket, "webm")
-            logger.info(f"Generated presigned url: {self.presigned_url_screen}")
-
     def update_events(self, events):
         super().update_events(events)
         events["trialFinish"].add_trigger("recordEnd")
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        from .bot import BotResponse
+
+        files = self.get_bot_response_files(experiment, bot, page, prompt)
+
+        return BotResponse(
+            raw_answer=None,
+            blobs={
+                f"{key}Recording": Blob(files[key]) for key in self.recording_sources
+            },
+        )
+
+    def get_bot_response_files(self, experiment, bot, page, prompt):
+        files = super().get_bot_response_files(experiment, bot, page, prompt)
+
+        if isinstance(files, str):
+            assert len(self.recording_sources) == 1
+            return {self.recording_source: files}
+        elif isinstance(files, dict):
+            assert set(files) == {"camera", "screen"}
+            return files
+        else:
+            raise ValueError(f"Invalid files value: {files}")
+
+    def raise_bot_response_not_provided_error(self):
+        raise NotImplementedError(
+            "To use an VideoRecordControl with bots, you should set the bot_response_media argument "
+            "to provide a path to an audio file that the bot should 'return'. "
+            "This can be provided as a string, or alternatively as a function that returns a string, "
+            "taking (optionally) any of the following arguments: bot, experiment, page, prompt. "
+            "If the VideoRecordControl is meant to provide both a screen recording and a camera recording, "
+            "you should return a dictionary with two file paths, keyed as 'screen' and 'camera'."
+        )
 
 
 class VideoSliderControl(Control):
@@ -2342,4 +2636,103 @@ class VideoSliderControl(Control):
         )
         events["submitEnable"].add_triggers(
             "sliderMinimalTime",
+        )
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return random.uniform(0, 1)
+
+
+class SurveyJSControl(Control):
+    """
+    This control exposes the open-source SurveyJS library.
+    You can use this library to develop sophisticated questionnaires which
+    many different question types.
+
+    When a SurveyJSControl is included in a PsyNet timeline it produces a single
+    SurveyJS survey. This survey can have multiple questions and indeed multiple pages.
+    Responses to these questions are compiled together as a dictionary and saved
+    as the participant's answer, similar to other controls.
+
+    The recommended way to design a SurveyJS survey is to use their free Survey Creator tool.
+    This can be accessed from their website: https://surveyjs.io/create-free-survey.
+    You design your survey using the interactive editor.
+    Once you are done, click the "JSON Editor" tab. Copy and paste the provided JSON
+    into the ``design`` argument of your ``SurveyJSControl``. You may need to update a few details
+    to match Python syntax, for example replacing ``true`` with ``True``; your syntax highlighter
+    should flag up points that need updating. That's it!
+
+    See https://surveyjs.io/ for more details.
+
+    See the survey_js demo for example usage.
+
+    Parameters
+    ----------
+
+    design :
+        A JSON-style specification for the survey.
+
+    bot_response :
+        Used for bot simulations; see demos for example usage.
+    """
+
+    def __init__(
+        self,
+        design,
+        bot_response=NoArgumentProvided,
+    ):
+        super().__init__(bot_response)
+
+        self.design = design
+
+    macro = "survey_js"
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        raise NotImplementedError
+
+    def format_answer(self, raw_answer, **kwargs):
+        return json.loads(raw_answer)
+
+
+class MusicNotationPrompt(Prompt):
+    """
+    Displays music notation using the abcjs library by Paul Rosen and Gregory Dyke.
+    See https://www.abcjs.net/ for information about abcjs.
+    See https://abcnotation.com/ for information about ABC notation.
+
+    Parameters
+    ----------
+
+    content :
+        Content to display, in ABC notation. This will be rendered to an image.
+        See https://www.abcjs.net/abcjs-editor.html for an interactive editor.
+        See https://abcnotation.com/wiki/abc:standard:v2.1 for a detailed definition of ABC notation.
+
+    text :
+        Text to display above the score.
+
+    text_align :
+        Alignment instructions for this text.
+    """
+
+    def __init__(
+        self,
+        content: str,
+        text: Union[None, str, Markup, dom_tag] = None,
+        text_align: str = "left",
+    ):
+        super().__init__(text=text, text_align=text_align)
+        self.content = content
+
+    macro = "abc_notation"
+
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["promptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    triggering_event="trialStart",
+                    delay=0,
+                )
+            ]
         )

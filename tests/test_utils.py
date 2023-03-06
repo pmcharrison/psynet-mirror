@@ -1,10 +1,34 @@
+import os
+import tempfile
 from math import isnan
 
 import pytest
 from mock import patch
 
 from psynet.timeline import Module
-from psynet.utils import DuplicateKeyError, corr, linspace, merge_dicts, organize_by_key
+from psynet.utils import (
+    DuplicateKeyError,
+    corr,
+    linspace,
+    make_parents,
+    merge_dicts,
+    organize_by_key,
+)
+
+
+def test_make_dirs():
+    with tempfile.TemporaryDirectory() as tempdir:
+        subdir = "abc123"
+        path = os.path.join(tempdir, subdir, "test.txt")
+
+        with pytest.raises(FileNotFoundError):
+            with open(path, "w") as file:
+                file.write("Test")
+
+        with open(make_parents(path), "w") as file:
+            file.write("Test")
+
+        assert make_parents(path) == path
 
 
 def test_linspace():

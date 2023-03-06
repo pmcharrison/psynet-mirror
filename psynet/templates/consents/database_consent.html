@@ -7,73 +7,96 @@
 {% block main_body %}
   <div class="main-div" style="padding-bottom: 200px;">
     <noscript>
-        <h1>Warning: Javascript is not working on your browser</h1>
-        <p>The study will not work unless Javascript is enabled on your browser.</p>
-        <p>Please enable Javascript then refresh this page.</p>
+        <h1>{{ pgettext("consent-javascript", "Warning: Javascript is not working on your browser") }}</h1>
+        <p>{{ pgettext("consent-javascript", "The study will not work unless Javascript is enabled on your browser.") }}</p>
+        <p>{{ pgettext("consent-javascript", "Please enable Javascript then refresh this page.") }}</p>
     </noscript>
-    <h1>We need your consent to proceed!</h1>
+    <h1>{{ pgettext("consent-title", "We need your consent to proceed") }}</h1>
     <hr>
     <p>
-        With this privacy policy, we would like to inform you about the personal data we collect when you register for our participant pool and for what purposes we process this data. In addition, we would like to inform you about your rights with regard to the processing of personal data.
+        {{ pgettext("consent-database", "With this privacy policy, we would like to inform you about the personal data we collect when you register for our participant pool and for what purposes we process this data.") }}
+        {{ pgettext("consent-database", "In addition, we would like to inform you about your rights with regard to the processing of personal data.") }}
     </p>
     <div class="text-justify">
         <div class="text-left" style="font-size:18px">
-            <h4>PURPOSES OF PROCESSING</h4>
+            <h4>{{ pgettext("consent-purpose", "Purposes of Processing") }}</h4>
             <p class="consent-text">
-                We store and process your data only for the purpose of initiating communication with you and for planning studies at the Max Planck Institute for Empirical Aesthetics (MPIEA). This data will never be shared with third parties.
+                {{ pgettext("consent-purpose", "We store and process your data only for the purpose of initiating communication with you and for planning studies at the Max Planck Institute for Empirical Aesthetics (MPIEA).") }}
+                {{ pgettext("consent-purpose", "This data will never be shared with third parties.") }}
             </p>
 
-            <h4>WHICH DATA ARE STORED</h4>
+            <h4>{{ pgettext("consent-data", "Which Data are stored") }}</h4>
             <p class="consent-text">
-                In addition to your contact details (i.e., name and email) and the demographic data requested in the log in (i.e., age, gender, and nationality), we also store the date and time when you made the entry. In addition, we save the date and time when you verified your email address. If we invite you to participate in a study, we will store the date and time of this communication. If you agree to participate, we also will store the date and time of your communication of this choice, and whether you completed the experiment successfully or not.
+                {{ pgettext("consent-data", "In addition to your contact details (i.e., name and email) and the demographic data requested in the log in (i.e., age, gender, and nationality), we also store the date and time when you made the entry.") }}
+                {{ pgettext("consent-data", "In addition, we save the date and time when you verified your email address.") }}
+                {{ pgettext("consent-data", "If we invite you to participate in a study, we will store the date and time of this communication.") }}
+                {{ pgettext("consent-data", "If you agree to participate, we also will store the date and time of your communication of this choice, and whether you completed the experiment successfully or not.") }}
             </p>
             <p class="consent-text">
-                Of course, before you participate in a study, you will be informed in detail about the procedure of the study and the collection of data during the study. Your consent to participate in a study will be obtained separately for each study you participate in.
-            </p>
-
-            <h4>DURATION OF DATA STORAGE</h4>
-            <p class="consent-text">
-                Your data will be stored in the contact database for as long as the purpose of such storage, i.e., to contact you about participating in a study, remains in effect. You may request the deletion of your data at any time. To do so, send an e-mail with the subject “Delete” to <a href="mailto:cap-information@.ae.mpg.de">cap-information@.ae.mpg.de</a>
-                Your personal data will then be deleted immediately.
-            </p>
-            <p class="consent-text">
-                You can also delete your data from the database by deleting your account (i.e., press "Delete account”  in the cap-recruiter log-in page). Note that all information, including the experiment and payment history will be removed from our database.
-
-            <h4>SECURITY</h4>
-            <p class="consent-text">
-                The data entered in the form you fill out are transferred in encrypted form to an internal server. We will then send you an e-mail with a confirmation link to verify your e-mail address.
-            </p>
-            <p class="consent-text">
-                We take all necessary technical and organizational security measures to protect your personal data from loss and abuse. Your data are stored in a secure operating environment that is not accessible to the public. All connections between your computer and the web server are encrypted.
+                {{ pgettext("consent-data", "Of course, before you participate in a study, you will be informed in detail about the procedure of the study and the collection of data during the study.") }}
+                {{ pgettext("consent-data", "Your consent to participate in a study will be obtained separately for each study you participate in.") }}
             </p>
 
-            <h4>DATA PROTECTION: RIGHTS OF DATA SUBJECTS</h4>
+            <h4>{{ pgettext("consent-duration", "Duration of Data Storage") }}</h4>
             <p class="consent-text">
-                In order to ensure transparency with regard to the processing of personal data, the General Data Protection Regulation (GDPR) of the European Union provides information about the rights of data subjects. As a data subject whose personal data are processed with regard to your participation in our studies, you have the following rights in principle and insofar as no legal exceptions apply in individual cases:
+                {{ pgettext("consent-duration", "Your data will be stored in the contact database for as long as the purpose of such storage, i.e., to contact you about participating in a study, remains in effect.") }}
+                {{ pgettext("consent-duration", "You may request the deletion of your data at any time.") }}
+                {{ pgettext("consent-duration", "To do so, send an e-mail with the subject “Delete” to:") }} <a href="mailto:cap-information@.ae.mpg.de">cap-information@.ae.mpg.de</a>
+                {{ pgettext("consent-duration", "Your personal data will then be deleted immediately.") }}
+            </p>
+            <p class="consent-text">
+                {{ pgettext("consent-duration", "You can also delete your data from the database by deleting your account (i.e., press 'Delete account'  in the cap-recruiter log-in page).") }}
+                {{ pgettext("consent-duration", "Note that all information, including the experiment and payment history will be removed from our database.") }}
+
+            <h4>{{ pgettext("consent-security", "Security") }}</h4>
+            <p class="consent-text">
+                {{ pgettext("consent-security", "The data entered in the form you fill out are transferred in encrypted form to an internal server.") }}
+                {{ pgettext("consent-security", "We will then send you an e-mail with a confirmation link to verify your e-mail address.") }}
+            </p>
+            <p class="consent-text">
+                {{ pgettext("consent-security", "We take all necessary technical and organizational security measures to protect your personal data from loss and abuse.") }}
+                {{ pgettext("consent-security", "Your data are stored in a secure operating environment that is not accessible to the public.") }}
+                {{ pgettext("consent-security", "All connections between your computer and the web server are encrypted.") }}
+            </p>
+
+            <h4>{{ pgettext("consent-protection", "Data Protection: Rights of Data Subjects") }}</h4>
+            <p class="consent-text">
+                {{ pgettext("consent-protection", "In order to ensure transparency with regard to the processing of personal data, the General Data Protection Regulation (GDPR) of the European Union provides information about the rights of data subjects.") }}
+                {{ pgettext("consent-protection", "As a data subject whose personal data are processed with regard to your participation in our studies, you have the following rights in principle and insofar as no legal exceptions apply in individual cases:") }}
             </p>
 
             <ul class="consent-text">
-                <li>Access (GDPR art. 15)</li>
-                <li>Rectification (GDPR art. 16)</li>
-                <li>Erasure (GDPR art. 17, para. 1)</li>
-                <li>Restriction of processing (GDPR art. 18)</li>
-                <li>Data portability (GDPR art. 20)</li>
-                <li>Withdrawal of consent (GDPR art. 7, para. 3)</li>
-                <li>Right to lodge a complaint with a supervisory authority (GDPR art. 77). For the Max Planck Society, this is the Data Protection Authority of Bavaria, Postfach 1349, 91504 Ansbach, Germany. Internet: https://www.lda.bayern.de/en</li>
+                <li>{{ pgettext("consent-protection", "Access (GDPR art. 15)") }}</li>
+                <li>{{ pgettext("consent-protection", "Rectification (GDPR art. 16)") }}</li>
+                <li>{{ pgettext("consent-protection", "Erasure (GDPR art. 17, para. 1)") }}</li>
+                <li>{{ pgettext("consent-protection", "Restriction of processing (GDPR art. 18)") }}</li>
+                <li>{{ pgettext("consent-protection", "Data portability (GDPR art. 20)") }}</li>
+                <li>{{ pgettext("consent-protection", "Withdrawal of consent (GDPR art. 7, para. 3)") }}</li>
+                <li>{{ pgettext("consent-protection", "Right to lodge a complaint with a supervisory authority (GDPR art. 77).") }}
+                    {{ pgettext("consent-protection", "For the Max Planck Society, this is the Data Protection Authority of Bavaria, Postfach 1349, 91504 Ansbach, Germany.") }}
+                    Internet: https://www.lda.bayern.de/en
+                </li>
             </ul>
             <p class="consent-text">
-                If you have any questions about this research, your rights, or treatment as a participant, please do not hesitate to contact the Computational Auditory Perception Group at the Max Planck Institute for Empirical Aesthetics, <a href="mailto:cap-recruiter@.ae.mpg.de">cap-recruiter@.ae.mpg.de</a>.
+                {{ pgettext("consent-protection", "If you have any questions about this research, your rights, or treatment as a participant, please do not hesitate to contact the Computational Auditory Perception Group at the Max Planck Institute for Empirical Aesthetics:") }} <a href="mailto:cap-recruiter@.ae.mpg.de">cap-recruiter@.ae.mpg.de</a>.
             </p>
 
-            <h4>PAYMENT AND COMPENSATION</h4>
+            <h4>{{ pgettext("consent-payment", "Payment and Compensation") }}</h4>
             <p class="consent-text">
-                We will not store any banking information or payment information in our system.  However we do store completion records and payment details of every task you completed. This information will be available for you to review it when you login to the database. Based on this information we allow you to receive payment via an external system such as PayPAL/WISE. It is your responsibility to make sure you can receive payment through this system and that you would want to consent to use it. This system supports transferring money to most banks around the world, please search your bank in their website to ensure that you will be able to receive payment prior to taking part in our experiments. We also recommend checking the term of service and it’s privacy statement and see if you consent to use their system for payment.
+                {{ pgettext("consent-payment", "We will not store any banking information or payment information in our system.") }}
+                {{ pgettext("consent-payment", "However we do store completion records and payment details of every task you completed.") }}
+                {{ pgettext("consent-payment", "This information will be available for you to review it when you login to the database.") }}
+                {{ pgettext("consent-payment", "Based on this information we allow you to receive payment via an external system such as PayPAL/WISE.") }}
+                {{ pgettext("consent-payment", "It is your responsibility to make sure you can receive payment through this system and that you would want to consent to use it.") }}
+                {{ pgettext("consent-payment", "This system supports transferring money to most banks around the world, please search your bank in their website to ensure that you will be able to receive payment prior to taking part in our experiments.") }}
+                {{ pgettext("consent-payment", "We also recommend checking the term of service and it’s privacy statement and see if you consent to use their system for payment.") }}
             </p>
             <p class="consent-text">
-                If you cannot or would not like to receive payment via this system, we would not be able to pay you, however you can still participate in our experiments voluntarily, without payment. In this case you will not receive any compensation for your time.
+                {{ pgettext("consent-payment", "If you cannot or would not like to receive payment via this system, we would not be able to pay you, however you can still participate in our experiments voluntarily, without payment.") }}
+                {{ pgettext("consent-payment", "In this case you will not receive any compensation for your time.") }}
             </p>
             <p class="consent-text">
-                If you have further questions regarding the General Data Protection Regulation in the context of personal data being processed in our studies, please contact the Data Protection Officer of the Max Planck Society:
+                {{ pgettext("consent", "If you have further questions regarding the General Data Protection Regulation in the context of personal data being processed in our studies, please contact the Data Protection Officer of the Max Planck Society:") }}
             </p>
             <p class="consent-text">
                 Heidi Schuster<br>
@@ -84,26 +107,26 @@
                 E-Mail: <a href="mailto:datenschutz@mpg.de">datenschutz@mpg.de</a>
             </p>
             <p class="consent-text">
-                You may also address your inquiries directly to the Max Planck Institute for Empirical Aesthetics: <a href="mailto:dataprotect@ae.mpg.de">dataprotect@ae.mpg.de</a>
+                {{ pgettext("consent-protection", "You may also address your inquiries directly to the Max Planck Institute for Empirical Aesthetics:") }} <a href="mailto:dataprotect@ae.mpg.de">dataprotect@ae.mpg.de</a>
             </p>
 
-            <h4>CONTACT INFORMATION</h4>
+            <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
             <p class="consent-text">
-                If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
+                {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
             </p>
         </div>
         <div class="fixed-bottom consent-gradient">
             <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
-                Scroll up/down to see all text <span class="up-down-arrows">&#8645;</span>
+                {{ gettext("Scroll up/down to see all text") }} <span class="up-down-arrows">&#8645;</span>
             </div>
             <hr style="margin-top: 5px;">
-            <h4>Do you understand and consent to these terms?</h4>
+            <h4>{{ gettext("Do you understand and consent to these terms?") }}</h4>
             <br>
             <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-                I agree
+                {{ pgettext("consent", "I agree") }}
             </button>
             <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-                No, thank you (return task)
+                {{ pgettext("consent", "No, thank you (return task)") }}
             </button>
         </div>
       </div>

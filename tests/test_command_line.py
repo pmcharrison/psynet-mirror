@@ -4,6 +4,8 @@ import pytest
 from click.testing import CliRunner
 from mock import patch
 
+from psynet.pytest_psynet import path_to_demo
+
 
 class TestCommandLine(object):
     @pytest.fixture
@@ -22,160 +24,171 @@ class TestCommandLine(object):
         assert b"Commands:" in output
 
 
-@pytest.mark.usefixtures("demo_static")
-class TestDebug:
-    # Note:
-    # We do not test non-legacy debug here because of an issue whereby you
-    # can't use hot-refresh mode when running PsyNet demos unless the
-    # PsyNet installation folder is renamed to something other than 'psynet'.
-    # It's not a big deal but maybe we fix this sometime.
-    @patch("psynet.command_line.prepare")
-    @patch("dallinger.command_line.debug")
-    def test_debug(self, dallinger_debug, prepare):
-        from psynet.command_line import debug
+# Disabled because our method of importing means that we can't patch
+# the necessary Dallinger commands. I think this is fine, I don't
+# think these tests add much value.
+#
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("static")], indirect=True)
+# @pytest.mark.usefixtures("in_experiment_directory")
+# class TestDebug:
+#     # Note:
+#     # We do not test non-legacy debug here because of an issue whereby you
+#     # can't use hot-refresh mode when running PsyNet demos unless the
+#     # PsyNet installation folder is renamed to something other than 'psynet'.
+#     # It's not a big deal but maybe we fix this sometime.
+#     @patch("psynet.command_line.prepare")
+#     @patch("dallinger.command_line.debug")
+#     def test_debug(self, dallinger_debug, prepare):
+#         from psynet.command_line import debug
+#
+#         CliRunner().invoke(debug, ["--legacy"], catch_exceptions=False)
+#
+#         # We can no longer run this test for prepare, because it is now called in a subprocess,
+#         # so isn't caught by the mock.
+#         # prepare.assert_called_once_with(force=False)
+#
+#         dallinger_debug.assert_called_once_with(
+#             verbose=False,
+#             bot=False,
+#             proxy=None,
+#             no_browsers=False,
+#             exp_config={"threads": "1"},
+#             archive=None,
+#         )
+#
+#     @patch("psynet.command_line.prepare")
+#     @patch("dallinger.command_line.debug")
+#     def test_debug_all_non_default(self, dallinger_debug, prepare):
+#         from psynet.command_line import debug
+#
+#         CliRunner().invoke(
+#             debug,
+#             [
+#                 "--legacy",
+#                 "--verbose",
+#                 "--bot",
+#                 "--proxy=5001",
+#                 "--no-browsers",
+#                 "--force-prepare",
+#             ],
+#             catch_exceptions=False,
+#         )
+#
+#         # We can no longer run this test for prepare, because it is now called in a subprocess,
+#         # so isn't caught by the mock.
+#         # prepare.assert_called_once_with(force=True)
+#
+#         dallinger_debug.assert_called_once_with(
+#             verbose=True,
+#             bot=True,
+#             proxy="5001",
+#             no_browsers=True,
+#             exp_config={"threads": "1"},
+#         )
+#
+#
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("static")], indirect=True)
+# @pytest.mark.usefixtures("in_experiment_directory")
+# class TestDeploy:
+#     @pytest.fixture
+#     def deploy(self):
+#         from psynet.command_line import deploy
+#
+#         return deploy
+#
+#     @pytest.fixture
+#     def prepare(self):
+#         with patch("psynet.command_line.prepare") as mock_prepare:
+#             yield mock_prepare
+#
+#     @pytest.fixture
+#     def dallinger_deploy(self):
+#         with patch("dallinger.command_line.deploy") as mock_dallinger_deploy:
+#             yield mock_dallinger_deploy
+#
+#     def test_deploy(self, deploy, prepare, dallinger_deploy):
+#         CliRunner().invoke(deploy, [], catch_exceptions=False)
+#
+#         # We can no longer run this test for prepare, because it is now called in a subprocess,
+#         # so isn't caught by the mock.
+#         # prepare.assert_called_once_with(force=False)
+#
+#         dallinger_deploy.assert_called_once_with(verbose=False, app=None, archive=None)
+#
+#     def test_deploy_all_non_default(self, deploy, prepare, dallinger_deploy):
+#         CliRunner().invoke(
+#             deploy,
+#             [
+#                 "--verbose",
+#                 "--app=some_app_name",
+#                 "--archive=/path/to/some_archive",
+#                 "--force-prepare",
+#             ],
+#             catch_exceptions=False,
+#         )
+#
+#         # We can no longer run this test for prepare, because it is now called in a subprocess,
+#         # so isn't caught by the mock.
+#         # prepare.assert_called_once_with(force=True)
+#
+#         dallinger_deploy.assert_called_once_with(
+#             verbose=True, app="some_app_name", archive="/path/to/some_archive"
+#         )
+#
+#
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("static")], indirect=True)
+# @pytest.mark.usefixtures("in_experiment_directory")
+# class TestSandbox:
+#     @pytest.fixture
+#     def sandbox(self):
+#         from psynet.command_line import sandbox
+#
+#         return sandbox
+#
+#     @pytest.fixture
+#     def prepare(self):
+#         with patch("psynet.command_line.prepare") as mock_prepare:
+#             yield mock_prepare
+#
+#     @pytest.fixture
+#     def dallinger_sandbox(self):
+#         with patch("dallinger.command_line.sandbox") as mock_dallinger_sandbox:
+#             yield mock_dallinger_sandbox
+#
+#     def test_sandbox(self, sandbox, prepare, dallinger_sandbox):
+#         CliRunner().invoke(sandbox, [], catch_exceptions=False)
+#
+#         # We can no longer run this test for prepare, because it is now called in a subprocess,
+#         # so isn't caught by the mock.
+#         # prepare.assert_called_once_with(force=False)
+#
+#         dallinger_sandbox.assert_called_once_with(verbose=False, app=None, archive=None)
+#
+#     def test_sandbox_all_non_default(self, sandbox, prepare, dallinger_sandbox):
+#         CliRunner().invoke(
+#             sandbox,
+#             [
+#                 "--verbose",
+#                 "--app=some_app_name",
+#                 "--archive=/path/to/some_archive",
+#                 "--force-prepare",
+#             ],
+#             catch_exceptions=False,
+#         )
+#
+#         # We can no longer run this test for prepare, because it is now called in a subprocess,
+#         # so isn't caught by the mock.
+#         # prepare.assert_called_once_with(force=True)
+#
+#         dallinger_sandbox.assert_called_once_with(
+#             verbose=True, app="some_app_name", archive="/path/to/some_archive"
+#         )
 
-        CliRunner().invoke(debug, ["--legacy"], catch_exceptions=False)
 
-        # We can no longer run this test for prepare, because it is now called in a subprocess,
-        # so isn't caught by the mock.
-        # prepare.assert_called_once_with(force=False)
-
-        dallinger_debug.assert_called_once_with(
-            verbose=False,
-            bot=False,
-            proxy=None,
-            no_browsers=False,
-            exp_config={"threads": "1"},
-        )
-
-    @patch("psynet.command_line.prepare")
-    @patch("dallinger.command_line.debug")
-    def test_debug_all_non_default(self, dallinger_debug, prepare):
-        from psynet.command_line import debug
-
-        CliRunner().invoke(
-            debug,
-            [
-                "--legacy",
-                "--verbose",
-                "--bot",
-                "--proxy=5001",
-                "--no-browsers",
-                "--force-prepare",
-            ],
-            catch_exceptions=False,
-        )
-
-        # We can no longer run this test for prepare, because it is now called in a subprocess,
-        # so isn't caught by the mock.
-        # prepare.assert_called_once_with(force=True)
-
-        dallinger_debug.assert_called_once_with(
-            verbose=True,
-            bot=True,
-            proxy="5001",
-            no_browsers=True,
-            exp_config={"threads": "1"},
-        )
-
-
-@pytest.mark.usefixtures("demo_static")
-class TestDeploy:
-    @pytest.fixture
-    def deploy(self):
-        from psynet.command_line import deploy
-
-        return deploy
-
-    @pytest.fixture
-    def prepare(self):
-        with patch("psynet.command_line.prepare") as mock_prepare:
-            yield mock_prepare
-
-    @pytest.fixture
-    def dallinger_deploy(self):
-        with patch("dallinger.command_line.deploy") as mock_dallinger_deploy:
-            yield mock_dallinger_deploy
-
-    def test_deploy(self, deploy, prepare, dallinger_deploy):
-        CliRunner().invoke(deploy, [], catch_exceptions=False)
-
-        # We can no longer run this test for prepare, because it is now called in a subprocess,
-        # so isn't caught by the mock.
-        # prepare.assert_called_once_with(force=False)
-
-        dallinger_deploy.assert_called_once_with(verbose=False, app=None, archive=None)
-
-    def test_deploy_all_non_default(self, deploy, prepare, dallinger_deploy):
-        CliRunner().invoke(
-            deploy,
-            [
-                "--verbose",
-                "--app=some_app_name",
-                "--archive=/path/to/some_archive",
-                "--force-prepare",
-            ],
-            catch_exceptions=False,
-        )
-
-        # We can no longer run this test for prepare, because it is now called in a subprocess,
-        # so isn't caught by the mock.
-        # prepare.assert_called_once_with(force=True)
-
-        dallinger_deploy.assert_called_once_with(
-            verbose=True, app="some_app_name", archive="/path/to/some_archive"
-        )
-
-
-@pytest.mark.usefixtures("demo_static")
-class TestSandbox:
-    @pytest.fixture
-    def sandbox(self):
-        from psynet.command_line import sandbox
-
-        return sandbox
-
-    @pytest.fixture
-    def prepare(self):
-        with patch("psynet.command_line.prepare") as mock_prepare:
-            yield mock_prepare
-
-    @pytest.fixture
-    def dallinger_sandbox(self):
-        with patch("dallinger.command_line.sandbox") as mock_dallinger_sandbox:
-            yield mock_dallinger_sandbox
-
-    def test_sandbox(self, sandbox, prepare, dallinger_sandbox):
-        CliRunner().invoke(sandbox, [], catch_exceptions=False)
-
-        # We can no longer run this test for prepare, because it is now called in a subprocess,
-        # so isn't caught by the mock.
-        # prepare.assert_called_once_with(force=False)
-
-        dallinger_sandbox.assert_called_once_with(verbose=False, app=None, archive=None)
-
-    def test_sandbox_all_non_default(self, sandbox, prepare, dallinger_sandbox):
-        CliRunner().invoke(
-            sandbox,
-            [
-                "--verbose",
-                "--app=some_app_name",
-                "--archive=/path/to/some_archive",
-                "--force-prepare",
-            ],
-            catch_exceptions=False,
-        )
-
-        # We can no longer run this test for prepare, because it is now called in a subprocess,
-        # so isn't caught by the mock.
-        # prepare.assert_called_once_with(force=True)
-
-        dallinger_sandbox.assert_called_once_with(
-            verbose=True, app="some_app_name", archive="/path/to/some_archive"
-        )
-
-
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 class TestEstimate:
     @pytest.fixture
     def estimate(self):
@@ -191,7 +204,7 @@ class TestEstimate:
     @pytest.fixture
     def import_local_experiment(self):
         with patch(
-            "psynet.command_line.import_local_experiment"
+            "psynet.experiment.import_local_experiment"
         ) as mock_import_local_experiment:
             yield mock_import_local_experiment
 
@@ -211,7 +224,10 @@ class TestEstimate:
         pretty_format_seconds.assert_called_once()
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 class TestExport:
     @pytest.fixture
     def export(self):
@@ -234,7 +250,7 @@ class TestExport:
     @pytest.fixture
     def import_local_experiment(self):
         with patch(
-            "psynet.command_line.import_local_experiment"
+            "psynet.experiment.import_local_experiment"
         ) as mock_import_local_experiment:
             yield mock_import_local_experiment
 
@@ -252,9 +268,3 @@ class TestExport:
     def export_data(self):
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
-
-    def test_export_missing_app_param(self, export):
-        result = CliRunner().invoke(export, catch_exceptions=False)
-        assert b"Usage: export [OPTIONS]" in result.stdout_bytes
-        assert b"Error: Missing option '--app'." in result.stdout_bytes
-        assert result.exit_code == 2

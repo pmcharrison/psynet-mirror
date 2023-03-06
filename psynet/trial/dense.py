@@ -6,7 +6,7 @@ import random
 from typing import List, Optional
 
 from ..utils import sample_from_surface_of_unit_sphere
-from .static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
+from .static import StaticNode, StaticTrial, StaticTrialMaker
 
 
 class DenseTrialMaker(StaticTrialMaker):
@@ -30,8 +30,8 @@ class DenseTrialMaker(StaticTrialMaker):
 
     The user must also specify a
     :class:`~psynet.trial.dense.ConditionList`, which contains a list of
-    :class:`~psynet.trial.dense.Condition` objects.
-    These different :class:`~psynet.trial.dense.Condition` objects are used for specifying the different
+    :class:`~psynet.trial.dense.DenseNode` objects.
+    These different :class:`~psynet.trial.dense.DenseNode` objects are used for specifying the different
     classes of stimuli seen by the participant.
     A given participant will typically receive trials from a variety of Conditions over the course of the trial maker.
     By default, the different Conditions will be randomly interspersed with one another;
@@ -74,48 +74,25 @@ class DenseTrialMaker(StaticTrialMaker):
     conditions
         Defines a collection of conditions to be administered to the participants.
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Defaults to ``"default"``.
-
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
-        another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``.
+        another participant. The built-in criteria are ``"n_participants"``
+        and ``"n_trials"``.
 
-    target_num_participants
+    target_n_participants
         Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
-        ``recruit_mode="num_participants"``.
-
-    target_num_trials_per_condition
-        Target number of trials to recruit for each condition in the experiment.
-        This target is only relevant if ``recruit_mode="num_trials"``.
+        ``recruit_mode="n_participants"``.
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.
 
-    max_unique_conditions_per_block
-        Determines the maximum number of unique conditions that a participant will be allowed to experience
-        in each block. Once this quota is reached, the participant will be forced to repeat
-        previously experienced stimuli.
-
-    active_balancing_within_participants
-        If ``True`` (default), active balancing within participants is enabled, meaning that
-        stimulus selection always favours the stimuli that have been presented fewest times
-        to that participant so far.
-
-    active_balancing_across_participants
+    balance_across_nodes
         If ``True`` (default), active balancing across participants is enabled, meaning that
-        stimulus selection favours stimuli that have been presented fewest times to any participant
+        node selection favours nodes that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
-        This criterion defers to ``active_balancing_within_participants``;
-        if both ``active_balancing_within_participants=True``
-        and ``active_balancing_across_participants=True``,
-        then the latter criterion is only used for tie breaking.
 
     check_performance_at_end
         If ``True``, the participant's performance
@@ -141,7 +118,7 @@ class DenseTrialMaker(StaticTrialMaker):
         if the participant fails a performance check.
         Defaults to ``True``.
 
-    num_repeat_trials
+    n_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses. Repeat trials are presented at the end of the trial maker,
@@ -174,7 +151,7 @@ class DenseTrialMaker(StaticTrialMaker):
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
-    num_networks : int
+    n_networks : int
         Returns the number of networks owned by the trial maker.
 
     networks : list
@@ -196,70 +173,46 @@ class DenseTrialMaker(StaticTrialMaker):
         *,
         id_: str,
         trial_class,
-        conditions: ConditionList,
-        phase: str = "default",
-        recruit_mode: Optional[str] = None,
-        target_num_participants: Optional[int] = None,
-        target_num_trials_per_condition: Optional[int] = None,
+        conditions: "List[DenseNode]",
+        expected_trials_per_participant: int,
+        max_trials_per_participant: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
-        max_unique_conditions_per_block: Optional[int] = None,
-        active_balancing_within_participants: bool = True,
-        active_balancing_across_participants: bool = True,
+        recruit_mode: Optional[str] = None,
+        target_n_participants: Optional[int] = None,
+        target_trials_per_condition: Optional[int] = None,
+        balance_across_nodes: bool = True,
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
-        num_repeat_trials: int = 0,
+        n_repeat_trials: int = 0,
     ):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
-            phase=phase,
-            stimulus_set=conditions,
+            nodes=conditions,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            target_num_trials_per_stimulus=target_num_trials_per_condition,
+            expected_trials_per_participant=expected_trials_per_participant,
+            max_trials_per_participant=max_trials_per_participant,
+            target_n_participants=target_n_participants,
+            target_trials_per_node=target_trials_per_condition,
             max_trials_per_block=max_trials_per_block,
-            max_unique_stimuli_per_block=max_unique_conditions_per_block,
-            allow_repeated_stimuli=True,
-            active_balancing_within_participants=active_balancing_within_participants,
-            active_balancing_across_participants=active_balancing_across_participants,
+            allow_repeated_nodes=True,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            num_repeat_trials=num_repeat_trials,
+            n_repeat_trials=n_repeat_trials,
+            balance_across_nodes=balance_across_nodes,
         )
 
 
-class ConditionList(StimulusSet):
+class DenseNode(StaticNode):
     """
-    Defines a collection of conditions to be administered to the participants.
-
-    id_
-        A unique ID.
-
-    conditions
-        A list of :class:`~psynet.trial.dense.Condition` objects.
-    """
-
-    def __init__(
-        self,
-        id_: str,
-        conditions: List[Condition],
-    ):
-        super().__init__(
-            id_=id_,
-            stimulus_specs=conditions,
-        )
-
-
-class Condition(StimulusSpec):
-    """
-    Defines a Condition within the dense experiment paradigm.
+    Defines a DenseNode within the dense experiment paradigm.
 
     definition
-        A dictionary defining the key attributes of the Condition.
+        A dictionary defining the key attributes of the DenseNode.
         The values in this dictionary will be propagated to the dictionary attribute
         of the resulting :class:`~psynet.trial.dense.DenseTrial` objects,
         and can be used to customize the display of these items
@@ -267,11 +220,6 @@ class Condition(StimulusSpec):
         Crucially, this dictionary must contain an item called "dimensions",
         corresponding to a list of :class:`~psynet.trial.dense.Dimension` objects
         which combine to define the stimulus space.
-
-    phase
-        The associated phase of the experiment,
-        e.g. ``"practice"`` or ``"main"``.
-        Make sure to match this with the corresponding argument in the trial maker.
 
     participant_group
         The associated participant group.
@@ -287,15 +235,12 @@ class Condition(StimulusSpec):
     def __init__(
         self,
         definition: dict,
-        phase: str = "default",
         participant_group="default",
         block="default",
     ):
         assert "dimensions" in definition
         super().__init__(
             definition=definition,
-            phase=phase,
-            version_specs=None,
             participant_group=participant_group,
             block=block,
         )
@@ -347,7 +292,7 @@ class DenseTrial(StaticTrial):
     ----------
 
     condition
-        The :class:`~psynet.trial.dense.Condition` object to which the trial belongs.
+        The :class:`~psynet.trial.dense.DenseNode` object to which the trial belongs.
 
     n_dimensions
         The number of dimensions of the stimulus space.
@@ -355,7 +300,7 @@ class DenseTrial(StaticTrial):
 
     @property
     def condition(self):
-        return self.stimulus
+        return self.node
 
     @property
     def n_dimensions(self):
@@ -397,7 +342,7 @@ class DenseTrial(StaticTrial):
             if key == "dimensions":
                 raise e
             raise KeyError(
-                f"{self.__class__.__name__} requires '{key}' to be specified in each Condition object."
+                f"{self.__class__.__name__} requires '{key}' to be specified in each DenseNode object."
             )
 
 
@@ -414,8 +359,7 @@ class SingleStimulusTrial(DenseTrial):
         A list of numbers defining the stimulus's position within the stimulus space.
     """
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
+    def finalize_definition(self, definition, experiment, participant):
         dimensions = self.get_from_definition(definition, "dimensions")
         location = self.sample_location(dimensions, definition)
         self.save_in_definition(definition, "location", location)
@@ -437,7 +381,7 @@ class SliderCopyTrial(SingleStimulusTrial):
     the original stimulus.
 
     This paradigm requires the user to specify several special parameters within each
-    :class:`~psynet.trial.dense.Condition` object:
+    :class:`~psynet.trial.dense.DenseNode` object:
 
     * ``slider_width``, a number determining the width of the region of the stimulus space that the slider covers;
     * ``slider_jitter``, a number determining the amount of jitter applied to the slider's location;
@@ -469,9 +413,7 @@ class SliderCopyTrial(SingleStimulusTrial):
     and can be used for performance bonuses.
     """
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
-
+    def finalize_definition(self, definition, experiment, participant):
         dimensions = self.get_from_definition(definition, "dimensions")
         location = self.get_from_definition(definition, "location")
         slider_width = self.get_from_definition(definition, "slider_width")
@@ -565,14 +507,13 @@ class PairedStimulusTrial(DenseTrial):
     We also considered a slight modification of the above, not implemented here, where the 'original' stimulus
     is constrained such that no dimension is less than delta units away from a boundary value.
 
-    The ``delta`` parameter must be provided as one of the items within the :class:`~psynet.trial.dense.Condition`
+    The ``delta`` parameter must be provided as one of the items within the :class:`~psynet.trial.dense.DenseNode`
     object's definition attribute.
     One can achieve different perturbation sizes for different Dimensions by manipulating the ``scale`` attribute
     of the Dimension objects.
     """
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
+    def finalize_definition(self, definition, experiment, participant):
         dimensions = self.get_from_definition(definition, "dimensions")
         delta = self.get_from_definition(definition, "delta")
         locations = self.sample_location_pair(dimensions, delta, definition)
@@ -622,7 +563,7 @@ class SameDifferentTrial(PairedStimulusTrial):
     Each trial comprises a pair of stimuli located in a random region of the stimulus space.
     These two stimuli may either be "same" or "different".
     In the latter case, the two stimuli are separated by a distance of ``delta`` in the stimulus space,
-    where ``delta`` is defined within the :class:`~psynet.trial.dense.Condition` object's definition dictionary.
+    where ``delta`` is defined within the :class:`~psynet.trial.dense.DenseNode` object's definition dictionary.
 
     The user is responsible for implementing an appropriate :meth:`~psynet.trial.main.Trial.show_trial` method,
     which should make use of the following automatically generated entries within the Trial's
@@ -650,9 +591,7 @@ class SameDifferentTrial(PairedStimulusTrial):
 
     valid_answers = ["same", "different"]
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
-
+    def finalize_definition(self, definition, experiment, participant):
         correct_answer = random.choice(["same", "different"])
 
         if correct_answer == "same":
@@ -677,7 +616,7 @@ class AXBTrial(PairedStimulusTrial):
     Each trial is built from a pair of stimuli located in a random region of the stimulus space.
     These stimuli are designated "original" and "altered" respectively,
     and are always separated by a distance of ``delta`` in the stimulus space,
-    where ``delta`` is defined within the :class:`~psynet.trial.dense.Condition` object's definition dictionary.
+    where ``delta`` is defined within the :class:`~psynet.trial.dense.DenseNode` object's definition dictionary.
 
     Each trial in an AXB paradigm takes one of two forms, "AAB" or "ABB",
     where the forms dictate the order of presentation of the stimuli,
@@ -714,9 +653,7 @@ class AXBTrial(PairedStimulusTrial):
 
     valid_answers = ["AAB", "ABB"]
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
-
+    def finalize_definition(self, definition, experiment, participant):
         correct_answer = random.choice(["AAB", "ABB"])
         a, b = random.sample(["original", "altered"], k=2)
 

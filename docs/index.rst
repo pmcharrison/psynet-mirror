@@ -1,66 +1,103 @@
-PsyNet Documentation
-====================
+Overview
+========
+
+.. warning::
+    At the time of writing (December 2022) PsyNet is under heavy development as we prepare
+    for an official release in 2023. Most of its features are ready, but some important
+    details are still undocumented or unfinished. We recommend contacting the PsyNet developers
+    for advice before starting to adopt PsyNet for your own research projects.
+
+PsyNet is a new platform for running advanced behavioral experiments
+ranging from adaptive psychophysics to simulated cultural evolution.
+Its goal is to enable researchers to implement and deploy experiments as efficiently as possible,
+while placing minimal constraints on the complexity of the experiment design.
+
+This website contains a variety of resources to help you learn more about PsyNet.
+Some particularly useful resources are highlighted below,
+but see the sidebar for a full list.
+
+- :ref:`When to use PsyNet? <applications>`: Learn about the use cases for which PsyNet is optimized.
+
+- :ref:`Demos <demos_introduction>`: See demos of different PsyNet features.
+
+- :ref:`Example experiments <example_experiments_introduction>`: See code repositories for real-world PsyNet experiments.
+
+- `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
+
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Introduction
 
-   introduction/about
-   introduction/how_to_use
-   introduction/command_line
-   introduction/demo
+   self
+   introduction/applications
+   introduction/history
+   introduction/team
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Architecture
+
+   architecture/dallinger
+   architecture/docker
+   architecture/web_servers
+
+.. toctree::
+   :hidden:
+   :caption: INSTALLATION
+
+   installation/index
 
 .. toctree::
    :maxdepth: 2
-   :caption: Installation
+   :hidden:
 
-   installation/macos
-   installation/linux
+   developer_installation/index
+
+.. toctree::
+   :hidden:
+   :caption: EXPERIMENT DEVELOPMENT
+
+   demos/index
+
+.. toctree::
+   :hidden:
+
+   example_experiments/index
+
+.. toctree::
+   :hidden:
+
+   tutorials/index
+
+.. toctree::
+   :hidden:
+
+   api/index
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: DEPLOYING
+
+   deploy/aws_server_setup
 
 .. toctree::
    :maxdepth: 2
-   :caption: Experimenter documentation
+   :hidden:
+   :caption: Contributing to PsyNet
    :glob:
 
-   experimenter/basic_usage
-   experimenter/timeline
-   experimenter/trial_overview
-   experimenter/ad_page
-   experimenter/modular_page
-   experimenter/graphics
-   experimenter/unity_integration
-   experimenter/writing_custom_frontends
-   experimenter/event_management
-   experimenter/communicating_with_backend
-   experimenter/payment_limits
-   experimenter/deploy_tokens
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Specific implementations
-   :glob:
-
-   implementations/*
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Developer documentation
-   :glob:
-
-   developer/version_control_with_git
+   developer/running_tests
    developer/prescreening_tasks
    developer/updating_documentation
-   developer/introduction_to_sql_alchemy
 
 .. toctree::
    :maxdepth: 2
-   :caption: Low-level documentation
+   :hidden:
+   :caption: Dashboards
    :glob:
 
-   low_level/demography
-   low_level/Experiment
-   low_level/Participant
-   low_level/prescreen
-   low_level/timeline
-   low_level/trial
-   low_level/VarStore
+   dashboards/translation

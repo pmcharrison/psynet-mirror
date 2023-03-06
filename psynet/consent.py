@@ -89,6 +89,11 @@ class CAPRecruiterStandardConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"cap-recruiter_standard_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {
+                "cap-recruiter_standard_consent": True,
+            }
+
 
 class CAPRecruiterAudiovisualConsent(Module):
     """
@@ -160,6 +165,12 @@ class CAPRecruiterAudiovisualConsent(Module):
                 ],
             }
 
+        def get_bot_response(self, experiment, bot):
+            return {
+                "cap-recruiter_audiovisual_consent": True,
+                "demonstration_purposes_consent": True,
+            }
+
 
 #########
 # Lucid #
@@ -222,133 +233,6 @@ class LucidConsent(Module):
             return {"lucid_consent": raw_answer}
 
 
-#########
-# MTurk #
-#########
-class MTurkStandardConsent(Module):
-    """
-    .. deprecated:: 5.3.0
-        Use new consent pages `MainConsent`, `DatabaseConsent`, `AudiovisualConsent`, `OpenScienceConsent`,
-        and `VoluntaryWithNoCompensationConsent` instead.
-
-    Parameters
-    ----------
-
-    time_estimate:
-        Time estimated for the page.
-    """
-
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        self.label = "mturk_standard_consent"
-        self.elts = join(
-            self.MTurkStandardConsentPage(),
-            conditional(
-                "mturk_standard_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["mturk_standard_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "mturk_standard_consent",
-                    participant.answer["mturk_standard_consent"],
-                )
-            ),
-        )
-        super().__init__(self.label, self.elts)
-
-    class MTurkStandardConsentPage(Page, Consent):
-        """
-        .. deprecated:: 5.3.0
-            Use new consent pages `MainConsentPage`, `DatabaseConsentPage`, `AudiovisualConsentPage`, `OpenScienceConsentPage`,
-            and `VoluntaryWithNoCompensationConsentPage` instead.
-
-        Parameters
-        ----------
-
-        time_estimate:
-            Time estimated for the page.
-        """
-
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/mturk_standard_consent.html"),
-            )
-
-        def format_answer(self, raw_answer, **kwargs):
-            return {"mturk_standard_consent": raw_answer}
-
-
-class MTurkAudiovisualConsent(Module):
-    """
-    .. deprecated:: 5.3.0
-        Use new consent pages `MainConsent`, `DatabaseConsent`, `AudiovisualConsent`, `OpenScienceConsent`,
-        and `VoluntaryWithNoCompensationConsent` instead.
-
-    Parameters
-    ----------
-
-    time_estimate:
-        Time estimated for the page.
-    """
-
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        self.label = "mturk_audiovisual_consent"
-        self.elts = join(
-            self.MTurkAudiovisualConsentPage(),
-            conditional(
-                "mturk_audiovisual_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["audiovisual_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "mturk_audiovisual_consent",
-                    participant.answer["audiovisual_consent"],
-                )
-            ),
-        )
-        super().__init__(self.label, self.elts)
-
-    class MTurkAudiovisualConsentPage(Page, Consent):
-        """
-        .. deprecated:: 5.3.0
-            Use new consent pages `MainConsentPage`, `DatabaseConsentPage`, `AudiovisualConsentPage`, `OpenScienceConsentPage`,
-            and `VoluntaryWithNoCompensationConsentPage` instead.
-
-        Parameters
-        ----------
-
-        time_estimate:
-            Time estimated for the page.
-        """
-
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/mturk_audiovisual_consent.html"),
-            )
-
-        def format_answer(self, raw_answer, **kwargs):
-            return {"audiovisual_consent": raw_answer}
-
-
 #############
 # Princeton #
 #############
@@ -407,6 +291,9 @@ class PrincetonConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"princeton_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"princeton_consent": True}
 
 
 class PrincetonCAPRecruiterConsent(Module):
@@ -468,6 +355,9 @@ class PrincetonCAPRecruiterConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"princeton_cap_recruiter_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"princeton_cap_recruiter_consent": True}
+
 
 ########
 # Main #
@@ -527,6 +417,9 @@ class MainConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"main_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"main_consent": True}
 
 
 ############
@@ -588,6 +481,9 @@ class DatabaseConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"database_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"database_consent": True}
+
 
 ###############
 # Audiovisual #
@@ -648,6 +544,9 @@ class AudiovisualConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"audiovisual_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"audiovisual_consent": True}
+
 
 ################
 # Open science #
@@ -707,6 +606,9 @@ class OpenScienceConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"open_science_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"open_science_consent": True}
 
 
 ################################################
@@ -772,3 +674,6 @@ class VoluntaryWithNoCompensationConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"voluntary_with_no_compensation_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"voluntary_with_no_compensation_consent": True}

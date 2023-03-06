@@ -5,13 +5,13 @@
 ##########################################################################################
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import ColorPrompt, PushButtonControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.dense import (
-    Condition,
-    ConditionList,
+    DenseNode,
     DenseTrialMaker,
     Dimension,
     SingleStimulusTrial,
@@ -28,23 +28,20 @@ PARAMS = {
     ]
 }
 
-CONDITIONS = ConditionList(
-    "color",
-    conditions=[
-        Condition(
-            {
-                **PARAMS,
-                "adjective": "angry",
-            }
-        ),
-        Condition(
-            {
-                **PARAMS,
-                "adjective": "happy",
-            }
-        ),
-    ],
-)
+CONDITIONS = [
+    DenseNode(
+        {
+            **PARAMS,
+            "adjective": "angry",
+        }
+    ),
+    DenseNode(
+        {
+            **PARAMS,
+            "adjective": "happy",
+        }
+    ),
+]
 
 
 class CustomTrial(SingleStimulusTrial):
@@ -72,9 +69,9 @@ class CustomTrial(SingleStimulusTrial):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
+    label = "Dense color demo"
+    initial_recruitment_size = 1
+    trials_per_participant = 6
 
     timeline = Timeline(
         NoConsent(),
@@ -82,11 +79,16 @@ class Exp(psynet.experiment.Experiment):
             id_="color",
             trial_class=CustomTrial,
             conditions=CONDITIONS,
-            recruit_mode="num_participants",
-            target_num_participants=1,
-            target_num_trials_per_condition=None,
-            max_trials_per_block=6,
+            recruit_mode="n_participants",
+            target_n_participants=1,
+            target_trials_per_condition=None,
+            expected_trials_per_participant=trials_per_participant,
+            max_trials_per_participant=trials_per_participant,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot):
+        assert not bot.failed
+        assert len(bot.alive_trials) == self.trials_per_participant

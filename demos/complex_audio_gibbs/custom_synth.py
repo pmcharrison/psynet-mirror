@@ -67,7 +67,7 @@ def cent2herz(ct, reference_tone):
     return np.exp(st * semi1) * reference_tone
 
 
-def synth_stimulus(vector, output_path, chain_definition):
+def synth_stimulus(vector, output_path, input_file):
     """
     Synthesises a stimulus.
 
@@ -79,9 +79,6 @@ def synth_stimulus(vector, output_path, chain_definition):
 
     output_path : str
         The output path for the generated file.
-
-    chain_definition
-        The chain's definition object.
     """
     DIMENSION_NAMES = [
         "duration",
@@ -94,14 +91,13 @@ def synth_stimulus(vector, output_path, chain_definition):
     ]
     DIMENSIONS = len(DIMENSION_NAMES)
 
-    assert isinstance(chain_definition, dict)
     assert len(vector) == DIMENSIONS
 
     parameters = dict(zip(DIMENSION_NAMES, vector))
 
     SYNTHESIS_FILES_DIR = "synth_files/audio"
 
-    filename = os.path.join(SYNTHESIS_FILES_DIR, chain_definition["file"])
+    filename = os.path.join(SYNTHESIS_FILES_DIR, input_file)
     sound, manipulation, pitch, time, pitch_values, pulses, data = load_files(filename)
     if "pitch_shift" in parameters and parameters["pitch_shift"] != 0:
         shift_st = int(parameters["pitch_shift"])
