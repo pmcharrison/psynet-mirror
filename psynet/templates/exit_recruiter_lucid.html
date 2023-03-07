@@ -34,12 +34,12 @@
 
 {% block body %}
     <div id="container">
-      <div>
-        <h1>Lucid Survey Submission</h1>
+      <div class="well">
+        <h1>{{ pgettext("exit_recruiter_lucid", "Lucid Survey Submission") }}</h1>
         <hr>
           <p>Completing survey...</p>
           <noscript>
-            Click the button below to return to Lucid Marketplace.
+            {{ pgettext("exit_recruiter_lucid", "To complete your Lucid Survey, click the button below.") }}
             <p>
             <form method="GET" action="{{ external_submit_url|safe }}">
               <input type="submit" class="btn btn-primary btn-lg" value="Close">
