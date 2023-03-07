@@ -277,6 +277,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         rid = entry_information.get("RID")
         hit_id = entry_information.get("hit_id")
+        if hit_id is None:
+            hit_id = entry_information.get("hitId")
 
         if rid is None and hit_id is None:
             raise LucidRecruiterException(

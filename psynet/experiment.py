@@ -1649,26 +1649,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = get_participant(participant_id)
         experiment = get_experiment()
 
-        # TODO LUCID
-        # recruiter = exp.recruiter
-        # external_submit_url = None
-        # if hasattr(recruiter, "external_submit_url"):
-        #     external_submit_url = recruiter.external_submit_url(
-        #         participant=participant, should_terminate=True
-        #     )
-        # return error_page(
-        #     participant=participant,
-        #     error_text=msg,
-        #     recruiter=recruiter.nickname,
-        #     external_submit_url=external_submit_url,
-        # )
-
         if participant.auth_token is None:
             participant.auth_token = str(uuid.uuid4())
         else:
             try:
                 cls.check_auth_token(participant, auth_token)
             except cls.AuthTokenError as e:
+                # TODO LUCID
+                recruiter = experiment.recruiter
+                if hasattr(recruiter, "external_submit_url"):
+                    recruiter.external_submit_url(
+                        participant=participant, should_terminate=True
+                    )
                 return e.http_response()
 
         return cls._route_timeline(experiment, participant, mode)
