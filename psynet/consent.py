@@ -232,6 +232,9 @@ class LucidConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"lucid_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"lucid_consent": True}
+
 
 #############
 # Princeton #
