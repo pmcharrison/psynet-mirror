@@ -1141,7 +1141,7 @@ def error_page(
 
 
 def recruiter_shortname(nickname):
-    if "lucid" in nickname:
+    if nickname is not None and "lucid" in nickname:
         return "lucid"
     else:
         return "mturk"
