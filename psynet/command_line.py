@@ -27,6 +27,7 @@ from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
+from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -1226,17 +1227,7 @@ def is_editable(project):
 ############
 # estimate #
 ############
-@psynet.command()
-@click.option(
-    "--mode",
-    default="both",
-    type=click.Choice(["bonus", "time", "both"]),
-    help="Type of result. Can be either 'bonus', 'time', or 'both'.",
-)
-def estimate(mode):
-    """
-    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
-    """
+def _estimate(mode):
     from .experiment import import_local_experiment
 
     log(header)
@@ -1256,8 +1247,30 @@ def estimate(mode):
         )
 
 
+@psynet.command()
+@click.option(
+    "--mode",
+    default="both",
+    type=click.Choice(["bonus", "time", "both"]),
+    help="Type of result. Can be either 'bonus', 'time', or 'both'.",
+)
+def estimate(mode):
+    """
+    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    """
+    try:
+        _estimate(mode)
+    except ProgrammingError:
+        log("Initialize the database and try again.")
+        db.session.rollback()
+        init_db(drop_all=True)
+        db.session.commit()
+        _estimate(mode)
+
+
 def setup_experiment_variables(experiment_class):
     experiment = experiment_class()
+    experiment.setup_experiment_config()
     experiment.setup_experiment_variables()
     return experiment
 
