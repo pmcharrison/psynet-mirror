@@ -22,6 +22,7 @@
 {% endblock no_assignment %}
 
 {% block live %}
+{% if not experiment.with_lucid_recruitment() %}
 <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
 <p>
     {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
@@ -32,13 +33,6 @@
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
 {{ pgettext("ad", "Begin Experiment") }}
 </button>
-{% if not experiment.with_lucid_recruitment() %}
-  <h1>Thanks for accepting this HIT.</h1>
-  <p>
-    By clicking the following URL link, you will be taken to the experiment,
-    including complete instructions and an informed consent agreement.
-  </p>
-  <button type="button" id="begin-button" class="btn btn-primary btn-lg">Begin Experiment</button>
 {% endif %}
 {% if experiment.var.show_abort_button %}
 <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
