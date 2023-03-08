@@ -1742,8 +1742,7 @@
 
       function checkParticipant() {
         if (triedToLeave) {
-          console.log("TODO LUCID: Termination temporarily disabled for development");
-          // terminateParticipant();
+          terminateParticipant();
         }
       }
 
@@ -1754,8 +1753,7 @@
         } else {
           noFocusSince += POLLING_FREQUENCY;
           if (noFocusSince > INACTIVITY_TIMEOUT) {
-            console.log("TODO LUCID: Termination temporarily disabled for development");
-            // terminateParticipant();
+            terminateParticipant();
           } else {
             console.log("The document doesn't have the focus since " + noFocusSince + "ms.");
           }
