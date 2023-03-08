@@ -46,6 +46,7 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
         return []
 
 
+# CAP Recruiter
 class BaseCapRecruiter(PsyNetRecruiter):
     """
     The CapRecruiter base class
@@ -114,9 +115,7 @@ class DevCapRecruiter(BaseCapRecruiter):
     external_submission_url = "http://localhost:8000/tasks"
 
 
-# Lucid
-
-
+# Lucid Recruiter
 @register_table
 class LucidRID(SQLBase, SQLMixin):
     __tablename__ = "lucid_rid"
@@ -164,7 +163,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
         self.store = kwargs.get("store") or RedisStore()
-        self.set_experiment_variables()
 
     @property
     def survey_number_storage_key(self):
@@ -189,11 +187,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 raise RuntimeError(error_msg)
         else:
             raise RuntimeError(error_msg)
-
-    def set_experiment_variables(self):
-        experiment = dallinger.experiment.load().new(db.session)
-        experiment.var.set("show_abort_button", False)
-        experiment.var.set("show_bonus", False)
 
     def current_survey_number(self):
         """
@@ -239,19 +232,19 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         self.lucidservice.add_qualifications_to_survey(self.current_survey_number())
 
         url = survey_info["ClientSurveyLiveURL"]
-        self.lucidservice.log("Done creating project and survey.")
+        self.lucidservice.log("Done creating Lucid project and survey.")
         self.lucidservice.log("----------")
         self.lucidservice.log("---------> " + url.replace("https", "http"))
         self.lucidservice.log("----------")
 
         survey_id = self.current_survey_number()
         if survey_id is None:
-            self.lucidservice.log("No survey in progress: recruitment aborted.")
+            self.lucidservice.log("No survey in progress: Recruitment aborted.")
             return
 
         return {
             "items": [url],
-            "message": "Lucid survey created successfully.",
+            "message": f"Lucid survey {self.current_survey_number()} created successfully.",
         }
 
     def close_recruitment(self):
