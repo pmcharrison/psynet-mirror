@@ -1295,7 +1295,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             if hasattr(recruiter, "terminate_participant"):
                 recruiter.terminate_participant(assignment_id)
-            return render_template(
+            return render_template_with_translations(
                 "exit_recruiter_lucid.html",
                 external_submit_url=external_submit_url,
             )
@@ -1543,7 +1543,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception as e:
             logger.error(f"Error terminating respondent with RID '{rid}': {e}")
 
-        return render_template(
+        return render_template_with_translations(
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
