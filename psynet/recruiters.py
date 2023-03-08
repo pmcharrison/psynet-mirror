@@ -18,7 +18,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
-from .utils import get_logger, pretty_format_seconds
+from .utils import get_logger, pretty_format_seconds, render_template_with_translations
 
 logger = get_logger()
 
@@ -325,7 +325,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         self.lucidservice.log(f"Exit redirect: {external_submit_url}")
 
-        return flask.render_template(
+        return render_template_with_translations(
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
