@@ -1302,6 +1302,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if is_redirect:
                 return kw["redirect"]
             else:
+                exp = get_experiment()
+                kw["recruiter"] = exp.recruiter.nickname
                 return render_template_with_translations("ad.html", **kw)
         except ExperimentError:
             return error_page()
