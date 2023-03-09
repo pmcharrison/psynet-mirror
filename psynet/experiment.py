@@ -535,6 +535,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "currency": "$",
             "current_locale": get_language(),
             "allow_switching_locale": True,
+            "force_incognito_mode": False,
         }
 
     @property
