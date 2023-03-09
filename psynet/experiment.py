@@ -1089,6 +1089,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             (
                 resource_filename(
+                    "psynet",
+                    "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
+                ),
+                "/static/scripts/detectIncognito.min.js",
+            ),
+            (
+                resource_filename(
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
