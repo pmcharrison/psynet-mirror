@@ -348,7 +348,10 @@
             }
             if (!correctBrowserUsed) {
                 renderBrowserWarning();
+                return;
             }
+            const myEvent = new Event("browserCheckFinished");
+            document.dispatchEvent(myEvent);
         });
     });
 

@@ -1300,6 +1300,12 @@
                     });
                 };
 
+                let waitForBrowserCheck = function () {
+                    return new Promise(resolve => {
+                        document.addEventListener("browserCheckFinished", () => resolve());
+                    });
+                };
+
                 psynet.initPage = async function () {
                     console.log("Initialising page...");
 
@@ -1312,6 +1318,7 @@
                     $(".wait-for-media-load").attr("disabled", "disabled");
 
                     await waitForPageLoad();
+                    await waitForBrowserCheck();
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
