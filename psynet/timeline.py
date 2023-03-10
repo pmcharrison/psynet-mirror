@@ -1096,7 +1096,9 @@ class Page(Elt):
             "currency": experiment.var.currency,
             "current_locale": locale,
             "allow_switching_locale": experiment.var.allow_switching_locale,
+            "force_google_chrome": experiment.var.force_google_chrome,
             "force_incognito_mode": experiment.var.force_incognito_mode,
+            "allow_mobile_devices": experiment.var.allow_mobile_devices,
         }
         return render_string_with_translations(
             template_string=self.template_str, locale=locale, **all_template_args
