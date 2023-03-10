@@ -1099,6 +1099,7 @@ class Page(Elt):
             "force_google_chrome": experiment.var.force_google_chrome,
             "force_incognito_mode": experiment.var.force_incognito_mode,
             "allow_mobile_devices": experiment.var.allow_mobile_devices,
+            "start_experiment_in_popup_window": experiment.var.start_experiment_in_popup_window,
         }
         return render_string_with_translations(
             template_string=self.template_str, locale=locale, **all_template_args

@@ -538,6 +538,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_google_chrome": True,
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
+            "start_experiment_in_popup_window": self.recruiter.nickname == "mturk",
         }
 
     @property

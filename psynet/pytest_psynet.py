@@ -92,7 +92,7 @@ def bot_class(headless=None):
                 logger.info("Clicked begin experiment button.")
 
                 experiment = get_experiment()
-                if experiment.recruiter.nickname == "mturk":
+                if experiment.var.start_experiment_in_popup_window:
                     WebDriverWait(self.driver, 10).until(
                         lambda d: len(d.window_handles) == 2
                     )
