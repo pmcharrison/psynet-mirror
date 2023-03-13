@@ -1337,7 +1337,9 @@
                     let fixedUrl = window.location.origin + window.location.pathname + "?" + urlParams;
                     window.history.replaceState({}, null, fixedUrl);
 
-                    setTimeout(() => psynet.trial.init(), 25);
+                    if (psynet.browser.isValidated) {
+                        setTimeout(() => psynet.trial.init(), 25);
+                    }
                 };
 
                 psynet.registerErrorHandler = function () {
