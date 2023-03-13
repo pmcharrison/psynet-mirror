@@ -6,21 +6,18 @@
 # Imports
 ##########################################################################################
 
-from typing import List
-
 from flask import Markup
 
 import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
-from psynet.bot import Bot
 from psynet.consent import CAPRecruiterStandardConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.audio_gibbs import (
-    AudioGibbsNode,
-    AudioGibbsTrial,
-    AudioGibbsTrialMaker,
+from psynet.trial.media_gibbs import (
+    VideoGibbsNode,
+    VideoGibbsTrial,
+    VideoGibbsTrialMaker,
 )
 from psynet.utils import get_logger
 
@@ -29,22 +26,33 @@ from . import custom_synth
 logger = get_logger()
 
 # Custom parameters, change these as you like!
-TARGETS = ["dominant", "trustworthy"]
-DIMENSIONS = 7
-RANGE = [-800, 800]
-GRANULARITY = 25
+TARGETS = ["positive", "energetic"]
+DURATION_RANGE = [0.1, 1.5]
+RGB_RANGE = [0, 255]
+VECTOR_RANGES = [
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    RGB_RANGE,
+    DURATION_RANGE,
+    DURATION_RANGE,
+]
+DIMENSIONS = len(VECTOR_RANGES)
+GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
 psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
-NUM_ITERATIONS_PER_CHAIN = (
-    2  # In a real experiment we'd make this something like DIMENSIONS * 2
-)
-CHAINS_PER_PARTICIPANT = len(TARGETS)
-NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * CHAINS_PER_PARTICIPANT
+NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
+
+NUM_CHAINS_PER_EXPERIMENT = 2
+NUM_CHAINS_PER_PARTICIPANT = 2
+NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(AudioGibbsTrial):
+class CustomTrial(VideoGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -53,54 +61,43 @@ class CustomTrial(AudioGibbsTrial):
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "Adjust the slider so that the word sounds as "
+            "Adjust the slider so that the video is as "
             f"<strong>{self.context['target']}</strong> "
             "as possible."
         )
 
 
-class CustomNode(AudioGibbsNode):
+class CustomNode(VideoGibbsNode):
     vector_length = DIMENSIONS
-    vector_ranges = [RANGE for _ in range(DIMENSIONS)]
+    vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
     def synth_function(self, vector, output_path, chain_definition):
-        custom_synth.synth_stimulus(vector, output_path, chain_definition)
+        custom_synth.synth_stimulus(vector, output_path, {})
 
 
-class CustomTrialMaker(AudioGibbsTrialMaker):
-    performance_threshold = -1.0
-    give_end_feedback_passed = True
-
-    def get_end_feedback_passed_page(self, score):
-        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
-
-        return InfoPage(
-            Markup(
-                f"Your consistency score was <strong>{score_to_display}&#37;</strong>."
-            ),
-            time_estimate=5,
-        )
+class CustomTrialMaker(VideoGibbsTrialMaker):
+    pass
 
 
 trial_maker = CustomTrialMaker(
-    id_="audio_gibbs_demo",
+    id_="video_gibbs_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
-    chain_type="within",  # can be "within" or "across"
+    chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
-    chains_per_experiment=None,  # set to None if chain_type="within"
+    chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
-    check_performance_at_end=True,
+    check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="n_participants",
-    target_n_participants=10,
+    recruit_mode="num_trials",
+    target_n_participants=None,
     wait_for_networks=True,
 )
 
@@ -113,7 +110,7 @@ trial_maker = CustomTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    label = "Audio Gibbs sampling demo"
+    label = "Video Gibbs sampling demo"
     asset_storage = DebugStorage()
     initial_recruitment_size = 1
 
@@ -122,11 +119,3 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
         SuccessfulEndPage(),
     )
-
-    test_n_bots = 2
-
-    def test_bots_ran_successfully(self, bots: List[Bot], **kwargs):
-        super().test_bots_ran_successfully(bots, **kwargs)
-
-        for b in bots:
-            assert len(b.alive_trials) == NUM_TRIALS_PER_PARTICIPANT
