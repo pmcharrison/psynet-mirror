@@ -1599,7 +1599,7 @@ class HeadphoneTest(StaticTrialMaker):
             max_trials_per_participant=n_trials,
         )
 
-    def get_trial_class(self):
+    def get_trial_class(self, node=None, participant=None, experiment=None):
         raise NotImplementedError()
 
     def get_nodes(self, media_url: str):
@@ -1662,7 +1662,7 @@ class HugginsHeadphoneTest(HeadphoneTest):
             "Your task will be to judge <strong> which sound had the beep.</strong>"
         )
 
-    def get_trial_class(self):
+    def get_trial_class(self, node=None, participant=None, experiment=None):
         return HugginsHeadphoneTrial
 
 
@@ -1711,7 +1711,7 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
     def task_description(self):
         return "Your task will be to judge <strong> which sound was the softest (quietest).</strong>"
 
-    def get_trial_class(self):
+    def get_trial_class(self, node=None, participant=None, experiment=None):
         return AntiphaseHeadphoneTrial
 
 
