@@ -157,6 +157,7 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
                 show_meter=True,
                 controls=False,
                 auto_advance=False,
+                bot_response="static/stimuli/initial_seed/HTW4.wav",
             ),
             events=self.get_recording_events(),
             progress_display=self.get_recording_progress_display(),
