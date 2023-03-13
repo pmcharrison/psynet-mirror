@@ -1302,7 +1302,8 @@
 
                 let waitForBrowserCheck = function () {
                     return new Promise(resolve => {
-                        document.addEventListener("browserCheckFinished", () => resolve());
+                        browserValidation()
+                        resolve()
                     });
                 };
 

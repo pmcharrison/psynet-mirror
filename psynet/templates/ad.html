@@ -65,6 +65,10 @@
 
 {% block scripts %}
     <script>
+        document.addEventListener("DOMContentLoaded", function (event) {
+            browserValidation();
+        });
+
         function proceedToConsentPage(event) {
           let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
           if ({{ experiment.var.start_experiment_in_popup_window|tojson }}) {
