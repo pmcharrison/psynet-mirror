@@ -374,7 +374,7 @@
         document.getElementById('browser-compatibility-modal').style.display = 'block'
     }
 
-    document.addEventListener("DOMContentLoaded", function (event) {
+    function browserValidation() {
         if (!("browser" in psynet)) {
             psynet.browser = {};
         }
@@ -390,7 +390,7 @@
 
         if (!psynet.browser.allowMobileDevices && psynet.browser.isMobile) {
             renderMobileWarning();
-            return;
+            return false;
         }
 
         detectIncognito().then((result) => {
@@ -406,12 +406,14 @@
             }
             if (!correctBrowserUsed) {
                 renderBrowserWarning();
-                return;
+                return false;
             }
-            const myEvent = new Event("browserCheckFinished");
+            console.log("Browser check finished");
+            psynet.browser.isValidated = true;
             document.dispatchEvent(myEvent);
         });
-    });
+        return true;
+    }
 
 </script>
 

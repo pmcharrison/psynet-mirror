@@ -40,6 +40,10 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        document.addEventListener("DOMContentLoaded", function (event) {
+            browserValidation();
+        });
+
         start = function() {
             {% if experiment.var.show_abort_button %}
             if (window.opener !== null) {
