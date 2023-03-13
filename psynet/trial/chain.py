@@ -1562,7 +1562,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         return network
 
     @log_time_taken
-    def find_networks(self, participant, experiment):
+    def find_networks(self, participant, experiment, return_one_network=True):
         """
 
         Parameters
@@ -1716,14 +1716,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
-        chosen = networks[0]
-        if chosen.block != current_block:
-            logger.info(
-                f"Advanced from block '{current_block}' to '{chosen.block}' "
-                "because there weren't any spots available in the former."
-            )
+        if return_one_network:
+            chosen = networks[0]
+            if chosen.block != current_block:
+                logger.info(
+                    f"Advanced from block '{current_block}' to '{chosen.block}' "
+                    "because there weren't any spots available in the former."
+                )
 
-        return [chosen]
+            return [chosen]
+        else:
+            return networks
 
     def custom_network_filter(self, candidates, participant):
         """

@@ -1,0 +1,11 @@
+{
+    "redeploying_from_archive": false,
+    "mode": "debug",
+    "is_local_deployment": true,
+    "is_ssh_deployment": false,
+    "secret": {
+        "py/object": "uuid.UUID",
+        "hex": "47c21ea3958b4a628ca436be34fda428"
+    },
+    "deployment_id": "basic-create-and-rate-experiment__mode=debug__launch=2023-02-24--19-51-39"
+}
