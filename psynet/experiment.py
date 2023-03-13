@@ -240,9 +240,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     label = None
     initial_recruitment_size = 1
 
-    timeline = Timeline(
-        InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
-    )
+    timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage())
 
     asset_storage = NoStorage()
 
@@ -400,9 +398,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     % {"EMAIL": contact_address},
                 )
             )
-            tags.p(
-                pgettext("mturk_error", "Please also quote the following information:")
-            )
+            tags.p(pgettext("mturk_error", "Please also quote the following information:"))
             tags.ul(
                 tags.li(f'{gettext("Error type")}: {error_type}'),
                 tags.li(f'{gettext("HIT ID")}: {hit_id}'),
@@ -632,9 +628,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")
-            call_function_with_context(
-                routine.function, experiment=self, **routine.args
-            )
+            call_function_with_context(routine.function, experiment=self, **routine.args)
 
         self.assets.prepare_for_deployment()
         self.create_database_snapshot()
@@ -649,12 +643,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         mode = deployment_info.read("mode")
         id_ = f"{cls.label}"
         id_ = id_.replace(" ", "-").lower()
-        id_ += (
-            "__mode="
-            + mode
-            + "__launch="
-            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
-        )
+        id_ += "__mode=" + mode + "__launch=" + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         return id_
 
     @property
@@ -810,9 +799,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"SMTPAuthenticationError sending 'hard_max_experiment_payment' reached email: {e}"
             )
         except Exception as e:
-            logger.error(
-                f"Unknown error sending 'hard_max_experiment_payment' reached email: {e}"
-            )
+            logger.error(f"Unknown error sending 'hard_max_experiment_payment' reached email: {e}")
 
     def ensure_soft_max_experiment_payment_email_sent(self):
         if not self.var.soft_max_experiment_payment_email_sent:
@@ -853,9 +840,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"SMTPAuthenticationError sending 'soft_max_experiment_payment' reached email: {e}"
             )
         except Exception as e:
-            logger.error(
-                f"Unknown error sending 'soft_max_experiment_payment' reached email: {e}"
-            )
+            logger.error(f"Unknown error sending 'soft_max_experiment_payment' reached email: {e}")
 
     def is_complete(self):
         return (not self.need_more_participants) and self.num_working_participants == 0
@@ -916,9 +901,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.var.max_participant_payment:
-            reduced_bonus = round(
-                self.var.max_participant_payment - participant.amount_paid(), 2
-            )
+            reduced_bonus = round(self.var.max_participant_payment - participant.amount_paid(), 2)
             participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
             return reduced_bonus
         return bonus
@@ -942,9 +925,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         client_ip_address,
         answer=NoArgumentProvided,
     ):
-        logger.info(
-            f"Received a response from participant {participant_id} on page {page_uuid}."
-        )
+        logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
 
         if page_uuid != participant.page_uuid:
@@ -965,9 +946,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 client_ip_address=client_ip_address,
                 answer=answer,
             )
-            validation = event.validate(
-                response, experiment=self, participant=participant
-            )
+            validation = event.validate(response, experiment=self, participant=participant)
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
             participant.time_credit.increment(event.time_estimate)
@@ -981,9 +960,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     err,
                     participant=participant,
                     trial=participant.current_trial,
-                    node=participant.current_trial.node
-                    if participant.current_trial
-                    else None,
+                    node=participant.current_trial.node if participant.current_trial else None,
                     network=participant.current_trial.network
                     if participant.current_trial
                     else None,
@@ -996,9 +973,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response(submission="approved", page=page.__json__(participant))
 
     def response_rejected(self, message):
-        logger.warning(
-            "The response was rejected with the following message: '%s'.", message
-        )
+        logger.warning("The response was rejected with the following message: '%s'.", message)
         return success_response(submission="rejected", message=message)
 
     def render_exit_message(self, participant):
@@ -1079,21 +1054,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/static/css/dashboard_timeline.css",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/jQuery/jquery-3.6.0.min.js"
-                ),
+                resource_filename("psynet", "resources/libraries/jQuery/jquery-3.6.0.min.js"),
                 "/static/scripts/jquery-3.6.0.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/platform-1.3.6/platform.min.js"
-                ),
+                resource_filename("psynet", "resources/libraries/platform-1.3.6/platform.min.js"),
                 "/static/scripts/platform.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
-                ),
+                resource_filename("psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"),
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
@@ -1125,9 +1094,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "templates/mturk_error.html",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/scripts/prepare_docker_image.sh"
-                ),
+                resource_filename("psynet", "resources/scripts/prepare_docker_image.sh"),
                 "prepare_docker_image.sh",
             ),
             (
@@ -1169,9 +1136,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         panes = exp.monitoring_panels()
 
-        module_info = {
-            "modules": [{"id": module.id} for module in exp.timeline.module_list]
-        }
+        module_info = {"modules": [{"id": module.id} for module in exp.timeline.module_list]}
 
         return render_template(
             "dashboard_timeline.html",
@@ -1329,9 +1294,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "auth_token": participant.auth_token,
             "page_uuid": participant.page_uuid,
         }
-        logger.debug(
-            f"Returning from /get_participant_info_for_debug_mode: {json_data}"
-        )
+        logger.debug(f"Returning from /get_participant_info_for_debug_mode: {json_data}")
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/fast-function-asset", methods=["GET"])
@@ -1584,12 +1547,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 err,
                 participant=participant,
                 trial=participant.current_trial,
-                node=participant.current_trial.node
-                if participant.current_trial
-                else None,
-                network=participant.current_trial.network
-                if participant.current_trial
-                else None,
+                node=participant.current_trial.node if participant.current_trial else None,
+                network=participant.current_trial.network if participant.current_trial else None,
             )
             return handled_error.error_page()
 
@@ -1794,9 +1753,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         participant_id = get_arg_from_dict(json_data, "participant_id")
         page_uuid = get_arg_from_dict(json_data, "page_uuid")
-        raw_answer = get_arg_from_dict(
-            json_data, "raw_answer", use_default=True, default=None
-        )
+        raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
         metadata = get_arg_from_dict(json_data, "metadata")
         client_ip_address = cls.get_client_ip_address()
 
@@ -1812,9 +1769,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return res
 
-    @experiment_route(
-        "/log/<level>/<int:participant_id>/<auth_token>", methods=["POST"]
-    )
+    @experiment_route("/log/<level>/<int:participant_id>/<auth_token>", methods=["POST"])
     @classmethod
     def http_log(cls, level, participant_id, auth_token):
         participant = get_participant(participant_id)
