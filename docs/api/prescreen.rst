@@ -23,10 +23,10 @@ ColorVocabularyTest
     :members:
 
 =============
-HeadphoneTest
+HugginsHeadphoneTest
 =============
 
-.. autoclass:: psynet.prescreen.HeadphoneTest
+.. autoclass:: psynet.prescreen.HugginsHeadphoneTest
     :members:
 
 ======================
