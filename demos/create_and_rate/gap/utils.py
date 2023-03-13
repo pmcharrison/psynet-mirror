@@ -3,39 +3,7 @@ from markupsafe import Markup
 from psynet.modular_page import AudioMeterControl, AudioPrompt, ModularPage
 from psynet.page import InfoPage
 from psynet.prescreen import HeadphoneTest
-from psynet.timeline import CodeBlock, join, switch
-
-
-def is_rater():
-    # TODO
-    return True
-    # # dynamic assignment (i.e. based on demand) of raters and creators
-    # # Initialize counts with 0
-    # counts = {'create': 0, 'rate': 0}
-    #
-    # # Obtain all network ids
-    # network_ids = list(set([network.id for network in Network.query.filter_by(failed=False, type="custom_network")]))
-    # for network_id in network_ids:
-    #     # Grab all succeeded infos for a given network and sort them by their id
-    #     network_infos = get_all_infos_from_network(network_id)
-    #     n_infos_at_iteration = n_infos_current_iteration(network_infos)
-    #
-    #     if network_is_rate_mode(network_infos):
-    #         # Rate
-    #         n_existing_ratings = n_infos_at_iteration - CREATIONS_PER_ITERATION
-    #         counts['rate'] += RATINGS_PER_ITERATION - n_existing_ratings
-    #     else:
-    #         # Create
-    #         counts['create'] += CREATIONS_PER_ITERATION - n_infos_at_iteration
-    #
-    # logger.info("AVAILABLE SLOTS: {}".format(counts))
-    #
-    # # Only assign as a rater if there is more to rate than to create
-    # return counts['rate'] > counts['create']
-
-
-def setup_experiment():
-    return CodeBlock(lambda participant: participant.var.set("is_rater", is_rater()))
+from psynet.timeline import join, switch
 
 
 def get_instructions():
@@ -111,28 +79,6 @@ def get_instructions():
             {
                 # Creator
                 False: join(
-                    # ReadAudioTest(
-                    #     csv_path="prescreen/test_set.csv",
-                    #     answer_options=[
-                    #         "Good recording",
-                    #         "Bad recording"
-                    #     ],
-                    #     n_stimuli_to_use=5,
-                    #     performance_threshold=1,
-                    #     instructions="""
-                    #                         Before we start, let's make sure you know what is a good or a bad recording.<br><br>
-                    #                         In each page, you will hear a recording and be asked to detect whether the recording is
-                    #                         good or bad. <br>
-                    #                         In the following conditions you should mark the recording as <strong>"bad"</strong>:<br>
-                    #                         (i) The sentence read in the recording is different from the sentence printed at the top
-                    #                         of the page. If it's only a subtle difference, you can ignore it (e.g., "I'll" vs. "I
-                    #                         will"). <br>
-                    #                         (ii) The sentence is read more than once. <br>
-                    #                         (iii) Part of the recording is cut out. <br>
-                    #                         <br>
-                    #                         If none of these errors occur, you should mark the recording as <strong>"good"</strong>.
-                    #                         """,
-                    # ),
                     InfoPage(
                         Markup(
                             """
