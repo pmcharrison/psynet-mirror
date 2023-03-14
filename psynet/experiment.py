@@ -23,12 +23,7 @@ from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import (
-    ExperimentError,
-    error_response,
-    nocache,
-    success_response,
-)
+from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.utils import get_base_url
@@ -69,11 +64,12 @@ from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
-from .utils import (  # disable_logger,
+from .utils import (
     NoArgumentProvided,
     cache,
     call_function,
     call_function_with_context,
+    disable_logger,
     error_page,
     get_arg_from_dict,
     get_language,
@@ -90,13 +86,13 @@ logger = get_logger()
 database_template_path = ".deploy/database_template.zip"
 
 
-# def error_response(*args, **kwargs):
-#     from dallinger.experiment_server.utils import (
-#         error_response as dallinger_error_response,
-#     )
+def error_response(*args, **kwargs):
+    from dallinger.experiment_server.utils import (
+        error_response as dallinger_error_response,
+    )
 
-#     with disable_logger():
-#         return dallinger_error_response(*args, **kwargs)
+    with disable_logger():
+        return dallinger_error_response(*args, **kwargs)
 
 
 def is_experiment_launched():

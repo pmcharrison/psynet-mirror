@@ -309,7 +309,9 @@ class LucidService(object):
                     f"Error completing respondent. Status returned: {response.status_code}, reason: {response.reason}"
                 )
         else:
-            self.log("Completion canceled. Respondent already completed survey.")
+            self.log(
+                "Completion canceled. Respondent already completed or terminated survey."
+            )
 
     def terminate_respondent(self, rid):
         lucid_rid = get_lucid_rid(rid)
@@ -325,7 +327,9 @@ class LucidService(object):
                     f"Error terminating respondent. Status returned: {response.status_code}, reason: {response.reason}"
                 )
         else:
-            self.log("Termination canceled. Respondent already terminated survey.")
+            self.log(
+                "Termination canceled. Respondent already completed or terminated survey."
+            )
 
     def sha1_hash(self, url):
         """
