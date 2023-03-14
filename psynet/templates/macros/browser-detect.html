@@ -155,15 +155,15 @@
         return elem.outerHTML;
     }
 
-    function useragentContains(str) {
+    function userAgentContains(str) {
         return navigator.userAgent.indexOf(str) !== -1;
     }
 
     function detectOS() {
-        if (useragentContains("Win")) return "Windows";
-        else if (useragentContains("Mac")) return "MacOS";
-        else if (useragentContains("X11")) return "UNIX";
-        else if (useragentContains("Linux")) return "Linux";
+        if (userAgentContains("Win")) return "Windows";
+        else if (userAgentContains("Mac")) return "MacOS";
+        else if (userAgentContains("X11")) return "UNIX";
+        else if (userAgentContains("Linux")) return "Linux";
         else return "Unknown";
     }
 
@@ -410,7 +410,6 @@
             }
             console.log("Browser check finished");
             psynet.browser.isValidated = true;
-            document.dispatchEvent(myEvent);
         });
         return true;
     }
