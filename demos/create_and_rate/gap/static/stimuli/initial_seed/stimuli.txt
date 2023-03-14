@@ -1,0 +1,50 @@
+1|0|It's eight o'clock.|IEO1.wav
+2|1|It's eight o'clock.|IEO6.wav
+3|2|It's eight o'clock.|IEO7.wav
+4|3|It's eight o'clock.|IEO8.wav
+5|4|It's eight o'clock.|IEO9.wav
+11|0|Is it eleven o'clock?|IIE3.wav
+12|1|Is it eleven o'clock?|IIE4.wav
+13|2|Is it eleven o'clock?|IIE5.wav
+14|3|Is it eleven o'clock?|IIE7.wav
+15|4|Is it eleven o'clock?|IIE8.wav
+21|0|Let me tell you something.|LMT1.wav
+22|1|Let me tell you something.|LMT2.wav
+23|2|Let me tell you something.|LMT3.wav
+24|3|Let me tell you something.|LMT5.wav
+25|4|Let me tell you something.|LMT6.wav
+31|0|That's exactly what happened.|TEW1.wav
+32|1|That's exactly what happened.|TEW4.wav
+33|2|That's exactly what happened.|TEW5.wav
+34|3|That's exactly what happened.|TEW6.wav
+35|4|That's exactly what happened.|TEW7.wav
+41|0|I wonder what this is about.|IWW1.wav
+42|1|I wonder what this is about.|IWW2.wav
+43|2|I wonder what this is about.|IWW4.wav
+44|3|I wonder what this is about.|IWW5.wav
+45|4|I wonder what this is about.|IWW6.wav
+51|0|I think I've seen this before.|ITI1.wav
+52|1|I think I've seen this before.|ITI2.wav
+53|2|I think I've seen this before.|ITI3.wav
+54|3|I think I've seen this before.|ITI4.wav
+55|4|I think I've seen this before.|ITI6.wav
+61|0|We'll stop in a couple of minutes.|WSI1.wav
+62|1|We'll stop in a couple of minutes.|WSI2.wav
+63|2|We'll stop in a couple of minutes.|WSI3.wav
+64|3|We'll stop in a couple of minutes.|WSI4.wav
+65|4|We'll stop in a couple of minutes.|WSI5.wav
+71|0|The surface is slick.|TSI1.wav
+72|1|The surface is slick.|TSI3.wav
+73|2|The surface is slick.|TSI4.wav
+74|3|The surface is slick.|TSI5.wav
+75|4|The surface is slick.|TSI9.wav
+81|0|Help the woman get back to her feet.|HTW4.wav
+82|1|Help the woman get back to her feet.|HTW6.wav
+83|2|Help the woman get back to her feet.|HTW7.wav
+84|3|Help the woman get back to her feet.|HTW8.wav
+85|4|Help the woman get back to her feet.|HTW10.wav
+91|0|What joy there is in living.|WYT1.wav
+92|1|What joy there is in living.|WYT5.wav
+93|2|What joy there is in living.|WYT6.wav
+94|3|What joy there is in living.|WYT9.wav
+95|4|What joy there is in living.|WYT10.wav

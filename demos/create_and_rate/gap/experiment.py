@@ -15,6 +15,7 @@ from psynet.modular_page import (
 )
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import (
+    CodeBlock,
     Event,
     MediaSpec,
     ProgressDisplay,
@@ -29,31 +30,30 @@ from psynet.trial.create_and_rate import (
     CreateTrialMixin,
     SelectTrialMixin,
 )
-from psynet.trial.imitation_chain import ImitationChainTrial, ImitationChainTrialMaker
+from psynet.trial.imitation_chain import (
+    ImitationChainNetwork,
+    ImitationChainTrial,
+    ImitationChainTrialMaker,
+)
 from psynet.utils import get_logger
 
-from .utils import get_instructions, setup_experiment
+from .utils import get_instructions
 
 logger = get_logger()
 
 N_CREATORS = 2
-N_RATERS = 7
+N_RATERS = 3
 MAX_RECORDING_DURATION = 5
 
-S3_BUCKET = "serial-prosody"
-
-STIMULUS_DIR = "stimuli/initial_seed"
+STIMULUS_DIR = "static/stimuli/initial_seed"
 STIMULI_FILE = STIMULUS_DIR + "/stimuli.txt"
 
 with open(STIMULI_FILE) as f:
     STIMULUS_LINES = [line.replace("\n", "") for line in f.readlines()]
 name_stimuli = [line.split("|")[3] for line in STIMULUS_LINES]
 
-NUMBER_OF_SENTENCES = 10
 
-REPETITIONS_PER_SENTENCE = 5
-
-NUM_TRIALS_PER_PARTICIPANT = 40
+NUM_TRIALS_PER_PARTICIPANT = 1
 
 NUM_ITERATIONS_PER_CHAIN = 20
 
@@ -63,38 +63,22 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
     accumulate_answers = True
 
     def analyze_recording(self, audio_file: str, output_plot: str):
-        # TODO to be implemented
-        # if is_create_trial_from_answer(self.answer):
-        #     # Normalize audio
-        #     normalize_volume(audio_file, audio_file)
-        #     logger.info("Normalize recording: {}".format(audio_file))
-        #
-        #     logger.info("Analyze recording: {}".format(self.answer))
-        #     answer = self.answer[2]
-        #
-        #     if answer == "My own recording is bad":
-        #         # Fail current recording
-        #         return {
-        #             'failed': True,
-        #             'reason': "My own recording is bad"
-        #         }
-        #     else:
-        #         return {
-        #             'failed': False,
-        #             'reason': "My own recording is correct"
-        #         }
-        # else:
-        #     return {
-        #         'failed': False,
-        #         'reason': 'Stimuli were only rated, not created'
-        #     }
-        pass
+        logger.info("Analyze recording: {}".format(self.answer))
+
+        # You can add ASR here if you like
+        if self.answer is None:
+            return {"failed": True, "reason": "No answer"}
+        if self.answer["decision_page"] == "My own recording is bad":
+            # Fail current recording
+            return {"failed": True, "reason": "My own recording is bad"}
+        else:
+            return {"failed": False, "reason": "My own recording is correct"}
 
     def get_listen_page(self):
         return ModularPage(
             "serial-prosody-listen",
             prompt=AudioPrompt(
-                url=self.definition["url"],
+                audio=self.definition["url"],
                 text=Markup(
                     """
                         Listen to the recording. Feel free to listen to the recording again by clicking on the button "Play".
@@ -106,11 +90,11 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
             events={
                 "hideNextButton": Event(
                     is_triggered_by="trialStart",
-                    js="document.getElementById('next-button').hidden = true",
+                    js="document.getElementById('next-button').disabled = true",
                 ),
                 "showNextButton": Event(
                     is_triggered_by="trialStart",
-                    js="document.getElementById('next-button').hidden = false",
+                    js="document.getElementById('next-button').disabled = false",
                     delay=MAX_RECORDING_DURATION,
                 ),
             },
@@ -142,8 +126,6 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
                 is_triggered_by="trialStart",
                 js="document.getElementById('next-button').hidden = true",
             ),
-            # TODO needed?
-            "promptStart": Event(is_triggered_by="trialStart"),
             "recordStart": Event(is_triggered_by="trialStart", delay=MAX_RECORDING_DURATION),
             "playbackRecording": Event(
                 is_triggered_by="recordEnd", js="psynet.page.control.playRecording()"
@@ -161,7 +143,7 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
             <small><strong>
             **Remember** Think about the situation of in which the recording could occur and then repeat!
             </strong></small><br>
-            {self.definition["txt"]}
+            {self.context["txt"]}
             """
         )
         return ModularPage(
@@ -172,11 +154,10 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
             ),
             control=AudioRecordControl(
                 duration=MAX_RECORDING_DURATION,
-                s3_bucket=S3_BUCKET,
-                public_read=True,
                 show_meter=True,
                 controls=False,
                 auto_advance=False,
+                bot_response="static/stimuli/initial_seed/HTW4.wav",
             ),
             events=self.get_recording_events(),
             progress_display=self.get_recording_progress_display(),
@@ -206,19 +187,24 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
         )
 
     def show_trial(self, experiment, participant):
-        return join(self.get_listen_page, self.get_recording_page, self.get_decision_page)
+        return join(self.get_listen_page(), self.get_recording_page(), self.get_decision_page())
+
+
+def get_target_url(target):
+    if issubclass(target.__class__, CreateAndRateNode):
+        return target.definition["url"]
+    else:
+        return target.answer["serial-prosody-recording"]["url"]
 
 
 class SelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
+    accumulate_answers = False
 
     def show_trial(self, experiment, participant):
         n_targets = len(self.targets)
-        target_urls = [
-            # TODO to implement
-            self.get_target_url(target)
-            for target in self.targets
-        ]
+        target_urls = [get_target_url(target) for target in self.targets]
+        choices = [f"{target}" for target in self.targets]
         labels = ["Recording %d" % (choice + 1) for choice in range(n_targets)]
         js_labels = [label.replace(" ", "_").lower() for label in labels]
         time_estimate = MAX_RECORDING_DURATION * n_targets
@@ -262,46 +248,78 @@ class SelectTrial(SelectTrialMixin, ImitationChainTrial):
         return ModularPage(
             "serial-prosody-rating",
             prompt=f"You will listen to {N_CREATORS + 1} recordings. Pick the recording which you find most emotional. Make your choice after listening to all samples.",
-            control=PushButtonControl(choices=target_urls, labels=labels),
+            control=PushButtonControl(choices=choices, labels=labels),
             time_estimate=time_estimate,
             events=events,
             media=MediaSpec(audio=audio_pairs),
             progress_display=ProgressDisplay(stages=stages),
         )
 
+    def format_answer(self, answer, **kwargs):
+        answer = answer["serial-prosody-rating"]
+        return super().format_answer(answer, **kwargs)
+
 
 class CreateAndRateNode(CreateAndRateNodeMixin, AudioImitationChainNode):
+    def create_definition_from_seed(self, seed, experiment, participant):
+        return seed
+
     def synthesize_target(self, output_file):
-        # TODO: implement
         pass
-        # logger.info("******** MOVING THE RECORDING ********: {}".format(self.definition))
-        # recording = self.definition[
-        #     0
-        # ]  # Note that the definition is always a list of len = 1, containing a dictionary
-        # TODO migrate to v10
-        # download_from_s3(output_file, recording["s3_bucket"], recording["key"])
+
+    def summarize_trials(self, trials, experiment, participant):
+        target = super().summarize_trials(trials, experiment, participant)
+
+        return {"url": get_target_url(target)}
 
 
 class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
     pass
 
 
+def is_rater(participant):
+    counts = {"create": 0, "rate": 0}
+    for network in ImitationChainNetwork.query.all():
+        node = CreateAndRateNode.query.filter_by(network_id=network.id, degree=network.degree).one()
+        n_creations = len(
+            CreateTrial.query.filter_by(
+                network_id=network.id, node_id=node.id, failed=False, finalized=True
+            ).all()
+        )
+        if n_creations < N_CREATORS:
+            counts["create"] += 1
+        else:
+            counts["rate"] += 1
+    is_rater = counts["rate"] > counts["create"]
+    if is_rater:
+        logger.info(
+            f"Participant {participant.id} is a rater (create: {counts['create']}, rate: {counts['rate']})"
+        )
+    else:
+        logger.info(
+            f"Participant {participant.id} is a creator (create: {counts['create']}, rate: {counts['rate']})"
+        )
+    return is_rater
+
+
 ##########################################################################################
 # Experiment
 ##########################################################################################
 
-
 start_nodes = [
     CreateAndRateNode(
-        context={
+        seed={
             "initial_speaker": initial_speaker,
             "sentence_repetition": repetition,
-            "txt": txt,
             "initial_audio_file": audio_file,
-        }
+            "url": f"static/stimuli/initial_seed/{audio_file}",
+        },
+        context={
+            "txt": txt,
+        },
     )
     for line in STIMULUS_LINES
-    for initial_speaker, repetition, txt, audio_file in line.split("|")
+    for initial_speaker, repetition, txt, audio_file in [line.split("|")]
 ]
 
 trial_maker = CreateAndRateTrialMaker(
@@ -318,10 +336,10 @@ trial_maker = CreateAndRateTrialMaker(
     # trial_maker params
     id_="trial_maker",
     chain_type="across",
-    expected_trials_per_participant=len(start_nodes),
-    max_trials_per_participant=len(start_nodes),
+    expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     start_nodes=start_nodes,
-    chains_per_experiment=len(start_nodes),
+    chains_per_experiment=len(STIMULUS_LINES),
     balance_across_chains=False,
     check_performance_at_end=True,
     check_performance_every_trial=False,
@@ -329,10 +347,8 @@ trial_maker = CreateAndRateTrialMaker(
     recruit_mode="n_trials",
     target_n_participants=None,
     wait_for_networks=False,
-    max_nodes_per_chain=10,
+    max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
 )
-
-available_demos = ["include_previous_iteration", "rate", "select"]
 
 
 class Exp(psynet.experiment.Experiment):
@@ -342,7 +358,7 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        setup_experiment(),
+        CodeBlock(lambda participant: participant.var.set("is_rater", is_rater(participant))),
         get_instructions(),
         trial_maker,
         SuccessfulEndPage(),
