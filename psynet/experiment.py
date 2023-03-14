@@ -1274,31 +1274,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
-    @experiment_route("/approve_participant", methods=["GET", "POST"])
+    @experiment_route("/exit_recruiter", methods=["GET"])
     @staticmethod
-    def approve_participant():
-        approve = request.values["approve"]
+    def exit_recruiter():
         assignment_id = request.values["assignment_id"]
-        if approve == "1":
-            return render_template(
-                "consent.html",
-                participant_id=request.values["assignment_id"],
-                query_string=request.values["query_string"],
-            )
-        else:
-            exp = dallinger.experiment.load().new(db.session)
-            recruiter = exp.recruiter
-            external_submit_url = None
-            if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=assignment_id
-                )
-            if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(assignment_id)
-            return render_template_with_translations(
-                "exit_recruiter_lucid.html",
-                external_submit_url=external_submit_url,
-            )
+        exp = dallinger.experiment.load().new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
+        recruiter.terminate_participant(assignment_id)
+
+        return render_template_with_translations(
+            "exit_recruiter_lucid.html",
+            external_submit_url=external_submit_url,
+        )
 
     @experiment_route("/consent")
     @staticmethod
@@ -1527,7 +1515,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         participant = get_participant(participant_id)
         rid = participant.entry_information["RID"]
-
         exp = cls.new(db.session)
 
         try:
@@ -1535,13 +1522,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             recruiter = exp.recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=participant_id
-                )
+                external_submit_url = recruiter.external_submit_url(assignment_id=rid)
             if hasattr(recruiter, "terminate_participant"):
                 recruiter.terminate_participant(rid)
         except Exception as e:
-            logger.error(f"Error terminating respondent with RID '{rid}': {e}")
+            logger.error(f"Error terminating participant with RID '{rid}': {e}")
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
@@ -1567,7 +1552,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if hasattr(recruiter, "check_participant_termination"):
                 return str(recruiter.check_participant_termination(rid))
         except Exception as e:
-            logger.error(f"Error terminating respondent with RID '{rid}': {e}")
+            logger.error(
+                f"Exception checking participant termination for RID '{rid}': {e}"
+            )
 
         return success_response()
 
@@ -1655,12 +1642,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             try:
                 cls.check_auth_token(participant, auth_token)
             except cls.AuthTokenError as e:
-                # TODO LUCID
                 recruiter = experiment.recruiter
                 if hasattr(recruiter, "external_submit_url"):
-                    recruiter.external_submit_url(
-                        participant=participant, should_terminate=True
-                    )
+                    recruiter.external_submit_url(participant=participant)
                 return e.http_response()
 
         return cls._route_timeline(experiment, participant, mode)

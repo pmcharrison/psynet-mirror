@@ -126,6 +126,7 @@ class LucidRID(SQLBase, SQLMixin):
     time_of_death = None
 
     rid = Column(String, index=True)
+    completed_at = Column(DateTime, index=True)
     terminated_at = Column(DateTime, index=True)
 
 
@@ -307,15 +308,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def exit_response(self, experiment, participant):
         """
         Delegate to the experiment for possible values to show to the
-        participant and complete the survey if no more participants are needed.
+        participant and complete the survey.
         """
-        if participant is not None:
-            external_submit_url = self.external_submit_url(
-                participant=participant, assignment_id=participant.assignment_id
-            )
-        else:
-            external_submit_url = self.external_submit_url(participant=participant)
-
+        external_submit_url = self.external_submit_url(participant=participant)
         self.lucidservice.log(f"Exit redirect: {external_submit_url}")
 
         return render_template_with_translations(
@@ -323,23 +318,26 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             external_submit_url=external_submit_url,
         )
 
+    def reward_bonus(self, participant, amount, reason):
+        """
+        Set `completed_at` timestamp on participant's LucidRID
+        """
+        if participant is not None and participant.progress == 1:
+            self.lucidservice.complete_respondent(participant.assignment_id)
+        else:
+            self.terminate_participant(participant.assignment_id)
+
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def external_submit_url(
-        self, participant=None, should_terminate=False, assignment_id=None
-    ):
-        if participant is None or participant.failed or should_terminate:
-            redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
-            redirect_url += assignment_id + "&"
-        else:
-            redirect_url = (
-                "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
-            )
-            redirect_url += participant.assignment_id + "&"
-
-        hash = self.lucidservice.sha1_hash(redirect_url)
-        redirect_url += f"hash={hash}"
+    def external_submit_url(self, participant=None, assignment_id=None):
+        ris = 20
+        if participant is not None:
+            assignment_id = participant.assignment_id
+            if participant.progress == 1:
+                ris = 10
+        redirect_url = f"https://www.samplicio.us/router/ClientCallBack.aspx?RIS={ris}&RID={assignment_id}&"
+        redirect_url += f"hash={self.lucidservice.sha1_hash(redirect_url)}"
         return redirect_url
 
     def check_participant_termination(self, rid):
@@ -361,12 +359,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return lucid_recruitment_config.get("termination_time_in_s")
 
     @property
-    def inactivity_timeout_in_s(self):
+    def no_focus_timeout_in_s(self):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
         )
 
-        return lucid_recruitment_config.get("inactivity_timeout_in_s")
+        return lucid_recruitment_config.get("no_focus_timeout_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

@@ -1694,13 +1694,13 @@
       }
 
       // Terminate on interaction (page reload, window/tab close, no focus)
-      const INACTIVITY_TIMEOUT = {{experiment.recruiter.inactivity_timeout_in_s}} * 1000;
+      const NO_FOCUS_TIMEOUT = {{experiment.recruiter.no_focus_timeout_in_s}} * 1000;
       const POLLING_FREQUENCY = 1000;
       const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
-      const cancelParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
+      const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
       var triedToLeave = false;
       var noFocusSince = 0;
-      var assignment_id = "{{worker_id}}";
+      var assignmentId = "{{worker_id}}";
       var url = "{{experiment.recruiter.external_submit_url(assignment_id=worker_id)|safe}}";
 
       beforeunloadHandle = window.addEventListener("beforeunload", beforeunloadFunction);
@@ -1734,16 +1734,14 @@
       function terminateParticipant() {
         window.removeEventListener("beforeunload", beforeunloadFunction);
         clearInterval(checkFocusInterval);
-        clearInterval(cancelParticipantInterval);
-        console.log("Sending beacon to " + url);
+        clearInterval(checkParticipantInterval);
         navigator.sendBeacon(url, {});
-        return window.location.replace("/approve_participant?approve=0&assignment_id=" + assignment_id);
+        return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId);
       }
 
       function checkParticipant() {
         if (triedToLeave) {
-          console.log("triedToLeave");
-          // terminateParticipant();
+          terminateParticipant();
         }
       }
 
@@ -1753,9 +1751,8 @@
           console.log("The document has the focus.");
         } else {
           noFocusSince += POLLING_FREQUENCY;
-          if (noFocusSince > INACTIVITY_TIMEOUT) {
-            console.log("noFocusSince");
-            // terminateParticipant();
+          if (noFocusSince > NO_FOCUS_TIMEOUT) {
+            terminateParticipant();
           } else {
             console.log("The document doesn't have the focus since " + noFocusSince + "ms.");
           }
