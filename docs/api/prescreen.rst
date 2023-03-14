@@ -22,9 +22,9 @@ ColorVocabularyTest
 .. autoclass:: psynet.prescreen.ColorVocabularyTest
     :members:
 
-=============
+====================
 HugginsHeadphoneTest
-=============
+====================
 
 .. autoclass:: psynet.prescreen.HugginsHeadphoneTest
     :members:
