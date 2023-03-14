@@ -128,6 +128,7 @@ class LucidRID(SQLBase, SQLMixin):
     rid = Column(String, index=True)
     completed_at = Column(DateTime, index=True)
     terminated_at = Column(DateTime, index=True)
+    last_activity_at = Column(DateTime, index=True)
 
 
 class LucidRecruiterException(Exception):
@@ -320,10 +321,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def reward_bonus(self, participant, amount, reason):
         """
-        Set `completed_at` timestamp on participant's LucidRID
+        Set `completed_at` timestamp on participant's LucidRID entry
         """
         if participant is not None and participant.progress == 1:
-            self.lucidservice.complete_respondent(participant.assignment_id)
+            self.complete_participant(participant.assignment_id)
         else:
             self.terminate_participant(participant.assignment_id)
 
@@ -331,17 +332,26 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         self.store.set(self.survey_number_storage_key, survey_number)
 
     def external_submit_url(self, participant=None, assignment_id=None):
+        if participant is None and assignment_id is None:
+            raise RuntimeError(
+                "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided!"
+            )
+        data = self.data_for_submit_url(participant, assignment_id)
+        return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
+
+    def data_for_submit_url(self, participant, assignment_id):
         ris = 20
         if participant is not None:
             assignment_id = participant.assignment_id
             if participant.progress == 1:
                 ris = 10
-        redirect_url = f"https://www.samplicio.us/router/ClientCallBack.aspx?RIS={ris}&RID={assignment_id}&"
-        redirect_url += f"hash={self.lucidservice.sha1_hash(redirect_url)}"
-        return redirect_url
+        return {"ris": ris, "rid": assignment_id}
 
     def check_participant_termination(self, rid):
         return self.lucidservice.check_respondent_termination(rid)
+
+    def complete_participant(self, rid):
+        return self.lucidservice.complete_respondent(rid)
 
     def terminate_participant(self, rid):
         return self.lucidservice.terminate_respondent(rid)

@@ -230,13 +230,7 @@ class LucidService(object):
 
         for rid in LucidRID.query.filter_by(terminated_at=None).all():
             if self.can_be_terminated(rid):
-                redirect_url = (
-                    f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
-                )
-                redirect_url += f"hash={self.sha1_hash(redirect_url)}"
-                self.log(
-                    f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
-                )
+                redirect_url = self.generate_submit_url(ris=20, rid=rid.rid)
                 rid.termination_requested_at = datetime.now()
                 session.commit()
                 try:
@@ -277,69 +271,61 @@ class LucidService(object):
             )
             return time_until_termination_in_s
 
+    def send_complete_request(self, rid):
+        return self.send_exit_request(rid, 10)
+
+    def send_terminate_request(self, rid):
+        return self.send_exit_request(rid, 20)
+
+    def generate_submit_url(self, ris=None, rid=None):
+        if ris is None or rid is None:
+            raise RuntimeError(
+                "Error generating 'submit_url': Both 'ris' and 'rid' need to be provided!"
+            )
+        submit_url = "https://samplicio.us/s/ClientCallBack.aspx"
+        submit_url += f"?RIS={ris}"
+        submit_url += f"&RID={rid}&"
+        submit_url += f"hash={self.sha1_hash(submit_url)}"
+        return submit_url
+
+    def send_exit_request(self, rid, ris):
+        redirect_url = self.generate_submit_url(ris=ris, rid=rid)
+        self.log(
+            f"Sending exit request for respondent with RID '{rid}' using redirect URL '{redirect_url}'."
+        )
+        return requests.get(redirect_url)
+
     def complete_respondent(self, rid):
         lucid_rid = get_lucid_rid(rid)
-        redirect_url = (
-            f"https://samplicio.us/s/ClientCallBack.aspx?RIS=10&RID={lucid_rid.rid}&"
-        )
-        redirect_url += f"hash={self.sha1_hash(redirect_url)}"
-        self.log(
-            f"Completing respondent with RID '{lucid_rid.rid}' using redirect URL '{redirect_url}'."
-        )
 
-        try:
-            if lucid_rid.completed_at is None:
-                response = requests.get(redirect_url)
-                if response.status_code == 200:
-                    if lucid_rid.completed_at is None:
-                        lucid_rid.completed_at = datetime.now()
-                        session.commit()
-                    self.log(
-                        f"Respondent completed using redirect URL '{redirect_url}'."
-                    )
-                else:
-                    self.log(
-                        f"Error completing respondent using redirect URL '{redirect_url}'."
-                    )
-        except Exception as e:
-            self.log(
-                f"Exception completing respondent using redirect URL '{redirect_url}':\n{e}"
-            )
-
-        return redirect_url
+        if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
+            response = self.send_complete_request(rid)
+            if response.ok:
+                lucid_rid.completed_at = datetime.now()
+                session.commit()
+                self.log("Respondent completed successfully.")
+            else:
+                self.log(
+                    f"Error completing respondent. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+        else:
+            self.log("Completion canceled. Respondent already completed survey.")
 
     def terminate_respondent(self, rid):
         lucid_rid = get_lucid_rid(rid)
-        redirect_url = (
-            f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={lucid_rid.rid}&"
-        )
-        redirect_url += f"hash={self.sha1_hash(redirect_url)}"
-        self.log(
-            f"Terminating respondent with RID '{lucid_rid.rid}' using redirect URL '{redirect_url}'."
-        )
 
-        try:
-            if lucid_rid.completed_at is None:
-                response = requests.get(redirect_url)
-                if response.status_code == 200:
-                    if lucid_rid.terminated_at is None:
-                        lucid_rid.terminated_at = datetime.now()
-                        session.commit()
-                    self.log(
-                        f"Respondent terminated using redirect URL '{redirect_url}'."
-                    )
-                else:
-                    self.log(
-                        f"Error terminating respondent using redirect URL '{redirect_url}'."
-                    )
+        if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
+            response = self.send_terminate_request(rid)
+            if response.ok:
+                lucid_rid.terminated_at = datetime.now()
+                session.commit()
+                self.log("Respondent terminated successfully.")
             else:
-                self.log("Respondent had already completed survey.")
-        except Exception as e:
-            self.log(
-                f"Exception terminating respondent using redirect URL '{redirect_url}':\n{e}"
-            )
-
-        return redirect_url
+                self.log(
+                    f"Error terminating respondent. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+        else:
+            self.log("Termination canceled. Respondent already terminated survey.")
 
     def sha1_hash(self, url):
         """
