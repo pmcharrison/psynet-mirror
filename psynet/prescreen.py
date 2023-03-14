@@ -1521,8 +1521,7 @@ class HeadphoneTest(StaticTrialMaker):
         The label for the color headphone check, default: "headphone_test".
 
     trial_class :
-        Trial class to use, recommended HugginsHeadphoneTrial; AntiphaseHeadphoneTrial is deprecated as it can be
-        successfully completed without headphones.
+        Trial class to use, recommended HugginsHeadphoneTrial;
 
     media_url : string
         The url under which the images to be displayed can be referenced, default:
