@@ -30,6 +30,18 @@ HugginsHeadphoneTest
     :members:
 
 ======================
+AntiphaseHeadphoneTest
+======================
+
+.. deprecated:: > 10
+   Does not work with modern headphones anymore. It's more a loudness test as it can be completed with loudspeakers.
+   Use :class:`psynet.prescreen.HugginsHeadphoneTest` instead.
+
+
+.. autoclass:: psynet.prescreen.AntiphaseHeadphoneTest
+    :members:
+
+======================
 LanguageVocabularyTest
 ======================
 
