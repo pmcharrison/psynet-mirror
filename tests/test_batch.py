@@ -1,7 +1,7 @@
 import tempfile
 from os.path import join
 
-from psynet.media import make_batch_file, undo_batch_file
+from psynet.media import make_batch_file, unpack_batch_file
 
 
 def get_text_path(dir, text, suffix=""):
@@ -26,7 +26,7 @@ def test_batch():
             make_text_file(tempdir, letter)
         make_batch_file(input_files, batch_path)
 
-        undo_batch_file(batch_path, reconstructed_output_files)
+        unpack_batch_file(batch_path, reconstructed_output_files)
 
         for i in range(len(letters)):
             with open(input_files[i], "r") as f:

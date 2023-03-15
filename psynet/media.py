@@ -22,7 +22,7 @@ def make_batch_file(in_files, output_path):
                 output.write(i.read())
 
 
-def undo_batch_file(input_path: str, output_paths: list[str]):
+def unpack_batch_file(input_path: str, output_paths: list[str]):
     """
     Converts a batch file into a list of files. It's the inverse of make_batch_file.
     Parameters
