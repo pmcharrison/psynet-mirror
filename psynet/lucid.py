@@ -225,33 +225,6 @@ class LucidService(object):
 
         return False
 
-    def terminate_invalid_respondents(self):
-        from psynet.recruiters import LucidRID
-
-        for rid in LucidRID.query.filter_by(terminated_at=None).all():
-            if self.can_be_terminated(rid):
-                redirect_url = self.generate_submit_url(ris=20, rid=rid.rid)
-                rid.termination_requested_at = datetime.now()
-                session.commit()
-                try:
-                    response = requests.get(redirect_url)
-                    if response.status_code == 200:
-                        rid.terminated_at = datetime.now()
-                        session.commit()
-                        self.log(
-                            f"Respondent terminated using redirect URL '{redirect_url}'."
-                        )
-                    else:
-                        self.log(
-                            f"Error terminating respondent using redirect URL '{redirect_url}'."
-                        )
-                        self.log(response.text)
-                        self.log(response.__dict__)
-                except Exception as e:
-                    self.log(
-                        f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
-                    )
-
     def check_respondent_termination(self, rid):
         lucid_rid = get_lucid_rid(rid)
 
