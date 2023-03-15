@@ -128,7 +128,6 @@ class LucidRID(SQLBase, SQLMixin):
     rid = Column(String, index=True)
     completed_at = Column(DateTime, index=True)
     terminated_at = Column(DateTime, index=True)
-    last_activity_at = Column(DateTime, index=True)
 
 
 class LucidRecruiterException(Exception):
@@ -236,7 +235,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         url = survey_info["ClientSurveyLiveURL"]
         self.lucidservice.log("Done creating Lucid project and survey.")
         self.lucidservice.log("----------")
-        self.lucidservice.log("---------> " + url.replace("https", "http"))
+        self.lucidservice.log("---------> " + url)
         self.lucidservice.log("----------")
 
         survey_id = self.current_survey_number()
