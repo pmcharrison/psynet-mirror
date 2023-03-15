@@ -253,7 +253,6 @@ class LucidService(object):
                     )
 
     def check_respondent_termination(self, rid):
-        logger.info(f"external_submit_url:if {rid}")
         lucid_rid = get_lucid_rid(rid)
 
         if lucid_rid.terminated_at is not None:
