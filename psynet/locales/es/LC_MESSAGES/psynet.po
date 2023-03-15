@@ -1,10 +1,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-25/01/ 09:44:20\n"
-"PO-Revision-Date: 2023-01-27 14:21+0100\n"
+"POT-Creation-Date: 2023-15/03/ 20:43:15\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
 "Language: es\n"
@@ -12,7 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.2\n"
 
 #. {"msgid": ["No lo s\u00e9.", "No s\u00e9.", "No s\u00e9", "No lo s\u00e9"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/demography/general.py
@@ -201,8 +200,8 @@ msgid ""
 "Did you encounter any technical problems during the experiment? If so, "
 "please provide a few words describing the problem."
 msgstr ""
-"¿Encontró algún problema técnico durante el experimento? En caso "
-"afirmativo, describa el problema en pocas palabras."
+"¿Encontró algún problema técnico durante el experimento? En caso afirmativo,"
+" describa el problema en pocas palabras."
 
 #. {"msgid": ["\u00bfLe result\u00f3 dif\u00edcil el experimento?", "\u00bfLe
 #. pareci\u00f3 dif\u00edcil el experimento?", "\u00bfLe ha resultado
@@ -592,8 +591,8 @@ msgstr "¿Alguna vez le han diagnosticado dislexia?"
 #, fuzzy, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+" to be compensated."
 msgstr ""
 "Tienes que acumular <strong>al menos "
 "%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bonificación "
@@ -620,8 +619,8 @@ msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
 msgstr ""
-"¡Abortar el experimento no es posible ya que el experimentador no lo "
-"permite en este momento!"
+"¡Abortar el experimento no es posible ya que el experimentador no lo permite"
+" en este momento!"
 
 #. {"msgid": ["Consulte a continuaci\u00f3n la informaci\u00f3n sobre su
 #. bonificaci\u00f3n acumulada actualmente.", "Vea a continuaci\u00f3n la
@@ -655,17 +654,17 @@ msgstr "Cerrar ventana"
 #. {"msgid": ["ID de asignaci\u00f3n", "Identificaci\u00f3n de la
 #. asignaci\u00f3n", "ID de la asignaci\u00f3n", "Identificaci\u00f3n de la
 #. tarea"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "ID de asignación"
 
 #. {"msgid": ["ID HIT", "HIT ID", "ID DE HIT"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "ID HIT"
@@ -705,8 +704,8 @@ msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
 "be automatically paid the compensation you have earned so far."
 msgstr ""
-"Si pulsa el botón Abortar, el experimento finalizará antes de tiempo y se "
-"le abonará automáticamente la compensación que haya ganado hasta el momento."
+"Si pulsa el botón Abortar, el experimento finalizará antes de tiempo y se le"
+" abonará automáticamente la compensación que haya ganado hasta el momento."
 
 #. {"msgid": ["P\u00f3ngase en contacto con nosotros s\u00f3lo si tiene
 #. problemas para recibir su pago.", "P\u00f3ngase en contacto con nosotros
@@ -784,8 +783,8 @@ msgstr "Convocatoria de participantes"
 #, fuzzy
 msgctxt "ad"
 msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin "
-"the task."
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
 msgstr ""
 "Por favor, haga clic en el botón \"Aceptar HIT\" en el sitio de Amazon "
 "arriba para comenzar la tarea."
@@ -1006,9 +1005,9 @@ msgid ""
 "directly to your image or sound recording, even though it is off course "
 "possible to recognize individuals based on audio-visual material."
 msgstr ""
-"Nunca relacionaremos su nombre real ni ningún dato personal directamente "
-"con su imagen o grabación sonora, aunque, por supuesto, es posible "
-"reconocer a las personas basándose en el material audiovisual."
+"Nunca relacionaremos su nombre real ni ningún dato personal directamente con"
+" su imagen o grabación sonora, aunque, por supuesto, es posible reconocer a "
+"las personas basándose en el material audiovisual."
 
 #. {"msgid": ["Por ejemplo, es posible que desee sentarse en una
 #. habitaci\u00f3n aislada del resto de la casa.", "Por ejemplo, es posible
@@ -1020,8 +1019,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"For example, you may want to sit in a room that is isolated from the rest "
-"of the house."
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
 msgstr ""
 "Por ejemplo, es posible que desee sentarse en una habitación aislada del "
 "resto de la casa."
@@ -1069,16 +1068,15 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"You may wish to make sure that no sounds/visual material in your "
-"environment could be linked to your personal information. In addition, "
-"while you perform a recording, the microphone or camera can capture "
-"unintended audio or video, for example the camera can capture another "
-"family member, or the microphone can capture something you say to another "
-"person."
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
 msgstr ""
 "Además, mientras realiza una grabación, el micrófono o la cámara pueden "
-"captar audio o vídeo no intencionados, por ejemplo, la cámara puede captar "
-"a otro miembro de la familia, o el micrófono puede captar algo que usted le "
+"captar audio o vídeo no intencionados, por ejemplo, la cámara puede captar a"
+" otro miembro de la familia, o el micrófono puede captar algo que usted le "
 "dice a otra persona."
 
 #. {"msgid": ["El material audiovisual no se indexar\u00e1 por
@@ -1099,8 +1097,8 @@ msgid ""
 "Audio-visual material will not be indexed by personal information but will "
 "be linked to personal information by a key (such as “afasd12314asdasd”)."
 msgstr ""
-"El material audiovisual no se indexará por información personal, sino que "
-"se vinculará a la información personal mediante una clave (como "
+"El material audiovisual no se indexará por información personal, sino que se"
+" vinculará a la información personal mediante una clave (como "
 "\"afasd12314asdasd\")."
 
 #. {"msgid": ["Durante la recogida de datos, el material audiovisual se
@@ -1113,8 +1111,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
-"During data collection, audio-visual material will be recorded on a "
-"separate server."
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
 msgstr ""
 "Durante la recogida de datos, el material audiovisual se grabará en un "
 "servidor independiente."
@@ -1144,14 +1142,14 @@ msgstr ""
 #. y acepta estos t\u00e9rminos?", "\u00bfComprende y acepta estas
 #. condiciones?", "\u00bfEntiende y acepta estas condiciones?"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgid "Do you understand and consent to these terms?"
 msgstr "¿Entiende y acepta estos términos?"
@@ -1159,14 +1157,14 @@ msgstr "¿Entiende y acepta estos términos?"
 #. {"msgid": ["Estoy de acuerdo", "Acepto", "Estoy de acuerdo.", "Estoy de
 #. acuerdo..."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "I agree"
@@ -1176,14 +1174,14 @@ msgstr "Estoy de acuerdo"
 #. tarea)", "No, gracias (devolver la tarea)", "No, gracias (devu\u00e9lvame
 #. la tarea)"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "No, thank you (return task)"
@@ -1194,14 +1192,14 @@ msgstr "No, gracias (devuelva la tarea)"
 #. p\u00e1gina.", "Por favor, active Javascript y actualice la p\u00e1gina.",
 #. "Por favor, active Javascript y despu\u00e9s actualice esta p\u00e1gina."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
@@ -1214,14 +1212,14 @@ msgstr "Por favor, active Javascript y luego actualice esta página."
 #. "Este estudio no funcionar\u00e1 a menos que Javascript est\u00e9 activado
 #. en su navegador."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "The study will not work unless Javascript is enabled on your browser."
@@ -1234,14 +1232,14 @@ msgstr ""
 #. funciona en su navegador", "Advertencia: Javascript no est\u00e1
 #. funcionando en su navegador"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
@@ -1262,33 +1260,33 @@ msgstr "Advertencia: Javascript no funciona en su navegador"
 #. que est\u00e1 de acuerdo con su contenido y que acepta tomar parte en esta
 #. investigaci\u00f3n."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid ""
 "By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to "
-"take part in this research."
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
 msgstr ""
-"Al dar su consentimiento para participar, usted reconoce que tiene 18 años "
-"o más, que ha leído este formulario de consentimiento, que está de acuerdo "
+"Al dar su consentimiento para participar, usted reconoce que tiene 18 años o"
+" más, que ha leído este formulario de consentimiento, que está de acuerdo "
 "con su contenido y que acepta participar en esta investigación."
 
 #. {"msgid": ["Consentimiento", "Consentimiento:"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid "Consent"
@@ -1299,11 +1297,11 @@ msgstr "Consentimiento"
 #. "Si no desea dar su consentimiento, por favor, cierre esta p\u00e1gina.",
 #. "Si no desea dar su consentimiento, por favor cierre esta p\u00e1gina"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
@@ -1311,12 +1309,12 @@ msgstr "Si no desea dar su consentimiento, cierre esta página."
 
 #. {"msgid": ["Seguridad", "Seguridad ."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-security"
 msgid "Security"
@@ -1325,11 +1323,11 @@ msgstr "Seguridad"
 #. {"msgid": ["Informaci\u00f3n de contacto", "Datos de contacto", "Contacto",
 #. "Informaci\u00f3n para ponerse en contacto"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-contact"
 msgid "Contact information"
@@ -1340,8 +1338,8 @@ msgstr "Información de contacto"
 #. "Despl\u00e1cese hacia arriba/hacia abajo para ver todo el texto",
 #. "Despl\u00e1cese hacia arriba o hacia abajo para ver todo el texto"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
@@ -1350,11 +1348,11 @@ msgstr "Desplácese arriba/abajo para ver todo el texto"
 
 #. {"msgid": ["Confidencialidad"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid "Confidentiality"
@@ -1369,14 +1367,14 @@ msgstr "Confidencialidad"
 #. compartir los datos con colaboradores de investigaci\u00f3n.", "Con el fin
 #. de contribuir al progreso cient\u00edfico y a la replicaci\u00f3n, a veces
 #. podemos compartir los datos con colaboradores de investigaci\u00f3n."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-collaborations"
 msgid ""
-"For the purpose of helping scientific progress and replication, sometimes "
-"we may share the data with research collaborators."
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
 msgstr ""
 "Con el fin de ayudar al progreso científico y a la replicación, a veces "
 "podemos compartir los datos con colaboradores de investigación."
@@ -1384,8 +1382,8 @@ msgstr ""
 #. {"msgid": ["Colaboraciones en investigaci\u00f3n", "Colaboraciones de
 #. investigaci\u00f3n", "Colaboraciones en la investigaci\u00f3n",
 #. "Colaboraciones en investigaciones"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-collaborations"
@@ -1403,18 +1401,18 @@ msgstr "Colaboraciones en investigación"
 #. las grabaciones que obtengamos durante esta investigaci\u00f3n se
 #. mantendr\u00e1n confidenciales y nadie ajeno al grupo de investigadores
 #. podr\u00e1 compartirlas o almacenarlas."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"All the recordings we obtain during this research will be kept "
-"confidential, and nobody outside the group of researchers will be able to "
-"share or store them."
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
 msgstr ""
 "Todas las grabaciones que obtengamos durante esta investigación serán "
-"confidenciales y nadie ajeno al grupo de investigadores podrá compartirlas "
-"o almacenarlas."
+"confidenciales y nadie ajeno al grupo de investigadores podrá compartirlas o"
+" almacenarlas."
 
 #. {"msgid": ["Aunque los investigadores no utilizar\u00e1n sus grabaciones
 #. para deducir su identidad real, podr\u00eda filtrarse informaci\u00f3n
@@ -1427,14 +1425,14 @@ msgstr ""
 #. "Aunque los investigadores no utilizar\u00e1n sus grabaciones para deducir
 #. su identidad real, podr\u00edan filtrarse datos personales si no se
 #. encuentra en un entorno aislado."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "Although researchers will not use your recordings to derive your real "
-"identity, personal information could be leaked if you are not in an "
-"isolated environment."
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
 msgstr ""
 "Aunque los investigadores no utilizarán sus grabaciones para deducir su "
 "identidad real, podría filtrarse información personal si no se encuentra en "
@@ -1449,8 +1447,8 @@ msgstr ""
 #. desnudarse mientras graba v\u00eddeo.", "Al dar su consentimiento para este
 #. experimento, se compromete a no utilizar palabras malsonantes mientras
 #. graba audio ni a no desnudarse mientras graba v\u00eddeo."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -1473,20 +1471,20 @@ msgstr ""
 #. evaluarlas en diferentes atributos o crear nuevos materiales (por ejemplo
 #. replicar un ritmo que usted haya creado, o continuar una melod\u00eda que
 #. usted haya cantado)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "However, in some experiments, your recordings may be seen or heard by other "
-"participants in order to evaluate them in different attributes or create "
-"new materials (for example replicate a rhythm that you created, or continue "
-"a melody that you sang)."
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
 msgstr ""
 "Sin embargo, en algunos experimentos, sus grabaciones podrán ser vistas u "
 "oídas por otros participantes con el fin de evaluarlas en diferentes "
-"atributos o crear nuevos materiales (por ejemplo replicar un ritmo que "
-"usted creó, o continuar una melodía que usted cantó)."
+"atributos o crear nuevos materiales (por ejemplo replicar un ritmo que usted"
+" creó, o continuar una melodía que usted cantó)."
 
 #. {"msgid": ["El audio/v\u00eddeo en bruto no se compartir\u00e1 con los
 #. colaboradores (s\u00f3lo compartiremos los datos extra\u00eddos de las
@@ -1499,8 +1497,8 @@ msgstr ""
 #. audio/v\u00eddeo sin procesar no se compartir\u00e1 con los colaboradores
 #. (s\u00f3lo compartiremos datos extra\u00eddos de las grabaciones sin
 #. identificadores personales)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -1517,8 +1515,8 @@ msgstr ""
 #. no se asociar\u00e1n a su nombre ni a otros identificadores de ning\u00fan
 #. modo.", "Sus grabaciones no se asociar\u00e1n a su nombre ni a otros
 #. identificadores de ninguna forma."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -1535,13 +1533,13 @@ msgstr ""
 #. verdadera identidad, y no se har\u00e1n p\u00fablicas.", "Sus grabaciones
 #. no se utilizar\u00e1n para deducir su identidad real, ni se har\u00e1n
 #. p\u00fablicas."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"Your recordings will not be used to derive your real identity, and they "
-"will not be made public."
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
 msgstr ""
 "Sus grabaciones no se utilizarán para deducir su identidad real y no se "
 "harán públicas."
@@ -1587,8 +1585,8 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Estoy de acuerdo en que mis grabaciones <i>audiovisuales</i> se utilicen "
-"con fines de demostración en presentaciones con un número limitado de "
+"Estoy de acuerdo en que mis grabaciones <i>audiovisuales</i> se utilicen con"
+" fines de demostración en presentaciones con un número limitado de "
 "participantes (por ejemplo, cursos de enseñanza o presentaciones "
 "científicas)."
 
@@ -1643,8 +1641,8 @@ msgid ""
 "For example, we would like to understand how predictive mechanisms in "
 "perception rely on experience, learning, and memory."
 msgstr ""
-"Por ejemplo, nos gustaría comprender cómo los mecanismos de predicción en "
-"la percepción dependen de la experiencia, el aprendizaje y la memoria."
+"Por ejemplo, nos gustaría comprender cómo los mecanismos de predicción en la"
+" percepción dependen de la experiencia, el aprendizaje y la memoria."
 
 #. {"msgid": ["Estoy de acuerdo con el tratamiento de las grabaciones tal y
 #. como se ha descrito anteriormente.", "Acepto el tratamiento de las
@@ -1691,14 +1689,14 @@ msgstr "He tenido tiempo suficiente para tomar esta decisión."
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
-"I have been informed that the storage and processing of the <i>audiovisual</"
-"i> recording will be carried out in pseudonymized form, i.e., using a "
-"number and without containing my name, and that there is a coding list that "
-"links my name to the number."
+"I have been informed that the storage and processing of the "
+"<i>audiovisual</i> recording will be carried out in pseudonymized form, "
+"i.e., using a number and without containing my name, and that there is a "
+"coding list that links my name to the number."
 msgstr ""
 "Se me ha informado de que el almacenamiento y procesamiento de la grabación "
-"<i>audiovisual</i> se realizará de forma seudonimizada, es decir, "
-"utilizando un número y sin contener mi nombre, y de que existe una lista de "
+"<i>audiovisual</i> se realizará de forma seudonimizada, es decir, utilizando"
+" un número y sin contener mi nombre, y de que existe una lista de "
 "codificación que vincula mi nombre al número."
 
 #. {"msgid": ["He le\u00eddo y comprendido todo y por la presente acepto que
@@ -1713,8 +1711,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
-"I have read and understood everything and hereby agree that <i>audiovisual</"
-"i> recordings of me may be taken."
+"I have read and understood everything and hereby agree that "
+"<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
 "He leído y comprendido todo y por la presente acepto que se realicen "
 "grabaciones <i>audiovisuales</i> de mi persona."
@@ -1835,8 +1833,8 @@ msgid ""
 "The investigators are the only persons who have access to this coding list, "
 "which will be destroyed after completion of the research project."
 msgstr ""
-"Los investigadores son las únicas personas que tienen acceso a esta lista "
-"de codificación, que será destruida una vez finalizado el proyecto de "
+"Los investigadores son las únicas personas que tienen acceso a esta lista de"
+" codificación, que será destruida una vez finalizado el proyecto de "
 "investigación."
 
 #. {"msgid": ["Las grabaciones sirven para comprender c\u00f3mo los humanos
@@ -1873,8 +1871,8 @@ msgstr ""
 "grabaciones de imagen/sonido"
 
 #. {"msgid": ["Investigador"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "Investigator"
@@ -1882,8 +1880,8 @@ msgstr "Investigador"
 
 #. {"msgid": ["Investigador principal", "Investigador Principal",
 #. "Investigador/a principal"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "Principal Investigator"
@@ -1891,8 +1889,8 @@ msgstr "Investigador principal"
 
 #. {"msgid": ["T\u00edtulo del estudio:", "T\u00edtulo del estudio", "Titulo
 #. del estudio:", "Denominaci\u00f3n del estudio:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "Title of study:"
@@ -1944,8 +1942,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-cap"
 msgid ""
-"However, if the coding list has already been destroyed, it will no longer "
-"be possible to identify and thus to delete my data set."
+"However, if the coding list has already been destroyed, it will no longer be"
+" possible to identify and thus to delete my data set."
 msgstr ""
 "Sin embargo, si la lista de codificación ya ha sido destruida, ya no será "
 "posible identificar y, por tanto, borrar mi conjunto de datos."
@@ -1963,8 +1961,8 @@ msgid ""
 "I agree to the described collecting and processing of my age, gender, and "
 "country of birth."
 msgstr ""
-"Estoy de acuerdo con la recogida y el tratamiento descritos de mi edad, "
-"sexo y país de nacimiento."
+"Estoy de acuerdo con la recogida y el tratamiento descritos de mi edad, sexo"
+" y país de nacimiento."
 
 #. {"msgid": ["Se me ha informado de que puedo solicitar la supresi\u00f3n de
 #. todos mis datos en cualquier momento.", "He sido informado de que puedo
@@ -1978,8 +1976,8 @@ msgctxt "consent-cap"
 msgid ""
 "I have been informed that I may request deletion of all my data at any time."
 msgstr ""
-"Se me ha informado de que puedo solicitar la supresión de todos mis datos "
-"en cualquier momento."
+"Se me ha informado de que puedo solicitar la supresión de todos mis datos en"
+" cualquier momento."
 
 #. {"msgid": ["He le\u00eddo y comprendido completamente toda la
 #. informaci\u00f3n.", "He le\u00eddo y comprendido toda la informaci\u00f3n
@@ -2019,8 +2017,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-cap"
 msgid ""
-"I have received written information about the study and the procedure of "
-"the study."
+"I have received written information about the study and the procedure of the"
+" study."
 msgstr ""
 "He recibido información escrita sobre el estudio y el procedimiento del "
 "mismo."
@@ -2059,8 +2057,8 @@ msgid ""
 "The investigators are the only persons who have access to this coding list "
 "and who are thus able to link the collected data to my name."
 msgstr ""
-"Los investigadores son las únicas personas que tienen acceso a esta lista "
-"de codificación y que, por tanto, pueden vincular los datos recogidos a mi "
+"Los investigadores son las únicas personas que tienen acceso a esta lista de"
+" codificación y que, por tanto, pueden vincular los datos recogidos a mi "
 "nombre."
 
 #. {"msgid": ["La hoja de informaci\u00f3n para el participante sobre el
@@ -2133,6 +2131,7 @@ msgstr "Formulario de consentimiento del participante en la investigación"
 #. consentimiento a la recogida y el almacenamiento de mis datos personales
 #. sin consecuencias negativas."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent-cap"
 msgid ""
@@ -2165,10 +2164,10 @@ msgid ""
 "Regulation in the context of personal data being processed in our studies, "
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
-"Si tiene más preguntas sobre el Reglamento General de Protección de Datos "
-"en el contexto del tratamiento de datos personales en nuestros estudios, "
-"póngase en contacto con el Responsable de Protección de Datos de la "
-"Sociedad Max Planck:"
+"Si tiene más preguntas sobre el Reglamento General de Protección de Datos en"
+" el contexto del tratamiento de datos personales en nuestros estudios, "
+"póngase en contacto con el Responsable de Protección de Datos de la Sociedad"
+" Max Planck:"
 
 #. {"msgid": ["Si le invitamos a participar en un estudio, guardamos la fecha
 #. y la hora de esta comunicaci\u00f3n.", "Si le invitamos a participar en un
@@ -2233,8 +2232,8 @@ msgid ""
 msgstr ""
 "Además de sus datos de contacto (es decir, nombre y correo electrónico) y "
 "los datos demográficos solicitados en el inicio de sesión (es decir, edad, "
-"sexo y nacionalidad), también guardamos la fecha y la hora en que realizó "
-"la entrada."
+"sexo y nacionalidad), también guardamos la fecha y la hora en que realizó la"
+" entrada."
 
 #. {"msgid": ["Adem\u00e1s, guardamos la fecha y la hora en que usted
 #. verific\u00f3 su direcci\u00f3n de correo electr\u00f3nico.", "Adem\u00e1s,
@@ -2266,9 +2265,9 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-data"
 msgid ""
-"Of course, before you participate in a study, you will be informed in "
-"detail about the procedure of the study and the collection of data during "
-"the study."
+"Of course, before you participate in a study, you will be informed in detail"
+" about the procedure of the study and the collection of data during the "
+"study."
 msgstr ""
 "Por supuesto, antes de participar en un estudio, se le informará "
 "detalladamente sobre el procedimiento del estudio y la recogida de datos "
@@ -2364,8 +2363,8 @@ msgstr "Duración del almacenamiento de datos"
 #, fuzzy
 msgctxt "consent-duration"
 msgid ""
-"Note that all information, including the experiment and payment history "
-"will be removed from our database."
+"Note that all information, including the experiment and payment history will"
+" be removed from our database."
 msgstr ""
 "Tenga en cuenta que toda la información, incluido el experimento y el "
 "historial de pagos, será eliminada de nuestra base de datos."
@@ -2395,8 +2394,8 @@ msgstr "Para ello, envíe un correo electrónico con el asunto \"Borrar\" a:"
 #, fuzzy
 msgctxt "consent-duration"
 msgid ""
-"You can also delete your data from the database by deleting your account (i."
-"e., press 'Delete account'  in the cap-recruiter log-in page)."
+"You can also delete your data from the database by deleting your account "
+"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "También puede eliminar sus datos de la base de datos borrando su cuenta (es "
 "decir, pulse \"Eliminar cuenta\" en la página de inicio de sesión de cap-"
@@ -2434,8 +2433,8 @@ msgid ""
 "remains in effect."
 msgstr ""
 "Sus datos se almacenarán en la base de datos de contactos mientras siga "
-"vigente la finalidad de dicho almacenamiento, es decir, ponernos en "
-"contacto con usted para que participe en un estudio."
+"vigente la finalidad de dicho almacenamiento, es decir, ponernos en contacto"
+" con usted para que participe en un estudio."
 
 #. {"msgid": ["Sus datos personales se borrar\u00e1n inmediatamente.", "Sus
 #. datos personales se eliminar\u00e1n inmediatamente.", "Sus datos personales
@@ -2477,8 +2476,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-payment"
 msgid ""
-"However we do store completion records and payment details of every task "
-"you completed."
+"However we do store completion records and payment details of every task you"
+" completed."
 msgstr ""
 "Sin embargo, sí almacenamos los registros de finalización y los detalles de "
 "pago de cada tarea que haya completado."
@@ -2497,13 +2496,13 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-payment"
 msgid ""
-"If you cannot or would not like to receive payment via this system, we "
-"would not be able to pay you, however you can still participate in our "
+"If you cannot or would not like to receive payment via this system, we would"
+" not be able to pay you, however you can still participate in our "
 "experiments voluntarily, without payment."
 msgstr ""
-"Si no puede o no desea recibir el pago a través de este sistema, no "
-"podremos pagarle, pero puede participar en nuestros experimentos "
-"voluntariamente, sin pagar."
+"Si no puede o no desea recibir el pago a través de este sistema, no podremos"
+" pagarle, pero puede participar en nuestros experimentos voluntariamente, "
+"sin pagar."
 
 #. {"msgid": ["En este caso no recibir\u00e1 ninguna compensaci\u00f3n por su
 #. tiempo.", "En este caso, no recibir\u00e1 ninguna compensaci\u00f3n por su
@@ -2582,9 +2581,9 @@ msgid ""
 "please search your bank in their website to ensure that you will be able to "
 "receive payment prior to taking part in our experiments."
 msgstr ""
-"Este sistema permite transferir dinero a la mayoría de los bancos del "
-"mundo, por favor, busque su banco en su página web para asegurarse de que "
-"podrá recibir el pago antes de participar en nuestros experimentos."
+"Este sistema permite transferir dinero a la mayoría de los bancos del mundo,"
+" por favor, busque su banco en su página web para asegurarse de que podrá "
+"recibir el pago antes de participar en nuestros experimentos."
 
 #. {"msgid": ["Tambi\u00e9n le recomendamos que compruebe las condiciones del
 #. servicio y su declaraci\u00f3n de privacidad y vea si da su consentimiento
@@ -2649,8 +2648,8 @@ msgstr "Acceso (GDPR art. 15)"
 msgctxt "consent-protection"
 msgid ""
 "As a data subject whose personal data are processed with regard to your "
-"participation in our studies, you have the following rights in principle "
-"and insofar as no legal exceptions apply in individual cases:"
+"participation in our studies, you have the following rights in principle and"
+" insofar as no legal exceptions apply in individual cases:"
 msgstr ""
 "Como interesado cuyos datos personales se procesan en relación con su "
 "participación en nuestros estudios, usted tiene los siguientes derechos en "
@@ -2701,8 +2700,8 @@ msgid ""
 "For the Max Planck Society, this is the Data Protection Authority of "
 "Bavaria, Postfach 1349, 91504 Ansbach, Germany."
 msgstr ""
-"En el caso de la Sociedad Max Planck, se trata de la Autoridad de "
-"Protección de Datos de Baviera, Postfach 1349, 91504 Ansbach, Alemania."
+"En el caso de la Sociedad Max Planck, se trata de la Autoridad de Protección"
+" de Datos de Baviera, Postfach 1349, 91504 Ansbach, Alemania."
 
 #. {"msgid": ["Si tiene alguna pregunta sobre esta investigaci\u00f3n, sus
 #. derechos o el tratamiento como participante, no dude en ponerse en contacto
@@ -2787,8 +2786,8 @@ msgctxt "consent-protection"
 msgid ""
 "Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
 msgstr ""
-"Derecho a presentar una reclamación ante una autoridad de control (GDPR "
-"art. 77)."
+"Derecho a presentar una reclamación ante una autoridad de control (GDPR art."
+" 77)."
 
 #. {"msgid": ["Retirada del consentimiento (GDPR art. 7, apdo. 3)", "Retirada
 #. del consentimiento (GDPR art. 7, p\u00e1rr. 3)", "Retirada del
@@ -2811,8 +2810,8 @@ msgstr "Retirada del consentimiento (GDPR art. 7, apdo. 3)"
 #, fuzzy
 msgctxt "consent-protection"
 msgid ""
-"You may also address your inquiries directly to the Max Planck Institute "
-"for Empirical Aesthetics:"
+"You may also address your inquiries directly to the Max Planck Institute for"
+" Empirical Aesthetics:"
 msgstr ""
 "También puede dirigir sus consultas directamente al Instituto Max Planck de "
 "Estética Empírica:"
@@ -2922,8 +2921,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
-"We will then send you an e-mail with a confirmation link to verify your e-"
-"mail address."
+"We will then send you an e-mail with a confirmation link to verify your "
+"e-mail address."
 msgstr ""
 "A continuación, le enviaremos un correo electrónico con un enlace de "
 "confirmación para verificar su dirección de correo electrónico."
@@ -2941,18 +2940,24 @@ msgid ""
 "Your data are stored in a secure operating environment that is not "
 "accessible to the public."
 msgstr ""
-"Sus datos se almacenan en un entorno operativo seguro que no es accesible "
-"al público."
+"Sus datos se almacenan en un entorno operativo seguro que no es accesible al"
+" público."
 
 #. {"msgid": ["Necesitamos su consentimiento para proceder", "Necesitamos su
 #. consentimiento para continuar", "Necesitamos su consentimiento para
 #. proseguir", "Necesitamos su consentimiento para poder proceder"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
@@ -3055,8 +3060,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we "
-"will inform you and also ask for additional consent."
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
 msgstr ""
 "Si en un experimento se recogen datos que no pueden ser totalmente "
 "anonimizados, le informaremos y también le pediremos un consentimiento "
@@ -3080,9 +3085,8 @@ msgid ""
 "This code will not be used to derive your real identity, will not be shared "
 "with anyone outside of the research team and will be deleted after use."
 msgstr ""
-"Este código no se utilizará para deducir su identidad real, no se "
-"compartirá con nadie ajeno al equipo de investigación y se borrará después "
-"de su uso."
+"Este código no se utilizará para deducir su identidad real, no se compartirá"
+" con nadie ajeno al equipo de investigación y se borrará después de su uso."
 
 #. {"msgid": ["S\u00f3lo guardaremos su c\u00f3digo alfanum\u00e9rico
 #. anonimizado en nuestro sistema, con el fin de distinguir a los
@@ -3099,9 +3103,9 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"We will only save your anonymized alpha numeric code in our system, in "
-"order to distinguish participants who have already taken part in this or "
-"other experiments."
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
 msgstr ""
 "Sólo guardaremos su código alfanumérico anonimizado en nuestro sistema, con "
 "el fin de distinguir a los participantes que ya han tomado parte en éste u "
@@ -3152,6 +3156,8 @@ msgstr "En el caso de la Sociedad Max-Planck, ésta es:"
 #. investigadora principal de este proyecto, Nori Jacoby, en"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-overview"
 msgid ""
@@ -3162,8 +3168,8 @@ msgstr ""
 "contacto con la investigadora principal de este proyecto, Nori Jacoby en:"
 
 #. {"msgid": ["por hora", "Por hora"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgid "per hour"
 msgstr "por hora"
@@ -3174,8 +3180,8 @@ msgstr "por hora"
 #. "Toda la informaci\u00f3n que obtenemos durante la investigaci\u00f3n
 #. ser\u00e1 confidencial.", "Todos los datos que obtengamos durante la
 #. investigaci\u00f3n ser\u00e1n confidenciales."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -3190,8 +3196,8 @@ msgstr ""
 #. objeci\u00f3n ante la autoridad supervisora.", "Tambi\u00e9n tiene derecho
 #. a presentar una objeci\u00f3n ante la autoridad de control.", "Tambi\u00e9n
 #. tiene derecho a presentar una objeci\u00f3n a la autoridad de control."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
@@ -3228,8 +3234,8 @@ msgstr ""
 #. visi\u00f3n por ordenador) y para ayudar a mejorar las capacidades
 #. perceptivas de las personas que tienen problemas de audici\u00f3n o
 #. visi\u00f3n."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-benefits"
@@ -3240,17 +3246,17 @@ msgid ""
 "abilities (e.g. in sound recognition and computer vision) and to help "
 "improve perceptual abilities in people whose hearing or sight is impaired."
 msgstr ""
-"Aunque puede que no le beneficie directamente, este estudio puede "
-"beneficiar a la sociedad al ayudarnos a comprender cómo los humanos "
-"obtienen información del sonido y la visión, y potencialmente para ayudar a "
-"diseñar máquinas que puedan replicar nuestras capacidades (por ejemplo, en "
-"el reconocimiento del sonido y la visión por ordenador) y para ayudar a "
-"mejorar las capacidades perceptivas de las personas con deficiencias "
-"auditivas o visuales."
+"Aunque puede que no le beneficie directamente, este estudio puede beneficiar"
+" a la sociedad al ayudarnos a comprender cómo los humanos obtienen "
+"información del sonido y la visión, y potencialmente para ayudar a diseñar "
+"máquinas que puedan replicar nuestras capacidades (por ejemplo, en el "
+"reconocimiento del sonido y la visión por ordenador) y para ayudar a mejorar"
+" las capacidades perceptivas de las personas con deficiencias auditivas o "
+"visuales."
 
 #. {"msgid": ["Beneficios", "Ventajas", "Beneficia a", "Beneficia a ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-benefits"
@@ -3259,8 +3265,8 @@ msgstr "Beneficios"
 
 #. {"msgid": ["Compensaci\u00f3n", "Indemnizaci\u00f3n", "Remuneraci\u00f3n",
 #. "Compensaci\u00f3n ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-compensation"
@@ -3274,8 +3280,8 @@ msgstr "Compensación"
 #. del experimento.", "No se recopilar\u00e1 ni utilizar\u00e1 ning\u00fan
 #. identificador personal (por ejemplo, su nombre o datos de contacto) en
 #. ninguna fase del experimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
@@ -3290,8 +3296,8 @@ msgstr ""
 #. "Por tanto, los datos del experimento son an\u00f3nimos.", "Por lo tanto,
 #. los datos experimentales son an\u00f3nimos.", "Por tanto, los datos
 #. experimentales son an\u00f3nimos."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
@@ -3300,8 +3306,8 @@ msgstr "Por lo tanto, los datos del experimento son anónimos."
 
 #. {"msgid": ["Resumen", "Visi\u00f3n general", "Vista general",
 #. "Panor\u00e1mica general"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-overview"
@@ -3318,8 +3324,8 @@ msgstr "Resumen"
 #. objetivo de este formulario en l\u00ednea es ofrecerle informaci\u00f3n que
 #. le ayude a decidir si desea participar en un estudio de
 #. investigaci\u00f3n."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-overview"
@@ -3327,8 +3333,8 @@ msgid ""
 "The purpose of this online form is to give you information to help you "
 "decide whether you want to take part in a research study."
 msgstr ""
-"El objetivo de este formulario en línea es proporcionarle información que "
-"le ayude a decidir si desea participar en un estudio de investigación."
+"El objetivo de este formulario en línea es proporcionarle información que le"
+" ayude a decidir si desea participar en un estudio de investigación."
 
 #. {"msgid": ["Esta investigaci\u00f3n est\u00e1 siendo llevada a cabo por
 #. investigadores del Instituto Max-Planck de Est\u00e9tica Emp\u00edrica.",
@@ -3338,8 +3344,8 @@ msgstr ""
 #. Est\u00e9tica Emp\u00edrica.", "Esta investigaci\u00f3n la est\u00e1n
 #. llevando a cabo investigadores del Instituto Max-Planck de Est\u00e9tica
 #. Emp\u00edrica."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-overview"
@@ -3378,18 +3384,17 @@ msgstr ""
 #. encuentra con este tipo de sonido o imagen?, \u00bfhasta qu\u00e9 punto
 #. considera est\u00e9ticamente agradable un sonido o una imagen en
 #. particular?)"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or "
-"an image is, or to categorize sounds or images (e.g., if a sound or an "
-"image is that of a car or a cow), or to judge other basic features of "
-"sounds or images (e.g., how frequently do you encounter this type of sound "
-"or image? how aesthetically pleasing you consider a particular sound or "
-"image?)."
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
 msgstr ""
 "Por ejemplo, se le puede pedir que juzgue lo agradable que es un sonido o "
 "una imagen en particular, o que categorice los sonidos o las imágenes (por "
@@ -3411,8 +3416,8 @@ msgstr ""
 #. para participar en este estudio, se le pedir\u00e1 que realice tareas
 #. sencillas utilizando el teclado o el rat\u00f3n mientras escucha sonidos o
 #. mientras observa im\u00e1genes o v\u00eddeos."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
@@ -3441,20 +3446,20 @@ msgstr ""
 #. verdad sobre una tarea experimental (por ejemplo, no le diremos que una
 #. imagen fue generada por un sistema inform\u00e1tico artificial y no por un
 #. humano)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain "
-"the full truth regarding an experimental task (for example we will not tell "
-"you that an image was generated by an artificial computer system and not a "
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
 "human)."
 msgstr ""
-"En algunos experimentos, es posible que utilicemos el engaño leve, es "
-"decir, que no le expliquemos toda la verdad sobre una tarea experimental "
-"(por ejemplo, no le diremos que una imagen ha sido generada por un sistema "
+"En algunos experimentos, es posible que utilicemos el engaño leve, es decir,"
+" que no le expliquemos toda la verdad sobre una tarea experimental (por "
+"ejemplo, no le diremos que una imagen ha sido generada por un sistema "
 "informático artificial y no por un humano)."
 
 #. {"msgid": ["El enga\u00f1o leve s\u00f3lo se utilizar\u00e1 en algunos
@@ -3467,8 +3472,8 @@ msgstr ""
 #. experimento.", "El enga\u00f1o leve s\u00f3lo se utilizar\u00e1 en algunos
 #. experimentos en los que necesitemos evitar sesgar a los participantes antes
 #. de llevar a cabo el experimento."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
@@ -3481,8 +3486,8 @@ msgstr ""
 "experimento."
 
 #. {"msgid": ["Procedimiento", "Procedimiento:", "Procedimiento: ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
@@ -3510,8 +3515,8 @@ msgstr "Procedimiento"
 #. simples, im\u00e1genes naturalistas, im\u00e1genes animadas, c\u00f3mics,
 #. rostros, objetos, formas geom\u00e9tricas, im\u00e1genes fractales o
 #. v\u00eddeos de entornos naturales."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
@@ -3528,8 +3533,8 @@ msgstr ""
 "naturales."
 
 #. {"msgid": ["Finalidad", "Prop\u00f3sito", "Objetivo", "Objeto"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-purpose"
@@ -3553,16 +3558,16 @@ msgstr "Finalidad"
 #. almacenan en el Instituto Max-Planck, derecho a corregir los datos
 #. inexactos y derecho a exigir la supresi\u00f3n de los datos en caso de
 #. almacenamiento inadmisible y derecho a la portabilidad de datos."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
-"You have the right to information regarding the data relating to you that "
-"is stored at the Max-Planck-Institute, the right to correct inaccurate "
-"data, and the right to demand the deletion of data in cases of inadmissible "
-"data storage and the right to data portability."
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
 msgstr ""
 "Usted tiene derecho a la información sobre los datos relativos a su persona "
 "que se almacenan en el Instituto Max-Planck, derecho a corregir los datos "
@@ -3570,8 +3575,8 @@ msgstr ""
 "almacenamiento inadmisible y derecho a la portabilidad de los datos."
 
 #. {"msgid": ["Sus derechos", "Sus Derechos", "Derechos"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-rights"
@@ -3580,8 +3585,8 @@ msgstr "Sus derechos"
 
 #. {"msgid": ["Riesgos/descomodidades", "Riesgos/dificultades",
 #. "Riesgos/Discomodidades", "Riesgos/Discomforturas"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-risks"
@@ -3595,8 +3600,8 @@ msgstr "Riesgos/descomodidades"
 #. estudio m\u00e1s all\u00e1 de los asociados al uso normal de un
 #. ordenador.", "No existen riesgos por participar en este estudio m\u00e1s
 #. all\u00e1 de los asociados con el uso normal del ordenador."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-risks"
@@ -3616,8 +3621,8 @@ msgstr ""
 #. protegidos por contrase\u00f1a.", "Los datos se almacenar\u00e1n
 #. temporalmente en servidores externos y ordenadores de
 #. sobremesa/port\u00e1tiles que est\u00e1n protegidos por contrase\u00f1a."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-security"
@@ -3633,8 +3638,8 @@ msgstr ""
 #. externos.", "No se almacenar\u00e1 ning\u00fan dato de forma permanente en
 #. servidores externos.", "Ning\u00fan dato se almacenar\u00e1 de forma
 #. permanente en servidores externos."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-security"
@@ -3650,8 +3655,8 @@ msgstr "No se almacenarán datos de forma permanente en servidores externos."
 #. datos se almacenar\u00e1n de forma permanente en los servidores del
 #. instituto con discos duros encriptados mediante un software de
 #. encriptaci\u00f3n est\u00e1ndar del sector."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-security"
@@ -3670,8 +3675,8 @@ msgstr ""
 #. si surgen circunstancias que as\u00ed lo justifiquen.", "El investigador
 #. podr\u00e1 retirarle de esta investigaci\u00f3n si surgen circunstancias
 #. que as\u00ed lo justifiquen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
@@ -3683,8 +3688,8 @@ msgstr ""
 "circunstancias que lo justifiquen."
 
 #. {"msgid": ["Participaci\u00f3n voluntaria"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
@@ -3698,8 +3703,8 @@ msgstr "Participación voluntaria"
 #. estudio en cualquier momento sin penalizaci\u00f3n alguna.", "Es usted
 #. libre de interrumpir su participaci\u00f3n en este estudio en cualquier
 #. momento sin penalizaci\u00f3n alguna."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
@@ -3713,8 +3718,8 @@ msgstr ""
 #. {"msgid": ["Su participaci\u00f3n en esta investigaci\u00f3n es
 #. voluntaria.", "Su participaci\u00f3n en la presente investigaci\u00f3n es
 #. voluntaria.", "Su participaci\u00f3n en este estudio es voluntaria."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
@@ -3739,8 +3744,8 @@ msgid ""
 "In these cases, we will only share fully anonymized data, such as "
 "demographic, aggregated, or extracted data without any personal identifiers."
 msgstr ""
-"En estos casos, sólo compartiremos datos totalmente anonimizados, como "
-"datos demográficos, agregados o extraídos sin ningún identificador personal."
+"En estos casos, sólo compartiremos datos totalmente anonimizados, como datos"
+" demográficos, agregados o extraídos sin ningún identificador personal."
 
 #. {"msgid": ["Esto incluye los experimentos en los que realizamos grabaciones
 #. audiovisuales o en los que necesitamos sus datos de contacto para ponernos
@@ -3821,10 +3826,10 @@ msgid ""
 "recording, for example, you may be asked to record your finger-tapping in "
 "response to a sound or video, or to record yourself speaking or singing."
 msgstr ""
-"Por último, en algunos experimentos se le puede pedir que haga una "
-"grabación de voz o de vídeo, por ejemplo, se le puede pedir que grabe el "
-"golpeteo de sus dedos en respuesta a un sonido o vídeo, o que se grabe "
-"hablando o cantando."
+"Por último, en algunos experimentos se le puede pedir que haga una grabación"
+" de voz o de vídeo, por ejemplo, se le puede pedir que grabe el golpeteo de "
+"sus dedos en respuesta a un sonido o vídeo, o que se grabe hablando o "
+"cantando."
 
 #. {"msgid": ["Si el experimento va a contener estos elementos le pediremos un
 #. consentimiento adicional.", "Si el experimento contiene estos elementos le
@@ -3885,6 +3890,40 @@ msgstr ""
 "Es libre de negarse a participar y puede dejar de hacerlo en cualquier "
 "momento."
 
+#. {"msgid": ["Por ejemplo, se le puede pedir que grabe el golpeteo de sus
+#. dedos en respuesta a un sonido o v\u00eddeo, o que se grabe hablando o
+#. cantando.", "Por ejemplo, se le puede pedir que grabe el golpeteo de sus
+#. dedos en respuesta a un sonido o v\u00eddeo, o que se grabe a s\u00ed mismo
+#. hablando o cantando.", "Por ejemplo, se le puede pedir que grabe el
+#. golpeteo de sus dedos en respuesta a un sonido o un v\u00eddeo, o que se
+#. grabe hablando o cantando.", "Por ejemplo, puede que se le pida que grabe
+#. el golpeteo de sus dedos en respuesta a un sonido o v\u00eddeo, o que se
+#. grabe hablando o cantando."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"For example, you may be asked to record your finger-tapping in response to a"
+" sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Por ejemplo, se le puede pedir que grabe el golpeteo de sus dedos en "
+"respuesta a un sonido o vídeo, o que se grabe hablando o cantando."
+
+#. {"msgid": ["En este experimento, es posible que se le pida que realice una
+#. grabaci\u00f3n de voz o de v\u00eddeo.", "En este experimento, se le puede
+#. pedir que realice una grabaci\u00f3n de voz o de v\u00eddeo.", "En este
+#. experimento, es posible que se le pida que realice una grabaci\u00f3n de
+#. voz o v\u00eddeo.", "En este experimento se le puede pedir que realice una
+#. grabaci\u00f3n de voz o de v\u00eddeo."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"In this experiment, you may be asked to make a voice or video recording."
+msgstr ""
+"En este experimento, es posible que se le pida que realice una grabación de "
+"voz o de vídeo."
+
 #. {"msgid": ["Si decide participar en el experimento, es importante y su
 #. responsabilidad asegurarse de que mientras graba audio y v\u00eddeo no se
 #. graba nada que no pretenda que se grabe. Por ejemplo, puede que quiera
@@ -3941,8 +3980,8 @@ msgid ""
 "another person."
 msgstr ""
 "Además, mientras realiza una grabación, el micrófono o la cámara pueden "
-"captar audio o vídeo no intencionados, por ejemplo, la cámara puede captar "
-"a otro miembro de la familia, o el micrófono puede captar algo que usted le "
+"captar audio o vídeo no intencionados, por ejemplo, la cámara puede captar a"
+" otro miembro de la familia, o el micrófono puede captar algo que usted le "
 "dice a otra persona."
 
 #. {"msgid": ["Tal vez desee asegurarse de que ning\u00fan material
@@ -3958,8 +3997,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"You may wish to make sure that no sounds/visual material in your "
-"environment could be linked to your personal information."
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information."
 msgstr ""
 "Tal vez desee asegurarse de que ningún material sonoro/visual de su entorno "
 "pueda vincularse a su información personal."
@@ -3978,9 +4017,9 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
-"During data collection, audio-visual material will be recorded on a "
-"separate server and encrypted using a strong encryption protocol (such as "
-"Advanced Encryption Standard)."
+"During data collection, audio-visual material will be recorded on a separate"
+" server and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
 msgstr ""
 "Durante la recopilación de datos, el material audiovisual se grabará en un "
 "servidor independiente y se encriptará utilizando un protocolo de "
@@ -3998,42 +4037,8 @@ msgstr ""
 msgctxt "consent-security"
 msgid "MTurk ID information will not be used to index this data."
 msgstr ""
-"La información de identificación de MTurk no se utilizará para indexar "
-"estos datos."
-
-#. {"msgid": ["Por ejemplo, se le puede pedir que grabe el golpeteo de sus
-#. dedos en respuesta a un sonido o v\u00eddeo, o que se grabe hablando o
-#. cantando.", "Por ejemplo, se le puede pedir que grabe el golpeteo de sus
-#. dedos en respuesta a un sonido o v\u00eddeo, o que se grabe a s\u00ed mismo
-#. hablando o cantando.", "Por ejemplo, se le puede pedir que grabe el
-#. golpeteo de sus dedos en respuesta a un sonido o un v\u00eddeo, o que se
-#. grabe hablando o cantando.", "Por ejemplo, puede que se le pida que grabe
-#. el golpeteo de sus dedos en respuesta a un sonido o v\u00eddeo, o que se
-#. grabe hablando o cantando."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"For example, you may be asked to record your finger-tapping in response to "
-"a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Por ejemplo, se le puede pedir que grabe el golpeteo de sus dedos en "
-"respuesta a un sonido o vídeo, o que se grabe hablando o cantando."
-
-#. {"msgid": ["En este experimento, es posible que se le pida que realice una
-#. grabaci\u00f3n de voz o de v\u00eddeo.", "En este experimento, se le puede
-#. pedir que realice una grabaci\u00f3n de voz o de v\u00eddeo.", "En este
-#. experimento, es posible que se le pida que realice una grabaci\u00f3n de
-#. voz o v\u00eddeo.", "En este experimento se le puede pedir que realice una
-#. grabaci\u00f3n de voz o de v\u00eddeo."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"In this experiment, you may be asked to make a voice or video recording."
-msgstr ""
-"En este experimento, es posible que se le pida que realice una grabación de "
-"voz o de vídeo."
+"La información de identificación de MTurk no se utilizará para indexar estos"
+" datos."
 
 #. {"msgid": ["Si no desea dar su consentimiento, por favor cierre esta
 #. p\u00e1gina y devuelva el HIT en Mechanical Turk.", "Si no desea dar su
@@ -4042,8 +4047,8 @@ msgstr ""
 #. p\u00e1gina y devuelva el HIT en Mechanical Turk.", "Si no desea dar su
 #. consentimiento, por favor, cierre esta p\u00e1gina y devuelva el HIT en la
 #. Turca Mec\u00e1nica."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid ""
@@ -4223,8 +4228,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-contact"
 msgid ""
-"If you have any questions about Your rights or treatment as a participant "
-"in this research project, please contact:"
+"If you have any questions about Your rights or treatment as a participant in"
+" this research project, please contact:"
 msgstr ""
 "Si tiene alguna pregunta sobre sus derechos o tratamiento como participante "
 "en este proyecto de investigación, no dude en ponerse en contacto con:"
@@ -4268,6 +4273,23 @@ msgstr ""
 "Aunque los investigadores no utilizarán su ID de MTurk para deducir su "
 "identidad real, su ID de MTurk podría vincularse a su página de perfil "
 "público de Amazon si se produjera una violación de datos."
+
+#. {"msgid": ["Por lo tanto, es posible que desee restringir qu\u00e9
+#. informaci\u00f3n decide compartir p\u00fablicamente.", "Por lo tanto, es
+#. posible que desee restringir la informaci\u00f3n que decida compartir
+#. p\u00fablicamente.", "Por lo tanto, es posible que desee restringir la
+#. informaci\u00f3n que decide compartir p\u00fablicamente.", "Por lo tanto,
+#. puede que desee restringir la informaci\u00f3n que decida compartir
+#. p\u00fablicamente."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Por lo tanto, es posible que desee restringir qué información decide "
+"compartir públicamente."
 
 #. {"msgid": ["Cualquier riesgo conocido que conlleve.", "Cualquier riesgo
 #. conocido que implique.", "Cualquier riesgo conocido.", "Los riesgos
@@ -4408,8 +4430,8 @@ msgid ""
 "Specifically, we would like to understand how predictive mechanisms in "
 "perception rely on experience, learning and memory."
 msgstr ""
-"En concreto, nos gustaría comprender cómo los mecanismos de predicción en "
-"la percepción dependen de la experiencia, el aprendizaje y la memoria."
+"En concreto, nos gustaría comprender cómo los mecanismos de predicción en la"
+" percepción dependen de la experiencia, el aprendizaje y la memoria."
 
 #. {"msgid": ["Los objetivos a largo plazo de este proyecto son comprender
 #. c\u00f3mo los humanos obtienen informaci\u00f3n del sonido y la
@@ -4441,17 +4463,17 @@ msgstr ""
 msgctxt "consent-purpose"
 msgid ""
 "The long-term goals of this project are to understand how humans derive "
-"information from sound and vision, and potentially to help engineer "
-"machines that can replicate our abilities (e.g. in sound/image recognition "
-"and computer vision) and to help improve perceptual abilities in people "
-"whose hearing or sight is impaired."
+"information from sound and vision, and potentially to help engineer machines"
+" that can replicate our abilities (e.g. in sound/image recognition and "
+"computer vision) and to help improve perceptual abilities in people whose "
+"hearing or sight is impaired."
 msgstr ""
-"Los objetivos a largo plazo de este proyecto son comprender cómo los "
-"humanos obtienen información del sonido y la visión, y potencialmente "
-"ayudar a diseñar máquinas que puedan replicar nuestras capacidades (por "
-"ejemplo, en el reconocimiento de sonido/imagen y la visión por ordenador) y "
-"ayudar a mejorar las capacidades perceptivas en personas con deficiencias "
-"auditivas o visuales."
+"Los objetivos a largo plazo de este proyecto son comprender cómo los humanos"
+" obtienen información del sonido y la visión, y potencialmente ayudar a "
+"diseñar máquinas que puedan replicar nuestras capacidades (por ejemplo, en "
+"el reconocimiento de sonido/imagen y la visión por ordenador) y ayudar a "
+"mejorar las capacidades perceptivas en personas con deficiencias auditivas o"
+" visuales."
 
 #. {"msgid": ["El prop\u00f3sito de este proyecto es caracterizar las
 #. representaciones internas en la audici\u00f3n y la visi\u00f3n.", "La
@@ -4568,27 +4590,10 @@ msgstr ""
 "Usted es libre de negarse a participar, y puede dejar de hacerlo en "
 "cualquier momento."
 
-#. {"msgid": ["Por lo tanto, es posible que desee restringir qu\u00e9
-#. informaci\u00f3n decide compartir p\u00fablicamente.", "Por lo tanto, es
-#. posible que desee restringir la informaci\u00f3n que decida compartir
-#. p\u00fablicamente.", "Por lo tanto, es posible que desee restringir la
-#. informaci\u00f3n que decide compartir p\u00fablicamente.", "Por lo tanto,
-#. puede que desee restringir la informaci\u00f3n que decida compartir
-#. p\u00fablicamente."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#, fuzzy
-msgctxt "consent-disclaimer"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Por lo tanto, es posible que desee restringir qué información decide "
-"compartir públicamente."
-
 #. {"msgid": ["Descargo de responsabilidad", "Exenci\u00f3n de
 #. responsabilidad", "Aviso legal", "Renuncia de responsabilidad"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-disclaimer"
 msgid "Disclaimer"
@@ -4639,8 +4644,8 @@ msgid ""
 "singing."
 msgstr ""
 "Esto incluye grabaciones audiovisuales, como la grabación del golpeteo de "
-"sus dedos en respuesta a un sonido o vídeo, o grabarse a sí mismo hablando "
-"o cantando."
+"sus dedos en respuesta a un sonido o vídeo, o grabarse a sí mismo hablando o"
+" cantando."
 
 #. {"msgid": ["Tambi\u00e9n es posible que queramos publicar ciertos
 #. materiales como parte de la publicaci\u00f3n cient\u00edfica, como un
@@ -4661,9 +4666,9 @@ msgid ""
 "We may also want to publish certain materials as part of the scientific "
 "publication, such as a demo video of the task or part of an interview."
 msgstr ""
-"También es posible que queramos publicar ciertos materiales como parte de "
-"la publicación científica, como un vídeo demostrativo de la tarea o parte "
-"de una entrevista."
+"También es posible que queramos publicar ciertos materiales como parte de la"
+" publicación científica, como un vídeo demostrativo de la tarea o parte de "
+"una entrevista."
 
 #. {"msgid": ["Sin embargo, sus datos no se asociar\u00e1n directamente con su
 #. nombre u otros identificadores de ninguna manera (no especificaremos su
@@ -4682,8 +4687,8 @@ msgstr ""
 msgctxt "consent-confidentiality"
 msgid ""
 "However, your data will not be directly associated with your name or other "
-"identifiers in any way (we will not specify your name when presenting audio/"
-"video materials of yours)."
+"identifiers in any way (we will not specify your name when presenting "
+"audio/video materials of yours)."
 msgstr ""
 "Sin embargo, sus datos no se asociarán directamente con su nombre u otros "
 "identificadores de ninguna manera (no especificaremos su nombre cuando "
@@ -4812,8 +4817,8 @@ msgid ""
 "(https://osf.io/) and will be available to everybody with internet access."
 msgstr ""
 "Los datos se publicarán en marcos/sitios web de ciencia abierta como OSF "
-"(https://osf.io/) y estarán a disposición de todas las personas con acceso "
-"a Internet."
+"(https://osf.io/) y estarán a disposición de todas las personas con acceso a"
+" Internet."
 
 #. {"msgid": ["El material audiovisual s\u00f3lo se compartir\u00e1 si usted
 #. da su consentimiento mediante un formulario de consentimiento adicional,
@@ -4883,8 +4888,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we "
-"will inform you and also ask for additional consent. Consenting to these "
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent. Consenting to these "
 "additional requirements is also fully voluntary."
 msgstr ""
 "Si en un experimento se recogen datos que no pueden ser totalmente "
@@ -4915,10 +4920,10 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-purpose"
 msgid ""
-"Specifically, we aim to combine a wide range of behavioural methodologies "
-"to characterize the ways in which people from diverse backgrounds "
-"internalize and process external conditions, both in the auditory (e.g., "
-"speech, music) and visual (e.g., faces, color) domains."
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
 msgstr ""
 "En concreto, pretendemos combinar una amplia gama de metodologías "
 "conductuales para caracterizar las formas en que personas de diversos "
@@ -4960,8 +4965,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-purpose"
 msgid ""
-"We are also interested in the way that these internal representations "
-"affect human decision making and behaviour."
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
 msgstr ""
 "También nos interesa el modo en que estas representaciones internas afectan "
 "a la toma de decisiones y al comportamiento humanos."
@@ -4978,8 +4983,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
-"You also have the right to submit an objection to the supervisory "
-"authority. For the Max-Planck-Society, this is:"
+"You also have the right to submit an objection to the supervisory authority."
+" For the Max-Planck-Society, this is:"
 msgstr ""
 "Usted también tiene derecho a presentar una objeción a la autoridad "
 "supervisora. Para la Sociedad Max-Planck, esto es:"
@@ -5015,9 +5020,10 @@ msgstr "Para completar su Encuesta Lucid, haga clic en el botón de abajo."
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html
 #, fuzzy, python-format
 msgid ""
-"In addition to your base payment of <strong>%(currency)s%(BASE_PAYMENT)s</"
-"strong>, you will receive a bonus of <strong>%(currency)s%(BONUS)s</strong> "
-"for the time you spent on the experiment."
+"In addition to your base payment of "
+"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"experiment."
 msgstr ""
 "Además de su pago base de <strong>%(currency)s%(BASE_PAYMENT)s</strong>, "
 "recibirá una bonificación de <strong>%(currency)s%(BONUS)s</strong> por el "
@@ -5189,9 +5195,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Una vez abortado, no es necesario que se ponga en contacto con nosotros "
-"para recibir la compensación; ésta debería concedérsele automáticamente a "
-"través de MTurk unos minutos después."
+"Una vez abortado, no es necesario que se ponga en contacto con nosotros para"
+" recibir la compensación; ésta debería concedérsele automáticamente a través"
+" de MTurk unos minutos después."
 
 #. {"msgid": ["Por favor, indique tambi\u00e9n la siguiente
 #. informaci\u00f3n:", "Por favor, cite tambi\u00e9n la siguiente
@@ -5217,14 +5223,15 @@ msgstr "Por favor, indique también la siguiente información:"
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
-"You may be able to abort the experiment using the <strong>Abort experiment</"
-"strong> button <strong>on the MTurk ad page</strong>."
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
 "Puede abortar el experimento utilizando el botón <strong>Abortar "
 "experimento</strong> <strong>en la página del anuncio de MTurk</strong>."
 
 #. {"msgid": ["Abortar experimento", "Abortar el experimento", "Abortar
 #. Experimento", "Aborte el experimento"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #, fuzzy
 msgid "Abort Experiment"
@@ -5235,6 +5242,7 @@ msgstr "Abortar experimento"
 #. compensaci\u00f3n en caso de error.", "Haga clic en el bot\u00f3n de arriba
 #. para recibir una compensaci\u00f3n en caso de error.", "Pulse el bot\u00f3n
 #. de arriba para ser compensado en caso de error."]}
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
 #, fuzzy
 msgctxt "mturk_error"
@@ -8082,17 +8090,20 @@ msgstr "Zulú"
 
 #. {"msgid": ["Tonga"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py
 msgctxt "country_name"
 msgid "Tonga"
 msgstr "Tonga"
 
 #. {"msgid": ["Lao", "Laos", "lao"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py
 msgctxt "language_name"
 msgid "Lao"
 msgstr "Lao"
 
 #. {"msgid": ["Nauru"]}
+#: /Users/pol.van-rijn/psynet-package/psynet/utils.py
 #: /Users/pol.van-rijn/psynet-package/psynet/utils.py
 msgctxt "language_name"
 msgid "Nauru"
