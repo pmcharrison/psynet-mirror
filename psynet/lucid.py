@@ -173,16 +173,20 @@ class LucidService(object):
                 "Order": 2,
                 "PreCodes": ["Chrome"],
             },
-            {
-                "Name": "headphones",
-                "QuestionID": 149326,
-                "LogicalOperator": "OR",
-                "NumberOfRequiredConditions": 1,
-                "IsActive": True,
-                "Order": 3,
-                "PreCodes": ["1"],
-            },
         ]
+
+        if self.recruitment_config["qualifications"].get("headphones"):
+            qualifications.append(
+                {
+                    "Name": "headphones",
+                    "QuestionID": 149326,
+                    "LogicalOperator": "OR",
+                    "NumberOfRequiredConditions": 1,
+                    "IsActive": True,
+                    "Order": 3,
+                    "PreCodes": ["1"],
+                }
+            )
 
         for qualification in qualifications:
             request_data = json.dumps(qualification)
