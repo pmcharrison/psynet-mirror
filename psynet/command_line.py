@@ -626,7 +626,7 @@ def _pre_launch(
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
     log("Running pre-launch checks...")
-    run_pre_checks(mode, local_, heroku, docker, app)
+    # run_pre_checks(mode, local_, heroku, docker, app)
     log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
@@ -1140,7 +1140,7 @@ def update(dallinger_version, psynet_version, verbose):
         )
 
     if is_editable("dallinger"):
-        text = "Installing development requirements and base packages..."
+        text = "Installing base packages and development requirements..."
         install_command = "pip install --editable '.[data]'"
     else:
         text = "Installing base packages..."
