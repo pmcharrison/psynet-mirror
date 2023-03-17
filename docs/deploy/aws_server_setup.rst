@@ -32,7 +32,7 @@ Here is a brief summary of the steps involved:
 
 8. Select 't2.large' as the instance type.
 
-9. Click 'Create key pair' and give it a name, e.g. 'test-psynet'.
+9. Click 'Create key pair' (RSA) and give it a name, e.g. 'test-psynet'.
    When done, a .pem file should be downloaded onto your computer.
    To save it within your SSH agent, run ``ssh-add ~/Downloads/test-psynet.pem``,
    using your own file name as appropriate.
@@ -71,6 +71,8 @@ If it doesn't work, you may have to examine your security group/IP address combi
 
     dallinger docker-ssh servers add --host ec2-18-170-115-131.eu-west-2.compute.amazonaws.com --user ubuntu
 
+where the ``host`` argument (beginning with 'ec2') corresponds to your Public IPv4 DNS.
+
 Under the line 'Checking Docker presence', you may see the following:
 
 ::
@@ -79,10 +81,7 @@ Under the line 'Checking Docker presence', you may see the following:
 
     bash: line 1: docker: command not found
 
-This is not a real error, don't worry. The script should proceed by installing Docker.
-You might see similar messages corresponding to the installation of pip and docker-compose.
-
-where the ``host`` argument (beginning with 'ec2') corresponds to your Public IPv4 DNS.
+This is not a real error, don't worry. The script should proceed by installing Docker, including the Docker Compose plugin.
 
 15. Now you can try launching your own experiment by running the following within an experiment
     directory:
