@@ -626,7 +626,7 @@ def _pre_launch(
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
     log("Running pre-launch checks...")
-    # run_pre_checks(mode, local_, heroku, docker, app)
+    run_pre_checks(mode, local_, heroku, docker, app)
     log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
