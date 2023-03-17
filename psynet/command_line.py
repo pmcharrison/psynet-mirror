@@ -1140,7 +1140,7 @@ def update(dallinger_version, psynet_version, verbose):
         )
 
     if is_editable("dallinger"):
-        text = "Installing development requirements and base packages..."
+        text = "Installing base packages and development requirements..."
         install_command = "pip install --editable '.[data]'"
     else:
         text = "Installing base packages..."

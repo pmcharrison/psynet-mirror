@@ -22,6 +22,39 @@ def make_batch_file(in_files, output_path):
                 output.write(i.read())
 
 
+def unpack_batch_file(input_path: str, output_paths: list[str]):
+    """
+    Converts a batch file into a list of files. It's the inverse of make_batch_file.
+    Parameters
+    ----------
+    input_path: str, path to the batch file
+    output_paths: list of str, paths to the output files
+
+    Returns output_paths
+    -------
+
+    """
+    with open(input_path, "rb") as f:
+        bb = f.read()
+
+    separated_batch = []
+    offset = 0
+    while offset < len(bb):
+        size = struct.unpack("I", bb[offset : offset + 4])[0]
+        offset += 4
+        print(offset, size)
+        offset += size
+        separated_batch.append(bb[offset - size : offset])
+
+    assert len(output_paths) == len(separated_batch)
+
+    for idx, output_bytes in enumerate(separated_batch):
+        output_path = output_paths[idx]
+        with open(output_path, "wb") as f:
+            f.write(output_bytes)
+    return output_paths
+
+
 @cache
 def get_aws_credentials(capitalize=False):
     config = get_config()
