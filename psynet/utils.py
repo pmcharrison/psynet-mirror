@@ -24,7 +24,7 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.config import config, get_config
+from dallinger.config import get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -491,21 +491,6 @@ def pretty_log_dict(dict, spaces_for_indentation=0):
     )
 
 
-def get_language():
-    """
-    Returns the language selected in config.txt.
-    Throws a KeyError if no such language is specified.
-
-    Returns
-    -------
-
-    A string, for example "en".
-    """
-    if not config.ready:
-        config.load()
-    return config.get("language", "en")
-
-
 def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
@@ -577,7 +562,9 @@ def get_translator(
         except Exception:
             pass
     if locale is None:
-        locale = get_language()
+        from psynet.experiment import Experiment
+
+        locale = Experiment.var.current_locale
     if exists(join_path(localedir, locale, "LC_MESSAGES", f"{module}.mo")):
         translator = gettext.translation(module, localedir, [locale])
     else:

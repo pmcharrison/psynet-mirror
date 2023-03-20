@@ -72,7 +72,6 @@ from .utils import (
     disable_logger,
     error_page,
     get_arg_from_dict,
-    get_language,
     get_logger,
     log_time_taken,
     pretty_log_dict,
@@ -533,7 +532,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "window_height": 768,
             "supported_locales": [],
             "currency": "$",
-            "current_locale": get_language(),
+            "current_locale": "en",
             "allow_switching_locale": True,
         }
 
