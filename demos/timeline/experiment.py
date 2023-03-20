@@ -31,6 +31,7 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     variables = {
+        "title": "Test timeline demo title (defined in experiment.py)",
         "show_abort_button": True,
         "min_accumulated_bonus_for_abort": 0.15,
         "wage_per_hour": 12.0,

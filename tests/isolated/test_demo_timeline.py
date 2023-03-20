@@ -18,6 +18,18 @@ EXPERIMENT = None
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
+    def test_config(self):
+        from dallinger.config import get_config
+
+        config = get_config()
+
+        if not config.ready:
+            config.load()
+
+        assert (
+            config.get("title") == "Test timeline demo title (defined in experiment.py)"
+        )
+
     def test_variables(self, db_session):
         from psynet.experiment import get_experiment
 

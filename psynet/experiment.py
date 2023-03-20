@@ -20,7 +20,7 @@ import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import get_config
+from dallinger.config import Configuration, get_config, marker
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
@@ -69,6 +69,7 @@ from .utils import (
     cache,
     call_function,
     call_function_with_context,
+    classproperty,
     disable_logger,
     error_page,
     get_arg_from_dict,
@@ -269,6 +270,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
+    @classmethod
+    def config_class(cls):
+        return PsyNetConfiguration
+
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
         redis_vars.set("launch_started", True)
@@ -439,15 +444,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = get_config()
         return config.get("base_payment")
 
-    @property
-    def var(self):
-        if self.experiment_config_exists:
-            return self.experiment_config.var
+    @classproperty
+    def var(cls):
+        if cls.experiment_config_initialized:
+            return cls._get_experiment_config().var
         else:
-            return ImmutableVarStore(self.variables_initial_values)
+            return ImmutableVarStore(cls.variables_initial_values)
 
-    @property
-    def experiment_config(self):
+    @staticmethod
+    @cache
+    def _get_experiment_config():
         return ExperimentConfig.query.one()
 
     def register_participant_fail_routine(self, routine):
@@ -481,12 +487,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def estimated_completion_time(cls, wage_per_hour):
         return cls.timeline.estimated_completion_time(wage_per_hour)
 
-    @property
-    def experiment_config_exists(self):
-        return ExperimentConfig.query.count() > 0
+    _experiment_config_initialized = False
+
+    @classproperty
+    def experiment_config_initialized(cls):
+        if cls._experiment_config_initialized:
+            return True
+        else:
+            try:
+                initialized = ExperimentConfig.query.count() > 0
+            except sqlalchemy.exc.ProgrammingError as e:
+                if "UndefinedTable" in str(e):
+                    db.session.rollback()
+                    initialized = False
+                raise
+        cls._experiment_config_initialized = initialized
+        return initialized
 
     def setup_experiment_config(self):
-        if not self.experiment_config_exists:
+        if not self.experiment_config_initialized:
             logger.info("Setting up ExperimentConfig.")
             network = ExperimentConfig()
             db.session.add(network)
@@ -508,8 +527,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
         }
 
-    @property
-    def _default_variables(self):
+    @classproperty
+    def _default_variables(cls):
         return {
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
@@ -565,9 +584,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 In this case you will be paid in proportion to the amount of the experiment that you completed.
                 """
 
-    @property
-    def variables_initial_values(self):
-        return {**self._default_variables, **self.variables}
+    @classproperty
+    def variables_initial_values(cls):
+        return {**cls._default_variables, **cls.variables}
 
     @property
     def estimated_duration_in_minutes(self):
@@ -1953,3 +1972,16 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+class PsyNetConfiguration(Configuration):
+    """
+    Defaults to experiment variables if they exist, otherwise falls back to Dallinger's
+    standard config registration process.
+    """
+
+    def get(self, key, default=marker):
+        try:
+            return Experiment.var.get(key)
+        except KeyError:
+            return super().get(key, default=default)
