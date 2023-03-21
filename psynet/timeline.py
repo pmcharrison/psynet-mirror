@@ -27,12 +27,13 @@ from .utils import (
     call_function_with_context,
     check_function_args,
     dict_to_js_vars,
-    format_datetime_string,
+    format_datetime,
     get_args,
     get_language_dict,
     get_logger,
     log_time_taken,
     merge_dicts,
+    pretty_format_seconds,
     render_string_with_translations,
     serialise,
     time_logger,
@@ -1357,17 +1358,15 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
-    # @property
-    # def modules(self):
-    #     return {
-    #         "modules": [
-    #             {"id": elt.module.id}
-    #             for elt in self.elts
-    #             if isinstance(elt, StartModule)
-    #         ]
-    #     }
-    #
-    # # def report_module_status(self):
+    @cached_property
+    def modules(self):
+        return {e.module_id: e.module for e in self.elts}
+
+    def get_module(self, module_id):
+        try:
+            return self.modules[module_id]
+        except IndexError:
+            raise RuntimeError(f"Couldn't find module with id = {module_id}.")
 
     @cached_property
     def trial_makers(self):
@@ -2305,7 +2304,7 @@ class Module:
         ]
 
     @classmethod
-    def median_finish_time_in_min(cls, participants, module_id):
+    def median_finish_time_in_s(cls, participants, module_id):
         started_and_finished_times = cls.started_and_finished_times(
             participants, module_id
         )
@@ -2313,71 +2312,68 @@ class Module:
         if not started_and_finished_times:
             return None
 
-        durations_in_min = []
+        durations_in_s = []
         for start_end_times in started_and_finished_times:
             if not (
                 start_end_times["time_started"] and start_end_times["time_finished"]
             ):
                 continue
-            datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
-            t1 = datetime.strptime(start_end_times["time_started"], datetime_format)
-            t2 = datetime.strptime(start_end_times["time_finished"], datetime_format)
-            durations_in_min.append((t2 - t1).total_seconds() / 60)
+            t1 = start_end_times["time_started"]
+            t2 = start_end_times["time_finished"]
+            durations_in_s.append((t2 - t1).total_seconds())
 
-        if not durations_in_min:
+        if not durations_in_s:
             return None
 
-        return median(sorted(durations_in_min))
+        return median(sorted(durations_in_s))
+
+    @classmethod
+    def median_finish_time_in_min_and_s(cls, participants, module_id):
+        return pretty_format_seconds(
+            cls.median_finish_time_in_s(participants, module_id)
+        )
 
     @property
     def aborted_participants(self):
         from .participant import Participant
 
-        return (
+        aborted_participants = (
             db.session.query(Participant)
             .filter(self.state_class.module_id == self.id, self.state_class.aborted)
-            .order_by(self.state_class.time_aborted)
             .all()
         )
-
-        # participants = Participant.query.all()
-        # aborted_participants = [p for p in participants if self.id in p.aborted_modules]
-        # aborted_participants.sort(key=lambda p: p.modules[self.id]["time_aborted"][0])
-        # return aborted_participants
+        return sorted(
+            [p for p in aborted_participants if self.id in p.aborted_modules],
+            key=lambda p: p.module_states[self.id][0].time_aborted,
+        )
 
     @property
     def started_participants(self):
         from .participant import Participant
 
-        return (
+        started_participants = (
             db.session.query(Participant)
             .filter(self.state_class.module_id == self.id, self.state_class.started)
-            .order_by(self.state_class.time_started)
             .all()
         )
-
-        # participants = Participant.query.all()
-        # started_participants = [p for p in participants if self.id in p.started_modules]
-        # started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
-        # return started_participants
+        return sorted(
+            [p for p in started_participants if self.id in p.started_modules],
+            key=lambda p: p.module_states[self.id][0].time_started,
+        )
 
     @property
     def finished_participants(self):
         from .participant import Participant
 
-        return (
+        finished_participants = (
             db.session.query(Participant)
             .filter(self.state_class.module_id == self.id, self.state_class.finished)
-            .order_by(self.state_class.time_finished)
             .all()
         )
-
-        # participants = Participant.query.all()
-        # finished_participants = [
-        #     p for p in participants if self.id in p.finished_modules
-        # ]
-        # finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
-        # return finished_participants
+        return sorted(
+            [p for p in finished_participants if self.id in p.finished_modules],
+            key=lambda p: p.module_states[self.id][0].time_finished,
+        )
 
     def resolve(self):
         return join(
@@ -2388,54 +2384,51 @@ class Module:
 
     def visualize(self):
         if self.started_participants:
-            time_started_last = self.started_participants[-1].modules[self.id][
-                "time_started"
-            ][0]
+            time_started_last = (
+                self.started_participants[-1].module_states[self.id][0].time_started
+            )
         if self.finished_participants:
-            time_finished_last = self.finished_participants[-1].modules[self.id][
-                "time_finished"
-            ][0]
-            median_finish_time_in_min = round(
-                Module.median_finish_time_in_min(self.finished_participants, self.id), 1
+            time_finished_last = (
+                self.finished_participants[-1].module_states[self.id][0].time_finished
+            )
+            median_finish_time_in_min_and_s = Module.median_finish_time_in_min_and_s(
+                self.finished_participants, self.id
             )
         if self.aborted_participants:
-            time_aborted_last = self.aborted_participants[-1].modules[self.id][
-                "time_aborted"
-            ][0]
+            time_aborted_last = (
+                self.aborted_participants[-1].module_states[self.id][0].time_aborted
+            )
 
         div = tags.div()
         with div:
-            with tags.h4("Module"):
-                tags.i(self.id)
+            with tags.h4():
+                tags.b(f"Module: {self.id}")
             with tags.ul(cls="details"):
-                tags.li(f"Participants started: {len(self.started_participants)}")
-                tags.li(f"Participants finished: {len(self.finished_participants)}")
-                tags.li(f"Participants aborted: {len(self.aborted_participants)}")
+                tags.b("Participants:")
                 if self.started_participants:
-                    tags.br()
                     tags.li(
-                        f"Participant started last: {format_datetime_string(time_started_last)}"
+                        f"{len(self.started_participants)} started (last at {format_datetime(time_started_last)})"
                     )
                 if self.finished_participants:
                     tags.li(
-                        f"Participant finished last: {format_datetime_string(time_finished_last)}"
+                        f"{len(self.finished_participants)} finished (last at {format_datetime(time_finished_last)})"
                     )
                 if self.aborted_participants:
                     tags.li(
-                        f"Participant aborted last: {format_datetime_string(time_aborted_last)}"
+                        f"{len(self.aborted_participants)} aborted (last at {format_datetime(time_aborted_last)})"
                     )
 
                 if self.finished_participants:
                     tags.br()
                     tags.li(
-                        f"Median time spent (finished): {median_finish_time_in_min} min."
+                        f"Median time spent to finish: {median_finish_time_in_min_and_s}"
                     )
 
         return div.render()
 
     def visualize_tooltip(self):
         if self.finished_participants:
-            median_finish_time_in_min = Module.median_finish_time_in_min(
+            median_finish_time_in_min_and_s = Module.median_finish_time_in_min_and_s(
                 self.finished_participants, self.id
             )
 
@@ -2450,7 +2443,7 @@ class Module:
             tags.span(f"{len(self.aborted_participants)} aborted")
             if self.finished_participants:
                 tags.br()
-                tags.span(f"{round(median_finish_time_in_min, 1)} min. (median)")
+                tags.span(f"{median_finish_time_in_min_and_s} (median)")
 
         return span.render()
 

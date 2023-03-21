@@ -1365,15 +1365,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_module_details_as_rendered_html(cls):
         exp = get_experiment()
-        trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
-        return trial_maker.visualize()
+        module = exp.timeline.get_module(request.values["moduleId"])
+        return module.visualize()
 
     @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
     def get_module_tooltip_as_rendered_html(cls):
         exp = get_experiment()
-        trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
-        return trial_maker.visualize_tooltip()
+        module = exp.timeline.get_module(request.values["moduleId"])
+        return module.visualize_tooltip()
 
     @experiment_route("/module/progress_info", methods=["GET"])
     @classmethod
