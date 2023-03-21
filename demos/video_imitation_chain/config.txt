@@ -10,7 +10,6 @@ us_only = false
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
-dashboard_password = capcapcap2021!
 dashboard_user = cap
 disable_when_duration_exceeded = False
 
