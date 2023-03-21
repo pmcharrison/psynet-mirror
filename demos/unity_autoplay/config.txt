@@ -34,6 +34,5 @@ redis_size = premium-0
 host = 0.0.0.0
 clock_on = True
 disable_when_duration_exceeded = False
-dashboard_password = capcapcap2021!
 dashboard_user = cap
 
