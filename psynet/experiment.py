@@ -502,7 +502,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     initialized = False
                 else:
                     raise
-        cls._experiment_config_initialized = initialized
+            cls._experiment_config_initialized = initialized
         return initialized
 
     def setup_experiment_config(self):
