@@ -500,7 +500,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if "UndefinedTable" in str(e):
                     db.session.rollback()
                     initialized = False
-                raise
+                else:
+                    raise
         cls._experiment_config_initialized = initialized
         return initialized
 
