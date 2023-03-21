@@ -26,7 +26,6 @@ database_size = standard-2
 
 [Heroku dashboard]
 dashboard_user = cap
-dashboard_password = capcapcap2021!
 
 [Server]
 # Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
