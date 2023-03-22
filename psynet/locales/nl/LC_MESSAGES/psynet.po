@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:41:05\n"
+"POT-Creation-Date: 2023-22/03/ 12:54:36\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -12,360 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid ""
-"If you're using a different browser, please reopen the same page in Chrome."
-msgstr ""
-"Als u een andere browser gebruikt, kunt u de link van deze pagina met Chrome"
-" openen."
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "It seems like you're using a different browser than Chrome"
-msgstr "Het lijkt erop dat u een andere browser gebruikt dan Chrome"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "It seems like you're using an out-of-date version of Chrome "
-msgstr "Het lijkt erop dat u een verouderde versie van Chrome gebruikt "
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "Please update your browser and open this web page again."
-msgstr "Update uw browser en open deze webpagina opnieuw."
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "This app requires at least: "
-msgstr "Deze app vereist ten minste: "
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "This experiment only supports Chrome."
-msgstr "Dit experiment ondersteunt alleen Chrome."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded. For example, you may want "
-"to sit in a room that is isolated from the rest of the house."
-msgstr ""
-"Als u ervoor kiest om deel te nemen aan het experiment, is het belangrijk en"
-" uw verantwoordelijkheid om ervoor te zorgen dat tijdens het opnemen van "
-"audio en video niets wordt opgenomen wat niet de bedoeling is. U kunt "
-"bijvoorbeeld in een kamer gaan zitten die is geïsoleerd van de rest van het "
-"huis."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"In addition, while you perform a recording, the microphone or camera can "
-"capture unintended audio or video, for example the camera can capture "
-"another family member, or the microphone can capture something you say to "
-"another person."
-msgstr ""
-"Bovendien kan de microfoon of camera tijdens een opname onbedoeld audio of "
-"video opnemen, bijvoorbeeld de camera kan een ander familielid opnemen, of "
-"de microfoon kan iets opnemen wat u tegen een andere persoon zegt."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information."
-msgstr ""
-"Misschien wilt u ervoor zorgen dat geen enkel geluid/beeldmateriaal in uw "
-"omgeving kan worden gekoppeld aan uw persoonlijke gegevens."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr ""
-"Tijdens de gegevensverzameling wordt audiovisueel materiaal opgenomen op een"
-" aparte server en gecodeerd met een sterk coderingsprotocol (zoals Advanced "
-"Encryption Standard)."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-security"
-msgid "MTurk ID information will not be used to index this data."
-msgstr ""
-"MTurk ID-informatie wordt niet gebruikt om deze gegevens te indexeren."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-consent"
-msgid ""
-"If you do not wish to consent, please close this page and return the HIT on "
-"Mechanical Turk."
-msgstr ""
-"Als u geen toestemming wilt geven, sluit dan deze pagina en stuur de HIT op "
-"Mechanical Turk terug."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgid "minutes"
-msgstr "minuten"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"Anonymized data could be published in open access data repository "
-"accompanying publications of the study."
-msgstr ""
-"Geanonimiseerde gegevens kunnen worden gepubliceerd in open access data "
-"repository bij publicaties van de studie."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"The data for this study will be stored in a confidential manner for a "
-"duration of 10 years for the purpose of helping scientific replications."
-msgstr ""
-"De gegevens van deze studie zullen vertrouwelijk worden bewaard voor een "
-"periode van 10 jaar om wetenschappelijke replicaties mogelijk te maken."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"We will only share with collaborators demographic, aggregated or extracted "
-"data without personal identifiers (not indexed by Amazon’s Mechanical Turk "
-"IDs)."
-msgstr ""
-"Wij zullen alleen demografische, geaggregeerde of geëxtraheerde gegevens "
-"zonder persoonlijke identificatiegegevens (niet geïndexeerd door Amazon's "
-"Mechanical Turk ID's) delen met medewerkers."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-compensation"
-msgid ""
-"If you satisfactorily complete the study, you will receive approximately:"
-msgstr "Als u het onderzoek naar tevredenheid voltooit, ontvangt u ongeveer:"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"MTurk worker IDs will not be used to derive your real identity, will not be "
-"shared with anyone outside of the research team and will be deleted after "
-"use."
-msgstr ""
-"MTurk ID's van werknemers worden niet gebruikt om uw echte identiteit af te "
-"leiden, worden niet gedeeld met iemand buiten het onderzoeksteam en worden "
-"na gebruik verwijderd."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will also collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Wij verzamelen ook enkele demografische gegevens (bijv. leeftijd, geslacht, "
-"land van verblijf) en informatie over uw educatie (bijv. muziekles, "
-"opleidingsniveau, gesproken talen)."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized Amazon’s Mechanical Turk IDs in our "
-"system, in order to distinguish participants who have already taken part on "
-"this or other experiments."
-msgstr ""
-"Wij slaan alleen uw geanonimiseerde Amazon's Mechanical Turk ID's op in ons "
-"systeem, om deelnemers te onderscheiden die al hebben deelgenomen aan dit of"
-" andere experimenten."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about Your rights or treatment as a participant in"
-" this research project, please contact:"
-msgstr ""
-"Als u vragen heeft over uw rechten of behandeling als deelnemer aan dit "
-"onderzoeksproject, neem dan contact op met:"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact:"
-msgstr ""
-"Als u vragen heeft over dit onderzoek, aarzel dan niet om contact op te "
-"nemen met:"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-disclaimer"
-msgid ""
-"Although researchers will not use your MTurk ID to derive your real "
-"identity, your MTurk ID could be linked to your Amazon public profile page "
-"if a data breach takes place."
-msgstr ""
-"Hoewel onderzoekers uw MTurk ID niet zullen gebruiken om uw echte identiteit"
-" af te leiden, kan uw MTurk ID worden gekoppeld aan uw openbare "
-"profielpagina van Amazon als er een datalek plaatsvindt."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Any known risks involved."
-msgstr "Alle bekende risico's."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Any potential benefits."
-msgstr "Mogelijke voordelen."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "In case of questions you can contact:"
-msgstr "Bij vragen kunt u contact opnemen met:"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Purpose of the study."
-msgstr "Doel van het onderzoek."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "The things that you will be asked to do if you are in the study."
-msgstr ""
-"De dingen die van u gevraagd zullen worden als u aan het onderzoek meedoet."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "This online consent form includes the following information:"
-msgstr "Dit online toestemmingsformulier bevat de volgende informatie:"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Why the study is being done."
-msgstr "Motivatie van het onderzoek"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent, consenting to these additional elements is voluntary."
-msgstr ""
-"Als het experiment deze elementen bevat, zullen wij u om extra toestemming "
-"vragen; toestemming voor deze extra elementen is vrijwillig."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"In some cases, you may be asked to make a voice or video recording, for "
-"example, you may be asked to record your finger-tapping in response to a "
-"sound or video, or to record yourself speaking or singing."
-msgstr ""
-"In sommige gevallen kan u worden gevraagd een stem- of video-opname te "
-"maken, bijvoorbeeld door met uw vinger mee te tikken op een geluid of door "
-"uzelf sprekend of zingend op te nemen."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid "The experiment will take you approximately:"
-msgstr "Het experiment duurt ongeveer:"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we would like to understand how predictive mechanisms in "
-"perception rely on experience, learning and memory."
-msgstr ""
-"We willen wij beter begrijpen hoe perceptie wordt gevormd door ervaringing, "
-"leerprocessen en geheugen."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The long-term goals of this project are to understand how humans derive "
-"information from sound and vision, and potentially to help engineer machines"
-" that can replicate our abilities (e.g. in sound/image recognition and "
-"computer vision) and to help improve perceptual abilities in people whose "
-"hearing or sight is impaired."
-msgstr ""
-"Op de lange termijn is het doel van dit project om beter te begrijpen hoe "
-"mensen informatie uit geluid en beeld afleiden. Hiermee willen we betere "
-"machines ontwikkelen, die onze vaardigheden kunnen nabootsen (bv. in "
-"geluids-/beeldherkenning en computervisie) en om de perceptuele vaardigheden"
-" te helpen verbeteren van mensen met gehoor- of gezichtsstoornissen."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to characterize internal representations in "
-"audition and vision."
-msgstr ""
-"Het doel van dit project is het karakteriseren van interne representaties in"
-" auditie en visie."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"We hope to use the judgments and interactions made by the experiment "
-"participants to infer the mechanisms of the auditory and visual systems."
-msgstr ""
-"Met de reacties van de deelnemers proberen we mechanismen van het auditieve "
-"en visuele systeem af te leiden."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is"
-msgstr "Voor de Max-Planck-Society is dit"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"All USB keys used for transporting protected data will be encrypted USB "
-"devices."
-msgstr ""
-"Alle USB-sleutels die worden gebruikt voor het vervoer van beschermde "
-"gegevens zijn gecodeerde USB-apparaten."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"All backup hard drives (Apple Time Machine, etc) will have encryption "
-"(FileVault2) enabled."
-msgstr ""
-"Alle harde schijven voor back-up (Apple Time Machine, enz.) worden gecodeerd"
-" (FileVault2)."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"Theft of an individual laptop/desktop or stolen hard drive will yield no "
-"usable personal identifiers."
-msgstr ""
-"Diefstal van een individuele laptop/desktop of een gestolen harde schijf "
-"levert geen bruikbare persoonlijke identificatiegegevens op."
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time. "
-msgstr ""
-"Het staat u vrij om deelname te weigeren en u mag op elk moment stoppen met "
-"uw deelname. "
-
-#: psynet/templates/mturk_error.html
-#, python-format
-msgid ""
-"To enquire about compensation, please contact the researcher at %(EMAIL)s "
-"and describe what led to this error."
-msgstr ""
-"Voor informatie over compensatie kunt u contact opnemen met de onderzoeker "
-"op %(EMAIL)s en beschrijven wat tot deze fout heeft geleid."
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "Vermeld ook de volgende informatie:"
 
 #: psynet/demography/general.py
 msgid "I don’t know"
@@ -737,23 +383,23 @@ msgctxt "abort_possible"
 msgid "See below information on your currently accumulated bonus."
 msgstr "Zie hieronder informatie over uw huidige bonus."
 
-#: psynet/templates/abort_possible.html
 #: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
 msgid "Accumulated bonus"
 msgstr "Totale bonus"
 
-#: psynet/templates/abort_possible.html
 #: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
 msgid "Close window"
 msgstr "Venster sluiten"
 
-#: psynet/templates/mturk_error.html psynet/templates/abort_possible.html
 #: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
 msgid "Assignment ID"
 msgstr "Opdracht ID"
 
-#: psynet/templates/mturk_error.html psynet/templates/abort_possible.html
 #: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
 msgid "HIT ID"
 msgstr "HIT ID"
 
@@ -854,10 +500,43 @@ msgstr ""
 
 #: psynet/templates/consent.html
 msgctxt "browser_compatibility"
+msgid ""
+"If you're using a different browser, please reopen the same page in Chrome."
+msgstr ""
+"Als u een andere browser gebruikt, kunt u de link van deze pagina met Chrome"
+" openen."
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
 msgid "If your browser is not compatible we have to reject the survey."
 msgstr ""
 "Als uw browser niet compatibel is, u kunt daarom niet deelnemen aan het "
 "experiment."
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "It seems like you're using a different browser than Chrome"
+msgstr "Het lijkt erop dat u een andere browser gebruikt dan Chrome"
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "It seems like you're using an out-of-date version of Chrome "
+msgstr "Het lijkt erop dat u een verouderde versie van Chrome gebruikt "
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "Please update your browser and open this web page again."
+msgstr "Update uw browser en open deze webpagina opnieuw."
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "This app requires at least: "
+msgstr "Deze app vereist ten minste: "
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "This experiment only supports Chrome."
+msgstr "Dit experiment ondersteunt alleen Chrome."
 
 #: psynet/templates/consent.html
 msgctxt "browser_compatibility"
@@ -869,8 +548,8 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Klik op onderstaande knop om verder te gaan."
 
-#: psynet/templates/macros/control.html psynet/templates/macros.html
-#: psynet/templates/consent.html
+#: psynet/templates/consent.html psynet/templates/macros.html
+#: psynet/templates/macros/control.html
 msgid "Next"
 msgstr "Volgende"
 
@@ -1050,77 +729,77 @@ msgstr ""
 "opgeslagen en gecodeerd met behulp van een sterk coderingsprotocol (zoals "
 "Advanced Encryption Standard)."
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgid "Do you understand and consent to these terms?"
 msgstr "Begrijpt u deze voorwaarden en gaat u hiermee akkoord?"
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent"
 msgid "I agree"
 msgstr "Ik ga akkoord"
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent"
 msgid "No, thank you (return task)"
 msgstr "Nee, bedankt"
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
 msgstr "Schakel Javascript in en vernieuw deze pagina."
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-javascript"
 msgid "The study will not work unless Javascript is enabled on your browser."
 msgstr "Deze studie vereist Javascript."
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "Waarschuwing: Javascript werkt niet in uw browser"
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-consent"
 msgid ""
 "By consenting to participate, you acknowledge that you are 18 years or "
@@ -1131,55 +810,55 @@ msgstr ""
 "dat u dit toestemmingsformulier heeft gelezen, dat u akkoord gaat met de "
 "inhoud ervan en dat u instemt met deelname aan dit onderzoek."
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-consent"
 msgid "Consent"
 msgstr "Toestemming"
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
 msgstr "Als u geen toestemming wilt geven, sluit dan deze pagina."
 
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgid "Scroll up/down to see all text"
 msgstr "Scroll omhoog/omlaag om de gehele tekst te zien"
 
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-contact"
 msgid "Contact information"
 msgstr "Contactinformatie"
 
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-security"
 msgid "Security"
 msgstr "Beveiliging van gegevens"
 
 #: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-confidentiality"
 msgid "Confidentiality"
@@ -1892,13 +1571,13 @@ msgstr ""
 "Uw gegevens worden opgeslagen in een beveiligde omgeving die niet "
 "toegankelijk is voor derden."
 
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
@@ -2353,6 +2032,313 @@ msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
 msgstr "Uw deelname aan dit onderzoek is vrijwillig."
 
+#: psynet/templates/consents/mturk_audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded. For example, you may want "
+"to sit in a room that is isolated from the rest of the house."
+msgstr ""
+"Als u ervoor kiest om deel te nemen aan het experiment, is het belangrijk en"
+" uw verantwoordelijkheid om ervoor te zorgen dat tijdens het opnemen van "
+"audio en video niets wordt opgenomen wat niet de bedoeling is. U kunt "
+"bijvoorbeeld in een kamer gaan zitten die is geïsoleerd van de rest van het "
+"huis."
+
+#: psynet/templates/consents/mturk_audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"In addition, while you perform a recording, the microphone or camera can "
+"capture unintended audio or video, for example the camera can capture "
+"another family member, or the microphone can capture something you say to "
+"another person."
+msgstr ""
+"Bovendien kan de microfoon of camera tijdens een opname onbedoeld audio of "
+"video opnemen, bijvoorbeeld de camera kan een ander familielid opnemen, of "
+"de microfoon kan iets opnemen wat u tegen een andere persoon zegt."
+
+#: psynet/templates/consents/mturk_audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information."
+msgstr ""
+"Misschien wilt u ervoor zorgen dat geen enkel geluid/beeldmateriaal in uw "
+"omgeving kan worden gekoppeld aan uw persoonlijke gegevens."
+
+#: psynet/templates/consents/mturk_audiovisual_consent.html
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+"Tijdens de gegevensverzameling wordt audiovisueel materiaal opgenomen op een"
+" aparte server en gecodeerd met een sterk coderingsprotocol (zoals Advanced "
+"Encryption Standard)."
+
+#: psynet/templates/consents/mturk_audiovisual_consent.html
+msgctxt "consent-security"
+msgid "MTurk ID information will not be used to index this data."
+msgstr ""
+"MTurk ID-informatie wordt niet gebruikt om deze gegevens te indexeren."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+#: psynet/templates/consents/mturk_audiovisual_consent.html
+msgctxt "consent-consent"
+msgid ""
+"If you do not wish to consent, please close this page and return the HIT on "
+"Mechanical Turk."
+msgstr ""
+"Als u geen toestemming wilt geven, sluit dan deze pagina en stuur de HIT op "
+"Mechanical Turk terug."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgid "minutes"
+msgstr "minuten"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent"
+msgid ""
+"Anonymized data could be published in open access data repository "
+"accompanying publications of the study."
+msgstr ""
+"Geanonimiseerde gegevens kunnen worden gepubliceerd in open access data "
+"repository bij publicaties van de studie."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent"
+msgid ""
+"The data for this study will be stored in a confidential manner for a "
+"duration of 10 years for the purpose of helping scientific replications."
+msgstr ""
+"De gegevens van deze studie zullen vertrouwelijk worden bewaard voor een "
+"periode van 10 jaar om wetenschappelijke replicaties mogelijk te maken."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent"
+msgid ""
+"We will only share with collaborators demographic, aggregated or extracted "
+"data without personal identifiers (not indexed by Amazon’s Mechanical Turk "
+"IDs)."
+msgstr ""
+"Wij zullen alleen demografische, geaggregeerde of geëxtraheerde gegevens "
+"zonder persoonlijke identificatiegegevens (niet geïndexeerd door Amazon's "
+"Mechanical Turk ID's) delen met medewerkers."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-compensation"
+msgid ""
+"If you satisfactorily complete the study, you will receive approximately:"
+msgstr "Als u het onderzoek naar tevredenheid voltooit, ontvangt u ongeveer:"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"MTurk worker IDs will not be used to derive your real identity, will not be "
+"shared with anyone outside of the research team and will be deleted after "
+"use."
+msgstr ""
+"MTurk ID's van werknemers worden niet gebruikt om uw echte identiteit af te "
+"leiden, worden niet gedeeld met iemand buiten het onderzoeksteam en worden "
+"na gebruik verwijderd."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"We will also collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Wij verzamelen ook enkele demografische gegevens (bijv. leeftijd, geslacht, "
+"land van verblijf) en informatie over uw educatie (bijv. muziekles, "
+"opleidingsniveau, gesproken talen)."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized Amazon’s Mechanical Turk IDs in our "
+"system, in order to distinguish participants who have already taken part on "
+"this or other experiments."
+msgstr ""
+"Wij slaan alleen uw geanonimiseerde Amazon's Mechanical Turk ID's op in ons "
+"systeem, om deelnemers te onderscheiden die al hebben deelgenomen aan dit of"
+" andere experimenten."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-contact"
+msgid ""
+"If you have any questions about Your rights or treatment as a participant in"
+" this research project, please contact:"
+msgstr ""
+"Als u vragen heeft over uw rechten of behandeling als deelnemer aan dit "
+"onderzoeksproject, neem dan contact op met:"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-contact"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact:"
+msgstr ""
+"Als u vragen heeft over dit onderzoek, aarzel dan niet om contact op te "
+"nemen met:"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-disclaimer"
+msgid ""
+"Although researchers will not use your MTurk ID to derive your real "
+"identity, your MTurk ID could be linked to your Amazon public profile page "
+"if a data breach takes place."
+msgstr ""
+"Hoewel onderzoekers uw MTurk ID niet zullen gebruiken om uw echte identiteit"
+" af te leiden, kan uw MTurk ID worden gekoppeld aan uw openbare "
+"profielpagina van Amazon als er een datalek plaatsvindt."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "Any known risks involved."
+msgstr "Alle bekende risico's."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "Any potential benefits."
+msgstr "Mogelijke voordelen."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "In case of questions you can contact:"
+msgstr "Bij vragen kunt u contact opnemen met:"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "Purpose of the study."
+msgstr "Doel van het onderzoek."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "The things that you will be asked to do if you are in the study."
+msgstr ""
+"De dingen die van u gevraagd zullen worden als u aan het onderzoek meedoet."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "This online consent form includes the following information:"
+msgstr "Dit online toestemmingsformulier bevat de volgende informatie:"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-overview"
+msgid "Why the study is being done."
+msgstr "Motivatie van het onderzoek"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent, consenting to these additional elements is voluntary."
+msgstr ""
+"Als het experiment deze elementen bevat, zullen wij u om extra toestemming "
+"vragen; toestemming voor deze extra elementen is vrijwillig."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"In some cases, you may be asked to make a voice or video recording, for "
+"example, you may be asked to record your finger-tapping in response to a "
+"sound or video, or to record yourself speaking or singing."
+msgstr ""
+"In sommige gevallen kan u worden gevraagd een stem- of video-opname te "
+"maken, bijvoorbeeld door met uw vinger mee te tikken op een geluid of door "
+"uzelf sprekend of zingend op te nemen."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-procedure"
+msgid "The experiment will take you approximately:"
+msgstr "Het experiment duurt ongeveer:"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we would like to understand how predictive mechanisms in "
+"perception rely on experience, learning and memory."
+msgstr ""
+"We willen wij beter begrijpen hoe perceptie wordt gevormd door ervaringing, "
+"leerprocessen en geheugen."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"The long-term goals of this project are to understand how humans derive "
+"information from sound and vision, and potentially to help engineer machines"
+" that can replicate our abilities (e.g. in sound/image recognition and "
+"computer vision) and to help improve perceptual abilities in people whose "
+"hearing or sight is impaired."
+msgstr ""
+"Op de lange termijn is het doel van dit project om beter te begrijpen hoe "
+"mensen informatie uit geluid en beeld afleiden. Hiermee willen we betere "
+"machines ontwikkelen, die onze vaardigheden kunnen nabootsen (bv. in "
+"geluids-/beeldherkenning en computervisie) en om de perceptuele vaardigheden"
+" te helpen verbeteren van mensen met gehoor- of gezichtsstoornissen."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to characterize internal representations in "
+"audition and vision."
+msgstr ""
+"Het doel van dit project is het karakteriseren van interne representaties in"
+" auditie en visie."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"We hope to use the judgments and interactions made by the experiment "
+"participants to infer the mechanisms of the auditory and visual systems."
+msgstr ""
+"Met de reacties van de deelnemers proberen we mechanismen van het auditieve "
+"en visuele systeem af te leiden."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is"
+msgstr "Voor de Max-Planck-Society is dit"
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-security"
+msgid ""
+"All USB keys used for transporting protected data will be encrypted USB "
+"devices."
+msgstr ""
+"Alle USB-sleutels die worden gebruikt voor het vervoer van beschermde "
+"gegevens zijn gecodeerde USB-apparaten."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-security"
+msgid ""
+"All backup hard drives (Apple Time Machine, etc) will have encryption "
+"(FileVault2) enabled."
+msgstr ""
+"Alle harde schijven voor back-up (Apple Time Machine, enz.) worden gecodeerd"
+" (FileVault2)."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-security"
+msgid ""
+"Theft of an individual laptop/desktop or stolen hard drive will yield no "
+"usable personal identifiers."
+msgstr ""
+"Diefstal van een individuele laptop/desktop of een gestolen harde schijf "
+"levert geen bruikbare persoonlijke identificatiegegevens op."
+
+#: psynet/templates/consents/mturk_standard_consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time. "
+msgstr ""
+"Het staat u vrij om deelname te weigeren en u mag op elk moment stoppen met "
+"uw deelname. "
+
 #: psynet/templates/consents/open_science_consent.html
 msgctxt "consent"
 msgid ""
@@ -2582,15 +2568,15 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Einde van het experiment."
 
+#: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/final-page-rejected-consent.html
 msgid "Finish"
 msgstr "Voltooien"
 
+#: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/final-page-rejected-consent.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klik op \"Voltooien\" om de HIT te voltooien."
 
@@ -2628,6 +2614,15 @@ msgstr ""
 "vermelding van de volgende informatie:"
 
 #: psynet/templates/mturk_error.html
+#, python-format
+msgid ""
+"To enquire about compensation, please contact the researcher at %(EMAIL)s "
+"and describe what led to this error."
+msgstr ""
+"Voor informatie over compensatie kunt u contact opnemen met de onderzoeker "
+"op %(EMAIL)s en beschrijven wat tot deze fout heeft geleid."
+
+#: psynet/templates/mturk_error.html
 msgid "Worker ID"
 msgstr "Werknemer ID"
 
@@ -2645,6 +2640,11 @@ msgstr ""
 "Eenmaal afgebroken, hoeft u geen contact met ons op te nemen om de "
 "compensatie te ontvangen; deze wordt u enkele minuten later automatisch door"
 " MTurk uitbetaald."
+
+#: psynet/templates/mturk_error.html
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Vermeld ook de volgende informatie:"
 
 #: psynet/templates/mturk_error.html
 msgctxt "mturk_error"
