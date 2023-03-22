@@ -33,6 +33,7 @@ dependencies = [
     "dallinger>=9.4.3",
     "dominate",
     "importlib_resources",
+    "ipywidgets==8.0.4",  # Pinning temporarily until a working ipywidgets version is released
     "joblib",
     "jsonpickle",
     "paramiko",
