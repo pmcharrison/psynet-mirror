@@ -1351,6 +1351,7 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
+                    window.removeEventListener("beforeunload", beforeunloadFunction);
                     submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                 };
 
