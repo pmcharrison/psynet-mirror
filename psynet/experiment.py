@@ -25,7 +25,7 @@ from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import ProlificRecruiter
+from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request
@@ -538,8 +538,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_google_chrome": True,
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
-            "start_experiment_in_popup_window": self.recruiter.nickname == "mturk",
         }
+
+    @property
+    def start_experiment_in_popup_window(self):
+        if hasattr(self.recruiter, "start_experiment_in_popup_window"):
+            return self.recruiter.start_experiment_in_popup_window
+        elif isinstance(self.recruiter, MTurkRecruiter):
+            return True
+        else:
+            return False
 
     @property
     def description(self):
