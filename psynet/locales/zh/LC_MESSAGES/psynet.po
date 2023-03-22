@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:54:36\n"
+"POT-Creation-Date: 2023-22/03/ 16:02:05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -12,6 +12,591 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Abort Experiment"
+msgstr "中止实验"
+
+msgid "Abort experiment"
+msgstr "中止实验"
+
+msgid "Accumulated bonus"
+msgstr "积累的奖金"
+
+msgid "Assignment ID"
+msgstr "任务编号"
+
+msgid "Close window"
+msgstr "关闭窗口"
+
+msgid "Complete Survey"
+msgstr "完整的调查"
+
+msgid "Error type"
+msgstr "错误类型"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid "HIT ID"
+msgstr "HIT ID"
+
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以下信息。"
+
+#. ""
+#, fuzzy
+msgid "Image not found"
+msgstr "未找到图像"
+
+#, python-format
+msgid ""
+"In addition to your base payment of "
+"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"你的基础报酬<strong>%(currency)s%(BASE_PAYMENT)s</strong>外，你将为你在实验上付出的时间获得<strong>%(currency)s%(BONUS)s</strong>"
+" 的奖励"
+
+#. ""
+#, fuzzy
+msgid "Loop"
+msgstr "循环"
+
+msgid "Next"
+msgstr "下一页"
+
+#. ""
+#, fuzzy
+msgid "Play all"
+msgstr "播放所有"
+
+#. ""
+#, fuzzy
+msgid "Play from start"
+msgstr "从头开始玩"
+
+#. ""
+#, fuzzy
+msgid "Play prompt"
+msgstr "播放提示"
+
+#. ""
+#, fuzzy
+msgid "Play recording"
+msgstr "播放录音"
+
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "请点击 \"完成 \"来完成HIT。"
+
+#. ""
+#, fuzzy
+msgid "Record from start"
+msgstr "从头开始记录"
+
+#. ""
+#, fuzzy
+msgid "Reset"
+msgstr "复位"
+
+msgid "Resuming experiment ..."
+msgstr "恢复实验......。"
+
+#. ""
+#, fuzzy
+msgid "Stop"
+msgstr "停止"
+
+msgid "Thank you for taking part."
+msgstr "谢谢你的参与。"
+
+#. ""
+#, fuzzy
+msgid "Video not found"
+msgstr "未找到视频"
+
+msgid "Worker ID"
+msgstr "工作者身份"
+
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+msgstr "您还能获得<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>的业绩奖金!"
+
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+" to be compensated."
+msgstr ""
+"你需要累计到 <strong> 最少  %(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>"
+" 的奖励才能获得报酬"
+
+#, python-format, fuzzy
+msgid ""
+"You will also see one or more consent pages and have up to "
+"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+"你还会看到一个或多个同意书页面，并有多达<strong>%(TERMINATION_TIME)s</strong>的时间来阅读和接受/拒绝它们。"
+
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "不可以终止实验。"
+
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr "终止实验是不可能的，因为实验者在这个时候不允许这样做!"
+
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "你确定你要中止实验吗？"
+
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr "如果你点击中止按钮，实验将提前结束，你将会自动得到你目前所获得的补偿。"
+
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "请只有当你在领取报酬时遇到困难时，与我们联系。"
+
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "请看下面关于你目前积累的奖金的信息。"
+
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "关于你的补偿金的细节，请看下面的信息。"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "开始实验"
+
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr "通过点击以下URL链接，你将被带到实验现场，包括完整的说明和知情同意协议。"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "征集参与者"
+
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr "请点击上面亚马逊网站上的 \"接受HIT \"按钮，开始执行任务。"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "在继续之前，请禁用弹出式阻断器。"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "谢谢你接受这项HIT。"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "感谢你对这个实验的兴趣。"
+
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "参与的要求如下"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "警告"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr "高衰减参数意味着信号需要很长的时间来衰减（即高平滑度）。"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "文件"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "滑块"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr "<strong>decay</strong>参数决定信号的平滑程度，单位是秒。"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr "<strong>grace</strong>参数决定音量必须在各自的阈值之外多长时间才会触发警告信息。"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr "<strong>信息持续时间</strong>参数决定了警告信息的显示时间。"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr "<strong>阈值</strong>参数决定了音量被确定为 \"过高 \"或 \"过低 \"的点。"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr "有三个衰减参数：一个用于显示的音频表，一个用于 \"过高 \"检测器，一个用于 \"过低 \"检测器。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr "出现一个新的窗口，在顶角，检查隐身图标"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "在右上方，点击更多"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "将当前的URL复制到剪贴板上。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "复制下面的链接"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr "按照下面的步骤，确保实验成功。"
+
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr "如果你的浏览器不兼容，我们就必须拒绝调查。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "如果你还没有安装谷歌浏览器"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "安装最新版本的谷歌浏览器"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "在你的电脑上安装最新版本的谷歌浏览器"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "新建隐身窗口"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "在Mac上：按"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "在Windows、Linux或Chrome OS上：按下"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "在你的电脑上，打开Chrome浏览器。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "打开谷歌浏览器"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "打开一个新的隐身窗口"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr "用以下键盘快捷键打开一个新的隐身窗口。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "将链接粘贴到Chrome浏览器中，继续进行实验"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "将链接粘贴到Chrome浏览器中，开始实验"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr "将链接粘贴到隐身窗口中，继续进行实验"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "将链接粘贴到隐身窗口中，开始实验"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "请在你的浏览器中启用JavaScript。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below continue."
+msgstr "请按照下面的指示继续。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "请在您的电脑上打开调查问卷。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "按"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "本网站需要JavaScript才能正常运行。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "警告!"
+
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr "我们现在要测试你的浏览器是否兼容。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "您正在使用。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr "您也可以使用键盘快捷键来打开隐身窗口"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "你不能从移动设备上参加实验。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "你需要使用谷歌浏览器来参加实验。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "你需要使用隐身模式来参加实验。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr "你需要使用最新版本的谷歌浏览器来参加实验。"
+
+#, fuzzy
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "要继续进行，请点击下面的按钮。"
+
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "提交Lucid调查报告"
+
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "要完成您的Lucid调查，请点击下面的按钮。"
+
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "协议被拒绝。"
+
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "实验结束。"
+
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "这里是实验的末尾!"
+
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "然而，你仍然会因为你已经花费的时间而得到报酬。"
+
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "不幸的是，这个实验必须提前结束。"
+
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
+
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "错误!"
+
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "一旦中止，就不需要联系我们以获得补偿；这应该在几分钟后通过MTurk自动授予您。"
+
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr "您可以使用MTurk广告页面上的<strong>中止试验</strong>按钮</strong>来中止试验。"
+
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "开始实验..."
+
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "奖金"
+
+msgctxt "timeline"
+msgid "Help!"
+msgstr "帮助!"
+
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "当前网页的链接。"
+
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "检查你的互联网连接是否正常。"
+
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "如果上述方法无济于事，请向我们发送一封电子邮件，并提供以下信息。"
+
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "如果出现问题，请尝试以下方法。"
+
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "重新加载页面。"
+
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "你所遇到的问题。"
+
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "你的工人编号。"
+
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "你准备好了吗？"
+
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "当你准备好继续进行实验时，请点击该按钮。"
+
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "恢复"
+
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "不幸的是，目前不支持这种行为。"
+
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr "您的参与者ID未被定义，可能是因为您在测试期间切换了浏览器。"
 
 #: psynet/demography/general.py
 msgid "I don’t know"
@@ -344,168 +929,6 @@ msgstr "你小时候是否接受过语言治疗？"
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "你是否曾被诊断出有阅读障碍？"
-
-#: psynet/templates/abort_not_possible.html
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
-msgstr ""
-"你需要累计到 <strong> 最少  %(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>"
-" 的奖励才能获得报酬"
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "Aborting not possible."
-msgstr "不可以终止实验。"
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid ""
-"Aborting the experiment is not possible as the experimenter does not allow "
-"it at this time!"
-msgstr "终止实验是不可能的，因为实验者在这个时候不允许这样做!"
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "请看下面关于你目前积累的奖金的信息。"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-msgid "Accumulated bonus"
-msgstr "积累的奖金"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-msgid "Close window"
-msgstr "关闭窗口"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
-msgid "Assignment ID"
-msgstr "任务编号"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
-msgid "HIT ID"
-msgstr "HIT ID"
-
-#: psynet/templates/abort_possible.html
-msgid "Abort experiment"
-msgstr "中止实验"
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid "Are you sure you want to abort the experiment?"
-msgstr "你确定你要中止实验吗？"
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid ""
-"If you click the Abort button, the experiment will end early, and you will "
-"be automatically paid the compensation you have earned so far."
-msgstr "如果你点击中止按钮，实验将提前结束，你将会自动得到你目前所获得的补偿。"
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid "Please only contact us if you have trouble receiving your payment."
-msgstr "请只有当你在领取报酬时遇到困难时，与我们联系。"
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid "See the information below for details of your compensation."
-msgstr "关于你的补偿金的细节，请看下面的信息。"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Begin Experiment"
-msgstr "开始实验"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid ""
-"By clicking the following URL link, you will be taken to the experiment, "
-"including complete instructions and an informed consent agreement."
-msgstr "通过点击以下URL链接，你将被带到实验现场，包括完整的说明和知情同意协议。"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Call for participants"
-msgstr "征集参与者"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
-" task."
-msgstr "请点击上面亚马逊网站上的 \"接受HIT \"按钮，开始执行任务。"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Please disable pop-up blockers before continuing."
-msgstr "在继续之前，请禁用弹出式阻断器。"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for accepting this HIT."
-msgstr "谢谢你接受这项HIT。"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for your interest in this experiment."
-msgstr "感谢你对这个实验的兴趣。"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "The requirements to participate are as follows"
-msgstr "参与的要求如下"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Warning"
-msgstr "警告"
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"你还会看到一个或多个同意书页面，并有多达<strong>%(TERMINATION_TIME)s</strong>的时间来阅读和接受/拒绝它们。"
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "如果你的浏览器不兼容，我们就必须拒绝调查。"
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "我们现在要测试你的浏览器是否兼容。"
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "要继续进行，请点击下面的按钮。"
-
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
-msgid "Next"
-msgstr "下一页"
 
 #: psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent"
@@ -2114,91 +2537,6 @@ msgid ""
 " For the Max-Planck-Society, this is:"
 msgstr "您也有权向监管机构提交反对意见。 对于马克斯-普朗克协会来说，这就是。"
 
-#: psynet/templates/exit_recruiter_lucid.html
-msgid "Complete Survey"
-msgstr "完整的调查"
-
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "提交Lucid调查报告"
-
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "要完成您的Lucid调查，请点击下面的按钮。"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"你的基础报酬<strong>%(currency)s%(BASE_PAYMENT)s</strong>外，你将为你在实验上付出的时间获得<strong>%(currency)s%(BONUS)s</strong>"
-" 的奖励"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr "您还能获得<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>的业绩奖金!"
-
-#: psynet/templates/final-page-rejected-consent.html
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr "协议被拒绝。"
-
-#: psynet/templates/final-page-rejected-consent.html
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr "实验结束。"
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Finish"
-msgstr "完成"
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr "请点击 \"完成 \"来完成HIT。"
-
-#: psynet/templates/final-page-successful.html
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr "这里是实验的末尾!"
-
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Thank you for taking part."
-msgstr "谢谢你的参与。"
-
-#: psynet/templates/final-page-unsuccessful.html
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr "然而，你仍然会因为你已经花费的时间而得到报酬。"
-
-#: psynet/templates/final-page-unsuccessful.html
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr "不幸的是，这个实验必须提前结束。"
-
-#: psynet/templates/mturk_error.html
-msgid "Error type"
-msgstr "错误类型"
-
-#: psynet/templates/mturk_error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以下信息。"
-
 #: psynet/templates/mturk_error.html
 #, python-format
 msgid ""
@@ -2207,123 +2545,9 @@ msgid ""
 msgstr "如需询问赔偿事宜，请通过%(EMAIL)s联系研究人员，并描述导致这一错误的原因。"
 
 #: psynet/templates/mturk_error.html
-msgid "Worker ID"
-msgstr "工作者身份"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "错误!"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr "一旦中止，就不需要联系我们以获得补偿；这应该在几分钟后通过MTurk自动授予您。"
-
-#: psynet/templates/mturk_error.html
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "请同时引用以下信息。"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr "您可以使用MTurk广告页面上的<strong>中止试验</strong>按钮</strong>来中止试验。"
-
-#: psynet/templates/mturk_error.html psynet/templates/mturk_error.html
-msgid "Abort Experiment"
-msgstr "中止实验"
-
-#: psynet/templates/mturk_error.html psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Click the above button to be compensated in case of an error."
-msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
-
-#: psynet/templates/resume.html
-msgid "Resuming experiment ..."
-msgstr "恢复实验......。"
-
-#: psynet/templates/start.html
-msgctxt "start"
-msgid "Starting experiment..."
-msgstr "开始实验..."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline"
-msgid "Bonus"
-msgstr "奖金"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline"
-msgid "Help!"
-msgstr "帮助!"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "当前网页的链接。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "检查你的互联网连接是否正常。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr "如果上述方法无济于事，请向我们发送一封电子邮件，并提供以下信息。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "如果出现问题，请尝试以下方法。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "重新加载页面。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "你所遇到的问题。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "你的工人编号。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr "你准备好了吗？"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr "当你准备好继续进行实验时，请点击该按钮。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr "恢复"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "不幸的是，目前不支持这种行为。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr "您的参与者ID未被定义，可能是因为您在测试期间切换了浏览器。"
 
 #: psynet/utils.py
 msgctxt "country_name"

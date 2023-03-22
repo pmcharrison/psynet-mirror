@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:54:36\n"
+"POT-Creation-Date: 2023-22/03/ 16:02:05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -12,6 +12,629 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Abort Experiment"
+msgstr "Interrompi l'esperimento"
+
+msgid "Abort experiment"
+msgstr "Interrompi l'esperimento"
+
+msgid "Accumulated bonus"
+msgstr "Bonus accumulato"
+
+msgid "Assignment ID"
+msgstr "Assignment ID"
+
+msgid "Close window"
+msgstr "Chiudi finestra"
+
+msgid "Complete Survey"
+msgstr "Completa il sondaggio"
+
+msgid "Error type"
+msgstr "Tipo di errore"
+
+msgid "Finish"
+msgstr "Fine"
+
+msgid "HIT ID"
+msgstr "HIT ID"
+
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"In caso contrario, la preghiamo di contattarci all'indirizzo %(EMAIL)s "
+"citando le seguenti informazioni:"
+
+#. ""
+#, fuzzy
+msgid "Image not found"
+msgstr "Immagine non trovata"
+
+#, python-format
+msgid ""
+"In addition to your base payment of "
+"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Oltre al suo compenso base di <strong>%(currency)s%(BASE_PAYMENT)s</strong>,"
+" riceverà un bonus di <strong>%(currency)s%(BONUS)s</strong> per il tempo "
+"utilizzato per l'esperimento."
+
+#. ""
+#, fuzzy
+msgid "Loop"
+msgstr "Anello"
+
+msgid "Next"
+msgstr "Avanti"
+
+#. ""
+#, fuzzy
+msgid "Play all"
+msgstr "Giocare tutti"
+
+#. ""
+#, fuzzy
+msgid "Play from start"
+msgstr "Gioca dall'inizio"
+
+#. ""
+#, fuzzy
+msgid "Play prompt"
+msgstr "Richiesta di riproduzione"
+
+#. ""
+#, fuzzy
+msgid "Play recording"
+msgstr "Riproduzione della registrazione"
+
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Clicchi su \"Fine\" per completare l'HIT."
+
+#. ""
+#, fuzzy
+msgid "Record from start"
+msgstr "Record dall'inizio"
+
+#. ""
+#, fuzzy
+msgid "Reset"
+msgstr "Azzeramento"
+
+msgid "Resuming experiment ..."
+msgstr "Riprendi l'esperimento ..."
+
+#. ""
+#, fuzzy
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Thank you for taking part."
+msgstr "Grazie per aver partecipato."
+
+#. ""
+#, fuzzy
+msgid "Video not found"
+msgstr "Video non trovato"
+
+msgid "Worker ID"
+msgstr "Worker ID"
+
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"È stato premiato per la performance con un bonus di "
+"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+" to be compensated."
+msgstr ""
+"Deve accumulare <strong>almeno "
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> di bonus per poter "
+"esser compensato."
+
+#, python-format
+msgid ""
+"You will also see one or more consent pages and have up to "
+"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+"Vedrà anche una o più pagine di consenso e avrà a disposizione fino a "
+"<strong>%(TERMINATION_TIME)s</strong> per leggerle e accettarle/rifiutarle."
+
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "L'interruzione non è possibile."
+
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Non è possibile interrompere l'esperimento, poiché lo sperimentatore non lo "
+"consente in questo momento!"
+
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "È sicuro di voler interrompere l'esperimento?"
+
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Se clicca sul pulsante Interrompi, l'esperimento terminerà in anticipo e le "
+"verrà automaticamente corrisposto il compenso guadagnato fino a quel "
+"momento."
+
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "Ci contatti solo se ha problemi a ricevere il pagamento."
+
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Veda di seguito le informazioni sul suo bonus attualmente accumulato."
+
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Veda le informazioni qui sotto per i dettagli del suo compenso."
+
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "Inizia l'esperimento"
+
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"Cliccando sul seguente link URL, verrà trasferito all'esperimento, che "
+"include istruzioni complete e un accordo di consenso informato."
+
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "Invito ai partecipanti"
+
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"Clicchi sul pulsante \"Accetta HIT\" sul sito Amazon qui sopra per iniziare "
+"l'attività."
+
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "La preghiamo di disattivare i blocchi pop-up prima di continuare."
+
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "Grazie per aver accettato questo HIT."
+
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "Grazie per il suo interesse in questo esperimento."
+
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "I requisiti per partecipare sono i seguenti"
+
+msgctxt "ad"
+msgid "Warning"
+msgstr "Attenzione"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+"Un parametro di decadimento elevato significa che il segnale impiega molto "
+"tempo a decadere (cioè un'elevata attenuazione)."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "Documentazione"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "Cursori"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+"I parametri <strong>decay</strong> determinano la quantità di smussamento "
+"che avviene nel segnale e hanno unità di secondi."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+"I parametri <strong>grace</strong> determinano per quanto tempo il volume "
+"deve rimanere al di fuori della rispettiva soglia, affinché venga attivato "
+"un messaggio di avviso."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+"I parametri <strong>durata del messaggio</strong> determinano la durata di "
+"visualizzazione dei messaggi di avviso."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+"I parametri <strong>soglia</strong> determinano il punto in cui il volume "
+"viene considerato 'troppo alto' o 'troppo basso'."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+"Esistono tre parametri di decadimento: uno per l'audiometro visualizzato, "
+"uno per il rilevatore 'troppo alto' e uno per il rilevatore 'troppo basso'."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr ""
+"Appare una nuova finestra. Nell'angolo in alto, controlli l'icona Incognito."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "In alto a destra, faccia clic su Altro"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "Copia l'URL corrente negli appunti:"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "Copia il link qui sotto"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr "Segua i passi seguenti per assicurarsi che l'esperimento funzioni."
+
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr "Se il suo browser non è compatibile, dobbiamo rifiutare il sondaggio."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "Installi Google Chrome se non l'ha fatto"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "Installi l'ultima versione di Google Chrome"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "Installi la versione più recente di Google Chrome sul suo computer"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "Nuova finestra in incognito"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "Su Mac: Premere"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "Su Windows, Linux o Chrome OS: premere"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "Sul suo computer, apra Chrome."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "Aprire Google Chrome"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "Aprire una nuova finestra in incognito"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr ""
+"Apra una nuova finestra in incognito con le seguenti scorciatoie da "
+"tastiera:"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "Incolli il link nel browser Chrome per continuare l'esperimento"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "Incolla il link nel browser Chrome per avviare l'esperimento"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr ""
+"Incolli il link nella finestra in incognito per continuare l'esperimento"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "Incolla il link nella finestra in incognito per avviare l'esperimento"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "Abiliti JavaScript nel suo browser."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below continue."
+msgstr "Segua le istruzioni qui sotto per continuare."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "Apra il sondaggio sul suo computer."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "Premere"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "Questo sito richiede JavaScript per funzionare correttamente."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "Attenzione!"
+
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr "Ora verificheremo la compatibilità del suo browser."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "Sta utilizzando:"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr ""
+"Può anche utilizzare una scorciatoia da tastiera per aprire una finestra in "
+"incognito."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "Non può partecipare all'esperimento da un dispositivo mobile."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "Deve utilizzare Google Chrome per partecipare all'esperimento."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr ""
+"Deve utilizzare la modalità in incognito per partecipare all'esperimento."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+"Deve utilizzare l'ultima versione di Google Chrome per partecipare "
+"all'esperimento."
+
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Per procedere, clicchi sul pulsante sottostante."
+
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Invio del Sondaggio Lucid"
+
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr ""
+"Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui sotto."
+
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Il consenso è stato rifiutato."
+
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Fine dell'esperimento."
+
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Questa è la fine dell'esperimento!"
+
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Tuttavia, sarà comunque pagato per il tempo già trascorso."
+
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Purtroppo l'esperimento deve terminare in anticipo."
+
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Clicchi sul pulsante qui sopra per ricevere il compenso in caso di errore."
+
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Errore!"
+
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Una volta interrotto l'esperimento, non è necessario contattarci per "
+"ricevere il compenso; le verrà assegnato automaticamente tramite MTurk pochi"
+" minuti dopo."
+
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Potrà interrompere l'esperimento utilizzando il pulsante <strong>Interrompi "
+"l'esperimento</strong> <strong>sulla pagina dell'annuncio MTurk</strong>."
+
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Iniziando l'esperimento..."
+
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Aiuto!"
+
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Il link della pagina web corrente;"
+
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Verifichi che la sua connessione internet funzioni."
+
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Se quanto sopra non è di aiuto, ci invii un'e-mail con le seguenti "
+"informazioni:"
+
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "In caso di problemi, provi quanto segue:"
+
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Ricarichi la pagina."
+
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Il problema che sta riscontrando."
+
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Il suo Worker ID;"
+
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Sei pronto?"
+
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Clicchi sul pulsante quando è pronto per continuare l'esperimento."
+
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Riprendi"
+
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Sfortunatamente questa azione non è attualmente supportata."
+
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Il suo ID partecipante non è definito, forse perché ha cambiato browser "
+"durante il test."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -395,148 +1018,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Le è mai stata diagnosticata la dislessia?"
 
-#: psynet/templates/abort_not_possible.html
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
-msgstr ""
-"Deve accumulare <strong>almeno "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> di bonus per poter "
-"esser compensato."
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "Aborting not possible."
-msgstr "L'interruzione non è possibile."
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid ""
-"Aborting the experiment is not possible as the experimenter does not allow "
-"it at this time!"
-msgstr ""
-"Non è possibile interrompere l'esperimento, poiché lo sperimentatore non lo "
-"consente in questo momento!"
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Veda di seguito le informazioni sul suo bonus attualmente accumulato."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-msgid "Accumulated bonus"
-msgstr "Bonus accumulato"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-msgid "Close window"
-msgstr "Chiudi finestra"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
-msgid "Assignment ID"
-msgstr "Assignment ID"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
-msgid "HIT ID"
-msgstr "HIT ID"
-
-#: psynet/templates/abort_possible.html
-msgid "Abort experiment"
-msgstr "Interrompi l'esperimento"
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid "Are you sure you want to abort the experiment?"
-msgstr "È sicuro di voler interrompere l'esperimento?"
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid ""
-"If you click the Abort button, the experiment will end early, and you will "
-"be automatically paid the compensation you have earned so far."
-msgstr ""
-"Se clicca sul pulsante Interrompi, l'esperimento terminerà in anticipo e le "
-"verrà automaticamente corrisposto il compenso guadagnato fino a quel "
-"momento."
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid "Please only contact us if you have trouble receiving your payment."
-msgstr "Ci contatti solo se ha problemi a ricevere il pagamento."
-
-#: psynet/templates/abort_possible.html
-msgctxt "abort_possible"
-msgid "See the information below for details of your compensation."
-msgstr "Veda le informazioni qui sotto per i dettagli del suo compenso."
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Begin Experiment"
-msgstr "Inizia l'esperimento"
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid ""
-"By clicking the following URL link, you will be taken to the experiment, "
-"including complete instructions and an informed consent agreement."
-msgstr ""
-"Cliccando sul seguente link URL, verrà trasferito all'esperimento, che "
-"include istruzioni complete e un accordo di consenso informato."
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Call for participants"
-msgstr "Invito ai partecipanti"
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
-" task."
-msgstr ""
-"Clicchi sul pulsante \"Accetta HIT\" sul sito Amazon qui sopra per iniziare "
-"l'attività."
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Please disable pop-up blockers before continuing."
-msgstr "La preghiamo di disattivare i blocchi pop-up prima di continuare."
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Thanks for accepting this HIT."
-msgstr "Grazie per aver accettato questo HIT."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for your interest in this experiment."
-msgstr "Grazie per il suo interesse in questo esperimento."
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid "The requirements to participate are as follows"
-msgstr "I requisiti per partecipare sono i seguenti"
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Warning"
-msgstr "Attenzione"
-
-#: psynet/templates/consent.html
-#, python-format
-msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Vedrà anche una o più pagine di consenso e avrà a disposizione fino a "
-"<strong>%(TERMINATION_TIME)s</strong> per leggerle e accettarle/rifiutarle."
-
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "browser_compatibility"
@@ -544,11 +1025,6 @@ msgid ""
 "If you're using a different browser, please reopen the same page in Chrome."
 msgstr ""
 "Se sta utilizzando un browser diverso, riapra la stessa pagina in Chrome."
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "Se il suo browser non è compatibile, dobbiamo rifiutare il sondaggio."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -579,21 +1055,6 @@ msgstr "Questa applicazione ne richiede almeno una:"
 msgctxt "browser_compatibility"
 msgid "This experiment only supports Chrome."
 msgstr "Questo esperimento supporta solo Chrome."
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Ora verificheremo la compatibilità del suo browser."
-
-#: psynet/templates/consent.html
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Per procedere, clicchi sul pulsante sottostante."
-
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
-msgid "Next"
-msgstr "Avanti"
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
@@ -2807,97 +3268,6 @@ msgstr ""
 "Ha anche il diritto di presentare un'obiezione all'autorità di vigilanza. "
 "Per la Società Max-Planck, questo è:"
 
-#: psynet/templates/exit_recruiter_lucid.html
-msgid "Complete Survey"
-msgstr "Completa il sondaggio"
-
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "Invio del Sondaggio Lucid"
-
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-"Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui sotto."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Oltre al suo compenso base di <strong>%(currency)s%(BASE_PAYMENT)s</strong>,"
-" riceverà un bonus di <strong>%(currency)s%(BONUS)s</strong> per il tempo "
-"utilizzato per l'esperimento."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"È stato premiato per la performance con un bonus di "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
-
-#: psynet/templates/final-page-rejected-consent.html
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr "Il consenso è stato rifiutato."
-
-#: psynet/templates/final-page-rejected-consent.html
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr "Fine dell'esperimento."
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Finish"
-msgstr "Fine"
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Clicchi su \"Fine\" per completare l'HIT."
-
-#: psynet/templates/final-page-successful.html
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr "Questa è la fine dell'esperimento!"
-
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Thank you for taking part."
-msgstr "Grazie per aver partecipato."
-
-#: psynet/templates/final-page-unsuccessful.html
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr "Tuttavia, sarà comunque pagato per il tempo già trascorso."
-
-#: psynet/templates/final-page-unsuccessful.html
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr "Purtroppo l'esperimento deve terminare in anticipo."
-
-#: psynet/templates/mturk_error.html
-msgid "Error type"
-msgstr "Tipo di errore"
-
-#: psynet/templates/mturk_error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"In caso contrario, la preghiamo di contattarci all'indirizzo %(EMAIL)s "
-"citando le seguenti informazioni:"
-
 #: psynet/templates/mturk_error.html
 #, python-format
 msgid ""
@@ -2908,133 +3278,9 @@ msgstr ""
 "e descriva la causa di questo errore."
 
 #: psynet/templates/mturk_error.html
-msgid "Worker ID"
-msgstr "Worker ID"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Errore!"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Una volta interrotto l'esperimento, non è necessario contattarci per "
-"ricevere il compenso; le verrà assegnato automaticamente tramite MTurk pochi"
-" minuti dopo."
-
-#: psynet/templates/mturk_error.html
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "La preghiamo inoltre di riportare le seguenti informazioni:"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Potrà interrompere l'esperimento utilizzando il pulsante <strong>Interrompi "
-"l'esperimento</strong> <strong>sulla pagina dell'annuncio MTurk</strong>."
-
-#: psynet/templates/mturk_error.html psynet/templates/mturk_error.html
-msgid "Abort Experiment"
-msgstr "Interrompi l'esperimento"
-
-#: psynet/templates/mturk_error.html psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-"Clicchi sul pulsante qui sopra per ricevere il compenso in caso di errore."
-
-#: psynet/templates/resume.html
-msgid "Resuming experiment ..."
-msgstr "Riprendi l'esperimento ..."
-
-#: psynet/templates/start.html
-msgctxt "start"
-msgid "Starting experiment..."
-msgstr "Iniziando l'esperimento..."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline"
-msgid "Help!"
-msgstr "Aiuto!"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Il link della pagina web corrente;"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Verifichi che la sua connessione internet funzioni."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Se quanto sopra non è di aiuto, ci invii un'e-mail con le seguenti "
-"informazioni:"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "In caso di problemi, provi quanto segue:"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Ricarichi la pagina."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Il problema che sta riscontrando."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Il suo Worker ID;"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr "Sei pronto?"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr "Clicchi sul pulsante quando è pronto per continuare l'esperimento."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr "Riprendi"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Sfortunatamente questa azione non è attualmente supportata."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Il suo ID partecipante non è definito, forse perché ha cambiato browser "
-"durante il test."
 
 #: psynet/utils.py
 msgctxt "country_name"

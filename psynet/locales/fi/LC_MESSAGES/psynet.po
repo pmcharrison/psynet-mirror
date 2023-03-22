@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:54:36\n"
+"POT-Creation-Date: 2023-22/03/ 16:02:05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -12,6 +12,673 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Keskeytä koe"
+
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Keskeytä koe"
+
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Kertynyt bonus"
+
+#, fuzzy
+msgid "Assignment ID"
+msgstr "Toimeksiannon tunnus"
+
+#, fuzzy
+msgid "Close window"
+msgstr "Sulje ikkuna"
+
+#, fuzzy
+msgid "Complete Survey"
+msgstr "Täydellinen kysely"
+
+#, fuzzy
+msgid "Error type"
+msgstr "Virhetyyppi"
+
+#, fuzzy
+msgid "Finish"
+msgstr "Viimeistely"
+
+#, fuzzy
+msgid "HIT ID"
+msgstr "HIT-TUNNUS"
+
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
+"seuraavat tiedot:"
+
+#. ""
+#, fuzzy
+msgid "Image not found"
+msgstr "Kuvaa ei löydy"
+
+#. ""
+#, python-format
+msgid ""
+"In addition to your base payment of "
+"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+
+#. ""
+#, fuzzy
+msgid "Loop"
+msgstr "Silmukka"
+
+#, fuzzy
+msgid "Next"
+msgstr "Seuraava"
+
+#. ""
+#, fuzzy
+msgid "Play all"
+msgstr "Pelaa kaikki"
+
+#. ""
+#, fuzzy
+msgid "Play from start"
+msgstr "Pelaa alusta alkaen"
+
+#. ""
+#, fuzzy
+msgid "Play prompt"
+msgstr "Toista kehote"
+
+#. ""
+#, fuzzy
+msgid "Play recording"
+msgstr "Toista tallennus"
+
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Klikkaa \"Finish\" saadaksesi HIT:n valmiiksi."
+
+#. ""
+#, fuzzy
+msgid "Record from start"
+msgstr "Tietue alusta alkaen"
+
+#. ""
+#, fuzzy
+msgid "Reset"
+msgstr "Nollaa"
+
+#, fuzzy
+msgid "Resuming experiment ..."
+msgstr "Kokeen jatkaminen ..."
+
+#. ""
+#, fuzzy
+msgid "Stop"
+msgstr "Stop"
+
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Kiitos osallistumisesta."
+
+#. ""
+#, fuzzy
+msgid "Video not found"
+msgstr "Videota ei löydy"
+
+#, fuzzy
+msgid "Worker ID"
+msgstr "Työntekijän tunnus"
+
+#. ""
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+
+#. ""
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+" to be compensated."
+msgstr ""
+
+#, python-format, fuzzy
+msgid ""
+"You will also see one or more consent pages and have up to "
+"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+"Näet myös yhden tai useamman suostumussivun, ja sinulla on enintään "
+"<strong>%(TERMINATION_TIME)s</strong> aikaa lukea ja hyväksyä tai hylätä ne."
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "Keskeyttäminen ei ole mahdollista."
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Kokeen keskeyttäminen ei ole mahdollista, koska kokeen suorittaja ei salli "
+"sitä tällä hetkellä!"
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Haluatko varmasti keskeyttää kokeen?"
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Jos napsautat Keskeytä-painiketta, kokeilu päättyy ennenaikaisesti, ja "
+"sinulle maksetaan automaattisesti tähän mennessä ansaitsemasi korvaus."
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "Ota meihin yhteyttä vain, jos sinulla on ongelmia maksun saamisessa."
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Katso alla olevat tiedot tällä hetkellä kertyneestä bonuksestasi."
+
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Katso lisätietoja korvauksistasi alla olevista tiedoista."
+
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "Aloita koe"
+
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"Napsauttamalla seuraavaa URL-linkkiä pääset kokeeseen, joka sisältää "
+"täydelliset ohjeet ja tietoon perustuvan suostumuksen."
+
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "Osallistumispyyntö"
+
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"Napsauta \"Accept HIT\" -painiketta yllä olevalla Amazon-sivustolla "
+"aloittaaksesi tehtävän."
+
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "Poista ponnahdusikkunoiden estimet käytöstä ennen kuin jatkat."
+
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "Kiitos, että hyväksyt tämän HIT:n."
+
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "Kiitos kiinnostuksestasi tätä kokeilua kohtaan."
+
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "Osallistumisvaatimukset ovat seuraavat"
+
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "Varoitus"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+"Korkea decay-parametri tarkoittaa, että signaalin hajoaminen kestää kauan "
+"(eli suuri tasoitus)."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "Dokumentaatio"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "Liukusäätimet"
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+"<strong>decay</strong>-parametrit määrittävät signaalille tapahtuvan "
+"tasoituksen määrän, ja niiden yksikkö on sekunti."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+"<strong>grace</strong> -parametrit määrittävät, kuinka kauan "
+"äänenvoimakkuuden on oltava kyseisen raja-arvon ulkopuolella, jotta "
+"varoitusviesti laukeaa."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+"<strong>viestin kesto</strong> -parametrit määrittävät, kuinka kauan "
+"varoitusviestejä näytetään."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+"<strong>kynnysarvo</strong> -parametrit määrittävät pisteen, jossa "
+"äänenvoimakkuus määritetään \"liian suureksi\" tai \"liian pieneksi\"."
+
+#. ""
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+"Hajoamisparametreja on kolme: yksi näytettävälle äänimittarille, yksi "
+"\"liian korkea\"-ilmaisimelle ja yksi \"liian matala\"-ilmaisimelle."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr "Avautuu uusi ikkuna, jonka yläkulmassa on Incognito-kuvake."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "Napsauta oikeassa yläkulmassa Lisää"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "Kopioi nykyinen URL-osoite leikepöydälle:"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "Kopioi alla oleva linkki"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr "Seuraa alla olevia ohjeita varmistaaksesi, että kokeilu toimii."
+
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr "Jos selaimesi ei ole yhteensopiva, meidän on hylättävä kysely."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "Asenna Google Chrome, jos et ole vielä asentanut"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "Asenna Google Chromen uusin versio"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "Asenna Google Chromen uusin versio tietokoneellesi."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "Uusi inkognito-ikkuna"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "Macissa: Paina"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "Windowsissa, Linuxissa tai Chrome OS:ssä: Paina"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "Avaa tietokoneessa Chrome."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "Avaa Google Chrome"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "Avaa uusi inkognito-ikkuna"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr "Avaa uusi inkognito-ikkuna seuraavilla pikanäppäimillä:"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "Liitä linkki Chrome-selaimeen jatkaaksesi koetta"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "Liitä linkki Chrome-selaimeen aloittaaksesi kokeen"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr "Liitä linkki inkognito-ikkunaan jatkaaksesi kokeilua."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "Liitä linkki inkognito-ikkunaan aloittaaksesi kokeen."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "Ota JavaScript käyttöön selaimessasi."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below continue."
+msgstr "Seuraa alla olevia ohjeita jatka."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "Avaa kysely tietokoneellasi."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "Paina"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "Tämä sivusto vaatii JavaScriptin toimiakseen oikein."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "Varoitus!"
+
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr "Testaamme nyt selaimesi yhteensopivuuden."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "Käytät:"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr "Voit avata Incognito-ikkunan myös pikanäppäimellä"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "Et voi osallistua kokeeseen mobiililaitteella."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "Sinun on käytettävä Google Chromea osallistuaksesi kokeeseen."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Sinun on käytettävä incognito-tilaa osallistuaksesi kokeeseen."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+"Sinun on käytettävä Google Chromen uusinta versiota osallistuaksesi "
+"kokeeseen."
+
+#, fuzzy
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Jatka klikkaamalla alla olevaa painiketta."
+
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid Survey Submission"
+
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Täytä Lucid-kysely klikkaamalla alla olevaa painiketta."
+
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Suostumus hylättiin."
+
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Koe päättyi."
+
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Kokeilu on päättynyt!"
+
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Sinulle kuitenkin maksetaan jo käyttämästäsi ajasta."
+
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Valitettavasti kokeilu on lopetettava aikaisin."
+
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Klikkaa yllä olevaa painiketta saadaksesi korvauksen virhetilanteessa."
+
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Virhe!"
+
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Kun kokeilu on keskeytetty, sinun ei tarvitse ottaa meihin yhteyttä "
+"saadaksesi korvauksen; sen pitäisi tulla sinulle automaattisesti MTurkin "
+"kautta muutaman minuutin kuluttua."
+
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
+"-painiketta <strong>MTurkin mainossivulla</strong>."
+
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Aloitetaan kokeilu..."
+
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Apua!"
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Linkki nykyiselle verkkosivulle;"
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Tarkista, että internet-yhteys toimii."
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Jos edellä mainitut toimet eivät auta, lähetä meille sähköpostia, jossa on "
+"seuraavat tiedot:"
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Jos ongelma ilmenee, kokeile seuraavaa:"
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Lataa sivu uudelleen."
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Ongelmasi."
+
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Työntekijätunnuksesi;"
+
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Oletko valmis?"
+
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Klikkaa painiketta, kun olet valmis jatkamaan kokeilua."
+
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Jatka"
+
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Valitettavasti tätä toimintatapaa ei tällä hetkellä tueta."
+
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Osallistujatunnuksesi on määrittelemätön, ehkä siksi, että vaihdoit selainta"
+" testin aikana."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -420,177 +1087,12 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Onko sinulla koskaan diagnosoitu lukihäiriö?"
 
-#. ""
-#: psynet/templates/abort_not_possible.html
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
-msgstr ""
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid "Aborting not possible."
-msgstr "Keskeyttäminen ei ole mahdollista."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid ""
-"Aborting the experiment is not possible as the experimenter does not allow "
-"it at this time!"
-msgstr ""
-"Kokeen keskeyttäminen ei ole mahdollista, koska kokeen suorittaja ei salli "
-"sitä tällä hetkellä!"
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Katso alla olevat tiedot tällä hetkellä kertyneestä bonuksestasi."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Kertynyt bonus"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Close window"
-msgstr "Sulje ikkuna"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Assignment ID"
-msgstr "Toimeksiannon tunnus"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
-#, fuzzy
-msgid "HIT ID"
-msgstr "HIT-TUNNUS"
-
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Abort experiment"
-msgstr "Keskeytä koe"
-
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid "Are you sure you want to abort the experiment?"
-msgstr "Haluatko varmasti keskeyttää kokeen?"
-
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid ""
-"If you click the Abort button, the experiment will end early, and you will "
-"be automatically paid the compensation you have earned so far."
-msgstr ""
-"Jos napsautat Keskeytä-painiketta, kokeilu päättyy ennenaikaisesti, ja "
-"sinulle maksetaan automaattisesti tähän mennessä ansaitsemasi korvaus."
-
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid "Please only contact us if you have trouble receiving your payment."
-msgstr "Ota meihin yhteyttä vain, jos sinulla on ongelmia maksun saamisessa."
-
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgctxt "abort_possible"
-msgid "See the information below for details of your compensation."
-msgstr "Katso lisätietoja korvauksistasi alla olevista tiedoista."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Begin Experiment"
-msgstr "Aloita koe"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid ""
-"By clicking the following URL link, you will be taken to the experiment, "
-"including complete instructions and an informed consent agreement."
-msgstr ""
-"Napsauttamalla seuraavaa URL-linkkiä pääset kokeeseen, joka sisältää "
-"täydelliset ohjeet ja tietoon perustuvan suostumuksen."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Call for participants"
-msgstr "Osallistumispyyntö"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
-" task."
-msgstr ""
-"Napsauta \"Accept HIT\" -painiketta yllä olevalla Amazon-sivustolla "
-"aloittaaksesi tehtävän."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Please disable pop-up blockers before continuing."
-msgstr "Poista ponnahdusikkunoiden estimet käytöstä ennen kuin jatkat."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for accepting this HIT."
-msgstr "Kiitos, että hyväksyt tämän HIT:n."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for your interest in this experiment."
-msgstr "Kiitos kiinnostuksestasi tätä kokeilua kohtaan."
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "The requirements to participate are as follows"
-msgstr "Osallistumisvaatimukset ovat seuraavat"
-
-#: psynet/templates/ad.html
-#, fuzzy
-msgctxt "ad"
-msgid "Warning"
-msgstr "Varoitus"
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Näet myös yhden tai useamman suostumussivun, ja sinulla on enintään "
-"<strong>%(TERMINATION_TIME)s</strong> aikaa lukea ja hyväksyä tai hylätä ne."
-
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid ""
 "If you're using a different browser, please reopen the same page in Chrome."
 msgstr "Jos käytät eri selainta, avaa sama sivu uudelleen Chromessa."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "Jos selaimesi ei ole yhteensopiva, meidän on hylättävä kysely."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -621,24 +1123,6 @@ msgstr "Tämä sovellus vaatii vähintään:"
 msgctxt "browser_compatibility"
 msgid "This experiment only supports Chrome."
 msgstr "Tämä kokeilu tukee vain Chromea."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Testaamme nyt selaimesi yhteensopivuuden."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Jatka klikkaamalla alla olevaa painiketta."
-
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Next"
-msgstr "Seuraava"
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
@@ -2801,105 +3285,6 @@ msgstr ""
 "Sinulla on myös oikeus esittää vastalause valvontaviranomaiselle. Max-"
 "Planck-seuran osalta tämä on:"
 
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgid "Complete Survey"
-msgstr "Täydellinen kysely"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "Lucid Survey Submission"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Täytä Lucid-kysely klikkaamalla alla olevaa painiketta."
-
-#. ""
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-
-#. ""
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-
-#: psynet/templates/final-page-rejected-consent.html
-#, fuzzy
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr "Suostumus hylättiin."
-
-#: psynet/templates/final-page-rejected-consent.html
-#, fuzzy
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr "Koe päättyi."
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-#, fuzzy
-msgid "Finish"
-msgstr "Viimeistely"
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-#, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Klikkaa \"Finish\" saadaksesi HIT:n valmiiksi."
-
-#: psynet/templates/final-page-successful.html
-#, fuzzy
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr "Kokeilu on päättynyt!"
-
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-#, fuzzy
-msgid "Thank you for taking part."
-msgstr "Kiitos osallistumisesta."
-
-#: psynet/templates/final-page-unsuccessful.html
-#, fuzzy
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr "Sinulle kuitenkin maksetaan jo käyttämästäsi ajasta."
-
-#: psynet/templates/final-page-unsuccessful.html
-#, fuzzy
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr "Valitettavasti kokeilu on lopetettava aikaisin."
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "Virhetyyppi"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
-"seuraavat tiedot:"
-
 #: psynet/templates/mturk_error.html
 #, python-format, fuzzy
 msgid ""
@@ -2911,155 +3296,9 @@ msgstr ""
 
 #: psynet/templates/mturk_error.html
 #, fuzzy
-msgid "Worker ID"
-msgstr "Työntekijän tunnus"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Virhe!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Kun kokeilu on keskeytetty, sinun ei tarvitse ottaa meihin yhteyttä "
-"saadaksesi korvauksen; sen pitäisi tulla sinulle automaattisesti MTurkin "
-"kautta muutaman minuutin kuluttua."
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Mainitse myös seuraavat tiedot:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
-"-painiketta <strong>MTurkin mainossivulla</strong>."
-
-#: psynet/templates/mturk_error.html psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Keskeytä koe"
-
-#: psynet/templates/mturk_error.html psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-"Klikkaa yllä olevaa painiketta saadaksesi korvauksen virhetilanteessa."
-
-#: psynet/templates/resume.html
-#, fuzzy
-msgid "Resuming experiment ..."
-msgstr "Kokeen jatkaminen ..."
-
-#: psynet/templates/start.html
-#, fuzzy
-msgctxt "start"
-msgid "Starting experiment..."
-msgstr "Aloitetaan kokeilu..."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Help!"
-msgstr "Apua!"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Linkki nykyiselle verkkosivulle;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Tarkista, että internet-yhteys toimii."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Jos edellä mainitut toimet eivät auta, lähetä meille sähköpostia, jossa on "
-"seuraavat tiedot:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Jos ongelma ilmenee, kokeile seuraavaa:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Lataa sivu uudelleen."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Ongelmasi."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Työntekijätunnuksesi;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr "Oletko valmis?"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr "Klikkaa painiketta, kun olet valmis jatkamaan kokeilua."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr "Jatka"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Valitettavasti tätä toimintatapaa ei tällä hetkellä tueta."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Osallistujatunnuksesi on määrittelemätön, ehkä siksi, että vaihdoit selainta"
-" testin aikana."
 
 #: psynet/utils.py
 #, fuzzy
