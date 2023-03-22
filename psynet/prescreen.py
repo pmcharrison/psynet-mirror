@@ -1521,11 +1521,11 @@ class HeadphoneTest(StaticTrialMaker):
         The label for the color headphone check, default: "headphone_test".
 
     trial_class :
-        Trial class to use, recommended HugginsHeadphoneTrial;
+        Trial class to use, recommended HugginsHeadphoneTrial.
 
     media_url : string
         The url under which the images to be displayed can be referenced, default:
-        "https://s3.amazonaws.com/headphone-check"
+        "https://s3.amazonaws.com/headphone-check".
 
     time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 7.5.
