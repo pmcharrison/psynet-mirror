@@ -137,18 +137,10 @@
 <script src="/static/scripts/detectIncognito.min.js"></script>
 
 <script>
-    var psynet = {};
+    var browser = {};
 
 
     function browserValidation() {
-        if (!("browser" in psynet)) {
-            psynet.browser = {};
-        }
-
-        if (!("utils" in psynet)) {
-            psynet.utils = {};
-        }
-
         function fallbackCopyTextToClipboard(text) {
             var textArea = document.createElement("textarea");
             textArea.value = text;
@@ -173,7 +165,7 @@
             document.body.removeChild(textArea);
         }
 
-        psynet.utils.copyTextToClipboard = function (text) {
+        browser.copyTextToClipboard = function (text) {
             console.log('copying text to clipboard', text)
             if (!navigator.clipboard) {
                 fallbackCopyTextToClipboard(text);
@@ -186,13 +178,13 @@
             });
         }
 
-        psynet.browser.allowMobileDevices = {{ experiment.var.allow_mobile_devices|tojson }};
-        psynet.browser.forceGoogleChrome = {{ experiment.var.force_google_chrome|tojson }};
-        psynet.browser.forceIncognitoMode = {{ experiment.var.force_incognito_mode|tojson }};
-        psynet.browser.minVersion = "{{ experiment.var.min_browser_version }}";
-        psynet.browser.version = platform.version;
-        psynet.browser.isOldVersion = !isVersionAtLeast(psynet.browser.version, psynet.browser.minVersion);
-        psynet.browser.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        browser.allowMobileDevices = {{ experiment.var.allow_mobile_devices|tojson }};
+        browser.forceGoogleChrome = {{ experiment.var.force_google_chrome|tojson }};
+        browser.forceIncognitoMode = {{ experiment.var.force_incognito_mode|tojson }};
+        browser.minVersion = "{{ experiment.var.min_browser_version }}";
+        browser.version = platform.version;
+        browser.isOldVersion = !isVersionAtLeast(browser.version, browser.minVersion);
+        browser.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         function renderInstruction(iconName, text, details = '') {
             var line = getIcon(iconName) + ' <span class="display-5">' + text + '</span>' + details;
@@ -227,7 +219,7 @@
             var out = '<div class="input-group my-3">';
             out += '<input id="' + id + '" type="text" class="form-control" value="' + text + '" readonly>';
             out += '<div class="input-group-append">';
-            out += '<button onclick="psynet.browser._onclickCopy(\'' + id + '\')" class="btn btn-outline-secondary" type="button" id="copy-button">';
+            out += '<button onclick="browser._onclickCopy(\'' + id + '\')" class="btn btn-outline-secondary" type="button" id="copy-button">';
             out += getIcon('copy-outline');
             out += '</button>';
             out += '</div>';
@@ -256,9 +248,9 @@
             return true;
         }
 
-        psynet.browser._onclickCopy = function(id) {
+        browser._onclickCopy = function(id) {
             var elem = $('#' + id);
-            psynet.utils.copyTextToClipboard(elem.val());
+            browser.copyTextToClipboard(elem.val());
             document.getElementById('copy-button').innerHTML = getIcon('checkmark');
         }
 
@@ -291,18 +283,18 @@
 
             var warningMsg = "";
 
-            if (psynet.browser.forceGoogleChrome) {
-                if (!psynet.browser.isChrome) {
-                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using:")}} " + psynet.browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
+            if (browser.forceGoogleChrome) {
+                if (!browser.isChrome) {
+                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using:")}} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
                 } else {
-                    if (psynet.browser.isOldVersion) {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + psynet.browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:")}}: " + psynet.browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
+                    if (browser.isOldVersion) {
+                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:")}}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
                     }
                 }
             }
 
-            if (psynet.browser.forceIncognitoMode) {
-                if (!psynet.browser.isIncognito) {
+            if (browser.forceIncognitoMode) {
+                if (!browser.isIncognito) {
                     // only show this warning if people are using the right browser
                     if (warningMsg === "") {
                         warningMsg = "{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment.") }} {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
@@ -320,23 +312,23 @@
             out += '<table class="table mt-3">';
             out += '<tbody>';
 
-            if (psynet.browser.forceGoogleChrome && !psynet.browser.isChrome) {
+            if (browser.forceGoogleChrome && !browser.isChrome) {
                 var chromeLink = '<a href="https://www.google.com/chrome/" target="_blank">' + getIcon('link') + '</a>';
-                if (psynet.browser.isOldVersion) {
+                if (browser.isOldVersion) {
                     out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install the latest version of Google Chrome") }}: " + chromeLink);
                 } else {
                     out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install Google Chrome if you haven't") }}" + chromeLink);
                 }
             }
             out += renderInstruction('copy-filled', "{{ pgettext("browser_compatibility", "Copy the link below") }}", renderCopyArea('url', window.location.href));
-            if (psynet.browser.forceGoogleChrome && !psynet.browser.isChrome) {
+            if (browser.forceGoogleChrome && !browser.isChrome) {
                 out += renderInstruction('open-chrome', "{{ pgettext("browser_compatibility", "Open Google Chrome") }}");
             }
 
-            if (psynet.browser.forceIncognitoMode) {
+            if (browser.forceIncognitoMode) {
                 var shortcut = isMacOS() ? '<strong>⌘ + Shift + n</strong> (MacOS)' : '<strong>Ctrl + Shift + N</strong>';
                 var incognitoInstructions = '';
-                if (psynet.browser.isChrome) {
+                if (browser.isChrome) {
                     incognitoInstructions += '<p>';
                     incognitoInstructions += '<ol class="mt-3">';
                     incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "On your computer, open Chrome.") }}</li>';
@@ -352,7 +344,7 @@
             }
             var continueMsg = ''
             var isTimeline = window.location.href.indexOf('timeline') !== -1
-            if (psynet.browser.forceIncognitoMode) {
+            if (browser.forceIncognitoMode) {
                 if (isTimeline) {
                     continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to continue the experiment") }}';
                 } else {
@@ -390,28 +382,28 @@
             document.getElementById('browser-compatibility-modal').style.display = 'block'
         }
 
-        if (!psynet.browser.allowMobileDevices && psynet.browser.isMobile) {
+        if (!browser.allowMobileDevices && browser.isMobile) {
             renderMobileWarning();
             return false;
         }
 
         detectIncognito().then((result) => {
-            psynet.browser.name = result.browserName;
-            psynet.browser.isIncognito = result.isPrivate;
-            psynet.browser.isChrome = result.browserName === "Chrome";
+            browser.name = result.browserName;
+            browser.isIncognito = result.isPrivate;
+            browser.isChrome = result.browserName === "Chrome";
             var correctBrowserUsed = true;
-            if (psynet.browser.forceGoogleChrome) {
-                correctBrowserUsed = correctBrowserUsed && psynet.browser.isChrome && !psynet.browser.isOldVersion
+            if (browser.forceGoogleChrome) {
+                correctBrowserUsed = correctBrowserUsed && browser.isChrome && !browser.isOldVersion
             }
-            if (psynet.browser.forceIncognitoMode) {
-                correctBrowserUsed = correctBrowserUsed && psynet.browser.isIncognito;
+            if (browser.forceIncognitoMode) {
+                correctBrowserUsed = correctBrowserUsed && browser.isIncognito;
             }
             if (!correctBrowserUsed) {
                 renderBrowserWarning();
                 return false;
             }
             console.log("Browser check finished");
-            psynet.browser.isValidated = true;
+            browser.isValidated = true;
         });
         return true;
     }
