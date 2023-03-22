@@ -412,10 +412,8 @@ def serialise(obj):
     raise TypeError("Type %s is not serialisable" % type(obj))
 
 
-def format_datetime_string(datetime_string):
-    return datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f").strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
+def format_datetime(datetime):
+    return datetime.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def model_name_to_snake_case(model_name):
