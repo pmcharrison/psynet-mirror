@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:01:15\n"
+"POT-Creation-Date: 2023-22/03/ 12:08:02\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -650,16 +650,16 @@ msgstr "Sulje ikkuna"
 #. {"msgid": ["Toimeksiannon tunnus", "Toimeksiannon ID", "Teht\u00e4v\u00e4n
 #. tunnus", "Teht\u00e4v\u00e4n ID"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Toimeksiannon tunnus"
 
 #. {"msgid": ["HIT-TUNNUS", "HIT ID", "HIT-TUNNISTE", "HIT-ID"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT-TUNNUS"
@@ -1151,30 +1151,30 @@ msgstr ""
 #. n\u00e4m\u00e4 ehdot?", "Ymm\u00e4rr\u00e4tk\u00f6 n\u00e4m\u00e4 ehdot ja
 #. hyv\u00e4ksytk\u00f6 ne?", "Ymm\u00e4rr\u00e4tk\u00f6 n\u00e4m\u00e4 ehdot
 #. ja suostutko niihin?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgid "Do you understand and consent to these terms?"
 msgstr "Ymmärrätkö ja hyväksytkö nämä ehdot?"
 
 #. {"msgid": ["Hyv\u00e4ksyn", "Olen samaa mielt\u00e4", "Suostun", "Olen
 #. samaa mielt\u00e4."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "I agree"
@@ -1183,15 +1183,15 @@ msgstr "Hyväksyn"
 #. {"msgid": ["Ei, kiitos (palauta teht\u00e4v\u00e4)", "Ei kiitos (palauta
 #. teht\u00e4v\u00e4)", "Ei, kiitos (palaa teht\u00e4v\u00e4\u00e4n)", "En,
 #. kiitos (palauta teht\u00e4v\u00e4)"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "No, thank you (return task)"
@@ -1202,15 +1202,15 @@ msgstr "Ei, kiitos (palauta tehtävä)"
 #. p\u00e4ivit\u00e4 t\u00e4m\u00e4 sivu.", "Ota Javascript
 #. k\u00e4ytt\u00f6\u00f6n ja p\u00e4ivit\u00e4 sivu.", "Ota Javascript
 #. k\u00e4ytt\u00f6\u00f6n ja p\u00e4ivit\u00e4 sitten sivu."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
@@ -1221,15 +1221,15 @@ msgstr "Ota Javascript käyttöön ja päivitä sitten tämä sivu."
 #. Javascripti\u00e4 k\u00e4yt\u00f6ss\u00e4.", "Tutkimus ei toimi, ellei
 #. selaimessasi ole k\u00e4yt\u00f6ss\u00e4 Javascript.", "Tutkimus ei toimi,
 #. ellei selaimessasi ole Javascripti\u00e4."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "The study will not work unless Javascript is enabled on your browser."
@@ -1238,15 +1238,15 @@ msgstr "Tutkimus ei toimi, ellei Javascript ole käytössä selaimessasi."
 #. {"msgid": ["Varoitus: Javascript ei toimi selaimessasi", "Varoitus:
 #. Javascript ei toimi selaimessasi.", "Varoitus: Javascript ei toimi
 #. selaimellasi", "Varoitus: Javascript ei toimi selaimessa"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
@@ -1266,14 +1266,14 @@ msgstr "Varoitus: Javascript ei toimi selaimessasi"
 #. v\u00e4hint\u00e4\u00e4n 18-vuotias, olet lukenut t\u00e4m\u00e4n
 #. suostumuslomakkeen, hyv\u00e4ksyt sen sis\u00e4ll\u00f6n ja suostut
 #. osallistumaan tutkimukseen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid ""
@@ -1287,14 +1287,14 @@ msgstr ""
 
 #. {"msgid": ["Suostumus", "Hyv\u00e4ksynt\u00e4", "Suostumus:", "Suostumus
 #. ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid "Consent"
@@ -1304,37 +1304,37 @@ msgstr "Suostumus"
 #. halua antaa suostumusta, sulje t\u00e4m\u00e4 sivu.", "Jos et halua antaa
 #. suostumustasi, sulje t\u00e4m\u00e4 sivu.", "Jos et halua suostumusta,
 #. sulje t\u00e4m\u00e4 sivu."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
 msgstr "Jos et halua suostua, sulje tämä sivu."
 
 #. {"msgid": ["Turvallisuus", "Turvallisuus:", "Turvatoimet", "Turva"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-security"
 msgid "Security"
 msgstr "Turvallisuus"
 
 #. {"msgid": ["Yhteystiedot", "Yhteystietoja", "yhteystiedot", "Yhteystieto"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-contact"
 msgid "Contact information"
@@ -1344,23 +1344,23 @@ msgstr "Yhteystiedot"
 #. yl\u00f6s/alas n\u00e4hd\u00e4ksesi kaiken tekstin", "Vierit\u00e4
 #. yl\u00f6s/alas n\u00e4hd\u00e4ksesi koko tekstin", "Vierit\u00e4
 #. yl\u00f6s/alas n\u00e4hd\u00e4ksesi kaiken tekstin"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgid "Scroll up/down to see all text"
 msgstr "Selaa ylös/alas nähdäksesi koko tekstin"
 
 #. {"msgid": ["Luottamuksellisuus", "Salassapito", "Salassapitovelvollisuus",
 #. "Luottamuksellisuus:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid "Confidentiality"
@@ -1375,8 +1375,8 @@ msgstr "Luottamuksellisuus"
 #. edistyksen ja toistettavuuden edist\u00e4miseksi saatamme joskus jakaa
 #. tietoja tutkimusyhteisty\u00f6kumppaneille."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-collaborations"
 msgid ""
@@ -1390,8 +1390,8 @@ msgstr ""
 #. "Tutkimusyhteisty\u00f6t\u00e4", "Tutkimusyhteisty\u00f6h\u00f6n
 #. osallistuminen"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
@@ -1881,8 +1881,8 @@ msgstr ""
 "Tutkimukseen osallistuvan suostumuslomake kuva- ja äänitallenteita varten."
 
 #. {"msgid": ["Tutkija", "Tutkija:", "Tutkija ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "Investigator"
@@ -1890,8 +1890,8 @@ msgstr "Tutkija"
 
 #. {"msgid": ["P\u00e4\u00e4tutkija", "P\u00e4\u00e4tutkimuksen tekij\u00e4",
 #. "P\u00e4\u00e4tutkimuksen suorittaja", "P\u00e4\u00e4tutkijan nimi"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "Principal Investigator"
@@ -1899,8 +1899,8 @@ msgstr "Päätutkija"
 
 #. {"msgid": ["Tutkimuksen nimi:", "Tutkimuksen otsikko:", "Tutkimuksen nimi:
 #. Tutkimuksen nimi:", "Tutkimuksen nimike:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "Title of study:"
@@ -2949,18 +2949,18 @@ msgstr ""
 #. suostumuksesi jatkaaksemme tutkimusta.", "Tarvitsemme suostumuksesi
 #. jatkaaksemme tutkimusten tekemist\u00e4.", "Tarvitsemme suostumuksesi
 #. jatkaaksemme tutkimuksia"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #, fuzzy
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
@@ -3156,10 +3156,10 @@ msgstr "Max-Planck-seuran osalta tämä on:"
 #. osoitteessa", "Jos sinulla on kysytt\u00e4v\u00e4\u00e4 t\u00e4st\u00e4
 #. tutkimuksesta, \u00e4l\u00e4 ep\u00e4r\u00f6i ottaa yhteytt\u00e4 hankkeen
 #. p\u00e4\u00e4tutkijaan Nori Jacobyyn osoitteessa"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-overview"
 msgid ""
@@ -3170,8 +3170,8 @@ msgstr ""
 "projektin päätutkijaan Nori Jacobyyn osoitteessa:"
 
 #. {"msgid": ["tunnissa", "per tunti", "tuntia kohden", "tuntia kohti"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
 msgstr "tunnissa"
@@ -3181,8 +3181,8 @@ msgstr "tunnissa"
 #. s\u00e4ilytet\u00e4\u00e4n luottamuksellisina.", "Kaikki tutkimuksen aikana
 #. saamamme tiedot k\u00e4sitell\u00e4\u00e4n luottamuksellisesti.", "Kaikki
 #. tutkimuksen aikana saamamme tiedot ovat luottamuksellisia."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -3196,8 +3196,8 @@ msgstr ""
 #. vastalause valvontaviranomaiselle.", "Sinulla on my\u00f6s oikeus
 #. tehd\u00e4 vastav\u00e4ite valvontaviranomaiselle.", "Sinulla on my\u00f6s
 #. oikeus tehd\u00e4 valitus valvontaviranomaiselle."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
@@ -3235,9 +3235,9 @@ msgstr "Sinulla on myös oikeus tehdä vastalause valvontaviranomaiselle."
 #. j\u00e4ljitell\u00e4 kykyj\u00e4mme (esim. \u00e4\u00e4nentunnistuksessa ja
 #. tietokonen\u00e4\u00f6ss\u00e4), ja auttaa parantamaan kuulo- tai
 #. n\u00e4k\u00f6vammaisten havaintokyky\u00e4."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-benefits"
 msgid ""
@@ -3254,18 +3254,18 @@ msgstr ""
 "auttaa parantamaan kuulo- tai näkövammaisten ihmisten havaintokykyä."
 
 #. {"msgid": ["Edut", "Etuudet", "Hy\u00f6dyt", "Etuja"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-benefits"
 msgid "Benefits"
 msgstr "Edut"
 
 #. {"msgid": ["Korvaus", "Korvaukset", "Kompensaatio", "Hyvitys"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "Compensation"
@@ -3281,9 +3281,9 @@ msgstr "Korvaus"
 #. vaiheessa.", "Mit\u00e4\u00e4n henkil\u00f6kohtaisia tunnistetietoja (esim.
 #. nime\u00e4si tai yhteystietojasi) ei ker\u00e4t\u00e4 tai k\u00e4ytet\u00e4
 #. miss\u00e4\u00e4n kokeen vaiheessa."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -3296,18 +3296,18 @@ msgstr ""
 #. {"msgid": ["N\u00e4in ollen kokeen tiedot ovat anonyymej\u00e4.", "Kokeen
 #. tiedot ovat siis anonyymej\u00e4.", "N\u00e4in ollen kokeen tiedot ovat
 #. nimett\u00f6mi\u00e4.", "N\u00e4in ollen kokeen tiedot ovat anonyymeja."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid "Thus, the experimental data is anonymous."
 msgstr "Näin ollen kokeen tiedot ovat anonyymejä."
 
 #. {"msgid": ["Yleiskatsaus", "Katsaus", "Yleiskuvaus", "Yleiskuva"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-overview"
 msgid "Overview"
@@ -3323,9 +3323,9 @@ msgstr "Yleiskatsaus"
 #. tutkimukseen.", "T\u00e4m\u00e4n verkkolomakkeen tarkoituksena on antaa
 #. sinulle tietoa, jonka avulla voit p\u00e4\u00e4tt\u00e4\u00e4, haluatko
 #. osallistua tutkimukseen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-overview"
 msgid ""
@@ -3341,9 +3341,9 @@ msgstr ""
 #. instituutin empiirisen estetiikan tutkijat toteuttavat t\u00e4t\u00e4
 #. tutkimusta.", "Max-Planck-instituutin empiirisen estetiikan tutkijat
 #. suorittavat t\u00e4t\u00e4 tutkimusta."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-overview"
 msgid ""
@@ -3385,9 +3385,9 @@ msgstr ""
 #. t\u00e4m\u00e4ntyyppist\u00e4 \u00e4\u00e4nt\u00e4 tai kuvaa, kuinka
 #. esteettisesti miellytt\u00e4v\u00e4n\u00e4 pid\u00e4t tietty\u00e4
 #. \u00e4\u00e4nt\u00e4 tai kuvaa)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3418,9 +3418,9 @@ msgstr ""
 #. pyydet\u00e4\u00e4n suorittamaan yksinkertaisia teht\u00e4vi\u00e4
 #. n\u00e4pp\u00e4imist\u00f6n tai hiiren avulla kuunnellessasi
 #. \u00e4\u00e4ni\u00e4 tai katsoessasi kuvia tai videoita."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3450,9 +3450,9 @@ msgstr ""
 #. totuutta kokeellisesta teht\u00e4v\u00e4st\u00e4 (emme esimerkiksi kerro,
 #. ett\u00e4 kuva on keinotekoisen tietokonej\u00e4rjestelm\u00e4n eik\u00e4
 #. ihmisen luoma)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3477,9 +3477,9 @@ msgstr ""
 #. k\u00e4ytet\u00e4\u00e4n vain joissakin kokeissa, joissa meid\u00e4n on
 #. estett\u00e4v\u00e4 osallistujien ennakkoluulojen syntyminen ennen kokeen
 #. tekemist\u00e4."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3490,9 +3490,9 @@ msgstr ""
 " estettävä osallistujien vääristyminen ennen kokeen suorittamista."
 
 #. {"msgid": ["Menettely", "Menetelm\u00e4", "Menettely:", "Menettely ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid "Procedure"
@@ -3518,9 +3518,9 @@ msgstr "Menettely"
 #. kuvista, animaatiokuvista, sarjakuvista, kasvoista, esineist\u00e4,
 #. geometrisista muodoista, fraktaalikuvista tai videoista
 #. luonnonymp\u00e4rist\u00f6ist\u00e4."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3537,9 +3537,9 @@ msgstr ""
 
 #. {"msgid": ["K\u00e4ytt\u00f6tarkoitus", "Tarkoitus",
 #. "K\u00e4ytt\u00f6tarkoitus .", "K\u00e4ytt\u00f6tarkoitus:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-purpose"
 msgid "Purpose"
@@ -3562,9 +3562,9 @@ msgstr "Käyttötarkoitus"
 #. oikeus oikaista virheelliset tiedot, oikeus vaatia tietojen poistamista,
 #. jos tietojen s\u00e4ilytt\u00e4minen ei ole sallittua, ja oikeus
 #. siirt\u00e4\u00e4 tiedot."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
@@ -3580,9 +3580,9 @@ msgstr ""
 
 #. {"msgid": ["Sinun oikeutesi", "Oikeutesi", "Sinun oikeuksiasi",
 #. "Oikeuksiasi"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid "Your rights"
@@ -3590,9 +3590,9 @@ msgstr "Sinun oikeutesi"
 
 #. {"msgid": ["Riskit/haitat", "Riskit / haitat", "Riskit/haitatekij\u00e4t",
 #. "Riskit/vaikeudet"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-risks"
 msgid "Risks/Discomforts"
@@ -3608,9 +3608,9 @@ msgstr "Riskit/haitat"
 #. "T\u00e4h\u00e4n tutkimukseen osallistumiseen ei liity muita riskej\u00e4
 #. kuin ne, jotka liittyv\u00e4t tavanomaiseen tietokoneen
 #. k\u00e4ytt\u00f6\u00f6n."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-risks"
 msgid ""
@@ -3629,9 +3629,9 @@ msgstr ""
 #. suojattu salasanalla.", "Tiedot tallennetaan v\u00e4liaikaisesti ulkoisille
 #. palvelimille ja ty\u00f6p\u00f6ydille/kannettaville tietokoneille, jotka on
 #. suojattu salasanoin."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
@@ -3646,9 +3646,9 @@ msgstr ""
 #. palvelimille.", "Mit\u00e4\u00e4n tietoja ei s\u00e4ilytet\u00e4
 #. pysyv\u00e4sti ulkoisilla palvelimilla.", "Mit\u00e4\u00e4n tietoja ei
 #. tallenneta pysyv\u00e4sti ulkopuolisille palvelimille."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-security"
 msgid "No data will be stored permanently on external servers."
@@ -3664,9 +3664,9 @@ msgstr "Mitään tietoja ei tallenneta pysyvästi ulkoisille palvelimille."
 #. "Sen j\u00e4lkeen tiedot tallennetaan pysyv\u00e4sti instituutin
 #. palvelimille, joiden kiintolevyt on salattu alan standardien mukaisella
 #. salausohjelmistolla."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-security"
 msgid ""
@@ -3683,9 +3683,9 @@ msgstr ""
 #. tutkimuksesta, jos ilmenee olosuhteita, jotka antavat siihen aihetta.",
 #. "Tutkija voi vet\u00e4\u00e4 sinut pois t\u00e4st\u00e4 tutkimuksesta, jos
 #. ilmenee olosuhteita, jotka oikeuttavat siihen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
 msgid ""
@@ -3697,9 +3697,9 @@ msgstr ""
 
 #. {"msgid": ["Vapaaehtoinen osallistuminen", "Vapaaehtoinen osanotto",
 #. "Osallistuminen vapaaehtoisesti", "Vapaaehtoiset osallistujat"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
 msgid "Voluntary participation"
@@ -3711,9 +3711,9 @@ msgstr "Vapaaehtoinen osallistuminen"
 #. lopettaa osallistumisen t\u00e4h\u00e4n tutkimukseen milloin tahansa ilman
 #. seuraamuksia.", "Voit lopettaa tutkimukseen osallistumisen milloin tahansa
 #. ilman seuraamuksia."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
 msgid ""
@@ -3727,9 +3727,9 @@ msgstr ""
 #. vapaaehtoista.", "Osallistuminen t\u00e4h\u00e4n tutkimukseen on
 #. vapaaehtoista.", "Osallistumisenne t\u00e4h\u00e4n tutkimukseen on
 #. vapaaehtoista.", "Tutkimukseen osallistuminen on vapaaehtoista."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
@@ -3748,8 +3748,8 @@ msgstr "Osallistumisesi tähän tutkimukseen on vapaaehtoista."
 #. t\u00e4ysin anonymisoituja tietoja, kuten demografisia, koottuja tai
 #. poimittuja tietoja, joissa ei ole mit\u00e4\u00e4n henkil\u00f6kohtaisia
 #. tunnistetietoja."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-collaborations"
 msgid ""
@@ -3772,8 +3772,8 @@ msgstr ""
 #. "T\u00e4llaisia ovat esimerkiksi kokeet, joissa teemme audiovisuaalisia
 #. nauhoituksia tai joissa tarvitsemme yhteystietojasi, jotta voimme ottaa
 #. sinuun yhteytt\u00e4 tulevaisuudessa toisen kokeen suorittamiseksi."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -3799,8 +3799,8 @@ msgstr ""
 #. (esim. ik\u00e4, sukupuoli, asuinmaa) sek\u00e4 tietoja oppimis- ja
 #. altistumishistoriastasi (esim. soittokokemus instrumentin soittamisesta,
 #. virallisen koulutuksen vuodet, puhutut kielet)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
@@ -3828,8 +3828,8 @@ msgstr ""
 #. \u00e4\u00e4ni- tai videotallenne, esimerkiksi nauhoittamaan sormien
 #. naputteluasi \u00e4\u00e4nen tai videon perusteella tai nauhoittamaan
 #. itsesi puhumassa tai laulamassa."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3848,8 +3848,8 @@ msgstr ""
 #. elementtej\u00e4, pyyd\u00e4mme lis\u00e4suostumusta.", "Jos koe
 #. sis\u00e4lt\u00e4\u00e4 n\u00e4it\u00e4 elementtej\u00e4, pyyd\u00e4mme
 #. lis\u00e4suostumuksen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-procedure"
 msgid ""
@@ -3870,8 +3870,8 @@ msgstr "Jos koe sisältää tällaisia elementtejä, pyydämme lisäsuostumuksen
 #. poistaminen ei ole mahdollista, jolloin pyyd\u00e4mme sinua erikseen
 #. antamaan suostumuksesi t\u00e4h\u00e4n menettelyyn erillisell\u00e4
 #. suostumuksella."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid ""
@@ -3890,8 +3890,8 @@ msgstr ""
 #. lopettaa osallistumisen milloin tahansa.", "Voit vapaasti
 #. kielt\u00e4yty\u00e4 osallistumasta tutkimukseen ja lopettaa osallistumisen
 #. milloin tahansa."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-voluntary"
 msgid ""
@@ -4059,8 +4059,8 @@ msgstr "MTurkin tunnistetietoja ei käytetä näiden tietojen indeksointiin."
 #. antaa suostumustasi, sulje t\u00e4m\u00e4 sivu ja palauta HIT Mechanical
 #. Turkissa.", "Jos et halua antaa suostumustasi, sulje t\u00e4m\u00e4 sivu ja
 #. palauta HIT Mechanical Turk -palveluun."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid ""
@@ -4617,8 +4617,8 @@ msgstr ""
 
 #. {"msgid": ["Vastuuvapauslauseke", "Vastuuvapauslausekkeet",
 #. "Vastuuvapautuslauseke", "Vastuuvapauslauseke:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #, fuzzy
 msgctxt "consent-disclaimer"
 msgid "Disclaimer"
@@ -5071,9 +5071,9 @@ msgid "End of experiment."
 msgstr "Koe päättyi."
 
 #. {"msgid": ["Viimeistely", "Valmis", "Suorita", "Maali"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Finish"
 msgstr "Viimeistely"
@@ -5082,9 +5082,9 @@ msgstr "Viimeistely"
 #. \"Finish\" saadaksesi HIT:n valmiiksi.", "Napsauta \"Valmis\" saadaksesi
 #. HIT:n valmiiksi.", "Klikkaa \"Finish\" saadaksesi HIT:n
 #. p\u00e4\u00e4t\u00f6kseen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-rejected-consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klikkaa \"Finish\" saadaksesi HIT:n valmiiksi."
@@ -5100,8 +5100,8 @@ msgstr "Kokeilu on päättynyt!"
 
 #. {"msgid": ["Kiitos osallistumisesta.", "Kiitos osallistumisestasi.",
 #. "Kiitos osallistumisestanne.", "Kiitos, ett\u00e4 osallistuitte."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "Kiitos osallistumisesta."

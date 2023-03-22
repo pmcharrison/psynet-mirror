@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:01:15\n"
+"POT-Creation-Date: 2023-22/03/ 12:08:02\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -608,16 +608,16 @@ msgstr "关闭窗口"
 #. {"msgid": ["\u4efb\u52a1\u7f16\u53f7", "\u4efb\u52a1ID",
 #. "\u4f5c\u4e1a\u7f16\u53f7", "\u4efb\u52a1\u6807\u8bc6"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 msgid "Assignment ID"
 msgstr "任务编号"
 
 #. {"msgid": ["HIT ID", "HIT\u6807\u8bc6", "HIT\u7f16\u53f7",
 #. "HIT\u8bc6\u522b\u7801"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 msgid "HIT ID"
 msgstr "HIT ID"
 
@@ -943,29 +943,29 @@ msgstr "个人信息将与视听材料分开存储，并使用强大的加密协
 #. "\u4f60\u662f\u5426\u4e86\u89e3\u5e76\u540c\u610f\u8fd9\u4e9b\u6761\u6b3e\uff1f",
 #. "\u60a8\u662f\u5426\u7406\u89e3\u5e76\u540c\u610f\u8fd9\u4e9b\u6761\u6b3e\uff1f",
 #. "\u4f60\u7406\u89e3\u5e76\u540c\u610f\u8fd9\u4e9b\u6761\u6b3e\u5417\uff1f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgid "Do you understand and consent to these terms?"
 msgstr "你是否理解并同意这些条款？"
 
 #. {"msgid": ["\u6211\u540c\u610f", "\u6211\u8d5e\u540c",
 #. "\u6211\u8d5e\u6210", "\u672c\u4eba\u540c\u610f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent"
 msgid "I agree"
 msgstr "我同意"
@@ -975,15 +975,15 @@ msgstr "我同意"
 #. "\u4e0d\uff0c\u8c22\u8c22\uff08\u8fd4\u56de\u4efb\u52a1\uff09",
 #. "\u4e0d\u540c\u610f\uff0c\u8c22\u8c22\uff08\u8fd4\u56de\u4efb\u52a1\uff09",
 #. "\u4e0d\u540c\u610f\uff0c\u8c22\u8c22 (\u9000\u56de\u4efb\u52a1)"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent"
 msgid "No, thank you (return task)"
 msgstr "不同意，谢谢 (返回任务)"
@@ -993,15 +993,15 @@ msgstr "不同意，谢谢 (返回任务)"
 #. "\u8bf7\u542f\u7528Javascript\uff0c\u7136\u540e\u5237\u65b0\u6b64\u9875\u9762\u3002",
 #. "\u8bf7\u542f\u7528Javascript\uff0c\u7136\u540e\u5237\u65b0\u8be5\u9875\u9762\u3002",
 #. "\u8bf7\u542f\u7528Javascript\uff0c\u7136\u540e\u5237\u65b0\u672c\u9875\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
 msgstr "请启用Javascript，然后刷新本页面。"
@@ -1011,15 +1011,15 @@ msgstr "请启用Javascript，然后刷新本页面。"
 #. "\u9664\u975e\u4f60\u7684\u6d4f\u89c8\u5668\u542f\u7528\u4e86Javascript\uff0c\u5426\u5219\u8be5\u7814\u7a76\u5c06\u65e0\u6cd5\u8fdb\u884c\u3002",
 #. "\u9664\u975e\u4f60\u7684\u6d4f\u89c8\u5668\u542f\u7528\u4e86Javascript\uff0c\u5426\u5219\u672c\u7814\u7a76\u5c06\u65e0\u6cd5\u8fdb\u884c\u3002",
 #. "\u9664\u975e\u4f60\u7684\u6d4f\u89c8\u5668\u542f\u7528\u4e86Javascript\uff0c\u5426\u5219\u7814\u7a76\u5c06\u65e0\u6cd5\u8fdb\u884c\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-javascript"
 msgid "The study will not work unless Javascript is enabled on your browser."
 msgstr "除非你的浏览器启用了Javascript，否则该研究将无法运行。"
@@ -1029,15 +1029,15 @@ msgstr "除非你的浏览器启用了Javascript，否则该研究将无法运�
 #. "\u8b66\u544a\uff1a\u4f60\u7684\u6d4f\u89c8\u5668\u4e0a\u7684Javascript\u4e0d\u5de5\u4f5c",
 #. "\u8b66\u544a\uff1a\u4f60\u7684\u6d4f\u89c8\u5668\u4e0a\u7684Javascript\u65e0\u6cd5\u5de5\u4f5c",
 #. "\u8b66\u544a\uff1a\u60a8\u7684\u6d4f\u89c8\u5668\u4e0a\u7684Javascript\u65e0\u6cd5\u5de5\u4f5c"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "警告：你的浏览器上的Javascript不起作用"
@@ -1047,14 +1047,14 @@ msgstr "警告：你的浏览器上的Javascript不起作用"
 #. "\u901a\u8fc7\u540c\u610f\u53c2\u4e0e\uff0c\u4f60\u627f\u8ba4\u4f60\u662f18\u5c81\u6216\u4ee5\u4e0a\uff0c\u5df2\u7ecf\u9605\u8bfb\u4e86\u672c\u540c\u610f\u4e66\uff0c\u540c\u610f\u5176\u5185\u5bb9\uff0c\u5e76\u540c\u610f\u53c2\u4e0e\u672c\u7814\u7a76\u3002",
 #. "\u901a\u8fc7\u540c\u610f\u53c2\u4e0e\uff0c\u4f60\u627f\u8ba4\u4f60\u5df2\u5e74\u6ee118\u5c81\uff0c\u5df2\u9605\u8bfb\u672c\u540c\u610f\u4e66\uff0c\u540c\u610f\u5176\u5185\u5bb9\uff0c\u5e76\u540c\u610f\u53c2\u52a0\u672c\u7814\u7a76\u3002",
 #. "\u901a\u8fc7\u540c\u610f\u53c2\u4e0e\uff0c\u4f60\u627f\u8ba4\u4f60\u5df2\u5e74\u6ee118\u5c81\uff0c\u5df2\u9605\u8bfb\u672c\u540c\u610f\u4e66\uff0c\u540c\u610f\u5176\u5185\u5bb9\uff0c\u5e76\u540c\u610f\u53c2\u4e0e\u672c\u7814\u7a76\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-consent"
 msgid ""
 "By consenting to participate, you acknowledge that you are 18 years or "
@@ -1064,14 +1064,14 @@ msgstr "通过同意参与，你承认你是18岁或以上，已经阅读了本�
 
 #. {"msgid": ["\u540c\u610f\u4e66", "\u540c\u610f\u66f8",
 #. "\u540c\u610f\u58f0\u660e", "\u540c\u610f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-consent"
 msgid "Consent"
 msgstr "同意书"
@@ -1081,37 +1081,37 @@ msgstr "同意书"
 #. "\u5982\u679c\u4f60\u4e0d\u613f\u610f\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\u3002",
 #. "\u5982\u679c\u4f60\u4e0d\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\u3002",
 #. "\u5982\u679c\u4f60\u4e0d\u613f\u610f\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u6b64\u9875\u9762"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
 msgstr "如果你不愿意同意，请关闭本页面。"
 
 #. {"msgid": ["\u5b89\u5168\u6027", "\u5b89\u5168\u95ee\u9898",
 #. "\u5b89\u5168", "\u5b89\u5168\u4fdd\u969c"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-security"
 msgid "Security"
 msgstr "安全性"
 
 #. {"msgid": ["\u8054\u7cfb\u4fe1\u606f", "\u8054\u7edc\u4fe1\u606f",
 #. "\u8054\u7cfb\u8d44\u6599", "\u8054\u7cfb\u65b9\u5f0f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-contact"
 msgid "Contact information"
 msgstr "联系信息"
@@ -1121,22 +1121,22 @@ msgstr "联系信息"
 #. "\u5411\u4e0a/\u5411\u4e0b\u6eda\u52a8\u4ee5\u67e5\u770b\u6240\u6709\u6587\u5b57",
 #. "\u5411\u4e0a/\u5411\u4e0b\u6eda\u52a8\u4ee5\u67e5\u770b\u6240\u6709\u7684\u6587\u672c",
 #. "\u5411\u4e0a/\u5411\u4e0b\u6eda\u52a8\u67e5\u770b\u6240\u6709\u6587\u672c"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgid "Scroll up/down to see all text"
 msgstr "向上/向下滚动以查看所有文本"
 
 #. {"msgid": ["\u4fdd\u5bc6\u6027", "\u673a\u5bc6\u6027", "\u4fdd\u5bc6",
 #. "\u4fdd\u5bc6\u6027\u95ee\u9898"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-confidentiality"
 msgid "Confidentiality"
 msgstr "保密性"
@@ -1147,8 +1147,8 @@ msgstr "保密性"
 #. "\u4e3a\u4e86\u5e2e\u52a9\u79d1\u5b66\u8fdb\u6b65\u548c\u590d\u5236\uff0c\u6709\u65f6\u6211\u4eec\u53ef\u80fd\u4e0e\u7814\u7a76\u5408\u4f5c\u8005\u5206\u4eab\u6570\u636e\u3002",
 #. "\u4e3a\u4e86\u5e2e\u52a9\u79d1\u5b66\u8fdb\u6b65\u548c\u590d\u5236\u7684\u76ee\u7684\uff0c\u6709\u65f6\u6211\u4eec\u53ef\u80fd\u4f1a\u4e0e\u7814\u7a76\u5408\u4f5c\u8005\u5206\u4eab\u8d44\u6599\u3002"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-collaborations"
 msgid ""
 "For the purpose of helping scientific progress and replication, sometimes we"
@@ -1158,8 +1158,8 @@ msgstr "为了帮助科学进步和复制的目的，有时我们可能会与研
 #. {"msgid": ["\u7814\u7a76\u5408\u4f5c", "\u7814\u7a76\u534f\u4f5c",
 #. "\u79d1\u7814\u5408\u4f5c", "\u79d1\u7814\u534f\u4f5c"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
 msgstr "研究合作"
@@ -1477,8 +1477,8 @@ msgstr "图像/声音记录的研究参与者同意书"
 
 #. {"msgid": ["\u8c03\u67e5\u5458", "\u7814\u7a76\u8005",
 #. "\u7814\u7a76\u5458", "\u7814\u7a76\u4eba\u5458"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
 msgid "Investigator"
 msgstr "调查员"
@@ -1486,8 +1486,8 @@ msgstr "调查员"
 #. {"msgid": ["\u4e3b\u8981\u7814\u7a76\u4eba\u5458",
 #. "\u4e3b\u8981\u7814\u7a76\u8005", "\u9996\u5e2d\u7814\u7a76\u5458",
 #. "\u4e3b\u8981\u8c03\u67e5\u5458"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
 msgid "Principal Investigator"
 msgstr "主要研究人员"
@@ -1495,8 +1495,8 @@ msgstr "主要研究人员"
 #. {"msgid": ["\u7814\u7a76\u7684\u6807\u9898\u3002",
 #. "\u7814\u7a76\u7684\u9898\u76ee\u3002", "\u7814\u7a76\u6807\u9898\u3002",
 #. "\u7814\u7a76\u9898\u76ee\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
 msgid "Title of study:"
 msgstr "研究的标题。"
@@ -2235,18 +2235,18 @@ msgstr "您的数据被储存在一个安全的操作环境中，公众无法进
 #. "\u6211\u4eec\u9700\u8981\u4f60\u7684\u540c\u610f\u6765\u8fdb\u884c",
 #. "\u6211\u4eec\u9700\u8981\u4f60\u7684\u540c\u610f\u624d\u80fd\u7ee7\u7eed\u8fdb\u884c",
 #. "\u6211\u4eec\u9700\u8981\u4f60\u7684\u540c\u610f\u624d\u80fd\u7ee7\u7eed"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
 msgstr "我们需要你的同意才能进行"
@@ -2377,10 +2377,10 @@ msgstr "对于Max-Planck-Society来说，这就是。"
 #. Jacoby\u8054\u7cfb\uff0c\u5730\u5740\u662f\u3002",
 #. "\u5982\u679c\u4f60\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u968f\u65f6\u4e0e\u672c\u9879\u76ee\u7684\u4e3b\u8981\u7814\u7a76\u4eba\u5458Nori
 #. Jacoby\u8054\u7cfb\uff0c\u5730\u5740\u662f\uff1a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
@@ -2389,8 +2389,8 @@ msgstr "如果你对这项研究有任何疑问，请随时与本项目的主要
 
 #. {"msgid": ["\u6bcf\u5c0f\u65f6", "\u6bcf\u4e2a\u5c0f\u65f6",
 #. "\u6bcf\u5c0f\u6642", "\u5c0f\u65f6"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgid "per hour"
 msgstr "每小时"
 
@@ -2399,8 +2399,8 @@ msgstr "每小时"
 #. "\u6211\u4eec\u5728\u7814\u7a76\u8fc7\u7a0b\u4e2d\u83b7\u5f97\u7684\u6240\u6709\u4fe1\u606f\u90fd\u5c06\u88ab\u4fdd\u5bc6\u3002",
 #. "\u6211\u4eec\u5728\u7814\u7a76\u8fc7\u7a0b\u4e2d\u83b7\u5f97\u7684\u6240\u6709\u4fe1\u606f\u5c06\u88ab\u4fdd\u5bc6\u3002",
 #. "\u6211\u4eec\u5728\u7814\u7a76\u8fc7\u7a0b\u4e2d\u83b7\u5f97\u7684\u6240\u6709\u4fe1\u606f\u90fd\u4f1a\u88ab\u4fdd\u5bc6\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "All of the information we obtain during the research will be kept "
@@ -2412,8 +2412,8 @@ msgstr "我们在研究期间获得的所有信息都将被保密。"
 #. "\u60a8\u4e5f\u6709\u6743\u5411\u76d1\u7ba1\u673a\u6784\u63d0\u51fa\u53cd\u5bf9\u610f\u89c1\u3002",
 #. "\u60a8\u8fd8\u6709\u6743\u5411\u76d1\u7ba1\u673a\u6784\u63d0\u4ea4\u53cd\u5bf9\u610f\u89c1\u3002",
 #. "\u60a8\u4e5f\u6709\u6743\u5411\u76d1\u7763\u673a\u6784\u63d0\u51fa\u53cd\u5bf9\u610f\u89c1\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid ""
 "You also have the right to submit an objection to the supervisory authority."
@@ -2424,9 +2424,9 @@ msgstr "您也有权向监管机构提交反对意见。"
 #. "\u867d\u7136\u5b83\u53ef\u80fd\u4e0d\u4f1a\u8ba9\u4f60\u76f4\u63a5\u53d7\u76ca\uff0c\u4f46\u8fd9\u9879\u7814\u7a76\u53ef\u80fd\u4f1a\u4f7f\u793e\u4f1a\u53d7\u76ca\uff0c\u56e0\u4e3a\u5b83\u6709\u52a9\u4e8e\u6211\u4eec\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u53d6\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u51fa\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u529b\u53d7\u635f\u7684\u4eba\u7684\u611f\u77e5\u80fd\u529b\u3002",
 #. "\u867d\u7136\u5b83\u53ef\u80fd\u4e0d\u4f1a\u8ba9\u4f60\u76f4\u63a5\u53d7\u76ca\uff0c\u4f46\u8fd9\u9879\u7814\u7a76\u53ef\u80fd\u4f1a\u4f7f\u793e\u4f1a\u53d7\u76ca\uff0c\u56e0\u4e3a\u5b83\u6709\u52a9\u4e8e\u6211\u4eec\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u5f97\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u51fa\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u529b\u53d7\u635f\u7684\u4eba\u7684\u611f\u77e5\u80fd\u529b\u3002",
 #. "\u867d\u7136\u5b83\u53ef\u80fd\u4e0d\u4f1a\u8ba9\u4f60\u76f4\u63a5\u53d7\u76ca\uff0c\u4f46\u8fd9\u9879\u7814\u7a76\u53ef\u80fd\u4f1a\u4f7f\u793e\u4f1a\u53d7\u76ca\uff0c\u56e0\u4e3a\u5b83\u6709\u52a9\u4e8e\u6211\u4eec\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u53d6\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u51fa\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u529b\u53d7\u635f\u8005\u7684\u611f\u77e5\u80fd\u529b\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-benefits"
 msgid ""
 "Although it may not directly benefit you, this study may benefit society by "
@@ -2438,18 +2438,18 @@ msgstr ""
 "虽然它可能不会让你直接受益，但这项研究可能会使社会受益，因为它有助于我们了解人类如何从声音和视觉中获取信息，并有可能帮助设计出能够复制我们能力的机器（例如在声音识别和计算机视觉方面），并帮助改善听力或视觉受损的人的感知能力。"
 
 #. {"msgid": ["\u6548\u76ca", "\u76ca\u5904", "\u597d\u5904", "\u88e8\u76ca"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-benefits"
 msgid "Benefits"
 msgstr "效益"
 
 #. {"msgid": ["\u8865\u507f", "\u8d54\u507f", "\u8865\u507f\u91d1",
 #. "\u62a5\u916c"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-compensation"
 msgid "Compensation"
 msgstr "补偿"
@@ -2459,9 +2459,9 @@ msgstr "补偿"
 #. "\u5728\u5b9e\u9a8c\u7684\u4efb\u4f55\u9636\u6bb5\u90fd\u4e0d\u4f1a\u6536\u96c6\u6216\u4f7f\u7528\u4efb\u4f55\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u5982\u4f60\u7684\u59d3\u540d\u6216\u8054\u7cfb\u6570\u636e\uff09\u3002",
 #. "\u5728\u5b9e\u9a8c\u7684\u4efb\u4f55\u9636\u6bb5\uff0c\u90fd\u4e0d\u4f1a\u6536\u96c6\u6216\u4f7f\u7528\u4efb\u4f55\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u5982\u4f60\u7684\u540d\u5b57\u6216\u8054\u7cfb\u6570\u636e\uff09\u3002",
 #. "\u5728\u5b9e\u9a8c\u7684\u4efb\u4f55\u9636\u6bb5\uff0c\u90fd\u4e0d\u4f1a\u6536\u96c6\u6216\u4f7f\u7528\u4efb\u4f55\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u4f8b\u5982\u4f60\u7684\u540d\u5b57\u6216\u8054\u7cfb\u6570\u636e\uff09\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "No personal identifiers (e.g. your name or contact data) will be collected "
@@ -2473,17 +2473,17 @@ msgstr "在实验的任何阶段，都不会收集或使用任何个人识别信
 #. "\u56e0\u6b64\uff0c\u5b9e\u9a8c\u7684\u6570\u636e\u662f\u533f\u540d\u7684\u3002",
 #. "\u56e0\u6b64\uff0c\u8bd5\u9a8c\u6570\u636e\u662f\u533f\u540d\u7684\u3002",
 #. "\u56e0\u6b64\uff0c\u5b9e\u9a8c\u6570\u636e\u662f\u4e0d\u8bb0\u540d\u7684\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid "Thus, the experimental data is anonymous."
 msgstr "因此，实验数据是匿名的。"
 
 #. {"msgid": ["\u6982\u8ff0", "\u6982\u51b5", "\u6982\u8bba", "\u6982\u89c2"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid "Overview"
 msgstr "概述"
@@ -2493,9 +2493,9 @@ msgstr "概述"
 #. "\u8fd9\u4e2a\u5728\u7ebf\u8868\u683c\u7684\u76ee\u7684\u662f\u7ed9\u4f60\u63d0\u4f9b\u4fe1\u606f\uff0c\u5e2e\u52a9\u4f60\u51b3\u5b9a\u662f\u5426\u8981\u53c2\u4e0e\u7814\u7a76\u3002",
 #. "\u8fd9\u4e2a\u5728\u7ebf\u8868\u683c\u7684\u76ee\u7684\u662f\u7ed9\u4f60\u63d0\u4f9b\u4fe1\u606f\uff0c\u4ee5\u5e2e\u52a9\u4f60\u51b3\u5b9a\u662f\u5426\u8981\u53c2\u52a0\u7814\u7a76\u3002",
 #. "\u8fd9\u4e2a\u5728\u7ebf\u8868\u683c\u7684\u76ee\u7684\u662f\u7ed9\u4f60\u63d0\u4f9b\u4fe1\u606f\uff0c\u4ee5\u5e2e\u52a9\u4f60\u51b3\u5b9a\u662f\u5426\u8981\u53c2\u52a0\u7814\u7a76\u8c03\u67e5\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid ""
 "The purpose of this online form is to give you information to help you "
@@ -2507,9 +2507,9 @@ msgstr "这个在线表格的目的是给你提供信息，帮助你决定是否
 #. "\u8fd9\u9879\u7814\u7a76\u7531\u9a6c\u514b\u65af-\u666e\u6717\u514b\u5b9e\u8bc1\u7f8e\u5b66\u7814\u7a76\u6240\u7684\u7814\u7a76\u4eba\u5458\u8fdb\u884c\u3002",
 #. "\u8fd9\u9879\u7814\u7a76\u662f\u7531\u9a6c\u514b\u65af-\u666e\u6717\u514b\u5b9e\u8bc1\u7f8e\u5b66\u7814\u7a76\u6240\u7684\u7814\u7a76\u4eba\u5458\u8fdb\u884c\u3002",
 #. "\u672c\u7814\u7a76\u7531\u9a6c\u514b\u65af-\u666e\u6717\u514b\u5b9e\u8bc1\u7f8e\u5b66\u7814\u7a76\u6240\u7684\u7814\u7a76\u4eba\u5458\u8fdb\u884c\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid ""
 "This research is being conducted by researchers at the Max-Planck-Institute "
@@ -2521,9 +2521,9 @@ msgstr "这项研究是由马克斯-普朗克实证美学研究所的研究人�
 #. "\u4f8b\u5982\uff0c\u60a8\u53ef\u80fd\u88ab\u8981\u6c42\u5224\u65ad\u67d0\u4e00\u7279\u5b9a\u7684\u58f0\u97f3\u6216\u56fe\u50cf\u6709\u591a\u60a6\u8033\uff0c\u6216\u5bf9\u58f0\u97f3\u6216\u56fe\u50cf\u8fdb\u884c\u5206\u7c7b\uff08\u4f8b\u5982\uff0c\u67d0\u4e00\u58f0\u97f3\u6216\u56fe\u50cf\u662f\u6c7d\u8f66\u8fd8\u662f\u5976\u725b\uff09\uff0c\u6216\u5224\u65ad\u58f0\u97f3\u6216\u56fe\u50cf\u7684\u5176\u4ed6\u57fa\u672c\u7279\u5f81\uff08\u4f8b\u5982\uff0c\u60a8\u9047\u5230\u8fd9\u79cd\u58f0\u97f3\u6216\u56fe\u50cf\u7684\u9891\u7387\u5982\u4f55\uff1f\uff09",
 #. "\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u88ab\u8981\u6c42\u5224\u65ad\u67d0\u4e00\u7279\u5b9a\u7684\u58f0\u97f3\u6216\u56fe\u50cf\u6709\u591a\u60a6\u8033\uff0c\u6216\u5bf9\u58f0\u97f3\u6216\u56fe\u50cf\u8fdb\u884c\u5206\u7c7b\uff08\u4f8b\u5982\uff0c\u67d0\u4e00\u58f0\u97f3\u6216\u56fe\u50cf\u662f\u6c7d\u8f66\u8fd8\u662f\u5976\u725b\uff09\uff0c\u6216\u5224\u65ad\u58f0\u97f3\u6216\u56fe\u50cf\u7684\u5176\u4ed6\u57fa\u672c\u7279\u5f81\uff08\u4f8b\u5982\uff0c\u4f60\u9047\u5230\u8fd9\u79cd\u7c7b\u578b\u7684\u58f0\u97f3\u6216\u56fe\u50cf\u7684\u9891\u7387\u5982\u4f55\uff1f\uff09",
 #. "\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u88ab\u8981\u6c42\u5224\u65ad\u67d0\u4e00\u7279\u5b9a\u7684\u58f0\u97f3\u6216\u56fe\u50cf\u6709\u591a\u60a6\u8033\uff0c\u6216\u5bf9\u58f0\u97f3\u6216\u56fe\u50cf\u8fdb\u884c\u5206\u7c7b\uff08\u4f8b\u5982\uff0c\u67d0\u4e00\u58f0\u97f3\u6216\u56fe\u50cf\u662f\u6c7d\u8f66\u8fd8\u662f\u5976\u725b\uff09\uff0c\u6216\u5224\u65ad\u58f0\u97f3\u6216\u56fe\u50cf\u7684\u5176\u4ed6\u57fa\u672c\u7279\u5f81\uff08\u4f8b\u5982\uff0c\u4f60\u9047\u5230\u8fd9\u79cd\u58f0\u97f3\u6216\u56fe\u50cf\u7684\u9891\u7387\u5982\u4f55\uff1f\uff09"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "For example, you may be asked to judge how pleasant a particular sound or an"
@@ -2539,9 +2539,9 @@ msgstr ""
 #. "\u5982\u679c\u60a8\u81ea\u613f\u53c2\u52a0\u8fd9\u9879\u7814\u7a76\uff0c\u60a8\u5c06\u88ab\u8981\u6c42\u5728\u8046\u542c\u58f0\u97f3\u6216\u89c2\u5bdf\u56fe\u50cf\u6216\u89c6\u9891\u65f6\uff0c\u4f7f\u7528\u952e\u76d8\u6216\u9f20\u6807\u6267\u884c\u7b80\u5355\u7684\u4efb\u52a1\u3002",
 #. "\u5982\u679c\u60a8\u81ea\u613f\u53c2\u52a0\u8fd9\u9879\u7814\u7a76\uff0c\u60a8\u5c06\u88ab\u8981\u6c42\u5728\u542c\u58f0\u97f3\u6216\u89c2\u5bdf\u56fe\u50cf\u6216\u89c6\u9891\u65f6\u4f7f\u7528\u952e\u76d8\u6216\u9f20\u6807\u6267\u884c\u7b80\u5355\u7684\u4efb\u52a1\u3002",
 #. "\u5982\u679c\u60a8\u81ea\u613f\u53c2\u52a0\u8fd9\u9879\u7814\u7a76\uff0c\u60a8\u5c06\u88ab\u8981\u6c42\u5728\u542c\u58f0\u97f3\u6216\u89c2\u5bdf\u56fe\u50cf\u6216\u89c6\u9891\u65f6\uff0c\u4f7f\u7528\u952e\u76d8\u6216\u9f20\u6807\u6267\u884c\u7b80\u5355\u7684\u4efb\u52a1\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "If you volunteer to participate in this study, you will be asked to perform "
@@ -2554,9 +2554,9 @@ msgstr "如果您自愿参加这项研究，您将被要求在聆听声音或观
 #. "\u5728\u67d0\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u6211\u4eec\u53ef\u80fd\u4f1a\u4f7f\u7528\u8f7b\u5ea6\u6b3a\u9a97\uff0c\u4e5f\u5c31\u662f\u8bf4\uff0c\u6211\u4eec\u53ef\u80fd\u4e0d\u4f1a\u89e3\u91ca\u5173\u4e8e\u5b9e\u9a8c\u4efb\u52a1\u7684\u5168\u90e8\u771f\u76f8\uff08\u4f8b\u5982\uff0c\u6211\u4eec\u4e0d\u4f1a\u544a\u8bc9\u4f60\u4e00\u4e2a\u56fe\u50cf\u662f\u7531\u4eba\u5de5\u8ba1\u7b97\u673a\u7cfb\u7edf\u800c\u4e0d\u662f\u4eba\u7c7b\u751f\u6210\u7684\uff09\u3002",
 #. "\u5728\u67d0\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u6211\u4eec\u53ef\u80fd\u4f1a\u4f7f\u7528\u8f7b\u5ea6\u6b3a\u9a97\uff0c\u4e5f\u5c31\u662f\u8bf4\uff0c\u6211\u4eec\u53ef\u80fd\u4e0d\u4f1a\u89e3\u91ca\u5173\u4e8e\u5b9e\u9a8c\u4efb\u52a1\u7684\u5168\u90e8\u771f\u76f8\uff08\u4f8b\u5982\uff0c\u6211\u4eec\u4e0d\u4f1a\u544a\u8bc9\u4f60\u4e00\u4e2a\u56fe\u50cf\u662f\u7531\u4eba\u5de5\u8ba1\u7b97\u673a\u7cfb\u7edf\u800c\u4e0d\u662f\u7531\u4eba\u7c7b\u751f\u6210\u7684\uff09\u3002",
 #. "\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u6211\u4eec\u53ef\u80fd\u4f1a\u4f7f\u7528\u8f7b\u5ea6\u6b3a\u9a97\uff0c\u5373\u6211\u4eec\u53ef\u80fd\u4e0d\u4f1a\u89e3\u91ca\u5173\u4e8e\u5b9e\u9a8c\u4efb\u52a1\u7684\u5168\u90e8\u771f\u76f8\uff08\u4f8b\u5982\uff0c\u6211\u4eec\u4e0d\u4f1a\u544a\u8bc9\u4f60\u4e00\u4e2a\u56fe\u50cf\u662f\u7531\u4eba\u5de5\u8ba1\u7b97\u673a\u7cfb\u7edf\u800c\u4e0d\u662f\u4eba\u7c7b\u751f\u6210\u7684\uff09\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "In some experiments, we may use mild deception, i.e., we may not explain the"
@@ -2571,9 +2571,9 @@ msgstr ""
 #. "\u8f7b\u5fae\u7684\u6b3a\u9a97\u53ea\u4f1a\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\u4f7f\u7528\uff0c\u5728\u8fd9\u4e9b\u5b9e\u9a8c\u4e2d\u6211\u4eec\u9700\u8981\u9632\u6b62\u5728\u8fdb\u884c\u5b9e\u9a8c\u524d\u5bf9\u53c2\u4e0e\u8005\u4ea7\u751f\u504f\u89c1\u3002",
 #. "\u8f7b\u5fae\u7684\u6b3a\u9a97\u53ea\u4f1a\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\u4f7f\u7528\uff0c\u5728\u8fd9\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u6211\u4eec\u9700\u8981\u9632\u6b62\u5728\u8fdb\u884c\u5b9e\u9a8c\u524d\u5bf9\u53c2\u4e0e\u8005\u4ea7\u751f\u504f\u89c1\u3002",
 #. "\u8f7b\u5fae\u7684\u6b3a\u9a97\u53ea\u4f1a\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\u4f7f\u7528\uff0c\u5728\u8fd9\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u6211\u4eec\u9700\u8981\u9632\u6b62\u5728\u8fdb\u884c\u5b9e\u9a8c\u4e4b\u524d\u5bf9\u53c2\u4e0e\u8005\u4ea7\u751f\u504f\u89c1\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "Mild deception will only be used in some experiments where we need to "
@@ -2582,9 +2582,9 @@ msgstr "轻微的欺骗只会在某些实验中使用，在这些实验中我们
 
 #. {"msgid": ["\u7a0b\u5e8f", "\u7814\u7a76\u7a0b\u5e8f",
 #. "\u7814\u7a76\u8fc7\u7a0b", "\u64cd\u4f5c\u7a0b\u5e8f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid "Procedure"
 msgstr "程序"
@@ -2594,9 +2594,9 @@ msgstr "程序"
 #. "\u6240\u4f7f\u7528\u7684\u5177\u4f53\u58f0\u97f3\u3001\u56fe\u50cf\u548c\u89c6\u9891\u5c06\u6709\u6240\u4e0d\u540c\uff0c\u4f46\u53ef\u80fd\u5305\u62ec\uff1a\u73af\u5883\u58f0\u97f3\u7684\u5f55\u97f3\u3001\u566a\u97f3\u7206\u53d1\u3001\u8bb2\u8bdd\u3001\u97f3\u4e50\u3001\u7b80\u5355\u97f3\u8c03\u3001\u81ea\u7136\u4e3b\u4e49\u56fe\u50cf\u3001\u52a8\u753b\u56fe\u50cf\u3001\u6f2b\u753b\u3001\u9762\u5b54\u3001\u7269\u4f53\u3001\u51e0\u4f55\u56fe\u5f62\u3001\u5206\u5f62\u56fe\u50cf\u6216\u81ea\u7136\u73af\u5883\u7684\u89c6\u9891\u3002",
 #. "\u6240\u4f7f\u7528\u7684\u5177\u4f53\u58f0\u97f3\u3001\u56fe\u50cf\u548c\u89c6\u9891\u5c06\u6709\u6240\u4e0d\u540c\uff0c\u4f46\u53ef\u80fd\u5305\u62ec\uff1a\u73af\u5883\u58f0\u97f3\u7684\u5f55\u97f3\u3001\u566a\u97f3\u7206\u53d1\u3001\u8bb2\u8bdd\u3001\u97f3\u4e50\u3001\u7b80\u5355\u97f3\u8c03\u3001\u81ea\u7136\u4e3b\u4e49\u56fe\u50cf\u3001\u52a8\u753b\u56fe\u50cf\u3001\u6f2b\u753b\u3001\u9762\u5b54\u3001\u7269\u4f53\u3001\u51e0\u4f55\u5f62\u72b6\u3001\u5206\u5f62\u56fe\u50cf\u6216\u81ea\u7136\u73af\u5883\u89c6\u9891\u3002",
 #. "\u6240\u4f7f\u7528\u7684\u5177\u4f53\u58f0\u97f3\u3001\u56fe\u50cf\u548c\u89c6\u9891\u5c06\u6709\u6240\u4e0d\u540c\uff0c\u4f46\u53ef\u80fd\u5305\u62ec\uff1a\u73af\u5883\u58f0\u97f3\u7684\u5f55\u97f3\u3001\u566a\u97f3\u7206\u53d1\u3001\u8bb2\u8bdd\u3001\u97f3\u4e50\u3001\u7b80\u5355\u7684\u97f3\u8c03\u3001\u81ea\u7136\u4e3b\u4e49\u56fe\u50cf\u3001\u52a8\u753b\u56fe\u50cf\u3001\u6f2b\u753b\u3001\u9762\u5b54\u3001\u7269\u4f53\u3001\u51e0\u4f55\u5f62\u72b6\u3001\u5206\u5f62\u56fe\u50cf\u6216\u81ea\u7136\u73af\u5883\u7684\u89c6\u9891\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "The specific sounds, images, and videos used will vary, but may include: "
@@ -2608,9 +2608,9 @@ msgstr ""
 
 #. {"msgid": ["\u76ee\u7684", "\u9879\u76ee\u76ee\u7684", "\u5b97\u65e8",
 #. "\u9879\u76ee\u7684\u76ee\u7684"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-purpose"
 msgid "Purpose"
 msgstr "目的"
@@ -2620,9 +2620,9 @@ msgstr "目的"
 #. "\u60a8\u6709\u6743\u4e86\u89e3\u50a8\u5b58\u5728\u9a6c\u514b\u65af-\u666e\u6717\u514b\u7814\u7a76\u6240\u7684\u4e0e\u60a8\u6709\u5173\u7684\u6570\u636e\uff0c\u6709\u6743\u7ea0\u6b63\u4e0d\u51c6\u786e\u7684\u6570\u636e\uff0c\u5728\u4e0d\u5141\u8bb8\u50a8\u5b58\u6570\u636e\u7684\u60c5\u51b5\u4e0b\uff0c\u6709\u6743\u8981\u6c42\u5220\u9664\u6570\u636e\uff0c\u5e76\u6709\u6743\u8981\u6c42\u6570\u636e\u53ef\u79fb\u690d\u3002",
 #. "\u60a8\u6709\u6743\u4e86\u89e3\u50a8\u5b58\u5728\u9a6c\u514b\u65af-\u666e\u6717\u514b\u7814\u7a76\u6240\u7684\u4e0e\u60a8\u6709\u5173\u7684\u6570\u636e\uff0c\u6709\u6743\u7ea0\u6b63\u4e0d\u51c6\u786e\u7684\u6570\u636e\uff0c\u6709\u6743\u5728\u4e0d\u5141\u8bb8\u50a8\u5b58\u6570\u636e\u7684\u60c5\u51b5\u4e0b\u8981\u6c42\u5220\u9664\u6570\u636e\uff0c\u5e76\u6709\u6743\u8981\u6c42\u6570\u636e\u53ef\u79fb\u690d\u6027\u3002",
 #. "\u60a8\u6709\u6743\u4e86\u89e3\u50a8\u5b58\u5728\u9a6c\u514b\u65af-\u666e\u6717\u514b\u7814\u7a76\u6240\u7684\u4e0e\u60a8\u6709\u5173\u7684\u6570\u636e\uff0c\u6709\u6743\u7ea0\u6b63\u4e0d\u51c6\u786e\u7684\u6570\u636e\uff0c\u5728\u4e0d\u5141\u8bb8\u50a8\u5b58\u6570\u636e\u7684\u60c5\u51b5\u4e0b\uff0c\u6709\u6743\u8981\u6c42\u5220\u9664\u6570\u636e\uff0c\u5e76\u6709\u6743\u8981\u6c42\u6570\u636e\u53ef\u79fb\u690d\u6027\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid ""
 "You have the right to information regarding the data relating to you that is"
@@ -2634,9 +2634,9 @@ msgstr ""
 
 #. {"msgid": ["\u60a8\u7684\u6743\u5229", "\u4f60\u7684\u6743\u5229",
 #. "\u60a8\u7684\u6743\u76ca", "\u60a8\u7684\u6743\u529b"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid "Your rights"
 msgstr "您的权利"
@@ -2644,9 +2644,9 @@ msgstr "您的权利"
 #. {"msgid": ["\u98ce\u9669/\u4e0d\u9002", "\u98ce\u9669/\u4e0d\u9002\u611f",
 #. "\u98ce\u9669/\u4e0d\u4fbf\u4e4b\u5904",
 #. "\u98ce\u9669/\u4e0d\u8212\u670d"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-risks"
 msgid "Risks/Discomforts"
 msgstr "风险/不适"
@@ -2656,9 +2656,9 @@ msgstr "风险/不适"
 #. "\u9664\u4e86\u4e0e\u6b63\u5e38\u7535\u8111\u4f7f\u7528\u6709\u5173\u7684\u98ce\u9669\u5916\uff0c\u53c2\u52a0\u8fd9\u9879\u7814\u7a76\u6ca1\u6709\u5176\u4ed6\u98ce\u9669\u3002",
 #. "\u9664\u4e86\u4e0e\u6b63\u5e38\u7535\u8111\u4f7f\u7528\u76f8\u5173\u7684\u98ce\u9669\u5916\uff0c\u53c2\u4e0e\u672c\u7814\u7a76\u6ca1\u6709\u5176\u4ed6\u98ce\u9669\u3002",
 #. "\u9664\u4e86\u4e0e\u6b63\u5e38\u7535\u8111\u4f7f\u7528\u76f8\u5173\u7684\u98ce\u9669\u5916\uff0c\u53c2\u52a0\u8fd9\u9879\u7814\u7a76\u6ca1\u6709\u5176\u4ed6\u98ce\u9669\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-risks"
 msgid ""
 "There are no risks for participating in this study beyond those associated "
@@ -2670,9 +2670,9 @@ msgstr "除了与正常电脑使用有关的风险外，参加这项研究没有
 #. "\u6570\u636e\u5c06\u6682\u65f6\u50a8\u5b58\u5728\u53d7\u5bc6\u7801\u4fdd\u62a4\u7684\u5916\u90e8\u670d\u52a1\u5668\u548c\u53f0\u5f0f\u673a/\u7b14\u8bb0\u672c\u7535\u8111\u4e0a\u3002",
 #. "\u6570\u636e\u5c06\u6682\u65f6\u50a8\u5b58\u5728\u53d7\u5bc6\u7801\u4fdd\u62a4\u7684\u5916\u90e8\u670d\u52a1\u5668\u548c\u53f0\u5f0f\u7535\u8111/\u7b14\u8bb0\u672c\u4e0a\u3002",
 #. "\u6570\u636e\u5c06\u6682\u65f6\u50a8\u5b58\u5728\u53d7\u5bc6\u7801\u4fdd\u62a4\u7684\u5916\u90e8\u670d\u52a1\u5668\u548c\u53f0\u5f0f\u673a/\u7b14\u8bb0\u672c\u4e0a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-security"
 msgid ""
 "Data will be stored temporarily on external servers and desktops/laptops "
@@ -2684,9 +2684,9 @@ msgstr "数据将暂时储存在受密码保护的外部服务器和台式电脑
 #. "\u6ca1\u6709\u6570\u636e\u4f1a\u88ab\u6c38\u4e45\u5730\u5b58\u50a8\u5728\u5916\u90e8\u670d\u52a1\u5668\u4e0a\u3002",
 #. "\u4efb\u4f55\u6570\u636e\u90fd\u4e0d\u4f1a\u88ab\u6c38\u4e45\u5730\u50a8\u5b58\u5728\u5916\u90e8\u670d\u52a1\u5668\u4e0a\u3002",
 #. "\u4efb\u4f55\u6570\u636e\u90fd\u4e0d\u4f1a\u88ab\u6c38\u4e45\u5730\u5b58\u50a8\u5728\u5916\u90e8\u670d\u52a1\u5668\u4e0a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-security"
 msgid "No data will be stored permanently on external servers."
 msgstr "没有数据会被永久地储存在外部服务器上。"
@@ -2696,9 +2696,9 @@ msgstr "没有数据会被永久地储存在外部服务器上。"
 #. "\u7136\u540e\uff0c\u6570\u636e\u5c06\u88ab\u6c38\u4e45\u5730\u5b58\u50a8\u5728\u5b66\u9662\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u786c\u76d8\u4f7f\u7528\u884c\u4e1a\u6807\u51c6\u7684\u52a0\u5bc6\u8f6f\u4ef6\u8fdb\u884c\u52a0\u5bc6\u3002",
 #. "\u7136\u540e\uff0c\u6570\u636e\u5c06\u88ab\u6c38\u4e45\u5730\u50a8\u5b58\u5728\u5b66\u9662\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u5176\u786c\u76d8\u4f7f\u7528\u884c\u4e1a\u6807\u51c6\u7684\u52a0\u5bc6\u8f6f\u4ef6\u8fdb\u884c\u52a0\u5bc6\u3002",
 #. "\u7136\u540e\uff0c\u6570\u636e\u5c06\u88ab\u6c38\u4e45\u5730\u5b58\u50a8\u5728\u5b66\u9662\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u5176\u786c\u76d8\u4f7f\u7528\u884c\u4e1a\u6807\u51c6\u7684\u52a0\u5bc6\u8f6f\u4ef6\u8fdb\u884c\u52a0\u5bc6\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-security"
 msgid ""
 "The data will be then stored permanently in the institute servers with hard "
@@ -2710,9 +2710,9 @@ msgstr "然后，数据将被永久地储存在学院的服务器上，硬盘使
 #. "\u5982\u679c\u51fa\u73b0\u6709\u5fc5\u8981\u7684\u60c5\u51b5\uff0c\u8c03\u67e5\u4eba\u5458\u53ef\u4ee5\u8ba9\u4f60\u9000\u51fa\u672c\u7814\u7a76\u3002",
 #. "\u5982\u679c\u51fa\u73b0\u6709\u5fc5\u8981\u7684\u60c5\u51b5\uff0c\u7814\u7a76\u8005\u53ef\u4ee5\u8ba9\u4f60\u9000\u51fa\u672c\u7814\u7a76\u3002",
 #. "\u5982\u679c\u51fa\u73b0\u6709\u5fc5\u8981\u7684\u60c5\u51b5\uff0c\u7814\u7a76\u4eba\u5458\u53ef\u4ee5\u8ba9\u4f60\u9000\u51fa\u672c\u7814\u7a76\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid ""
 "The investigator may withdraw you from this research if circumstances arise "
@@ -2721,9 +2721,9 @@ msgstr "如果出现有必要的情况，调查员可以让你退出本研究。
 
 #. {"msgid": ["\u81ea\u613f\u53c2\u4e0e", "\u81ea\u613f\u53c2\u52a0",
 #. "\u81ea\u613f\u52a0\u5165", "\u5fd7\u613f\u53c2\u4e0e"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid "Voluntary participation"
 msgstr "自愿参与"
@@ -2733,9 +2733,9 @@ msgstr "自愿参与"
 #. "\u4f60\u53ef\u4ee5\u5728\u4efb\u4f55\u65f6\u5019\u505c\u6b62\u53c2\u4e0e\u672c\u7814\u7a76\u800c\u4e0d\u53d7\u4efb\u4f55\u5904\u7f5a\u3002",
 #. "\u4f60\u53ef\u4ee5\u5728\u4efb\u4f55\u65f6\u5019\u505c\u6b62\u53c2\u4e0e\u672c\u7814\u7a76\uff0c\u800c\u4e0d\u4f1a\u53d7\u5230\u60e9\u7f5a\u3002",
 #. "\u4f60\u53ef\u4ee5\u5728\u4efb\u4f55\u65f6\u5019\u505c\u6b62\u53c2\u4e0e\u672c\u7814\u7a76\uff0c\u800c\u4e0d\u4f1a\u53d7\u5230\u4efb\u4f55\u60e9\u7f5a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid ""
 "You are free to discontinue participation in this study at any time without "
@@ -2747,9 +2747,9 @@ msgstr "你可以在任何时候停止参与本研究而不受任何惩罚。"
 #. "\u60a8\u5bf9\u8fd9\u9879\u7814\u7a76\u7684\u53c2\u4e0e\u662f\u81ea\u613f\u7684\u3002",
 #. "\u60a8\u5bf9\u672c\u7814\u7a76\u7684\u53c2\u4e0e\u662f\u81ea\u613f\u7684\u3002",
 #. "\u4f60\u53c2\u4e0e\u8fd9\u9879\u7814\u7a76\u662f\u81ea\u613f\u7684\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
 msgstr "你对这项研究的参与是自愿的。"
@@ -2759,8 +2759,8 @@ msgstr "你对这项研究的参与是自愿的。"
 #. "\u5728\u8fd9\u4e9b\u60c5\u51b5\u4e0b\uff0c\u6211\u4eec\u5c06\u53ea\u5206\u4eab\u5b8c\u5168\u533f\u540d\u7684\u6570\u636e\uff0c\u5982\u6ca1\u6709\u4efb\u4f55\u4e2a\u4eba\u6807\u8bc6\u7b26\u7684\u4eba\u53e3\u7edf\u8ba1\u3001\u6c47\u603b\u6216\u63d0\u53d6\u7684\u6570\u636e\u3002",
 #. "\u5728\u8fd9\u4e9b\u60c5\u51b5\u4e0b\uff0c\u6211\u4eec\u5c06\u53ea\u5206\u4eab\u5b8c\u5168\u533f\u540d\u7684\u6570\u636e\uff0c\u5982\u6ca1\u6709\u4efb\u4f55\u4e2a\u4eba\u6807\u8bc6\u7b26\u7684\u4eba\u53e3\u7edf\u8ba1\u5b66\u3001\u6c47\u603b\u6216\u63d0\u53d6\u7684\u6570\u636e\u3002",
 #. "\u5728\u8fd9\u4e9b\u60c5\u51b5\u4e0b\uff0c\u6211\u4eec\u5c06\u53ea\u5206\u4eab\u5b8c\u5168\u533f\u540d\u7684\u6570\u636e\uff0c\u5982\u6ca1\u6709\u4efb\u4f55\u4e2a\u4eba\u6807\u8bc6\u7b26\u7684\u4eba\u53e3\u7edf\u8ba1\u3001\u6c47\u603b\u6216\u63d0\u53d6\u6570\u636e\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-collaborations"
 msgid ""
 "In these cases, we will only share fully anonymized data, such as "
@@ -2772,8 +2772,8 @@ msgstr "在这些情况下，我们将只分享完全匿名的数据，如没有
 #. "\u8fd9\u4e9b\u5305\u62ec\u6211\u4eec\u8fdb\u884c\u89c6\u542c\u8bb0\u5f55\u7684\u5b9e\u9a8c\uff0c\u6216\u8005\u6211\u4eec\u9700\u8981\u4f60\u7684\u8054\u7cfb\u65b9\u5f0f\uff0c\u4ee5\u4fbf\u5728\u5c06\u6765\u8054\u7cfb\u4f60\u8fdb\u884c\u53e6\u4e00\u4e2a\u5b9e\u9a8c\u3002",
 #. "\u8fd9\u4e9b\u5305\u62ec\u6211\u4eec\u8fdb\u884c\u89c6\u542c\u8bb0\u5f55\u7684\u5b9e\u9a8c\uff0c\u6216\u8005\u6211\u4eec\u9700\u8981\u4f60\u7684\u8054\u7cfb\u65b9\u5f0f\uff0c\u4ee5\u4fbf\u5c06\u6765\u8054\u7cfb\u4f60\u8fdb\u884c\u53e6\u4e00\u4e2a\u5b9e\u9a8c\u3002",
 #. "\u8fd9\u4e9b\u5305\u62ec\u6211\u4eec\u8fdb\u884c\u89c6\u542c\u8bb0\u5f55\u7684\u5b9e\u9a8c\uff0c\u6216\u8005\u6211\u4eec\u9700\u8981\u4f60\u7684\u8054\u7cfb\u65b9\u5f0f\uff0c\u4ee5\u4fbf\u5c06\u6765\u8054\u7cfb\u4f60\u8fdb\u884c\u53e6\u4e00\u9879\u5b9e\u9a8c\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "These include experiments where we make audio-visual recordings or where we "
@@ -2786,8 +2786,8 @@ msgstr "这些包括我们进行视听记录的实验，或者我们需要你的
 #. "\u6211\u4eec\u53ef\u80fd\u4f1a\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u4f7f\u7528\u7684\u8bed\u8a00\uff09\u3002",
 #. "\u6211\u4eec\u53ef\u80fd\u4f1a\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\uff0c\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u6240\u8bb2\u7684\u8bed\u8a00\uff09\u3002",
 #. "\u6211\u4eec\u53ef\u80fd\u4f1a\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u6240\u8bb2\u7684\u8bed\u8a00\uff09\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "We may collect some demographic data (e.g. age, gender, country of "
@@ -2802,8 +2802,8 @@ msgstr ""
 #. "\u6700\u540e\uff0c\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u8bed\u97f3\u6216\u89c6\u9891\u8bb0\u5f55\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8bb0\u5f55\u4f60\u81ea\u5df1\u7684\u8bf4\u8bdd\u6216\u5531\u6b4c\u3002",
 #. "\u6700\u540e\uff0c\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u5f55\u97f3\u6216\u5f55\u50cf\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8005\u8bb0\u5f55\u4f60\u81ea\u5df1\u7684\u8bf4\u8bdd\u6216\u5531\u6b4c\u3002",
 #. "\u6700\u540e\uff0c\u5728\u4e00\u4e9b\u5b9e\u9a8c\u4e2d\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u5f55\u97f3\u6216\u5f55\u50cf\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8bb0\u5f55\u4f60\u81ea\u5df1\u7684\u8bf4\u8bdd\u6216\u5531\u6b4c\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "Finally, in some experiments you may be asked to make a voice or video "
@@ -2816,8 +2816,8 @@ msgstr "最后，在一些实验中，你可能会被要求进行语音或视频
 #. "\u5982\u679c\u5b9e\u9a8c\u5c06\u5305\u542b\u8fd9\u4e9b\u5185\u5bb9\uff0c\u6211\u4eec\u5c06\u8981\u6c42\u4f60\u989d\u5916\u540c\u610f\u3002",
 #. "\u5982\u679c\u5b9e\u9a8c\u4f1a\u5305\u542b\u8fd9\u4e9b\u5185\u5bb9\uff0c\u6211\u4eec\u4f1a\u8981\u6c42\u4f60\u989d\u5916\u540c\u610f\u3002",
 #. "\u5982\u679c\u5b9e\u9a8c\u5c06\u5305\u542b\u8fd9\u4e9b\u5185\u5bb9\uff0c\u6211\u4eec\u4f1a\u8981\u6c42\u4f60\u53e6\u5916\u540c\u610f\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "If the experiment will contain these elements we will ask for an additional "
@@ -2829,8 +2829,8 @@ msgstr "如果实验将包含这些内容，我们会要求你额外同意。"
 #. "\u8bf7\u6ce8\u610f\uff0c\u5728\u67d0\u4e9b\u7814\u7a76\u4e2d\uff0c\u6570\u636e\u5220\u9664\u662f\u4e0d\u53ef\u80fd\u7684\uff0c\u5728\u8fd9\u79cd\u60c5\u51b5\u4e0b\uff0c\u6211\u4eec\u4f1a\u5728\u5355\u72ec\u7684\u540c\u610f\u4e66\u4e2d\u7279\u522b\u8981\u6c42\u60a8\u540c\u610f\u8fd9\u4e00\u7a0b\u5e8f\u3002",
 #. "\u8bf7\u6ce8\u610f\uff0c\u5728\u67d0\u4e9b\u7814\u7a76\u4e2d\uff0c\u6570\u636e\u5220\u9664\u662f\u4e0d\u53ef\u80fd\u7684\uff0c\u5728\u8fd9\u79cd\u60c5\u51b5\u4e0b\uff0c\u6211\u4eec\u4f1a\u5728\u5355\u72ec\u7684\u540c\u610f\u4e66\u4e2d\u7279\u522b\u8981\u6c42\u60a8\u540c\u610f\u8fd9\u4e2a\u7a0b\u5e8f\u3002",
 #. "\u8bf7\u6ce8\u610f\uff0c\u5728\u67d0\u4e9b\u7814\u7a76\u4e2d\uff0c\u6570\u636e\u5220\u9664\u662f\u4e0d\u53ef\u80fd\u7684\uff0c\u5728\u8fd9\u79cd\u60c5\u51b5\u4e0b\uff0c\u6211\u4eec\u4f1a\u5728\u5355\u72ec\u7684\u540c\u610f\u4e66\u4e2d\u7279\u522b\u8981\u6c42\u4f60\u540c\u610f\u8fd9\u4e00\u7a0b\u5e8f\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid ""
 "Note that in some studies data deletion will not be possible, in this case "
@@ -2843,8 +2843,8 @@ msgstr "请注意，在某些研究中，数据的删除是不可能的，在这
 #. "\u60a8\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u4e0e\uff0c\u4e5f\u53ef\u4ee5\u5728\u4efb\u4f55\u65f6\u5019\u505c\u6b62\u53c2\u52a0\u3002",
 #. "\u4f60\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u4e0e\uff0c\u4e5f\u53ef\u4ee5\u968f\u65f6\u505c\u6b62\u53c2\u4e0e\u3002",
 #. "\u4f60\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u52a0\uff0c\u4e5f\u53ef\u4ee5\u968f\u65f6\u505c\u6b62\u53c2\u52a0\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid ""
 "You are free to refuse to take part, and you may stop taking part at any "
@@ -2954,8 +2954,8 @@ msgstr "MTurk的ID信息将不会被用于索引这些数据。"
 #. Turk\u4e0a\u7684HIT\u3002",
 #. "\u5982\u679c\u60a8\u4e0d\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\uff0c\u5e76\u8fd4\u56deMechanical
 #. Turk\u7684HIT\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 msgctxt "consent-consent"
 msgid ""
 "If you do not wish to consent, please close this page and return the HIT on "
@@ -3339,8 +3339,8 @@ msgstr "你可以自由地拒绝参加，也可以在任何时候停止参加。
 
 #. {"msgid": ["\u514d\u8d23\u58f0\u660e", "\u514d\u8d23\u6761\u6b3e",
 #. "\u58f0\u660e", "\u514d\u8d23\u8bf4\u660e"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 msgctxt "consent-disclaimer"
 msgid "Disclaimer"
 msgstr "免责声明"
@@ -3672,8 +3672,8 @@ msgstr "这里是实验的末尾!"
 #. "\u611f\u8c22\u4f60\u7684\u53c2\u4e0e\u3002",
 #. "\u8c22\u8c22\u4f60\u53c2\u52a0\u3002",
 #. "\u611f\u8c22\u4f60\u53c2\u52a0\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 msgid "Thank you for taking part."
 msgstr "谢谢你的参与。"
 

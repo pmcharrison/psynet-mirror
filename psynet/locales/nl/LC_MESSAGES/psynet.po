@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 12:01:15\n"
+"POT-Creation-Date: 2023-22/03/ 12:08:02\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -558,15 +558,15 @@ msgstr "Venster sluiten"
 
 #. {"msgid": ["Opdracht ID", "Opdracht-ID", "Opdracht-id"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 msgid "Assignment ID"
 msgstr "Opdracht ID"
 
 #. {"msgid": ["HIT ID", "HIT-ID"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_possible.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
 msgid "HIT ID"
 msgstr "HIT ID"
 
@@ -813,8 +813,8 @@ msgid "To proceed, click the button below."
 msgstr "Klik op onderstaande knop om verder te gaan."
 
 #. {"msgid": ["Volgende", "Next"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/macros/control.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/macros.html
 msgid "Next"
 msgstr "Volgende"
@@ -1011,29 +1011,29 @@ msgstr ""
 #. {"msgid": ["Begrijpt u deze voorwaarden en stemt u ermee in?", "Begrijpt u
 #. en stemt u in met deze voorwaarden?", "Begrijpt u deze voorwaarden en gaat
 #. u ermee akkoord?", "Begrijpt u en gaat u akkoord met deze voorwaarden?"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgid "Do you understand and consent to these terms?"
 msgstr "Begrijpt u deze voorwaarden en gaat u hiermee akkoord?"
 
 #. {"msgid": ["Ik ga akkoord", "Akkoord", "Ik ga ermee akkoord", "Ik ga
 #. akkoord."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent"
 msgid "I agree"
 msgstr "Ik ga akkoord"
@@ -1041,15 +1041,15 @@ msgstr "Ik ga akkoord"
 #. {"msgid": ["Nee, dank u (taak teruggeven)", "Nee, dank u (opdracht
 #. teruggeven)", "Nee, bedankt (taak teruggeven)", "Nee, dank u (taak
 #. retourneren)"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent"
 msgid "No, thank you (return task)"
 msgstr "Nee, bedankt"
@@ -1057,15 +1057,15 @@ msgstr "Nee, bedankt"
 #. {"msgid": ["Schakel Javascript in en vernieuw deze pagina.", "Schakel
 #. Javascript in en ververs deze pagina.", "Schakel Javascript in en vernieuw
 #. de pagina.", "Activeer Javascript en vernieuw deze pagina."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
 msgstr "Schakel Javascript in en vernieuw deze pagina."
@@ -1075,15 +1075,15 @@ msgstr "Schakel Javascript in en vernieuw deze pagina."
 #. browser.", "Het onderzoek zal niet werken tenzij Javascript is ingeschakeld
 #. in uw browser.", "Het onderzoek werkt niet tenzij Javascript is
 #. ingeschakeld in uw browser."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-javascript"
 msgid "The study will not work unless Javascript is enabled on your browser."
 msgstr "Deze studie vereist Javascript."
@@ -1092,15 +1092,15 @@ msgstr "Deze studie vereist Javascript."
 #. "Waarschuwing: Javascript werkt niet op uw browser", "Waarschuwing:
 #. Javascript werkt niet in uw browser.", "Waarschuwing: javascript werkt niet
 #. in uw browser"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "Waarschuwing: Javascript werkt niet in uw browser"
@@ -1117,14 +1117,14 @@ msgstr "Waarschuwing: Javascript werkt niet in uw browser"
 #. deelname erkent u dat u 18 jaar of ouder bent, dat u dit
 #. toestemmingsformulier hebt gelezen, dat u akkoord gaat met de inhoud ervan
 #. en dat u instemt met deelname aan het onderzoek."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-consent"
 msgid ""
 "By consenting to participate, you acknowledge that you are 18 years or "
@@ -1136,14 +1136,14 @@ msgstr ""
 "inhoud ervan en dat u instemt met deelname aan dit onderzoek."
 
 #. {"msgid": ["Toestemming", "Instemming", "Toestemming:", "Toegestaan"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-consent"
 msgid "Consent"
 msgstr "Toestemming"
@@ -1152,36 +1152,36 @@ msgstr "Toestemming"
 #. "Als u geen toestemming wilt geven, sluit deze pagina dan.", "Als u geen
 #. toestemming wenst te geven, sluit dan deze pagina.", "Als u geen
 #. toestemming wenst te geven, sluit deze pagina dan."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
 msgstr "Als u geen toestemming wilt geven, sluit dan deze pagina."
 
 #. {"msgid": ["Beveiliging", "Veiligheid", "Bescherming", "beveiliging"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-security"
 msgid "Security"
 msgstr "Beveiliging van gegevens"
 
 #. {"msgid": ["Contactinformatie", "Contactgegevens", "Contact informatie",
 #. "Contact"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-contact"
 msgid "Contact information"
 msgstr "Contactinformatie"
@@ -1189,22 +1189,22 @@ msgstr "Contactinformatie"
 #. {"msgid": ["Scroll omhoog/omlaag om alle tekst te zien", "Omhoog/omlaag
 #. scrollen om alle tekst te zien", "Blader omhoog/omlaag om alle tekst te
 #. zien", "Scroll omhoog/omlaag om alle tekst te bekijken"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgid "Scroll up/down to see all text"
 msgstr "Scroll omhoog/omlaag om de gehele tekst te zien"
 
 #. {"msgid": ["Vertrouwelijkheid", "Geheimhouding", "Vertrouwelijk",
 #. "Vertrouwelijkheid:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
 msgctxt "consent-confidentiality"
 msgid "Confidentiality"
 msgstr "Vertrouwelijkheid"
@@ -1218,8 +1218,8 @@ msgstr "Vertrouwelijkheid"
 #. wetenschappelijke vooruitgang en replicatie, kunnen wij soms de gegevens
 #. delen met medewerkers van onderzoek."]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-collaborations"
 msgid ""
 "For the purpose of helping scientific progress and replication, sometimes we"
@@ -1231,8 +1231,8 @@ msgstr ""
 #. {"msgid": ["Samenwerking bij onderzoek", "Onderzoekssamenwerking",
 #. "Samenwerking op het gebied van onderzoek", "Onderzoekssamenwerkingen"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
 msgstr "Delen van onderzoeksdata"
@@ -1673,23 +1673,23 @@ msgstr ""
 "beeld-/geluidsopnamen"
 
 #. {"msgid": ["Onderzoeker", "Investeerder", "Onderzoeker:", "Investigator"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
 msgid "Investigator"
 msgstr "Onderzoeker"
 
 #. {"msgid": ["Hoofdonderzoeker", "Belangrijkste onderzoeker"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
 msgid "Principal Investigator"
 msgstr "Hoofdonderzoeker"
 
 #. {"msgid": ["Titel van het onderzoek:", "Titel onderzoek:", "Titel van
 #. onderzoek:", "Titel van de studie:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
 msgid "Title of study:"
 msgstr "Titel van het onderzoek:"
@@ -2631,18 +2631,18 @@ msgstr ""
 #. uw toestemming nodig om door te gaan", "We hebben uw toestemming nodig om
 #. verder te gaan", "Wij hebben uw toestemming nodig om verder te kunnen
 #. gaan"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/database_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
 msgstr "Wij hebben uw toestemming nodig om verder te gaan"
@@ -2813,10 +2813,10 @@ msgstr "Voor de Max-Planck-Society is dit:"
 #. de hoofdonderzoeker van dit project, Nori Jacoby, op:", "Als u vragen heeft
 #. over dit onderzoek, aarzel dan niet om contact op te nemen met de
 #. hoofdonderzoeker van dit project, Nori Jacoby, via:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
@@ -2826,8 +2826,8 @@ msgstr ""
 "nemen met de hoofdonderzoeker van dit project, Nori Jacoby op:"
 
 #. {"msgid": ["per uur", "Per uur"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgid "per hour"
 msgstr "per uur"
 
@@ -2837,8 +2837,8 @@ msgstr "per uur"
 #. tijdens het onderzoek verkrijgen zal vertrouwelijk worden behandeld.",
 #. "Alle gegevens die wij tijdens het onderzoek verkrijgen, worden
 #. vertrouwelijk behandeld."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "All of the information we obtain during the research will be kept "
@@ -2852,8 +2852,8 @@ msgstr ""
 #. bij de toezichthoudende autoriteit.", "U heeft ook het recht om bezwaar aan
 #. te tekenen bij de toezichthoudende autoriteit.", "U hebt ook het recht
 #. bezwaar aan te tekenen bij de toezichthoudende autoriteit."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid ""
 "You also have the right to submit an objection to the supervisory authority."
@@ -2886,9 +2886,9 @@ msgstr ""
 #. nabootsen (bv. bij geluidsherkenning en computervisie) en bij de
 #. verbetering van de perceptuele vaardigheden van mensen met gehoor- of
 #. gezichtsstoornissen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-benefits"
 msgid ""
 "Although it may not directly benefit you, this study may benefit society by "
@@ -2905,17 +2905,17 @@ msgstr ""
 " vaardigheden van mensen met gehoor- of gezichtsstoornissen."
 
 #. {"msgid": ["Voordelen", "Voordelen:", "Voordeel", "Voordeel:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-benefits"
 msgid "Benefits"
 msgstr "Voordelen"
 
 #. {"msgid": ["Vergoeding", "Compensatie", "Vergoeding:", "Beloning"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-compensation"
 msgid "Compensation"
 msgstr "Vergoeding"
@@ -2929,9 +2929,9 @@ msgstr "Vergoeding"
 #. gebruikt.", "In geen enkel stadium van het experiment worden persoonlijke
 #. identificatiegegevens (bv. uw naam of contactgegevens) verzameld of
 #. gebruikt."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "No personal identifiers (e.g. your name or contact data) will be collected "
@@ -2944,17 +2944,17 @@ msgstr ""
 #. {"msgid": ["De experimentele gegevens zijn dus anoniem.", "De experimentele
 #. gegevens zijn derhalve anoniem.", "De gegevens van het experiment zijn dus
 #. anoniem."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid "Thus, the experimental data is anonymous."
 msgstr "De experimentele gegevens zijn dus anoniem."
 
 #. {"msgid": ["Overzicht", "Overzicht:", "overzicht", "Overzicht: ."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid "Overview"
 msgstr "Overzicht"
@@ -2966,9 +2966,9 @@ msgstr "Overzicht"
 #. is u informatie te geven om u te helpen beslissen of u aan een onderzoek
 #. wilt deelnemen.", "Het doel van dit online formulier is om u informatie te
 #. geven om u te helpen beslissen of u aan een onderzoek wilt deelnemen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid ""
 "The purpose of this online form is to give you information to help you "
@@ -2984,9 +2984,9 @@ msgstr ""
 #. Planck-Instituut voor Empirische Esthetica.", "Dit onderzoek wordt
 #. uitgevoerd door onderzoekers van het Max-Planck-Institute for Empirical
 #. Aesthetics."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-overview"
 msgid ""
 "This research is being conducted by researchers at the Max-Planck-Institute "
@@ -3018,9 +3018,9 @@ msgstr ""
 #. andere basiskenmerken van geluiden of beelden te beoordelen (bv. hoe vaak
 #. komt u dit soort geluid of beeld tegen? Hoe esthetisch aangenaam vindt u
 #. een bepaald geluid of beeld?)"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "For example, you may be asked to judge how pleasant a particular sound or an"
@@ -3048,9 +3048,9 @@ msgstr ""
 #. gevraagd om eenvoudige taken uit te voeren met uw toetsenbord of muis
 #. terwijl u luistert naar geluiden, of terwijl u beelden of video's
 #. bekijkt."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "If you volunteer to participate in this study, you will be asked to perform "
@@ -3078,9 +3078,9 @@ msgstr ""
 #. over een experimentele taak (wij zullen u bijvoorbeeld niet vertellen dat
 #. een beeld door een kunstmatig computersysteem en niet door een mens is
 #. gegenereerd)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "In some experiments, we may use mild deception, i.e., we may not explain the"
@@ -3102,9 +3102,9 @@ msgstr ""
 #. wordt uitgevoerd.", "Milde misleiding zal alleen worden gebruikt in sommige
 #. experimenten waar wij moeten voorkomen dat de deelnemers worden
 #. bevooroordeeld voordat zij het experiment uitvoeren."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "Mild deception will only be used in some experiments where we need to "
@@ -3115,9 +3115,9 @@ msgstr ""
 "verandert."
 
 #. {"msgid": ["Procedure", "Werkwijze", "Werkwijze:"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid "Procedure"
 msgstr "Procedure"
@@ -3142,9 +3142,9 @@ msgstr "Procedure"
 #. naturalistische beelden, geanimeerde beelden, strips, gezichten,
 #. voorwerpen, geometrische vormen, fractale beelden, of video's van
 #. natuurlijke omgevingen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "The specific sounds, images, and videos used will vary, but may include: "
@@ -3159,9 +3159,9 @@ msgstr ""
 "video's van natuurlijke omgevingen."
 
 #. {"msgid": ["Doel", "Doel:", "Het doel", "Doelen"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-purpose"
 msgid "Purpose"
 msgstr "Doel"
@@ -3182,9 +3182,9 @@ msgstr "Doel"
 #. onjuiste gegevens, het recht op verwijdering van gegevens in geval van
 #. ontoelaatbare gegevensopslag en het recht op overdraagbaarheid van
 #. gegevens."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid ""
 "You have the right to information regarding the data relating to you that is"
@@ -3198,18 +3198,18 @@ msgstr ""
 "gegevensopslag en het recht op gegevensoverdraagbaarheid."
 
 #. {"msgid": ["Uw rechten"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid "Your rights"
 msgstr "Uw rechten"
 
 #. {"msgid": ["Risico's/ongemakken", "Risico's en ongemakken",
 #. "Risico's/Ongemakken"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-risks"
 msgid "Risks/Discomforts"
 msgstr "Risico's"
@@ -3221,9 +3221,9 @@ msgstr "Risico's"
 #. onderzoek, behalve de risico's van normaal computergebruik.", "Er zijn geen
 #. risico's voor deelname aan dit onderzoek, behalve de risico's die gepaard
 #. gaan met normaal computergebruik."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-risks"
 msgid ""
 "There are no risks for participating in this study beyond those associated "
@@ -3239,9 +3239,9 @@ msgstr ""
 #. op externe servers en desktops/laptops die met een wachtwoord beveiligd
 #. zijn.", "De gegevens worden tijdelijk opgeslagen op externe servers en
 #. desktops/laptops die met een wachtwoord worden beveiligd."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-security"
 msgid ""
 "Data will be stored temporarily on external servers and desktops/laptops "
@@ -3255,9 +3255,9 @@ msgstr ""
 #. opgeslagen.", "Er zullen geen gegevens permanent worden opgeslagen op
 #. externe servers.", "Gegevens worden niet permanent opgeslagen op externe
 #. servers."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-security"
 msgid "No data will be stored permanently on external servers."
 msgstr "Er worden geen gegevens permanent opgeslagen op externe servers."
@@ -3270,9 +3270,9 @@ msgstr "Er worden geen gegevens permanent opgeslagen op externe servers."
 #. normen voldoet.", "De gegevens worden vervolgens permanent opgeslagen op de
 #. servers van het instituut met harde schijven die zijn versleuteld met
 #. behulp van encryptiesoftware die aan de industrienorm voldoet."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-security"
 msgid ""
 "The data will be then stored permanently in the institute servers with hard "
@@ -3289,9 +3289,9 @@ msgstr ""
 #. zich omstandigheden voordoen die dat rechtvaardigen.", "De onderzoeker kan
 #. u uit dit onderzoek terugtrekken als er zich omstandigheden voordoen die
 #. dit rechtvaardigen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid ""
 "The investigator may withdraw you from this research if circumstances arise "
@@ -3300,9 +3300,9 @@ msgstr "De onderzoeker kan uw deelname beeindigen mocht hier reden voor zijn."
 
 #. {"msgid": ["Vrijwillige deelname", "Vrijwillige deelneming", "Deelname op
 #. vrijwillige basis"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid "Voluntary participation"
 msgstr "Vrijwillige deelname"
@@ -3315,9 +3315,9 @@ msgstr "Vrijwillige deelname"
 #. hoeft te betalen.", "Het staat u vrij om uw deelname aan dit onderzoek op
 #. elk gewenst moment te staken, zonder dat u daarvoor een boete hoeft te
 #. betalen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid ""
 "You are free to discontinue participation in this study at any time without "
@@ -3327,9 +3327,9 @@ msgstr ""
 
 #. {"msgid": ["Uw deelname aan dit onderzoek is vrijwillig.", "Uw deelname aan
 #. het onderzoek is vrijwillig."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
 msgstr "Uw deelname aan dit onderzoek is vrijwillig."
@@ -3346,8 +3346,8 @@ msgstr "Uw deelname aan dit onderzoek is vrijwillig."
 #. geanonimiseerde gegevens, zoals demografische, geaggregeerde of
 #. ge\u00ebxtraheerde gegevens zonder enige persoonlijke
 #. identificatiemiddelen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-collaborations"
 msgid ""
 "In these cases, we will only share fully anonymized data, such as "
@@ -3367,8 +3367,8 @@ msgstr ""
 #. "Hieronder vallen experimenten waarbij wij audiovisuele opnamen maken of
 #. waarbij wij uw contactgegevens nodig hebben om in de toekomst contact met u
 #. op te nemen voor een volgend experiment."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "These include experiments where we make audio-visual recordings or where we "
@@ -3395,8 +3395,8 @@ msgstr ""
 #. land van verblijf), alsook informatie over uw leer- en
 #. blootstellingsgeschiedenis (bv. muzikale ervaring met het bespelen van een
 #. instrument, jaren van formeel onderwijs, gesproken talen)."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
 "We may collect some demographic data (e.g. age, gender, country of "
@@ -3421,8 +3421,8 @@ msgstr ""
 #. een stem- of video-opname te maken, bijvoorbeeld om uw vingertikken in
 #. reactie op een geluid of video op te nemen of om uzelf sprekend of zingend
 #. op te nemen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "Finally, in some experiments you may be asked to make a voice or video "
@@ -3439,8 +3439,8 @@ msgstr ""
 #. deze elementen zal bevatten, zullen wij u om een aanvullende toestemming
 #. vragen.", "Als het experiment deze elementen zal bevatten, zullen wij u om
 #. een extra toestemming vragen."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-procedure"
 msgid ""
 "If the experiment will contain these elements we will ask for an additional "
@@ -3460,8 +3460,8 @@ msgstr ""
 #. toestemmingsformulier.", "Merk op dat in sommige studies het wissen van
 #. gegevens niet mogelijk zal zijn; in dat geval zullen wij u specifiek vragen
 #. om toestemming voor deze procedure in een apart toestemmingsformulier."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-rights"
 msgid ""
 "Note that in some studies data deletion will not be possible, in this case "
@@ -3478,8 +3478,8 @@ msgstr ""
 #. om deelname te weigeren en u kunt uw deelname op elk moment stopzetten.",
 #. "Het staat u vrij om deelname te weigeren, en u kunt uw deelname op elk
 #. moment stopzetten."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/main_consent.html
 msgctxt "consent-voluntary"
 msgid ""
 "You are free to refuse to take part, and you may stop taking part at any "
@@ -3631,8 +3631,8 @@ msgstr ""
 #. "Als u geen toestemming wenst te geven, sluit dan deze pagina en stuur de
 #. HIT op Mechanical Turk terug.", "Als u geen toestemming wenst te geven,
 #. sluit dan deze pagina en stuur de HIT terug naar Mechanical Turk."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
 msgctxt "consent-consent"
 msgid ""
 "If you do not wish to consent, please close this page and return the HIT on "
@@ -4114,8 +4114,8 @@ msgstr ""
 "uw deelname. "
 
 #. {"msgid": ["Disclaimer", "Aansprakelijkheid", "Ontkenning"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/open_science_consent.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
 msgctxt "consent-disclaimer"
 msgid "Disclaimer"
 msgstr "Disclaimer"
@@ -4570,8 +4570,8 @@ msgstr "Dat is het einde van het experiment!"
 
 #. {"msgid": ["Bedankt voor uw deelname.", "Dank u voor uw deelname.",
 #. "Hartelijk dank voor uw deelname.", "Dank voor uw deelname."]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-successful.html
+#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-unsuccessful.html
 msgid "Thank you for taking part."
 msgstr "Bedankt voor uw deelname."
 
