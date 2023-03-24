@@ -70,7 +70,7 @@ A pre-screening task can then be included in an experiment as follows:
         )
 
 
-For more advanced examples, please refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneTest` presented above or continue to the next section where we provide some boilerplate code for building static pre-screening tasks.
+For more advanced examples, please refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HugginsHeadphoneTest` presented above or continue to the next section where we provide some boilerplate code for building static pre-screening tasks.
 
 Static pre-screening tasks (Boilerplate code)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -191,4 +191,4 @@ The :meth:`get_stimulus_set` method returns a :class:`~psynet.trial.static.Stimu
         # the ``StimulusSet`` constructor.
         return StimulusSet("some_prescreening_task", stimuli)
 
-For concrete implementations, refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneTest`.
+For concrete implementations, refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HugginsHeadphoneTest`.
