@@ -1688,13 +1688,13 @@
             if (parseInt(seconds) < 0) {
               clearInterval(setIntervalHandle);
               window.removeEventListener("beforeunload", beforeunloadFunction);
-              console.log("Sending to termination route >>>>>>>>>>>");
               return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
             }
         });
       }
 
-      // Terminate on interaction (page reload, window/tab close, no focus)
+      // Terminate on 'page reload', 'window/tab close', and 'no focus'
+      const INACTIVITY_TIMEOUT = {{experiment.recruiter.inactivity_timeout_in_s}} * 1000;
       const NO_FOCUS_TIMEOUT = {{experiment.recruiter.no_focus_timeout_in_s}} * 1000;
       const POLLING_FREQUENCY = 1000;
       const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
@@ -1749,16 +1749,41 @@
       function checkFocus() {
         if (document.hasFocus()) {
           noFocusSince = 0;
-          console.log("The document has the focus.");
         } else {
           noFocusSince += POLLING_FREQUENCY;
           if (noFocusSince > NO_FOCUS_TIMEOUT) {
             terminateParticipant();
           } else {
-            console.log("The document doesn't have the focus since " + noFocusSince + "ms.");
+            console.log("Document lost focus since " + noFocusSince / 1000 + " seconds");
           }
         }
       }
+
+      // Terminate due to inactivity
+      let timer, secondsOfInactivity = 0;
+
+      function startTimer() {
+        secondsOfInactivity += POLLING_FREQUENCY;
+        if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
+            terminateParticipant();
+        } else {
+          console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+        }
+      }
+
+      function resetInactivityTimer() {
+        clearInterval(timer);
+        secondsOfInactivity = 0;
+        timer = setInterval(startTimer, POLLING_FREQUENCY);
+      }
+
+      // Events that reset the timer
+      window.onload = resetInactivityTimer;
+      window.onmousemove = resetInactivityTimer;
+      window.onmousedown = resetInactivityTimer;
+      window.ontouchstart = resetInactivityTimer;
+      window.onclick = resetInactivityTimer;
+      window.onkeypress = resetInactivityTimer;
     </script>
     {% endif %}
 

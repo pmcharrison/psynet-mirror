@@ -368,6 +368,14 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return lucid_recruitment_config.get("termination_time_in_s")
 
     @property
+    def inactivity_timeout_in_s(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
+        )
+
+        return lucid_recruitment_config.get("inactivity_timeout_in_s")
+
+    @property
     def no_focus_timeout_in_s(self):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
