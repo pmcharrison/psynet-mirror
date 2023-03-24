@@ -1,6 +1,7 @@
 import json
 import random
 from os.path import exists as file_exists
+from os.path import join as join_path
 from random import shuffle
 from typing import List, Optional
 
@@ -36,6 +37,9 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
+from .utils import get_logger
+
+logger = get_logger()
 
 
 class REPPVolumeCalibration(Module):
@@ -569,7 +573,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
-                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",  # Redundant but keeping for back-compatibility
+                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                    # Redundant but keeping for back-compatibility
                 },
                 assets={
                     "stimulus": ExternalAsset(
@@ -1460,20 +1465,39 @@ class ColorVocabularyTest(StaticTrialMaker):
 
 
 class HeadphoneTrial(StaticTrial):
+    prompt_text = None
+    test_name = None
+    submit_early = False
+
+    def get_prompt(self):
+        assert self.prompt_text is not None
+        return AudioPrompt(
+            self.assets["stimulus"],
+            self.prompt_text,
+        )
+
     def show_trial(self, experiment, participant):
+        events = {
+            "responseEnable": Event(is_triggered_by="promptEnd"),
+        }
+        if not self.submit_early:
+            events["submitEnable"] = Event(is_triggered_by="promptEnd")
+
         return ModularPage(
             "headphone_trial",
-            AudioPrompt(
-                self.assets["stimulus"],
-                "Which sound was softest (quietest) -- 1, 2, or 3?",
-            ),
+            self.get_prompt(),
             PushButtonControl(["1", "2", "3"]),
-            events={
-                "responseEnable": Event(is_triggered_by="promptEnd"),
-                "submitEnable": Event(is_triggered_by="promptEnd"),
-            },
+            events=events,
             bot_response=lambda: self.definition["correct_answer"],
         )
+
+    @staticmethod
+    def get_task_description(self):
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_test_definition():
+        raise NotImplementedError()
 
     def score_answer(self, answer, definition):
         if answer == definition["correct_answer"]:
@@ -1484,8 +1508,10 @@ class HeadphoneTrial(StaticTrial):
 
 class HeadphoneTest(StaticTrialMaker):
     """
+        DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; HugginsHeadphoneTest is recommended.
+
     The headphone test makes sure that the participant is wearing headphones. In each trial,
-    three sounds separated by silences are played and the participent's must judge which sound
+    three sounds separated by silences are played and the participant's must judge which sound
     was the softest (quietest). See the documentation for further details.
 
     Parameters
@@ -1494,9 +1520,12 @@ class HeadphoneTest(StaticTrialMaker):
     label : string
         The label for the color headphone check, default: "headphone_test".
 
+    trial_class :
+        Trial class to use, recommended HugginsHeadphoneTrial.
+
     media_url : string
         The url under which the images to be displayed can be referenced, default:
-        "https://s3.amazonaws.com/headphone-check"
+        "https://s3.amazonaws.com/headphone-check".
 
     time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 7.5.
@@ -1504,25 +1533,64 @@ class HeadphoneTest(StaticTrialMaker):
     performance_threshold : int
         The performance threshold, default: 4.
 
-    trial_class :
-        Trial class to use, default: HeadphoneTrial.
+
     """
 
     def __init__(
         self,
         label="headphone_test",
-        media_url: str = "https://s3.amazonaws.com/headphone-check",
+        media_url: Optional[str] = None,
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
-        trial_class=HeadphoneTrial,
     ):
+        raise NotImplementedError(
+            (
+                "DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; "
+                "HugginsHeadphoneTest is recommended."
+            )
+        )
+
+    @property
+    def test_name(self):
+        raise NotImplementedError()
+
+    @property
+    def test_definition(self):
+        raise NotImplementedError()
+
+    @property
+    def task_description(self):
+        raise NotImplementedError()
+
+    @property
+    def instruction_page(self):
+        return InfoPage(
+            Markup(
+                f"""
+            <p>We will now perform a quick test to check that you are wearing headphones.</p>
+            <p>
+                In each trial, you will hear three sounds separated by silences.
+                {self.task_description()}
+            </p>
+            """
+            ),
+            time_estimate=10,
+        )
+
+    def setup(
+        self, label, media_url, time_estimate_per_trial, performance_threshold, n_trials
+    ):
+        if media_url is None:
+            assert self.test_name is not None
+            media_url = f"https://s3.amazonaws.com/headphone-check/{self.test_name}"
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
-        super().__init__(
+        StaticTrialMaker.__init__(
+            self,
             id_=label,
-            trial_class=trial_class,
+            trial_class=self.get_trial_class(),
             nodes=self.get_nodes(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
@@ -1530,21 +1598,8 @@ class HeadphoneTest(StaticTrialMaker):
             max_trials_per_participant=n_trials,
         )
 
-    @property
-    def instruction_page(self):
-        return InfoPage(
-            Markup(
-                """
-            <p>We will now perform a quick test to check that you are wearing headphones.</p>
-            <p>
-                In each trial, you will hear three sounds separated by silences.
-                Your task will be to judge
-                <strong>which sound was softest (quietest).</strong>
-            </p>
-            """
-            ),
-            time_estimate=10,
-        )
+    def get_trial_class(self, node=None, participant=None, experiment=None):
+        raise NotImplementedError()
 
     def get_nodes(self, media_url: str):
         return [
@@ -1555,19 +1610,108 @@ class HeadphoneTest(StaticTrialMaker):
                 },
                 assets={
                     "stimulus": ExternalAsset(
-                        f"{media_url}/antiphase_HC_{label}.wav",
+                        join_path(media_url, f"{label}.wav"),
                     )
                 },
             )
-            for label, answer in [
-                ("ISO", "2"),
-                ("IOS", "3"),
-                ("SOI", "1"),
-                ("SIO", "1"),
-                ("OSI", "2"),
-                ("OIS", "3"),
-            ]
+            for label, answer in self.test_definition
         ]
+
+
+class HugginsHeadphoneTrial(HeadphoneTrial):
+    prompt_text = "Which noise contains the hidden beep -- 1, 2, or 3?"
+    test_name = "huggins"
+    submit_early = True
+
+
+class HugginsHeadphoneTest(HeadphoneTest):
+    """
+    Implements: Milne, A.E., Bianco, R., Poole, K.C. et al. An online headphone screening test based on dichotic pitch.
+    Behav Res 53, 1551–1562 (2021). https://doi.org/10.3758/s13428-020-01514-0
+    """
+
+    def __init__(
+        self,
+        label="huggins_headphone_test",
+        media_url: Optional[str] = None,
+        time_estimate_per_trial: float = 7.5,
+        performance_threshold: int = 4,
+        n_trials: int = 6,
+    ):
+        self.setup(
+            label, media_url, time_estimate_per_trial, performance_threshold, n_trials
+        )
+
+    @property
+    def test_name(self):
+        return "huggins"
+
+    @property
+    def test_definition(self):
+        return [
+            (f"HugginsPitch_set{set_id}_{sound_position}", f"{sound_position}")
+            for set_id in range(1, 7)
+            for sound_position in range(1, 4)
+        ]
+
+    @property
+    def task_description(self):
+        return (
+            "One of the noises has a faint beep hidden within. "
+            "Your task will be to judge <strong> which sound had the beep.</strong>"
+        )
+
+    def get_trial_class(self, node=None, participant=None, experiment=None):
+        return HugginsHeadphoneTrial
+
+
+class AntiphaseHeadphoneTrial(HeadphoneTrial):
+    prompt_text = "Which sound was softest (quietest) -- 1, 2, or 3?"
+    test_name = "antiphase"
+
+
+class AntiphaseHeadphoneTest(HeadphoneTest):
+    """
+    Implements: Woods, K. J. P., Siegel, M. H., Traer, J., & McDermott, J. H. (2017). Headphone screening to facilitate
+    web-based auditory experiments. Attention, perception & psychophysics, 79(7), 2064–2072.
+    https://doi.org/10.3758/s13414-017-1361-2
+
+    Deprecated: does not work reliably to detect headphones.
+    """
+
+    def __init__(
+        self,
+        label="antiphase_headphone_test",
+        media_url: Optional[str] = None,
+        time_estimate_per_trial: float = 7.5,
+        performance_threshold: int = 4,
+        n_trials: int = 6,
+    ):
+        self.setup(
+            label, media_url, time_estimate_per_trial, performance_threshold, n_trials
+        )
+
+    @property
+    def test_name(self):
+        return "antiphase"
+
+    @property
+    def test_definition(self):
+        return [
+            ("antiphase_HC_ISO", "2"),
+            ("antiphase_HC_IOS", "3"),
+            ("antiphase_HC_SOI", "1"),
+            ("antiphase_HC_SIO", "1"),
+            ("antiphase_HC_OSI", "2"),
+            ("antiphase_HC_OIS", "3"),
+        ]
+
+    @property
+    def task_description(self):
+        return "Your task will be to judge <strong> which sound was the softest (quietest).</strong>"
+
+    def get_trial_class(self, node=None, participant=None, experiment=None):
+        return AntiphaseHeadphoneTrial
 
 
 class AudioForcedChoiceTrial(StaticTrial):
