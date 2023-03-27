@@ -6,7 +6,6 @@ from flask import Markup
 import psynet.experiment
 from psynet.asset import DebugStorage
 from psynet.consent import NoConsent
-from psynet.demography.general import ExperimentFeedback
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
@@ -170,7 +169,7 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="n_participants",
-    target_n_participants=10,
+    target_n_participants=1,
     n_repeat_trials=0,
     wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
 )
@@ -184,6 +183,5 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         trial_maker,
-        ExperimentFeedback(),
         SuccessfulEndPage(),
     )
