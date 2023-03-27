@@ -1716,6 +1716,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
+        networks = self.prioritize_networks(networks, participant, experiment)
+
         chosen = networks[0]
         if chosen.block != current_block:
             logger.info(
@@ -1724,6 +1726,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             )
 
         return [chosen]
+
+    def prioritize_networks(self, networks, participant, experiment):
+        return networks
 
     def custom_network_filter(self, candidates, participant):
         """
