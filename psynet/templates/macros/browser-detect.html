@@ -137,10 +137,134 @@
 <script src="/static/scripts/detectIncognito.min.js"></script>
 
 <script>
-    var browser = {};
+    var browser = (function () {
+        var browser = {};
+        function base64ToImage(base64) {
+            var url = 'data:image/png;base64,' + base64;
+            return '<img width="18" height="18" src="' + url + '">';
+        }
+
+        function chromeMoreIcon() {
+            return base64ToImage('iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAKElEQVR4AWMYrqDUvfQ5ELoTrQGo+D8QPqeZBoSTqAVGQ2k0lIYpAAA/gTrh2+TtPAAAAABJRU5ErkJggg==')
+        }
+
+        function chromeArrowIcon() {
+            return base64ToImage('iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAQ0lEQVR4AWOgDxgFo6CkpGRBaWnpfFoZ7gA0/D8I08wSoMEJZFsyaglNLQClLtobPmp4RUWFAg0Mx/QBzHD6g1EwCgBqtlwMak9M6QAAAABJRU5ErkJggg==')
+        }
+
+        function chromeIncognitoIcon() {
+            return base64ToImage('iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAQAAABLCVATAAAAAnNCSVQICFXsRgQAAAKcSURBVEiJ7ZRdSFNhGMf/56OFuek0m0KpBZpgRaZBH1bIjOkMQrwog7zLYwiSuZVkV2NBZDOwQMrsJjPqIummj5nYcLahmF1EF+Go1Low2DI/Sufm00W5nc29NfEq8H9x4H3//+d3nofzvgdY1UqkRC6EwErEbqjYYY6Nabvx4cj6kZin1XfAtZz6ofekb3lSWYOpZYJIZ7CKoECAwMGHpiKuK3JeiLwNiJd822lJuH/Ny0eR8zwL5C4PxwAEdzkrzwCZKhUR9xUwVS4LpDrBejPLiQzKc2cvHQwACO5s5EUNGiibS2Z1NJc8UBYtSPO8kPkNwMOqhSYqEOVM7Ik8GAAQPHsph2mvXIGTTQVjh2PmFziAp2ifc2JqN2f7XS8ugt4ebT+7/D4q1sG20lnCFOHSOoq2bCPFjCvTjvEwK3n4YGwG5/34br/1X6CY9sY31RzPwY9416F6bWfQ6i61N05mCiDQwq6WivP4ye5PbbEb6HYDkgBJZ3YayVO8aH3VG8nslHQAklovGshiRzyT01tbQw4psEwwO00uxAIAYk0usxMJgfGlGuqtZY52ZjR9uK40+A88rttkTeyMi+MU3z2e0nHdvReBqOra45GM5vRgbcjJFlILX8t/pQ+7eEzqZzWziZPFAmQYYEo7JKTJa0NAXnxWh/S4YQH5V8/tNO7Y1+QHkuR1o2qvvDQUpLT1lpDs3rdVYV7sAYC13fC1VgUd0vSVKG1gibIMMw2DlAIegMoh1VFH86L34HodOSSoAPCU0jBonKat8tqwc0QnjbfEb/nP0iZ6cj9pN/bVF8D/xxKu2L4c2NyjHRpVv9L7EiwS1/EXEEBZF25OFyjgHztmyb+LCZml7q+4bxTSvFDaLp/m3jMHW9V/o18NUOKGCFK8ugAAAABJRU5ErkJggg==')
+        }
+
+        function hideResumeModal() {
+            var resumeModal = $('#resume-modal');
+            if (resumeModal.length > 0) {
+                resumeModal[0].style = {};
+            }
+        }
+
+        function renderBrowserWarning() {
+            hideResumeModal();
+            var warningMsg = "";
+            if (browser.forceGoogleChrome) {
+                if (!browser.isChrome) {
+                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using:")}} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
+                } else {
+                    if (browser.isOldVersion) {
+                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:")}}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
+                    }
+                }
+            }
+
+            if (browser.forceIncognitoMode) {
+                if (!browser.isIncognito) {
+                    // only show this warning if people are using the right browser
+                    if (warningMsg === "") {
+                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment.") }} {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
+                    }
+                }
+            }
 
 
-    function browserValidation() {
+            var out = '<div class="container">';
+            out += '<img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: none;">';
+            out += '<div class="alert alert-warning" role="alert">';
+            out += '<h4 class="alert-heading">{{ pgettext("browser_compatibility", "Warning!") }}</h4>';
+            out += '<p>' + warningMsg + '</p>';
+            out += '</div>';
+            out += '<table class="table mt-3">';
+            out += '<tbody>';
+
+            if (browser.forceGoogleChrome && !browser.isChrome) {
+                var chromeLink = '<a href="https://www.google.com/chrome/" target="_blank">' + getIcon('link') + '</a>';
+                if (browser.isOldVersion) {
+                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install the latest version of Google Chrome") }}: " + chromeLink);
+                } else {
+                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install Google Chrome if you haven't") }}" + chromeLink);
+                }
+            }
+            out += renderInstruction('copy-filled', "{{ pgettext("browser_compatibility", "Copy the link below") }}", renderCopyArea('url', window.location.href));
+            if (browser.forceGoogleChrome && !browser.isChrome) {
+                out += renderInstruction('open-chrome', "{{ pgettext("browser_compatibility", "Open Google Chrome") }}");
+            }
+
+            if (browser.forceIncognitoMode) {
+                var shortcut = isMacOS() ? '<strong>⌘ + Shift + n</strong> (MacOS)' : '<strong>Ctrl + Shift + N</strong>';
+                var incognitoInstructions = '';
+                if (browser.isChrome) {
+                    incognitoInstructions += '<p>';
+                    incognitoInstructions += '<ol class="mt-3">';
+                    incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "On your computer, open Chrome.") }}</li>';
+                    incognitoInstructions += ' <li>{{ pgettext("browser_compatibility", "At the top right, click More") }}' + chromeMoreIcon();
+                    incognitoInstructions += chromeArrowIcon() + '<strong>{{ pgettext("browser_compatibility", "New Incognito Window") }}</strong>.</li>';
+                    incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "A new window appears. In the top corner, check for the Incognito icon") }} ' + chromeIncognitoIcon() + '</li>';
+                    incognitoInstructions += '</ol>';
+                    incognitoInstructions += '{{ pgettext("browser_compatibility", "You can also use a keyboard shortcut to open an Incognito window") }}: {{ pgettext("browser_compatibility", "Press") }} ' + shortcut;
+                    incognitoInstructions += '</p>';
+                }
+
+                out += renderInstruction('incognito', "{{ pgettext("browser_compatibility", "Open a new incognito window") }}", incognitoInstructions);
+            }
+            var continueMsg = ''
+            var isTimeline = window.location.href.indexOf('timeline') !== -1
+            if (browser.forceIncognitoMode) {
+                if (isTimeline) {
+                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to continue the experiment") }}';
+                } else {
+                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to start the experiment") }}';
+                }
+            } else {
+                if (isTimeline) {
+                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to continue the experiment") }}';
+                } else {
+                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to start the experiment") }}';
+                }
+            }
+            out += renderInstruction('paste-filled', continueMsg);
+            out += '</tbody>';
+            out += '</table>';
+            out += '</div>';
+
+            document.getElementById('browser-compatibility-content').innerHTML = out;
+            document.getElementById('browser-compatibility-modal').style.display = 'block'
+        }
+
+        function renderMobileWarning() {
+            hideResumeModal();
+
+            var out = '<div class="container">';
+            out += '<img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: none;">';
+            out += '<div class="alert alert-danger" role="alert">';
+            out += '<p>';
+            out += '{{ pgettext("browser_compatibility", "You cannot take part in the experiment from a mobile device.")}} ';
+            out += '{{ pgettext("browser_compatibility", "Please open the survey on your computer.")}}';
+            out += '</p>';
+            out += '</div>';
+
+            document.getElementById('browser-compatibility-content').innerHTML = out;
+            document.getElementById('browser-compatibility-modal').style.display = 'block'
+        }
+
         function fallbackCopyTextToClipboard(text) {
             var textArea = document.createElement("textarea");
             textArea.value = text;
@@ -248,165 +372,42 @@
             return true;
         }
 
-        browser._onclickCopy = function(id) {
+        browser._onclickCopy = function (id) {
             var elem = $('#' + id);
             browser.copyTextToClipboard(elem.val());
             document.getElementById('copy-button').innerHTML = getIcon('checkmark');
         }
 
-        function base64ToImage(base64) {
-            var url = 'data:image/png;base64,' + base64;
-            return '<img width="18" height="18" src="' + url + '">';
-        }
-
-        function chromeMoreIcon() {
-            return base64ToImage('iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAKElEQVR4AWMYrqDUvfQ5ELoTrQGo+D8QPqeZBoSTqAVGQ2k0lIYpAAA/gTrh2+TtPAAAAABJRU5ErkJggg==')
-        }
-
-        function chromeArrowIcon() {
-            return base64ToImage('iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAQ0lEQVR4AWOgDxgFo6CkpGRBaWnpfFoZ7gA0/D8I08wSoMEJZFsyaglNLQClLtobPmp4RUWFAg0Mx/QBzHD6g1EwCgBqtlwMak9M6QAAAABJRU5ErkJggg==')
-        }
-
-        function chromeIncognitoIcon() {
-            return base64ToImage('iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAQAAABLCVATAAAAAnNCSVQICFXsRgQAAAKcSURBVEiJ7ZRdSFNhGMf/56OFuek0m0KpBZpgRaZBH1bIjOkMQrwog7zLYwiSuZVkV2NBZDOwQMrsJjPqIummj5nYcLahmF1EF+Go1Low2DI/Sufm00W5nc29NfEq8H9x4H3//+d3nofzvgdY1UqkRC6EwErEbqjYYY6Nabvx4cj6kZin1XfAtZz6ofekb3lSWYOpZYJIZ7CKoECAwMGHpiKuK3JeiLwNiJd822lJuH/Ny0eR8zwL5C4PxwAEdzkrzwCZKhUR9xUwVS4LpDrBejPLiQzKc2cvHQwACO5s5EUNGiibS2Z1NJc8UBYtSPO8kPkNwMOqhSYqEOVM7Ik8GAAQPHsph2mvXIGTTQVjh2PmFziAp2ifc2JqN2f7XS8ugt4ebT+7/D4q1sG20lnCFOHSOoq2bCPFjCvTjvEwK3n4YGwG5/34br/1X6CY9sY31RzPwY9416F6bWfQ6i61N05mCiDQwq6WivP4ye5PbbEb6HYDkgBJZ3YayVO8aH3VG8nslHQAklovGshiRzyT01tbQw4psEwwO00uxAIAYk0usxMJgfGlGuqtZY52ZjR9uK40+A88rttkTeyMi+MU3z2e0nHdvReBqOra45GM5vRgbcjJFlILX8t/pQ+7eEzqZzWziZPFAmQYYEo7JKTJa0NAXnxWh/S4YQH5V8/tNO7Y1+QHkuR1o2qvvDQUpLT1lpDs3rdVYV7sAYC13fC1VgUd0vSVKG1gibIMMw2DlAIegMoh1VFH86L34HodOSSoAPCU0jBonKat8tqwc0QnjbfEb/nP0iZ6cj9pN/bVF8D/xxKu2L4c2NyjHRpVv9L7EiwS1/EXEEBZF25OFyjgHztmyb+LCZml7q+4bxTSvFDaLp/m3jMHW9V/o18NUOKGCFK8ugAAAABJRU5ErkJggg==')
-        }
-
-        function hideResumeModal() {
-            var resumeModal = $('#resume-modal');
-            if (resumeModal.length > 0) {
-                resumeModal[0].style = {};
-            }
-        }
-
-        function renderBrowserWarning() {
-            hideResumeModal();
-
-            var warningMsg = "";
-
-            if (browser.forceGoogleChrome) {
-                if (!browser.isChrome) {
-                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using:")}} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
-                } else {
-                    if (browser.isOldVersion) {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:")}}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
-                    }
-                }
-            }
-
-            if (browser.forceIncognitoMode) {
-                if (!browser.isIncognito) {
-                    // only show this warning if people are using the right browser
-                    if (warningMsg === "") {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment.") }} {{ pgettext("browser_compatibility", "Please follow the instructions below continue.") }}";
-                    }
-                }
-            }
 
 
-            var out = '<div class="container">';
-            out += '<img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: none;">';
-            out += '<div class="alert alert-warning" role="alert">';
-            out += '<h4 class="alert-heading">{{ pgettext("browser_compatibility", "Warning!") }}</h4>';
-            out += '<p>' + warningMsg + '</p>';
-            out += '</div>';
-            out += '<table class="table mt-3">';
-            out += '<tbody>';
-
-            if (browser.forceGoogleChrome && !browser.isChrome) {
-                var chromeLink = '<a href="https://www.google.com/chrome/" target="_blank">' + getIcon('link') + '</a>';
-                if (browser.isOldVersion) {
-                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install the latest version of Google Chrome") }}: " + chromeLink);
-                } else {
-                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install Google Chrome if you haven't") }}" + chromeLink);
-                }
-            }
-            out += renderInstruction('copy-filled', "{{ pgettext("browser_compatibility", "Copy the link below") }}", renderCopyArea('url', window.location.href));
-            if (browser.forceGoogleChrome && !browser.isChrome) {
-                out += renderInstruction('open-chrome', "{{ pgettext("browser_compatibility", "Open Google Chrome") }}");
-            }
-
-            if (browser.forceIncognitoMode) {
-                var shortcut = isMacOS() ? '<strong>⌘ + Shift + n</strong> (MacOS)' : '<strong>Ctrl + Shift + N</strong>';
-                var incognitoInstructions = '';
-                if (browser.isChrome) {
-                    incognitoInstructions += '<p>';
-                    incognitoInstructions += '<ol class="mt-3">';
-                    incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "On your computer, open Chrome.") }}</li>';
-                    incognitoInstructions += ' <li>{{ pgettext("browser_compatibility", "At the top right, click More") }}' + chromeMoreIcon();
-                    incognitoInstructions += chromeArrowIcon() + '<strong>{{ pgettext("browser_compatibility", "New Incognito Window") }}</strong>.</li>';
-                    incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "A new window appears. In the top corner, check for the Incognito icon") }} ' + chromeIncognitoIcon() + '</li>';
-                    incognitoInstructions += '</ol>';
-                    incognitoInstructions += '{{ pgettext("browser_compatibility", "You can also use a keyboard shortcut to open an Incognito window") }}: {{ pgettext("browser_compatibility", "Press") }} ' + shortcut;
-                    incognitoInstructions += '</p>';
-                }
-
-                out += renderInstruction('incognito', "{{ pgettext("browser_compatibility", "Open a new incognito window") }}", incognitoInstructions);
-            }
-            var continueMsg = ''
-            var isTimeline = window.location.href.indexOf('timeline') !== -1
-            if (browser.forceIncognitoMode) {
-                if (isTimeline) {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to continue the experiment") }}';
-                } else {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to start the experiment") }}';
-                }
-            } else {
-                if (isTimeline) {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to continue the experiment") }}';
-                } else {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to start the experiment") }}';
-                }
-            }
-            out += renderInstruction('paste-filled', continueMsg);
-            out += '</tbody>';
-            out += '</table>';
-            out += '</div>';
-
-            document.getElementById('browser-compatibility-content').innerHTML = out;
-            document.getElementById('browser-compatibility-modal').style.display = 'block'
-        }
-
-        function renderMobileWarning() {
-            hideResumeModal();
-
-            var out = '<div class="container">';
-            out += '<img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: none;">';
-            out += '<div class="alert alert-danger" role="alert">';
-            out += '<p>';
-            out += '{{ pgettext("browser_compatibility", "You cannot take part in the experiment from a mobile device.")}} ';
-            out += '{{ pgettext("browser_compatibility", "Please open the survey on your computer.")}}';
-            out += '</p>';
-            out += '</div>';
-
-            document.getElementById('browser-compatibility-content').innerHTML = out;
-            document.getElementById('browser-compatibility-modal').style.display = 'block'
-        }
-
-        if (!browser.allowMobileDevices && browser.isMobile) {
-            renderMobileWarning();
-            return false;
-        }
-
-        detectIncognito().then((result) => {
-            browser.name = result.browserName;
-            browser.isIncognito = result.isPrivate;
-            browser.isChrome = result.browserName === "Chrome";
-            var correctBrowserUsed = true;
-            if (browser.forceGoogleChrome) {
-                correctBrowserUsed = correctBrowserUsed && browser.isChrome && !browser.isOldVersion
-            }
-            if (browser.forceIncognitoMode) {
-                correctBrowserUsed = correctBrowserUsed && browser.isIncognito;
-            }
-            if (!correctBrowserUsed) {
-                renderBrowserWarning();
+        browser.validate = function() {
+            if (!browser.allowMobileDevices && browser.isMobile) {
+                renderMobileWarning();
                 return false;
             }
-            console.log("Browser check finished");
-            browser.isValidated = true;
-        });
-        return true;
-    }
+
+            detectIncognito().then((result) => {
+                browser.name = result.browserName;
+                browser.isIncognito = result.isPrivate;
+                browser.isChrome = result.browserName === "Chrome";
+                var correctBrowserUsed = true;
+                if (browser.forceGoogleChrome) {
+                    correctBrowserUsed = correctBrowserUsed && browser.isChrome && !browser.isOldVersion
+                }
+                if (browser.forceIncognitoMode) {
+                    correctBrowserUsed = correctBrowserUsed && browser.isIncognito;
+                }
+                if (!correctBrowserUsed) {
+                    renderBrowserWarning();
+                    return false;
+                }
+                console.log("Browser check finished");
+                browser.isValidated = true;
+            });
+            return true;
+        }
+        return browser;
+    })();
 
 </script>
 
