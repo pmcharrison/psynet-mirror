@@ -822,7 +822,7 @@
                         resumeModal.css("display", "block");
                         resumeButton.click(async function () {
                             resumeModal.css("display", "none");
-                            await psynet.media.audioContext.resume();
+                            await psynet.media.init();
                             resolve();
                         });
                     });
@@ -831,24 +831,16 @@
                 psynet.media.init = async function () {
                     psynet.media.initAudioContext();
 
-                    let requests = psynet.media.requests;
-                    let mediaTypes = Object.keys(requests);
-                    let noMediaAvailable = mediaTypes.map((x) => 0 === Object.keys(requests[x]).length).every(x => x === true);
-
-                    if (noMediaAvailable) {
-                        psynet.log.info("No media available, skipping media initialization.");
-                        psynet.media.loaded = true;
-                        return;
-                    }
-
                     if (psynet.media.audioContext.state == "suspended") {
                         psynet.log.info(
                             "Audio context is suspended, and can only be resumed " +
                             "after a user interaction. Waiting for the participant to click 'Resume'."
                         );
                         await askUserToResume();
+                        psynet.media.initAudioContext();
                     }
-
+                    let requests = psynet.media.requests;
+                    let mediaTypes = Object.keys(requests);
                     await Promise.all(
                         mediaTypes.map((x) => processRequests(x, requests[x]))
                     );
@@ -1306,10 +1298,6 @@
                     return new Promise(resolve => {
                         window.addEventListener("load", () => resolve());
                     });
-                };
-
-                let waitForBrowserCheck = async function () {
-                    return await browser.validate();
                 };
 
                 psynet.initPage = async function () {
