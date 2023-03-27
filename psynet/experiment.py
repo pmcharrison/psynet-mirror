@@ -542,13 +542,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def start_experiment_in_popup_window(self):
-        if hasattr(self.recruiter, "start_experiment_in_popup_window"):
+        if self.var.has("start_experiment_in_popup_window"):
+            # This is for simulating pop up behaviour in psynet demo tests
+            return self.var.get("start_experiment_in_popup_window")
+        elif hasattr(self.recruiter, "start_experiment_in_popup_window"):
             return self.recruiter.start_experiment_in_popup_window
         elif isinstance(self.recruiter, MTurkRecruiter):
             return True
-        elif self.var.has("start_experiment_in_popup_window"):
-            # This is for simulating pop up behaviour in psynet demo tests
-            return self.var.get("start_experiment_in_popup_window")
+
         else:
             return False
 
