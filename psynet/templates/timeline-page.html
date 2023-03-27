@@ -1300,6 +1300,10 @@
                     });
                 };
 
+                let waitForBrowserCheck = async function () {
+                    return await browser.validate();
+                };
+
                 psynet.initPage = async function () {
                     console.log("Initialising page...");
 
