@@ -801,6 +801,36 @@
                     }
                 }
 
+                psynet.media.getMicrophoneMetadataFromAudioStream = function (stream) {
+                    var audioTracks = stream.getAudioTracks();
+                    if (audioTracks.length === 0) {
+                        psynet.log.error('No tracks found')
+                        return {}
+                    } else if (audioTracks.length > 1) {
+                        psynet.log.warn(
+                            'Expected exactly one audio track, but got ' + audioTracks.length + ' tracks. ' +
+                            'Recording the first track.'
+                        )
+                    }
+
+                    var audioTrack = audioTracks[0];
+                    audioTrackSettings = audioTrack.getSettings();
+                    return {
+                        "microphone": {
+                            label: audioTrack.label,
+                            enabled: audioTrack.enabled,
+                            muted: audioTrack.muted,
+                            channelCount: audioTrackSettings.channelCount,
+                            autoGainControl: audioTrackSettings.autoGainControl,
+                            echoCancellation: audioTrackSettings.echoCancellation,
+                            noiseSuppression: audioTrackSettings.noiseSuppression,
+                            latency: audioTrackSettings.latency,
+                            sampleRate: audioTrackSettings.sampleRate,
+                            sampleSize: audioTrackSettings.sampleSize,
+                        }
+                    }
+                }
+
                 psynet.media.initAudioContext = function () {
                     let context = null;
                     if ("webkitAudioContext" in window) context = new webkitAudioContext();

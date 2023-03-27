@@ -856,11 +856,13 @@
 
     {% if config.submit_button %}
         {{ null(config) }}
+
     {% endif %}
 
     <script>
         {% include "macros/control/audio_meter.js" %}
         audioMeterControl.init('{{ config.to_json() }}');
+
     </script>
 {% endmacro %}
 
@@ -1084,7 +1086,6 @@
 
 {% macro audio_record(config) %}
     {{ generic_record(config) }}
-
     {{ null(config) }}
 
     <script>
@@ -1142,6 +1143,8 @@
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audioContext.createMediaStreamSource(stream);
+                let microphoneMetadata = psynet.media.getMicrophoneMetadataFromAudioStream(stream);
+                Object.extend(psynet.response.staged.metadata, microphoneMetadata);
                 recorder = new Recorder(input, channelCount);
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
