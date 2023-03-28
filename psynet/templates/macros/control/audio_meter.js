@@ -52,8 +52,6 @@ audioMeterControl.init = function(json) {
 
     this.messageTimer = null;
 
-
-
     var audioMeterControl = this;
     psynet.trial.onEvent("trialConstruct",function() {
         audioMeterControl.canvasContext = document.getElementById("audio-meter").getContext("2d");
@@ -82,7 +80,6 @@ audioMeterControl.onMicrophoneDenied = function() {
 }
 
 audioMeterControl.checkMicrophone = function(stream) {
-    console.log(this)
     var microphoneMetadata = psynet.media.getMicrophoneMetadataFromAudioStream(stream);
 
     if (microphoneMetadata.muted) {
@@ -95,7 +92,8 @@ audioMeterControl.checkMicrophone = function(stream) {
 audioMeterControl.onMicrophoneGranted = function(stream) {
     this.showMessage("Starting audio meter...", "blue");
 
-    psynet.response.staged.metadata = this.checkMicrophone(stream);
+    let microphoneMetadata = this.checkMicrophone(stream);
+    Object.extend(psynet.response.staged.metadata, microphoneMetadata);
 
     // Create an AudioNode from the stream.
     var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
