@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-28/03/ 15:45:21\n"
+"POT-Creation-Date: 2023-28/03/ 15:59:11\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -320,6 +320,12 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Napsauta oikeassa yläkulmassa Lisää"
 
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "Klikkaa tästä"
+
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
@@ -421,7 +427,6 @@ msgctxt "browser_compatibility"
 msgid "Please follow the instructions below continue."
 msgstr "Seuraa alla olevia ohjeita jatka."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below to continue."
@@ -451,6 +456,12 @@ msgstr "Varoitus!"
 msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Testaamme nyt selaimesi yhteensopivuuden."
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr "Käytät"
 
 #, fuzzy
 msgctxt "browser_compatibility"

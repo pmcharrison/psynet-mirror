@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-28/03/ 15:45:21\n"
+"POT-Creation-Date: 2023-28/03/ 15:59:11\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -276,6 +276,12 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "在右上方，点击更多"
 
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "点击这里"
+
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
@@ -377,7 +383,6 @@ msgctxt "browser_compatibility"
 msgid "Please follow the instructions below continue."
 msgstr "请按照下面的指示继续。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below to continue."
@@ -407,6 +412,12 @@ msgstr "警告!"
 msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "我们现在要测试你的浏览器是否兼容。"
+
+#. ""
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr "您正在使用的是"
 
 #, fuzzy
 msgctxt "browser_compatibility"
