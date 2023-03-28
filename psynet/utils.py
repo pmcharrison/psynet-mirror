@@ -24,7 +24,7 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.config import config, get_config
+from dallinger.config import get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -499,6 +499,7 @@ def get_language():
 
     A string, for example "en".
     """
+    config = get_config()
     if not config.ready:
         config.load()
     return config.get("language", "en")
