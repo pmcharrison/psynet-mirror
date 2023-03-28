@@ -1,5 +1,5 @@
 {% extends "base/ad.html" %}
-
+{% include "macros/browser-detect.html" %}
 {% block no_assignment %}
 <h1>{{ pgettext("ad", "Call for participants") }}</h1>
 <p>
@@ -22,55 +22,67 @@
 {% endblock no_assignment %}
 
 {% block live %}
-<h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
-<p>
-    {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
-</p>
-<div class="alert alert-warning">
-    <span style="font-weight: bold;">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
-</div>
-<button type="button" id="begin-button" class="btn btn-primary btn-lg">
-{{ pgettext("ad", "Begin Experiment") }}
-</button>
-{% if experiment.var.show_abort_button %}
-<button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
-{{ pgettext("ad", "Abort Experiment") }}
-</button>
-<div style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
-    <span class="alert-danger">{{ pgettext("ad", "Click the above button to be compensated in case of an error.") }}</span>
-</div>
-<script>
-    function abortExperiment(event) {
-        var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
-        let windowObjectReference = window.open("/abort/" + "{{assignmentid}}", "Abort window", windowFeatures);
-    }
+    {% if experiment.recruiter.nickname == "mturk" %}
+        <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
+    {% else %}
+        <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>
+    {% endif %}
+    <p>
+        {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
+    </p>
 
-    function enableAbortButton(event) {
-        document.getElementById("abort-button").disabled = false;
-    }
+    {% if not experiment.var.force_incognito_mode %}
+        <div class="alert alert-warning">
+            <span style="font-weight: bold;">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
+        </div>
+    {% endif %}
 
-    document.getElementById("abort-button").onclick = abortExperiment;
-</script>
-{% endif %}
+    <button type="button" id="begin-button" class="btn btn-primary btn-lg">
+    {{ pgettext("ad", "Begin Experiment") }}
+    </button>
+
+    {% if experiment.var.show_abort_button %}
+        <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
+        {{ pgettext("ad", "Abort Experiment") }}
+        </button>
+        <div style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
+            <span class="alert-danger">{{ pgettext("ad", "Click the above button to be compensated in case of an error.") }}</span>
+        </div>
+        <script>
+            function abortExperiment(event) {
+                var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
+                let windowObjectReference = window.open("/abort/" + "{{assignmentid}}", "Abort window", windowFeatures);
+            }
+
+            function enableAbortButton(event) {
+                document.getElementById("abort-button").disabled = false;
+            }
+
+            document.getElementById("abort-button").onclick = abortExperiment;
+        </script>
+    {% endif %}
 {% endblock live %}
 
 {% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function (event) {
+            browser.validate();
+        });
 
-<script>
-    function proceedToConsentPage(event) {
-      let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
-      if ("{{ experiment.recruiter.start_experiment_in_popup_window }}" == "True") {
-        window.location = url;
-      } else {
-        popup = window.open(
-        url,
-        "Popup",
-        "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no"
-        + ",width={{experiment.var.window_width}}"
-        + ",height={{experiment.var.window_height}}");
-        event.target.setAttribute("disabled", "");
-      }
-    }
-    document.getElementById("begin-button").onclick = proceedToConsentPage;
-</script>
+        function proceedToConsentPage(event) {
+          let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
+          if ({{ experiment.start_experiment_in_popup_window|tojson }}) {
+              popup = window.open(
+            url,
+            "Popup",
+            "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no"
+            + ",width={{experiment.var.window_width}}"
+            + ",height={{experiment.var.window_height}}");
+            event.target.setAttribute("disabled", "");
+          } else{
+            window.location = url;
+          }
+        }
+        document.getElementById("begin-button").onclick = proceedToConsentPage;
+    </script>
 {% endblock %}

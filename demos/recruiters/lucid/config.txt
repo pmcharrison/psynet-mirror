@@ -13,7 +13,6 @@ group_name = lucid
 assign_qualifications = true
 
 approve_requirement = 99
-browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
 description = [Headphone required] You will do some short tests and questionnaires.
