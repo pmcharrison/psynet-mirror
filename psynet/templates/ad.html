@@ -22,7 +22,7 @@
 {% endblock no_assignment %}
 
 {% block live %}
-    {% if recruiter == "mturk" %}
+    {% if experiment.recruiter.nickname == "mturk" %}
         <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
     {% else %}
         <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>
