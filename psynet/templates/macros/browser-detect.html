@@ -168,7 +168,7 @@
             var warningMsg = "";
             if (browser.forceGoogleChrome) {
                 if (!browser.isChrome) {
-                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using:")}} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") }}";
+                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using")}} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") }}";
                 } else {
                     if (browser.isOldVersion) {
                         warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:")}}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") }}";
