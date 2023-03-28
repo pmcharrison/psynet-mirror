@@ -196,7 +196,7 @@
             out += '<tbody>';
 
             if (browser.forceGoogleChrome && !browser.isChrome) {
-                var chromeLink = '<a href="https://www.google.com/chrome/" target="_blank">' + getIcon('link') + '</a>';
+                var chromeLink = '<a href="https://www.google.com/chrome/" target="_blank">{{ pgettext("browser_compatibility", "Click here") }}' + getIcon('link') + '</a>';
                 if (browser.isOldVersion) {
                     out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install the latest version of Google Chrome") }}: " + chromeLink);
                 } else {
@@ -546,6 +546,7 @@
                             <span class="display-5">
                                 {{ pgettext("browser_compatibility", "Install the latest version of Google Chrome on your computer") }}
                                 <a href="https://www.google.com/chrome/" target="_blank">
+                                    {{ pgettext("browser_compatibility", "Click here") }}
                                     {{ link_icon() }}
                                     </a>
                             </span>
