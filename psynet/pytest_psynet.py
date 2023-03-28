@@ -90,12 +90,18 @@ def bot_class(headless=None):
                 )
                 begin.click()
                 logger.info("Clicked begin experiment button.")
-                WebDriverWait(self.driver, 10).until(
-                    lambda d: len(d.window_handles) == 2
-                )
-                self.driver.switch_to.window(self.driver.window_handles[-1])
-                self.driver.set_window_size(1024, 768)
-                logger.info("Switched to experiment popup.")
+
+                experiment = get_experiment()
+                if experiment.start_experiment_in_popup_window:
+                    WebDriverWait(self.driver, 10).until(
+                        lambda d: len(d.window_handles) == 2
+                    )
+                    self.driver.switch_to.window(self.driver.window_handles[-1])
+                    logger.info("Switched to experiment popup.")
+                    self.driver.set_window_size(1024, 768)
+                else:
+                    self.driver.set_window_size(1024, 1024)
+
                 consent = WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.ID, "consent"))
                 )
@@ -154,7 +160,7 @@ def psynet_loaded(driver):
     return False
 
 
-def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.0):
+def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=10.0):
     def get_uuid():
         return driver.execute_script("return pageUuid")
 
