@@ -780,9 +780,9 @@ class Experiment(dallinger.experiment.Experiment):
             ),
             (
                 resource_filename(
-                    "psynet", "resources/libraries/jQuery-Knob/dist/jquery.knob.min.js"
+                    "psynet", "resources/libraries/jQuery-Knob/js/jquery.knob.js"
                 ),
-                "/static/scripts/jquery.knob.min.js",
+                "/static/scripts/jquery.knob.js",
             ),
             (
                 resource_filename("psynet", "resources/libraries/js-synthesizer"),
