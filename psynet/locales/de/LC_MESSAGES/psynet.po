@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 16:02:05\n"
+"POT-Creation-Date: 2023-28/03/ 15:45:21\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -312,7 +312,6 @@ msgstr ""
 "Es gibt drei Decay-Parameter: einen für die angezeigte Audioanzeige, einen "
 "für den 'too-high' Detektor und einen für den 'too-low' Detektor."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
@@ -320,25 +319,21 @@ msgstr ""
 "Es erscheint ein neues Fenster. Suchen Sie in der oberen Ecke nach dem "
 "Symbol Inkognito"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Klicken Sie oben rechts auf Mehr"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
 msgstr "Kopieren Sie die aktuelle URL in die Zwischenablage:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the link below"
 msgstr "Kopieren Sie den unten stehenden Link"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Follow the steps below to make sure the experiment works."
@@ -351,62 +346,52 @@ msgid "If your browser is not compatible we have to reject the survey."
 msgstr ""
 "Wenn Ihr Browser nicht kompatibel ist, müssen wir die Umfrage ablehnen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install Google Chrome if you haven't"
 msgstr "Installieren Sie Google Chrome, falls Sie es noch nicht getan haben"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome"
 msgstr "Installieren Sie die neueste Version von Google Chrome"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome on your computer"
 msgstr ""
 "Installieren Sie die aktuellste Version von Google Chrome auf Ihrem Computer"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "New Incognito Window"
 msgstr "Neues Inkognito-Fenster"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Mac: Press"
 msgstr "Auf dem Mac: Drücken Sie"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Windows, Linux, or Chrome OS: Press"
 msgstr "Unter Windows, Linux oder Chrome OS: Drücken Sie"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On your computer, open Chrome."
 msgstr "Öffnen Sie auf Ihrem Computer Chrome."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open Google Chrome"
 msgstr "Öffnen Sie Google Chrome"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window"
 msgstr "Öffnen Sie ein neues Inkognito-Fenster"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window with  the following keyboard shortcuts:"
@@ -414,21 +399,18 @@ msgstr ""
 "Öffnen Sie mit den folgenden Tastenkombinationen ein neues Inkognito-"
 "Fenster:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to continue the experiment"
 msgstr ""
 "Fügen Sie den Link in den Chrome-Browser ein, um das Experiment fortzusetzen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to start the experiment"
 msgstr ""
 "Fügen Sie den Link in den Chrome-Browser ein, um das Experiment zu starten"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to continue the experiment"
@@ -436,7 +418,6 @@ msgstr ""
 "Fügen Sie den Link in das Inkognito-Fenster ein, um das Experiment "
 "fortzusetzen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to start the experiment"
@@ -444,7 +425,6 @@ msgstr ""
 "Fügen Sie den Link in das Inkognito-Fenster ein, um das Experiment zu "
 "starten"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
@@ -459,22 +439,24 @@ msgstr "Bitte folgen Sie den Anweisungen unten weiter."
 #. ""
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "Bitte folgen Sie den nachstehenden Anweisungen, um fortzufahren."
+
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Please open the survey on your computer."
 msgstr "Bitte öffnen Sie die Umfrage auf Ihrem Computer."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Press"
 msgstr "Drücken Sie"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "This site requires JavaScript to function properly."
 msgstr "Diese Seite benötigt JavaScript, um richtig zu funktionieren."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Warning!"
@@ -484,13 +466,11 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Wir werden nun Ihren Browser auf Kompatibilität testen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Sie benutzen gerade:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
@@ -498,28 +478,24 @@ msgstr ""
 "Sie können auch ein Tastaturkürzel verwenden, um ein Inkognito-Fenster zu "
 "öffnen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You cannot take part in the experiment from a mobile device."
 msgstr ""
 "Sie können von einem mobilen Gerät aus nicht an dem Experiment teilnehmen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr ""
 "Sie müssen Google Chrome verwenden, um an dem Experiment teilzunehmen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use the incognito mode to take part in the experiment."
 msgstr ""
 "Sie müssen den Inkognito-Modus verwenden, um an dem Experiment teilzunehmen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid ""

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 16:02:05\n"
+"POT-Creation-Date: 2023-28/03/ 15:45:21\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -57,7 +57,6 @@ msgstr ""
 "Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
 "seuraavat tiedot:"
 
-#. ""
 #, fuzzy
 msgid "Image not found"
 msgstr "Kuvaa ei löydy"
@@ -71,7 +70,6 @@ msgid ""
 "experiment."
 msgstr ""
 
-#. ""
 #, fuzzy
 msgid "Loop"
 msgstr "Silmukka"
@@ -80,22 +78,18 @@ msgstr "Silmukka"
 msgid "Next"
 msgstr "Seuraava"
 
-#. ""
 #, fuzzy
 msgid "Play all"
 msgstr "Pelaa kaikki"
 
-#. ""
 #, fuzzy
 msgid "Play from start"
 msgstr "Pelaa alusta alkaen"
 
-#. ""
 #, fuzzy
 msgid "Play prompt"
 msgstr "Toista kehote"
 
-#. ""
 #, fuzzy
 msgid "Play recording"
 msgstr "Toista tallennus"
@@ -104,12 +98,10 @@ msgstr "Toista tallennus"
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klikkaa \"Finish\" saadaksesi HIT:n valmiiksi."
 
-#. ""
 #, fuzzy
 msgid "Record from start"
 msgstr "Tietue alusta alkaen"
 
-#. ""
 #, fuzzy
 msgid "Reset"
 msgstr "Nollaa"
@@ -118,7 +110,6 @@ msgstr "Nollaa"
 msgid "Resuming experiment ..."
 msgstr "Kokeen jatkaminen ..."
 
-#. ""
 #, fuzzy
 msgid "Stop"
 msgstr "Stop"
@@ -127,7 +118,6 @@ msgstr "Stop"
 msgid "Thank you for taking part."
 msgstr "Kiitos osallistumisesta."
 
-#. ""
 #, fuzzy
 msgid "Video not found"
 msgstr "Videota ei löydy"
@@ -255,7 +245,6 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Varoitus"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -265,19 +254,16 @@ msgstr ""
 "Korkea decay-parametri tarkoittaa, että signaalin hajoaminen kestää kauan "
 "(eli suuri tasoitus)."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Documentation"
 msgstr "Dokumentaatio"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Sliders"
 msgstr "Liukusäätimet"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -287,7 +273,6 @@ msgstr ""
 "<strong>decay</strong>-parametrit määrittävät signaalille tapahtuvan "
 "tasoituksen määrän, ja niiden yksikkö on sekunti."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -298,7 +283,6 @@ msgstr ""
 "äänenvoimakkuuden on oltava kyseisen raja-arvon ulkopuolella, jotta "
 "varoitusviesti laukeaa."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -308,7 +292,6 @@ msgstr ""
 "<strong>viestin kesto</strong> -parametrit määrittävät, kuinka kauan "
 "varoitusviestejä näytetään."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -318,7 +301,6 @@ msgstr ""
 "<strong>kynnysarvo</strong> -parametrit määrittävät pisteen, jossa "
 "äänenvoimakkuus määritetään \"liian suureksi\" tai \"liian pieneksi\"."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -328,31 +310,26 @@ msgstr ""
 "Hajoamisparametreja on kolme: yksi näytettävälle äänimittarille, yksi "
 "\"liian korkea\"-ilmaisimelle ja yksi \"liian matala\"-ilmaisimelle."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
 msgstr "Avautuu uusi ikkuna, jonka yläkulmassa on Incognito-kuvake."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Napsauta oikeassa yläkulmassa Lisää"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
 msgstr "Kopioi nykyinen URL-osoite leikepöydälle:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the link below"
 msgstr "Kopioi alla oleva linkki"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Follow the steps below to make sure the experiment works."
@@ -363,91 +340,76 @@ msgctxt "browser_compatibility"
 msgid "If your browser is not compatible we have to reject the survey."
 msgstr "Jos selaimesi ei ole yhteensopiva, meidän on hylättävä kysely."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install Google Chrome if you haven't"
 msgstr "Asenna Google Chrome, jos et ole vielä asentanut"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome"
 msgstr "Asenna Google Chromen uusin versio"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome on your computer"
 msgstr "Asenna Google Chromen uusin versio tietokoneellesi."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "New Incognito Window"
 msgstr "Uusi inkognito-ikkuna"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Mac: Press"
 msgstr "Macissa: Paina"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Windows, Linux, or Chrome OS: Press"
 msgstr "Windowsissa, Linuxissa tai Chrome OS:ssä: Paina"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On your computer, open Chrome."
 msgstr "Avaa tietokoneessa Chrome."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open Google Chrome"
 msgstr "Avaa Google Chrome"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window"
 msgstr "Avaa uusi inkognito-ikkuna"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window with  the following keyboard shortcuts:"
 msgstr "Avaa uusi inkognito-ikkuna seuraavilla pikanäppäimillä:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to continue the experiment"
 msgstr "Liitä linkki Chrome-selaimeen jatkaaksesi koetta"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to start the experiment"
 msgstr "Liitä linkki Chrome-selaimeen aloittaaksesi kokeen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to continue the experiment"
 msgstr "Liitä linkki inkognito-ikkunaan jatkaaksesi kokeilua."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to start the experiment"
 msgstr "Liitä linkki inkognito-ikkunaan aloittaaksesi kokeen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
@@ -462,22 +424,24 @@ msgstr "Seuraa alla olevia ohjeita jatka."
 #. ""
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "Seuraa alla olevia ohjeita jatkaaksesi."
+
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Please open the survey on your computer."
 msgstr "Avaa kysely tietokoneellasi."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Press"
 msgstr "Paina"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "This site requires JavaScript to function properly."
 msgstr "Tämä sivusto vaatii JavaScriptin toimiakseen oikein."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Warning!"
@@ -488,37 +452,31 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Testaamme nyt selaimesi yhteensopivuuden."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Käytät:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
 msgstr "Voit avata Incognito-ikkunan myös pikanäppäimellä"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You cannot take part in the experiment from a mobile device."
 msgstr "Et voi osallistua kokeeseen mobiililaitteella."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "Sinun on käytettävä Google Chromea osallistuaksesi kokeeseen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use the incognito mode to take part in the experiment."
 msgstr "Sinun on käytettävä incognito-tilaa osallistuaksesi kokeeseen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid ""

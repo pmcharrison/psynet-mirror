@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-22/03/ 16:02:05\n"
+"POT-Creation-Date: 2023-28/03/ 15:45:21\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -48,7 +48,6 @@ msgstr ""
 "Als dit niet het geval is, neem dan contact met ons op via %(EMAIL)s onder "
 "vermelding van de volgende informatie:"
 
-#. ""
 #, fuzzy
 msgid "Image not found"
 msgstr "Afbeelding niet gevonden"
@@ -64,7 +63,6 @@ msgstr ""
 "ontvangt u een bonus van <strong>%(currency)s%(BONUS)s</strong> voor de tijd"
 " die u aan het experiment heeft besteed."
 
-#. ""
 #, fuzzy
 msgid "Loop"
 msgstr "Lus"
@@ -72,22 +70,18 @@ msgstr "Lus"
 msgid "Next"
 msgstr "Volgende"
 
-#. ""
 #, fuzzy
 msgid "Play all"
 msgstr "Alles afspelen"
 
-#. ""
 #, fuzzy
 msgid "Play from start"
 msgstr "Spelen vanaf het begin"
 
-#. ""
 #, fuzzy
 msgid "Play prompt"
 msgstr "Speel prompt"
 
-#. ""
 #, fuzzy
 msgid "Play recording"
 msgstr "Opname afspelen"
@@ -95,12 +89,10 @@ msgstr "Opname afspelen"
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klik op \"Voltooien\" om de HIT te voltooien."
 
-#. ""
 #, fuzzy
 msgid "Record from start"
 msgstr "Opname vanaf het begin"
 
-#. ""
 #, fuzzy
 msgid "Reset"
 msgstr "Reset"
@@ -108,7 +100,6 @@ msgstr "Reset"
 msgid "Resuming experiment ..."
 msgstr "Het experiment wordt hervat…"
 
-#. ""
 #, fuzzy
 msgid "Stop"
 msgstr "Stop"
@@ -116,7 +107,6 @@ msgstr "Stop"
 msgid "Thank you for taking part."
 msgstr "Bedankt voor uw deelname."
 
-#. ""
 #, fuzzy
 msgid "Video not found"
 msgstr "Video niet gevonden"
@@ -235,7 +225,6 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Waarschuwing"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -245,19 +234,16 @@ msgstr ""
 "Een hoge vervalparameter betekent dat het signaal er lang over doet om te "
 "vervallen (d.w.z. een hoge afvlakking)."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Documentation"
 msgstr "Documentatie"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Sliders"
 msgstr "Schuiven"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -267,7 +253,6 @@ msgstr ""
 "De <strong>decay</strong> parameters bepalen de mate van afvlakking die het "
 "signaal ondergaat, en hebben eenheden van seconden."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -278,7 +263,6 @@ msgstr ""
 "respectievelijke drempelwaarde moet zijn om een waarschuwingsbericht te "
 "activeren."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -288,7 +272,6 @@ msgstr ""
 "De <strong>berichtduur</strong> parameters bepalen hoe lang "
 "waarschuwingsberichten worden weergegeven."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -298,7 +281,6 @@ msgstr ""
 "De <strong>drempel</strong> parameters bepalen het punt waarop het volume "
 "wordt bepaald als \"te hoog\" of \"te laag\"."
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -308,7 +290,6 @@ msgstr ""
 "Er zijn drie vervalparameters: één voor de weergegeven audiometer, één voor "
 "de 'te hoog'-detector en één voor de 'te laag'-detector."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
@@ -316,25 +297,21 @@ msgstr ""
 "Een nieuw venster verschijnt. Controleer in de bovenhoek op het Incognito-"
 "pictogram"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Klik rechtsboven op Meer"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
 msgstr "Kopieer de huidige URL naar het klembord:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the link below"
 msgstr "Kopieer de onderstaande link"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Follow the steps below to make sure the experiment works."
@@ -348,92 +325,77 @@ msgstr ""
 "Als uw browser niet compatibel is, u kunt daarom niet deelnemen aan het "
 "experiment."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install Google Chrome if you haven't"
 msgstr "Installeer Google Chrome als u dat nog niet hebt gedaan"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome"
 msgstr "Installeer de nieuwste versie van Google Chrome"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome on your computer"
 msgstr "Installeer de nieuwste versie van Google Chrome op uw computer"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "New Incognito Window"
 msgstr "Nieuw Incognitovenster"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Mac: Press"
 msgstr "Op Mac: Druk op"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Windows, Linux, or Chrome OS: Press"
 msgstr "Op Windows, Linux of Chrome OS: Druk op"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On your computer, open Chrome."
 msgstr "Open Chrome op uw computer."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open Google Chrome"
 msgstr "Google Chrome openen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window"
 msgstr "Een nieuw incognitovenster openen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window with  the following keyboard shortcuts:"
 msgstr "Open een nieuw incognitovenster met de volgende sneltoetsen:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to continue the experiment"
 msgstr "Plak de link in de Chrome-browser om het experiment voort te zetten"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to start the experiment"
 msgstr "Plak de link in de Chrome-browser om het experiment te starten"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to continue the experiment"
 msgstr ""
 "Plak de link in het incognitovenster om het experiment voort te zetten"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to start the experiment"
 msgstr "Plak de link in het incognitovenster om het experiment te starten"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
@@ -448,22 +410,24 @@ msgstr "Volg de onderstaande instructies om door te gaan."
 #. ""
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "Volg de onderstaande instructies om door te gaan."
+
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Please open the survey on your computer."
 msgstr "Open de enquête op uw computer."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Press"
 msgstr "Druk op"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "This site requires JavaScript to function properly."
 msgstr "Deze site vereist JavaScript om goed te functioneren."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Warning!"
@@ -473,38 +437,32 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "We testen nu of uw browser compatibel is"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "U gebruikt:"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
 msgstr "U kunt ook een sneltoets gebruiken om een Incognitovenster te openen"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You cannot take part in the experiment from a mobile device."
 msgstr "U kunt niet deelnemen aan het experiment vanaf een mobiel apparaat."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "U moet Google Chrome gebruiken om deel te nemen aan het experiment."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use the incognito mode to take part in the experiment."
 msgstr ""
 "U moet de incognitomodus gebruiken om deel te nemen aan het experiment."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid ""
