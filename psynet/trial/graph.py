@@ -52,7 +52,6 @@ class GraphChainNetwork(ChainNetwork):
         id_within_participant: Optional[int] = None,
         source_seed: Optional = None,
     ):
-
         self.vertex_id = vertex_id
         self.dependent_vertex_ids = dependent_vertex_ids
         self.source_seed = source_seed

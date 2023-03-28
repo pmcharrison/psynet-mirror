@@ -26,8 +26,8 @@ before_script:
   - apt -f -y install curl redis-server unzip
   - service redis-server start
   - curl https://cli-assets.heroku.com/install.sh | sh
-  - wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_101.0.4951.64-1_amd64.deb
-  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_linux64.zip
+  - wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_109.0.5414.74-1_amd64.deb
+  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip
   - apt -f -y install ./chrome.deb
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
   - pip install "git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments[extract]"
@@ -40,11 +40,11 @@ before_script:
   - chown postgres:postgres postgres_setup.sql
   - runuser -l postgres -c 'psql -c "\i /builds/PsyNetDev/PsyNet/postgres_setup.sql"'
 # Install Dallinger
-  - git clone --branch v9.2.1 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+  - git clone --branch v9.4.3 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
-  - pip install -e /tmp/dallinger[data]
+  - pip install -e '/tmp/dallinger[data]'
 # Install PsyNet
-  - pip install -e .[dev]
+  - pip install -e '.[dev]'
 
 tests:
   parallel: 5

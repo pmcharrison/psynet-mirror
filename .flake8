@@ -2,3 +2,17 @@
 builtins = _
 ignore = E203, E501, W503
 max-line-length = 88
+exclude =
+    bin,
+    build,
+    .cache,
+    dist,
+    docs/conf.py,
+    *.egg-info,
+    .eggs,
+    .git,
+    lib,
+    *.pyc,
+    __pycache__,
+    src,
+    .tox,

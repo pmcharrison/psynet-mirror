@@ -1,6 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "psynet"
+version = "9.4.5"
+authors = [
+  { name="Peter Harrison", email="pmch2@cam.ac.uk" },
+  { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
+  { name="Pol van Rijn", email="pol.van-rijn@ae.mpg.de" },
+  { name="Raja Marjieh", email="raja.marjieh@princeton.edu" },
+  { name="Nori Jacoby", email="nori.jacoby@ae.mpg.de" }
+]
+maintainers = [
+  {name = "Peter Harrison", email = "pmch2@cam.ac.uk"}
+]
+license = {file = "LICENSE"}
+description = "PsyNet – The online human behaviour lab of the future"
+keywords = ["psychology", "experiments", "online", "networks"]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "Framework :: Flask",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "dallinger>=9.4.3, <10",
+    "dominate",
+    "importlib_resources",
+    "joblib",
+    "jsonpickle",
+    "paramiko",
+    "praat-parselmouth",
+    "progress",
+    "python-gettext",
+    "rpdb",
+    "sphinx==5.3.0",
+    "statsmodels",
+    "tqdm",
+    "yaspin",
+]
+
+[project.optional-dependencies]
+dev = [
+    "furo",
+    "isort",
+    "mock",
+    "pre-commit",
+    "sphinx-autodoc-typehints",
+]
+
+[project.scripts]
+psynet = "psynet.command_line:psynet"
+
+[project.urls]
+Changelog = "https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md"
+Documentation = "https://psynetdev.gitlab.io/PsyNet/"
+Homepage = "https://www.psynet.dev/"
+Issues = "https://gitlab.com/PsyNetDev/PsyNet/-/issues"
+Repository = "https://gitlab.com/PsyNetDev/PsyNet/"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.gitlab",
+    "/postgres_setup.sql",
+    "/demos",
+    "/docs",
+    "/tests",
+]
+
 [tool.black]
 line-length = 88
-target-version = ['py37', 'py38', 'py39']
+target-version = ['py38', 'py39', 'py310']
 include = '\.pyi?$'
 exclude = '''
 /(

@@ -1,4 +1,4 @@
-![Logo](psynet/resources/logo.svg)
+![Logo](https://gitlab.com/PsyNetDev/PsyNet/-/raw/master/psynet/resources/logo.svg)
 
 PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
 It streamlines the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
