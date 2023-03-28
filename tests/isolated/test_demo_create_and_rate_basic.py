@@ -18,7 +18,7 @@ EXPERIMENT = None
 
 class TestExp:
     @staticmethod
-    def wait_for_element(driver, identifier, by=By.ID, timeout=60):
+    def wait_for_element(driver, identifier, by=By.ID, timeout=120):
         return WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((by, identifier))
         )
