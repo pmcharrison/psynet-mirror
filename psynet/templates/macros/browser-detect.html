@@ -343,7 +343,7 @@
             var out = '<div class="input-group my-3">';
             out += '<input id="' + id + '" type="text" class="form-control" value="' + text + '" readonly>';
             out += '<div class="input-group-append">';
-            out += '<button onclick="browser._onclickCopy(\'' + id + '\')" class="btn btn-outline-secondary" type="button" id="copy-button">';
+            out += '<button onclick="browser.onclickCopy(\'' + id + '\')" class="btn btn-outline-secondary" type="button" id="copy-button">';
             out += getIcon('copy-outline');
             out += '</button>';
             out += '</div>';
@@ -372,7 +372,7 @@
             return true;
         }
 
-        browser._onclickCopy = function (id) {
+        browser.onclickCopy = function (id) {
             var elem = $('#' + id);
             browser.copyTextToClipboard(elem.val());
             document.getElementById('copy-button').innerHTML = getIcon('checkmark');
