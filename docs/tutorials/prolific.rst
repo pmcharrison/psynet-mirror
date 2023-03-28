@@ -2,7 +2,6 @@
 Deploying an experiment to Prolific
 ===================================
 
-If you are used to deploying experiments to MTurk it can be a switch to change to Prolific. In this tutorial, we will show you how to deploy an experiment to Prolific.
 
 Basics
 ------
@@ -15,7 +14,7 @@ Basics
     [Prolific]
     prolific_api_token = xxxxxxx
 
-3. Update the follwing lines in your ``config.txt`` file:
+3. Update the following lines in your ``config.txt`` file:
 
 - ``recruiter = prolific``
 - ``title = Your experiment title (Chrome browser required, 5-10 minutes, £10/hr)`` (this is the title that will appear on Prolific). Make sure you include the words "Chrome browser required" in the title as there is no way to filter for Chrome users on Prolific. Also, make sure you include the time estimate for the experiment, so people will know how long it will take. If you need any specific hardware (e.g., headphones), make sure to include that as well.
