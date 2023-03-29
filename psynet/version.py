@@ -51,7 +51,9 @@ def check_dallinger_version():
     environment_variable = "SKIP_CHECK_DALLINGER_VERSION"
     if not os.environ.get(environment_variable, None):
         if not (
-            version_is_greater(current_dallinger_version, dallinger_minimum_version, strict=False)
+            version_is_greater(
+                current_dallinger_version, dallinger_minimum_version, strict=False
+            )
             and version_is_greater(
                 dallinger_maximum_version, current_dallinger_version, strict=True
             )

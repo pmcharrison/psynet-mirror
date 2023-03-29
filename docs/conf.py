@@ -60,7 +60,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "PsyNet"
-copyright = "2022, Peter Harrison"
+copyright = "2023, Peter Harrison"
 author = "Peter Harrison"
 
 # The version info for the project you're documenting, acts as replacement
@@ -119,7 +119,7 @@ html_css_files = [
 ]
 
 html_js_files = [
-    'js/custom.js',
+    "js/custom.js",
 ]
 
 # -- Options for HTMLHelp output ---------------------------------------
@@ -183,31 +183,41 @@ html_theme_options = {
     "source_directory": "docs/",
 }
 
-language_dict = get_language_dict('en')
+language_dict = get_language_dict("en")
 psynet_init_path = abspath(psynet.__file__)
 
 
 def extract_translation_information():
-    locales_dir = join(psynet_init_path.replace(basename(psynet_init_path), ''), 'locales')
-    po_files = glob(locales_dir + '/*/*/*.po')
+    locales_dir = join(
+        psynet_init_path.replace(basename(psynet_init_path), ""), "locales"
+    )
+    po_files = glob(locales_dir + "/*/*/*.po")
 
     results = []
     for po_file in po_files:
-        language_iso = po_file.split('/')[-3]
+        language_iso = po_file.split("/")[-3]
         language_name = language_dict[language_iso]
         po = polib.pofile(po_file)
         total_entries = len(po)
-        untranslated_entries = len([entry for entry in po if entry.msgstr == ''])
-        unverified_entries = len([entry for entry in po if entry.fuzzy and entry.msgstr != ''])
-        results.append({
-            'language_iso': language_iso,
-            'language_name': language_name,
-            'percent_verified': round((total_entries - unverified_entries) / total_entries * 100, 1),
-            'percent_translated': round((total_entries - untranslated_entries) / total_entries * 100, 1),
-            'translator': po.metadata['Last-Translator']
-        })
+        untranslated_entries = len([entry for entry in po if entry.msgstr == ""])
+        unverified_entries = len(
+            [entry for entry in po if entry.fuzzy and entry.msgstr != ""]
+        )
+        results.append(
+            {
+                "language_iso": language_iso,
+                "language_name": language_name,
+                "percent_verified": round(
+                    (total_entries - unverified_entries) / total_entries * 100, 1
+                ),
+                "percent_translated": round(
+                    (total_entries - untranslated_entries) / total_entries * 100, 1
+                ),
+                "translator": po.metadata["Last-Translator"],
+            }
+        )
 
-    return pd.DataFrame(results).sort_values('language_name').to_dict('records')
+    return pd.DataFrame(results).sort_values("language_name").to_dict("records")
 
 
 def percent(s):
@@ -216,7 +226,12 @@ def percent(s):
 
 def process_row(row):
     language = f"{row['language_name']} (``{row['language_iso']}``)"
-    return [language, percent(row['percent_translated']), percent(row['percent_verified']), row['translator']]
+    return [
+        language,
+        percent(row["percent_translated"]),
+        percent(row["percent_verified"]),
+        row["translator"],
+    ]
 
 
 class RstCloth:
@@ -224,45 +239,45 @@ class RstCloth:
         self.output_file = output_file
 
     def title(self, title):
-        self.output_file.write(f'''{"=" * len(title)}\n{title}\n{"=" * len(title)}\n''')
+        self.output_file.write(f"""{"=" * len(title)}\n{title}\n{"=" * len(title)}\n""")
 
     def h3(self, title):
-        self.output_file.write(f'''{title}\n{"-" * len(title)}\n''')
+        self.output_file.write(f"""{title}\n{"-" * len(title)}\n""")
 
     def write_rows(self, rows):
         first = True
         for row in rows:
             if first:
-                self.output_file.write(f'''   * - {row}\n''')
+                self.output_file.write(f"""   * - {row}\n""")
                 first = False
             else:
-                self.output_file.write(f'''     - {row}\n''')
+                self.output_file.write(f"""     - {row}\n""")
 
     def table(self, header, rows):
-        self.output_file.write('''.. list-table::\n''')
-        self.output_file.write('''   :header-rows: 1\n''')
-        self.output_file.write('''   :widths: 15 15 15 55\n''')
+        self.output_file.write(""".. list-table::\n""")
+        self.output_file.write("""   :header-rows: 1\n""")
+        self.output_file.write("""   :widths: 15 15 15 55\n""")
         self.newline()
         self.write_rows(header)
         for row in rows:
             self.write_rows(row)
 
     def newline(self):
-        self.output_file.write('\n')
+        self.output_file.write("\n")
 
 
 def generate_translation_table():
-    with open('dashboards/translation.rst', 'w') as output_file:
+    with open("dashboards/translation.rst", "w") as output_file:
         doc = RstCloth(output_file)
-        doc.title('Translation dashboard')
+        doc.title("Translation dashboard")
         doc.newline()
 
         table = extract_translation_information()
-        doc.h3(f'PsyNet is available in {len(table)} languages:')
+        doc.h3(f"PsyNet is available in {len(table)} languages:")
 
         doc.table(
-            ['Language', 'Percent translated', 'Percent verified', 'Translator'],
-            [process_row(row) for row in table]
+            ["Language", "Percent translated", "Percent verified", "Translator"],
+            [process_row(row) for row in table],
         )
 
 

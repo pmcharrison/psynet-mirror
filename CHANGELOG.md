@@ -1,6 +1,23 @@
 # CHANGELOG
 
+# [10.0.0rc3] Release candidate 2023-03-02
+
+#### Fixed
+- Removed RSTCloth dependency (author: Pol van Rijn, reviewer: Peter Harrison).
+- Fixed for compatibility with new Dallinger dashboard code (author: Pol van Rijn, reviewer: Peter Harrison).
+
+#### Added
+- Added support in pyproject.toml for making PyPi releases (author: Frank Höger, reviewer: Peter Harrison).
+- Added Video Gibbs support (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
+
+#### Changed
+- Migrated build system requirements and project metadata from setup.py/setup.cfg to pyproject.toml, (see https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/) (author: Frank Höger, reviewer: Peter Harrison).
+- Migrated AWS CLI (awscli) functionality to `boto3` to reduce dependencies (author: Pol van Rijn, reviewer: Peter Harrison).
+
 # [10.0.0rc2] Release candidate 2023-02-07
+
+#### Fixed
+- Scroll current item in sidebar menu into view when navigating Sphinx documentation (author: Frank Höger, reviewer: Peter Harrison).
 
 #### Added
 - Added Prolific documentation with screenshots (author: Pol van Rijn).
@@ -11,6 +28,22 @@
 
 #### Removed
 - Removed unnecessary field `mode` in config.txt of all demos (author: Pol van Rijn, reviewers: Peter Harrison, Frank Höger).
+- Removed old deprecated code (author: Frank Höger, reviewer: Peter Harrison):
+  - psynet/consent.py
+    - `MTurkStandardConsent`
+    - `MTurkStandardConsentPage`
+    - `MTurkAudiovisualConsent`
+    - `MTurkAudiovisualConsentPage`
+  - psynet/modular_page.py
+    - `NAFCControl`
+  - psynet/page.py
+    - `NAFCPage`
+    - `TextInputPage`
+    - `SliderPage`
+    - `AudioSliderPage`
+    - `NumberInputPage`
+  - psynet/timeline.py
+    - `multi_page_maker`
 
 # [10.0.0rc1] Release candidate 2023-01-27
 

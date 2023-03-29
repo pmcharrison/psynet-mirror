@@ -24,7 +24,7 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.config import config, get_config
+from dallinger.config import get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -412,10 +412,8 @@ def serialise(obj):
     raise TypeError("Type %s is not serialisable" % type(obj))
 
 
-def format_datetime_string(datetime_string):
-    return datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f").strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
+def format_datetime(datetime):
+    return datetime.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def model_name_to_snake_case(model_name):
@@ -501,6 +499,7 @@ def get_language():
 
     A string, for example "en".
     """
+    config = get_config()
     if not config.ready:
         config.load()
     return config.get("language", "en")
