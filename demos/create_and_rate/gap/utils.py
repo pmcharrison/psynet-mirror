@@ -2,7 +2,7 @@ from markupsafe import Markup
 
 from psynet.modular_page import AudioMeterControl, AudioPrompt, ModularPage
 from psynet.page import InfoPage
-from psynet.prescreen import HeadphoneTest
+from psynet.prescreen import HugginsHeadphoneTest
 from psynet.timeline import join, switch
 
 
@@ -60,7 +60,9 @@ def get_instructions():
         #######################
         # Prescreens
         #######################
-        InfoPage("Now let's check if your headphones are working properly", time_estimate=3),
+        InfoPage(
+            "Now let's check if your headphones are working properly", time_estimate=3
+        ),
         ModularPage(
             "volume_adjust",
             AudioPrompt(
@@ -69,7 +71,7 @@ def get_instructions():
             ),
             time_estimate=3,
         ),
-        HeadphoneTest(),
+        HugginsHeadphoneTest(),
         #######################
         # Instructions before practice + specific prescreen for creator
         #######################
