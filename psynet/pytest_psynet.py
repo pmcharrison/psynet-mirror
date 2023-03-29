@@ -302,6 +302,7 @@ def debug_experiment(
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
     init_db(drop_all=True)
+    Experiment._experiment_config_initialized = False
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
@@ -347,6 +348,7 @@ def debug_experiment(
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
         clear_all_caches()
+        Experiment._experiment_config_initialized = False
 
 
 dallinger.pytest_dallinger.debug_experiment = debug_experiment
