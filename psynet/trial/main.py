@@ -1109,7 +1109,7 @@ class TrialMaker(Module):
         are given feedback. This feedback can be customised by overriding
         :meth:`~psynet.trial.main.TrialMaker.get_end_feedback_passed_page`.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
@@ -1146,6 +1146,11 @@ class TrialMaker(Module):
                 "If <recruit_mode> == 'n_trials', then <target_n_participants> must be None."
             )
 
+        if hasattr(self, "performance_check_threshold"):
+            raise AttributeError(
+                f"Please rename performance_check_threshold to performance_threshold in trial maker '{id_}'."
+            )
+
         self.trial_class = trial_class
         self.id = id_
         self.expected_trials_per_participant = expected_trials_per_participant
@@ -1168,7 +1173,7 @@ class TrialMaker(Module):
 
     participant_progress_threshold = 0.1
 
-    performance_check_threshold = 0.0
+    performance_threshold = 0.0
 
     time_estimate_per_trial = None
 
@@ -1990,7 +1995,7 @@ class NetworkTrialMaker(TrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
@@ -2024,6 +2029,28 @@ class NetworkTrialMaker(TrialMaker):
         wait_for_networks: bool,
         assets=None,
     ):
+        performance_check_is_enabled = (
+            check_performance_at_end or check_performance_every_trial
+        )
+        has_custom_performance_check = is_method_overridden(
+            self, NetworkTrialMaker, "performance_check"
+        )
+
+        if (
+            performance_check_is_enabled
+            and self.performance_check_type is None
+            and not has_custom_performance_check
+        ):
+            raise ValueError(
+                f"Trial Maker '{id_}' has performance checks enabled but performance_check_type is not yet set. "
+                "Please set this as a class attribute for your custom TrialMaker class, writing for example:\n\n"
+                "class ConsonanceTrialMaker(StaticTrialMaker):\n"
+                "    performance_check_type = 'score'\n\n"
+                "Note: previous versions of PsyNet made this attribute default to "
+                "performance_check_type = 'consistency', but we now force experimenters to be explicit "
+                "with this decision."
+            )
+
         super().__init__(
             id_=id_,
             trial_class=trial_class,
@@ -2213,7 +2240,7 @@ class NetworkTrialMaker(TrialMaker):
 
     performance_threshold = -1.0
     min_nodes_for_performance_check = 2
-    performance_check_type = "consistency"
+    performance_check_type = None
     consistency_check_type = "spearman_correlation"
 
     def compute_bonus(self, score, passed):
@@ -2249,12 +2276,12 @@ class NetworkTrialMaker(TrialMaker):
         else:
             n_failed_trials = len([t for t in participant_trials if t.failed])
             p = 1 - n_failed_trials / n_trials
-            passed = p >= self.performance_check_threshold
+            passed = p >= self.performance_threshold
         return {"score": p, "passed": passed}
 
     def performance_check_score(self, experiment, participant, participant_trials):
         score = sum(t.score for t in participant_trials)
-        passed = score >= self.performance_check_threshold
+        passed = score >= self.performance_threshold
         return {"score": score, "passed": passed}
 
     def get_answer_for_consistency_check(self, trial):

@@ -125,6 +125,8 @@ class ImitationChainTrialMaker(ChainTrialMaker):
     for usage instructions.
     """
 
+    performance_check_type = "consistency"
+
     @property
     def default_network_class(self):
         return ImitationChainNetwork
