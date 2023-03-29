@@ -1,4 +1,5 @@
 {% extends "macros.html" %}
+{% include "macros/browser-detect.html" %}
 
 {% block stylesheets %}
     {{ super() }}
@@ -801,6 +802,36 @@
                     }
                 }
 
+                psynet.media.getMicrophoneMetadataFromAudioStream = function (stream) {
+                    var audioTracks = stream.getAudioTracks();
+                    if (audioTracks.length === 0) {
+                        psynet.log.error('No tracks found')
+                        return {}
+                    } else if (audioTracks.length > 1) {
+                        psynet.log.warn(
+                            'Expected exactly one audio track, but got ' + audioTracks.length + ' tracks. ' +
+                            'Recording the first track.'
+                        )
+                    }
+
+                    var audioTrack = audioTracks[0];
+                    audioTrackSettings = audioTrack.getSettings();
+                    return {
+                        "microphone": {
+                            label: audioTrack.label,
+                            enabled: audioTrack.enabled,
+                            muted: audioTrack.muted,
+                            channelCount: audioTrackSettings.channelCount,
+                            autoGainControl: audioTrackSettings.autoGainControl,
+                            echoCancellation: audioTrackSettings.echoCancellation,
+                            noiseSuppression: audioTrackSettings.noiseSuppression,
+                            latency: audioTrackSettings.latency,
+                            sampleRate: audioTrackSettings.sampleRate,
+                            sampleSize: audioTrackSettings.sampleSize,
+                        }
+                    }
+                }
+
                 psynet.media.initAudioContext = function () {
                     let context = null;
                     if ("webkitAudioContext" in window) context = new webkitAudioContext();
@@ -1299,6 +1330,10 @@
                     });
                 };
 
+                let waitForBrowserCheck = async function () {
+                    return await browser.validate();
+                };
+
                 psynet.initPage = async function () {
                     console.log("Initialising page...");
 
@@ -1311,6 +1346,7 @@
                     $(".wait-for-media-load").attr("disabled", "disabled");
 
                     await waitForPageLoad();
+                    let correctBrowser = await waitForBrowserCheck();
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
@@ -1327,8 +1363,9 @@
                     urlParams.set("auth_token", "{{ auth_token }}");
                     let fixedUrl = window.location.origin + window.location.pathname + "?" + urlParams;
                     window.history.replaceState({}, null, fixedUrl);
-
-                    setTimeout(() => psynet.trial.init(), 25);
+                    if (correctBrowser) {
+                        setTimeout(() => psynet.trial.init(), 25);
+                    }
                 };
 
                 psynet.registerErrorHandler = function () {

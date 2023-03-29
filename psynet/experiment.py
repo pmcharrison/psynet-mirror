@@ -25,7 +25,7 @@ from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import ProlificRecruiter
+from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request
@@ -536,7 +536,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "currency": "$",
             "current_locale": get_language(),
             "allow_switching_locale": True,
+            "force_google_chrome": True,
+            "force_incognito_mode": False,
+            "allow_mobile_devices": False,
         }
+
+    @property
+    def start_experiment_in_popup_window(self):
+        if self.var.has("start_experiment_in_popup_window"):
+            # This is for simulating pop up behaviour in psynet demo tests
+            return self.var.get("start_experiment_in_popup_window")
+        elif hasattr(self.recruiter, "start_experiment_in_popup_window"):
+            return self.recruiter.start_experiment_in_popup_window
+        elif isinstance(self.recruiter, MTurkRecruiter):
+            return True
+
+        else:
+            return False
 
     @property
     def description(self):
@@ -1089,15 +1105,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             (
                 resource_filename(
+                    "psynet",
+                    "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
+                ),
+                "/static/scripts/detectIncognito.min.js",
+            ),
+            (
+                resource_filename(
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
                 resource_filename(
-                    "psynet", "resources/libraries/jQuery-Knob/dist/jquery.knob.min.js"
+                    "psynet", "resources/libraries/jQuery-Knob/js/jquery.knob.js"
                 ),
-                "/static/scripts/jquery.knob.min.js",
+                "/static/scripts/jquery.knob.js",
             ),
             (
                 resource_filename("psynet", "resources/libraries/js-synthesizer"),

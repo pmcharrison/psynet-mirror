@@ -374,6 +374,8 @@ class GibbsTrialMaker(ChainTrialMaker):
     for usage instructions.
     """
 
+    performance_check_type = "consistency"
+
     def check_initialization(self):
         super().check_initialization()
         if self.node_class.random_sample == GibbsNode.random_sample:
