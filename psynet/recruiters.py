@@ -137,15 +137,8 @@ class LucidRecruiterException(Exception):
 class BaseLucidRecruiter(PsyNetRecruiter):
     """
     The LucidRecruiter base class
-
-
-    Attributes
-    ----------
-    start_experiment_in_popup_window : bool
-        Whether to start the experiment in a popup-window or not, Default: True
     """
 
-    start_experiment_in_popup_window = True
     required_consent_page = LucidConsent.LucidConsentPage
     optional_consent_pages = (
         AudiovisualConsent.AudiovisualConsentPage,
