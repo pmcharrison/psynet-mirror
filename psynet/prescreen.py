@@ -13,6 +13,7 @@ from pkg_resources import resource_filename
 from psynet.trial import Node
 
 from .asset import ExternalAsset
+from .bot import Bot
 from .modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -733,7 +734,7 @@ class REPPMarkersTest(StaticTrialMaker):
 
         self.give_end_feedback_passed = False
         self.performance_check_type = "performance"
-        self.performance_check_threshold = performance_threshold
+        self.performance_threshold = performance_threshold
         self.time_estimate_per_trial = time_estimate_per_trial
 
         nodes = self.get_nodes()
@@ -831,6 +832,7 @@ class LanguageVocabularyTrial(StaticTrial):
                 ],
                 style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
                 arrange_vertically=False,
+                bot_response="correct",
             ),
         )
 
@@ -896,6 +898,8 @@ class LanguageVocabularyTest(StaticTrialMaker):
             expected_trials_per_participant=n_trials,
             check_performance_at_end=True,
         )
+
+    performance_check_type = "score"
 
     words = [
         "bell",
@@ -1041,6 +1045,8 @@ class LexTaleTest(StaticTrialMaker):
             max_trials_per_participant=n_trials,
             check_performance_at_end=True,
         )
+
+    performance_check_type = "score"
 
     @property
     def introduction(self):
@@ -1300,6 +1306,8 @@ class ColorBlindnessTest(StaticTrialMaker):
             fail_trials_on_premature_exit=False,
         )
 
+    performance_check_type = "score"
+
     @property
     def introduction(self):
         if self.hide_after is None:
@@ -1423,6 +1431,8 @@ class ColorVocabularyTest(StaticTrialMaker):
             fail_trials_on_premature_exit=False,
         )
 
+    performance_check_type = "score"
+
     colors = [
         ("turquoise", [174, 72, 56]),
         ("magenta", [300, 100, 50]),
@@ -1488,8 +1498,18 @@ class HeadphoneTrial(StaticTrial):
             self.get_prompt(),
             PushButtonControl(["1", "2", "3"]),
             events=events,
-            bot_response=lambda: self.definition["correct_answer"],
+            bot_response=lambda bot: self.get_bot_response(bot),
         )
+
+    def get_bot_response(self, bot: Bot):
+        is_good_bot = bot.var.get("is_good_bot", default=True)
+        correct_answer = self.definition["correct_answer"]
+        if is_good_bot:
+            return correct_answer
+        else:
+            wrong_answers = ["1", "2", "3"]
+            wrong_answers.remove(correct_answer)
+            return random.choice(wrong_answers)
 
     @staticmethod
     def get_task_description(self):
@@ -1550,6 +1570,8 @@ class HeadphoneTest(StaticTrialMaker):
                 "HugginsHeadphoneTest is recommended."
             )
         )
+
+    performance_check_type = "score"
 
     @property
     def test_name(self):
@@ -1824,6 +1846,8 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             expected_trials_per_participant=num_trials,
             max_trials_per_participant=num_trials,
         )
+
+    performance_check_type = "score"
 
     def load_stimuli(self, csv_path, question):
         assert file_exists(csv_path)

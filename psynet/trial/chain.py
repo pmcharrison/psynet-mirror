@@ -1208,7 +1208,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
