@@ -1,5 +1,4 @@
 {% extends "base/consent.html" %}
-{% include "includes/recruiters/lucid.html" %}
 {% include "macros/browser-detect.html" %}
 
 {% block body %}
@@ -35,7 +34,14 @@
     {{ super() }}
 
     {% if experiment.with_lucid_recruitment() %}
-        {% lucid_browser_check() %}
+        <script>
+        document.addEventListener("DOMContentLoaded", function (event) {
+            let isValidBrowser = browser.validate();
+            if (!isValidBrowser) {
+                terminateParticipant();
+            }
+        });
+    </script>
     {% endif %}
     <script>
         {% if not experiment.with_lucid_recruitment() %}

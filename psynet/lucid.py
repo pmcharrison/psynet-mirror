@@ -153,6 +153,7 @@ class LucidService(object):
         return response_data
 
     def add_qualifications_to_survey(self, survey_number):
+        # TODO: make compatible with experiment.var, e.g. experiment.var.force_google_chrome
         """Add platform and browser specific qualifications to a survey."""
         qualifications = [
             {
