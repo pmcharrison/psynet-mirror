@@ -43,13 +43,11 @@ class TestExp:
         n_creation = 1
         for participant_idx, bot in enumerate(bot_recruits):
             driver = bot.driver
-
-            self.wait_for_element(
-                driver, ".push-button-container button", by=By.CSS_SELECTOR
+            next_page(
+                driver,
+                f".push-button-container button:nth-child({nth_child})",
+                by=By.CSS_SELECTOR,
             )
-            driver.find_element(
-                By.CSS_SELECTOR, f".push-button-container button:nth-child({nth_child})"
-            ).click()
 
             self.wait_for_element(driver, "prompt-image")
             text_input = driver.find_elements(By.ID, "text-input")
@@ -88,13 +86,13 @@ class TestCreateAndRateBasic(TestExp):
     @staticmethod
     def make_decision(driver):
         if driver.find_element(By.CSS_SELECTOR, "#prompt-text strong").text == "testA":
-            driver.find_element(
-                By.CSS_SELECTOR, ".push-button-container button:nth-child(5)"
-            ).click()
+            next_page(
+                driver, ".push-button-container button:nth-child(5)", by=By.CSS_SELECTOR
+            )
         else:
-            driver.find_element(
-                By.CSS_SELECTOR, ".push-button-container button:nth-child(1)"
-            ).click()
+            next_page(
+                driver, ".push-button-container button:nth-child(1)", by=By.CSS_SELECTOR
+            )
 
     def assertions(self):
         expected_trial_order = [
@@ -132,7 +130,7 @@ class TestCreateAndRateBasic(TestExp):
 class TestCreateAndSelectBasic(TestExp):
     @staticmethod
     def make_decision(driver):
-        driver.find_element(By.ID, "Info-1-CreateTrial").click()
+        next_page(driver, "Info-1-CreateTrial")
 
     def assertions(self):
         expected_trial_order = [
