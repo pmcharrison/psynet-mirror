@@ -1,5 +1,4 @@
 {% extends "macros.html" %}
-{% include "macros/recruiters/lucid.html" %}
 {% include "macros/browser-detect.html" %}
 
 {% block stylesheets %}
@@ -1779,17 +1778,17 @@
             triedToLeave = true;
         }
 
-        function terminateParticipant() {
+        function terminateParticipant(reason) {
             window.removeEventListener("beforeunload", beforeunloadFunction);
             clearInterval(checkFocusInterval);
             clearInterval(checkParticipantInterval);
             navigator.sendBeacon(url, {});
-            return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId);
+            return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
         }
 
         function checkParticipant() {
             if (triedToLeave) {
-                terminateParticipant();
+                terminateParticipant("tried_to_leave");
             }
         }
 
@@ -1799,7 +1798,7 @@
             } else {
                 noFocusSince += POLLING_FREQUENCY;
                 if (noFocusSince > NO_FOCUS_TIMEOUT) {
-                    terminateParticipant();
+                    terminateParticipant("lost_focus");
                 } else {
                     console.log("Document lost focus since " + noFocusSince / 1000 + " seconds");
                 }
@@ -1812,7 +1811,7 @@
         function startTimer() {
             secondsOfInactivity += POLLING_FREQUENCY;
             if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
-                terminateParticipant();
+                terminateParticipant("inactivity");
             } else {
                 console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
             }
@@ -1836,7 +1835,7 @@
         document.addEventListener("DOMContentLoaded", function (event) {
             let isValidBrowser = browser.validate();
             if (!isValidBrowser) {
-                terminateParticipant();
+                terminateParticipant("invalid_browser");
             }
         });
     </script>

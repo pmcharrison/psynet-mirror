@@ -1297,10 +1297,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def exit_recruiter():
         assignment_id = request.values["assignment_id"]
+        reason = request.values["reason"]
         exp = dallinger.experiment.load().new(db.session)
         recruiter = exp.recruiter
         external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
         recruiter.terminate_participant(assignment_id)
+        logger.info(
+            f"Terminating participant with RID {assignment_id} with reason {reason}"
+        )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
