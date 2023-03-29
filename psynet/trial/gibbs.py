@@ -364,7 +364,7 @@ class GibbsNode(ChainNode):
                 max(
                     [
                         node.degree
-                        for node in self.network.nodes
+                        for node in self.network.nodes()
                         if node.degree is not None
                     ]
                 )
