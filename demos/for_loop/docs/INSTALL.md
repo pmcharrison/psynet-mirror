@@ -154,5 +154,5 @@ Hint -- you might find that the option you need to select is called 'SVM mode'..
 
 #### Failed to solve with frontend dockerfile
 
-If you say a message starting "failed to solve with frontend dockerfile.v0",
+If you see a message starting "failed to solve with frontend dockerfile.v0",
 you may want to try rebooting your computer and trying again.
