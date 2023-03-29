@@ -1,4 +1,5 @@
 import logging
+import time
 from collections import ChainMap
 
 import pytest
@@ -43,7 +44,9 @@ class TestExp:
         for participant_idx, bot in enumerate(bot_recruits):
             driver = bot.driver
 
-            self.wait_for_element(driver, ".push-button-container button", by=By.CSS_SELECTOR)
+            self.wait_for_element(
+                driver, ".push-button-container button", by=By.CSS_SELECTOR
+            )
             driver.find_element(
                 By.CSS_SELECTOR, f".push-button-container button:nth-child({nth_child})"
             ).click()
@@ -60,6 +63,7 @@ class TestExp:
                 self.make_decision(driver)
             if participant_idx == stop_at_participant_idx:
                 self.stop_recruiting()
+                time.sleep(1)
             self.wait_for_element(driver, "next-button")
             next_page(driver, "next-button", finished=True)
 
@@ -101,11 +105,15 @@ class TestCreateAndRateBasic(TestExp):
         nodes, node, trials = self.get_nodes_and_trials(expected_trial_order)
         rate_trials = trials[1:]
         for trial in rate_trials:
-            assert trial.network_id == trials[0].network_id, "Trials should be in the same network"
+            assert (
+                trial.network_id == trials[0].network_id
+            ), "Trials should be in the same network"
             assert len(trial.targets) == 1, "Trials should have 1 target"
         ratings = dict(ChainMap(*[trial.answer for trial in rate_trials]))
         assert trials[0].answer == "testA", "First trial should have answer 'testA'"
-        assert f"{trials[0]}" == "Info-1-CreateTrial", "First trial should be 'Info-1-CreateTrial'"
+        assert (
+            f"{trials[0]}" == "Info-1-CreateTrial"
+        ), "First trial should be 'Info-1-CreateTrial'"
         assert ratings == {
             "Info-1-CreateTrial": 5,
             "Node-1-CreateAndRateNode": 1,
@@ -138,7 +146,9 @@ class TestCreateAndSelectBasic(TestExp):
 
         select_trials = trials[2:]
         for trial in select_trials:
-            assert trial.network_id == trials[0].network_id, "Trials should be in the same network"
+            assert (
+                trial.network_id == trials[0].network_id
+            ), "Trials should be in the same network"
             assert len(trial.targets) == 3, "Trials should have 3 targets"
 
         assert trials[0].answer == "testA", "First trial should have answer 'testA'"
@@ -146,7 +156,9 @@ class TestCreateAndSelectBasic(TestExp):
         all(
             [trial.answer == "Info-1-CreateTrial" for trial in select_trials]
         ), "All select trials should have answer 'Info-1-CreateTrial'"
-        assert f"{trials[0]}" == "Info-1-CreateTrial", "First trial should be 'Info-1-CreateTrial'"
+        assert (
+            f"{trials[0]}" == "Info-1-CreateTrial"
+        ), "First trial should be 'Info-1-CreateTrial'"
         assert (
             node.definition == trials[0]
         ), "Therefore, the aggregated node should point to the first trial (which was always selected)"
