@@ -442,6 +442,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @property
     def base_payment(self):
         config = get_config()
+        if not config.ready:
+            config.load()
         return config.get("base_payment")
 
     @classproperty

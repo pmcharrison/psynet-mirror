@@ -310,11 +310,11 @@ def debug_experiment(
     # timeout = request.config.getvalue("recruiter_timeout", 120)
     timeout = 60
 
-    get_experiment()
-
-    config = get_config()
-    if not config.ready:
-        config.load()
+    # get_experiment()
+    #
+    # config = get_config()
+    # if not config.ready:
+    #     config.load()
 
     p = pexpect.spawn(
         "psynet",
