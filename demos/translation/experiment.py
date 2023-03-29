@@ -84,6 +84,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Translation demo"
 
     variables = {
+        "current_locale": "de",
         "supported_locales": supported_locales,
         "allow_switching_locale": True,
     }

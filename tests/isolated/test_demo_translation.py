@@ -35,7 +35,16 @@ class TestExp(object):
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
 
-            # Page 1
+            # # Page 1
+            # assert_text(
+            #     driver, "main-body", "Welcome to the translation demo! Next"
+            # )
+            #
+            # select = Select(
+            #     driver.find_element(By.ID, "iso-language")
+            # )  # Switch to German
+            # select.select_by_visible_text("German")
+
             assert_text(
                 driver, "main-body", "Willkommen bei der Übersetzungsdemo! Weiter"
             )
