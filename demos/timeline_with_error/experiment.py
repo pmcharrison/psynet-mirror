@@ -20,6 +20,7 @@ class Exp(psynet.experiment.Experiment):
 
     variables = {
         "show_abort_button": True,
+        "start_experiment_in_popup_window": True,
         "min_accumulated_bonus_for_abort": 0.10,
     }
 

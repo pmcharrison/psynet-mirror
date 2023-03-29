@@ -36,6 +36,7 @@ class Exp(psynet.experiment.Experiment):
         "min_accumulated_bonus_for_abort": 0.15,
         "wage_per_hour": 12.0,
         "new_variable": "some-value",
+        "start_experiment_in_popup_window": True,
         # "show_footer": False,  # uncomment to disable the footer (bonus + help button)
         # "show_progress_bar": False,  # uncomment to disable the progress bar
     }
