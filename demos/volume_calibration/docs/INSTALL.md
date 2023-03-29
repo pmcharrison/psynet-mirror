@@ -151,3 +151,8 @@ BIOS", you need to restart your computer into BIOS and change some settings to e
 of steps will depend on your computer. The first step though is to restart your computer, and press a certain key to
 launch into BIOS -- ordinarily that key will be printed on the screen at some point during the startup sequence.
 Hint -- you might find that the option you need to select is called 'SVM mode'...
+
+#### Failed to solve with frontend dockerfile
+
+If you say a message starting "failed to solve with frontend dockerfile.v0",
+you may want to try rebooting your computer and trying again.

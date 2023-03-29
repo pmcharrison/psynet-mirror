@@ -13,7 +13,6 @@ ad_group = Game
 group_name = FerryBan2
 assign_qualifications = true
 qualification_blacklist = FerryBan2, cap-usr-list
-browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
 description = In this short 3D game you will collect coins, ride ferries and cross bridges. Fun and easy + up to $1 bonus
@@ -34,6 +33,5 @@ redis_size = premium-0
 host = 0.0.0.0
 clock_on = True
 disable_when_duration_exceeded = False
-dashboard_password = capcapcap2021!
 dashboard_user = cap
 

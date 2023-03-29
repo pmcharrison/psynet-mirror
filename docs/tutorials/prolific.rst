@@ -2,7 +2,6 @@
 Deploying an experiment to Prolific
 ===================================
 
-If you are used to deploying experiments to MTurk it can be a switch to change to Prolific. In this tutorial, we will show you how to deploy an experiment to Prolific.
 
 Basics
 ------
@@ -15,16 +14,28 @@ Basics
     [Prolific]
     prolific_api_token = xxxxxxx
 
-3. Update the follwing lines in your ``config.txt`` file:
+3. Update the following lines in your ``config.txt`` file:
 
 - ``recruiter = prolific``
 - ``title = Your experiment title (Chrome browser required, 5-10 minutes, £10/hr)`` (this is the title that will appear on Prolific). Make sure you include the words "Chrome browser required" in the title as there is no way to filter for Chrome users on Prolific. Also, make sure you include the time estimate for the experiment, so people will know how long it will take. If you need any specific hardware (e.g., headphones), make sure to include that as well.
 
 - ``description`` description of your study which will appear on Prolific
 
+.. warning::
+    Some of our participants have been seeing a phishing warning in their Chrome browser when they navigate to our experiment.
+    This error can intimidate participants. However, it disappears if you take the test in an incognito browser.
+    It's a good idea to mention this in the study description so they know not to worry.
+
 Many experiments will have a flexible duration, to mimic the MTurk behaviour of a small base payment and performance payments only for the done work, can be implemented by setting ``base_payment = 0`` in your ``config.txt``.
 Set ``prolific_estimated_completion_minutes = 1`` and set
 ``prolific_reward_cents`` to the amount of cents you want to pay for a minute of work (Note that cents are in the currency of Prolific, see warning box). This value must reflect the ``wage_per_hour`` experiment variable.
+
+
+.. warning::
+    At the time of writing, Prolific sets a mandatory time out duration as a multiple of your ``prolific_estimated_completion_minutes``,
+    ignoring the time out duration you may have specified in your config. If you set ``prolific_estimated_completion_minutes = 1`` you 
+    might find that the time out duration is impractically small. We have recently found that 3 minutes seems to be more reasonable 
+    for an experiment that actually lasts 10-15 minutes.
 
 
 .. warning::
