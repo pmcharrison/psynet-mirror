@@ -1059,8 +1059,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/templates",
             ),
             (
-                resource_filename("psynet", "resources/favicon.ico"),
-                "/static/favicon.ico",
+                resource_filename("psynet", "resources/favicon.png"),
+                "/static/favicon.png",
+            ),
+            (
+                resource_filename("psynet", "resources/favicon.svg"),
+                "/static/favicon.svg",
             ),
             (
                 resource_filename("psynet", "resources/logo.png"),
