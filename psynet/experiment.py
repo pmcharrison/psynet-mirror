@@ -1087,6 +1087,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/static/scripts/dashboard_timeline.js",
             ),
             (
+                resource_filename("psynet", "resources/css/bootstrap.min.css"),
+                "/static/css/bootstrap.min.css",
+            ),
+            (
                 resource_filename("psynet", "resources/css/consent.css"),
                 "/static/css/consent.css",
             ),
