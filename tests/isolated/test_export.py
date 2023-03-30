@@ -10,6 +10,7 @@ from click import Context
 
 from psynet.bot import Bot
 from psynet.command_line import export__local, populate_db_from_zip_file
+from psynet.experiment import import_local_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import bot_class, path_to_demo
 from psynet.timeline import Response
@@ -164,7 +165,7 @@ class TestExport:
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("db_session")
-def test_populate_db_from_zip_file(database_zip_file, coin_class):
+def test_populate_db_from_zip_file(database_zip_file):
     """
     Here we test the process of loading the objects described in an exported zip file
     into the local database. This is an important part of the current implementation
@@ -175,6 +176,10 @@ def test_populate_db_from_zip_file(database_zip_file, coin_class):
     to difficult to make that work in practice because of the way in which Dallinger's
     own pytest scopes have been defined.
     """
+    # We used to use the coin_class fixture for this, but this currently has a limitation
+    # where it depends on a launched experiment, and it's not possible to populate the DB
+    # when a launched experiment is running. We can refactor/fix this in the future.
+    coin_class = import_local_experiment()["module"].Coin
     populate_db_from_zip_file(database_zip_file)
 
     trials = Trial.query.all()
