@@ -333,6 +333,7 @@ def run_prepare_in_subprocess():
     # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
     # which can create a problem for subsequent `dallinger debug`.
     # To avoid problems, we therefore run `psynet prepare` in a subprocess.
+    db.session.commit()  # So that no pending transactions block the database
     prepare_cmd = "psynet prepare"
     run_subprocess_with_live_output(prepare_cmd)
 
