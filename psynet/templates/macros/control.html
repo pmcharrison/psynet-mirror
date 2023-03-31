@@ -1520,9 +1520,26 @@
         survey.focusFirstQuestionAutomatic = false;
         survey.showCompletedPage = false;
 
-        function submitSurveyResults (sender) {
+        function handleSurveyCompletion(sender, options) {
+            // Setting these options instructs SurveyJS to cancel the current completion code,
+            // and allow us to handle it ourselves.
+            // We need this slightly convoluted approach because SurveyJS doesn't allow you to place
+            // async code within its own validation functions.
+            // See https://github.com/surveyjs/survey-library/issues/1242 for a discussion.
+            options.allowComplete = false;
+            options.allowCompleting = false;
+            asyncPostResults(sender);
+        }
+
+        async function asyncPostResults(sender, options) {
+            survey.onCompleting.remove(handleSurveyCompletion);
             const results = JSON.stringify(sender.data);
-            psynet.nextPage(results);
+            const success = await psynet.nextPage(results);
+            if (success) {
+                sender.doComplete();
+            } else {
+                survey.onCompleting.add(handleSurveyCompletion);
+            }
         }
 
         survey.onAfterRenderPage.add(() => {
@@ -1531,7 +1548,7 @@
                 $(".sd-navigation__complete-btn").attr("disabled", true);
             }
         });
-        survey.onComplete.add(submitSurveyResults);
+        survey.onCompleting.add(handleSurveyCompletion);
 
         $(function() {
             $("#surveyContainer").Survey({ model: survey });
