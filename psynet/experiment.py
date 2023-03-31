@@ -507,6 +507,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
+            "protected_routes": json.dumps(_protected_routes),
         }
 
     @property
@@ -1977,3 +1978,26 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+# Dallinger defines various HTTP routes that provide access to database content.
+# We disable the following HTTP routes in PsyNet experiments because they could
+# in theory leak personal data or be used to manipulate the state of the
+# experiment. Most data should instead be transferred via authenticated PsyNet routes.
+_protected_routes = [
+    "/network/<network_id>",
+    "/question/<participant_id>",
+    "/node/<int:node_id>/neighbors",
+    "/node/<participant_id>",
+    "/node/<int:node_id>/vectors",
+    "/node/<int:node_id>/connect/<int:other_node_id>",
+    "/info/<int:node_id>/<int:info_id>",
+    "/node/<int:node_id>/infos",
+    "/node/<int:node_id>/received_infos",
+    "/tracking_event/<int:node_id>",
+    "/info/<int:node_id>",
+    "/node/<int:node_id>/transmissions",
+    "/node/<int:node_id>/transmit",
+    "/node/<int:node_id>/transformations",
+    "/transformation/<int:node_id>/<int:info_in_id>/<int:info_out_id>",
+]
