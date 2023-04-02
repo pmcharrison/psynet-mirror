@@ -40,7 +40,7 @@ before_script:
   - chown postgres:postgres postgres_setup.sql
   - runuser -l postgres -c 'psql -c "\i /builds/PsyNetDev/PsyNet/postgres_setup.sql"'
 # Install Dallinger
-  - git clone --branch v9.4.3 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+  - git clone --branch v9.5.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e '/tmp/dallinger[data]'
 # Install PsyNet
