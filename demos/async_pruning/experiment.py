@@ -1,17 +1,10 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-##########################################################################################
-# About
-##########################################################################################
-
 # This is a version of the Gibbs demo that introduces failing of asynchronous
 # processes on various nodes and trials. It is intended to demonstrate the
 # pruning processes by which PsyNet copes with these failures. Try taking the experiment
 # as a few participants then inspecting the monitor route.
 
-##########################################################################################
-# Imports
-##########################################################################################
 
 import random
 import time
@@ -212,9 +205,6 @@ trial_maker = CustomTrialMaker(
 ##########################################################################################
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Asynchronous pruning demo"
 

@@ -1,10 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-##########################################################################################
-# Imports
-##########################################################################################
-
-
 import psynet.experiment
 from psynet.asset import DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
@@ -28,10 +23,6 @@ from psynet.modular_page import (
 )
 from psynet.page import DebugResponsePage, InfoPage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline
-
-##########################################################################################
-# Experiment
-##########################################################################################
 
 
 class Exp(psynet.experiment.Experiment):
