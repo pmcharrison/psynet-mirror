@@ -10,7 +10,6 @@ from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(

@@ -10,7 +10,6 @@ from psynet.pytest_psynet import bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(

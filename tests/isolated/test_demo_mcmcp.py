@@ -9,7 +9,6 @@ from psynet.trial.mcmcp import MCMCPNetwork
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)

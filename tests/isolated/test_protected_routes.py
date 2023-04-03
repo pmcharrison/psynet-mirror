@@ -7,7 +7,6 @@ from psynet.pytest_psynet import bot_class, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(

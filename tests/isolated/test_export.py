@@ -17,7 +17,6 @@ from psynet.trial.main import Trial
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.fixture(scope="session")

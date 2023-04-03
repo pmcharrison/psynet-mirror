@@ -18,7 +18,6 @@ from psynet.utils import log_pexpect_errors
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
