@@ -254,7 +254,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_num_bots = 4
+    test_n_bots = 4
 
     def test_check_bots(self, bots: List[Bot]):
         time.sleep(2.0)

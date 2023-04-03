@@ -346,7 +346,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         pass
 
-    test_num_bots = 1
+    test_n_bots = 1
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -356,7 +356,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
     def test_create_bots(self):
-        return [Bot() for _ in range(self.test_num_bots)]
+        return [Bot() for _ in range(self.test_n_bots)]
 
     def test_run_bots(self, bots):
         for bot in bots:
