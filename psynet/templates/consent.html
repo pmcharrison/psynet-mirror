@@ -1,6 +1,16 @@
 {% extends "base/consent.html" %}
 {% include "macros/browser-detect.html" %}
 
+{% block stylesheets %}
+    {{ super() }}
+    {% include "theme.html" %}
+    <style>
+        #consent {
+            float: none;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     <div style="margin-top: 130px; text-align: -webkit-center;">
       <div style="max-width: max-content;">

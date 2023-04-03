@@ -1,35 +1,65 @@
-{% extends "base/ad.html" %}
+{% extends "layout.html" %}
 {% include "macros/browser-detect.html" %}
-{% block no_assignment %}
-<h1>{{ pgettext("ad", "Call for participants") }}</h1>
-<p>
-    {{ experiment.description|safe }}
-</p>
-<p>
-    <span style="font-weight: bold;">{{ pgettext("ad", "The requirements to participate are as follows") }}</span>:
-</p>
-<ul>
-    {% for requirement in experiment.ad_requirements %}
-        <li>{{ requirement|safe }}</li>
-    {% endfor %}
-</ul>
-<p>
-    {{ experiment.ad_payment_information|safe }}
-</p>
-<p>
-    {{ pgettext("ad", 'Please click the "Accept HIT" button on the Amazon site above to begin the task.') }}
-</p>
-{% endblock no_assignment %}
 
-{% block live %}
-    {% if experiment.recruiter.nickname == "mturk" %}
-        <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
-    {% else %}
-        <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>
-    {% endif %}
-    <p>
-        {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
-    </p>
+
+{% block stylesheets %}
+    {% include "theme.html" %}
+    <style>
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container my-5" id="container-not-an-ad">
+        <div id="ad">
+            <div class="row overflow-hidden mb-3">
+                {% block lab_logo %}
+                    <img id="adlogo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Lab Logo" />
+                {% endblock %}
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    {% block ad %}
+
+                    {% if (mode == "sandbox") or (mode == "debug") %}
+                        {% block sandbox_or_debug %}
+                            <p>
+                                <b>Application ID:</b> {{ app_id }}.
+                            </p>
+                        {% endblock sandbox_or_debug %}
+                    {% endif %}
+
+                    {% if assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE" %}
+                        {% block no_assignment %}
+                            <h1>{{ pgettext("ad", "Call for participants") }}</h1>
+                            <p>
+                                {{ experiment.description|safe }}
+                            </p>
+                            <p>
+                                <span style="font-weight: bold;">{{ pgettext("ad", "The requirements to participate are as follows") }}</span>:
+                            </p>
+                            <ul>
+                                {% for requirement in experiment.ad_requirements %}
+                                    <li>{{ requirement|safe }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p>
+                                {{ experiment.ad_payment_information|safe }}
+                            </p>
+                            <p>
+                                {{ pgettext("ad", 'Please click the "Accept HIT" button on the Amazon site above to begin the task.') }}
+                            </p>
+                        {% endblock no_assignment %}
+                    {% else %}
+                        {% block live %}
+                            {% if experiment.recruiter.nickname == "mturk" %}
+                                <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
+                            {% else %}
+                                <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>
+                            {% endif %}
+                            <p>
+                                {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
+                            </p>
 
     {% if not experiment.var.force_incognito_mode %}
         <div class="alert alert-warning">

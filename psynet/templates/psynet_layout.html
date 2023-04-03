@@ -3,6 +3,7 @@
 {# We therefore have to give this base template a different name. We should investigate this bug further. #}
 
 {% extends "base/layout.html" %}
+{% include "theme.html" %}
 
 {% block scripts %}
     {{ super() }}
