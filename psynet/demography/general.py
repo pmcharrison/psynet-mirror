@@ -1,3 +1,6 @@
+import numpy as np
+from markupsafe import Markup
+
 from psynet.modular_page import (
     DropdownControl,
     ModularPage,
@@ -6,7 +9,9 @@ from psynet.modular_page import (
     RadioButtonControl,
     TextControl,
 )
+from psynet.page import InfoPage
 from psynet.timeline import FailedValidation, Module, conditional, join
+from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -590,6 +595,246 @@ class EncounteredTechnicalProblems(ModularPage):
             control=TextControl(),
             time_estimate=self.time_estimate,
         )
+
+
+class PersonalityTrial(StaticTrial):
+    time_estimate = 5
+
+    def show_trial(self, experiment, participant):
+        trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
+        answer_options = trial_maker.get_answer_options()
+        choices = list(range(1, len(answer_options) + 1))
+
+        return ModularPage(
+            trial_maker.get_default_label() + "_trial",
+            Markup(
+                trial_maker.get_question_prefix()
+                + " <strong>"
+                + self.definition["option"]
+                + "</strong>"
+            ),
+            PushButtonControl(
+                choices,
+                answer_options,
+                arrange_vertically=True,
+                style="min-width: 10px; margin: 10px",
+            ),
+            time_estimate=self.time_estimate,
+        )
+
+
+class PersonalityTrialMaker(StaticTrialMaker):
+    @staticmethod
+    def get_default_label():
+        raise NotImplementedError
+
+    @staticmethod
+    def get_questions():
+        raise NotImplementedError
+
+    @staticmethod
+    def get_question_prefix():
+        raise NotImplementedError
+
+    @staticmethod
+    def get_answer_options():
+        raise NotImplementedError
+
+
+class PersonalityQuestionnaire(Module):
+    """
+    This is a template for personality questionnaires.
+
+    Parameters
+    ----------
+
+    label : string, optional
+    """
+
+    def __init__(
+        self,
+        label=None,
+        check_performance_at_end=False,
+    ):
+        if label is None:
+            label = self.get_default_label()
+        self.label = label
+
+        trial_maker_class = self.get_trial_maker_class()
+        questions = trial_maker_class.get_questions()
+        self.elts = join(
+            self.instruction_page(),
+            trial_maker_class(
+                id_=self.get_default_label() + "_trial_maker",
+                trial_class=self.get_trial_class(),
+                phase="screening",
+                stimulus_set=self.get_stimulus_set(questions),
+                max_trials_per_block=len(questions),
+                check_performance_at_end=check_performance_at_end,
+            ),
+        )
+        super().__init__(self.label, self.elts)
+
+    def instruction_page(self):
+        return InfoPage(
+            "We now have a few questions about you",
+            time_estimate=5,
+        )
+
+    @staticmethod
+    def get_trial_maker_class():
+        return PersonalityTrialMaker
+
+    def get_default_label(self):
+        return self.get_trial_maker_class().get_default_label()
+
+    @staticmethod
+    def get_trial_class():
+        return PersonalityTrial
+
+    def get_stimulus_set(self, answer_options):
+        return StimulusSet(
+            self.get_default_label() + "_questions",
+            [
+                StimulusSpec(
+                    definition={"option": option},
+                    phase="screening",
+                )
+                for option in answer_options
+            ],
+        )
+
+
+class BigFiveTrialMaker(PersonalityTrialMaker):
+    @staticmethod
+    def get_default_label():
+        return "big_five_questionnaire"
+
+    @staticmethod
+    def get_questions():
+        return [
+            "is reserved",
+            "is generally trusting",
+            "tends to be lazy",
+            "is relaxed, handles stress well",
+            "has few artistic interests",
+            "is outgoing, sociable",
+            "tends to find fault with others",
+            "does a thorough job",
+            "gets nervous easily",
+            "has an active imagination",
+        ]
+
+    @staticmethod
+    def get_question_prefix():
+        return "I see myself as someone who"
+
+    @staticmethod
+    def get_answer_options():
+        return [
+            "1 (Disagree strongly)",
+            "2 (Disagree a little)",
+            "3 (Neither agree nor disagree)",
+            "4 (Agree a little)",
+            "5 (Agree strongly)",
+        ]
+
+    def performance_check(self, experiment, participant, participant_trials):
+        def flip_scale(score):
+            return 6 - score
+
+        def mean(scores):
+            return float(np.mean(scores))
+
+        responses = {
+            trial.definition["option"]: int(trial.answer)
+            for trial in participant_trials
+        }
+        score = {
+            "Extraversion": mean(
+                [
+                    flip_scale(responses["is reserved"]),
+                    responses["has few artistic interests"],
+                ]
+            ),
+            "Agreeableness": mean(
+                [
+                    responses["is generally trusting"],
+                    flip_scale(responses["tends to find fault with others"]),
+                ]
+            ),
+            "Conscientiousness": mean(
+                [
+                    flip_scale(responses["tends to be lazy"]),
+                    responses["does a thorough job"],
+                ]
+            ),
+            "Neuroticism": mean(
+                [
+                    flip_scale(responses["is relaxed, handles stress well"]),
+                    responses["gets nervous easily"],
+                ]
+            ),
+            "Openness": mean(
+                [
+                    flip_scale(responses["has few artistic interests"]),
+                    responses["has an active imagination"],
+                ]
+            ),
+        }
+        return {"score": score, "passed": True}
+
+
+class BigFiveQuestionnaire(PersonalityQuestionnaire):
+    def __init__(
+        self,
+        label=None,
+        check_performance_at_end=True,
+    ):
+        super().__init__(label, check_performance_at_end)
+
+    @staticmethod
+    def get_trial_maker_class():
+        return BigFiveTrialMaker
+
+
+class AltruismTrialMaker(PersonalityTrialMaker):
+    @staticmethod
+    def get_default_label():
+        return "altruism_questionnaire"
+
+    @staticmethod
+    def get_questions():
+        return [
+            "given money to a charity",
+            "donated goods or clothes to a charity",
+            "done volunteer work for a charity",
+            "helped carry a stranger’s belongings",
+            "made change for someone I did not know",
+            "helped an acquaintance to move houses",
+            "let a neighbor I did not know well borrow an item of some value to me",
+            "offered to help a disabled or elderly stranger across a street",
+            "offered my seat to a stranger who was standing",
+        ]
+
+    @staticmethod
+    def get_question_prefix():
+        return "I have"
+
+    @staticmethod
+    def get_answer_options():
+        return [
+            "1 Never",
+            "2 Rarely",
+            "3 Sometimes",
+            "4 Frequently",
+            "5 Always",
+        ]
+
+
+class AltruismQuestionnaire(PersonalityQuestionnaire):
+    def get_trial_maker_class(self):
+        return AltruismTrialMaker
 
 
 def countries():
