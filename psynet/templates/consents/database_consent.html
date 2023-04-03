@@ -105,10 +105,7 @@
                 {{ pgettext("consent-protection", "You may also address your inquiries directly to the Max Planck Institute for Empirical Aesthetics:") }} <a href="mailto:dataprotect@ae.mpg.de">dataprotect@ae.mpg.de</a>
             </p>
 
-            <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
-            </p>
+            {{ consent.contact(config) }}
         </div>
         {{ consent.fixed_buttons(config) }}
       </div>

@@ -35,8 +35,7 @@
               {{ pgettext("consent-cap", "The participant information sheet about the examination is part of this consent form.") }}
               {{ pgettext("consent-cap", "I have received a copy of the participant information sheet and of the consent form.") }}
           </p>
-  ​
-          <h4>{{ pgettext("consent", "Investigator") }}</h4>
+            <h4>{{ pgettext("consent", "Investigator") }}</h4>
           <p>
               Harin Lee,
               Max Planck Institut for Empirical Aesthetics,
@@ -45,11 +44,7 @@
               harin.lee@ae.mpg.de
           </p>
           {{ consent.pi(config) }}
-          <h4>{{ pgettext("consent-consent", "Consent") }}</h4>
-          <p>
-              {{ pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
-              {{ pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
-          </p>
+          {{ consent.consent(config) }}
         </div>
         {{ consent.buttons(config) }}
       </div>

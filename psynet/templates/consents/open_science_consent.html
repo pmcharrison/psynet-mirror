@@ -33,16 +33,9 @@
                 {{ pgettext("consent-disclaimer", "Although your data will not be associated with personal identifiers, it is possible to link your personal information based on audio-visual recordings") }}.
             </p>
 
-            <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
-            </p>
+            {{ consent.contact(config) }}
 
-            <h4>{{ pgettext("consent-consent", "Consent") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
-                {{ pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
-            </p>
+            {{ consent.consent(config) }}
         </div>
         {{ consent.fixed_buttons(config) }}
       </div>

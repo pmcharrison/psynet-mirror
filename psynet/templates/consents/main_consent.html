@@ -10,14 +10,7 @@
     <hr>
     <div class="text-justify">
         <div class="text-left" style="font-size:18px">
-            <h4>{{ pgettext("consent-overview", "Overview") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-overview", "This research is being conducted by researchers at the Max-Planck-Institute for Empirical Aesthetics.") }}
-                {{ pgettext("consent-overview", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
-            </p>
-            <p class="consent-text">
-                {{ pgettext("consent-overview", "The purpose of this online form is to give you information to help you decide whether you want to take part in a research study.") }}
-            </p>
+            {{ consent.overview(config) }}
 
             <h4>{{ pgettext("consent-purpose", "Purpose") }}</h4>
             <p class="consent-text">
@@ -101,16 +94,9 @@
                 Bayerische Landesamt für Datenschutzaufsicht, Postfach 606, 91511 Ansbach, Germany.
             </p>
 
-            <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
-            </p>
+            {{ consent.contact(config) }}
 
-            <h4>{{ pgettext("consent-consent", "Consent") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
-                {{ pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
-            </p>
+           {{ consent.consent(config) }}
         </div>
         {{ consent.fixed_buttons(config) }}
       </div>
