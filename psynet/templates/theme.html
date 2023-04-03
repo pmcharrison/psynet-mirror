@@ -60,8 +60,6 @@
         })
     })()
 </script>
-
-
 <style>
     /* Color definitions */
     :root, [data-bs-theme=light] {
@@ -69,7 +67,8 @@
         --bs-body-color-rgb: 34, 34, 34 !important;
         --bs-body-bg: #fff !important;
         --bs-light: #f7f7f7 !important;
-        --background-rgb: 255 255 255 !important;;
+        --background-rgb: 255 255 255 !important;
+        --bs-body-font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif !important;
     }
 
     [data-bs-theme=dark] {
@@ -81,10 +80,44 @@
         --background-rgb: 0 0 0 !important;
     }
 
+    :root {
+        font-family: var(--bs-body-font-family);
+    }
+
+    @supports (font-variation-settings: normal) {
+        :root {
+            font-family: var(--bs-body-font-family);
+        }
+    }
+
+
     /* General */
     body {
         background-color: var(--bs-body-bg) !important;
         color: var(--bs-body-color) !important;
+        letter-spacing: -0.02em;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        font-kerning: normal;
+        -webkit-font-kerning: normal;
+        -ms-font-kerning: normal;
+        -moz-font-kerning: normal;
+        -o-font-kerning: normal;
+        font-variant-ligatures: contextual common-ligatures;
+        -webkit-font-variant-ligatures: contextual common-ligatures;
+        -ms-font-variant-ligatures: contextual common-ligatures;
+        -moz-font-variant-ligatures: contextual common-ligatures;
+        -o-font-variant-ligatures: contextual common-ligatures;
+        font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    }
+    .fw-bold {
+        font-weight: 500 !important;
+    }
+
+    .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+        letter-spacing: -0.015em;
     }
 
     @media (max-width: 1000px) {
