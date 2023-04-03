@@ -806,9 +806,12 @@
                     }
                     let requests = psynet.media.requests;
                     let mediaTypes = Object.keys(requests);
+                    let bar = psynet.media.downloadProgress.bar();
+                    bar.classList.add("colorfadeanim");
                     await Promise.all(
                         mediaTypes.map((x) => processRequests(x, requests[x]))
                     );
+                    bar.classList.remove("colorfadeanim");
                 };
 
                 let initMediaType = function (mediaType) {
@@ -824,8 +827,6 @@
                 };
 
                 let processRequests = function (mediaType, requests) {
-                    let bar = psynet.media.downloadProgress.bar();
-                    bar.classList.add("colorfadeanim");
                     initMediaType(mediaType);
                     checkRequests(requests);
 
