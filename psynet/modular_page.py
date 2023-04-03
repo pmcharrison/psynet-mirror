@@ -203,7 +203,11 @@ class AudioPrompt(Prompt):
 
     @property
     def metadata(self):
-        return {"text": self.text, "url": self.url, "play_window": self.play_window}
+        return {
+            "text": str(self.text),
+            "url": self.url,
+            "play_window": self.play_window,
+        }
 
     @property
     def media(self):
@@ -332,7 +336,7 @@ class VideoPrompt(Prompt):
     @property
     def metadata(self):
         return {
-            "text": self.text,
+            "text": str(self.text),
             "url": self.url,
             "play_window": self.play_window,
             "mirrored": self.mirrored,
@@ -441,7 +445,7 @@ class ImagePrompt(Prompt):
     @property
     def metadata(self):
         return {
-            "text": self.text,
+            "text": str(self.text),
             "url": self.url,
             "show_after": self.show_after,
             "hide_after": self.hide_after,
@@ -501,7 +505,7 @@ class ColorPrompt(Prompt):
 
     @property
     def metadata(self):
-        return {"text": self.text, "hsl": self.hsl}
+        return {"text": str(self.text), "hsl": self.hsl}
 
 
 class Control:
