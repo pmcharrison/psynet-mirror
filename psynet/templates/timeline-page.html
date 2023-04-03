@@ -1,6 +1,5 @@
 {% extends "macros.html" %}
 {% include "macros/browser-detect.html" %}
-
 {% block stylesheets %}
     {{ super() }}
     {% include "theme.html" %}
@@ -20,15 +19,6 @@
 
         #help-modal {
             z-index: 1000;
-        }
-
-        .modal-content {
-            background-color: white;
-            color: black;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
         }
 
         .close {
@@ -83,7 +73,7 @@
         </div>
     {% endblock %}
 
-    <div id="main-body" style="padding: 5% 10% 5% 10%">
+    <div id="main-body" class="my-5 mx-3">
         {% block main_body %}
 
             {% block above_progress_display %}
@@ -196,15 +186,6 @@
                     margin: 0px;
                 }
 
-                #help-button {
-                    min-width: 50px;
-                    background-color: white;
-                    color: black
-                }
-
-                #help-button:hover {
-                    background-color: rgb(234, 236, 239);
-                }
             </style>
 
             <nav id="footer" class="navbar fixed-bottom">
@@ -239,7 +220,7 @@
                                 </select>
                             </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary"
+                        <button type="button" class="btn btn-light"
                                 id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
                 </div>
@@ -773,6 +754,7 @@
                         var progress = psynet.media.downloadProgress.getTotal();
                         bar.style.width = Math.round(progress) + "%";
                         if (progress === 100) {
+                            bar.classList.remove("colorfadeanim");
                             // You could do something here once loading is complete,
                             // e.g. delete progress bar text
                         }
@@ -890,6 +872,8 @@
                 };
 
                 let processRequests = function (mediaType, requests) {
+                    let bar = psynet.media.downloadProgress.bar();
+                    bar.classList.add("colorfadeanim");
                     initMediaType(mediaType);
                     checkRequests(requests);
 
