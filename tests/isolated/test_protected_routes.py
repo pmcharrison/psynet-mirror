@@ -3,10 +3,9 @@ import logging
 import pytest
 import requests
 
-from psynet.pytest_psynet import bot_class, path_to_demo
+from psynet.pytest_psynet import path_to_demo
 
 logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(

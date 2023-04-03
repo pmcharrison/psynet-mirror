@@ -17,7 +17,6 @@ from psynet.pytest_psynet import (
 from psynet.utils import log_pexpect_errors
 
 logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
@@ -30,7 +29,7 @@ class TestExp(object):
     ):  # two_iterations, bot_recruits):
         for i in range(4):
             url = launched_experiment.recruiter.recruit()[0]
-            bot = PYTEST_BOT_CLASS(url)
+            bot = bot_class()(url)
 
             bot.participant_id = i + 1
             bot.sign_up()

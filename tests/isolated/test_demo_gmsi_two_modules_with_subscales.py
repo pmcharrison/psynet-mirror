@@ -3,9 +3,7 @@ import time
 import pytest
 
 from psynet.participant import get_participant
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo
-
-PYTEST_BOT_CLASS = bot_class()
+from psynet.pytest_psynet import next_page, path_to_demo
 
 
 @pytest.mark.parametrize(
