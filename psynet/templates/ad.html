@@ -36,7 +36,7 @@
                                 {{ experiment.description|safe }}
                             </p>
                             <p>
-                                <span style="font-weight: bold;">{{ pgettext("ad", "The requirements to participate are as follows") }}</span>:
+                                <span class="fw-bold">{{ pgettext("ad", "The requirements to participate are as follows") }}</span>:
                             </p>
                             <ul>
                                 {% for requirement in experiment.ad_requirements %}
@@ -63,7 +63,7 @@
 
                             {% if not experiment.var.force_incognito_mode %}
                                 <div class="alert alert-warning">
-                                    <span style="font-weight: bold;">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
+                                    <span class="fw-bold">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
                                 </div>
                             {% endif %}
 
