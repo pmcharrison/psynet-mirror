@@ -1,11 +1,7 @@
-import logging
-
 import pytest
 import requests
 
 from psynet.pytest_psynet import path_to_demo
-
-logger = logging.getLogger(__file__)
 
 
 @pytest.mark.parametrize(

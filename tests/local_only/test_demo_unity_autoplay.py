@@ -1,4 +1,3 @@
-import logging
 import time
 
 import pytest
@@ -7,8 +6,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from psynet.pytest_psynet import next_page
-
-logger = logging.getLogger(__file__)
 
 
 @pytest.mark.parametrize(

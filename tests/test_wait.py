@@ -1,11 +1,7 @@
-import logging
-
 import pytest
 
 from psynet.bot import Bot
 from psynet.pytest_psynet import path_to_demo
-
-logger = logging.getLogger(__file__)
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("wait")], indirect=True)

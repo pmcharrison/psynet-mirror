@@ -1,4 +1,3 @@
-import logging
 import time
 
 import pytest
@@ -15,8 +14,6 @@ from psynet.pytest_psynet import (
     wait_until,
 )
 from psynet.utils import log_pexpect_errors
-
-logger = logging.getLogger(__file__)
 
 
 @pytest.mark.parametrize(

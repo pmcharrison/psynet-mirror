@@ -1,4 +1,3 @@
-import logging
 import os
 import tempfile
 import zipfile
@@ -14,8 +13,6 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_demo
 from psynet.timeline import Response
 from psynet.trial.main import Trial
-
-logger = logging.getLogger(__file__)
 
 
 @pytest.fixture(scope="session")

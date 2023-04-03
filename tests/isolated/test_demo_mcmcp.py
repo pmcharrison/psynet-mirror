@@ -1,4 +1,3 @@
-import logging
 import time
 
 import pytest
@@ -6,8 +5,6 @@ import pytest
 from psynet.participant import Participant
 from psynet.pytest_psynet import next_page, path_to_demo
 from psynet.trial.mcmcp import MCMCPNetwork
-
-logger = logging.getLogger(__file__)
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
