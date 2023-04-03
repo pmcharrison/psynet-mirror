@@ -145,12 +145,7 @@
             This study has been approved by the Institutional Review Board for Human Subjects
         </span>
     </p>
-    <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-        I agree
-    </button>
-    <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-        No, thank you (return task)
-    </button>
+    {{ consent.buttons(config) }}
   </div>
 </div>
 {% endblock %}

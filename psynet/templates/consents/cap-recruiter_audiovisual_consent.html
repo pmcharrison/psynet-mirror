@@ -78,16 +78,7 @@
               60322 Frankfurt am Main,
               harin.lee@ae.mpg.de
           </p>
-  ​
-          <h4>{{ pgettext("consent", "Principal Investigator") }}</h4>
-          <p>
-              Dr. Nori Jacoby,
-              Max Planck Institut for Empirical Aesthetics,
-              Grüneburgweg 14,
-              60322 Frankfurt am Main,
-              nori.jacoby@ae.mpg.de
-          </p>
-  ​
+          {{ consent.pi(config) }}
           <h4>{{ pgettext("consent-consent", "Consent") }}</h4>
           <p>
               {{ pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
@@ -110,12 +101,7 @@
             setDemonstrationPurposesConsent();
           });
         </script>
-        <button type="button" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
-          {{ pgettext("consent", "I agree") }}
-        </button>
-        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-          {{ pgettext("consent", "No, thank you (return task)") }}
-        </button>
+        {{ consent.buttons(config) }}
       </div>
   </div>
 {% endblock %}

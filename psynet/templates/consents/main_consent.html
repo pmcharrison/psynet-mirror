@@ -117,20 +117,7 @@
                 {{ pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
             </p>
         </div>
-        <div class="fixed-bottom consent-gradient">
-            <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
-                {{ gettext("Scroll up/down to see all text") }} <span class="up-down-arrows">&#8645;</span>
-            </div>
-            <hr style="margin-top: 5px;">
-            <h4>{{ gettext("Do you understand and consent to these terms?") }}</h4>
-            <br>
-            <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-                {{ pgettext("consent", "I agree") }}
-            </button>
-            <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-                {{ pgettext("consent", "No, thank you (return task)") }}
-            </button>
-        </div>
+        {{ consent.fixed_buttons(config) }}
       </div>
   </div>
 {% endblock %}
