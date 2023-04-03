@@ -40,6 +40,7 @@ from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
+from .graphics import PsyNetLogo
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -538,7 +539,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_google_chrome": True,
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
+            "color_mode": "light",
         }
+
+    @property
+    def psynet_logo(self):
+        return PsyNetLogo()
+
+    @property
+    def lab_logos(self):
+        return []
 
     @property
     def start_experiment_in_popup_window(self):
@@ -1071,7 +1081,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/static/images/logo.png",
             ),
             (
-                resource_filename("psynet", "resources/logo.svg"),
+                resource_filename("psynet", "resources/images/psynet.svg"),
                 "/static/images/logo.svg",
             ),
             (
