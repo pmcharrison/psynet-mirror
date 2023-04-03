@@ -5,7 +5,9 @@ from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
-from psynet.pytest_psynet import assert_text, next_page, path_to_demo
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+
+PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
