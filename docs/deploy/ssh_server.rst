@@ -245,6 +245,29 @@ Within the same directory, you can run the following command to see live logs fr
 
     docker compose logs
 
+You can run the following command to view the status of all Docker containers currently running on the server,
+including containers from other apps:
+
+.. code:: bash
+
+    docker ps
+
+Once you are done with your experiment, you can export the data to your local computer using the following command,
+but run it on your local computer, not via your SSH terminal.
+
+.. code:: bash
+
+    psynet export ssh --app your-app-name
+
+For more information, see `Exporting <deploy/export.html>`_.
+
+You can then tear down your app via the following command, again run on your local computer:
+
+.. code:: bash
+
+    psynet destroy ssh --app your-app-name
+
+
 
 Known issues
 ^^^^^^^^^^^^
