@@ -76,11 +76,11 @@ def split_kwargs(obj, kwargs, trial_maker_class, mixin_class):
 class CreateAndRateTrialMixin(object):
     def __init__(self, experiment, node, participant, *args, **kwargs):
         trial_class = get_extended_class(self)
-        super().__init__(experiment, node, participant, *args, **kwargs)
-        trial_class.__init__(self, experiment, node, participant, *args, **kwargs)
         assert issubclass(
             trial_class, ChainTrial
         ), "The trial class must inherit from ChainTrial"
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        trial_class.__init__(self, experiment, node, participant, *args, **kwargs)
 
 
 class CreateTrialMixin(CreateAndRateTrialMixin):
