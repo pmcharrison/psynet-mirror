@@ -195,25 +195,23 @@ Please enter ratings for the following questions about the rule you just guessed
     });
 
     function validate() {
-        $(document).ready(function() {
-            var rule_dict = {};
-            var n_checked = 0;
-            $('input').each(function (i, elem) {
-                var is_checked = $(elem).is(':checked');
-                if (is_checked) {
-                    n_checked += 1;
-                }
-                rule_dict[elem.id] = {
-                    'checked': is_checked,
-                    'rule': $(elem).val()
-                }
-            });
-            if (n_checked > 0) {
-                psynet.nextPage(rule_dict);
-            } else {
-                alert('You need to interact with the page before you can continue.');
+        var rule_dict = {};
+        var n_checked = 0;
+        $('input').each(function (i, elem) {
+            var is_checked = $(elem).is(':checked');
+            if (is_checked) {
+                n_checked += 1;
+            }
+            rule_dict[elem.id] = {
+                'checked': is_checked,
+                'rule': $(elem).val()
             }
         });
+        if (n_checked > 0) {
+            psynet.nextPage(rule_dict);
+        } else {
+            alert('You need to interact with the page before you can continue.');
+        }
     }
 </script>
 {{shared_css(config)}}
