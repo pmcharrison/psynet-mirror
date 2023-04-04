@@ -6,7 +6,9 @@ from dallinger import db
 from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant, get_participant
-from psynet.pytest_psynet import assert_text, next_page, path_to_demo
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+
+PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
