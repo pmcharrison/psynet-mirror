@@ -3,6 +3,7 @@ import re
 import time
 
 import pytest
+from dallinger import db
 from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant, get_participant
@@ -233,3 +234,9 @@ class TestExp(object):
             )
 
             next_page(driver, "next-button", finished=True)
+
+            time.sleep(0.75)
+
+            db.session.commit()
+            assert participant.base_payment == 0.10
+            assert participant.bonus == 0.36

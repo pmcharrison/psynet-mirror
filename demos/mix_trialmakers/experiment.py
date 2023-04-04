@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import logging
 
 import psynet.experiment
@@ -76,8 +72,8 @@ trial_maker_1 = StaticTrialMaker(
     max_trials_per_block=2,
     allow_repeated_nodes=True,
     balance_across_nodes=True,
-    check_performance_at_end=True,
-    check_performance_every_trial=True,
+    check_performance_at_end=False,
+    check_performance_every_trial=False,
     target_n_participants=1,
     target_trials_per_node=None,
     recruit_mode="n_participants",
@@ -92,8 +88,8 @@ trial_maker_2 = StaticTrialMaker(
     max_trials_per_block=2,
     allow_repeated_nodes=True,
     balance_across_nodes=True,
-    check_performance_at_end=True,
-    check_performance_every_trial=True,
+    check_performance_at_end=False,
+    check_performance_every_trial=False,
     target_n_participants=1,
     target_trials_per_node=None,
     recruit_mode="n_participants",

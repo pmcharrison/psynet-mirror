@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
 import re
 from statistics import mean
@@ -89,14 +85,6 @@ class CustomTrialMaker(ImitationChainTrialMaker):
     check_timeout_interval_sec = 30
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Imitation chain demo"
     initial_recruitment_size = 1

@@ -1376,9 +1376,11 @@
                     }
                 };
 
-                psynet.nextPage = function (rawAnswer, metadata, blobs, onRejection) {
-                    // Arguments default to psynet.response.staged if they
+                psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
+                    // rawAnswer, metadata, and blobs default to psynet.response.staged if they
                     // are not provided explicitly.
+                    //
+                    // Returns true if the answer passes validation checks.
                     if (rawAnswer === undefined) {
                         rawAnswer = psynet.response.staged.rawAnswer;
                     }
@@ -1388,11 +1390,13 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
-                    submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
+                    let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
+                    return passedValidation
                 };
 
                 let onSuccessResponse = function (request, onRejection) {
                     let response = JSON.parse(request.response);
+                    let passedValidation;
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
                         let shouldRefreshPage = !(
@@ -1405,6 +1409,7 @@
                             psynet.page = response.page;
                             psynet.registerEvent("pageUpdated");
                         }
+                        passedValidation = true;
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
                         alert(response.message);
@@ -1413,9 +1418,11 @@
                         if (onRejection) {
                             onRejection(response);
                         }
+                        passedValidation = false;
                     } else {
                         throw Error("Received a malformed response.");
                     }
+                    return passedValidation
                 };
 
                 onPageUpdated = function (event) {
@@ -1476,6 +1483,8 @@
                     // rawAnswer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
+                    //
+                    // Returns true if the answer passed validation checks, false otherwise.
                     $(" .response, .submit ").prop("disabled", true);
 
                     json = prepareJsonSubmission(rawAnswer, metadata);
@@ -1487,21 +1496,25 @@
                         addBlobs(formData, blobs);
                     }
 
-                    var request = new XMLHttpRequest();
-
-                    request.onreadystatechange = function () {
-                        if (request.readyState === 4) {
-                            if (request.status === 200) {
-                                psynet.log.debug("Response was successfully received.");
-                                onSuccessResponse(request, onRejection);
-                            } else {
-                                psynet.log.debug("Something went wrong.");
-                                onErrorResponse(request);
+                    return new Promise((resolve) => {
+                        let request = new XMLHttpRequest();
+                        request.onreadystatechange = function () {
+                            if (request.readyState === 4) {
+                                let passedValidation;
+                                if (request.status === 200) {
+                                    psynet.log.debug("Response was successfully received.");
+                                    passedValidation = onSuccessResponse(request, onRejection);
+                                } else {
+                                    psynet.log.debug("Something went wrong.");
+                                    onErrorResponse(request);
+                                    passedValidation = false;
+                                }
+                                resolve(passedValidation);
                             }
-                        }
-                    };
-                    request.open("POST", "/response");
-                    request.send(formData);
+                        };
+                        request.open("POST", "/response");
+                        request.send(formData);
+                    });
                 };
 
                 psynet.trialProgress = (() => {

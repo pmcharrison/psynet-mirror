@@ -7,7 +7,6 @@ Tutorials
    classes
    timeline
    assets
-   command_line
    specifying_dependencies
    internationalization
    ad_page
@@ -27,4 +26,3 @@ Tutorials
    introduction_to_sql_alchemy
    version_control_with_git
    upgrading_to_psynet_10
-   prolific

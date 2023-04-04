@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
 from typing import List, Optional
 
@@ -23,9 +19,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-##########################################################################################
-# Stimuli
-##########################################################################################
 COLOR_OPTIONS = ["red", "green", "blue"]
 NECKLACE_LENGTH = 9
 
@@ -394,14 +387,6 @@ class CustomTrialMaker(GraphChainTrialMaker):
         return {"vertices": vertices, "edges": edges}
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Graph demo"
 

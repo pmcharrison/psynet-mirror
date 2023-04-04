@@ -1,8 +1,8 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
-##########################################################################################
-# Imports
-##########################################################################################
+# This is a clone of the imitation_chain demo,
+# but with automatic bots that contribute data to the experiment.
+
 
 import random
 import re
@@ -23,14 +23,6 @@ from psynet.trial.imitation_chain import (
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-
-##########################################################################################
-# Stimuli
-##########################################################################################
-
-# This is a clone of the imitation_chain demo,
-# but with automatic bots that contribute data to the experiment.
 
 
 class FixedDigitInputPage(ModularPage):
@@ -97,14 +89,6 @@ class CustomTrialMaker(ImitationChainTrialMaker):
     check_timeout_interval_sec = 30
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Bot demo (2)"
 

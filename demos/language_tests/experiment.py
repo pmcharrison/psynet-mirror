@@ -1,18 +1,10 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import LanguageVocabularyTest, LexTaleTest
 from psynet.timeline import Timeline
-
-##########################################################################################
-# Experiment
-##########################################################################################
 
 
 class Exp(psynet.experiment.Experiment):
