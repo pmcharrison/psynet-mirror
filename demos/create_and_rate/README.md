@@ -19,7 +19,7 @@ Here is a brief description of each demo:
 - `gap`: implementation behind "Bridging the prosody GAP: Genetic Algorithm with People to efficiently sample emotional
   prosody" (https://arxiv.org/abs/2205.04820). The paradigm plays a recording of a recording of a sentence. Creators
   have to listen to it and think of a situation this could have happened in. They now have to record the same sentence
-  as if they were in that situation. The raters pick the most emotional creation. To avoid priming creators with '
-  emotions', creators and raters are entirely separate roles.
+  as if they were in that situation. The raters pick the most emotional creation. To avoid priming creators with
+  emotions, creators and raters are entirely separate roles.
 
 Make sure, you also check out the tutorial in the documentation.
