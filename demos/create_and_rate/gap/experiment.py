@@ -2,6 +2,7 @@
 ##########################################################################################
 # Imports
 ##########################################################################################
+from dominate import tags
 from flask import Markup
 
 import psynet.experiment
@@ -51,7 +52,6 @@ STIMULI_FILE = STIMULUS_DIR + "/stimuli.txt"
 with open(STIMULI_FILE) as f:
     STIMULUS_LINES = [line.replace("\n", "") for line in f.readlines()]
 name_stimuli = [line.split("|")[3] for line in STIMULUS_LINES]
-
 
 NUM_TRIALS_PER_PARTICIPANT = 1
 
@@ -116,7 +116,9 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
         n = len(durations)
         for i in range(n):
             stages.append(
-                ProgressStage(durations[i], messages[i], colors[i], persistent=(i + 1 < n))
+                ProgressStage(
+                    durations[i], messages[i], colors[i], persistent=(i + 1 < n)
+                )
             )
         return ProgressDisplay(stages=stages)
 
@@ -126,7 +128,9 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
                 is_triggered_by="trialStart",
                 js="document.getElementById('next-button').hidden = true",
             ),
-            "recordStart": Event(is_triggered_by="trialStart", delay=MAX_RECORDING_DURATION),
+            "recordStart": Event(
+                is_triggered_by="trialStart", delay=MAX_RECORDING_DURATION
+            ),
             "playbackRecording": Event(
                 is_triggered_by="recordEnd", js="psynet.page.control.playRecording()"
             ),
@@ -138,14 +142,16 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
         }
 
     def get_recording_page(self):
-        prompt = Markup(
-            f"""
-            <small><strong>
-            **Remember** Think about the situation of in which the recording could occur and then repeat!
-            </strong></small><br>
-            {self.context["txt"]}
-            """
-        )
+        prompt = tags.div()
+        with prompt:
+            with tags.small():
+                with tags.strong():
+                    tags.p(
+                        "**Remember** Think about the situation in which the recording could occur and then repeat!"
+                    )
+            tags.br()
+            tags.p(self.context["txt"])
+
         return ModularPage(
             "serial-prosody-recording",
             prompt=AudioPrompt(
@@ -165,29 +171,29 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
         )
 
     def get_decision_page(self):
+        js = (
+            # Mark the first option as red
+            "$('.push-button-container').children()[0].classList.replace('btn-primary', 'btn-danger')"
+            # Mark the second option as green
+            "$('.push-button-container').children()[1].classList.replace('btn-primary', 'btn-success')"
+        )
+
+        events = {"setColors": Event(is_triggered_by="trialStart", js=js)}
+
         return ModularPage(
             "decision_page",
-            prompt=Markup(
-                """
-                Please select one from the options
-                <script>
-                psynet.trial.onEvent("trialStart", function(){
-                    // Mark the first option as red
-                    $('.push-button-container').children()[0].classList.replace('btn-primary', 'btn-danger')
-
-                    // Mark the second option as green
-                    $('.push-button-container').children()[1].classList.replace('btn-primary', 'btn-success')
-                })
-
-                </script>
-                """
+            prompt=Markup("""Please select one from the options"""),
+            control=PushButtonControl(
+                ["My own recording is bad", "My own recording is correct"]
             ),
-            control=PushButtonControl(["My own recording is bad", "My own recording is correct"]),
+            events=events,
             time_estimate=3,
         )
 
     def show_trial(self, experiment, participant):
-        return join(self.get_listen_page(), self.get_recording_page(), self.get_decision_page())
+        return join(
+            self.get_listen_page(), self.get_recording_page(), self.get_decision_page()
+        )
 
 
 def get_target_url(target):
@@ -226,7 +232,9 @@ class SelectTrial(SelectTrialMixin, ImitationChainTrial):
             # Alternate colors
             color = "blue" if count % 2 == 0 else "red"
             stages.append(
-                ProgressStage(MAX_RECORDING_DURATION, Markup(f"Listen to {label}"), color)
+                ProgressStage(
+                    MAX_RECORDING_DURATION, Markup(f"Listen to {label}"), color
+                )
             )
 
             key = "play_" + label
@@ -280,12 +288,12 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
 def is_rater(participant):
     counts = {"create": 0, "rate": 0}
     for network in ImitationChainNetwork.query.all():
-        node = CreateAndRateNode.query.filter_by(network_id=network.id, degree=network.degree).one()
-        n_creations = len(
-            CreateTrial.query.filter_by(
-                network_id=network.id, node_id=node.id, failed=False, finalized=True
-            ).all()
-        )
+        node = CreateAndRateNode.query.filter_by(
+            network_id=network.id, degree=network.degree
+        ).one()
+        n_creations = CreateTrial.query.filter_by(
+            network_id=network.id, node_id=node.id, failed=False, finalized=True
+        ).count()
         if n_creations < N_CREATORS:
             counts["create"] += 1
         else:
@@ -358,7 +366,9 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        CodeBlock(lambda participant: participant.var.set("is_rater", is_rater(participant))),
+        CodeBlock(
+            lambda participant: participant.var.set("is_rater", is_rater(participant))
+        ),
         get_instructions(),
         trial_maker,
         SuccessfulEndPage(),
