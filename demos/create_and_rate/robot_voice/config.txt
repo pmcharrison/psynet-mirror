@@ -1,5 +1,5 @@
 [Payment information]
-title = Gibbs sampler demo
+title = Modify the voice of a robot
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -13,7 +13,7 @@ browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Ad metadata]
-description = This app demos a Gibbs Sampler experiment.
+description = This app demos RobotVoice.
 keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
