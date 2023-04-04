@@ -1144,7 +1144,7 @@
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audioContext.createMediaStreamSource(stream);
                 let microphoneMetadata = psynet.media.getMicrophoneMetadataFromAudioStream(stream);
-                Object.extend(psynet.response.staged.metadata, microphoneMetadata);
+                Object.assign(psynet.response.staged.metadata, microphoneMetadata);
                 recorder = new Recorder(input, channelCount);
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
