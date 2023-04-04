@@ -1,7 +1,7 @@
 # Create and Rate demos
 
 To demonstrate and test the Create and Rate paradigm, we have created a few demos. These demos are not meant to be used
-in a real study, but to show how the paradigm works and show-cast certain features.
+in a real study, but to show how the paradigm works and showcase certain features.
 
 Here is a brief description of each demo:
 
