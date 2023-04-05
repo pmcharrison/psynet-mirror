@@ -650,6 +650,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def variables_initial_values(self):
+        config = get_and_load_config()
+
+        for key, value in self.variables.items():
+            assert key not in list(config.keys()), (
+                f"Variable {key} is a config variable and should solely be specified in the config.txt or in "
+                "experiment.config but NOT as experiment variable."
+            )
         return {**self._default_variables, **self.variables}
 
     @property
