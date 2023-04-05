@@ -586,6 +586,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "protected_routes": json.dumps(_protected_routes),
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": os.path.basename(os.getcwd()),
+            "min_browser_version": "80.0",
+            "wage_per_hour": 9.0,
+            "currency": "$",
+            "min_accumulated_bonus_for_abort": 0.20,
+            "show_abort_button": False,
+            "show_bonus": True,
+            "show_footer": True,
+            "show_progress_bar": True,
+            "check_participant_opened_devtools": False,
+            "window_width": 1024,
+            "window_height": 768,
+            "supported_locales": [],
+            "allow_switching_locale": True,
+            "force_google_chrome": True,
+            "force_incognito_mode": False,
+            "allow_mobile_devices": False,
         }
 
         config = get_config()
@@ -619,25 +635,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment_email_sent": False,
             "current_locale": get_language(),
-            "min_browser_version": "80.0",
-            "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
             "soft_max_experiment_payment": 1000.0,
-            "wage_per_hour": 9.0,
-            "min_accumulated_bonus_for_abort": 0.20,
-            "show_abort_button": False,
-            "show_bonus": True,
-            "show_footer": True,
-            "show_progress_bar": True,
-            "check_participant_opened_devtools": False,
-            "window_width": 1024,
-            "window_height": 768,
-            "supported_locales": [],
-            "currency": "$",
-            "allow_switching_locale": True,
-            "force_google_chrome": True,
-            "force_incognito_mode": False,
-            "allow_mobile_devices": False,
+            "max_participant_payment": 25.0,
         }
 
     @property
@@ -1290,6 +1290,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("enable_google_search_console", bool)
         config.register("initial_recruitment_size", int)
         config.register("label", unicode)
+        config.register("min_browser_version", unicode)
+        config.register("wage_per_hour", float)
+        config.register("currency", unicode)
+        config.register("min_accumulated_bonus_for_abort", float)
+        config.register("show_abort_button", bool)
+        config.register("show_bonus", bool)
+        config.register("show_footer", bool)
+        config.register("show_progress_bar", bool)
+        config.register("check_participant_opened_devtools", bool)
+        config.register("window_width", int)
+        config.register("window_height", int)
+        config.register("supported_locales", list)
+        config.register("allow_switching_locale", bool)
+        config.register("force_google_chrome", bool)
+        config.register("force_incognito_mode", bool)
+        config.register("allow_mobile_devices", bool)
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
