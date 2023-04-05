@@ -16,10 +16,6 @@ logger = get_logger()
 class Exp(psynet.experiment.Experiment):
     label = "Test many external assets"
 
-    variables = {
-        "show_abort_button": True,
-    }
-
     timeline = Timeline(
         MainConsent(),
         Module(

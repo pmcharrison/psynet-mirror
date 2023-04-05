@@ -1,3 +1,4 @@
+import json
 from os.path import abspath
 
 from flask import Markup
@@ -83,8 +84,9 @@ for elt in reference_timeline:
 class Exp(psynet.experiment.Experiment):
     label = "Translation demo"
 
-    variables = {
-        "supported_locales": supported_locales,
+    config = {
+        "language": "de",
+        "supported_locales": json.dumps(supported_locales),
         "allow_switching_locale": True,
     }
     timeline = Timeline(

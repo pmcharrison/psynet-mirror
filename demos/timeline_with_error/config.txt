@@ -1,6 +1,8 @@
 [Payment information]
 title = Timeline with error demo
 base_payment = 0.10
+show_abort_button = True
+min_accumulated_bonus_for_abort = 0.10
 
 [Recruitment strategy]
 auto_recruit = true

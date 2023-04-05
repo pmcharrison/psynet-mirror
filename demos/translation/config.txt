@@ -1,6 +1,3 @@
-[Launch mode]
-language = de
-
 [Payment information]
 title = Translation demo
 base_payment = 0.10
