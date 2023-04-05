@@ -86,6 +86,13 @@ logger = get_logger()
 database_template_path = ".deploy/database_template.zip"
 
 
+def get_and_load_config():
+    config = get_config()
+    if not config.ready:
+        config.load()
+    return config
+
+
 def error_response(*args, **kwargs):
     from dallinger.experiment_server.utils import (
         error_response as dallinger_error_response,
@@ -237,8 +244,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    initial_recruitment_size = 1
-
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
@@ -254,7 +259,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # Ignore the default initial_recruitment_size set by Dallinger
         # and use our own (by default just taken from the class attribute)
-        self.initial_recruitment_size = self.__class__.initial_recruitment_size
+        self.initial_recruitment_size = self.get_initial_recruitment_size()
 
         if not self.label:
             raise RuntimeError(
@@ -438,6 +443,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def base_payment(self):
         config = get_config()
         return config.get("base_payment")
+
+    def get_initial_recruitment_size(self):
+        config = get_and_load_config()
+        return config.get("initial_recruitment_size")
 
     @property
     def label(self):
@@ -1185,6 +1194,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("debug_storage_root", unicode)
         config.register("default_export_root", unicode)
         config.register("enable_google_search_console", bool)
+        config.register("initial_recruitment_size", int)
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
