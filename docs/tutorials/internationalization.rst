@@ -257,13 +257,13 @@ Note that ``_`` is an alias for ``gettext``, ``_p`` for ``pgettext``, and
 ``_np`` for ``npgettext``. ``participant.get_locale()`` will return the
 language settings of a participant.
 
-You can also set additional language settings in the experiment variables:
+You can also set additional language settings in the config:
 
 - Supported languages the user can choose from
 
 ::
 
-   supported_locales = ['en', 'de', 'nl']
+   supported_locales = '["en", "de", "nl"]'
 
 -  The ability for the participant to change the language during the experiment
 
