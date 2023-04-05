@@ -237,7 +237,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    label = None
     initial_recruitment_size = 1
 
     timeline = Timeline(
@@ -439,6 +438,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def base_payment(self):
         config = get_config()
         return config.get("base_payment")
+
+    @property
+    def label(self):
+        return os.path.basename(os.getcwd())
 
     @property
     def var(self):
