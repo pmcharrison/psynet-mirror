@@ -240,6 +240,91 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         this payment limit being reached.
 
 
+    In addition to the config variables in Dallinger, PsyNet adds the following:
+
+    min_browser_version : `str`
+        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
+
+    wage_per_hour : `float`
+        The payment in currency the participant gets per hour. Default: `9.0`.
+
+    currency : `str`
+        The currency in which the participant gets paid. Default: `$`.
+
+    min_accumulated_bonus_for_abort : `float`
+        The threshold of bonus accumulated in US dollars for the participant to be able to receive
+        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
+
+    show_abort_button : `bool`
+        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
+        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
+        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+        Default ``False``.
+
+    show_bonus : `bool`
+        If ``True`` (default), then the participant's current estimated bonus is displayed
+        at the bottom of the page.
+
+    show_footer : `bool`
+        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
+        and bonus information if `show_bonus` is set to `True`.
+
+    show_progress_bar : `bool`
+        If ``True`` (default), then a progress bar is displayed at the top of the page.
+
+    check_participant_opened_devtools : ``bool``
+        If ``True``, whenever a participant opens the developer tools in the web browser,
+        this is logged as participant.var.opened_devtools = ``True``,
+        and the participant is shown a warning alert message.
+        Default: ``False``.
+        Note: Chrome does not currently expose an official way of checking whether
+        the participant opens the developer tools. People therefore have to rely
+        on hacks to detect it. These hacks can often be broken by updates to Chrome.
+        We've therefore disabled this check by default, to reduce the risk of
+        false positives. Experimenters wishing to enable the check for an individual
+        experiment are recommended to verify that the check works appropriately
+        before relying on it. We'd be grateful for any contributions of updated
+        developer tools checks.
+
+    window_width : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment. Only active if
+        recruiter.start_experiment_in_popup_window is True.
+        Default: ``1024``.
+
+    window_height : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment. Only active if
+        recruiter.start_experiment_in_popup_window is True.
+        Default: ``768``.
+
+    supported_locales : ``list``
+        List of locales (i.e., ISO language codes) a user can pick from, e.g., ``["en"]``.
+        Default: ``[]``.
+
+    allow_switching_locale : ``bool``
+        Allow the user to change the language of the experiment during the experiment.
+        Default: ``False``.
+
+    force_google_chrome : ``bool``
+        Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions
+        on how to install Google Chrome.
+        Default: ``True``.
+
+    force_incognito_mode : ``bool``
+        Forces the user to open the experiment in a private browsing (i.e. incognito mode). This is helpful as incognito
+        mode prevents the user from accessing their browsing history, which could be used to influence the experiment.
+        Furthermore it does not enable addons which can interfere with the experiment. If the user is not using
+        incognito mode, it will give detailed instructions on how to open the experiment in incognito mode.
+        Default: ``False``.
+
+    allow_mobile_devices : ``bool``
+        Allows the user to use mobile devices. If it is set to false it will tell the user to open the experiment on
+        their computer.
+        Default: ``False``.
+
+
+
     Parameters
     ----------
 
