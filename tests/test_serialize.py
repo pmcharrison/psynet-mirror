@@ -151,3 +151,11 @@ class Test:
         from dallinger.db import Base
 
         assert Base.registry.mappers
+
+
+def test_serialize_dominate_tag():
+    from dominate import tags
+
+    text = tags.p("Hello!")
+
+    assert serialize(text) == '"<p>Hello!</p>"'
