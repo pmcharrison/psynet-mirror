@@ -450,7 +450,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def label(self):
-        return os.path.basename(os.getcwd())
+        config = get_and_load_config()
+        return config.get("label")
 
     @property
     def var(self):
@@ -520,6 +521,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "protected_routes": json.dumps(_protected_routes),
+            "initial_recruitment_size": 1,
+            "label": os.path.basename(os.getcwd()),
         }
 
     @property
@@ -1195,6 +1198,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("default_export_root", unicode)
         config.register("enable_google_search_console", bool)
         config.register("initial_recruitment_size", int)
+        config.register("label", unicode)
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
