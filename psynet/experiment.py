@@ -166,57 +166,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
-    min_accumulated_bonus_for_abort : `float`
-        The threshold of bonus accumulated in US dollars for the participant to be able to receive
-        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
-
-    show_abort_button : `bool`
-        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
-        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
-        Default ``False``.
-
-    show_bonus : `bool`
-        If ``True`` (default), then the participant's current estimated bonus is displayed
-        at the bottom of the page.
-
-    show_footer : `bool`
-        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
-        and bonus information if `show_bonus` is set to `True`.
-
-    show_progress_bar : `bool`
-        If ``True`` (default), then a progress bar is displayed at the top of the page.
-
-    min_browser_version : `str`
-        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
-
-    wage_per_hour : `float`
-        The payment in US dollars the participant gets per hour. Default: `9.0`.
-
-    check_participant_opened_devtools : ``bool``
-        If ``True``, whenever a participant opens the developer tools in the web browser,
-        this is logged as participant.var.opened_devtools = ``True``,
-        and the participant is shown a warning alert message.
-        Default: ``False``.
-        Note: Chrome does not currently expose an official way of checking whether
-        the participant opens the developer tools. People therefore have to rely
-        on hacks to detect it. These hacks can often be broken by updates to Chrome.
-        We've therefore disabled this check by default, to reduce the risk of
-        false positives. Experimenters wishing to enable the check for an individual
-        experiment are recommended to verify that the check works appropriately
-        before relying on it. We'd be grateful for any contributions of updated
-        developer tools checks.
-
-    window_width : ``int``
-        Determines the width in pixels of the window that opens when the
-        participant starts the experiment.
-        Default: ``1024``.
-
-    window_height : ``int``
-        Determines the width in pixels of the window that opens when the
-        participant starts the experiment.
-        Default: ``768``.
-
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
 
