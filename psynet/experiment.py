@@ -22,7 +22,7 @@ import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import experiment_available, get_config
+from dallinger.config import experiment_available, get_config, is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
@@ -248,8 +248,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Default: ``768``.
 
     supported_locales : ``list``
-        List of locales (i.e., ISO language codes) a user can pick from, e.g., ``["en"]``.
-        Default: ``[]``.
+        List of locales (i.e., ISO language codes) a user can pick from, e.g., ``'["en"]'``.
+        Default: ``'[]'``.
 
     allow_switching_locale : ``bool``
         Allow the user to change the language of the experiment during the experiment.
@@ -597,7 +597,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
-            "supported_locales": [],
+            "supported_locales": "[]",
             "allow_switching_locale": True,
             "force_google_chrome": True,
             "force_incognito_mode": False,
@@ -609,7 +609,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config_txt = {}
         if experiment_available():
             config_txt_path = "config.txt"
-            if exists(config_txt_path):
+            check_config = not any(
+                [
+                    unsafe_dir in os.path.abspath(config_txt_path)
+                    for unsafe_dir in ["dallinger_develop", "/tmp/", "/var/"]
+                ]
+            )
+
+            if check_config and exists(config_txt_path):
                 parser = configparser.ConfigParser()
                 parser.read("config.txt")
                 for section in parser.sections():
@@ -1301,7 +1308,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("check_participant_opened_devtools", bool)
         config.register("window_width", int)
         config.register("window_height", int)
-        config.register("supported_locales", list)
+        config.register("supported_locales", unicode, validators=[is_valid_json])
         config.register("allow_switching_locale", bool)
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
@@ -1696,11 +1703,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             template_name = "abort_not_possible.html"
             participant = None
             participant_abort_info = None
+            configuration = get_and_load_config()
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                if (
-                    participant.calculate_bonus()
-                    >= cls.new(db.session).var.min_accumulated_bonus_for_abort
+                if participant.calculate_bonus() >= configuration.get(
+                    "min_accumulated_bonus_for_abort"
                 ):
                     template_name = "abort_possible.html"
                     participant_abort_info = participant.abort_info()
@@ -1942,7 +1949,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if cls.new(db.session).var.show_bonus:
+        configuration = get_and_load_config()
+        if configuration.get("show_bonus"):
             performance_bonus = participant.performance_bonus
             basic_bonus = participant.time_credit.get_bonus()
             total_bonus = participant.calculate_bonus()
