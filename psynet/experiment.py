@@ -499,17 +499,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def base_payment(self):
-        config = get_config()
-        return config.get("base_payment")
+        configuration = get_config()
+        return configuration.get("base_payment")
 
     def get_initial_recruitment_size(self):
-        config = get_and_load_config()
-        return config.get("initial_recruitment_size")
+        configuration = get_and_load_config()
+        return configuration.get("initial_recruitment_size")
 
     @property
     def label(self):
-        config = get_and_load_config()
-        return config.get("label")
+        configuration = get_and_load_config()
+        return configuration.get("label")
 
     @property
     def var(self):
