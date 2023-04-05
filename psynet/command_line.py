@@ -828,10 +828,13 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
+    from .experiment import get_and_load_config
+
     cents = config.get("prolific_reward_cents")
     minutes = config.get("prolific_estimated_completion_minutes")
+    configuration = get_and_load_config()
     assert (
-        experiment.var.wage_per_hour * minutes / 60 == cents / 100
+        configuration.get("wage_per_hour") * minutes / 60 == cents / 100
     ), "Wage per hour does not match Prolific reward"
 
 
@@ -1228,20 +1231,18 @@ def is_editable(project):
 # estimate #
 ############
 def _estimate(mode):
-    from .experiment import import_local_experiment
+    from .experiment import get_and_load_config, import_local_experiment
 
     log(header)
     experiment_class = import_local_experiment()["class"]
-    experiment = setup_experiment_variables(experiment_class)
+    configuration = get_and_load_config()
+    wage_per_hour = configuration.get("wage_per_hour")
+
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(
-            experiment.var.wage_per_hour
-        )
+        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
         log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
-        completion_time = experiment_class.estimated_completion_time(
-            experiment.var.wage_per_hour
-        )
+        completion_time = experiment_class.estimated_completion_time(wage_per_hour)
         log(
             f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
         )
