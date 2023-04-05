@@ -1,3 +1,4 @@
+import configparser
 import json
 import os
 import shutil
@@ -8,6 +9,7 @@ import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
+from os.path import exists
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -20,7 +22,7 @@ import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
@@ -69,6 +71,7 @@ from .utils import (
     cache,
     call_function,
     call_function_with_context,
+    classproperty,
     disable_logger,
     error_page,
     get_arg_from_dict,
@@ -84,6 +87,9 @@ from .utils import (
 logger = get_logger()
 
 database_template_path = ".deploy/database_template.zip"
+
+
+INITIAL_RECRUITMENT_SIZE = 1
 
 
 def get_and_load_config():
@@ -244,6 +250,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
+    initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
+
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
@@ -257,9 +265,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        # Ignore the default initial_recruitment_size set by Dallinger
-        # and use our own (by default just taken from the class attribute)
-        self.initial_recruitment_size = self.get_initial_recruitment_size()
+        config_initial_recruitment_size = self.get_initial_recruitment_size()
+        initial_recruitment_size_config_changed = (
+            config_initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
+        )
+        initial_recruitment_size_experiment_changed = (
+            self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
+        )
+
+        assert not (
+            initial_recruitment_size_config_changed
+            and initial_recruitment_size_experiment_changed
+        ), "You have set the initial recruitment size in both the config file and in your experiment class."
+
+        if initial_recruitment_size_config_changed:
+            self.initial_recruitment_size = config_initial_recruitment_size
+        elif initial_recruitment_size_experiment_changed:
+            self.initial_recruitment_size = self.__class__.initial_recruitment_size
+        else:
+            raise RuntimeError(
+                "You have not set the initial recruitment size in either the config file or in your experiment class."
+            )
 
         if not self.label:
             raise RuntimeError(
@@ -506,13 +532,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.add(network)
             db.session.commit()
 
+    @classproperty
+    def config(cls):
+        return {}
+
     @classmethod
     def config_defaults(cls):
         """
         Override this classmethod to register new default values for config variables.
         Remember to call super!
         """
-        return {
+
+        configuration = {
             **super().config_defaults(),
             "host": "0.0.0.0",
             "base_payment": 0.10,
@@ -521,9 +552,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "protected_routes": json.dumps(_protected_routes),
-            "initial_recruitment_size": 1,
+            "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": os.path.basename(os.getcwd()),
         }
+
+        config = get_config()
+
+        config_txt = {}
+        if experiment_available():
+            config_txt_path = "config.txt"
+            if exists(config_txt_path):
+                parser = configparser.ConfigParser()
+                parser.read("config.txt")
+                for section in parser.sections():
+                    config_txt.update(dict(parser.items(section)))
+
+        for key, value in cls.config.items():
+            assert key not in config_txt, f"Config key {key} already registered."
+            assert key in config.types, f"Config key {key} not registered."
+            assert isinstance(
+                value, config.types[key]
+            ), f"Config key {key} has wrong type."
+            configuration[key] = value
+
+        return configuration
 
     @property
     def _default_variables(self):
@@ -532,12 +584,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
             "launch_finished": False,
+            "hard_max_experiment_payment_email_sent": False,
+            "soft_max_experiment_payment_email_sent": False,
+            "current_locale": get_language(),
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
-            "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment": 1000.0,
-            "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
             "min_accumulated_bonus_for_abort": 0.20,
             "show_abort_button": False,
@@ -549,7 +602,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "window_height": 768,
             "supported_locales": [],
             "currency": "$",
-            "current_locale": get_language(),
             "allow_switching_locale": True,
             "force_google_chrome": True,
             "force_incognito_mode": False,
