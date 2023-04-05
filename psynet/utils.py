@@ -509,9 +509,15 @@ def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
     """Render a template with translations applied."""
+    from psynet.experiment import get_and_load_config
 
     if all_template_args is None:
         all_template_args = {}
+
+    configuration = get_and_load_config()
+    configuration_dict = dict(configuration.as_dict().items())
+    all_template_args["configuration"] = configuration_dict
+
     assert [template_name, template_string].count(
         None
     ) == 1, "Only one of template_name or template_string should be provided."
