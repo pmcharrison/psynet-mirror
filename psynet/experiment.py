@@ -141,7 +141,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         class Exp(psynet.experiment.Experiment):
             variables = {
                 "new_variable": "some-value",  # Adding a new variable
-                "wage_per_hour": 12.0,         # Overriding an existing variable
             }
 
     These variables can then be changed in the course of experiment, just like (e.g.) participant variables.
