@@ -42,6 +42,7 @@ from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
+from .graphics import PsyNetLogo
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -285,6 +286,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
+    logos = []
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -607,6 +609,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_google_chrome": True,
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
+            "color_mode": "light",
         }
 
         config_object = get_config()
@@ -659,6 +662,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
         }
+
+    @property
+    def psynet_logo(self):
+        return PsyNetLogo()
 
     @property
     def start_experiment_in_popup_window(self):
@@ -1187,15 +1194,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/templates",
             ),
             (
-                resource_filename("psynet", "resources/favicon.ico"),
-                "/static/favicon.ico",
+                resource_filename("psynet", "resources/favicon.png"),
+                "/static/favicon.png",
+            ),
+            (
+                resource_filename("psynet", "resources/favicon.svg"),
+                "/static/favicon.svg",
             ),
             (
                 resource_filename("psynet", "resources/logo.png"),
                 "/static/images/logo.png",
             ),
             (
-                resource_filename("psynet", "resources/logo.svg"),
+                resource_filename("psynet", "resources/images/psynet.svg"),
                 "/static/images/logo.svg",
             ),
             (
@@ -1209,6 +1220,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             (
                 resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
                 "/static/scripts/dashboard_timeline.js",
+            ),
+            (
+                resource_filename("psynet", "resources/css/bootstrap.min.css"),
+                "/static/css/bootstrap.min.css",
             ),
             (
                 resource_filename("psynet", "resources/css/consent.css"),
@@ -1327,6 +1342,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
+
+        def color_mode_validator(value):
+            assert value in ["light", "dark", "auto"]
+
+        config.register("color_mode", bool, validators=[color_mode_validator])
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
