@@ -5,7 +5,7 @@
     }
 </style>
 
-{% for color, value in config.template_args.hidden_inputs.items() %}
+{% for color, value in params.template_args.hidden_inputs.items() %}
     <input type="hidden" value="{{ value }}" id="{{ color }}">
 {% endfor %}
 
