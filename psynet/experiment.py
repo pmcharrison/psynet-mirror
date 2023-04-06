@@ -573,7 +573,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Override this classmethod to register new default values for config variables.
         Remember to call super!
         """
-
         configuration = {
             **super().config_defaults(),
             "host": "0.0.0.0",
@@ -584,7 +583,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "protected_routes": json.dumps(_protected_routes),
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
-            "label": os.path.basename(os.getcwd()),
+            "label": deployment_info.read("folder_name"),
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",

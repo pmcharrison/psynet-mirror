@@ -12,6 +12,7 @@ def init(
     mode: bool,
     is_local_deployment: bool,
     is_ssh_deployment: bool,
+    folder_name: str,
 ):
     secret = uuid.uuid4()
     write_all(locals())
