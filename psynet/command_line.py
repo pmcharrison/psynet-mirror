@@ -615,7 +615,6 @@ def _pre_launch(
         mode=mode,
         is_local_deployment=local_,
         is_ssh_deployment=ssh,
-        folder_name=os.path.basename(os.getcwd()),
     )
 
     if ssh:
