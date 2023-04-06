@@ -314,7 +314,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if initial_recruitment_size_config_changed:
             self.initial_recruitment_size = config_initial_recruitment_size
         elif initial_recruitment_size_experiment_changed:
-            self.initial_recruitment_size = self.__class__.initial_recruitment_size
+            raise RuntimeError(
+                "You can no longer directly set the initial recruitment size in your experiment class, you need to "
+                "specify it in the config.txt file or in experiment.config"
+            )
         else:
             assert self.initial_recruitment_size == INITIAL_RECRUITMENT_SIZE
 
