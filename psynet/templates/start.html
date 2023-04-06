@@ -1,9 +1,28 @@
 {% extends "psynet_layout.html" %}
 
+{% block stylesheets %}
+    {{ super() }}
+    <style>
+
+    div {
+        width: 100%;
+        height: 100vh;
+    }
+    p {
+        font-size: 3em;
+        font-weight: 600;
+        text-align: center;
+        top: 50%;
+        width: 100%;
+        position: absolute;
+    }
+    </style>
+{% endblock %}
+
 {% block body %}
     {{super()}}
 
-    <div style="margin: 15%">
+    <div class="colorfadeanim">
         <p>
             {{ pgettext("start", "Starting experiment...") }}
         </p>

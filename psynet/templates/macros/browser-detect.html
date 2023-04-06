@@ -1,5 +1,6 @@
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"
-      xmlns="http://www.w3.org/1999/html">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" xmlns="http://www.w3.org/1999/html">
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 
 <style>
     #browser-compatibility-modal .modal-dialog {
@@ -132,7 +133,8 @@
 
 </style>
 
-
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="icon" type="image/png" href="/static/favicon.png">
 <script src="/static/scripts/platform.min.js"></script>
 <script src="/static/scripts/detectIncognito.min.js"></script>
 
@@ -187,7 +189,7 @@
 
 
             var out = '<div class="container">';
-            out += '<img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: none;">';
+            out += getPsyNetLogo();
             out += '<div class="alert alert-warning" role="alert">';
             out += '<h4 class="alert-heading">{{ pgettext("browser_compatibility", "Warning!") }}</h4>';
             out += '<p>' + warningMsg + '</p>';
@@ -249,11 +251,20 @@
             document.getElementById('browser-compatibility-modal').style.display = 'block'
         }
 
+        function getPsyNetLogo(){
+            var out = '<div class="row mb-3">';
+            out += '<div class="col">';
+            out += $('#psynet_logo')[0].innerHTML;
+            out += '</div>';
+            out += '</div>';
+            return out;
+        }
+
         function renderMobileWarning() {
             hideResumeModal();
 
             var out = '<div class="container">';
-            out += '<img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: none;">';
+            out += getPsyNetLogo();
             out += '<div class="alert alert-danger" role="alert">';
             out += '<p>';
             out += '{{ pgettext("browser_compatibility", "You cannot take part in the experiment from a mobile device.")}} ';
@@ -528,10 +539,10 @@
 
 
 <noscript>
-    <div class="modal bg-white" tabindex="-1" style="display:block">
+    <div class="modal" tabindex="-1" style="display:block">
         <div class="modal-body">
             <div class="container">
-                <img id="adlogo" class="my-3" src="/static/images/logo.png" alt="PsyNet logo"
+                <img id="adlogo" class="my-3" src="/static/images/logo.svg" alt="PsyNet logo"
                      style="width: 150px; float: none;">
                 <div class="alert alert-danger" role="alert">
                     {{ pgettext('browser_compatibility', 'This site requires JavaScript to function properly.') }}
@@ -596,7 +607,7 @@
 </noscript>
 
 
-<div id="browser-compatibility-modal" class="modal bg-white" tabindex="-1">
+<div id="browser-compatibility-modal" class="modal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div id="browser-compatibility-content" class="modal-body">

@@ -40,6 +40,7 @@ from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
+from .graphics import PsyNetLogo
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -239,6 +240,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     label = None
     initial_recruitment_size = 1
+    logos = []
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -539,7 +541,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_google_chrome": True,
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
+            "color_mode": "light",
         }
+
+    @property
+    def psynet_logo(self):
+        return PsyNetLogo()
 
     @property
     def start_experiment_in_popup_window(self):
@@ -1060,15 +1067,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/templates",
             ),
             (
-                resource_filename("psynet", "resources/favicon.ico"),
-                "/static/favicon.ico",
+                resource_filename("psynet", "resources/favicon.png"),
+                "/static/favicon.png",
+            ),
+            (
+                resource_filename("psynet", "resources/favicon.svg"),
+                "/static/favicon.svg",
             ),
             (
                 resource_filename("psynet", "resources/logo.png"),
                 "/static/images/logo.png",
             ),
             (
-                resource_filename("psynet", "resources/logo.svg"),
+                resource_filename("psynet", "resources/images/psynet.svg"),
                 "/static/images/logo.svg",
             ),
             (
@@ -1082,6 +1093,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             (
                 resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
                 "/static/scripts/dashboard_timeline.js",
+            ),
+            (
+                resource_filename("psynet", "resources/css/bootstrap.min.css"),
+                "/static/css/bootstrap.min.css",
             ),
             (
                 resource_filename("psynet", "resources/css/consent.css"),
