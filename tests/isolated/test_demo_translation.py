@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -20,7 +21,7 @@ EXPERIMENT = None
 class TestExp(object):
     def test_variables(self, db_session):
         config = get_and_load_config()
-        assert config.get("supported_locales") == '["en", "de", "nl"]'
+        assert json.loads(config.get("supported_locales")) == ["en", "de", "nl"]
         assert config.get("allow_switching_locale") is True
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):

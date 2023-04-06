@@ -53,6 +53,7 @@ from .recruiters import (  # noqa: F401
     StagingCapRecruiter,
 )
 from .redis import redis_vars
+from .serialize import serialize
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
@@ -601,7 +602,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
-            "supported_locales": "[]",
+            "supported_locales": [],
             "allow_switching_locale": True,
             "force_google_chrome": True,
             "force_incognito_mode": False,
@@ -634,6 +635,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             assert key in config_object.types, f"Config key {key} not registered."
             expected_type = config_object.types[key]
+            current_type = type(value)
+            if current_type not in config_object.SUPPORTED_TYPES:
+                value = serialize(value)
             assert isinstance(
                 value, expected_type
             ), f"Config key {key} has wrong type got {type(value)}, expected {expected_type}."
