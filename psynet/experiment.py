@@ -604,7 +604,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
-            "supported_locales": [],
+            "supported_locales": "[]",
             "allow_switching_locale": True,
             "force_google_chrome": True,
             "force_incognito_mode": False,
@@ -639,13 +639,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert key in config_object.types, f"Config key {key} not registered."
             expected_type = config_object.types[key]
             current_type = type(value)
-            if current_type not in config_object.SUPPORTED_TYPES:
+            if current_type != expected_type:
                 value = serialize(value)
             assert isinstance(
                 value, expected_type
             ), f"Config key {key} has wrong type got {type(value)}, expected {expected_type}."
             config[key] = value
-
         return config
 
     @property
@@ -1346,7 +1345,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         def color_mode_validator(value):
             assert value in ["light", "dark", "auto"]
 
-        config.register("color_mode", bool, validators=[color_mode_validator])
+        config.register("color_mode", unicode, validators=[color_mode_validator])
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
