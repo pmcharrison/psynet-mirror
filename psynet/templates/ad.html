@@ -31,7 +31,7 @@
         {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
     </p>
 
-    {% if not configuration.force_incognito_mode %}
+    {% if not config.force_incognito_mode %}
         <div class="alert alert-warning">
             <span style="font-weight: bold;">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
         </div>
@@ -41,7 +41,7 @@
     {{ pgettext("ad", "Begin Experiment") }}
     </button>
 
-    {% if configuration.show_abort_button %}
+    {% if config.show_abort_button %}
         <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
         {{ pgettext("ad", "Abort Experiment") }}
         </button>
@@ -76,8 +76,8 @@
             url,
             "Popup",
             "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no"
-            + ",width={{configuration.window_width}}"
-            + ",height={{configuration.window_height}}");
+            + ",width={{config.window_width}}"
+            + ",height={{config.window_height}}");
             event.target.setAttribute("disabled", "");
           } else{
             window.location = url;

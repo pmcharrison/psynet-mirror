@@ -71,7 +71,7 @@
 {% block body %}
     {% block header %}
         <div class="header">
-            {% if configuration.show_progress_bar %}
+            {% if config.show_progress_bar %}
                 <div class="progress">
                     <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
                          aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
@@ -174,7 +174,7 @@
     {% endblock %}
 
     {% block footer %}
-        {% if configuration.show_footer %}
+        {% if config.show_footer %}
             <style>
                 #footer {
                     background-color: rgb(49, 124, 246);
@@ -210,22 +210,22 @@
                 <div id="media-download-progress-bar"></div>
                 <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                        {% if configuration.show_bonus %}
+                        {% if config.show_bonus %}
                             <div class="footer-text">
                                 {{ pgettext("timeline", "Bonus") }}:
                                 <strong>
                                     <span id="bonus-details" style="display: none">
-                                        {{ configuration.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
-                                        {{ configuration.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
+                                        {{ config.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
+                                        {{ config.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
                                     </span>
                                     <span style="font-weight: bold">
-                                        {{ configuration.currency }}<span id="total-bonus">{{ total_bonus }}</span>
+                                        {{ config.currency }}<span id="total-bonus">{{ total_bonus }}</span>
                                     </span>
                                 </strong>
                             </div>
                         {% endif %}
 
-                        {% if configuration.allow_switching_locale and supported_language_dict|length > 1 %}
+                        {% if config.allow_switching_locale and supported_language_dict|length > 1 %}
                             <div>
                                 <select id="iso-language" class="form-control">
                                     {% for iso, language in supported_language_dict.items() %}
@@ -1689,7 +1689,7 @@
             return consoleOpen;
         }
 
-        {% if configuration.check_participant_opened_devtools %}
+        {% if config.check_participant_opened_devtools %}
             let warnedDevtools = false;
             setInterval(() => {
                 if (!warnedDevtools && isConsoleOpen()) {
