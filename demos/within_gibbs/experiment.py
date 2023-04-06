@@ -1,26 +1,15 @@
 import random
-import tempfile
-import time
 from typing import List, Union
 
-from dallinger import db
 from flask import Markup
-from sqlalchemy import Column, ForeignKey, Integer
-from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.asset import DebugStorage, ExperimentAsset
-from psynet.bot import Bot
+from psynet.asset import DebugStorage
 from psynet.consent import NoConsent
-from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.demography.general import ExperimentFeedback
-from psynet.modular_page import ModularPage, Prompt, PushButtonControl, SliderControl
+from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.participant import Participant
-from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
-from psynet.trial.main import TrialNode
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -124,21 +113,6 @@ class CustomTrial(GibbsTrial):
             CodeBlock(lambda participant: participant.var.set("test_variable", 123)),
         ]
 
-    def async_post_trial(self):
-        # You could put a time-consuming analysis here, perhaps one that generates a plot...
-        time.sleep(1)
-        self.var.async_post_trial_completed = True
-        with tempfile.NamedTemporaryFile("w") as file:
-            file.write(f"completed async_post_trial for trial {self.id}")
-            file.flush()
-            asset = ExperimentAsset(
-                label="async_post_trial",
-                input_path=file.name,
-                extension=".txt",
-                parent=self,
-            )
-            asset.deposit()
-
 
 class CustomNode(GibbsNode):
     vector_length = 3
@@ -150,21 +124,10 @@ class CustomNode(GibbsNode):
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
+    randomize_dimension_order_per_network = True
 
     # If we set this to True, then the performance check will wait until all async_post_trial processes have finished
     end_performance_check_waits = False
-
-    def prioritize_networks(self, networks, participant, experiment):
-        for network in networks:
-            network.alive_trials_at_degree = len(
-                TrialNode.query.filter_by(network_id=network.id)
-                .order_by(TrialNode.id)
-                .all()[-1]
-                .alive_trials
-            )
-
-        # Prioritize nodes with the most alive trials
-        return list(reversed(sorted(networks, key=lambda n: n.alive_trials_at_degree)))
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
@@ -188,62 +151,28 @@ class CustomTrialMaker(GibbsTrialMaker):
         return sorted(candidates, key=lambda x: x.id)
 
 
-start_nodes = [
-    CustomNode(context={"target": target}, participant_group=participant_group)
-    for target in TARGETS
-    for participant_group in ["A", "B"]
-]
-
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
-    start_nodes=start_nodes,
+    start_nodes=lambda: [CustomNode(context={"target": random.sample(TARGETS, 1)[0]})],
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
-    chain_type="across",  # can be "within" or "across"
+    chain_type="within",  # can be "within" or "across"
     expected_trials_per_participant=4,
     max_trials_per_participant=4,
-    max_nodes_per_chain=2,
-    chains_per_participant=None,  # set to None if chain_type="across"
-    chains_per_experiment=8,  # set to None if chain_type="within"
-    trials_per_node=2,
+    max_nodes_per_chain=10,
+    chains_per_participant=1,  # set to None if chain_type="across"
+    chains_per_experiment=None,  # set to None if chain_type="within"
+    trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="n_trials",
-    target_n_participants=None,
-    n_repeat_trials=3,
+    recruit_mode="n_participants",
+    target_n_participants=1,
+    n_repeat_trials=0,
     wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
-    choose_participant_group=lambda participant: participant.var.participant_group,
 )
-
-
-###################
-# This code is borrowed from the custom_table_simple demo.
-# It is totally irrelevant for the Gibbs implementation.
-# We just include it so we can test the export functionality
-# in the regression tests.
-@register_table
-class Coin(SQLBase, SQLMixin):
-    __tablename__ = "coin"
-
-    participant = relationship(Participant, backref="all_coins")
-    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
-
-    def __init__(self, participant):
-        self.participant = participant
-        self.participant_id = participant.id
-
-
-def collect_coin():
-    return CodeBlock(_collect_coin)
-
-
-def _collect_coin(participant):
-    coin = Coin(participant)
-    coin.var.test = "123"
-    db.session.add(coin)
 
 
 class Exp(psynet.experiment.Experiment):
@@ -253,33 +182,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        ModularPage(
-            "choose_network",
-            Prompt("What participant group would you like to join?"),
-            control=PushButtonControl(["A", "B"], arrange_vertically=False),
-            time_estimate=5,
-            save_answer="participant_group",
-            bot_response=lambda bot: ["A", "B"][bot.id % 2],
-        ),
         trial_maker,
-        collect_coin(),
-        ExperimentFeedback(),
         SuccessfulEndPage(),
     )
-
-    test_n_bots = 4
-
-    def test_check_bots(self, bots: List[Bot]):
-        time.sleep(2.0)
-
-        assert len([b for b in bots if b.var.participant_group == "A"]) == 2
-        assert len([b for b in bots if b.var.participant_group == "B"]) == 2
-
-        for b in bots:
-            assert len(b.alive_trials) == 7  # 4 normal trials + 3 repeat trials
-            assert all([t.finalized for t in b.alive_trials])
-
-        processes = AsyncProcess.query.all()
-        assert all([not p.failed for p in processes])
-
-        super().test_check_bots(bots)

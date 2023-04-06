@@ -1,0 +1,28 @@
+<style>
+    .main-body {
+        background-color: white;
+        padding: 30px;
+    }
+</style>
+
+{% for color, value in config.template_args.hidden_inputs.items() %}
+    <input type="hidden" value="{{ value }}" id="{{ color }}">
+{% endfor %}
+
+<script>
+    function pad(n) {
+        return (n.length < 2) ? "0" + n : n;
+    }
+
+    // Set the color
+    onSliderEvent = function (eventType) {
+        psynet.log.debug("Updating slider background");
+        var rHex = parseInt(document.getElementById('red').value, 10).toString(16),
+            gHex = parseInt(document.getElementById('green').value, 10).toString(16),
+            bHex = parseInt(document.getElementById('blue').value, 10).toString(16),
+            hex = "#" + pad(rHex) + pad(gHex) + pad(bHex);
+        document.body.style.backgroundColor = hex;
+    };
+
+    document.addEventListener("load", onSliderEvent);
+</script>
