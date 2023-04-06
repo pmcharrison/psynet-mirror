@@ -624,11 +624,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     config_txt.update(dict(parser.items(section)))
 
         for key, value in cls.config.items():
-            assert key not in config_txt, f"Config key {key} already registered."
+            assert key not in config_txt, (
+                f"Config variable {key} was registered both in config.txt and experiment.py. "
+                f"Please choose just one location."
+            )
+
             assert key in config_object.types, f"Config key {key} not registered."
+            expected_type = config_object.types[key]
             assert isinstance(
-                value, config_object.types[key]
-            ), f"Config key {key} has wrong type."
+                value, expected_type
+            ), f"Config key {key} has wrong type got {type(value)}, expected {expected_type}."
             config[key] = value
 
         return config
