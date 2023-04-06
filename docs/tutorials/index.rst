@@ -14,6 +14,7 @@ Tutorials
    graphics
    demography
    prescreening_tasks
+   create_and_rate
    pre_deploy_routines
    experiment_variables
    unity_integration

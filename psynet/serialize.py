@@ -2,6 +2,7 @@ import pickle
 import re
 from functools import cached_property
 
+import dominate.tags
 import flask
 import jsonpickle
 from jsonpickle import Pickler
@@ -164,3 +165,11 @@ class SQLHandler(jsonpickle.handlers.BaseHandler):
 
 
 jsonpickle.register(SQLBase, SQLHandler, base=True)
+
+
+class DominateHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, state):
+        return str(obj)
+
+
+jsonpickle.register(dominate.dom_tag.dom_tag, DominateHandler, base=True)

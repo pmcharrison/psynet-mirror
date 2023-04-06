@@ -45,7 +45,7 @@
         });
 
         start = function() {
-            {% if config.show_abort_button %}
+            {% if config.show_abort_button and experiment.start_experiment_in_popup_window %}
             if (window.opener !== null) {
                 window.opener.enableAbortButton();
             }

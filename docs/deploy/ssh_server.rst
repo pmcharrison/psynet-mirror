@@ -105,6 +105,15 @@ To login to the GitLab docker registry:
     you can probably continue without worrying about it. We are still working out
     the best way to deal with Docker credential management in PsyNet/Dallinger.
 
+You then need to do exactly the same `docker login` process but on your remote server.
+To do this, you need to open an SSH terminal to your server, if you haven't already:
+
+.. code:: bash
+
+    ssh your-username@your-server.ac.uk
+
+Then run the same `docker login` command that you ran previously.
+
 You then need to create a container registry in GitLab/GitHub. You can do it
 using their web interface. Note that, for now, you probably need to make it public
 (we are still working on private authentication), so make sure that you don't have to
