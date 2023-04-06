@@ -160,12 +160,12 @@ def psynet_loaded(driver):
     return False
 
 
-def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=10.0):
+def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0):
     def get_uuid():
         return driver.execute_script("return pageUuid")
 
     def click_button():
-        button = driver.find_element(By.ID, button_id)
+        button = driver.find_element(by, button_identifier)
         button.click()
 
     wait_until(
