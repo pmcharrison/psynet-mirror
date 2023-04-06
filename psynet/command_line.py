@@ -638,10 +638,27 @@ def _pre_launch(
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     if not archive:
-        if local_:
-            run_prepare_in_subprocess()
-        else:
-            ctx.invoke(prepare)
+        ctx.invoke(prepare)
+
+    _forget_tables_defined_in_experiment_directory()
+
+
+def _forget_tables_defined_in_experiment_directory():
+    # We need to instruct SQLAlchemy to forget tables defined in the experiment directory,
+    # because otherwise SQLAlchemy will get confused and throw errors when we run subsequent commands
+    # that import the same experiment from other locations (e.g. /tmp/dallinger_develop).
+
+    from dallinger.db import Base
+
+    tables_defined_in_experiment_directory = [
+        mapper.class_.__tablename__
+        for mapper in dallinger.db.Base.registry.mappers
+        if mapper.class_.__module__.startswith("dallinger_experiment")
+        and not mapper.class_.inherits_table
+    ]
+
+    for table in tables_defined_in_experiment_directory:
+        Base.metadata.remove(Base.metadata.tables[table])
 
 
 @psynet.group("deploy")
