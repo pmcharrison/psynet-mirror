@@ -658,6 +658,12 @@ class Trial(SQLMixinDallinger, Info):
         """
         raise NotImplementedError
 
+    def format_answer(self, raw_answer, **kwargs):
+        """
+        Optional function to be run after a trial is completed by the participant.
+        """
+        return raw_answer
+
     def call_async_post_trial(self):
         dallinger.experiment.load()
         db.session.commit()
@@ -896,7 +902,7 @@ class Trial(SQLMixinDallinger, Info):
             trial = participant.current_trial
             answer = participant.answer
 
-            trial.answer = answer
+            trial.answer = trial.format_answer(answer)
             trial.complete = True
             trial.response_id = participant.last_response_id
             trial.time_taken = trial.response.metadata["time_taken"]
@@ -2121,6 +2127,8 @@ class NetworkTrialMaker(TrialMaker):
                 trial = self._create_trial(
                     node=node, participant=participant, experiment=experiment
                 )
+                if trial is None:
+                    continue
                 trial_status = "available"
                 return trial, trial_status
         logger.info(
@@ -2168,6 +2176,12 @@ class NetworkTrialMaker(TrialMaker):
         """
         raise NotImplementedError
 
+    def get_trial_class(self, node, participant, experiment):
+        """
+        Returns the class of trial to be used for this trial maker.
+        """
+        return self.trial_class
+
     def find_node(self, network, participant, experiment):
         """
         Finds the node to which the participant should be attached for the next trial.
@@ -2190,7 +2204,10 @@ class NetworkTrialMaker(TrialMaker):
 
     @log_time_taken
     def _create_trial(self, node, participant, experiment):
-        trial = self.trial_class(
+        trial_class = self.get_trial_class(node, participant, experiment)
+        if trial_class is None:
+            return None
+        trial = trial_class(
             experiment=experiment,
             node=node,
             participant=participant,
