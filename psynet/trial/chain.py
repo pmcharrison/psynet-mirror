@@ -186,7 +186,7 @@ class ChainNetwork(TrialNetwork):
     ):
         super().__init__(trial_maker_id, experiment)
         db.session.add(self)
-        db.session.commit()
+        # db.session.commit()
 
         if participant is not None:
             self.id_within_participant = id_within_participant
@@ -212,14 +212,14 @@ class ChainNetwork(TrialNetwork):
 
         db.session.add(start_node)
         self.add_node(start_node)
-        db.session.commit()
+        # db.session.commit()
         start_node.check_on_create()
         start_node.check_on_deploy()
-        db.session.commit()
+        # db.session.commit()
 
         self.validate()
 
-        db.session.commit()
+        # db.session.commit()
 
     def validate(self):
         """
@@ -618,7 +618,7 @@ class ChainNode(TrialNode):
             experiment.assets.stage(asset)
             self.assets[label] = asset
 
-        db.session.commit()
+        # db.session.commit()
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -1559,7 +1559,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         start_node.set_network(network)
-        db.session.commit()  # TODO - remove this for efficiency?
+        # db.session.commit()  # TODO - remove this for efficiency?
         return network
 
     @log_time_taken
