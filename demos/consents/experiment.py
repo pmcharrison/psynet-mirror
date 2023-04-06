@@ -11,13 +11,14 @@ from psynet.consent import (
     PrincetonConsent,
     VoluntaryWithNoCompensationConsent,
 )
+from psynet.graphics import PrincetonLogo
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Consents demo"
-
+    logos = [PrincetonLogo()]
     timeline = Timeline(
         NoConsent(),
         MainConsent(),

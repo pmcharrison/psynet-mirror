@@ -1,65 +1,8 @@
 {% extends "macros.html" %}
 {% include "macros/browser-detect.html" %}
-
 {% block stylesheets %}
     {{ super() }}
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            padding-top: 100px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0, 0, 0);
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        #help-modal {
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background-color: white;
-            color: black;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-
-        .close {
-            color: #aaaaaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .loader {
-            border: 16px solid #f3f3f3; /* Light grey */
-            border-top: 16px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .vspace {
-            height: 25px;
-            margin: 0px
-        }
-    </style>
+    {% include "theme.html" %}
 
     {% for x in css %}
         <style>
@@ -82,7 +25,7 @@
         </div>
     {% endblock %}
 
-    <div id="main-body" style="padding: 5% 10% 5% 10%">
+    <div id="main-body" class="my-5 container">
         {% block main_body %}
 
             {% block above_progress_display %}
@@ -195,15 +138,6 @@
                     margin: 0px;
                 }
 
-                #help-button {
-                    min-width: 50px;
-                    background-color: white;
-                    color: black
-                }
-
-                #help-button:hover {
-                    background-color: rgb(234, 236, 239);
-                }
             </style>
 
             <nav id="footer" class="navbar fixed-bottom">
@@ -218,7 +152,7 @@
                                         {{ currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
                                         {{ currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
                                     </span>
-                                    <span style="font-weight: bold">
+                                    <span class="fw-bold">
                                         {{ currency }}<span id="total-bonus">{{ total_bonus }}</span>
                                     </span>
                                 </strong>
@@ -238,7 +172,7 @@
                                 </select>
                             </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary"
+                        <button type="button" class="btn btn-light"
                                 id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
                 </div>
@@ -772,6 +706,7 @@
                         var progress = psynet.media.downloadProgress.getTotal();
                         bar.style.width = Math.round(progress) + "%";
                         if (progress === 100) {
+                            bar.classList.remove("colorfadeanim");
                             // You could do something here once loading is complete,
                             // e.g. delete progress bar text
                         }
@@ -871,9 +806,12 @@
                     }
                     let requests = psynet.media.requests;
                     let mediaTypes = Object.keys(requests);
+                    let bar = psynet.media.downloadProgress.bar();
+                    bar.classList.add("colorfadeanim");
                     await Promise.all(
                         mediaTypes.map((x) => processRequests(x, requests[x]))
                     );
+                    bar.classList.remove("colorfadeanim");
                 };
 
                 let initMediaType = function (mediaType) {

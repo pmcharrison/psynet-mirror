@@ -1100,7 +1100,10 @@ class Page(Elt):
             "force_google_chrome": experiment.var.force_google_chrome,
             "force_incognito_mode": experiment.var.force_incognito_mode,
             "allow_mobile_devices": experiment.var.allow_mobile_devices,
+            "color_mode": experiment.var.color_mode,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
+            "logos": experiment.logos,
+            "psynet_logo": experiment.psynet_logo,
         }
         return render_string_with_translations(
             template_string=self.template_str, locale=locale, **all_template_args

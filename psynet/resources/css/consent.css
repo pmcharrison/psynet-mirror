@@ -7,9 +7,8 @@
 }
 
 .consent-gradient {
-    background: linear-gradient(to top, rgb(255 255 255) 0%, rgb(255 255 255) 62%, rgb(251 251 251 / 22%) 68%, rgba(125, 185, 232, 0) 100%);
-    z-index: 10000;
-    bottom: 60px;
+    z-index: 100;
+    bottom: 57px;
     padding: 0% 10% 20px 10%;
 }
 
