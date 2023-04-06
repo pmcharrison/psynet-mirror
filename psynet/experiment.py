@@ -576,7 +576,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         try:
             folder_name = deployment_info.read("folder_name")
-        except KeyError:
+        except (KeyError, FileNotFoundError):
             folder_name = os.path.basename(os.getcwd())
 
         config = {
