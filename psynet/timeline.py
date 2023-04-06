@@ -1063,7 +1063,7 @@ class Page(Elt):
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
-        configuration = get_and_load_config()
+        config = get_and_load_config()
 
         all_template_args = {
             **self.template_arg,
@@ -1091,7 +1091,7 @@ class Page(Elt):
             "contents": self.contents,
             "supported_language_dict": {
                 iso: language_dict[iso]
-                for iso in json.loads(configuration.get("supported_locales"))
+                for iso in json.loads(config.get("supported_locales"))
             },
             "current_locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,

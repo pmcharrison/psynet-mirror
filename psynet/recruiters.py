@@ -188,8 +188,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
 
         experiment = dallinger.experiment.load().new(db.session)
-        configuration = get_and_load_config()
-        wage_per_hour = configuration.get("wage_per_hour")
+        wage_per_hour = get_and_load_config().get("wage_per_hour")
         create_survey_request_params = {
             "bid_length_of_interview": ceil(
                 experiment.estimated_completion_time(wage_per_hour) / 60

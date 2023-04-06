@@ -597,8 +597,7 @@ class TimeCreditStore:
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
-        configuration = get_and_load_config()
-        self.wage_per_hour = configuration.get("wage_per_hour")
+        self.wage_per_hour = get_and_load_config().get("wage_per_hour")
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(

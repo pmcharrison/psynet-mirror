@@ -498,17 +498,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def base_payment(self):
-        configuration = get_config()
-        return configuration.get("base_payment")
+        return get_config().get("base_payment")
 
     def get_initial_recruitment_size(self):
-        configuration = get_and_load_config()
-        return configuration.get("initial_recruitment_size")
+        return get_and_load_config().get("initial_recruitment_size")
 
     @property
     def label(self):
-        configuration = get_and_load_config()
-        return configuration.get("label")
+        return get_and_load_config().get("label")
 
     @property
     def var(self):
@@ -573,7 +570,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Override this classmethod to register new default values for config variables.
         Remember to call super!
         """
-        configuration = {
+
+        try:
+            folder_name = deployment_info.read("folder_name")
+        except KeyError:
+            folder_name = os.path.basename(os.getcwd())
+
+        config = {
             **super().config_defaults(),
             "host": "0.0.0.0",
             "base_payment": 0.10,
@@ -583,7 +586,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "protected_routes": json.dumps(_protected_routes),
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
-            "label": deployment_info.read("folder_name"),
+            "label": folder_name,
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",
@@ -602,7 +605,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "allow_mobile_devices": False,
         }
 
-        config = get_config()
+        config_object = get_config()
 
         config_txt = {}
         if experiment_available():
@@ -622,13 +625,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         for key, value in cls.config.items():
             assert key not in config_txt, f"Config key {key} already registered."
-            assert key in config.types, f"Config key {key} not registered."
+            assert key in config_object.types, f"Config key {key} not registered."
             assert isinstance(
-                value, config.types[key]
+                value, config_object.types[key]
             ), f"Config key {key} has wrong type."
-            configuration[key] = value
+            config[key] = value
 
-        return configuration
+        return config
 
     @property
     def _default_variables(self):
@@ -704,10 +707,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def estimated_bonus_in_dollars(self):
+        wage_per_hour = get_and_load_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(
                 mode="bonus",
-                wage_per_hour=self.variables_initial_values["wage_per_hour"],
+                wage_per_hour=wage_per_hour,
             ),
             2,
         )
@@ -1701,10 +1705,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             template_name = "abort_not_possible.html"
             participant = None
             participant_abort_info = None
-            configuration = get_and_load_config()
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                if participant.calculate_bonus() >= configuration.get(
+                if participant.calculate_bonus() >= get_and_load_config().get(
                     "min_accumulated_bonus_for_abort"
                 ):
                     template_name = "abort_possible.html"
@@ -1947,8 +1950,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        configuration = get_and_load_config()
-        if configuration.get("show_bonus"):
+        if get_and_load_config().get("show_bonus"):
             performance_bonus = participant.performance_bonus
             basic_bonus = participant.time_credit.get_bonus()
             total_bonus = participant.calculate_bonus()

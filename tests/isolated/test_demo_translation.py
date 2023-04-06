@@ -19,9 +19,9 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_variables(self, db_session):
-        configuration = get_and_load_config()
-        assert configuration.get("supported_locales") == '["en", "de", "nl"]'
-        assert configuration.get("allow_switching_locale") is True
+        config = get_and_load_config()
+        assert config.get("supported_locales") == '["en", "de", "nl"]'
+        assert config.get("allow_switching_locale") is True
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):

@@ -833,9 +833,9 @@ def check_prolific_payment(experiment, config):
 
     cents = config.get("prolific_reward_cents")
     minutes = config.get("prolific_estimated_completion_minutes")
-    configuration = get_and_load_config()
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
     assert (
-        configuration.get("wage_per_hour") * minutes / 60 == cents / 100
+        wage_per_hour * minutes / 60 == cents / 100
     ), "Wage per hour does not match Prolific reward"
 
 
@@ -1236,8 +1236,7 @@ def _estimate(mode):
 
     log(header)
     experiment_class = import_local_experiment()["class"]
-    configuration = get_and_load_config()
-    wage_per_hour = configuration.get("wage_per_hour")
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
 
     if mode in ["bonus", "both"]:
         maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)

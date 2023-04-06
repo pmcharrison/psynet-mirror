@@ -514,9 +514,7 @@ def _render_with_translations(
     if all_template_args is None:
         all_template_args = {}
 
-    configuration = get_and_load_config()
-    configuration_dict = dict(configuration.as_dict().items())
-    all_template_args["configuration"] = configuration_dict
+    all_template_args["config"] = dict(get_and_load_config().as_dict().items())
 
     assert [template_name, template_string].count(
         None

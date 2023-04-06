@@ -26,10 +26,10 @@ class TestExp(object):
         exp = get_experiment()
         assert exp.var.new_variable == "some-value"
 
-        configuration = get_and_load_config()
-        assert configuration.get("wage_per_hour") == 12.0
-        assert configuration.get("min_accumulated_bonus_for_abort") == 0.15
-        assert configuration.get("show_abort_button") is True
+        config = get_and_load_config()
+        assert config.get("wage_per_hour") == 12.0
+        assert config.get("min_accumulated_bonus_for_abort") == 0.15
+        assert config.get("show_abort_button") is True
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
