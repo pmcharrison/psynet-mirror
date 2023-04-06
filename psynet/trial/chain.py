@@ -599,10 +599,7 @@ class ChainNode(TrialNode):
         raise NotImplementedError
 
     def stage_assets(self, experiment):
-        self.assets = {}
-
-        # if self.network:
-        #     self.assets.update(**self.network.assets)
+        # self.assets = {}
 
         for label, asset in self._staged_assets.items():
             if asset.label is None:
@@ -617,8 +614,6 @@ class ChainNode(TrialNode):
 
             experiment.assets.stage(asset)
             self.assets[label] = asset
-
-        # db.session.commit()
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -1534,10 +1529,15 @@ class ChainTrialMaker(NetworkTrialMaker):
                 )
         else:
             nodes = [None for _ in range(self.chains_per_experiment)]
+
         for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
+        db.session.commit()
+
+        for node in tqdm(nodes, desc="Staging assets"):
             if node is not None:
                 node.stage_assets(experiment)
+        db.session.commit()
 
     def create_network(
         self, experiment, participant=None, id_within_participant=None, start_node=None
