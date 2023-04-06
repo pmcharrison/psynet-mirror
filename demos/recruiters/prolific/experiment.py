@@ -1,30 +1,19 @@
 # pylint: disable=unused-import,abstract-method
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.demography.general import BasicDemography
 from psynet.page import SuccessfulEndPage
-from psynet.prescreen import AttentionTest, HeadphoneTest
+from psynet.prescreen import AttentionTest, HugginsHeadphoneTest
 from psynet.timeline import Timeline
 
-##########################################################################################
-# Experiment
-##########################################################################################
 
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Prolific demo"
 
     timeline = Timeline(
         NoConsent(),
-        HeadphoneTest(),
+        HugginsHeadphoneTest(),
         BasicDemography(),
         AttentionTest(),
         SuccessfulEndPage(),

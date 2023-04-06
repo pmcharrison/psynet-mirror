@@ -55,9 +55,6 @@ def check_continue():
     )
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Custom table (simple) demo"
 

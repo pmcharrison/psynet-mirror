@@ -856,11 +856,13 @@
 
     {% if config.submit_button %}
         {{ null(config) }}
+
     {% endif %}
 
     <script>
         {% include "macros/control/audio_meter.js" %}
         audioMeterControl.init('{{ config.to_json() }}');
+
     </script>
 {% endmacro %}
 
@@ -1084,7 +1086,6 @@
 
 {% macro audio_record(config) %}
     {{ generic_record(config) }}
-
     {{ null(config) }}
 
     <script>
@@ -1142,6 +1143,8 @@
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audioContext.createMediaStreamSource(stream);
+                let microphoneMetadata = psynet.media.getMicrophoneMetadataFromAudioStream(stream);
+                Object.assign(psynet.response.staged.metadata, microphoneMetadata);
                 recorder = new Recorder(input, channelCount);
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
@@ -1517,9 +1520,26 @@
         survey.focusFirstQuestionAutomatic = false;
         survey.showCompletedPage = false;
 
-        function submitSurveyResults (sender) {
+        function handleSurveyCompletion(sender, options) {
+            // Setting these options instructs SurveyJS to cancel the current completion code,
+            // and allow us to handle it ourselves.
+            // We need this slightly convoluted approach because SurveyJS doesn't allow you to place
+            // async code within its own validation functions.
+            // See https://github.com/surveyjs/survey-library/issues/1242 for a discussion.
+            options.allowComplete = false;
+            options.allowCompleting = false;
+            asyncPostResults(sender);
+        }
+
+        async function asyncPostResults(sender, options) {
+            survey.onCompleting.remove(handleSurveyCompletion);
             const results = JSON.stringify(sender.data);
-            psynet.nextPage(results);
+            const success = await psynet.nextPage(results);
+            if (success) {
+                sender.doComplete();
+            } else {
+                survey.onCompleting.add(handleSurveyCompletion);
+            }
         }
 
         survey.onAfterRenderPage.add(() => {
@@ -1528,7 +1548,7 @@
                 $(".sd-navigation__complete-btn").attr("disabled", true);
             }
         });
-        survey.onComplete.add(submitSurveyResults);
+        survey.onCompleting.add(handleSurveyCompletion);
 
         $(function() {
             $("#surveyContainer").Survey({ model: survey });

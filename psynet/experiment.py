@@ -25,7 +25,7 @@ from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import ProlificRecruiter
+from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request
@@ -346,7 +346,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         pass
 
-    test_num_bots = 1
+    test_n_bots = 1
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -356,7 +356,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
     def test_create_bots(self):
-        return [Bot() for _ in range(self.test_num_bots)]
+        return [Bot() for _ in range(self.test_n_bots)]
 
     def test_run_bots(self, bots):
         for bot in bots:
@@ -507,6 +507,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
+            "protected_routes": json.dumps(_protected_routes),
         }
 
     @property
@@ -535,7 +536,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "currency": "$",
             "current_locale": get_language(),
             "allow_switching_locale": True,
+            "force_google_chrome": True,
+            "force_incognito_mode": False,
+            "allow_mobile_devices": False,
         }
+
+    @property
+    def start_experiment_in_popup_window(self):
+        if self.var.has("start_experiment_in_popup_window"):
+            # This is for simulating pop up behaviour in psynet demo tests
+            return self.var.get("start_experiment_in_popup_window")
+        elif hasattr(self.recruiter, "start_experiment_in_popup_window"):
+            return self.recruiter.start_experiment_in_popup_window
+        elif isinstance(self.recruiter, MTurkRecruiter):
+            return True
+
+        else:
+            return False
 
     @property
     def description(self):
@@ -1088,15 +1105,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             (
                 resource_filename(
+                    "psynet",
+                    "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
+                ),
+                "/static/scripts/detectIncognito.min.js",
+            ),
+            (
+                resource_filename(
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
                 resource_filename(
-                    "psynet", "resources/libraries/jQuery-Knob/dist/jquery.knob.min.js"
+                    "psynet", "resources/libraries/jQuery-Knob/js/jquery.knob.js"
                 ),
-                "/static/scripts/jquery.knob.min.js",
+                "/static/scripts/jquery.knob.js",
             ),
             (
                 resource_filename("psynet", "resources/libraries/js-synthesizer"),
@@ -1157,6 +1181,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("lucid_recruitment_config", unicode)
         config.register("debug_storage_root", unicode)
         config.register("default_export_root", unicode)
+        config.register("enable_google_search_console", bool)
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
@@ -1268,6 +1293,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The corresponding participant object.
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
+
+    @experiment_route("/google3580fca13e19b596.html")
+    @staticmethod
+    def google_search_console():
+        """
+        This route is disabled by default, but can be enabled by setting
+        `enable_google_search_console = true` in config.txt.
+        Enabling this route allows the site to be claimed in the Google Search Console
+        dashboard of the computational.audition@gmail.com Google account.
+        This allows the account to investigate and debug Chrome warnings
+        (e.g. 'Deceptive website ahead'). See https://search.google.com/u/4/search-console.
+        """
+        config = get_config()
+        if config.get("enable_google_search_console", default=False):
+            return render_template("google3580fca13e19b596.html")
+        else:
+            return flask.Response(
+                (
+                    "Google search console verification is disabled, "
+                    "you can activate it by setting enable_google_search_console = true in config.txt.",
+                ),
+                status=404,
+            )
 
     @experiment_route("/consent")
     @staticmethod
@@ -1954,3 +2002,26 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+# Dallinger defines various HTTP routes that provide access to database content.
+# We disable the following HTTP routes in PsyNet experiments because they could
+# in theory leak personal data or be used to manipulate the state of the
+# experiment. Most data should instead be transferred via authenticated PsyNet routes.
+_protected_routes = [
+    "/network/<network_id>",
+    "/question/<participant_id>",
+    "/node/<int:node_id>/neighbors",
+    "/node/<participant_id>",
+    "/node/<int:node_id>/vectors",
+    "/node/<int:node_id>/connect/<int:other_node_id>",
+    "/info/<int:node_id>/<int:info_id>",
+    "/node/<int:node_id>/infos",
+    "/node/<int:node_id>/received_infos",
+    "/tracking_event/<int:node_id>",
+    "/info/<int:node_id>",
+    "/node/<int:node_id>/transmissions",
+    "/node/<int:node_id>/transmit",
+    "/node/<int:node_id>/transformations",
+    "/transformation/<int:node_id>/<int:info_in_id>/<int:info_out_id>",
+]

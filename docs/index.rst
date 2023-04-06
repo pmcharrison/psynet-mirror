@@ -34,15 +34,16 @@ but see the sidebar for a full list.
    introduction/applications
    introduction/history
    introduction/team
+   introduction/how_to_learn
+   introduction/command_line
 
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Architecture
+   :caption: Dependencies
 
-   architecture/dallinger
-   architecture/docker
-   architecture/web_servers
+   dependencies/dallinger
+   dependencies/docker
 
 .. toctree::
    :hidden:
@@ -60,6 +61,7 @@ but see the sidebar for a full list.
    :hidden:
    :caption: EXPERIMENT DEVELOPMENT
 
+   development_workflow
    demos/index
 
 .. toctree::
@@ -82,7 +84,12 @@ but see the sidebar for a full list.
    :hidden:
    :caption: DEPLOYING
 
+   deploy/web_servers
    deploy/aws_server_setup
+   deploy/ssh_server
+   deploy/heroku_server
+   deploy/prolific
+   deploy/export
 
 .. toctree::
    :maxdepth: 2

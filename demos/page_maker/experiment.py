@@ -8,9 +8,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Page maker demo"
 

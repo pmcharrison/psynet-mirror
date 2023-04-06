@@ -16,6 +16,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.sql.expression import not_, select
+from tqdm import tqdm
 
 from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
@@ -1208,7 +1209,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
@@ -1533,7 +1534,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 )
         else:
             nodes = [None for _ in range(self.chains_per_experiment)]
-        for node in nodes:  # type: ChainNode
+        for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
             if node is not None:
                 node.stage_assets(experiment)

@@ -1,10 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-##########################################################################################
-# Imports
-##########################################################################################
-
-
 import psynet.experiment
 from psynet.asset import DebugStorage
 from psynet.bot import Bot

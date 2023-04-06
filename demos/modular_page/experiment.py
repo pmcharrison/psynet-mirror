@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 from typing import Union
 
 from flask import Markup
@@ -22,10 +18,6 @@ from psynet.modular_page import (
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.utils import NoArgumentProvided
-
-##########################################################################################
-# Experiment
-##########################################################################################
 
 
 class HelloPrompt(Prompt):
@@ -58,9 +50,6 @@ class ColorText(Control):
         return "Hello, I am a bot!"
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Modular page demo"
 

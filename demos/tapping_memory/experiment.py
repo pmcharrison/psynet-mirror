@@ -5,8 +5,6 @@ from statistics import mean
 import numpy as np
 from flask import Markup
 from repp.config import ConfigUpdater, sms_tapping
-
-# repp imports
 from reppextension.iterated_tapping import (
     REPPAnalysisItapMemory,
     REPPStimulusItapMemory,

@@ -437,6 +437,7 @@ class GibbsTrialMaker(ChainTrialMaker):
     """
 
     randomize_dimension_order_per_network = False
+    performance_check_type = "consistency"
 
     def check_initialization(self):
         super().check_initialization()

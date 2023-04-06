@@ -1,11 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-# Note: parselmouth must be installed with pip install praat-parselmouth
-
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
 
 from flask import Markup
@@ -137,14 +131,6 @@ trial_maker = CustomTrialMaker(
 )
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Complex audio Gibbs sampling demo"
     asset_storage = DebugStorage()
