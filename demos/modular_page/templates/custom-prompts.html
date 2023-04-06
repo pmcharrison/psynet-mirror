@@ -1,6 +1,6 @@
-{% macro with_hello(config) %}
-    <h1>Hello, {{ config.username }}!</h1>
+{% macro with_hello(params) %}
+    <h1>Hello, {{ params.username }}!</h1>
 
-    {{ psynet_prompts.simple(config) }}
+    {{ psynet_prompts.simple(params) }}
 
 {% endmacro %}

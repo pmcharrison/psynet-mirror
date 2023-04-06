@@ -1,40 +1,40 @@
-{% macro graphic_(config) %}
+{% macro graphic_(params) %}
     <style>
-        #graphic-{{ config.id }}-container {
+        #graphic-{{ params.id }}-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: {{ config.margin }};
+            margin: {{ params.margin }};
         }
-        #graphic-{{ config.id }} {
-            border-style: {{ config.border_style }};
-            border-color: {{ config.border_color }};
-            border-width: {{ config.border_width }};
-            height: {{ config.viewport_width * 100}}%;
-            width: {{ config.viewport_width * 100 }}%;
+        #graphic-{{ params.id }} {
+            border-style: {{ params.border_style }};
+            border-color: {{ params.border_color }};
+            border-width: {{ params.border_width }};
+            height: {{ params.viewport_width * 100}}%;
+            width: {{ params.viewport_width * 100 }}%;
         }
     </style>
 
-    <div id="graphic-{{ config.id }}-container">
-        <div id="graphic-{{ config.id }}"> </div>
+    <div id="graphic-{{ params.id }}-container">
+        <div id="graphic-{{ params.id }}"> </div>
     </div>
 
     <script src="/static/scripts/raphael-2.3.0.min.js"></script>
 
     <script>
-        let graphic_{{ config.id }} = {
-            id: "{{ config.id }}",
-            paper: new Raphael("graphic-{{ config.id }}"),
-            paperHtml: $("#graphic-{{ config.id }}"),
+        let graphic_{{ params.id }} = {
+            id: "{{ params.id }}",
+            paper: new Raphael("graphic-{{ params.id }}"),
+            paperHtml: $("#graphic-{{ params.id }}"),
             objects: {}
         };
 
         (function() {
-            let {id, paper, paperHtml, objects} = graphic_{{ config.id }};
-            let loop = {% if config.loop %} true {% else %} false {% endif %};
+            let {id, paper, paperHtml, objects} = graphic_{{ params.id }};
+            let loop = {% if params.loop %} true {% else %} false {% endif %};
             let blueprintDim = [
-                {{ config.dimensions[0] }},
-                {{ config.dimensions[1] }}
+                {{ params.dimensions[0] }},
+                {{ params.dimensions[1] }}
             ];
             let cursorLocation = null;
 
@@ -61,7 +61,7 @@
             }
 
             let frames = [];
-            {% for frame in config.frames %}
+            {% for frame in params.frames %}
                 frames.push({
                     duration: {% if frame.duration is not none %} {{ 1000 * frame.duration }} {% else %} null {% endif %},
                     function: function() {
@@ -176,12 +176,12 @@
             let startSequence = function() {
                 queueFrame(0);
 
-                {% if config.auto_advance_after is defined and config.auto_advance_after is not none %}
+                {% if params.auto_advance_after is defined and params.auto_advance_after is not none %}
                     setTimeout(function() {
                         let clickedObject = null;
                         let clickCoordinates = null;
                         submitAnswer(clickedObject, clickCoordinates);
-                    }, 1000 * {{ config.auto_advance_after }});
+                    }, 1000 * {{ params.auto_advance_after }});
                 {% endif %}
             };
 
