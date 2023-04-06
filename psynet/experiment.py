@@ -240,6 +240,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     label = None
     initial_recruitment_size = 1
+    logos = []
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -545,10 +546,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @property
     def psynet_logo(self):
         return PsyNetLogo()
-
-    @property
-    def lab_logos(self):
-        return []
 
     @property
     def start_experiment_in_popup_window(self):

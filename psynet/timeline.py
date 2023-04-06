@@ -1102,7 +1102,7 @@ class Page(Elt):
             "allow_mobile_devices": experiment.var.allow_mobile_devices,
             "color_mode": experiment.var.color_mode,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
-            "lab_logos": experiment.lab_logos,
+            "logos": experiment.logos,
             "psynet_logo": experiment.psynet_logo,
         }
         return render_string_with_translations(
