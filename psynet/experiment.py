@@ -693,7 +693,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = get_and_load_config()
 
         for key, value in self.variables.items():
-            assert key not in list(config.keys()), (
+            assert key not in list(config.as_dict().keys()), (
                 f"Variable {key} is a config variable and should solely be specified in the config.txt or in "
                 "experiment.config but NOT as experiment variable."
             )
