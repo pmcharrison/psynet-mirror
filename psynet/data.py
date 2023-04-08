@@ -69,19 +69,9 @@ def _get_superclasses_by_table():
     A dictionary where the keys enumerate the different tables in the database
     and the values correspond to the superclasses for each of those tables.
     """
-    # try:
-    #     mappers = list(db.Base.registry.mappers)
-    # except Exception:
-    #     import pydevd_pycharm
-    #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-    # mapped_classes = [m.class_ for m in mappers]
 
     mappers = list(db.Base.registry.mappers)
     mapped_classes = [m.class_ for m in mappers]
-
-    # candidate_classes = {x.class_ for x in list(dict(db.Base.registry._managers))}
-    # candidate_classes = organize_by_key(candidate_classes, lambda x: x.__name__)
-    # mapped_classes = [classes[0] for classes in candidate_classes.values()]
 
     mapped_classes_by_table = organize_by_key(mapped_classes, lambda x: x.__tablename__)
     superclasses_by_table = {
@@ -172,43 +162,6 @@ def _get_preferred_superclass_version(cls):
     return cls
 
 
-def _db_class_instances_to_dicts(cls, scrub_pii: bool):
-    """
-    Given a class, retrieves all instances of that class from the database,
-    encodes them as JSON-style dictionaries, and returns the resulting list.
-
-    Parameters
-    ----------
-    cls
-        Class to retrieve.
-
-    scrub_pii
-        Whether to remove personally identifying information.
-
-    Returns
-    -------
-
-    List of dictionaries corresponding to JSON-encoded objects.
-
-    """
-    primary_keys = [c.name for c in cls.__table__.primary_key.columns]
-    obj_sql = (
-        cls.query
-        .order_by(*primary_keys)
-        .options(undefer("*"))
-        .all()
-    )
-    if len(obj_sql) == 0:
-        print(f"{cls.__name__}: skipped (nothing to export)")
-        return []
-    else:
-        obj_dict = [
-            _db_instance_to_dict(obj, scrub_pii)
-            for obj in tqdm(obj_sql, desc=cls.__name__)
-        ]
-        return obj_dict
-
-
 def _db_instance_to_dict(obj, scrub_pii: bool):
     """
     Converts an ORM-mapped instance to a JSON-style representation.
@@ -256,12 +209,51 @@ def _prepare_db_export(scrub_pii):
     The keys correspond to the most-specific available class names,
     e.g. ``CustomNetwork`` as opposed to ``Network``.
     """
-    superclasses = list(_get_superclasses_by_table().values())
-    superclasses.sort(key=lambda cls: cls.__name__)
-    res = []
-    for superclass in superclasses:
-        res.extend(_db_class_instances_to_dicts(superclass, scrub_pii))
-    res = organize_by_key(res, key=lambda x: x["class"])
+    tables = get_db_tables().values()
+    table_superclasses = _get_superclasses_by_table()
+    mapped_classes = {m.class_.__name__: m.class_ for m in db.Base.registry.mappers}
+    res = {}
+
+    for table in tables:
+        primary_keys = [c.name for c in table.primary_key.columns]
+
+        if "type" in table.columns:
+            # If present, the 'type' column indicates the class of the object represented by the table row.
+            # For best SQLAlchemy performance, we query each of these classes separately.
+            cls_names = [r.type for r in db.session.query(table.columns.type).distinct().all()]
+            for cls_name in cls_names:
+                cls = mapped_classes[cls_name]
+                obj_sql = (
+                    cls.query
+                    .filter_by(type=cls_name)
+                    .order_by(*primary_keys)
+                    .options(undefer("*"))
+                    .all()
+                )
+                obj_dict = [
+                    _db_instance_to_dict(obj, scrub_pii)
+                    for obj in tqdm(obj_sql, desc=cls_name)
+                ]
+                res[cls_name] = obj_dict
+        else:
+            # In the absence of a 'type' column, we find a single superclass that covers the whole table,
+            # and query that class.
+            cls = table_superclasses[table.name]
+            cls_name = cls.__name__
+            obj_sql = (
+                cls.query
+                .order_by(*primary_keys)
+                .options(undefer("*"))
+                .all()
+            )
+            if len(obj_sql) == 0:
+                obj_dict = []
+            else:
+                obj_dict = [
+                    _db_instance_to_dict(obj, scrub_pii)
+                    for obj in tqdm(obj_sql, desc=cls_name)
+                ]
+            res[cls_name] = obj_dict
     return res
 
 
@@ -358,23 +350,23 @@ class SQLMixinDallinger(SharedMixin):
 
         x = {c: getattr(self, c) for c in self.sql_columns}
 
-        x["class"] = self.__class__.__name__
-
-        # This is a little hack we do for compatibility with the Dallinger
-        # network visualization, which relies on sources being explicitly labeled.
-        if isinstance(self, ChainNode) and self.degree == 0:
-            x["type"] = "TrialSource"
-        else:
-            x["type"] = x["class"]
-
-        # Dallinger also needs us to set a parameter called ``object_type``
-        # which is used to determine the visualization method.
-        base_class = get_sql_base_class(self)
-        x["object_type"] = base_class.__name__ if base_class else x["type"]
-
-        field.json_add_extra_vars(x, self)
-        field.json_clean(x, details=True)
-        field.json_format_vars(x)
+        # x["class"] = self.__class__.__name__
+        #
+        # # This is a little hack we do for compatibility with the Dallinger
+        # # network visualization, which relies on sources being explicitly labeled.
+        # if isinstance(self, ChainNode) and self.degree == 0:
+        #     x["type"] = "TrialSource"
+        # else:
+        #     x["type"] = x["class"]
+        #
+        # # Dallinger also needs us to set a parameter called ``object_type``
+        # # which is used to determine the visualization method.
+        # base_class = get_sql_base_class(self)
+        # x["object_type"] = base_class.__name__ if base_class else x["type"]
+        #
+        # field.json_add_extra_vars(x, self)
+        # field.json_clean(x, details=True)
+        # field.json_format_vars(x)
 
         return x
 
