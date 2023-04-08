@@ -580,7 +580,6 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 assets={
                     "stimulus": ExternalAsset(
                         url="https://s3.amazonaws.com/repp-materials/silence_1s.wav",
-                        local_key="1s_silence",
                     ),
                 },
             )
@@ -796,8 +795,6 @@ class REPPMarkersTest(StaticTrialMaker):
                 assets={
                     "stimulus": ExternalAsset(
                         f"{self.materials_url}/audio{i + 1}.wav",
-                        # local_key=f"markers_test_audio_{i + 1}",
-                        # label=f"audio{i + 1}.wav",
                     )
                 },
             )

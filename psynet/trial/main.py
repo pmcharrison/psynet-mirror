@@ -288,12 +288,12 @@ class Trial(SQLMixinDallinger, Info):
 
     asset_links = relationship(
         "AssetTrial",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetTrial(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetTrial(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")
@@ -476,10 +476,10 @@ class Trial(SQLMixinDallinger, Info):
         )
 
     def add_assets(self, assets: dict):
-        for label, asset in assets.items():
-            self.add_asset(label, asset)
+        for local_key, asset in assets.items():
+            self.add_asset(local_key, asset)
 
-    def add_asset(self, label, asset):
+    def add_asset(self, local_key, asset):
         db.session.add(self)
         db.session.commit()
 
@@ -487,14 +487,12 @@ class Trial(SQLMixinDallinger, Info):
             asset.parent = self
 
         asset.receive_node_definition(self.definition)
-
-        if not asset.has_key:
-            asset.label = label
-            asset.set_keys()
+        asset.local_key = local_key
+        asset.set_keys()
 
         db.session.add(asset)
 
-        self.assets[label] = asset
+        self.assets[local_key] = asset
 
         db.session.commit()
 
@@ -2493,12 +2491,12 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     asset_links = relationship(
         "AssetNetwork",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetNetwork(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetNetwork(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")
@@ -2635,12 +2633,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     asset_links = relationship(
         "AssetNode",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetNode(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetNode(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")

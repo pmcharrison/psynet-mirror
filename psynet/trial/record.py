@@ -31,8 +31,8 @@ class RecordTrial:
     analysis = claim_var("analysis", __extra_vars__)
 
     run_async_post_trial = True
-    recording_url_key_name = None
-    recording_key_name = None
+    recording_url_name = None
+    recording_id_name = None
 
     @property
     def media_answer(self):
@@ -90,8 +90,8 @@ class RecordTrial:
             return None
         try:
             return {
-                "key": answer[self.recording_key_name],
-                "url": answer[self.recording_url_key_name],
+                "id": answer[self.recording_id_name],
+                "url": answer[self.recording_url_name],
             }
         except KeyError as e:
             raise KeyError(
@@ -179,7 +179,7 @@ class RecordTrial:
 
     def upload_plot(self, local_path, async_):
         asset = RecordingAnalysisPlot(
-            label="recording_analysis_plot",
+            local_key="recording_analysis_plot",
             input_path=local_path,
             extension=".png",
             parent=self.recording.trial,
@@ -261,7 +261,7 @@ class MediaImitationChainNode(ImitationChainNode):
 
             self.synthesize_target(temp_file.name)
             asset = ExperimentAsset(
-                label="stimulus",
+                local_key="stimulus",
                 input_path=temp_file.name,
                 extension=self.media_extension,
                 parent=self,

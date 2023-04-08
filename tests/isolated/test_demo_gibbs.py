@@ -22,7 +22,7 @@ class TestExp:
             time.sleep(1)
 
             # What participant group would you like to join?
-            participant_group = ["A", "B", "A", "B"][participant]
+            participant_group = ["A", "B"][participant % 2]
             next_page(driver, participant_group)
 
             assert (

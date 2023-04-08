@@ -1100,7 +1100,10 @@ class Page(Elt):
             "force_google_chrome": experiment.var.force_google_chrome,
             "force_incognito_mode": experiment.var.force_incognito_mode,
             "allow_mobile_devices": experiment.var.allow_mobile_devices,
+            "color_mode": experiment.var.color_mode,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
+            "logos": experiment.logos,
+            "psynet_logo": experiment.psynet_logo,
         }
         return render_string_with_translations(
             template_string=self.template_str, locale=locale, **all_template_args
@@ -2143,7 +2146,7 @@ class ModuleState(SQLBase, SQLMixin):
             "psynet.asset.Asset.participant_id.is_(None)))"
         ),
         uselist=True,
-        collection_class=attribute_mapped_collection("local_key"),
+        collection_class=attribute_mapped_collection("key_within_module"),
     )
 
     nodes = relationship(
@@ -2185,7 +2188,9 @@ class ModuleAssets:
     def __getitem__(self, item):
         from psynet.asset import Asset
 
-        return Asset.query.filter_by(module_id=self.module_id, local_key=item).one()
+        return Asset.query.filter_by(
+            module_id=self.module_id, key_within_module=item
+        ).one()
 
 
 class Module:
@@ -2211,8 +2216,8 @@ class Module:
             self._staged_assets = []
         elif isinstance(assets, dict):
             self._staged_assets = []
-            for _local_key, _asset in assets.items():
-                _asset.local_key = _local_key
+            for _key_within_module, _asset in assets.items():
+                _asset.key_within_module = _key_within_module
                 self._staged_assets.append(_asset)
         else:
             assert isinstance(assets, list)

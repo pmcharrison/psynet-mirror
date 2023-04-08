@@ -1,5 +1,8 @@
 import random
+import re
 from typing import List, Optional
+
+from pkg_resources import resource_filename
 
 from .modular_page import Control, ModularPage, Prompt
 from .timeline import MediaSpec
@@ -746,3 +749,111 @@ class GraphicPage(ModularPage):
             GraphicControl(**kwargs),
             time_estimate=time_estimate,
         )
+
+
+class SVGLogo:
+    def __init__(self, svg_path, id, width, height, alt_text="logo", url=None):
+        self.svg_path = svg_path
+        self.width = width
+        self.height = height
+        self.alt_text = alt_text
+        self.id = id
+        self.url = url
+
+    def __str__(self):
+        return self.html
+
+    @property
+    def html(self):
+        with open(self.svg_path, "r") as f:
+            svg = f.read()
+        svg = svg.replace("\n", "")
+        alt_id = f"{self.id}_alt"
+        svg = svg.replace(
+            "<svg",
+            f'<svg width="{self.width}" height="{self.height}" labelledby="{alt_id}"',
+        )
+
+        end_svg = re.search("<svg.+?>", svg).end()
+        svg = (
+            svg[:end_svg]
+            + f'<desc id="{alt_id}">{self.alt_text}</desc>'
+            + svg[end_svg:]
+        )
+        if self.url is not None:
+            svg = svg.replace("<svg", f'<svg onclick="window.open("{self.url}")"')
+        return svg
+
+
+class PsyNetLogo(SVGLogo):
+    def __init__(
+        self,
+        svg_path=resource_filename("psynet", "resources/images/psynet.svg"),
+        id="psynet-logo",
+        width="100px",
+        height="83px",
+        alt_text="Psynet",
+        url="https://www.psynet.dev/",
+        **kwargs,
+    ):
+        super().__init__(
+            svg_path, id, width, height, alt_text=alt_text, url=url, **kwargs
+        )
+
+
+class CAPLogo(SVGLogo):
+    def __init__(
+        self,
+        svg_path=resource_filename("psynet", "resources/images/cap.svg"),
+        id="cap-logo",
+        width="125px",
+        height="83px",
+        alt_text="Computational Audition Group",
+        url="https://www.aesthetics.mpg.de/en/research/research-group-computational-auditory-perception.html",
+        **kwargs,
+    ):
+        super().__init__(
+            svg_path, id, width, height, alt_text=alt_text, url=url, **kwargs
+        )
+
+
+class MPIAELogo(SVGLogo):
+    def __init__(
+        self,
+        svg_path=resource_filename("psynet", "resources/images/mpiae.svg"),
+        id="mpiae-logo",
+        width="200px",
+        height="83px",
+        alt_text="Max Planck Institute for Empirical Aesthetics",
+        url="https://www.aesthetics.mpg.de/en.html",
+        **kwargs,
+    ):
+        super().__init__(
+            svg_path, id, width, height, alt_text=alt_text, url=url, **kwargs
+        )
+
+
+class CambridgeLogo(SVGLogo):
+    def __init__(
+        self,
+        svg_path=resource_filename("psynet", "resources/images/cambridge.svg"),
+        id="cambridge-logo",
+        width="180px",
+        height="83px",
+        alt_text="University of Cambridge",
+        **kwargs,
+    ):
+        super().__init__(svg_path, id, width, height, alt_text=alt_text, **kwargs)
+
+
+class PrincetonLogo(SVGLogo):
+    def __init__(
+        self,
+        svg_path=resource_filename("psynet", "resources/images/princeton.svg"),
+        id="princeton-logo",
+        width="160px",
+        height="83px",
+        alt_text="Princeton University",
+        **kwargs,
+    ):
+        super().__init__(svg_path, id, width, height, alt_text=alt_text, **kwargs)

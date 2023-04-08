@@ -16,8 +16,8 @@ logger = get_logger()
 class AudioRecordTrial(RecordTrial):
     __extra_vars__ = {}
 
-    recording_url_key_name = "url"
-    recording_key_name = "key"
+    recording_url_name = "url"
+    recording_id_name = "id"
 
     def sanitize_recording(self, path):
         recode_wav(path)
