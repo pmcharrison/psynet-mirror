@@ -61,6 +61,9 @@ deploy_docker:
   stage: deploy
   script:
     - docker push $DOCKER_IMAGE
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "dev"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 pages:
   image: $DOCKER_IMAGE
