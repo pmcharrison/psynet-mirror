@@ -32,7 +32,7 @@ from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import deferred
+from sqlalchemy.orm import deferred, undefer
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -192,7 +192,12 @@ def _db_class_instances_to_dicts(cls, scrub_pii: bool):
 
     """
     primary_keys = [c.name for c in cls.__table__.primary_key.columns]
-    obj_sql = cls.query.order_by(*primary_keys).all()
+    obj_sql = (
+        cls.query
+        .order_by(*primary_keys)
+        .options(undefer("*"))
+        .all()
+    )
     if len(obj_sql) == 0:
         print(f"{cls.__name__}: skipped (nothing to export)")
         return []
