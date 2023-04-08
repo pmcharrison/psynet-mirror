@@ -308,6 +308,9 @@ class ChainNetwork(TrialNetwork):
         Object
             An object from the provided list.
         """
+        # This ensures that ``self.id`` is available even if the object has yet to be committed to the database
+        db.session.flush()
+
         if self.chain_type == "across":
             id_to_use = self.id
         elif self.chain_type == "within":
