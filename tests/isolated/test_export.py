@@ -121,9 +121,11 @@ class TestExport:
             "CustomTrial.csv",
             "ExperimentAsset.csv",
             "ExperimentConfig.csv",
-            # "Notification.csv",  # Bots don't produce notifications
             "ModuleState.csv",
+            "Notification.csv",  # Bots don't produce notifications
+            "Recruitment.csv",
             "Response.csv",
+            "Transmission.csv",
             "WorkerAsyncProcess.csv",
         ]
 
