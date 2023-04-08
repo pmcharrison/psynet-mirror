@@ -1396,15 +1396,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/fast-function-asset", methods=["GET"])
     @staticmethod
     def get_fast_function_asset():
-        key = request.args.get("key")
+        id = request.args.get("id")
         secret = request.args.get("secret")
 
-        assert key
+        assert id
         assert secret
 
-        key_parsed = urllib.parse.unquote(key)
+        id = int(id)
 
-        asset = FastFunctionAsset.query.filter_by(key=key_parsed).one()
+        asset = FastFunctionAsset.query.filter_by(id=id).one()
         suffix = asset.extension if asset.extension else ""
 
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
@@ -1750,7 +1750,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if process:
             context["process_id"] = process.id
         if asset:
-            context["asset_key"] = asset.key
+            context["asset_id"] = asset.id
         return context
 
     class AuthTokenError(PermissionError):

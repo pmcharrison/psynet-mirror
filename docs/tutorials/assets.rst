@@ -101,7 +101,7 @@ For example:
     from psynet.asset import Asset
 
     all_assets = Asset.query.all()
-    dog_asset = Asset.query.filter_by(key="dog").one()
+    dog_asset = Asset.query.filter_by(key_within_experiment="dog").one()
 
 
 Assets are often associated with particular database assets.
@@ -378,7 +378,7 @@ at `psynet/modular_page.py`. Let's look in particular at the
             label = self.page.label
 
             asset = Recording(
-                label=label,
+                local_key=label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 parent=parent,
@@ -386,18 +386,12 @@ at `psynet/modular_page.py`. Let's look in particular at the
                 personal=self.personal,
             )
 
-            try:
-                asset.deposit(async_=True, delete_input=True)
-            except Asset.InconsistentContentError:
-                raise ValueError(
-                    f"This participant already has an asset with the label '{label}'. "
-                    "You should update your AudioRecordControl labels to make them distinct."
-                )
+            asset.deposit(async_=True, delete_input=True)
 
         return {
             "origin": "AudioRecordControl",
             "supports_record_trial": True,
-            "key": asset.key,
+            "id": asset.id,
             "url": asset.url,
             "duration_sec": self.duration,
         }
@@ -428,7 +422,7 @@ the user interface won't freeze while we wait for the asset to deposit.
             label = self.page.label
 
             asset = Recording(
-                label=label,
+                local_key=label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 parent=parent,
@@ -436,8 +430,7 @@ the user interface won't freeze while we wait for the asset to deposit.
                 personal=self.personal,
             )
 
-            try:
-                asset.deposit(async_=True, delete_input=True)
+            asset.deposit(async_=True, delete_input=True)
 
 
 Creating an asset when we create a Trial Node
@@ -475,7 +468,7 @@ Let's look at the source code for
 
                 self.synthesize_target(temp_file.name)
                 asset = ExperimentAsset(
-                    label="stimulus",
+                    local_key="stimulus",
                     input_path=temp_file.name,
                     extension=self.media_extension,
                     parent=self,
@@ -530,4 +523,3 @@ demo):
 Look in particular at the ``add_assets`` method. This takes a dictionary of assets
 that can be created on the basis of the dynamically generated definition,
 and will then be added to the trials ``assets`` slot.
-

@@ -29,28 +29,13 @@ logger = get_logger()
 #     return "{fade_in: %s, fade_out: %s}" % (fade_duration, fade_duration)
 
 
-all_assets = join(
-    CachedAsset(
-        "assets/flower.mp4",
-        local_key="flower",
-    ),
-    CachedAsset(
-        "assets/birds.mp4",
-        local_key="birds",
-    ),
-    CachedAsset(
-        "assets/funk-game-loop.mp3",
-        local_key="funk-game-loop",
-    ),
-    CachedAsset(
-        "assets/video-sync-test.mp4",
-        local_key="sync-test-video",
-    ),
-    CachedAsset(
-        "assets/video-sync-test.wav",
-        local_key="sync-test-audio",
-    ),
-)
+all_assets = {
+    "flower": CachedAsset("assets/flower.mp4"),
+    "birds": CachedAsset("assets/birds.mp4"),
+    "funk-game-loop": CachedAsset("assets/funk-game-loop.mp3"),
+    "sync-test-video": CachedAsset("assets/video-sync-test.mp4"),
+    "sync-test-audio": CachedAsset("assets/video-sync-test.wav"),
+}
 
 
 video_pages = join(
