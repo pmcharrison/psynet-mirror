@@ -96,7 +96,7 @@ class CustomNode(AudioGibbsNode):
     def create_initial_seed(self, experiment, participant):
         return {
             "vector": INITIAL_VALUES,  # Start at predefined zero points, i.e. not at a random point in space
-            "initial_index": random.randint(0, self.vector_length),  #
+            "initial_index": random.randint(0, self.vector_length - 1),  #
         }
 
     def synth_function(self, vector, output_path, chain_definition):
