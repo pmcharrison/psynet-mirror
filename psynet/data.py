@@ -32,7 +32,7 @@ from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import deferred, undefer
+from sqlalchemy.orm import deferred, undefer, subqueryload
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -227,7 +227,7 @@ def _prepare_db_export(scrub_pii):
                     cls.query
                     .filter_by(type=cls_name)
                     .order_by(*primary_keys)
-                    .options(undefer("*"))
+                    .options(undefer("*"), subqueryload("*"))
                     .all()
                 )
                 obj_dict = [
@@ -243,7 +243,7 @@ def _prepare_db_export(scrub_pii):
             obj_sql = (
                 cls.query
                 .order_by(*primary_keys)
-                .options(undefer("*"))
+                .options(undefer("*"), subqueryload("*"))
                 .all()
             )
             if len(obj_sql) == 0:
@@ -350,23 +350,23 @@ class SQLMixinDallinger(SharedMixin):
 
         x = {c: getattr(self, c) for c in self.sql_columns}
 
-        # x["class"] = self.__class__.__name__
-        #
-        # # This is a little hack we do for compatibility with the Dallinger
-        # # network visualization, which relies on sources being explicitly labeled.
-        # if isinstance(self, ChainNode) and self.degree == 0:
-        #     x["type"] = "TrialSource"
-        # else:
-        #     x["type"] = x["class"]
-        #
-        # # Dallinger also needs us to set a parameter called ``object_type``
-        # # which is used to determine the visualization method.
-        # base_class = get_sql_base_class(self)
-        # x["object_type"] = base_class.__name__ if base_class else x["type"]
-        #
-        # field.json_add_extra_vars(x, self)
-        # field.json_clean(x, details=True)
-        # field.json_format_vars(x)
+        x["class"] = self.__class__.__name__
+
+        # This is a little hack we do for compatibility with the Dallinger
+        # network visualization, which relies on sources being explicitly labeled.
+        if isinstance(self, ChainNode) and self.degree == 0:
+            x["type"] = "TrialSource"
+        else:
+            x["type"] = x["class"]
+
+        # Dallinger also needs us to set a parameter called ``object_type``
+        # which is used to determine the visualization method.
+        base_class = get_sql_base_class(self)
+        x["object_type"] = base_class.__name__ if base_class else x["type"]
+
+        field.json_add_extra_vars(x, self)
+        field.json_clean(x, details=True)
+        field.json_format_vars(x)
 
         return x
 
