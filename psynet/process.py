@@ -57,7 +57,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         "psynet.timeline.Response", back_populates="async_processes"
     )
 
-    asset_key = Column(String, ForeignKey("asset.key"), index=True)
+    asset_id = Column(Integer, ForeignKey("asset.id"), index=True)
     asset = relationship("Asset", back_populates="async_processes")
 
     errors = relationship("ErrorRecord")
@@ -98,7 +98,7 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         self.asset = asset
         if asset:
-            self.asset_key = asset.key
+            self.asset_id = asset.id
 
         self.participant = participant
         if participant:

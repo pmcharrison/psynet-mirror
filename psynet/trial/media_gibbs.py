@@ -364,7 +364,7 @@ class MediaGibbsNode(GibbsNode):
                 ]
                 self.make_media_batch_file(stimuli, batch_path)
             asset = ExperimentAsset(
-                label="slider_stimulus",
+                local_key="slider_stimulus",
                 input_path=batch_path,
                 parent=self,
             )

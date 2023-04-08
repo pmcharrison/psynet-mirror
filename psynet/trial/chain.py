@@ -308,6 +308,9 @@ class ChainNetwork(TrialNetwork):
         Object
             An object from the provided list.
         """
+        # This ensures that ``self.id`` is available even if the object has yet to be committed to the database
+        db.session.flush()
+
         if self.chain_type == "across":
             id_to_use = self.id
         elif self.chain_type == "within":
@@ -601,19 +604,14 @@ class ChainNode(TrialNode):
     def stage_assets(self, experiment):
         # self.assets = {}
 
-        for label, asset in self._staged_assets.items():
-            if asset.label is None:
-                asset.label = label
-
+        for local_key, asset in self._staged_assets.items():
+            asset.local_key = local_key
             asset.parent = self
-
-            if not asset.has_key:
-                asset.set_keys()
-
             asset.receive_node_definition(self.definition)
+            asset.module_id = self.module_id
 
             experiment.assets.stage(asset)
-            self.assets[label] = asset
+            self.assets[local_key] = asset
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -1717,6 +1715,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
+        networks = self.prioritize_networks(networks, participant, experiment)
+
         chosen = networks[0]
         if chosen.block != current_block:
             logger.info(
@@ -1725,6 +1725,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             )
 
         return [chosen]
+
+    def prioritize_networks(self, networks, participant, experiment):
+        return networks
 
     def custom_network_filter(self, candidates, participant):
         """
