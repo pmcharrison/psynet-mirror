@@ -604,19 +604,14 @@ class ChainNode(TrialNode):
         # if self.network:
         #     self.assets.update(**self.network.assets)
 
-        for label, asset in self._staged_assets.items():
-            if asset.label is None:
-                asset.label = label
-
+        for local_key, asset in self._staged_assets.items():
+            asset.local_key = local_key
             asset.parent = self
-
-            if not asset.has_key:
-                asset.set_keys()
-
             asset.receive_node_definition(self.definition)
+            asset.module_id = self.module_id
 
             experiment.assets.stage(asset)
-            self.assets[label] = asset
+            self.assets[local_key] = asset
 
         db.session.commit()
 

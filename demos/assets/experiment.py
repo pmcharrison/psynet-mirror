@@ -46,7 +46,6 @@ headphone_assets = {
 
 misc_assets = {
     "slow_computation": CachedFunctionAsset(
-        local_key="slow_computation.txt",
         function=slow_computation,
         arguments=dict(n=200, k=5),
         extension=".txt",
@@ -77,7 +76,7 @@ def save_text(participant):
         file.write(text)
         file.flush()
         asset = ExperimentAsset(
-            label="text_input",
+            local_key="text_input",
             input_path=file.name,
             extension=".txt",
             description="Some text that the participant filled out",

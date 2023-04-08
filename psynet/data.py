@@ -903,11 +903,11 @@ def export_assets(
     else:
         from .asset import Asset as base_class
 
-    asset_query = db.session.query(base_class.key, base_class.personal)
+    asset_query = db.session.query(base_class.id, base_class.personal)
     if not include_private:
         asset_query = asset_query.filter_by(personal=False)
 
-    asset_keys = [a.key for a in asset_query]
+    asset_ids = [a.id for a in asset_query]
 
     n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now
     Parallel(
@@ -916,8 +916,8 @@ def export_assets(
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(key, path, include_fast_function_assets, server)
-        for key in asset_keys
+        delayed(export_asset)(asset_id, path, include_fast_function_assets, server)
+        for asset_id in asset_ids
     )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
 
@@ -925,7 +925,7 @@ def export_assets(
 # def close_parallel_db_sessions():
 
 
-def export_asset(key, root, include_fast_function_assets, server):
+def export_asset(asset_id, root, include_fast_function_assets, server):
     from .asset import Asset, FastFunctionAsset
     from .experiment import import_local_experiment
     from .utils import make_parents
@@ -939,7 +939,7 @@ def export_asset(key, root, include_fast_function_assets, server):
         ssh_user = server_info.get("user")
 
     import_local_experiment()
-    a = Asset.query.filter_by(key=key).one()
+    a = Asset.query.filter_by(id=asset_id).one()
 
     if not include_fast_function_assets and isinstance(a, FastFunctionAsset):
         return
@@ -951,5 +951,5 @@ def export_asset(key, root, include_fast_function_assets, server):
     try:
         a.export(path, ssh_host=ssh_host, ssh_user=ssh_user)
     except Exception:
-        print(f"An error occurred when trying to export the asset with key: {key}")
+        print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise

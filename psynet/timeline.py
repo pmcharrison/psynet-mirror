@@ -2146,7 +2146,7 @@ class ModuleState(SQLBase, SQLMixin):
             "psynet.asset.Asset.participant_id.is_(None)))"
         ),
         uselist=True,
-        collection_class=attribute_mapped_collection("local_key"),
+        collection_class=attribute_mapped_collection("key_within_module"),
     )
 
     nodes = relationship(
@@ -2188,7 +2188,9 @@ class ModuleAssets:
     def __getitem__(self, item):
         from psynet.asset import Asset
 
-        return Asset.query.filter_by(module_id=self.module_id, local_key=item).one()
+        return Asset.query.filter_by(
+            module_id=self.module_id, key_within_module=item
+        ).one()
 
 
 class Module:
@@ -2214,8 +2216,8 @@ class Module:
             self._staged_assets = []
         elif isinstance(assets, dict):
             self._staged_assets = []
-            for _local_key, _asset in assets.items():
-                _asset.local_key = _local_key
+            for _key_within_module, _asset in assets.items():
+                _asset.key_within_module = _key_within_module
                 self._staged_assets.append(_asset)
         else:
             assert isinstance(assets, list)

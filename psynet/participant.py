@@ -246,12 +246,14 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     asset_links = relationship(
         "AssetParticipant",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetParticipant(label=k, asset=v)
+        "asset_links",
+        "asset",
+        creator=lambda k, v: AssetParticipant(local_key=k, asset=v),
     )
 
     errors = relationship("ErrorRecord")

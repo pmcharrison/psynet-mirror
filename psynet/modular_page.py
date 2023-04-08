@@ -2313,26 +2313,20 @@ class AudioRecordControl(RecordControl):
             label = self.page.label
 
             asset = Recording(
-                label=label,
+                local_key=label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 parent=parent,
                 personal=self.personal,
             )
 
-            try:
-                async_ = not isinstance(asset.default_storage, LocalStorage)
-                asset.deposit(async_=async_, delete_input=True)
-            except Asset.InconsistentContentError:
-                raise ValueError(
-                    f"This participant already has an asset with the label '{label}'. "
-                    "You should update your AudioRecordControl labels to make them distinct."
-                )
+            async_ = not isinstance(asset.default_storage, LocalStorage)
+            asset.deposit(async_=async_, delete_input=True)
 
         return {
             "origin": "AudioRecordControl",
             "supports_record_trial": True,
-            "key": asset.key,
+            "asset_id": asset.id,
             "url": asset.url,
             "duration_sec": self.duration,  # TODO - base this on the actual audio file?
         }
@@ -2479,7 +2473,7 @@ class VideoRecordControl(RecordControl):
                     label += "_" + source
 
                 asset = Recording(
-                    label=label,
+                    local_key=label,
                     input_path=tmp_file.name,
                     extension=self.file_extension,
                     parent=parent,
@@ -2494,7 +2488,7 @@ class VideoRecordControl(RecordControl):
                         "You should update your VideoRecordControl labels to make them distinct."
                     )
 
-                summary[source + "_key"] = asset.key
+                summary[source + "_id"] = asset.id
                 summary[source + "_url"] = asset.url
 
         summary.update(
