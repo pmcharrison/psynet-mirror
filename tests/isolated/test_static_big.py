@@ -25,7 +25,7 @@ def data_root_dir():
     "experiment_directory", [path_to_demo("static_big")], indirect=True
 )
 class TestPrepare:
-    def test_prepare(self):
+    def test_prepare(self, deployment_info):
         time_started = time.monotonic()
 
         ctx = Context(prepare)
