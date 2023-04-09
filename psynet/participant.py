@@ -242,7 +242,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
         .exists()
     )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     asset_links = relationship(
         "AssetParticipant",

@@ -333,7 +333,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         .where(AsyncProcess.asset_id == id, AsyncProcess.pending)
         .exists()
     )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     participant_links = relationship(
         "AssetParticipant",
