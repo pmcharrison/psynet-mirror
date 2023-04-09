@@ -32,7 +32,7 @@ from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import deferred, undefer, subqueryload
+from sqlalchemy.orm import deferred, undefer
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -227,7 +227,7 @@ def _prepare_db_export(scrub_pii):
                     cls.query
                     .filter_by(type=cls_name)
                     .order_by(*primary_keys)
-                    .options(undefer("*"), subqueryload("*"))
+                    .options(undefer("*"))
                     .all()
                 )
                 obj_dict = [
@@ -243,7 +243,7 @@ def _prepare_db_export(scrub_pii):
             obj_sql = (
                 cls.query
                 .order_by(*primary_keys)
-                .options(undefer("*"), subqueryload("*"))
+                .options(undefer("*"))
                 .all()
             )
             if len(obj_sql) == 0:
