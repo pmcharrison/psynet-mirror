@@ -222,7 +222,13 @@ def _prepare_db_export(scrub_pii):
             # For best SQLAlchemy performance, we query each of these classes separately.
             cls_names = [r.type for r in db.session.query(table.columns.type).distinct().all()]
             for cls_name in cls_names:
-                cls = mapped_classes[cls_name]
+                if cls_name == "PsyNetParticipant":
+                    # We want to make sure that the PsyNet participant class is loaded,
+                    # not the Dallinger one.
+                    from .participant import Participant
+                    cls = Participant
+                else:
+                    cls = mapped_classes[cls_name]
                 obj_sql = (
                     cls.query
                     .filter_by(type=cls_name)
