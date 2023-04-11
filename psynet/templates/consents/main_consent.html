@@ -80,7 +80,7 @@
             <h4>{{ pgettext("consent-compensation", "Compensation") }}</h4>
             <p class="consent-text">
                 {{ pgettext("consent-compensation", "If you satisfactorily complete the study, we compensate you for your participation:") }}
-                <span style="font-weight: bold; white-space: nowrap;">{{ currency }}{{ "{:.2f}".format(experiment.var.wage_per_hour) }} {{ gettext("per hour") }}</span>.
+                <span style="font-weight: bold; white-space: nowrap;">{{ config.currency }}{{ "{:.2f}".format(config.wage_per_hour) }} {{ gettext("per hour") }}</span>.
                 {{ pgettext("consent-compensation", "You may also receive an additional payment based on your performance in the task.") }}
                 {{ pgettext("consent-compensation", "We appreciate your contribution to science!") }}
             </p>

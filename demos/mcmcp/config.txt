@@ -1,6 +1,7 @@
 [Payment information]
 title = MCMCP demo
 base_payment = 0.10
+show_abort_button = true
 
 [Recruitment strategy]
 recruiter = hotair

@@ -47,7 +47,6 @@ def coin_class(experiment_module):
 class TestExpWithExport:
     def test_exp_with_export(
         self,
-        active_config,
         data_root_dir,
         data_dir,
         database_zip_file,
