@@ -15,11 +15,6 @@ logger = get_logger()
 class Exp(psynet.experiment.Experiment):
     label = "Timeline with error demo"
 
-    variables = {
-        "show_abort_button": True,
-        "min_accumulated_bonus_for_abort": 0.10,
-    }
-
     @experiment_route("/custom_route", methods=["POST", "GET"])
     @classmethod
     def custom_route(cls):

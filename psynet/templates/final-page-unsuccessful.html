@@ -2,7 +2,7 @@
 
 {% block main_body %}
     {{ pgettext("final_page_unsuccessful", "Unfortunately the experiment must end early.") }}
-    {% if experiment.var.show_bonus %}
+    {% if config.show_bonus %}
         {{ pgettext("final_page_unsuccessful", "However, you will still be paid for the time you spent already.") }}
         {% include "final-page-bonuses.html" %}
     {% endif %}

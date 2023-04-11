@@ -34,7 +34,7 @@
     (() => {
         'use strict'
 
-        const storedTheme = "{{ experiment.var.color_mode }}"
+        const storedTheme = "{{ config.color_mode }}"
 
         const getPreferredTheme = () => {
             if (storedTheme) {

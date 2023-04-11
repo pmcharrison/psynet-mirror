@@ -3,6 +3,7 @@ import time
 
 import pytest
 
+from psynet.experiment import get_and_load_config
 from psynet.participant import Participant
 from psynet.pytest_psynet import bot_class, next_page, path_to_demo
 from psynet.trial.mcmcp import MCMCPNetwork
@@ -46,14 +47,15 @@ class TestExp:
         from psynet.experiment import get_experiment
 
         exp = get_experiment()
-
-        assert exp.var.min_browser_version == "80.0"
         assert exp.var.max_participant_payment == 25.0
         assert exp.var.hard_max_experiment_payment == 1100.0
         assert exp.var.hard_max_experiment_payment_email_sent is False
         assert exp.var.soft_max_experiment_payment == 1000.0
         assert exp.var.soft_max_experiment_payment_email_sent is False
-        assert exp.var.wage_per_hour == 9.0
-        assert exp.var.min_accumulated_bonus_for_abort == 0.2
-        assert exp.var.show_abort_button is True
-        assert exp.var.show_bonus is True
+
+        config = get_and_load_config()
+        assert config.get("min_browser_version") == "80.0"
+        assert config.get("wage_per_hour") == 9.0
+        assert config.get("min_accumulated_bonus_for_abort") == 0.2
+        assert config.get("show_abort_button") is True
+        assert config.get("show_bonus") is True

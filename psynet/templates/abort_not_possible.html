@@ -10,8 +10,9 @@
         <hr>
         <p>
           {{ pgettext("abort_possible", "Aborting the experiment is not possible as the experimenter does not allow it at this time!") }}
-            {% set MIN_ACCUMULATED_BONUS_FOR_ABORT = "{:.2f}".format(experiment.var.min_accumulated_bonus_for_abort) %}
-            {% trans name="abort_possible" %}You have to accumulate <strong>at least {{ currency }}{{MIN_ACCUMULATED_BONUS_FOR_ABORT}}</strong> of bonus to be able to be compensated.{% endtrans %}
+            {% set MIN_ACCUMULATED_BONUS_FOR_ABORT = "{:.2f}".format(config.min_accumulated_bonus_for_abort) %}
+            {% set CURRENCY = config.currency %}
+            {% trans name="abort_possible" %}You have to accumulate <strong>at least {{ CURRENCY }}{{MIN_ACCUMULATED_BONUS_FOR_ABORT}}</strong> of bonus to be able to be compensated.{% endtrans %}
            {{ pgettext("abort_possible", "See below information on your currently accumulated bonus.") }}
         </p>
         <table class="table table-sm table-striped">

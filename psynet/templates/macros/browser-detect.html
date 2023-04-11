@@ -313,10 +313,10 @@
             });
         }
 
-        browser.allowMobileDevices = {{ experiment.var.allow_mobile_devices|tojson }};
-        browser.forceGoogleChrome = {{ experiment.var.force_google_chrome|tojson }};
-        browser.forceIncognitoMode = {{ experiment.var.force_incognito_mode|tojson }};
-        browser.minVersion = "{{ experiment.var.min_browser_version }}";
+        browser.allowMobileDevices = {{ config.allow_mobile_devices|tojson }};
+        browser.forceGoogleChrome = {{ config.force_google_chrome|tojson }};
+        browser.forceIncognitoMode = {{ config.force_incognito_mode|tojson }};
+        browser.minVersion = "{{ config.min_browser_version }}";
         browser.version = platform.version;
         browser.isOldVersion = !isVersionAtLeast(browser.version, browser.minVersion);
         browser.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
