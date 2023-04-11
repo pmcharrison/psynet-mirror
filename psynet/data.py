@@ -209,58 +209,23 @@ def _prepare_db_export(scrub_pii):
     The keys correspond to the most-specific available class names,
     e.g. ``CustomNetwork`` as opposed to ``Network``.
     """
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
     tables = get_db_tables().values()
-    table_superclasses = _get_superclasses_by_table()
-    mapped_classes = {m.class_.__name__: m.class_ for m in db.Base.registry.mappers}
-    res = {}
 
-    for table in tables:
-        primary_keys = [c.name for c in table.primary_key.columns]
+    obj_sql_by_table = [exp.pull_table(table) for table in tables]
+    obj_sql = [obj for sublist in obj_sql_by_table for obj in sublist]
+    obj_sql_by_cls = organize_by_key(obj_sql, key=lambda x: x.__class__.__name__)
 
-        if "type" in table.columns:
-            # If present, the 'type' column indicates the class of the object represented by the table row.
-            # For best SQLAlchemy performance, we query each of these classes separately.
-            cls_names = [r.type for r in db.session.query(table.columns.type).distinct().all()]
-            for cls_name in cls_names:
-                if cls_name == "PsyNetParticipant":
-                    # We want to make sure that the PsyNet participant class is loaded,
-                    # not the Dallinger one.
-                    from .participant import Participant
-                    cls = Participant
-                else:
-                    cls = mapped_classes[cls_name]
-                obj_sql = (
-                    cls.query
-                    .filter_by(type=cls_name)
-                    .order_by(*primary_keys)
-                    .options(undefer("*"))
-                    .all()
-                )
-                obj_dict = [
-                    _db_instance_to_dict(obj, scrub_pii)
-                    for obj in tqdm(obj_sql, desc=cls_name)
-                ]
-                res[cls_name] = obj_dict
-        else:
-            # In the absence of a 'type' column, we find a single superclass that covers the whole table,
-            # and query that class.
-            cls = table_superclasses[table.name]
-            cls_name = cls.__name__
-            obj_sql = (
-                cls.query
-                .order_by(*primary_keys)
-                .options(undefer("*"))
-                .all()
-            )
-            if len(obj_sql) == 0:
-                obj_dict = []
-            else:
-                obj_dict = [
-                    _db_instance_to_dict(obj, scrub_pii)
-                    for obj in tqdm(obj_sql, desc=cls_name)
-                ]
-            res[cls_name] = obj_dict
-    return res
+    obj_dict_by_cls = {
+        _cls_name: [
+            _db_instance_to_dict(obj, scrub_pii)
+            for obj in tqdm(_obj_sql_for_cls, desc=_cls_name)
+        ]
+        for _cls_name, _obj_sql_for_cls in obj_sql_by_cls.items()
+    }
+    return obj_dict_by_cls
 
 
 def copy_db_table_to_csv(tablename, path):
