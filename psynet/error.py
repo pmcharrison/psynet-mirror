@@ -41,7 +41,7 @@ class ErrorRecord(SQLBase, SQLMixin):
     response_id = Column(Integer, ForeignKey("response.id"), index=True)
     response = relationship("psynet.timeline.Response", back_populates="errors")
 
-    asset_key = Column(String, ForeignKey("asset.key"), index=True)
+    asset_id = Column(Integer, ForeignKey("asset.id"), index=True)
     asset = relationship("Asset", back_populates="errors")
 
     process_id = Column(Integer, ForeignKey("process.id"), index=True)

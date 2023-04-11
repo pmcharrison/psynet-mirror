@@ -29,24 +29,12 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-all_assets = join(
-    CachedAsset(
-        input_path="assets/bier.wav",
-        label="bier",
-    ),
-    CachedAsset(
-        input_path="assets/file_concatenated.mp3",
-        label="file-concatenated",
-    ),
-    CachedAsset(
-        input_path="assets/funk-game-loop.mp3",
-        label="funk-game-loop",
-    ),
-    CachedAsset(
-        input_path="assets/train1.wav",
-        label="train-1",
-    ),
-)
+all_assets = {
+    "bier": CachedAsset(input_path="assets/bier.wav"),
+    "file-concatenated": CachedAsset(input_path="assets/file_concatenated.mp3"),
+    "funk-game-loop": CachedAsset(input_path="assets/funk-game-loop.mp3"),
+    "train-1": CachedAsset(input_path="assets/train1.wav"),
+}
 
 example_js_synth_1 = ModularPage(
     "js_synth",

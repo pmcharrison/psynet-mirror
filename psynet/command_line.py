@@ -22,7 +22,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -1460,6 +1460,11 @@ def export_(
     from .experiment import import_local_experiment
 
     log(header)
+
+    if not experiment_available():
+        raise click.UsageError(
+            "This command must be run within an experiment directory."
+        )
 
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0
