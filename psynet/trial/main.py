@@ -247,7 +247,6 @@ class Trial(SQLMixinDallinger, Info):
     module_state = relationship("ModuleState", foreign_keys=[module_state_id])
     trial_maker_id = Column(String, index=True)
     definition = Column(PythonObject)
-    complete = Column(Boolean)
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
     score = Column(Float)
