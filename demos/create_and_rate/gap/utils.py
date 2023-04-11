@@ -119,9 +119,9 @@ def get_instructions():
                         On the last page of the recording session, you have to verify that your own recording is correct.
                         Select from the following options:
                         <ul>
-                            <li><span class="badge badge-danger">My own recording is bad</span> – pick this option if your
+                            <li><span class="badge bg-danger">My own recording is bad</span> – pick this option if your
                             own recording was bad, or</li>
-                            <li><span class="badge badge-success">My own recording is correct</span> – pick if your own
+                            <li><span class="badge bg-success">My own recording is correct</span> – pick if your own
                             recording is good</li>
                         </ul>
                         """

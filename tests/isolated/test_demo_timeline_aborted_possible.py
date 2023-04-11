@@ -5,7 +5,7 @@ import pytest
 from dallinger import db
 from selenium.webdriver.common.by import By
 
-from psynet.experiment import get_experiment
+from psynet.experiment import get_and_load_config, get_experiment
 from psynet.participant import get_participant
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
@@ -20,11 +20,9 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_variables(self, db_session):
-        from psynet.experiment import get_experiment
-
-        exp = get_experiment()
-        assert exp.var.min_accumulated_bonus_for_abort == 0.15
-        assert exp.var.show_abort_button is True
+        config = get_and_load_config()
+        assert config.get("min_accumulated_bonus_for_abort") == 0.15
+        assert config.get("show_abort_button") is True
 
     def test_abort(self, bot_recruits, db_session):
         # Simulate mturk
