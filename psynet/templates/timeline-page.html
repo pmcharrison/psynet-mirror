@@ -142,8 +142,7 @@
 
             <nav id="footer" class="navbar fixed-bottom">
                 <div id="media-download-progress-bar"></div>
-                <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
-                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="container py-2">
                         {% if show_bonus %}
                             <div class="footer-text">
                                 {{ pgettext("timeline", "Bonus") }}:
@@ -175,7 +174,6 @@
                         <button type="button" class="btn btn-light"
                                 id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
-                </div>
             </nav>
         {% endif %}
         <script>
