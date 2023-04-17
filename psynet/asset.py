@@ -3237,7 +3237,6 @@ class AssetRegistry:
             n_jobs=n_jobs,
             verbose=10,
             backend="threading",
-            # backend="multiprocessing",  # Slow compared to threading
         )(
             delayed(
                 lambda a: threadsafe__prepare_asset_for_deployment(
@@ -3246,10 +3245,8 @@ class AssetRegistry:
             )(a)
             for a in self._staged_asset_specifications
         )
-        # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
 
         db.session.commit()
-        # self.save_initial_asset_manifesto()
 
     # def save_initial_asset_manifesto(self):
     #     copy_db_table_to_csv("asset", self.initial_asset_manifesto_path)
