@@ -15,7 +15,7 @@ from dallinger.models import Info, Network, Node
 from dominate import tags
 from flask import Markup
 from rq import Queue
-from sqlalchemy import Column, String
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -400,7 +400,13 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
 
     # Properties ###
     participant_id = claim_field("participant_id", __extra_vars__, int)
-    complete = claim_field("complete", __extra_vars__, bool)
+
+    @declared_attr
+    def complete(cls):
+        # Dallinger v9.6.0 adds an Info.complete column.
+        # The following code inherits that column if it exists.
+        return cls.__table__.c.get("complete", Column(Boolean))
+
     finalized = claim_field("finalized", __extra_vars__, bool)
     is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
     score = claim_field("score", __extra_vars__, float)
