@@ -1,4 +1,3 @@
-import logging
 import time
 
 import pytest
@@ -7,7 +6,6 @@ from selenium.webdriver.common.by import By
 from psynet.participant import Participant
 from psynet.pytest_psynet import bot_class, next_page, path_to_demo
 
-logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 
 
