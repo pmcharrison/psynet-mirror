@@ -1054,6 +1054,8 @@ class Page(Elt):
         pass
 
     def render(self, experiment, participant):
+        from .experiment import get_and_load_config
+
         internal_js_vars = {
             "authToken": participant.auth_token,
             "pageUuid": participant.page_uuid,
@@ -1061,6 +1063,7 @@ class Page(Elt):
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
+        config = get_and_load_config()
 
         all_template_args = {
             **self.template_arg,
@@ -1069,15 +1072,10 @@ class Page(Elt):
             ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "min_accumulated_bonus_for_abort": experiment.var.min_accumulated_bonus_for_abort,
-            "show_abort_button": experiment.var.show_abort_button,
-            "show_footer": experiment.var.show_footer,
-            "show_bonus": experiment.var.show_bonus,
             "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
             "extra_bonus": "%.2f" % participant.performance_bonus,
             "total_bonus": "%.2f"
             % (participant.performance_bonus + participant.time_credit.get_bonus()),
-            "show_progress_bar": experiment.var.show_progress_bar,
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
@@ -1092,14 +1090,10 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
             "supported_language_dict": {
-                iso: language_dict[iso] for iso in experiment.var.supported_locales
+                iso: language_dict[iso]
+                for iso in json.loads(config.get("supported_locales"))
             },
-            "currency": experiment.var.currency,
             "current_locale": locale,
-            "allow_switching_locale": experiment.var.allow_switching_locale,
-            "force_google_chrome": experiment.var.force_google_chrome,
-            "force_incognito_mode": experiment.var.force_incognito_mode,
-            "allow_mobile_devices": experiment.var.allow_mobile_devices,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
         }
         return render_string_with_translations(
@@ -2143,7 +2137,7 @@ class ModuleState(SQLBase, SQLMixin):
             "psynet.asset.Asset.participant_id.is_(None)))"
         ),
         uselist=True,
-        collection_class=attribute_mapped_collection("local_key"),
+        collection_class=attribute_mapped_collection("key_within_module"),
     )
 
     nodes = relationship(
@@ -2185,7 +2179,9 @@ class ModuleAssets:
     def __getitem__(self, item):
         from psynet.asset import Asset
 
-        return Asset.query.filter_by(module_id=self.module_id, local_key=item).one()
+        return Asset.query.filter_by(
+            module_id=self.module_id, key_within_module=item
+        ).one()
 
 
 class Module:
@@ -2211,8 +2207,8 @@ class Module:
             self._staged_assets = []
         elif isinstance(assets, dict):
             self._staged_assets = []
-            for _local_key, _asset in assets.items():
-                _asset.local_key = _local_key
+            for _key_within_module, _asset in assets.items():
+                _asset.key_within_module = _key_within_module
                 self._staged_assets.append(_asset)
         else:
             assert isinstance(assets, list)

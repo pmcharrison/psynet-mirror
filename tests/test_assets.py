@@ -116,13 +116,13 @@ class AssetTests:
                 file.write("Hello!")
 
                 asset = ExperimentAsset(
-                    label="test",
+                    local_key="test",
                     input_path=file_path,
                 )
                 assert isinstance(asset.is_folder, bool) and not asset.is_folder
 
                 asset_2 = ExperimentAsset(
-                    label="test_2",
+                    local_key="test_2",
                     input_path=tempdir,
                 )
                 assert isinstance(asset_2.is_folder, bool) and asset_2.is_folder
@@ -222,7 +222,7 @@ def test_access_assets(
         f.flush()
 
         node_asset = ExperimentAsset(
-            label="node_asset",
+            local_key="node_asset",
             input_path=f.name,
             parent=node,
         )
@@ -230,7 +230,7 @@ def test_access_assets(
 
         for t in trials:
             trial_asset = ExperimentAsset(
-                label="trial_asset",
+                local_key="trial_asset",
                 input_path=f.name,
                 parent=t,
             )
@@ -241,7 +241,7 @@ def test_access_assets(
     assert len(node.assets) == 1
     assert isinstance(node.assets["node_asset"], ExperimentAsset)
     assert node.assets["node_asset"].export_path.endswith(".txt")
-    assert not node.assets["node_asset"].key.endswith(".txt")
+    assert not node.assets["node_asset"].key_within_experiment.endswith(".txt")
 
     for t in trials:
         assert len(t.assets) == 1

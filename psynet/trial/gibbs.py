@@ -6,6 +6,10 @@ from statistics import mean, median
 import numpy as np
 import statsmodels.api as sm
 from numpy import linspace
+from sqlalchemy import Column
+from sqlalchemy.orm import declared_attr, deferred
+
+from psynet.field import _PythonList
 
 from ..field import extra_var
 from ..utils import get_logger
@@ -18,6 +22,19 @@ class GibbsNetwork(ChainNetwork):
     """
     A Network class for Gibbs sampler chains.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        trial_maker = self.trial_maker
+        vector_length = trial_maker.node_class.vector_length
+        dimension_order = list(range(vector_length))
+        if trial_maker.randomize_dimension_order_per_network:
+            random.shuffle(dimension_order)
+        self.dimension_order = dimension_order
+
+    @declared_attr
+    def dimension_order(cls):
+        return deferred(cls.__table__.c.get("dimension_order", Column(_PythonList)))
 
     def make_definition(self):
         return {}
@@ -39,6 +56,10 @@ class GibbsTrial(ChainTrial):
     initial_vector : list
         The starting vector that is presented to the participant
         at the beginning of the trial.
+
+    initial_index : int
+        The initial index of the parameter that the participant manipulates
+        on the first trial.
 
     active_index : int
         The index of the parameter that the participant manipulates
@@ -91,6 +112,7 @@ class GibbsTrial(ChainTrial):
 
         """
         vector = self.node.definition["vector"].copy()
+        initial_index = self.node.definition["initial_index"]
         active_index = self.node.definition["active_index"]
         reverse_scale = self.choose_reverse_scale()
 
@@ -99,6 +121,7 @@ class GibbsTrial(ChainTrial):
 
         definition = {
             "vector": vector,
+            "initial_index": initial_index,
             "active_index": active_index,
             "reverse_scale": reverse_scale,
         }
@@ -109,6 +132,11 @@ class GibbsTrial(ChainTrial):
     @extra_var(__extra_vars__)
     def initial_vector(self):
         return self.definition["vector"]
+
+    @property
+    @extra_var(__extra_vars__)
+    def initial_index(self):
+        return self.definition["initial_index"]
 
     @property
     @extra_var(__extra_vars__)
@@ -168,6 +196,10 @@ class GibbsNode(ChainNode):
     @property
     def vector(self):
         return self.definition["vector"]
+
+    @property
+    def initial_index(self):
+        return self.definition["initial_index"]
 
     @property
     def active_index(self):
@@ -263,15 +295,18 @@ class GibbsNode(ChainNode):
 
                 {
                     "vector": summary_vector,
+                    "initial_index": initial_index
                     "active_index": active_index
                 }
 
             where ``summary_vector`` is the summary of all the vectors,
             and ``active_index`` is an integer identifying which was the
-            free parameter.
+            free parameter. The initial index is also passed on, as it is
+            used to identify the current dimension in the chain.
         """
         self.var.summarize_trials_used = [t.id for t in trials]
         active_index = trials[0].active_index
+        initial_index = trials[0].initial_index
         observations = [t.updated_vector[active_index] for t in trials]
 
         summary = self.summarize_trial_dimension(observations)
@@ -280,7 +315,11 @@ class GibbsNode(ChainNode):
         vector = trials[0].updated_vector.copy()
         vector[active_index] = summary
 
-        return {"vector": vector, "active_index": active_index}
+        return {
+            "vector": vector,
+            "initial_index": initial_index,
+            "active_index": active_index,
+        }
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -303,29 +342,52 @@ class GibbsNode(ChainNode):
 
                 {
                     "vector": vector,
-                    "active_index": new_index
+                    "initial_index": initial_index
+                    "active_index": active_index
                 }
 
             where ``vector`` is the vector passed by the seed,
-            and ``new_index`` identifies the position of the new free parameter.
+            ``initial_index`` identifies the dimension of the first iteration,
+            and ``active_index`` identifies the position of the new free parameter.
         """
+
         vector = seed["vector"]
-        dimension = len(vector)
-        original_index = seed["active_index"]
-        new_index = (original_index + 1) % dimension
-        return {"vector": vector, "active_index": new_index}
+        initial_index = seed["initial_index"]
+        if self.network is None:
+            return {
+                "vector": vector,
+                "initial_index": initial_index,
+                "active_index": initial_index,
+            }
+        else:
+            degree = (
+                max(
+                    [
+                        node.degree
+                        for node in self.network.nodes()
+                        if node.degree is not None
+                    ]
+                )
+                + 1
+            )
+            dimension_order = self.network.dimension_order
+            dimension_index = dimension_order.index(initial_index)
+            dimension_index = (dimension_index + degree) % len(vector)
+            active_index = dimension_order[dimension_index]
+            return {
+                "vector": vector,
+                "initial_index": initial_index,
+                "active_index": active_index,
+            }
 
     def create_initial_seed(self, experiment, participant):
         """
         Generates the seed for the :class:`~psynet.trial.gibbs.GibbsSource`.
         By default the method samples the vector of parameters by repeatedly
         applying :meth:`~psynet.trial.gibbs.GibbsNetwork.random_sample`,
-        and randomly chooses one of these parameters to be the free parameter (``"active_index"``).
-        Note that the source itself doesn't receive trials,
-        and the first proper node in the chain will actually have
-        the free parameter after this one (i.e. if there are 5 elements in the vector,
-        and the :class:`~psynet.trial.gibbs.GibbsSource` has an ``"active_index"`` of
-        2, then the first trials in the chain will have an ``"active_index"`` of 3.
+        and randomly chooses one of these parameters to be the initial free parameter (``"initial_index"``).
+        Note that the source itself doesn't receive trials, and the first proper node in the chain will actually have
+        the free parameter after this one, see GibbsNode.create_definition_from_seed for the implementation.
         This method will not normally need to be overridden.
 
         Parameters
@@ -349,11 +411,11 @@ class GibbsNode(ChainNode):
 
                 {
                     "vector": vector,
-                    "active_index": active_index
+                    "initial_index": initial_index
                 }
 
             where ``vector`` is the initial vector
-            and ``active_index`` identifies the position of the free parameter.
+            and ``initial_index`` identifies the initial position of the free parameter.
         """
         if self.vector_length is None:
             raise ValueError(
@@ -362,7 +424,7 @@ class GibbsNode(ChainNode):
             )
         return {
             "vector": [self.random_sample(i) for i in range(self.vector_length)],
-            "active_index": random.randint(0, self.vector_length - 1),
+            "initial_index": random.randint(0, self.vector_length - 1),
         }
 
 
@@ -374,6 +436,7 @@ class GibbsTrialMaker(ChainTrialMaker):
     for usage instructions.
     """
 
+    randomize_dimension_order_per_network = False
     performance_check_type = "consistency"
 
     def check_initialization(self):

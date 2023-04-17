@@ -21,7 +21,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_num_bots = 2
+    test_n_bots = 2
 
     def test_run_bots(self, bots):
         bots[0].var.is_good_bot = True

@@ -246,12 +246,14 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     asset_links = relationship(
         "AssetParticipant",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetParticipant(label=k, asset=v)
+        "asset_links",
+        "asset",
+        creator=lambda k, v: AssetParticipant(local_key=k, asset=v),
     )
 
     errors = relationship("ErrorRecord")
@@ -591,18 +593,20 @@ class TimeCreditStore:
             self.participant.var.set(self.get_internal_name(name), value)
 
     def initialize(self, experiment):
+        from .experiment import get_and_load_config
+
         self.confirmed_credit = 0.0
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
-        self.wage_per_hour = experiment.var.wage_per_hour
+        self.wage_per_hour = get_and_load_config().get("wage_per_hour")
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
             mode="time"
         )
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=experiment.var.wage_per_hour
+            mode="bonus", wage_per_hour=self.wage_per_hour
         )
 
     def increment(self, value: float):

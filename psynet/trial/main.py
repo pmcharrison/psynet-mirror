@@ -288,12 +288,12 @@ class Trial(SQLMixinDallinger, Info):
 
     asset_links = relationship(
         "AssetTrial",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetTrial(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetTrial(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")
@@ -476,10 +476,10 @@ class Trial(SQLMixinDallinger, Info):
         )
 
     def add_assets(self, assets: dict):
-        for label, asset in assets.items():
-            self.add_asset(label, asset)
+        for local_key, asset in assets.items():
+            self.add_asset(local_key, asset)
 
-    def add_asset(self, label, asset):
+    def add_asset(self, local_key, asset):
         db.session.add(self)
         db.session.commit()
 
@@ -487,14 +487,12 @@ class Trial(SQLMixinDallinger, Info):
             asset.parent = self
 
         asset.receive_node_definition(self.definition)
-
-        if not asset.has_key:
-            asset.label = label
-            asset.set_keys()
+        asset.local_key = local_key
+        asset.set_keys()
 
         db.session.add(asset)
 
-        self.assets[label] = asset
+        self.assets[local_key] = asset
 
         db.session.commit()
 
@@ -657,6 +655,12 @@ class Trial(SQLMixinDallinger, Info):
         is set to ``True``.
         """
         raise NotImplementedError
+
+    def format_answer(self, raw_answer, **kwargs):
+        """
+        Optional function to be run after a trial is completed by the participant.
+        """
+        return raw_answer
 
     def call_async_post_trial(self):
         dallinger.experiment.load()
@@ -896,7 +900,7 @@ class Trial(SQLMixinDallinger, Info):
             trial = participant.current_trial
             answer = participant.answer
 
-            trial.answer = answer
+            trial.answer = trial.format_answer(answer)
             trial.complete = True
             trial.response_id = participant.last_response_id
             trial.time_taken = trial.response.metadata["time_taken"]
@@ -2121,6 +2125,8 @@ class NetworkTrialMaker(TrialMaker):
                 trial = self._create_trial(
                     node=node, participant=participant, experiment=experiment
                 )
+                if trial is None:
+                    continue
                 trial_status = "available"
                 return trial, trial_status
         logger.info(
@@ -2168,6 +2174,12 @@ class NetworkTrialMaker(TrialMaker):
         """
         raise NotImplementedError
 
+    def get_trial_class(self, node, participant, experiment):
+        """
+        Returns the class of trial to be used for this trial maker.
+        """
+        return self.trial_class
+
     def find_node(self, network, participant, experiment):
         """
         Finds the node to which the participant should be attached for the next trial.
@@ -2190,7 +2202,10 @@ class NetworkTrialMaker(TrialMaker):
 
     @log_time_taken
     def _create_trial(self, node, participant, experiment):
-        trial = self.trial_class(
+        trial_class = self.get_trial_class(node, participant, experiment)
+        if trial_class is None:
+            return None
+        trial = trial_class(
             experiment=experiment,
             node=node,
             participant=participant,
@@ -2476,12 +2491,12 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     asset_links = relationship(
         "AssetNetwork",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetNetwork(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetNetwork(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")
@@ -2618,12 +2633,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     asset_links = relationship(
         "AssetNode",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetNode(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetNode(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")

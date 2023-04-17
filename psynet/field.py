@@ -42,7 +42,10 @@ class PythonObject(TypeDecorator):
         try:
             return self.unserialize(value)
         except Exception:
-            pass
+            logger.error(
+                f"An error occurred when trying to unserialize the following Python object from the database: {value}"
+            )
+            raise
 
     @classmethod
     def serialize(cls, value):

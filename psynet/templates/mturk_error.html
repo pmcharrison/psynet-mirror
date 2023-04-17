@@ -13,7 +13,7 @@
                 {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
                 {% if compensate == True %}
                     <p id="error-text-main">
-                        {% if experiment.var.show_abort_button %}
+                        {% if config.show_abort_button %}
                             {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
                             {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
                             {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
@@ -28,7 +28,7 @@
                             {{ experiment.error_page_content(gettext, pgettext, contact_address, error_type, hit_id, assignment_id, worker_id) }}
                         {% endif %}
                     </p>
-                    {% if experiment.var.show_abort_button %}
+                    {% if config.show_abort_button %}
                         <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
                         {{ gettext("Abort Experiment") }}
                         </button>

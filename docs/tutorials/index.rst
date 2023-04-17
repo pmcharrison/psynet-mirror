@@ -7,7 +7,6 @@ Tutorials
    classes
    timeline
    assets
-   command_line
    specifying_dependencies
    internationalization
    ad_page
@@ -15,6 +14,7 @@ Tutorials
    graphics
    demography
    prescreening_tasks
+   create_and_rate
    pre_deploy_routines
    experiment_variables
    unity_integration
@@ -26,4 +26,3 @@ Tutorials
    introduction_to_sql_alchemy
    version_control_with_git
    upgrading_to_psynet_10
-   prolific

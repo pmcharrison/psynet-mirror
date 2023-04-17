@@ -179,6 +179,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
+        from .experiment import get_and_load_config
+
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
             raise LucidRecruiterException(
@@ -186,15 +188,16 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
 
         experiment = dallinger.experiment.load().new(db.session)
+        wage_per_hour = get_and_load_config().get("wage_per_hour")
         create_survey_request_params = {
             "bid_length_of_interview": ceil(
-                experiment.estimated_completion_time(experiment.var.wage_per_hour) / 60
+                experiment.estimated_completion_time(wage_per_hour) / 60
             ),
             "live_url": self.ad_url.replace("http://", "https://"),
             "name": self.config.get("title"),
             "quota": n,
             "quota_cpi": round(
-                experiment.estimated_max_bonus(experiment.var.wage_per_hour),
+                experiment.estimated_max_bonus(wage_per_hour),
                 2,
             ),
         }

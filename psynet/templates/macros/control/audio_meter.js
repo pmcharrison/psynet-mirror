@@ -93,7 +93,7 @@ audioMeterControl.onMicrophoneGranted = function(stream) {
     this.showMessage("Starting audio meter...", "blue");
 
     let microphoneMetadata = this.checkMicrophone(stream);
-    Object.extend(psynet.response.staged.metadata, microphoneMetadata);
+    Object.assign(psynet.response.staged.metadata, microphoneMetadata);
 
     // Create an AudioNode from the stream.
     var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);

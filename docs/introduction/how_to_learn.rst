@@ -1,0 +1,89 @@
+.. _how_to_learn:
+
+How to learn
+============
+
+The first thing you should do is skim a few `example PsyNet experiments <example_experiments/introduction.html>`_
+to get a feel for the way that real-life experiments can be implemented using PsyNet.
+A good starting point is the repository's ``experiment.py`` file, but it's worth exploring other `.py` files in the
+repository too.
+
+Before you can implement your own PsyNet experiments, you will need to invest some time in learning the programming
+language Python. Python is a very popular language, and there are many tutorials available online. You could consider
+taking online courses via programmes such as DataCamp and Udemy. You will want to be confident with the following
+essential Python features:
+
+- Functions
+- Classes
+- List and dictionary comprehensions
+- Decorators
+- Imports, modules, packages
+
+You will need to have a basic knowledge of the Unix command line, or the Unix shell. You want to be comfortable
+with navigating directories using the `cd` command, listing files with `ls`, and so on.
+
+You will also normally need to use Git for version control on PsyNet projects. If you're not familiar with Git,
+it's worth taking some online tutorials for this too.
+
+You should now spend some time reading about essential PsyNet principles. This online documentation website contains
+lots of material here. Have a read through the `Tutorials <tutorials/index.html>`_ section and see what catches your
+eye. Some tutorials will not be relevant to you, depending on what kinds of experiments you're planning on running;
+feel free to skip them.
+
+Now you can start playing with PsyNet yourself. A good starting point is to start playing with some demos.
+Start off by downloading the PsyNet repository to your local machine; I normally do this by going to a terminal
+and typing the following:
+
+.. code-block:: bash
+
+   # I have a git folder in my home directory; you'll need to create this first if you don't have one
+   cd ~/git
+   git clone git@gitlab.com:PsyNetDev/psynet
+
+Open the resulting folder (``~/git/PsyNet``) in your IDE (we normally recommend PyCharm).
+You can then navigate to the ``demos`` folder to see all the demos contained in PsyNet.
+In your PyCharm terminal, you can navigate to a particular demo you want to run like this:
+
+.. code-block:: bash
+
+   # The precise path will depend on where you downloaded PsyNet.
+   cd ~/git/PsyNet/demos/timeline
+
+Then you can run the demo using the standard PsyNet debug command:
+
+.. code-block:: bash
+
+   # If you are using the Docker approach
+   bash docker/psynet debug local
+
+   # If you instead have a local installation of PsyNet
+   psynet debug local
+
+You can try changing parts of the demo now to test your understanding of PsyNet, for example modifying the page
+display, changing the stimuli, and so on. Note that some changes will manifest correctly as soon as you save your
+code and refresh the page; others will only manifest when you start a new participant session via the dashboard;
+others still will require you to start a new debug session by cancelling the debug command (Ctrl-C)
+and running it again.
+
+Once you are ready to develop your own experiment, you will want to move outside the PsyNet repository and create
+your own repository. A good way to start is by copying an existing demo, or an existing experiment implementation,
+to a new location on your computer. If you're going to use Git for version control, you can then initialize
+a Git repository in this location and link it to a remote repository on GitHub or similar. Then you
+can start changing code more wholesale.
+
+Often you will only need to understand a particular subset of PsyNet's features for implementing a particular
+experiment. Some of these features will be described in this website's `Tutorials <tutorials/index.html>`_
+section. Many of them will be illustrated in one or more of the PsyNet demos. It's worth having a look
+through these demos to identify which of them provide relevant examples, and try to repurpose them for
+your own experiment.
+
+When writing specific bits of PsyNet code you will often need to consult lower-level documentation
+for individual classes and functions. One way to do this is to search the class/function name in this
+website's search box, or to look it up in the `API documentation <api/index.html>`_ section.
+Alternatively, most IDEs will let you right click on PsyNet classes/functions and follow the link to the
+PsyNet source code, where you can see the documentation directly in the code. The latter approach is often
+more powerful as it allows you to see the underlying code itself, which is often the best way of
+understanding its functioning.
+
+Learning PsyNet takes a while, but it pays off handsomely. Give it a few months, and you'll be implementing
+fresh experiments in no time at all!
