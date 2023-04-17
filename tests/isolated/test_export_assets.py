@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import tempfile
@@ -11,11 +10,7 @@ from dallinger import db
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
 from psynet.bot import Bot
 from psynet.command_line import export__local
-from psynet.pytest_psynet import bot_class, path_to_demo
-
-logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
+from psynet.pytest_psynet import path_to_demo
 
 app = "demo-app"
 

@@ -1,4 +1,3 @@
-import logging
 import re
 import time
 
@@ -6,12 +5,11 @@ import pytest
 from dallinger import db
 from selenium.webdriver.common.by import By
 
+from psynet.experiment import get_and_load_config
 from psynet.participant import Participant, get_participant
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
-logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
@@ -23,10 +21,12 @@ class TestExp(object):
         from psynet.experiment import get_experiment
 
         exp = get_experiment()
-        assert exp.var.wage_per_hour == 12.0
         assert exp.var.new_variable == "some-value"
-        assert exp.var.min_accumulated_bonus_for_abort == 0.15
-        assert exp.var.show_abort_button is True
+
+        config = get_and_load_config()
+        assert config.get("wage_per_hour") == 12.0
+        assert config.get("min_accumulated_bonus_for_abort") == 0.15
+        assert config.get("show_abort_button") is True
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):

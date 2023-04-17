@@ -14,7 +14,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
+from .field import PythonList, PythonObject, VarStore, extra_var
 from .process import AsyncProcess
 from .utils import get_logger, organize_by_key
 
@@ -592,18 +592,20 @@ class TimeCreditStore:
             self.participant.var.set(self.get_internal_name(name), value)
 
     def initialize(self, experiment):
+        from .experiment import get_and_load_config
+
         self.confirmed_credit = 0.0
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
-        self.wage_per_hour = experiment.var.wage_per_hour
+        self.wage_per_hour = get_and_load_config().get("wage_per_hour")
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
             mode="time"
         )
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=experiment.var.wage_per_hour
+            mode="bonus", wage_per_hour=self.wage_per_hour
         )
 
     def increment(self, value: float):

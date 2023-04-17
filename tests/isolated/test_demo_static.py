@@ -1,4 +1,3 @@
-import logging
 import time
 from collections import Counter
 
@@ -8,9 +7,7 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial
 
-logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(

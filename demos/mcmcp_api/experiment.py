@@ -123,10 +123,6 @@ def start_nodes(participant):
 class Exp(psynet.experiment.Experiment):
     label = "MCMCP demo experiment (inc. API)"
 
-    variables = {
-        "show_abort_button": True,
-    }
-
     timeline = Timeline(
         MainConsent(),
         MCMCPTrialMaker(

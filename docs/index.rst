@@ -90,6 +90,7 @@ but see the sidebar for a full list.
    deploy/heroku_server
    deploy/prolific
    deploy/export
+   deploy/troubleshooting
 
 .. toctree::
    :maxdepth: 2

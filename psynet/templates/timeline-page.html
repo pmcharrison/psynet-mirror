@@ -1,5 +1,6 @@
 {% extends "macros.html" %}
 {% include "macros/browser-detect.html" %}
+
 {% block stylesheets %}
     {{ super() }}
     {% include "theme.html" %}
@@ -14,7 +15,7 @@
 {% block body %}
     {% block header %}
         <div class="header">
-            {% if show_progress_bar %}
+            {% if config.show_progress_bar %}
                 <div class="progress">
                     <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
                          aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
@@ -117,7 +118,7 @@
     {% endblock %}
 
     {% block footer %}
-        {% if show_footer %}
+        {% if config.show_footer %}
             <style>
                 #footer {
                     background-color: rgb(49, 124, 246);
@@ -142,24 +143,23 @@
 
             <nav id="footer" class="navbar fixed-bottom">
                 <div id="media-download-progress-bar"></div>
-                <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
-                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                        {% if show_bonus %}
+                    <div class="container py-2">
+                        {% if config.show_bonus %}
                             <div class="footer-text">
                                 {{ pgettext("timeline", "Bonus") }}:
                                 <strong>
                                     <span id="bonus-details" style="display: none">
-                                        {{ currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
-                                        {{ currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
+                                        {{ config.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
+                                        {{ config.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
                                     </span>
                                     <span class="fw-bold">
-                                        {{ currency }}<span id="total-bonus">{{ total_bonus }}</span>
+                                        {{ config.currency }}<span id="total-bonus">{{ total_bonus }}</span>
                                     </span>
                                 </strong>
                             </div>
                         {% endif %}
 
-                        {% if allow_switching_locale and supported_language_dict|length > 1 %}
+                        {% if config.allow_switching_locale and supported_language_dict|length > 1 %}
                             <div>
                                 <select id="iso-language" class="form-control">
                                     {% for iso, language in supported_language_dict.items() %}
@@ -175,7 +175,6 @@
                         <button type="button" class="btn btn-light"
                                 id="help-button">{{ pgettext("timeline", "Help!") }}</button>
                     </div>
-                </div>
             </nav>
         {% endif %}
         <script>
@@ -1627,7 +1626,7 @@
             return consoleOpen;
         }
 
-        {% if experiment.var.check_participant_opened_devtools %}
+        {% if config.check_participant_opened_devtools %}
             let warnedDevtools = false;
             setInterval(() => {
                 if (!warnedDevtools && isConsoleOpen()) {
