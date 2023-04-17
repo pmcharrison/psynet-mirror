@@ -35,6 +35,7 @@ RUN touch README.md
 
 COPY psynet/version.py psynet/version.py
 
+RUN pip install pip-tools --upgrade
 RUN pip-compile dev-requirements.in --verbose
 RUN pip install --no-cache-dir -r dev-requirements.txt
 RUN pip install -r dev-requirements.txt
