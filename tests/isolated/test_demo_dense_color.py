@@ -1,13 +1,10 @@
-import logging
 import time
 
 import pytest
 
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
-logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(

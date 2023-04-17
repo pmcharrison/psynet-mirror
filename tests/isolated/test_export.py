@@ -1,4 +1,3 @@
-import logging
 import os
 import tempfile
 import zipfile
@@ -11,13 +10,9 @@ from click import Context
 from psynet.bot import Bot
 from psynet.command_line import export__local, populate_db_from_zip_file
 from psynet.participant import Participant
-from psynet.pytest_psynet import bot_class, path_to_demo
+from psynet.pytest_psynet import path_to_demo
 from psynet.timeline import Response
 from psynet.trial.main import Trial
-
-logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.fixture(scope="session")
