@@ -5,7 +5,6 @@ import shutil
 import sys
 import tempfile
 import traceback
-import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
@@ -636,14 +635,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Please choose just one location."
             )
 
-            assert key in config_object.types, f"Config key {key} not registered."
-            expected_type = config_object.types[key]
-            current_type = type(value)
-            if current_type != expected_type:
+            if not isinstance(value, (bool, int, float, str)):
+                # Dallinger expects non-primitive types to be expressed as JSON-encoded strings.
+                # We should probably update this behavior in the future.
                 value = serialize(value)
-            assert isinstance(
-                value, expected_type
-            ), f"Config key {key} has wrong type got {type(value)}, expected {expected_type}."
+
+            expected_type = config_object.types[key]
+            value = expected_type(value)
+
             config[key] = value
         return config
 
