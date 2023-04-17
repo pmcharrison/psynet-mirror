@@ -30,6 +30,10 @@ class Exp(psynet.experiment.Experiment):
     label = "Timeline demo"
     initial_recruitment_size = 1
 
+    config = {
+        "wage_per_hour": 12,
+    }
+
     variables = {
         "new_variable": "some-value",
     }
