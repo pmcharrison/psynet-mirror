@@ -12,14 +12,13 @@ from typing import Optional
 
 import boto3
 import paramiko
-import psutil
 import requests
 from dallinger import db
-from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, deferred, relationship
+from tqdm import tqdm
 
 from psynet.timeline import NullElt
 
@@ -3198,12 +3197,12 @@ class AssetRegistry:
         self.storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        if self.n_parallel:
-            n_jobs = self.n_parallel
-        elif len(self._staged_asset_specifications) < 25:
-            n_jobs = 1
-        else:
-            n_jobs = psutil.cpu_count()
+        # if self.n_parallel:
+        #     n_jobs = self.n_parallel
+        # elif len(self._staged_asset_specifications) < 25:
+        #     n_jobs = 1
+        # else:
+        #     n_jobs = psutil.cpu_count()
 
         # OLD NOTES, may not be relevant any more
         #
@@ -3230,21 +3229,26 @@ class AssetRegistry:
         # Uploading all the files over one SSH connection shouldn't be slower than uploading them
         # over multiple connections. The main limitation with the current situation though
         # is that we can no longer programmatically generate stimuli in parallel.
-        n_jobs = 1
 
-        logger.info("Preparing assets for deployment...")
-        Parallel(
-            n_jobs=n_jobs,
-            verbose=10,
-            backend="threading",
-        )(
-            delayed(
-                lambda a: threadsafe__prepare_asset_for_deployment(
-                    asset=a, registry=self
-                )
-            )(a)
-            for a in self._staged_asset_specifications
-        )
+        for a in tqdm(
+            self._staged_asset_specifications, desc="Generating/uploading assets..."
+        ):
+            a.prepare_for_deployment(registry=self)
+
+        # logger.info("Preparing assets for deployment...")
+        # n_jobs = 1
+        # Parallel(
+        #     n_jobs=n_jobs,
+        #     verbose=10,
+        #     backend="threading",
+        # )(
+        #     delayed(
+        #         lambda a: threadsafe__prepare_asset_for_deployment(
+        #             asset=a, registry=self
+        #         )
+        #     )(a)
+        #     for a in self._staged_asset_specifications
+        # )
 
         db.session.commit()
 
