@@ -15,7 +15,7 @@ from flask import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import column_property, deferred, relationship
+from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -247,7 +247,13 @@ class Trial(SQLMixinDallinger, Info):
     module_state = relationship("ModuleState", foreign_keys=[module_state_id])
     trial_maker_id = Column(String, index=True)
     definition = Column(PythonObject)
-    complete = Column(Boolean)
+
+    @declared_attr
+    def complete(cls):
+        # Dallinger v9.6.0 adds an Info.complete column.
+        # The following code inherits that column if it exists.
+        return cls.__table__.c.get("complete", Column(Boolean))
+
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
     score = Column(Float)
