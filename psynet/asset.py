@@ -2334,7 +2334,6 @@ class AssetStorage:
         asset.deposited = True
 
         db.session.commit()
-        logger.info("Asset deposit complete.")
 
         asset.after_deposit()
         db.session.commit()
