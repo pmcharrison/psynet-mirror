@@ -586,7 +586,7 @@ redis==4.5.1
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.4.3/dev-requirements.txt
     #   dallinger
     #   rq
-repp @ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition-lab/repp@master
+repp @ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@master
     # via -r requirements.txt
 reppextension @ git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension
     # via -r requirements.txt

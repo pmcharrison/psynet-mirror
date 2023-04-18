@@ -23,7 +23,7 @@ RUN unzip chrome-driver.zip chromedriver -d /usr/local/bin/
 # TODO - Remove melody package and demo from PsyNet
 RUN pip install --upgrade pip
 RUN pip install "git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments[extract]"
-RUN pip install "git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition-lab/repp@master#egg=repp"
+RUN pip install "git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@master#egg=repp"
 RUN pip install "git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension"
 RUN pip install pytest-test-groups
 RUN export HEADLESS=TRUE
