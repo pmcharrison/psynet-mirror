@@ -452,7 +452,7 @@ class MoneyFromPlayingMusic(ModularPage):
     ):
         _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = (_p("music", "Do you make money from playing music?"),)
+        self.prompt = _p("music", "Do you make money from playing music?")
         self.time_estimate = 5
 
         control = RadioButtonControl(
