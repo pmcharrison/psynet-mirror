@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [10.0.0rc4] Release candidate 2023-04-19
+
+#### Updated
+- Updated `Dallinger` to `v9.6.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.6.0.
+
 # [10.0.0rc3] Release candidate 2023-03-02
 
 #### Fixed
