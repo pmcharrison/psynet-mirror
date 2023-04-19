@@ -409,11 +409,9 @@ class YearsOfFormalTraining(ModularPage):
     ):
         _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = (
-            _p(
-                "music",
-                "How many years of formal training on a musical instrument (including voice) have you had during your lifetime?",
-            ),
+        self.prompt = _p(
+            "music",
+            "How many years of formal training on a musical instrument (including voice) have you had during your lifetime?",
         )
         self.time_estimate = 5
         super().__init__(
@@ -454,7 +452,7 @@ class MoneyFromPlayingMusic(ModularPage):
     ):
         _, _p, _np = get_translator(locale)
         self.label = label
-        self.prompt = (_p("music", "Do you make money from playing music?"),)
+        self.prompt = _p("music", "Do you make money from playing music?")
         self.time_estimate = 5
 
         control = RadioButtonControl(

@@ -34,12 +34,13 @@
       </div>
     </div>
     <script>
+      let randomKey = Math.random().toString(36).substring(7);  // random key to prevent caching
       let buildUrl = "{{ resources }}/scripts/Build";
-      let loaderUrl = "{{ resources }}/scripts/Build/WebGL.loader.js";
+      let loaderUrl = buildUrl + "/WebGL.loader.js?random=" + randomKey;
       let config = {
-        dataUrl: buildUrl + "/WebGL.data",
-        frameworkUrl: buildUrl + "/WebGL.framework.js",
-        codeUrl: buildUrl + "/WebGL.wasm",
+        dataUrl: buildUrl + "/WebGL.data?random=" + randomKey,
+        frameworkUrl: buildUrl + "/WebGL.framework.js?random=" + randomKey,
+        codeUrl: buildUrl + "/WebGL.wasm?random=" + randomKey,
       };
 
       let container = document.querySelector("#unity-container");
