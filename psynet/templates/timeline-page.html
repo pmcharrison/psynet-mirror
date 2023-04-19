@@ -202,6 +202,13 @@
 
 
     <script>
+        {% if experiment.with_lucid_recruitment() %}
+            function beforeunloadFunction(event) {
+                event.returnValue = `Are you sure you want to leave?`;
+                triedToLeave = true;
+            }
+        {% endif %}
+
         {{ init_js_vars }}
         var psynet = (function () {
                 /**
@@ -1331,7 +1338,9 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
-                    window.removeEventListener("beforeunload", beforeunloadFunction);
+                    {% if experiment.with_lucid_recruitment() %}
+                        window.removeEventListener("beforeunload", beforeunloadFunction);
+                    {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                     return passedValidation
                 };
@@ -1668,119 +1677,100 @@
 
     {% if experiment.with_lucid_recruitment() %}
         <script>
-        // Terminate on overall timeout
-        var setIntervalHandle = setInterval(check_participant_termination, 1000);
+            // Terminate on overall timeout
+            var setIntervalHandle = setInterval(check_participant_termination, 1000);
 
-        function check_participant_termination() {
-            postData = {};
-            postData["auth_token"] = "{{ auth_token }}";
-            postData["participant_id"] = parseInt("{{ participant.id }}");
-            $.post("/check_participant_termination", postData, function (seconds) {
-                console.log("Seconds left before termination: " + seconds);
-                if (parseInt(seconds) < 0) {
-                    clearInterval(setIntervalHandle);
-                    window.removeEventListener("beforeunload", beforeunloadFunction);
-                    return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
+            function check_participant_termination() {
+                postData = {};
+                postData["auth_token"] = "{{ auth_token }}";
+                postData["participant_id"] = parseInt("{{ participant.id }}");
+                $.post("/check_participant_termination", postData, function (seconds) {
+                    console.log("Seconds left before termination: " + seconds);
+                    if (parseInt(seconds) < 0) {
+                        clearInterval(setIntervalHandle);
+                        window.removeEventListener("beforeunload", beforeunloadFunction);
+                        return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
+                    }
+                });
+            }
+
+            // Terminate on 'page reload', 'window/tab close', and 'no focus'
+            const INACTIVITY_TIMEOUT =
+            {{experiment.recruiter.inactivity_timeout_in_s}} *
+            1000;
+            const NO_FOCUS_TIMEOUT =
+            {{experiment.recruiter.no_focus_timeout_in_s}} *
+            1000;
+            const POLLING_FREQUENCY = 1000;
+            const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
+            const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
+            var triedToLeave = false;
+            var noFocusSince = 0;
+            var assignmentId = "{{worker_id}}";
+            var url = "{{experiment.recruiter.external_submit_url(assignment_id=worker_id)|safe}}";
+
+            window.addEventListener("beforeunload", beforeunloadFunction);
+
+            // Proceed to next page
+            $(".btn, .sd-btn").click(function () {
+                window.removeEventListener("beforeunload", beforeunloadFunction);
+            })
+
+
+
+            function terminateParticipant(reason) {
+                window.removeEventListener("beforeunload", beforeunloadFunction);
+                clearInterval(checkFocusInterval);
+                clearInterval(checkParticipantInterval);
+                navigator.sendBeacon(url, {});
+                return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
+            }
+
+            function checkParticipant() {
+                if (triedToLeave) {
+                    terminateParticipant("tried_to_leave");
                 }
-            });
-        }
-
-        // Terminate on 'page reload', 'window/tab close', and 'no focus'
-        const INACTIVITY_TIMEOUT =
-        {{experiment.recruiter.inactivity_timeout_in_s}} *
-        1000;
-        const NO_FOCUS_TIMEOUT =
-        {{experiment.recruiter.no_focus_timeout_in_s}} *
-        1000;
-        const POLLING_FREQUENCY = 1000;
-        const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
-        const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
-        var triedToLeave = false;
-        var noFocusSince = 0;
-        var assignmentId = "{{worker_id}}";
-        var url = "{{experiment.recruiter.external_submit_url(assignment_id=worker_id)|safe}}";
-
-        beforeunloadHandle = window.addEventListener("beforeunload", beforeunloadFunction);
-
-        // Proceed to next page
-        let next = document.getElementById("next-button");
-        if (next != null) {
-            next.onclick = function (event) {
-                window.removeEventListener("beforeunload", beforeunloadFunction);
-                psynet.nextPage(true);
             }
-        }
 
-        let consent = document.getElementById("consent");
-        if (consent != null) {
-            consent.onclick = function (event) {
-                window.removeEventListener("beforeunload", beforeunloadFunction);
-                psynet.nextPage(true);
-            }
-        }
-
-        $(".btn, .sd-btn").click(function () {
-            window.removeEventListener("beforeunload", beforeunloadFunction);
-        })
-
-        function beforeunloadFunction(event) {
-            event.returnValue = `Are you sure you want to leave?`;
-            triedToLeave = true;
-        }
-
-        function terminateParticipant(reason) {
-            window.removeEventListener("beforeunload", beforeunloadFunction);
-            clearInterval(checkFocusInterval);
-            clearInterval(checkParticipantInterval);
-            navigator.sendBeacon(url, {});
-            return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
-        }
-
-        function checkParticipant() {
-            if (triedToLeave) {
-                terminateParticipant("tried_to_leave");
-            }
-        }
-
-        function checkFocus() {
-            if (document.hasFocus()) {
-                noFocusSince = 0;
-            } else {
-                noFocusSince += POLLING_FREQUENCY;
-                if (noFocusSince > NO_FOCUS_TIMEOUT) {
-                    terminateParticipant("lost_focus");
+            function checkFocus() {
+                if (document.hasFocus()) {
+                    noFocusSince = 0;
                 } else {
-                    console.log("Document lost focus since " + noFocusSince / 1000 + " seconds");
+                    noFocusSince += POLLING_FREQUENCY;
+                    if (noFocusSince > NO_FOCUS_TIMEOUT) {
+                        terminateParticipant("lost_focus");
+                    } else {
+                        console.log("Document lost focus since " + noFocusSince / 1000 + " seconds");
+                    }
                 }
             }
-        }
 
-        // Terminate due to inactivity
-        let timer, secondsOfInactivity = 0;
+            // Terminate due to inactivity
+            let timer, secondsOfInactivity = 0;
 
-        function startTimer() {
-            secondsOfInactivity += POLLING_FREQUENCY;
-            if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
-                terminateParticipant("inactivity");
-            } else {
-                console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+            function startTimer() {
+                secondsOfInactivity += POLLING_FREQUENCY;
+                if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
+                    terminateParticipant("inactivity");
+                } else {
+                    console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+                }
             }
-        }
 
-        function resetInactivityTimer() {
-            clearInterval(timer);
-            secondsOfInactivity = 0;
-            timer = setInterval(startTimer, POLLING_FREQUENCY);
-        }
+            function resetInactivityTimer() {
+                clearInterval(timer);
+                secondsOfInactivity = 0;
+                timer = setInterval(startTimer, POLLING_FREQUENCY);
+            }
 
-        // Events that reset the timer
-        window.onload = resetInactivityTimer;
-        window.onmousemove = resetInactivityTimer;
-        window.onmousedown = resetInactivityTimer;
-        window.ontouchstart = resetInactivityTimer;
-        window.onclick = resetInactivityTimer;
-        window.onkeypress = resetInactivityTimer;
-    </script>
+            // Events that reset the timer
+            window.onload = resetInactivityTimer;
+            window.onmousemove = resetInactivityTimer;
+            window.onmousedown = resetInactivityTimer;
+            window.ontouchstart = resetInactivityTimer;
+            window.onclick = resetInactivityTimer;
+            window.onkeypress = resetInactivityTimer;
+        </script>
         <script>
         document.addEventListener("DOMContentLoaded", function (event) {
             let isValidBrowser = browser.validate();
