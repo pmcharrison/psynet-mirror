@@ -116,10 +116,10 @@ class TestExport:
             "ExperimentAsset.csv",
             "ExperimentConfig.csv",
             "ModuleState.csv",
-            "Notification.csv",  # Bots don't produce notifications
-            "Recruitment.csv",
+            # "Notification.csv",  # We don't expect any notifications to be created
+            # "Recruitment.csv",  # We don't expect any recruitment
             "Response.csv",
-            "Transmission.csv",
+            # "Transmission.csv",  # We don't expect any transmissions to be created
             "WorkerAsyncProcess.csv",
         ]
 
