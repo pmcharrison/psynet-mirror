@@ -1,24 +1,24 @@
-{% macro simple(config) %}
-    {% if config.text is not none %}
+{% macro simple(params) %}
+    {% if params.text is not none %}
         <style>
             #prompt-text {
-                text-align: {{ config.text_align }};
+                text-align: {{ params.text_align }};
             }
         </style>
 
         <div id="prompt-text">
-            {{ config.text }}
+            {{ params.text }}
         </div>
     {% endif %}
 {% endmacro %}
 
-{% macro audio(config) %}
-    {{ simple(config) }}
+{% macro audio(params) %}
+    {{ simple(params) }}
 
     <script>
-        var audioPromptPlayerOptions = {{ config.js_play_options | tojson }};
+        var audioPromptPlayerOptions = {{ params.js_play_options | tojson }};
 
-        let loopAudio = {{ config.loop | tojson }};
+        let loopAudio = {{ params.loop | tojson }};
 
         psynet.trial.onEvent("trialFinished", function() {
             if (loopAudio) {
@@ -27,7 +27,7 @@
         });
     </script>
 
-    {% if config.controls %}
+    {% if params.controls %}
         <style>
             #audio-prompt-controls {
                 display: flex;
@@ -53,7 +53,7 @@
                 {{ gettext("Stop") }}
             </button>
             <div id="audio-prompt-loop">
-              <input id="audio-prompt-loop-input" type="checkbox" value="" {% if config.loop %} checked {% endif %}>
+              <input id="audio-prompt-loop-input" type="checkbox" value="" {% if params.loop %} checked {% endif %}>
               <label id="audio-prompt-loop-label" for="audio-prompt-loop-input" style="cursor: pointer;">
                 {{ gettext("Loop") }}
               </label>
@@ -100,8 +100,8 @@
     </script>
 {% endmacro %}
 
-{% macro video(config) %}
-    {{ simple(config) }}
+{% macro video(params) %}
+    {{ simple(params) }}
 
     <style>
         #prompt-video-container {
@@ -113,7 +113,7 @@
             padding-bottom: 25px;
             visibility: hidden;
         }
-        {% if config.mirrored is true %}
+        {% if params.mirrored is true %}
         video {
             -webkit-transform: scaleX(-1);
             transform: scaleX(-1);
@@ -122,11 +122,11 @@
     </style>
 
     <div id="prompt-video-container">
-        <video id="prompt" style="width: {{ config.width }}" alt="{{ gettext("Video not found") }}" controls></video>
+        <video id="prompt" style="width: {{ params.width }}" alt="{{ gettext("Video not found") }}" controls></video>
     </div>
 
     <script>
-        let options = {{ config.js_play_options | tojson }};
+        let options = {{ params.js_play_options | tojson }};
         let startAt = options.start_at;
         let endAt = options.end_at;
         let muted = options.muted;
@@ -191,21 +191,21 @@
 {% endmacro %}
 
 
-{% macro image(config) %}
+{% macro image(params) %}
     <style>
         #prompt-image {
-            width: {{ config.width }};
-            height: {{ config.height }};
+            width: {{ params.width }};
+            height: {{ params.height }};
             display: block;
             margin-left: auto;
             margin-right: auto;
-            margin-top: {{ config.margin_top}};
-            margin-bottom: {{ config.margin_bottom}};
+            margin-top: {{ params.margin_top}};
+            margin-bottom: {{ params.margin_bottom}};
             opacity: 0;
         }
     </style>
 
-    <img id="prompt-image" src="{{ config.url }}" alt="{{ gettext("Image not found") }}">
+    <img id="prompt-image" src="{{ params.url }}" alt="{{ gettext("Image not found") }}">
 
     <script>
         let promptImage = $("#prompt-image").get(0);
@@ -219,10 +219,10 @@
         psynet.trial.onEvent("promptEnd", () => promptImage.style.opacity = 0);
     </script>
 
-    {{ simple(config) }}
+    {{ simple(params) }}
 {% endmacro %}
 
-{% macro color(config) %}
+{% macro color(params) %}
     <style>
         .color-box-container {
             display: flex;
@@ -234,7 +234,7 @@
             margin: 0px;
             border-style: solid;
             border-color: black;
-            background-color: hsl({{ config.hsl[0] }}, {{ config.hsl[1] }}%, {{ config.hsl[2] }}%);
+            background-color: hsl({{ params.hsl[0] }}, {{ params.hsl[1] }}%, {{ params.hsl[2] }}%);
         }
     </style>
 
@@ -242,26 +242,26 @@
         <div class="color-box"></div>
     </div>
 
-    {{ simple(config) }}
+    {{ simple(params) }}
 {% endmacro %}
 
 {% from "macros/graphics.html" import graphic_%}
-{% macro graphic(config) %}
-    {{ simple(config) }}
-    {{ graphic_(config) }}
+{% macro graphic(params) %}
+    {{ simple(params) }}
+    {{ graphic_(params) }}
 {% endmacro %}
 
 
-{% macro js_synth(config) %}
-    {{ simple(config) }}
+{% macro js_synth(params) %}
+    {{ simple(params) }}
 
     <script src="/static/scripts/Tonejs/Tone.js"></script>
     <script src="/static/scripts/js-synthesizer/instruments.js"></script>
     <script src="/static/scripts/js-synthesizer/synthesis.js"></script>
 
     <script>
-        let stimulus = {{ config.stimulus | tojson }};
-        let options = {{ config.options | tojson }};
+        let stimulus = {{ params.stimulus | tojson }};
+        let options = {{ params.options | tojson }};
 
         var DEFAULT_PARAMS = { // Default parameters to use if not otherwise specified by backend.
             "attack": 0.2, // Attack phase duration in seconds
@@ -317,13 +317,13 @@
     </script>
 {% endmacro %}
 
-{% macro abc_notation(config) %}
-    {{ simple(config) }}
+{% macro abc_notation(params) %}
+    {{ simple(params) }}
 
     <script src="/static/scripts/abc-js/abcjs-basic.js" type="text/javascript"></script>
 
     <script type="text/javascript">
-        let abcScore = "{{ config.content | safe }}";
+        let abcScore = "{{ params.content | safe }}";
 
         function renderABCscore() {
             $("#abcScore").css("visibility", "block")

@@ -1,4 +1,3 @@
-import logging
 import time
 
 import pytest
@@ -8,9 +7,7 @@ from psynet.participant import Participant
 from psynet.process import AsyncProcess
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
-logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
@@ -22,7 +19,7 @@ class TestExp:
             time.sleep(1)
 
             # What participant group would you like to join?
-            participant_group = ["A", "B", "A", "B"][participant]
+            participant_group = ["A", "B"][participant % 2]
             next_page(driver, participant_group)
 
             assert (

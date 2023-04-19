@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import psynet.experiment
 from psynet.consent import MainConsent
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -13,14 +9,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "CAP recruiter demo"
 

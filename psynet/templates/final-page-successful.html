@@ -13,8 +13,12 @@
     </p>
     <p class="vspace"></p>
 
-    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">
+    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="finish();">
         {{ gettext("Finish") }}</button>
+    {% else %}
+        <p>
+        {{ gettext('You will be redirected.') }}
+    </p>
     {% endif %}
 {% endblock %}
 
@@ -25,11 +29,9 @@
           dallinger.submitAssignment();
         }
         {% if experiment.with_lucid_recruitment() %}
-        setTimeout(() => {
-          finish();
-        }, "2000")
-        {% else %}
-        document.getElementById("next-button").onclick = finish;
+            setTimeout(() => {
+              finish();
+            }, 2000)
         {% endif %}
     </script>
 {% endblock %}

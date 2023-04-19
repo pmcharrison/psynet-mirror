@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import tempfile
@@ -11,11 +10,7 @@ from dallinger import db
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
 from psynet.bot import Bot
 from psynet.command_line import export__local
-from psynet.pytest_psynet import bot_class, path_to_demo
-
-logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
+from psynet.pytest_psynet import path_to_demo
 
 app = "demo-app"
 
@@ -49,17 +44,19 @@ def generate_text_file(path):
 
 def test_export_path__external_asset():
     asset = ExternalAsset(
-        key="test_external_asset",
+        key_within_experiment="test_external_asset",
         url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
     )
-    assert asset.export_path == "test_external_asset.wav"
+    assert asset.generate_export_path() == "test_external_asset.wav"
 
 
 def test_export_path__fast_function_asset():
     asset = FastFunctionAsset(
-        function=generate_text_file, key="test_fast_function_asset", extension=".txt"
+        function=generate_text_file,
+        key_within_experiment="test_fast_function_asset",
+        extension=".txt",
     )
-    assert asset.export_path == "test_fast_function_asset.txt"
+    assert asset.generate_export_path() == "test_fast_function_asset.txt"
 
 
 @pytest.fixture(scope="class")
@@ -82,26 +79,26 @@ class TestAssetExport:
         with tempfile.NamedTemporaryFile("w") as file:
             file.write("Test asset")
             asset = ExperimentAsset(
-                label="test_personal_asset", input_path=file.name, personal=True
+                local_key="test_personal_asset", input_path=file.name, personal=True
             )
             asset.deposit()
 
             asset_2 = ExperimentAsset(
-                label="test_public_asset",
+                local_key="test_public_asset",
                 input_path=file.name,
                 personal=False,
             )
             asset_2.deposit()
 
             asset_3 = ExternalAsset(
-                key="test_external_asset",
+                local_key="test_external_asset",
                 url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             )
             asset_3.deposit()
 
             asset_4 = FastFunctionAsset(
                 function=generate_text_file,
-                key="test_fast_function_asset",
+                local_key="test_fast_function_asset",
             )
             asset_4.deposit()
 
@@ -167,29 +164,43 @@ class TestAssetExport:
             assert os.path.exists(path) and os.path.isdir(path)
 
             assert os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_personal_asset")
+                os.path.join(
+                    tempdir, "regular", "assets", "common", "test_personal_asset"
+                )
             )
             assert not os.path.exists(
-                os.path.join(tempdir, "anonymous", "assets", "test_personal_asset")
+                os.path.join(
+                    tempdir, "anonymous", "assets", "common", "test_personal_asset"
+                )
             )
             assert not os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_external_asset.wav")
+                os.path.join(
+                    tempdir, "regular", "assets", "common", "test_external_asset.wav"
+                )
             )
             assert not os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_fast_function_asset")
+                os.path.join(
+                    tempdir, "regular", "assets", "common", "test_fast_function_asset"
+                )
             )
 
         with tempfile.TemporaryDirectory() as tempdir:
             ctx.invoke(export__local, path=tempdir, assets="all")
 
             assert os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_personal_asset")
+                os.path.join(
+                    tempdir, "regular", "assets", "common", "test_personal_asset"
+                )
             )
             assert os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_external_asset.wav")
+                os.path.join(
+                    tempdir, "regular", "assets", "common", "test_external_asset.wav"
+                )
             )  # now we have this
             assert os.path.exists(
-                os.path.join(tempdir, "regular", "assets", "test_fast_function_asset")
+                os.path.join(
+                    tempdir, "regular", "assets", "common", "test_fast_function_asset"
+                )
             )  # and this
 
     def assert_regular_database_zip(self, path):

@@ -1,19 +1,13 @@
-import logging
-
 import pytest
 
 from psynet.bot import Bot
-from psynet.pytest_psynet import bot_class, path_to_demo
-
-logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
+from psynet.pytest_psynet import path_to_demo
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("bot")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
-    def test_exp(self, active_config):
+    def test_exp(self):
         bots = [Bot() for _ in range(2)]
 
         for bot in bots:

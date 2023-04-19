@@ -5,77 +5,23 @@
 {% endblock %}
 
 {% block main_body %}
-  <div class="main-div" style="padding-bottom: 200px;">
-    <noscript>
-        <h1>{{ pgettext("consent-javascript", "Warning: Javascript is not working on your browser") }}</h1>
-        <p>{{ pgettext("consent-javascript", "The study will not work unless Javascript is enabled on your browser.") }}</p>
-        <p>{{ pgettext("consent-javascript", "Please enable Javascript then refresh this page.") }}</p>
-    </noscript>
-    <h1 style="color: red; font-weight: bold;">{{ pgettext("consent-javascript", "We need your consent to proceed") }}</h1>
-    <hr>
-    <p>
+    <div class="main-div" style="padding-bottom: 200px;">
+        <hr>
+        <p>
         <h4 style="color: red; font-weight: bold;">
-      {{ pgettext("consent-title", "In this experiment, you may be asked to make a voice or video recording.") }}
-      {{pgettext("consent-title", "For example, you may be asked to record your finger-tapping in response to a sound or video, or to record yourself speaking or singing.") }}
+            {{ pgettext("consent-title", "In this experiment, you may be asked to make a voice or video recording.") }}
+            {{ pgettext("consent-title", "For example, you may be asked to record your finger-tapping in response to a sound or video, or to record yourself speaking or singing.") }}
         </h4>
-    </p>
-    <div class="text-justify">
-        <div class="text-left" style="font-size: 18px;">
-            <h4>{{pgettext("consent-confidentiality", "Confidentiality") }}</h4>
-            <p class="consent-text">
-                {{pgettext("consent-confidentiality", "All the recordings we obtain during this research will be kept confidential, and nobody outside the group of researchers will be able to share or store them.") }}
-                {{pgettext("consent-confidentiality", "However, in some experiments, your recordings may be seen or heard by other participants in order to evaluate them in different attributes or create new materials (for example replicate a rhythm that you created, or continue a melody that you sang).") }}
-                {{pgettext("consent-confidentiality", "Your recordings will not be associated with your name or other identifiers in any way.") }}
-                {{pgettext("consent-confidentiality", "Your recordings will not be used to derive your real identity, and they will not be made public.") }}
-                {{pgettext("consent-confidentiality", "Raw audio/video will not be shared with collaborators (we will only share extracted data from recordings without personal identifiers).") }}
-            </p>
-            <p class="consent-text">
-                {{pgettext("consent-confidentiality", "Although researchers will not use your recordings to derive your real identity, personal information could be leaked if you are not in an isolated environment.") }}
-                {{pgettext("consent-confidentiality", "You may wish to make sure that no sounds/visual material in your environment could be linked to your personal information. In addition, while you perform a recording, the microphone or camera can capture unintended audio or video, for example the camera can capture another family member, or the microphone can capture something you say to another person.") }}
-                {{pgettext("consent-confidentiality", "If you choose to participate in the experiment, it is important and your responsibility to make sure that while you record audio and video nothing that you don’t intend to be recorded is recorded.") }}
-                {{pgettext("consent-confidentiality", "For example, you may want to sit in a room that is isolated from the rest of the house.") }}
-                {{pgettext("consent-confidentiality", "By consenting to this experiment, you are committing not to use profanity while recording audio or nudity while recording video.") }}
-            </p>
-
-            <h4>{{pgettext("consent-collaborations", "Research collaborations") }}</h4>
-            <p class="consent-text">
-                {{pgettext("consent-collaborations", "For the purpose of helping scientific progress and replication, sometimes we may share the data with research collaborators.") }}
-                {{pgettext("consent-collaborations", "In these cases, we may share your audio-visual material along with fully anonymized data, such as demographic, aggregated, or extracted data.") }}
-                {{pgettext("consent-collaborations", "We will never connect your real name or any of your personal information directly to your image or sound recording, even though it is off course possible to recognize individuals based on audio-visual material.") }}
-            </p>
-
-            <h4>{{pgettext("consent-security", "Security") }}</h4>
-            <p class="consent-text">
-                {{pgettext("consent-security", "During data collection, audio-visual material will be recorded on a separate server.") }}
-                {{pgettext("consent-security", "Audio-visual material will not be indexed by personal information but will be linked to personal information by a key (such as “afasd12314asdasd”).") }}
-                {{pgettext("consent-security", "Personal information will be stored separately from audio-visual materials and encrypted using a strong encryption protocol (such as Advanced Encryption Standard).") }}
-            </p>
-
-            <h4>{{pgettext("consent-contact", "Contact information") }}</h4>
-            <p class="consent-text">
-                {{pgettext("consent", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at: ") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
-            </p>
-
-            <h4>{{pgettext("consent-consent", "Consent") }}</h4>
-            <p class="consent-text">
-                {{pgettext("consent-consent", "By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research.") }}
-                {{pgettext("consent-consent", "If you do not wish to consent, please close this page.") }}
-            </p>
-        </div>
-        <div class="fixed-bottom consent-gradient">
-            <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
-                {{gettext("Scroll up/down to see all text") }} <span class="up-down-arrows">&#8645;</span>
+        </p>
+        <div class="text-justify">
+            <div class="text-left" style="font-size: 18px;">
+                {{ consent.confidentiality(config, true) }}
+                {{ consent.collaborations(config, true) }}
+                {{ consent.security(config, true) }}
+                {{ consent.contact(config) }}
+                {{ consent.consent(config) }}
             </div>
-            <hr style="margin-top: 5px;">
-            <h4>{{gettext("Do you understand and consent to these terms?") }}</h4>
-            <br>
-            <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-                {{pgettext("consent", "I agree") }}
-            </button>
-            <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-                {{pgettext("consent", "No, thank you (return task)") }}
-            </button>
+            {{ consent.fixed_buttons(config) }}
         </div>
-      </div>
-  </div>
+    </div>
 {% endblock %}

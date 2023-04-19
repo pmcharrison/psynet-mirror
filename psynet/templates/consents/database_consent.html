@@ -6,11 +6,6 @@
 
 {% block main_body %}
   <div class="main-div" style="padding-bottom: 200px;">
-    <noscript>
-        <h1>{{ pgettext("consent-javascript", "Warning: Javascript is not working on your browser") }}</h1>
-        <p>{{ pgettext("consent-javascript", "The study will not work unless Javascript is enabled on your browser.") }}</p>
-        <p>{{ pgettext("consent-javascript", "Please enable Javascript then refresh this page.") }}</p>
-    </noscript>
     <h1>{{ pgettext("consent-title", "We need your consent to proceed") }}</h1>
     <hr>
     <p>
@@ -110,25 +105,9 @@
                 {{ pgettext("consent-protection", "You may also address your inquiries directly to the Max Planck Institute for Empirical Aesthetics:") }} <a href="mailto:dataprotect@ae.mpg.de">dataprotect@ae.mpg.de</a>
             </p>
 
-            <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }} <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
-            </p>
+            {{ consent.contact(config) }}
         </div>
-        <div class="fixed-bottom consent-gradient">
-            <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
-                {{ gettext("Scroll up/down to see all text") }} <span class="up-down-arrows">&#8645;</span>
-            </div>
-            <hr style="margin-top: 5px;">
-            <h4>{{ gettext("Do you understand and consent to these terms?") }}</h4>
-            <br>
-            <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-                {{ pgettext("consent", "I agree") }}
-            </button>
-            <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-                {{ pgettext("consent", "No, thank you (return task)") }}
-            </button>
-        </div>
+        {{ consent.fixed_buttons(config) }}
       </div>
   </div>
 {% endblock %}

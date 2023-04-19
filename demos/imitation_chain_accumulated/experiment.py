@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
 import re
 from statistics import mean
@@ -23,11 +19,6 @@ from psynet.trial.imitation_chain import (
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-
-##########################################################################################
-# Stimuli
-##########################################################################################
 
 
 class FixedDigitInputPage(ModularPage):
@@ -113,11 +104,6 @@ class CustomNode(ImitationChainNode):
 class CustomTrialMaker(ImitationChainTrialMaker):
     response_timeout_sec = 60
     check_timeout_interval_sec = 30
-
-
-##########################################################################################
-# Experiment
-##########################################################################################
 
 
 class Exp(psynet.experiment.Experiment):

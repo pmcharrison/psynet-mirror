@@ -107,7 +107,19 @@ You build the experiment by running the following in your PyCharm terminal:
 bash docker/build
 ```
 
-If you see some error messages at this point, see Troubleshooting.
+Note: if you see an error message like this:
+
+```shell
+./docker/run: Permission denied
+```
+
+run the following command, then try again:
+
+```shell
+chmod +x docker/*
+```
+
+If you see other error messages at this point, see Troubleshooting.
 
 ## Running the experiment
 
@@ -154,5 +166,5 @@ Hint -- you might find that the option you need to select is called 'SVM mode'..
 
 #### Failed to solve with frontend dockerfile
 
-If you say a message starting "failed to solve with frontend dockerfile.v0",
+If you see a message starting "failed to solve with frontend dockerfile.v0",
 you may want to try rebooting your computer and trying again.

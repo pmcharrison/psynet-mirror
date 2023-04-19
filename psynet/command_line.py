@@ -22,7 +22,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -638,10 +638,27 @@ def _pre_launch(
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     if not archive:
-        if local_:
-            run_prepare_in_subprocess()
-        else:
-            ctx.invoke(prepare)
+        ctx.invoke(prepare)
+
+    _forget_tables_defined_in_experiment_directory()
+
+
+def _forget_tables_defined_in_experiment_directory():
+    # We need to instruct SQLAlchemy to forget tables defined in the experiment directory,
+    # because otherwise SQLAlchemy will get confused and throw errors when we run subsequent commands
+    # that import the same experiment from other locations (e.g. /tmp/dallinger_develop).
+
+    from dallinger.db import Base
+
+    tables_defined_in_experiment_directory = [
+        mapper.class_.__tablename__
+        for mapper in dallinger.db.Base.registry.mappers
+        if mapper.class_.__module__.startswith("dallinger_experiment")
+        and not mapper.class_.inherits_table
+    ]
+
+    for table in tables_defined_in_experiment_directory:
+        Base.metadata.remove(Base.metadata.tables[table])
 
 
 @psynet.group("deploy")
@@ -828,10 +845,13 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
+    from .experiment import get_and_load_config
+
     cents = config.get("prolific_reward_cents")
     minutes = config.get("prolific_estimated_completion_minutes")
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
     assert (
-        experiment.var.wage_per_hour * minutes / 60 == cents / 100
+        wage_per_hour * minutes / 60 == cents / 100
     ), "Wage per hour does not match Prolific reward"
 
 
@@ -1228,20 +1248,17 @@ def is_editable(project):
 # estimate #
 ############
 def _estimate(mode):
-    from .experiment import import_local_experiment
+    from .experiment import get_and_load_config, import_local_experiment
 
     log(header)
     experiment_class = import_local_experiment()["class"]
-    experiment = setup_experiment_variables(experiment_class)
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
+
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(
-            experiment.var.wage_per_hour
-        )
+        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
         log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
-        completion_time = experiment_class.estimated_completion_time(
-            experiment.var.wage_per_hour
-        )
+        completion_time = experiment_class.estimated_completion_time(wage_per_hour)
         log(
             f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
         )
@@ -1443,6 +1460,11 @@ def export_(
     from .experiment import import_local_experiment
 
     log(header)
+
+    if not experiment_available():
+        raise click.UsageError(
+            "This command must be run within an experiment directory."
+        )
 
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0

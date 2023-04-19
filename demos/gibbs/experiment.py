@@ -20,6 +20,7 @@ from psynet.participant import Participant
 from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
+from psynet.trial.main import TrialNode
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -131,7 +132,7 @@ class CustomTrial(GibbsTrial):
             file.write(f"completed async_post_trial for trial {self.id}")
             file.flush()
             asset = ExperimentAsset(
-                label="async_post_trial",
+                local_key="async_post_trial",
                 input_path=file.name,
                 extension=".txt",
                 parent=self,
@@ -152,6 +153,18 @@ class CustomTrialMaker(GibbsTrialMaker):
 
     # If we set this to True, then the performance check will wait until all async_post_trial processes have finished
     end_performance_check_waits = False
+
+    def prioritize_networks(self, networks, participant, experiment):
+        for network in networks:
+            network.alive_trials_at_degree = len(
+                TrialNode.query.filter_by(network_id=network.id)
+                .order_by(TrialNode.id)
+                .all()[-1]
+                .alive_trials
+            )
+
+        # Prioritize nodes with the most alive trials
+        return list(reversed(sorted(networks, key=lambda n: n.alive_trials_at_degree)))
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
@@ -193,7 +206,7 @@ trial_maker = CustomTrialMaker(
     max_nodes_per_chain=2,
     chains_per_participant=None,  # set to None if chain_type="across"
     chains_per_experiment=8,  # set to None if chain_type="within"
-    trials_per_node=1,
+    trials_per_node=2,
     balance_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
@@ -254,7 +267,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_num_bots = 4
+    test_n_bots = 4
 
     def test_check_bots(self, bots: List[Bot]):
         time.sleep(2.0)

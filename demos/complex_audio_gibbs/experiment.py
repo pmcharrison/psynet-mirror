@@ -1,11 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-# Note: parselmouth must be installed with pip install praat-parselmouth
-
-##########################################################################################
-# Imports
-##########################################################################################
-
 import random
 
 from flask import Markup
@@ -102,7 +96,7 @@ class CustomNode(AudioGibbsNode):
     def create_initial_seed(self, experiment, participant):
         return {
             "vector": INITIAL_VALUES,  # Start at predefined zero points, i.e. not at a random point in space
-            "active_index": random.randint(0, self.vector_length),  #
+            "initial_index": random.randint(0, self.vector_length - 1),  #
         }
 
     def synth_function(self, vector, output_path, chain_definition):
@@ -137,14 +131,6 @@ trial_maker = CustomTrialMaker(
 )
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
-
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Complex audio Gibbs sampling demo"
     asset_storage = DebugStorage()

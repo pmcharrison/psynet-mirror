@@ -66,7 +66,7 @@ class StaticTrial(ChainTrial):
     __extra_vars__ = Trial.__extra_vars__.copy()
 
     def generate_asset_key(self, asset):
-        return f"{self.trial_maker_id}/block_{self.block}__node_{self.node_id}__trial_{self.id}__{asset.label}{asset.extension}"
+        return f"{self.trial_maker_id}/block_{self.block}__node_{self.node_id}__trial_{self.id}__{asset.local_key}{asset.extension}"
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" width="166.1" height="154.9"><svg style="width: 30px" version="1.2" baseProfile="tiny" id="SvgjsSvg1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 166.1 154.9" overflow="visible" xml:space="preserve">
+<circle cx="74.2" cy="83.1" r="25"></circle>
+<path d="M120.3,40c-11,0-20-9-20-20s9-20,20-20s20,9,20,20S131.3,40,120.3,40z"></path>
+<path d="M16.3,72.6C7.3,72.6,0,65.3,0,56.3S7.3,40,16.3,40s16.3,7.3,16.3,16.3S25.3,72.6,16.3,72.6z"></path>
+<path d="M24.6,142.8c-8.6,0-15.5-7-15.5-15.5s7-15.5,15.5-15.5c8.6,0,15.5,7,15.5,15.5S33.1,142.8,24.6,142.8z"></path>
+<path d="M88.7,154.9c-6.3,0-11.4-5.1-11.4-11.4c0-6.3,5.1-11.4,11.4-11.4c6.3,0,11.4,5.1,11.4,11.4C100.1,149.8,95,154.9,88.7,154.9
+	z"></path>
+<path d="M150.4,147c-8.7,0-15.7-7-15.7-15.7s7-15.7,15.7-15.7c8.7,0,15.7,7,15.7,15.7C166.1,139.9,159,147,150.4,147z"></path>
+<g>
+
+		<rect x="30.9" y="104.8" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -61.9772 64.0037)" stroke="currentColor" stroke-width="5" stroke-miterlimit="10" width="30.7" height="4"></rect>
+
+		<rect x="40.5" y="53.1" transform="matrix(0.4184 -0.9083 0.9083 0.4184 -36.0713 77.4691)" stroke="currentColor" stroke-width="5" stroke-miterlimit="10" width="4" height="27.6"></rect>
+
+		<rect x="78.3" y="47.5" transform="matrix(0.6206 -0.7841 0.7841 0.6206 -2.0611 94.6624)" stroke="currentColor" stroke-width="5" stroke-miterlimit="10" width="37" height="4"></rect>
+
+		<rect x="80.6" y="104.5" transform="matrix(0.9653 -0.2612 0.2612 0.9653 -28.3465 25.7263)" stroke="currentColor" stroke-width="5" stroke-miterlimit="10" width="4" height="30"></rect>
+
+		<rect x="113.3" y="82.4" transform="matrix(0.5435 -0.8394 0.8394 0.5435 -39.2605 146.7075)" stroke="currentColor" stroke-width="5" stroke-miterlimit="10" width="4" height="54.1"></rect>
+</g>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: contrast(0.3846153846153846) brightness(4.5); } }
+</style></svg>

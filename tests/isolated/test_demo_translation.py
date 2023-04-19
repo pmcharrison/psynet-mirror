@@ -1,15 +1,14 @@
-import logging
+import json
 import time
 
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
+from psynet.experiment import get_and_load_config
 from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
-logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
-EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
@@ -18,11 +17,9 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_variables(self, db_session):
-        from psynet.experiment import get_experiment
-
-        exp = get_experiment()
-        assert exp.var.supported_locales == ["en", "de", "nl"]
-        assert exp.var.allow_switching_locale is True
+        config = get_and_load_config()
+        assert json.loads(config.get("supported_locales")) == ["en", "de", "nl"]
+        assert config.get("allow_switching_locale") is True
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
