@@ -33,7 +33,7 @@ class TestExp(object):
             driver = bot.driver
 
             # Page 0
-            time.sleep(1)
+            time.sleep(3)
 
             assert list(get_participant(1).started_modules) == ["main_consent"]
 
