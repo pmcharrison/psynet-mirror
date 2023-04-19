@@ -861,6 +861,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from .asset import DebugStorage
     from .experiment import get_experiment
 
+    exp = get_experiment()
+    exp.check_config()
+
     try:
         with open("requirements.txt", "r") as f:
             for line in f.readlines():
@@ -904,10 +907,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             )
 
     if not local_:
-        # Running these following tests in advance of local deployment is skipped because it confuses SQLAlchemy
-        # to import the experiment in advance of the experiment launch itself, you get errors like this:
-        # sqlalchemy.exc.InvalidRequestError: Table 'coin' is already defined for this MetaData instance.
-        # Specify 'extend_existing=True' to redefine options and columns on an existing Table object.
         init_db(drop_all=True)
 
         config = get_config()
@@ -938,8 +937,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
             ):
                 raise click.Abort
-
-        exp = get_experiment()
 
         config.set("id", exp.make_uuid(app))
 

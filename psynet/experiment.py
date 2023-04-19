@@ -8,7 +8,6 @@ import traceback
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from os.path import exists
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -21,7 +20,7 @@ import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import experiment_available, get_config, is_valid_json
+from dallinger.config import get_config, is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
@@ -609,41 +608,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
             "color_mode": "light",
+            **cls.config,
         }
 
-        config_object = get_config()
+        config_types = get_config().types
 
-        config_txt = {}
-        if experiment_available():
-            config_txt_path = "config.txt"
-            check_config = not any(
-                [
-                    unsafe_dir in os.path.abspath(config_txt_path)
-                    for unsafe_dir in ["dallinger_develop", "/tmp/", "/var/"]
-                ]
-            )
-
-            if check_config and exists(config_txt_path):
-                parser = configparser.ConfigParser()
-                parser.read("config.txt")
-                for section in parser.sections():
-                    config_txt.update(dict(parser.items(section)))
-
-        for key, value in cls.config.items():
-            assert key not in config_txt, (
-                f"Config variable {key} was registered both in config.txt and experiment.py. "
-                f"Please choose just one location."
-            )
-
+        for key, value in config.items():
             if not isinstance(value, (bool, int, float, str)):
                 # Dallinger expects non-primitive types to be expressed as JSON-encoded strings.
                 # We should probably update this behavior in the future.
                 value = serialize(value)
 
-            expected_type = config_object.types[key]
+            expected_type = config_types[key]
             value = expected_type(value)
 
             config[key] = value
+
         return config
 
     @property
@@ -767,7 +747,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.pre_deploy_routines.append(elt)
 
     def pre_deploy(self):
-        self.check_config()
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
@@ -850,6 +829,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise RuntimeError(
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
             )
+
+        parser = configparser.ConfigParser()
+        parser.read("config.txt")
+        config_txt = {}
+
+        for section in parser.sections():
+            config_txt.update(dict(parser.items(section)))
+
+        for key in cls.config:
+            if key in config_txt:
+                raise ValueError(
+                    f"Config variable {key} was registered both in config.txt and experiment.py. "
+                    f"Please choose just one location."
+                )
 
     def fail_participant(self, participant):
         logger.info(
