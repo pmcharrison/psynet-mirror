@@ -61,6 +61,7 @@ but see the sidebar for a full list.
    :hidden:
    :caption: EXPERIMENT DEVELOPMENT
 
+   experiment_directory
    development_workflow
    demos/index
 
