@@ -4,8 +4,33 @@
 The Ad Page
 ===========
 
-The advertisement page (ad page) is the first page being shown to a participant before starting an experiment. Depending on
-the recruitment method being used, `MTurk`, `CAP-Recruiter`, and `Prolific` participants are presented a specific ad page, of which three sections can be customized. These are:
+The way that the experiment is advertised to participants depends on the recruitment method.
+
+Generic recruiter
+-----------------
+
+The 'generic' recruiter is used for experiments that are not integrated with a crowdsourcing provider.
+In such cases, participants simply navigate to the experiment via a pre-specified link.
+In this case PsyNet does not display an ad to the participant.
+
+Prolific
+--------
+
+Prolific participants see an ad in their Prolific interface. This ad looks something like this:
+
+.. image:: ../_static/images/prolific/ad_example.png
+  :alt: Prolific ad example
+
+The content of this ad is initially populated by PsyNet with reference to your experiment config,
+in particular fields like ``title``, ``config``, ``wage_per_hour``, and so on.
+You can customize the content via the Prolific interface.
+
+MTurk and CAP-Recruiter
+-----------------------
+
+With MTurk and CAP-Recruiter the ad page is hosted by PsyNet itself.
+This ad page is again initially populated by PsyNet with reference to your experiment config,
+but can be customized by editing methods of the ``Experiment`` class, as detailed below.
 
 **1. General description of the experiment**
 
