@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from math import ceil
 
 import dallinger.recruiters
@@ -446,3 +447,16 @@ class GenericRecruiter(PsyNetRecruiter):
             )
 
         return flask.render_template("custom_html.html", html=html)
+
+    def open_recruitment(self, n=1):
+        res = super().open_recruitment(n=n)
+
+        # Hide the Dallinger logs advice, because the advice doesn't work for SSH deployment
+        res["message"] = re.sub(
+            "Open the logs for this experiment.*", "", res["message"]
+        )
+        res["message"] = re.sub(
+            ".*in the logs for subsequent recruitment URLs\\.", "", res["message"]
+        )
+
+        return res

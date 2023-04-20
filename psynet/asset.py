@@ -595,7 +595,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             db.session.add(self)
 
             if self.parent:
-                _local_key = self.local_key if self.local_key else self.key
+                _local_key = self.local_key if self.local_key else f"asset_{self.id}"
                 self.parent.assets[_local_key] = self
 
                 ancestors = self.get_ancestors()
