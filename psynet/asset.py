@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import subprocess
 import tempfile
@@ -13,15 +12,13 @@ from typing import Optional
 
 import boto3
 import paramiko
-import psutil
 import requests
-import sqlalchemy
 from dallinger import db
-from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, deferred, relationship
+from tqdm import tqdm
 
 from psynet.timeline import NullElt
 
@@ -56,12 +53,7 @@ class AssetSpecification(NullElt):
     Parameters
     ----------
 
-    key : str
-        A string that identifies the asset uniquely within the experiment.
-        This is often automatically generated, and might look something like
-        ``"visual_stimuli/node_6__network_2__stimulus"``.
-
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -70,27 +62,20 @@ class AssetSpecification(NullElt):
         An optional longer string that provides further documentation about the asset.
     """
 
-    def __init__(self, key, label, description):
-        if key is None:
-            key = f"pending--{uuid.uuid4()}"
-
+    def __init__(
+        self, local_key, key_within_module, key_within_experiment, description
+    ):
         self.export_path = None
-        self.key = key
-        self.label = label
+        self.local_key = local_key
+        self.key_within_module = key_within_module
+        self.key_within_experiment = key_within_experiment
         self.description = description
 
     def prepare_for_deployment(self, registry):
         raise NotImplementedError
 
-    pending_key_pattern = re.compile("^pending--.*")
-
-    def __setattr__(self, key, value):
-        super().__setattr__(key, value)
-        if key == "key":
-            self.generate_export_path()
-
     def generate_export_path(self):
-        path = self.key
+        path = self.key_within_experiment
         if (
             path is not None
             and hasattr(self, "extension")
@@ -98,11 +83,7 @@ class AssetSpecification(NullElt):
             and not path.endswith(self.extension)
         ):
             path += self.extension
-        self.export_path = path
-
-    @property
-    def has_key(self):
-        return self.key is not None and not self.pending_key_pattern.match(self.key)
+        return path
 
 
 class AssetCollection(AssetSpecification):
@@ -126,7 +107,6 @@ class InheritedAssets(AssetCollection):
         from the ``db/asset.csv`` file of an experiment export. The CSV file can
         optionally be customized by deleting rows corresponding to unneeded assets,
         or it can be merged with analogous CSV files from other experiments.
-        Importantly, however, the ``key`` column must not contain any duplicates.
 
     key : str
         A string that is used to identify the source of the imported assets
@@ -134,7 +114,10 @@ class InheritedAssets(AssetCollection):
     """
 
     def __init__(self, path: str, key: str):
-        super().__init__(key, label=None, description=None)
+        raise NotImplementedError(
+            "This code needs revisiting, the implementation has not been updated yet"
+        )
+        super().__init__(key, local_key=None, description=None)
 
         self.path = path
 
@@ -166,7 +149,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     Parameters
     ----------
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -186,20 +169,16 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    local_key : str
+    key_within_module : str
         A string that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment.
-        This is often automatically generated, and might look something like
-        ``"visual_stimuli/node_6__network_2__stimulus"``.
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         The module within which the asset is located.
-
-    replace_existing : bool
-        Whether the asset was created with the instruction to replace any pre-existing asset with the same key.
 
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
@@ -229,7 +208,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         Identifies the source of an inherited asset.
 
     export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
+        A relative path that will be used by default when the asset is exported.
 
     participant_id : int
         ID of the participant who 'owns' the asset, if applicable.
@@ -310,8 +289,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     __tablename__ = "asset"
     __extra_vars__ = {}
 
+    id = SQLMixin.id
+
     # Remove default SQL columns
-    id = None
     failed = None
     failed_reason = None
     time_of_death = None
@@ -324,10 +304,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
     module_id = Column(String, index=True)
-    local_key = Column(String, index=True)
-    key = Column(String, primary_key=True, index=True)  # , onupdate="cascade")
+    local_key = Column(String)
+    key_within_module = Column(String, index=True)
+    key_within_experiment = Column(String, index=True)  # , onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
-    label = Column(String)
 
     parent = deferred(Column(PythonObject))
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
@@ -344,13 +324,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     data_type = Column(String)
     extension = Column(String)
     storage = Column(PythonObject)
-    replace_existing = Column(Boolean)
     node_definition = Column(PythonObject)
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
-        select(AsyncProcess.asset_key, AsyncProcess.pending)
-        .where(AsyncProcess.asset_key == key, AsyncProcess.pending)
+        select(AsyncProcess.asset_id, AsyncProcess.pending)
+        .where(AsyncProcess.asset_id == id, AsyncProcess.pending)
         .exists()
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
@@ -440,32 +419,23 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def __init__(
         self,
         *,
-        label=None,
+        local_key=None,
+        key_within_module=None,
+        key_within_experiment=None,
         description=None,
         is_folder=False,
         data_type=None,
         extension=None,
         parent=None,
-        local_key=None,
-        key=None,
         module_id=None,
-        replace_existing=False,
         personal=False,
     ):
         self.deposit_on_the_fly = True
-        self.local_key = local_key
-
-        if key is None:
-            if local_key:
-                if module_id:
-                    key = module_id + "/" + local_key
-                else:
-                    key = local_key
+        self.key_within_module = key_within_module
 
         from . import __version__ as psynet_version
 
         self.psynet_version = psynet_version
-        self.replace_existing = replace_existing
         self.is_folder = is_folder
 
         self.extension = extension if extension else self.get_extension()
@@ -477,9 +447,17 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         self.parent = parent
 
         from psynet.participant import Participant
+        from psynet.trial import Trial
+        from psynet.trial.main import TrialNetwork, TrialNode
 
         if isinstance(parent, Participant):
             self.participant_id = parent.id
+        elif isinstance(parent, Trial):
+            self.trial_id = parent.id
+        elif isinstance(parent, TrialNode):
+            self.node_id = parent.id
+        elif isinstance(parent, TrialNetwork):
+            self.network_id = parent.id
 
         if module_id:
             self.module_id = module_id
@@ -489,16 +467,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.personal = personal
 
-        super().__init__(key, label, description)
-
-    def __setattr__(self, key, value):
-        super().__setattr__(key, value)
-        if key == "parent":
-            if self.module_id is None and hasattr(value, "module_id"):
-                self.module_id = value.module_id
-        elif key == "module_id":
-            if self.key and self.local_key:
-                self.key = os.path.join(value, self.local_key)
+        super().__init__(
+            local_key, key_within_module, key_within_experiment, description
+        )
 
     def get_ancestors(self):
         return {
@@ -510,19 +481,31 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         }
 
     def set_keys(self):
-        self.local_key = self.generate_local_key()
+        if self.key_within_module is None:
+            self.key_within_module = self.generate_key_within_module()
 
-        if self.module_id:
-            self.key = os.path.join(self.module_id, self.local_key)
+        if self.key_within_experiment is None:
+            self.key_within_experiment = self.generate_key_within_experiment()
+
+        self.host_path = self.generate_host_path()
+        self.export_path = self.generate_export_path()
+        self.url = self.get_url()
+
+    def generate_key_within_experiment(self):
+        if self.module_id is None:
+            base = "common"
         else:
-            self.key = self.local_key
+            base = self.module_id
 
-    def generate_local_key(self):
+        return base + "/" + self.key_within_module
+
+    def generate_key_within_module(self):
         return os.path.join(
-            self.generate_local_key_parents(), self.generate_local_key_child()
+            self.generate_key_within_module_parents(),
+            self.generate_key_within_module_child(),
         )
 
-    def generate_local_key_parents(self):
+    def generate_key_within_module_parents(self):
         ids = []
         if self.participant:
             ids.append(f"participants/participant_{self.participant.id}")
@@ -530,15 +513,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             ids.append("nodes")
         return "/".join(ids)
 
-    def generate_local_key_child(self):
-        ids = self.generate_local_key_child_ids()
+    def generate_key_within_module_child(self):
+        ids = self.generate_key_within_module_child_ids()
 
-        if self.label:
-            ids.append(f"{self.label}")
+        if self.local_key:
+            ids.append(f"{self.local_key}")
 
         return "__".join(ids)
 
-    def generate_local_key_child_ids(self):
+    def generate_key_within_module_child_ids(self):
         from psynet.trial.static import StaticNetwork
 
         ancestors = self.get_ancestors()
@@ -557,8 +540,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def consume(self, experiment, participant):
         if not self.module_id:
             self.module_id = participant.module_id
-        if not self.has_key:
-            self.set_keys()
+        self.set_keys()
         if self.deposit_on_the_fly:
             self.deposit()
 
@@ -581,7 +563,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def deposit(
         self,
         storage=None,
-        replace: bool = False,
         async_: bool = False,
         delete_input: bool = False,
     ):
@@ -593,10 +574,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             If set to an ``AssetStorage`` object, the asset will be deposited to the provided storage location
             rather than defaulting to the Experiment class's storage location.
 
-        replace :
-            If set to ``True``, then the deposit will overwrite any pre-existing asset with the same key,
-            instead of throwing an error.
-
         async_ :
             If set to ``True``, then the asset deposit will be performed asynchronously and the program's
             execution will continue without waiting for the deposit to complete. It is sensible to
@@ -607,9 +584,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             If set to ``True``, then the input file will be deleted after it has been deposited.
         """
         try:
-            if replace is None:
-                replace = self.replace_existing
-
             if storage is None:
                 storage = self.default_storage
             self.storage = storage
@@ -617,38 +591,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.deployment_id = self.registry.deployment_id
             self.content_id = self.get_content_id()
 
-            if not self.has_key:
-                self.set_keys()
-
-            asset_to_use = self
-            duplicate = self.find_duplicate()
-
-            if duplicate:
-                try:
-                    self.assert_assets_are_equivalent(self, duplicate)
-                    asset_to_use = duplicate
-                except self.InconsistentAssetsError:
-                    if replace:
-                        db.session.delete(duplicate)
-                        asset_to_use = self
-                    else:
-                        raise
-
-            if asset_to_use == self:
-                try:
-                    db.session.add(self)
-                    db.session.commit()
-                except sqlalchemy.exc.IntegrityError as err:
-                    if "duplicate key value" in str(err):
-                        # Another asset beat us to it. They'll take priority.
-                        db.session.rollback()
-                        asset_to_use = Asset.query.filter_by(key=self.key)
-                    else:
-                        raise
+            self.set_keys()
+            db.session.add(self)
 
             if self.parent:
-                _label = self.label if self.label else self.key
-                self.parent.assets[_label] = asset_to_use
+                _local_key = self.local_key if self.local_key else f"asset_{self.id}"
+                self.parent.assets[_local_key] = self
 
                 ancestors = self.get_ancestors()
                 self.network_id = ancestors["network"]
@@ -656,16 +604,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
 
-            if asset_to_use == self or not self.deposited:
-                # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
-                # which may rely on the asset being in its complete state. Any information that may be needed
-                # by these post-deposit actions must be saved before this step.
-                self._deposit(self.storage, async_, delete_input)
+            # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
+            # which may rely on the asset being in its complete state. Any information that may be needed
+            # by these post-deposit actions must be saved before this step.
+            self._deposit(self.storage, async_, delete_input)
 
             if not self.content_id:
                 self.content_id = self.get_content_id()
 
-            return asset_to_use
+            return self
 
         finally:
             db.session.commit()
@@ -691,41 +638,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         raise NotImplementedError
 
-    def find_duplicate(self):
-        return Asset.query.filter_by(key=self.key).one_or_none()
-
-    class InconsistentAssetsError(AssertionError):
-        pass
-
-    class InconsistentIdentifiersError(InconsistentAssetsError):
-        pass
-
-    class InconsistentContentError(InconsistentAssetsError):
-        pass
-
-    @classmethod
-    def assert_assets_are_equivalent(cls, old, new):
-        cls.assert_content_ids_are_equivalent(old, new)
-
-    @classmethod
-    def assert_content_ids_are_equivalent(cls, old, new):
-        _old = old.content_id
-        _new = new.content_id
-
-        if _old is None or _new is None:
-            return
-
-        if _old != _new:
-            raise cls.InconsistentContentError(
-                f"Initiated a new deposit for pre-existing asset ({new.key}), "
-                "but replace=False and the content IDs did not match "
-                f"(old: {_old}, new: {_new}), implying that their content differs. "
-            )
-
     def get_content_id(self):
         raise NotImplementedError
 
-    def generate_host_path(self, deployment_id: str):
+    def generate_host_path(self):
         raise NotImplementedError
 
     def export(self, path, ssh_host=None, ssh_user=None):
@@ -734,7 +650,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         except Exception:
             from .command_line import log
 
-            log(f"Failed to export the asset {self.key} to path {path}.")
+            log(f"Failed to export the asset {self.id} to path {path}.")
             raise
 
     def export_subfile(self, subfile, path):
@@ -745,7 +661,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             from .command_line import log
 
             log(
-                f"Failed to export the subfile {subfile} from asset {self.key} to path {path}."
+                f"Failed to export the subfile {subfile} from asset {self.id} to path {path}."
             )
             raise
 
@@ -756,7 +672,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             from .command_line import log
 
             log(
-                f"Failed to export the subfolder {subfolder} from asset {self.key} to path {path}."
+                f"Failed to export the subfolder {subfolder} from asset {self.id} to path {path}."
             )
             raise
 
@@ -783,14 +699,14 @@ class AssetLink:
     failed_reason = None
     time_of_death = None
 
-    label = Column(String, primary_key=True)
+    local_key = Column(String, primary_key=True)
 
     @declared_attr
-    def asset_key(cls):
-        return Column(String, ForeignKey("asset.key"), primary_key=True)
+    def asset_id(cls):
+        return Column(Integer, ForeignKey("asset.id"), primary_key=True)
 
-    def __init__(self, label, asset):
-        self.label = label
+    def __init__(self, local_key, asset):
+        self.local_key = local_key
         self.asset = asset
 
 
@@ -854,7 +770,7 @@ class ManagedAsset(Asset):
     input_path : str
         Path to the file/folder from which the asset is to be created.
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -874,24 +790,20 @@ class ManagedAsset(Asset):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    local_key : str
+    key_within_module : str
         An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
+
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
-        of which may itself be automatically generated from ``parent``.
-
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
-
-    replace_existing : bool
-        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1020,17 +932,16 @@ class ManagedAsset(Asset):
         self,
         input_path: str,
         *,
-        label=None,
+        local_key=None,
+        key_within_module=None,
+        key_within_experiment=None,
         description=None,
         is_folder=None,
         data_type=None,
         extension=None,
         parent=None,
-        local_key=None,
         module_id=None,
-        key=None,
         personal=False,
-        replace_existing=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         self.deposited = False
@@ -1039,19 +950,17 @@ class ManagedAsset(Asset):
 
         if is_folder is None:
             is_folder = os.path.isdir(input_path)
-        # self.autogenerate_key = key is None
 
         super().__init__(
             local_key=local_key,
-            label=label,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
-            key=key,
             module_id=module_id,
             parent=parent,
-            replace_existing=replace_existing,
             personal=personal,
         )
 
@@ -1073,15 +982,14 @@ class ManagedAsset(Asset):
         if self.needs_storage_backend and isinstance(storage, NoStorage):
             raise RuntimeError(
                 "Cannot deposit this asset "
-                f"(type = {type(self).__name__}, key = {self.key}) "
+                f"(type = {type(self).__name__}, id = {self.id}) "
                 "without an asset storage backend. "
                 "Please add one to your experiment class, for example by writing "
                 "asset_storage = S3Storage('your-s3-bucket', 'your-subdirectory') "
                 "in your experiment class."
             )
 
-        self.host_path = self.generate_host_path(self.deployment_id)
-        self.url = self.get_url(storage)
+        self.set_keys()
         self.storage.update_asset_metadata(self)
 
         if self._needs_depositing():
@@ -1117,8 +1025,8 @@ class ManagedAsset(Asset):
             self.trial.check_if_can_run_async_post_trial()
             self.trial.check_if_can_mark_as_finalized()
 
-    def get_url(self, storage: "AssetStorage"):
-        return storage.get_url(self.host_path)
+    def get_url(self):
+        return self.storage.get_url(self.host_path)
 
     def delete_input(self):
         if self.is_folder:
@@ -1132,7 +1040,7 @@ class ManagedAsset(Asset):
         else:
             return get_file_size_mb(self.input_path)
 
-    def generate_host_path(self, deployment_id: str):
+    def generate_host_path(self):
         raise NotImplementedError
 
     @staticmethod
@@ -1157,7 +1065,7 @@ class ExperimentAsset(ManagedAsset):
         with tempfile.NamedTemporaryFile("w") as file:
             file.write(f"Your message here")
             asset = ExperimentAsset(
-                label="my_message",
+                local_key="my_message",
                 input_path=file.name,
                 extension=".txt",
                 parent=participant,
@@ -1170,7 +1078,7 @@ class ExperimentAsset(ManagedAsset):
     input_path : str
         Path to the file/folder from which the asset is to be created.
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -1190,24 +1098,20 @@ class ExperimentAsset(ManagedAsset):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    local_key : str
+    key_within_module : str
         An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
+
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
-        of which may itself be automatically generated from ``parent``.
-
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
-
-    replace_existing : bool
-        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1241,7 +1145,7 @@ class ExperimentAsset(ManagedAsset):
         Identifies the source of an inherited asset.
 
     export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
+        A relative path constructed that will be used by default when the asset is exported.
 
     participant_id : int
         ID of the participant who 'owns' the asset, if applicable.
@@ -1316,11 +1220,11 @@ class ExperimentAsset(ManagedAsset):
         db.session.commit()
     """
 
-    def generate_host_path(self, deployment_id: str):
-        path = self.obfuscate_key(self.key)
+    def generate_host_path(self):
+        path = self.obfuscate_key(self.key_within_experiment)
         if self.extension:
             path += self.extension
-        return os.path.join("experiments", deployment_id, path)
+        return os.path.join("experiments", self.deployment_id, path)
 
     def obfuscate_key(self, key):
         random = self.generate_uuid()
@@ -1345,7 +1249,7 @@ class CachedAsset(ManagedAsset):
     ::
 
          asset = CachedAsset(
-            local_key="bier",
+            key_within_module="bier",
             input_path="bier.wav",
             description="A recording of someone saying 'bier'",
          )
@@ -1366,7 +1270,7 @@ class CachedAsset(ManagedAsset):
     input_path : str
         Path to the file/folder from which the asset is to be created.
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -1386,24 +1290,20 @@ class CachedAsset(ManagedAsset):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    local_key : str
+    key_within_module : str
         An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
+
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
-        of which may itself be automatically generated from ``parent``.
-
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
-
-    replace_existing : bool
-        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1447,7 +1347,7 @@ class CachedAsset(ManagedAsset):
         Identifies the source of an inherited asset.
 
     export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
+        A relative path that will be used by default when the asset is exported.
 
     participant_id : int
         ID of the participant who 'owns' the asset, if applicable.
@@ -1528,8 +1428,8 @@ class CachedAsset(ManagedAsset):
     def cache_key(self):
         return self.get_md5_contents()
 
-    def generate_host_path(self, deployment_id: str):
-        key = self.key  # e.g. big-audio-file.wav
+    def generate_host_path(self):
+        key = self.key_within_experiment  # e.g. big-audio-file.wav
         cache_key = self.cache_key
 
         if self.obfuscate == 2:
@@ -1600,17 +1500,16 @@ class FunctionAssetMixin:
         self,
         function,
         *,
-        label: Optional[str] = None,
         arguments: Optional[dict] = None,
         is_folder=False,
         description=None,
         data_type=None,
         extension=None,
         local_key: Optional[str] = None,
-        key=None,
+        key_within_module=None,
+        key_within_experiment=None,
         module_id=None,
         parent=None,
-        replace_existing=False,
         personal=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
@@ -1626,17 +1525,16 @@ class FunctionAssetMixin:
         self.input_path = None
 
         super().__init__(
-            label=label,
+            local_key=local_key,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
             input_path=self.input_path,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
             parent=parent,
-            local_key=local_key,
-            key=key,
             module_id=module_id,
-            replace_existing=replace_existing,
             personal=personal,
             obfuscate=obfuscate,
         )
@@ -1648,14 +1546,12 @@ class FunctionAssetMixin:
     def deposit(
         self,
         storage=None,
-        replace: bool = False,
         async_: bool = False,
     ):
         self.input_path = self.generate_input_path()
 
         super().deposit(
             storage,
-            replace,
             async_,
             delete_input=True,
         )
@@ -1729,7 +1625,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         and create a file or a folder at that path. It can also receive additional arguments specified via the
         ``arguments`` parameter.
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -1749,14 +1645,13 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     extension : str
         The file extension, if applicable.
 
-    local_key : str
+    key_within_module : str
         An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
-        of which may itself be automatically generated from ``parent``.
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
@@ -1764,9 +1659,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
-
-    replace_existing : bool
-        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
 
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
@@ -1810,7 +1702,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         Identifies the source of an inherited asset.
 
     export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
+        A relative path that will be used by default when the asset is exported.
 
     participant_id : int
         ID of the participant who 'owns' the asset, if applicable.
@@ -1893,31 +1785,31 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         self,
         *,
         function,
-        local_key: Optional[str] = None,
+        local_key=None,
+        key_within_module: Optional[str] = None,
+        key_within_experiment=None,
         arguments: Optional[dict] = None,
         is_folder: bool = False,
         description=None,
         data_type=None,
         extension=None,
-        key: Optional[str] = None,
         module_id: Optional[str] = None,
         parent=None,
-        replace_existing=False,
         personal=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         super().__init__(
             function=function,
             local_key=local_key,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
             arguments=arguments,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
-            key=key,
             module_id=module_id,
             parent=parent,
-            replace_existing=replace_existing,
             personal=personal,
             obfuscate=obfuscate,
         )
@@ -1948,12 +1840,10 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             self.export(tempdir)
             shutil.copytree(tempdir + "/" + subfolder, path)
 
-    def get_url(self, storage: "AssetStorage"):
-        key_encoded = urllib.parse.quote(self.key)
-        secret = self.secret
-        return f"/fast-function-asset?key={key_encoded}&secret={secret}"
+    def get_url(self):
+        return f"/fast-function-asset?id={self.id}&secret={self.secret}"
 
-    def generate_host_path(self, deployment_id):
+    def generate_host_path(self):
         return None
 
 
@@ -1972,7 +1862,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
         and create a file or a folder at that path. It can also receive additional arguments specified via the
         ``arguments`` parameter.
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -1992,14 +1882,13 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     extension : str
         The file extension, if applicable.
 
-    local_key : str
+    key_within_module : str
         An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment. Typically this will be left blank,
-        with the key then being automatically generated from the ``module_id`` and the ``local_key``, the latter
-        of which may itself be automatically generated from ``parent``.
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
@@ -2007,9 +1896,6 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
-
-    replace_existing : bool
-        If set to ``True``, the asset deposit will overwrite any existing asset with the same key.
 
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
@@ -2059,7 +1945,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
         Identifies the source of an inherited asset.
 
     export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
+        A relative path that will be used by default when the asset is exported.
 
     participant_id : int
         ID of the participant who 'owns' the asset, if applicable.
@@ -2150,7 +2036,7 @@ class ExternalAsset(Asset):
     url : str
         The URL at which the external asset may be accessed.
 
-    label : str
+    local_key : str
         A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
         should together with ``parent`` and ``module_id`` uniquely identify that asset (i.e. no other asset
         should share that combination of properties).
@@ -2170,20 +2056,16 @@ class ExternalAsset(Asset):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    local_key : str
+    key_within_module : str
         A string that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``label`` arguments.
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
 
-    key : str
-        A string that identifies the asset uniquely within the experiment.
-        This is often automatically generated, and might look something like
-        ``"visual_stimuli/node_6__network_2__stimulus"``.
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
 
     module_id : str
         The module within which the asset is located.
-
-    replace_existing : bool
-        Whether the asset was created with the instruction to replace any pre-existing asset with the same key.
 
     personal : bool
         Whether the asset is 'personal' and hence omitted from anonymous database exports.
@@ -2208,7 +2090,7 @@ class ExternalAsset(Asset):
         Identifies the source of an inherited asset.
 
     export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
+        A relative path that will be used by default when the asset is exported.
 
     participant_id : int
         ID of the participant who 'owns' the asset, if applicable.
@@ -2287,16 +2169,15 @@ class ExternalAsset(Asset):
         self,
         url,
         *,
-        label=None,
+        local_key=None,
+        key_within_module=None,
+        key_within_experiment=None,
         description=None,
         is_folder=False,
         data_type=None,
         extension=None,
         parent=None,
-        local_key=None,
-        key=None,
         module_id=None,
-        replace_existing=False,
         personal=False,
     ):
         self.host_path = url
@@ -2305,15 +2186,14 @@ class ExternalAsset(Asset):
 
         super().__init__(
             local_key=local_key,
-            label=label,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
             module_id=module_id,
-            key=key,
             parent=parent,
-            replace_existing=replace_existing,
             personal=personal,
         )
 
@@ -2340,6 +2220,12 @@ class ExternalAsset(Asset):
     def delete_input(self):
         raise NotImplementedError
 
+    def generate_host_path(self):
+        return None
+
+    def get_url(self):
+        return self.url
+
 
 class ExternalS3Asset(ExternalAsset):
     """
@@ -2354,14 +2240,13 @@ class ExternalS3Asset(ExternalAsset):
         *,
         s3_bucket: str,
         s3_key: str,
+        local_key=None,
+        key_within_module=None,
+        key_within_experiment=None,
         is_folder=False,
         description=None,
         data_type=None,
-        replace_existing=False,
-        label=None,
         module_id=None,
-        local_key=None,
-        key=None,
         parent=None,
         personal=False,
     ):
@@ -2374,11 +2259,10 @@ class ExternalS3Asset(ExternalAsset):
             is_folder=is_folder,
             description=description,
             data_type=data_type,
-            replace_existing=replace_existing,
-            label=label,
-            module_id=module_id,
             local_key=local_key,
-            key=key,
+            module_id=module_id,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
             parent=parent,
             personal=personal,
         )
@@ -2449,7 +2333,6 @@ class AssetStorage:
         asset.deposited = True
 
         db.session.commit()
-        logger.info("Asset deposit complete.")
 
         asset.after_deposit()
         db.session.commit()
@@ -3277,10 +3160,10 @@ class AssetRegistry:
         # if inspector.has_table("asset") and Asset.query.count() == 0:
         #     self.populate_db_with_initial_assets()
 
-    def __getitem__(self, item):
-        from psynet.asset import Asset
-
-        return Asset.query.filter_by(key=item).one()
+    # def __getitem__(self, item):
+    #     from psynet.asset import Asset
+    #
+    #     return Asset.query.filter_by(key=item).one()
 
     @property
     def deployment_id(self):
@@ -3314,12 +3197,12 @@ class AssetRegistry:
         self.storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        if self.n_parallel:
-            n_jobs = self.n_parallel
-        elif len(self._staged_asset_specifications) < 25:
-            n_jobs = 1
-        else:
-            n_jobs = psutil.cpu_count()
+        # if self.n_parallel:
+        #     n_jobs = self.n_parallel
+        # elif len(self._staged_asset_specifications) < 25:
+        #     n_jobs = 1
+        # else:
+        #     n_jobs = psutil.cpu_count()
 
         # OLD NOTES, may not be relevant any more
         #
@@ -3346,26 +3229,28 @@ class AssetRegistry:
         # Uploading all the files over one SSH connection shouldn't be slower than uploading them
         # over multiple connections. The main limitation with the current situation though
         # is that we can no longer programmatically generate stimuli in parallel.
-        n_jobs = 1
 
-        logger.info("Preparing assets for deployment...")
-        Parallel(
-            n_jobs=n_jobs,
-            verbose=10,
-            backend="threading",
-            # backend="multiprocessing",  # Slow compared to threading
-        )(
-            delayed(
-                lambda a: threadsafe__prepare_asset_for_deployment(
-                    asset=a, registry=self
-                )
-            )(a)
-            for a in self._staged_asset_specifications
-        )
-        # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
+        for a in tqdm(
+            self._staged_asset_specifications, desc="Generating/uploading assets..."
+        ):
+            a.prepare_for_deployment(registry=self)
+
+        # logger.info("Preparing assets for deployment...")
+        # n_jobs = 1
+        # Parallel(
+        #     n_jobs=n_jobs,
+        #     verbose=10,
+        #     backend="threading",
+        # )(
+        #     delayed(
+        #         lambda a: threadsafe__prepare_asset_for_deployment(
+        #             asset=a, registry=self
+        #         )
+        #     )(a)
+        #     for a in self._staged_asset_specifications
+        # )
 
         db.session.commit()
-        # self.save_initial_asset_manifesto()
 
     # def save_initial_asset_manifesto(self):
     #     copy_db_table_to_csv("asset", self.initial_asset_manifesto_path)

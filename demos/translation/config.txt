@@ -1,6 +1,3 @@
-[Launch mode]
-language = de
-
 [Payment information]
 title = Translation demo
 base_payment = 0.10
@@ -12,7 +9,6 @@ duration = 2
 us_only = false
 approve_requirement = 95
 ad_group = Game
-browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Advert metadata]

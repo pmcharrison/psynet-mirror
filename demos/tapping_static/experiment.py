@@ -5,8 +5,6 @@ import tempfile
 
 from flask import Markup
 from repp.analysis import REPPAnalysis
-
-# repp imports
 from repp.config import sms_tapping
 from repp.stimulus import REPPStimulus
 from repp.utils import save_json_to_file, save_samples_to_file

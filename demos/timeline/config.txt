@@ -1,6 +1,8 @@
 [Payment information]
 title = Timeline demo
 base_payment = 0.10
+show_abort_button = true
+min_accumulated_bonus_for_abort = 0.15
 
 [Recruitment strategy]
 auto_recruit = true
@@ -9,7 +11,6 @@ duration = 2
 us_only = false
 approve_requirement = 95
 ad_group = Game
-browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Ad metadata]

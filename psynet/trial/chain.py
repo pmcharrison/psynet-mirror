@@ -16,6 +16,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.sql.expression import not_, select
+from tqdm import tqdm
 
 from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
@@ -185,7 +186,7 @@ class ChainNetwork(TrialNetwork):
     ):
         super().__init__(trial_maker_id, experiment)
         db.session.add(self)
-        db.session.commit()
+        # db.session.commit()
 
         if participant is not None:
             self.id_within_participant = id_within_participant
@@ -211,14 +212,14 @@ class ChainNetwork(TrialNetwork):
 
         db.session.add(start_node)
         self.add_node(start_node)
-        db.session.commit()
+        # db.session.commit()
         start_node.check_on_create()
         start_node.check_on_deploy()
-        db.session.commit()
+        # db.session.commit()
 
         self.validate()
 
-        db.session.commit()
+        # db.session.commit()
 
     def validate(self):
         """
@@ -307,6 +308,9 @@ class ChainNetwork(TrialNetwork):
         Object
             An object from the provided list.
         """
+        # This ensures that ``self.id`` is available even if the object has yet to be committed to the database
+        db.session.flush()
+
         if self.chain_type == "across":
             id_to_use = self.id
         elif self.chain_type == "within":
@@ -598,26 +602,16 @@ class ChainNode(TrialNode):
         raise NotImplementedError
 
     def stage_assets(self, experiment):
-        self.assets = {}
+        # self.assets = {}
 
-        # if self.network:
-        #     self.assets.update(**self.network.assets)
-
-        for label, asset in self._staged_assets.items():
-            if asset.label is None:
-                asset.label = label
-
+        for local_key, asset in self._staged_assets.items():
+            asset.local_key = local_key
             asset.parent = self
-
-            if not asset.has_key:
-                asset.set_keys()
-
             asset.receive_node_definition(self.definition)
+            asset.module_id = self.module_id
 
             experiment.assets.stage(asset)
-            self.assets[label] = asset
-
-        db.session.commit()
+            self.assets[local_key] = asset
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -1208,7 +1202,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
@@ -1533,10 +1527,15 @@ class ChainTrialMaker(NetworkTrialMaker):
                 )
         else:
             nodes = [None for _ in range(self.chains_per_experiment)]
-        for node in nodes:  # type: ChainNode
+
+        for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
+        db.session.commit()
+
+        for node in tqdm(nodes, desc="Staging assets"):
             if node is not None:
                 node.stage_assets(experiment)
+        db.session.commit()
 
     def create_network(
         self, experiment, participant=None, id_within_participant=None, start_node=None
@@ -1558,7 +1557,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         start_node.set_network(network)
-        db.session.commit()  # TODO - remove this for efficiency?
+        # db.session.commit()  # TODO - remove this for efficiency?
         return network
 
     @log_time_taken
@@ -1716,6 +1715,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
+        networks = self.prioritize_networks(networks, participant, experiment)
+
         chosen = networks[0]
         if chosen.block != current_block:
             logger.info(
@@ -1724,6 +1725,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             )
 
         return [chosen]
+
+    def prioritize_networks(self, networks, participant, experiment):
+        return networks
 
     def custom_network_filter(self, candidates, participant):
         """

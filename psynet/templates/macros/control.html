@@ -1,4 +1,4 @@
-{% macro null(config) %}
+{% macro null(params) %}
     <script>
         disableButton = function() {
             $("#next-button").attr("disabled", true)
@@ -42,21 +42,21 @@
     </button>
 {% endmacro %}
 
-{% macro reset_button(config, input_type) %}
+{% macro reset_button(params, input_type) %}
     <script>
-        {% if config.show_reset_button == "on_selection" %}
+        {% if params.show_reset_button == "on_selection" %}
         $("#reset-button").css({"display": "block"});
         {% endif %}
         onResetButton = function() {
             $('input[type={{ input_type }}]').attr('checked', false);
-            {% if config.show_reset_button == "on_selection" %}
+            {% if params.show_reset_button == "on_selection" %}
             $("#reset-button").css({"display": "none"});
             {% endif %}
             $("#reset-button").prop('disabled', true);
         }
 
         $('input[type={{ input_type }}]').click(function() {
-            {% if config.show_reset_button == "on_selection" %}
+            {% if params.show_reset_button == "on_selection" %}
             $("#reset-button").css({"display": "block"});
             {% endif %}
             if (!$('input[type={{ input_type }}]').is(':checked'))
@@ -68,30 +68,30 @@
         });
     </script>
 
-    <button type="button" id="reset-button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="onResetButton();" disabled>
+    <button type="button" id="reset-button" class="btn btn-primary btn-lg" style="{% if params.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="onResetButton();" disabled>
         {{ gettext("Reset") }}
     </button>
     {% endmacro %}
 
-{% macro push_button(config) %}
+{% macro push_button(params) %}
     <button
-        type="button"
-        class="btn push-button btn-primary response {% if config.timed == true %} timed {% else %} submit {% endif %}"
-        id="{{ config.id }}"
-        onclick="clickedButton(this, this.id);"
-        style="{{ config.style }}",
-        disabled="true"
+            type="button"
+            class="btn push-button btn-primary response {% if params.timed == true %} timed {% else %} submit {% endif %}"
+            id="{{ params.id }}"
+            onclick="clickedButton(this, this.id);"
+            style="{{ params.style }}" ,
+            disabled="true"
     >
         {% autoescape off %}
-        {{ config.label }}
+        {{ params.label }}
         {% endautoescape %}
     </button>
 {% endmacro %}
 
-{% macro push_buttons(config) %}
+{% macro push_buttons(params) %}
     <style>
         .push-button-container {
-            display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
+            display: {% if params.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
             max-height: 420px;
@@ -100,14 +100,14 @@
     </style>
 
     <div class="push-button-container">
-        {% for button in config.push_buttons %}
+        {% for button in params.push_buttons %}
             {{ push_button(button) }}
         {% endfor %}
     </div>
 
-    {% if config.timed == true %}
+    {% if params.timed == true %}
         <p class="vspace"></p>
-        {{ null(config) }}
+        {{ null(params) }}
     {% endif %}
 
     <script>
@@ -116,8 +116,8 @@
         clickedButton = function(button, id) {
             psynet.trial.registerEvent("pushButtonClicked", {info: {buttonId: id}});
 
-            {% if config.timed == true %}
-                let buttonHighlightDuration = {{ config.button_highlight_duration }};
+            {% if params.timed == true %}
+                let buttonHighlightDuration = {{ params.button_highlight_duration }};
                 if (buttonTimers[id] !== undefined) {
                     clearTimeout(buttonTimers[id]);
                 }
@@ -142,23 +142,23 @@
     </script>
 {% endmacro %}
 
-{% macro checkbox(config) %}
+{% macro checkbox(params) %}
     <label style="margin-left: 15px; cursor: pointer;">
         <input
             type="checkbox"
-            id="{{ config.id }}"
-            name="{{ config.name }}"
+            id="{{ params.id }}"
+            name="{{ params.name }}"
             class="response"
             style="cursor: pointer;"
         />
-        <span>{{ config.label }}</span>
+        <span>{{ params.label }}</span>
     </label>
 {% endmacro %}
 
-{% macro checkboxes(config) %}
+{% macro checkboxes(params) %}
     <style>
         .control-container {
-            display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
+            display: {% if params.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
             max-height: 420px;
@@ -166,16 +166,16 @@
         }
     </style>
     <div class="control-container">
-        {% for _checkbox in config.checkboxes %}
+        {% for _checkbox in params.checkboxes %}
             {{ checkbox(_checkbox) }}
         {% endfor %}
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
-        {% if config.show_reset_button != "never" %}
-        {{ reset_button(config, "checkbox") }}
+        {% if params.show_reset_button != "never" %}
+        {{ reset_button(params, "checkbox") }}
         {% endif %}
-        {{ null(config) }}
+        {{ null(params) }}
     </div>
     <script>
         clickedButton = function(id) {
@@ -185,7 +185,7 @@
         }
 
         retrieveResponse = function() {
-            let elements = document.getElementsByName('{{ config.name }}')
+            let elements = document.getElementsByName('{{ params.name }}')
             checkedValues = Array.from(elements).map(function(element, i) {
                 if (element.checked) {return element.id}
             }).filter(function (element) {
@@ -198,23 +198,23 @@
     </script>
 {% endmacro %}
 
-{% macro radiobutton(config) %}
+{% macro radiobutton(params) %}
     <label style="margin-left: 15px;">
         <input
             type="radio"
-            id="{{ config.id }}"
-            name="{{ config.name }}"
+            id="{{ params.id }}"
+            name="{{ params.name }}"
             class="response"
-            style="{{ config.style }}"
+            style="{{ params.style }}"
         />
-        <span style="{{ config.style }}">{{ config.label }}</span>
+        <span style="{{ params.style }}">{{ params.label }}</span>
     </label>
 {% endmacro %}
 
-{% macro radiobuttons(config) %}
+{% macro radiobuttons(params) %}
     <style>
         .control-container {
-            display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
+            display: {% if params.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
             max-height: 420px;
@@ -222,16 +222,16 @@
         }
     </style>
     <div class="control-container">
-        {% for button in config.radiobuttons %}
+        {% for button in params.radiobuttons %}
             {{ radiobutton(button) }}
         {% endfor %}
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
-        {% if config.show_reset_button != "never" %}
-        {{ reset_button(config, "radio") }}
+        {% if params.show_reset_button != "never" %}
+        {{ reset_button(params, "radio") }}
         {% endif %}
-        {{ null(config) }}
+        {{ null(params) }}
     </div>
     <script>
         clickedButton = function(id) {
@@ -240,7 +240,7 @@
             psynet.nextPage(id);
         }
 
-        {% if config.show_free_text_option %}
+        {% if params.show_free_text_option %}
         psynet.trial.onEvent("responseEnable", function () {
             var elem = $('#free_text')
             $('#free_text_input').change(function () {
@@ -252,10 +252,10 @@
         {% endif %}
 
         retrieveResponse = function() {
-            let element = document.querySelector('input[name="{{ config.name }}"]:checked')
+            let element = document.querySelector('input[name="{{ params.name }}"]:checked')
             var rawAnswer = (element != null) ? element.id : null;
 
-            {% if config.show_free_text_option %}
+            {% if params.show_free_text_option %}
             if (rawAnswer === 'free_text') {
                 rawAnswer = $('#free_text_input').val()
             }
@@ -266,11 +266,11 @@
 {% endmacro %}
 
 
-{% macro dropdown_option(config) %}
-    <option value="{{ config.value }}">{{ config.text }}</option>
+{% macro dropdown_option(params) %}
+    <option value="{{ params.value }}">{{ params.text }}</option>
 {% endmacro %}
 
-{% macro dropdown(config) %}
+{% macro dropdown(params) %}
     <style>
         .dropdown-container {
             margin: 0 auto;
@@ -278,16 +278,16 @@
         }
     </style>
     <div class="dropdown-container">
-        <select id="{{ config.name }}" class="form-control response" style="cursor: pointer;" name="{{ config.name }}">
-            <option disabled selected value>{{ config.default_text }}</option>
-            {% for option in config.dropdown %}
+        <select id="{{ params.name }}" class="form-control response" style="cursor: pointer;" name="{{ params.name }}">
+            <option disabled selected value>{{ params.default_text }}</option>
+            {% for option in params.dropdown %}
                 {{ dropdown_option(option) }}
             {% endfor %}
         </select>
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
-        {{ null(config) }}
+        {{ null(params) }}
     </div>
     <script>
         clickedButton = function(id) {
@@ -297,7 +297,7 @@
         }
 
         retrieveResponse = function() {
-            let element = document.getElementById("{{ config.name }}");
+            let element = document.getElementById("{{ params.name }}");
             return {
                 rawAnswer: (element != null) ? element.value : null
             }
@@ -306,14 +306,14 @@
 {% endmacro %}
 
 
-{% macro media_slider(config) %}
-    {{ slider(config) }}
+{% macro media_slider(params) %}
+    {{ slider(params) }}
 
     <script>
         {% autoescape off %}
-        var mediaLocations = {{ config.js_vars.media_locations }};
-        var autoplay = {{ config.js_vars.autoplay | lower }};
-        var disableWhilePlaying = {{ config.js_vars.disable_while_playing | lower }};
+        var mediaLocations = {{ params.js_vars.media_locations }};
+        var autoplay = {{ params.js_vars.autoplay | lower }};
+        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
         {% endautoescape %}
 
         // Overwrites corresponding method in slider-page.html
@@ -336,7 +336,7 @@
             return Object.keys(mediaLocations)[nearest.index];
         };
 
-        {% if config.js_vars.modality == "audio" %}
+        {% if params.js_vars.modality == "audio" %}
             playMedia = function () {
                 var id = slider.media;
                 var sound = psynet.audio[id];
@@ -348,7 +348,7 @@
                     sound.play().source.addEventListener("ended", enableSlider);
                 }
             };
-        {% elif config.js_vars.modality == "video" %}
+        {% elif params.js_vars.modality == "video" %}
 
 
             playMedia = function () {
@@ -384,7 +384,7 @@
 {% endmacro %}
 
 
-{% macro color_slider(config) %}
+{% macro color_slider(params) %}
     <style>
         .main-body {
             background-color: white;
@@ -392,9 +392,9 @@
         }
     </style>
 
-    {{ slider(config) }}
+    {{ slider(params) }}
 
-    {% for color, value in config.hidden_inputs.items() %}
+    {% for color, value in params.hidden_inputs.items() %}
         <input type="hidden" value="{{ value }}" id="{{ color }}">
     {% endfor %}
 
@@ -417,11 +417,11 @@
     </script>
 {% endmacro %}
 
-{% macro HTML5_range_slider(config) %}
+{% macro HTML5_range_slider(params) %}
     <style>
-        #{{ config.slider_id }} {
+        #{{ params.slider_id }} {
             width: 100%;
-            {% if config.reverse_scale == true %} direction: rtl; {% endif %}
+            {% if params.reverse_scale == true %} direction: rtl; {% endif %}
         }
         .slider-range {
             cursor: pointer;
@@ -433,12 +433,12 @@
             background-color: #efefef;
             border: 11px solid #b2b2b2;
             border-radius: 5px;
-            {% if config.directional == false %}
+            {% if params.directional == false %}
             margin-top: -8px;
             {% endif %}
             cursor: pointer;
         }
-        {% if config.directional == false %}
+        {% if params.directional == false %}
         input[type=range]::-webkit-slider-runnable-track {
               background: #000000;
               border: 1px solid #b2b2b2;
@@ -452,13 +452,13 @@
 
     <input
         type="range"
-        id="{{ config.slider_id }}"
-        class="wait-for-media-load slider-range form-control-range{% if not config.directional %} slider-non-directional{% endif %}"
-        min="{{ config.min_value }}"
-        max="{{ config.max_value + 0.0001 * config.step_size }}"
-        step="{{ config.step_size }}"
-        value="{{ config.start_value }}"
-        random-wrap="{{ config.random_wrap }}"
+        id="{{ params.slider_id }}"
+        class="wait-for-media-load slider-range form-control-range{% if not params.directional %} slider-non-directional{% endif %}"
+        min="{{ params.min_value }}"
+        max="{{ params.max_value + 0.0001 * params.step_size }}"
+        step="{{ params.step_size }}"
+        value="{{ params.start_value }}"
+        random-wrap="{{ params.random_wrap }}"
     >
 
     <script>
@@ -478,7 +478,7 @@
     </script>
 {% endmacro %}
 
-{% macro circular_slider(config) %}
+{% macro circular_slider(params) %}
 {#    <script src="/static/scripts/jquery.knob.min.js"></script>#}
 
     <style>
@@ -492,7 +492,7 @@
 
     <div class="knob-container">
         <input
-            id="{{ config.slider_id }}"
+            id="{{ params.slider_id }}"
             class="circular-slider"
             data-readOnly="false"
             data-width="200"
@@ -501,11 +501,11 @@
             data-fgColor="#222222"
             data-thickness=.3
             data-displayInput=false
-            data-min="{{ config.min_value }}"
-            data-max="{{ config.max_value + 0.0001 * config.step_size }}"
-            data-step="{{ config.step_size }}"
-            value="{{ config.start_value }}"
-            random-wrap="{{ config.random_wrap }}"
+            data-min="{{ params.min_value }}"
+            data-max="{{ params.max_value + 0.0001 * params.step_size }}"
+            data-step="{{ params.step_size }}"
+            value="{{ params.start_value }}"
+            random-wrap="{{ params.random_wrap }}"
         >
     </div>
 
@@ -565,27 +565,27 @@
     </script>
 {% endmacro %}
 
-{% macro slider(config) %}
+{% macro slider(params) %}
 
-    {% if config.input_type == "HTML5_range_slider" %}
-        {{ HTML5_range_slider(config) }}
-    {% elif config.input_type == "circular_slider" %}
-        {{ circular_slider(config) }}
+    {% if params.input_type == "HTML5_range_slider" %}
+        {{ HTML5_range_slider(params) }}
+    {% elif params.input_type == "circular_slider" %}
+        {{ circular_slider(params) }}
     {% endif %}
 
     <p class="vspace"></p>
 
-    {{ null(config) }}
+    {{ null(params) }}
 
     <script>
         {% autoescape off %}
-        var snapValues = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
-        var minimalInteractions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
-        var continuousUpdates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
-        var sliderId = '{{ config.slider_id }}';
-        var randomWrap = {{ config.random_wrap | lower }}; // Decide whether to add to js_vars
-        var minVal = {{ config.min_value }}; // Decide whether to add to js_vars
-        var maxVal = {{ config.max_value }}; // Decide whether to add to js_vars
+        var snapValues = {% if params.js_vars.snap_values is none %}null{% else %}{{ params.js_vars.snap_values }}{% endif %};
+        var minimalInteractions = {% if params.js_vars.minimal_interactions is none %}null{% else %}{{ params.js_vars.minimal_interactions }}{% endif %};
+        var continuousUpdates = {% if params.js_vars.continuous_updates is not defined or params.js_vars.continuous_updates is none %}null{% else %}{{ params.js_vars.continuous_updates | lower }}{% endif %};
+        var sliderId = '{{ params.slider_id }}';
+        var randomWrap = {{ params.random_wrap | lower }}; // Decide whether to add to js_vars
+        var minVal = {{ params.min_value }}; // Decide whether to add to js_vars
+        var maxVal = {{ params.max_value }}; // Decide whether to add to js_vars
         {% endautoescape %}
 
         // This is called each time
@@ -617,9 +617,9 @@
         slider.interactionCount = 0;
 
         let setSliderValue = function(val) {
-            {% if config.input_type == "HTML5_range_slider" %}
+            {% if params.input_type == "HTML5_range_slider" %}
                 slider.value = val;
-            {% elif config.input_type == "circular_slider" %}
+            {% elif params.input_type == "circular_slider" %}
                 throw Error("Programmatically seting the slider value is not supported yet");
                 $(".circular-slider").val(val).trigger("change");
             {% endif %}
@@ -749,12 +749,12 @@
             }
         };
     </script>
-    {% if config.template_filename %}
-        {% include config.template_filename %}
+    {% if params.template_filename %}
+        {% include params.template_filename %}
     {% endif %}
 {% endmacro %}
 
-{% macro multi_slider(config) %}
+{% macro multi_slider(params) %}
     <style type="text/css">
         .slider-collection {
             margin: 30px;
@@ -805,7 +805,7 @@
     </script>
 
     <div class="slider-collection">
-        {% for s in config.sliders %}
+        {% for s in params.sliders %}
             <div class="slider">
                 <span class="slider-label">
                     {{ s.label }}
@@ -825,7 +825,7 @@
     </div>
 {% endmacro %}
 
-{% macro audio_meter(config) %}
+{% macro audio_meter(params) %}
     <style>
         .audio-meter-block {
             margin-top: 20px;
@@ -837,8 +837,8 @@
             <tbody>
                 <tr align="left" valign="middle">
                     <td width="300px">
-                        <div style="background-color: black; width: 300px; height: 50px">
-                            <canvas id="audio-meter" width="300" height="50"></canvas>
+                        <div style="width: 300px; height: 50px">
+                            <canvas style=" background-color: var(--bs-secondary-bg);" id="audio-meter" width="300" height="50"></canvas>
                         </div>
                     </td>
                     <td width="20px"></td>
@@ -849,22 +849,24 @@
             </tbody>
         </table>
 
-        {% if config.calibrate %}
-            {{ audio_meter_calibrate(config) }}
+        {% if params.calibrate %}
+            {{ audio_meter_calibrate(params) }}
         {% endif %}
     </div>
 
-    {% if config.submit_button %}
-        {{ null(config) }}
+    {% if params.submit_button %}
+        {{ null(params) }}
+
     {% endif %}
 
     <script>
         {% include "macros/control/audio_meter.js" %}
-        audioMeterControl.init('{{ config.to_json() }}');
+        audioMeterControl.init('{{ params.to_json() }}');
+
     </script>
 {% endmacro %}
 
-{% macro audio_meter_calibrate(config) %}
+{% macro audio_meter_calibrate(params) %}
     <style type="text/css">
         #audio-meter-documentation {
             padding-top: 20px;
@@ -882,7 +884,7 @@
 
     <div class="tab-content">
         <div id="audio-meter-sliders" class="tab-pane active">
-            {{ multi_slider(config.sliders) }}
+            {{ multi_slider(params.sliders) }}
         </div>
 
         <div id="audio-meter-documentation" class="tab-pane">
@@ -912,13 +914,13 @@
     </script>
 {% endmacro %}
 
-{% macro generic_record(config) %}
-    {% if config.show_meter %}
-        {{ audio_meter(config.meter) }}
+{% macro generic_record(params) %}
+    {% if params.show_meter %}
+        {{ audio_meter(params.meter) }}
     {% endif %}
 
 
-    {% if config.controls %}
+    {% if params.controls %}
         <style>
             #record-controls {
                 display: flex;
@@ -958,7 +960,7 @@
 {#            </button>#}
             <div id="record-loop">
                 <label style="cursor: pointer;">
-                    <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
+                    <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if params.loop_playback %} checked {% endif %}>
                     {{ gettext("Loop") }}
                 </label>
             </div>
@@ -1021,9 +1023,9 @@
             {#});#}
         });
 
-        let recorderControls = {{ config.controls | lower }};
+        let recorderControls = {{ params.controls | lower }};
         let replayMode = false;
-        let loopRecorder = {{ config.loop_playback | tojson }};
+        let loopRecorder = {{ params.loop_playback | tojson }};
 
         psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
@@ -1082,10 +1084,9 @@
 
 {% endmacro %}
 
-{% macro audio_record(config) %}
-    {{ generic_record(config) }}
-
-    {{ null(config) }}
+{% macro audio_record(params) %}
+    {{ generic_record(params) }}
+    {{ null(params) }}
 
     <script>
         {% include "macros/control/recorder.js" %}
@@ -1130,7 +1131,7 @@
         psynet.trial.onEvent("trialStop", () => recorder.stop());
 
         psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
-            let channelCount = {{ config.num_channels }};
+            let channelCount = {{ params.num_channels }};
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     channelCount: channelCount,
@@ -1142,6 +1143,8 @@
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audioContext.createMediaStreamSource(stream);
+                let microphoneMetadata = psynet.media.getMicrophoneMetadataFromAudioStream(stream);
+                Object.assign(psynet.response.staged.metadata, microphoneMetadata);
                 recorder = new Recorder(input, channelCount);
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
@@ -1150,8 +1153,8 @@
     </script>
 {% endmacro %}
 
-{% macro video_record(config) %}
-    {{ generic_record(config) }}
+{% macro video_record(params) %}
+    {{ generic_record(params) }}
 
     <style>
         #video-control-container {
@@ -1160,11 +1163,11 @@
             align-items: center;
         }
         #video-control {
-            display: {% if config.show_preview %} block {% else %} none {% endif %};
-            width: {{ config.width }};
+            display: {% if params.show_preview %} block {% else %} none {% endif %};
+            width: {{ params.width }};
             margin: 10px
         }
-        {% if config.mirrored is true %}
+        {% if params.mirrored is true %}
         video {
             -webkit-transform: scaleX(-1);
             transform: scaleX(-1);
@@ -1176,7 +1179,7 @@
         <video id="video-control"></video>
     </div>
 
-    {{ null(config) }}
+    {{ null(params) }}
 
     <script>
         {% include "macros/control/RecordRTC.js" %}
@@ -1185,7 +1188,7 @@
         let videoPreviewPlayer = document.getElementById('video-control');
         let screenVideo = document.getElementById('screen-recording');
 
-        let recordingSource = "{{ config.recording_source | lower }}";
+        let recordingSource = "{{ params.recording_source | lower }}";
         let recordingCamera = recordingSource == "camera" || recordingSource == "both";
         let recordingScreen = recordingSource == "screen" || recordingSource == "both";
 
@@ -1194,9 +1197,9 @@
             var videoRecorder = null;
             let audioSettings = null;
 
-            if ({{ config.record_audio | lower }}) {
+            if ({{ params.record_audio | lower }}) {
                 audioSettings = {
-                    channelCount: {{ config.audio_n_channels }}
+                    channelCount: {{ params.audio_n_channels }}
                 };
             }
             else { audioSettings = false; }
@@ -1347,7 +1350,7 @@
     </script>
 {% endmacro %}
 
-{% macro text(config) %}
+{% macro text(params) %}
     <style>
         #text-input-container {
             padding-top: 20px;
@@ -1356,13 +1359,13 @@
             justify-content: center;
         }
         #text-input {
-            {% if config.width is not none %} width: {{ config.width }}; {% endif %}
-            {% if config.height is not none %} height: {{ config.height }}; {% endif %}
+            {% if params.width is not none %} width: {{ params.width }}; {% endif %}
+            {% if params.height is not none %} height: {{ params.height }}; {% endif %}
         }
     </style>
 
     <div id="text-input-container">
-        <{% if config.one_line %}input{% else %}textarea{% endif %} id="text-input" class="form-control response" type="text" value="" {% if config.block_copy_paste %}onselectstart="return false" oncut="return false" oncopy="return false" onpaste="return false" ondrag="return false" ondrop="return false"{% endif %}><{% if config.one_line %}/input{% else %}/textarea{% endif %}>
+        <{% if params.one_line %}input{% else %}textarea{% endif %} id="text-input" class="form-control response" type="text" value="" {% if params.block_copy_paste %}onselectstart="return false" oncut="return false" oncopy="return false" onpaste="return false" ondrag="return false" ondrop="return false"{% endif %}><{% if params.one_line %}/input{% else %}/textarea{% endif %}>
     </div>
     <p class="vspace"></p>
 
@@ -1374,10 +1377,10 @@
         }
     </script>
 
-    {{ null(config) }}
+    {{ null(params) }}
 {% endmacro %}
 
-{% macro number(config) %}
+{% macro number(params) %}
     <style>
         #number-input-container {
             padding-top: 20px;
@@ -1386,8 +1389,8 @@
             justify-content: center;
         }
         #number-input {
-            text-align: {{config.text_align}};
-            {% if config.width is not none %}width: {{ config.width }};{% endif %}
+            text-align: {{params.text_align}};
+            {% if params.width is not none %}width: {{ params.width }};{% endif %}
         }
     </style>
 
@@ -1404,25 +1407,25 @@
         }
     </script>
 
-    {{ null(config) }}
+    {{ null(params) }}
 {% endmacro %}
 
-{% macro video_slider(config) %}
+{% macro video_slider(params) %}
     <style>
         #slider-video-container {
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 25px;
-            min-height: {{ config.height }};
-            min-width: {{ config.width }};
+            min-height: {{ params.height }};
+            min-width: {{ params.width }};
         }
         #slider-container {
             margin: 25px;
-            {% if config.hide_slider == true %} display: none; {% endif %}
+            {% if params.hide_slider == true %} display: none; {% endif %}
         }
         #slider {
-            {%if config.reverse_scale %} direction: rtl {% endif %}
+            {%if params.reverse_scale %} direction: rtl {% endif %}
         }
         .slider-range {
             cursor: pointer;
@@ -1434,12 +1437,12 @@
             background-color: #efefef;
             border: 11px solid #b2b2b2;
             border-radius: 5px;
-            {% if config.directional == false %}
+            {% if params.directional == false %}
             margin-top: -8px;
             {% endif %}
             cursor: pointer;
         }
-        {% if config.directional == false %}
+        {% if params.directional == false %}
         input[type=range]::-webkit-slider-runnable-track {
               background: #000000;
               border: 1px solid #b2b2b2;
@@ -1452,25 +1455,25 @@
     </style>
 
     <div id="slider-video-container">
-        <video id="slider-video" class="loader" width="{{ config.width }}" height="{{ config.height }}">
-            <source src="" type="video/{{ config.file_type }}"
+        <video id="slider-video" class="loader" width="{{ params.width }}" height="{{ params.height }}">
+            <source src="" type="video/{{ params.file_type }}"
         </video>
     </div>
 
-    {{config.__dict__}}
+    {{ params.__dict__}}
     <div id="slider-container">
         <input
             type="range"
             id="slider"
-            class="form-control-range response slider-range{% if not config.directional %} slider-non-directional{% endif %}"
+            class="form-control-range response slider-range{% if not params.directional %} slider-non-directional{% endif %}"
             style="display: inline-block;"
             min="0"
             max="1"
             step="0.001"
-            value="{{ config.starting_value }}">
+            value="{{ params.starting_value }}">
     </div>
 
-    {{ null(config) }}
+    {{ null(params) }}
 
     <script>
         psynet.media.updateVideoFromSlider = function() {
@@ -1492,12 +1495,12 @@
 {% endmacro %}
 
 {% from "macros/graphics.html" import graphic_%}
-{% macro graphic(config) %}
-    {{ graphic_(config) }}
+{% macro graphic(params) %}
+    {{ graphic_(params) }}
 {% endmacro %}
 
 
-{% macro survey_js(config) %}
+{% macro survey_js(params) %}
     <style>
     </style>
 
@@ -1511,15 +1514,32 @@
             .StylesManager
             .applyTheme("defaultV2");
 
-        const surveyJson = {{ config.design | tojson }};
+        const surveyJson = {{ params.design | tojson }};
 
         const survey = new Survey.Model(surveyJson);
         survey.focusFirstQuestionAutomatic = false;
         survey.showCompletedPage = false;
 
-        function submitSurveyResults (sender) {
+        function handleSurveyCompletion(sender, options) {
+            // Setting these options instructs SurveyJS to cancel the current completion code,
+            // and allow us to handle it ourselves.
+            // We need this slightly convoluted approach because SurveyJS doesn't allow you to place
+            // async code within its own validation functions.
+            // See https://github.com/surveyjs/survey-library/issues/1242 for a discussion.
+            options.allowComplete = false;
+            options.allowCompleting = false;
+            asyncPostResults(sender);
+        }
+
+        async function asyncPostResults(sender, options) {
+            survey.onCompleting.remove(handleSurveyCompletion);
             const results = JSON.stringify(sender.data);
-            psynet.nextPage(results);
+            const success = await psynet.nextPage(results);
+            if (success) {
+                sender.doComplete();
+            } else {
+                survey.onCompleting.add(handleSurveyCompletion);
+            }
         }
 
         survey.onAfterRenderPage.add(() => {
@@ -1528,7 +1548,7 @@
                 $(".sd-navigation__complete-btn").attr("disabled", true);
             }
         });
-        survey.onComplete.add(submitSurveyResults);
+        survey.onCompleting.add(handleSurveyCompletion);
 
         $(function() {
             $("#surveyContainer").Survey({ model: survey });

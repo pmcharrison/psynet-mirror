@@ -1,6 +1,7 @@
 [Payment information]
 title = MCMCP demo
 base_payment = 0.10
+show_abort_button = true
 
 [Recruitment strategy]
 recruiter = hotair
@@ -10,7 +11,6 @@ duration = 2
 us_only = true
 approve_requirement = 95
 ad_group = Game
-browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Ad metadata]

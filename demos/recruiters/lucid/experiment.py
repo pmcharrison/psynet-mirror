@@ -6,7 +6,7 @@ from psynet.consent import MainConsent
 from psynet.demography.general import BasicDemography
 from psynet.demography.gmsi import GMSI
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import AttentionTest, HeadphoneTest, LexTaleTest
+from psynet.prescreen import AttentionTest, HugginsHeadphoneTest, LexTaleTest
 from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
@@ -18,14 +18,7 @@ logger = get_logger()
 ##########################################################################################
 INITIAL_RECRUITMENT_SIZE = 1
 
-##########################################################################################
-# EXPERIMENT
-##########################################################################################
 
-
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "LUCID demo"
 
@@ -41,7 +34,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=2,
         ),
         AttentionTest(fail_on=None),
-        HeadphoneTest(performance_threshold=0),
+        HugginsHeadphoneTest(performance_threshold=0),
         LexTaleTest(performance_threshold=0),
         GMSI(),
         BasicDemography(),

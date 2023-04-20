@@ -1,9 +1,5 @@
 # pylint: disable=unused-import,abstract-method
 
-##########################################################################################
-# Imports
-##########################################################################################
-
 import logging
 import random
 
@@ -20,10 +16,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 from . import test_imports  # noqa  (this is for PsyNet's regression tests)
-
-##########################################################################################
-# Stimuli
-##########################################################################################
 
 nodes = [
     StaticNode(
@@ -128,10 +120,6 @@ trial_maker = AnimalTrialMaker(
     recruit_mode="n_participants",
     n_repeat_trials=3,
 )
-
-##########################################################################################
-# Experiment
-##########################################################################################
 
 
 class Exp(psynet.experiment.Experiment):

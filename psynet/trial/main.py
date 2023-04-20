@@ -15,7 +15,7 @@ from flask import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import column_property, deferred, relationship
+from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -247,7 +247,13 @@ class Trial(SQLMixinDallinger, Info):
     module_state = relationship("ModuleState", foreign_keys=[module_state_id])
     trial_maker_id = Column(String, index=True)
     definition = Column(PythonObject)
-    complete = Column(Boolean)
+
+    @declared_attr
+    def complete(cls):
+        # Dallinger v9.6.0 adds an Info.complete column.
+        # The following code inherits that column if it exists.
+        return cls.__table__.c.get("complete", Column(Boolean))
+
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
     score = Column(Float)
@@ -288,12 +294,12 @@ class Trial(SQLMixinDallinger, Info):
 
     asset_links = relationship(
         "AssetTrial",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetTrial(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetTrial(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")
@@ -476,10 +482,10 @@ class Trial(SQLMixinDallinger, Info):
         )
 
     def add_assets(self, assets: dict):
-        for label, asset in assets.items():
-            self.add_asset(label, asset)
+        for local_key, asset in assets.items():
+            self.add_asset(local_key, asset)
 
-    def add_asset(self, label, asset):
+    def add_asset(self, local_key, asset):
         db.session.add(self)
         db.session.commit()
 
@@ -487,14 +493,12 @@ class Trial(SQLMixinDallinger, Info):
             asset.parent = self
 
         asset.receive_node_definition(self.definition)
-
-        if not asset.has_key:
-            asset.label = label
-            asset.set_keys()
+        asset.local_key = local_key
+        asset.set_keys()
 
         db.session.add(asset)
 
-        self.assets[label] = asset
+        self.assets[local_key] = asset
 
         db.session.commit()
 
@@ -657,6 +661,12 @@ class Trial(SQLMixinDallinger, Info):
         is set to ``True``.
         """
         raise NotImplementedError
+
+    def format_answer(self, raw_answer, **kwargs):
+        """
+        Optional function to be run after a trial is completed by the participant.
+        """
+        return raw_answer
 
     def call_async_post_trial(self):
         dallinger.experiment.load()
@@ -896,7 +906,7 @@ class Trial(SQLMixinDallinger, Info):
             trial = participant.current_trial
             answer = participant.answer
 
-            trial.answer = answer
+            trial.answer = trial.format_answer(answer)
             trial.complete = True
             trial.response_id = participant.last_response_id
             trial.time_taken = trial.response.metadata["time_taken"]
@@ -1109,7 +1119,7 @@ class TrialMaker(Module):
         are given feedback. This feedback can be customised by overriding
         :meth:`~psynet.trial.main.TrialMaker.get_end_feedback_passed_page`.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
@@ -1146,6 +1156,11 @@ class TrialMaker(Module):
                 "If <recruit_mode> == 'n_trials', then <target_n_participants> must be None."
             )
 
+        if hasattr(self, "performance_check_threshold"):
+            raise AttributeError(
+                f"Please rename performance_check_threshold to performance_threshold in trial maker '{id_}'."
+            )
+
         self.trial_class = trial_class
         self.id = id_
         self.expected_trials_per_participant = expected_trials_per_participant
@@ -1168,7 +1183,7 @@ class TrialMaker(Module):
 
     participant_progress_threshold = 0.1
 
-    performance_check_threshold = 0.0
+    performance_threshold = 0.0
 
     time_estimate_per_trial = None
 
@@ -1990,7 +2005,7 @@ class NetworkTrialMaker(TrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_check_threshold : float
+    performance_threshold : float
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
@@ -2024,6 +2039,28 @@ class NetworkTrialMaker(TrialMaker):
         wait_for_networks: bool,
         assets=None,
     ):
+        performance_check_is_enabled = (
+            check_performance_at_end or check_performance_every_trial
+        )
+        has_custom_performance_check = is_method_overridden(
+            self, NetworkTrialMaker, "performance_check"
+        )
+
+        if (
+            performance_check_is_enabled
+            and self.performance_check_type is None
+            and not has_custom_performance_check
+        ):
+            raise ValueError(
+                f"Trial Maker '{id_}' has performance checks enabled but performance_check_type is not yet set. "
+                "Please set this as a class attribute for your custom TrialMaker class, writing for example:\n\n"
+                "class ConsonanceTrialMaker(StaticTrialMaker):\n"
+                "    performance_check_type = 'score'\n\n"
+                "Note: previous versions of PsyNet made this attribute default to "
+                "performance_check_type = 'consistency', but we now force experimenters to be explicit "
+                "with this decision."
+            )
+
         super().__init__(
             id_=id_,
             trial_class=trial_class,
@@ -2094,6 +2131,8 @@ class NetworkTrialMaker(TrialMaker):
                 trial = self._create_trial(
                     node=node, participant=participant, experiment=experiment
                 )
+                if trial is None:
+                    continue
                 trial_status = "available"
                 return trial, trial_status
         logger.info(
@@ -2141,6 +2180,12 @@ class NetworkTrialMaker(TrialMaker):
         """
         raise NotImplementedError
 
+    def get_trial_class(self, node, participant, experiment):
+        """
+        Returns the class of trial to be used for this trial maker.
+        """
+        return self.trial_class
+
     def find_node(self, network, participant, experiment):
         """
         Finds the node to which the participant should be attached for the next trial.
@@ -2163,7 +2208,10 @@ class NetworkTrialMaker(TrialMaker):
 
     @log_time_taken
     def _create_trial(self, node, participant, experiment):
-        trial = self.trial_class(
+        trial_class = self.get_trial_class(node, participant, experiment)
+        if trial_class is None:
+            return None
+        trial = trial_class(
             experiment=experiment,
             node=node,
             participant=participant,
@@ -2213,7 +2261,7 @@ class NetworkTrialMaker(TrialMaker):
 
     performance_threshold = -1.0
     min_nodes_for_performance_check = 2
-    performance_check_type = "consistency"
+    performance_check_type = None
     consistency_check_type = "spearman_correlation"
 
     def compute_bonus(self, score, passed):
@@ -2249,12 +2297,12 @@ class NetworkTrialMaker(TrialMaker):
         else:
             n_failed_trials = len([t for t in participant_trials if t.failed])
             p = 1 - n_failed_trials / n_trials
-            passed = p >= self.performance_check_threshold
+            passed = p >= self.performance_threshold
         return {"score": p, "passed": passed}
 
     def performance_check_score(self, experiment, participant, participant_trials):
         score = sum(t.score for t in participant_trials)
-        passed = score >= self.performance_check_threshold
+        passed = score >= self.performance_threshold
         return {"score": score, "passed": passed}
 
     def get_answer_for_consistency_check(self, trial):
@@ -2449,12 +2497,12 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     asset_links = relationship(
         "AssetNetwork",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetNetwork(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetNetwork(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")
@@ -2591,12 +2639,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     asset_links = relationship(
         "AssetNode",
-        collection_class=attribute_mapped_collection("label"),
+        collection_class=attribute_mapped_collection("local_key"),
         cascade="all, delete-orphan",
     )
 
     assets = association_proxy(
-        "asset_links", "asset", creator=lambda k, v: AssetNode(label=k, asset=v)
+        "asset_links", "asset", creator=lambda k, v: AssetNode(local_key=k, asset=v)
     )
 
     errors = relationship("ErrorRecord")

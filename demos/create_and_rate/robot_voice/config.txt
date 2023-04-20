@@ -1,0 +1,32 @@
+[Payment information]
+title = Modify the voice of a robot
+base_payment = 0.10
+
+[Recruitment strategy]
+auto_recruit = true
+lifetime = 24
+duration = 2
+us_only = true
+approve_requirement = 95
+ad_group = Game
+browser_exclude_rule = MSIE, mobile, tablet
+disable_when_duration_exceeded = False
+
+[Ad metadata]
+description = This app demos RobotVoice.
+keywords = demo
+contact_email_on_error = computational.audition+online_running@gmail.com
+organization_name = Max Planck Institute for Empirical Aesthetics
+
+[Database]
+database_url = postgresql://postgres@localhost/dallinger
+database_size = standard-2
+
+[Server]
+# Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
+dyno_type = performance-m
+num_dynos_web = 1
+num_dynos_worker = 5
+redis_size = premium-0
+host = 0.0.0.0
+clock_on = true

@@ -24,7 +24,7 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.config import config, get_config
+from dallinger.config import get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -412,10 +412,8 @@ def serialise(obj):
     raise TypeError("Type %s is not serialisable" % type(obj))
 
 
-def format_datetime_string(datetime_string):
-    return datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f").strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
+def format_datetime(datetime):
+    return datetime.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def model_name_to_snake_case(model_name):
@@ -501,6 +499,7 @@ def get_language():
 
     A string, for example "en".
     """
+    config = get_config()
     if not config.ready:
         config.load()
     return config.get("language", "en")
@@ -510,9 +509,13 @@ def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
     """Render a template with translations applied."""
+    from psynet.experiment import get_and_load_config
 
     if all_template_args is None:
         all_template_args = {}
+
+    all_template_args["config"] = dict(get_and_load_config().as_dict().items())
+
     assert [template_name, template_string].count(
         None
     ) == 1, "Only one of template_name or template_string should be provided."

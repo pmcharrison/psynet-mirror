@@ -1,10 +1,10 @@
+import configparser
 import json
 import os
 import shutil
 import sys
 import tempfile
 import traceback
-import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
@@ -20,12 +20,12 @@ import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import get_config
+from dallinger.config import get_config, is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import ProlificRecruiter
+from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request
@@ -40,6 +40,7 @@ from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
+from .graphics import PsyNetLogo
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -51,6 +52,7 @@ from .recruiters import (  # noqa: F401
     StagingCapRecruiter,
 )
 from .redis import redis_vars
+from .serialize import serialize
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
@@ -69,6 +71,7 @@ from .utils import (
     cache,
     call_function,
     call_function_with_context,
+    classproperty,
     disable_logger,
     error_page,
     get_arg_from_dict,
@@ -84,6 +87,16 @@ from .utils import (
 logger = get_logger()
 
 database_template_path = ".deploy/database_template.zip"
+
+
+INITIAL_RECRUITMENT_SIZE = 1
+
+
+def get_and_load_config():
+    config = get_config()
+    if not config.ready:
+        config.load()
+    return config
 
 
 def error_response(*args, **kwargs):
@@ -128,7 +141,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         class Exp(psynet.experiment.Experiment):
             variables = {
                 "new_variable": "some-value",  # Adding a new variable
-                "wage_per_hour": 12.0,         # Overriding an existing variable
             }
 
     These variables can then be changed in the course of experiment, just like (e.g.) participant variables.
@@ -153,57 +165,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
-    min_accumulated_bonus_for_abort : `float`
-        The threshold of bonus accumulated in US dollars for the participant to be able to receive
-        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
-
-    show_abort_button : `bool`
-        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
-        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
-        Default ``False``.
-
-    show_bonus : `bool`
-        If ``True`` (default), then the participant's current estimated bonus is displayed
-        at the bottom of the page.
-
-    show_footer : `bool`
-        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
-        and bonus information if `show_bonus` is set to `True`.
-
-    show_progress_bar : `bool`
-        If ``True`` (default), then a progress bar is displayed at the top of the page.
-
-    min_browser_version : `str`
-        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
-
-    wage_per_hour : `float`
-        The payment in US dollars the participant gets per hour. Default: `9.0`.
-
-    check_participant_opened_devtools : ``bool``
-        If ``True``, whenever a participant opens the developer tools in the web browser,
-        this is logged as participant.var.opened_devtools = ``True``,
-        and the participant is shown a warning alert message.
-        Default: ``False``.
-        Note: Chrome does not currently expose an official way of checking whether
-        the participant opens the developer tools. People therefore have to rely
-        on hacks to detect it. These hacks can often be broken by updates to Chrome.
-        We've therefore disabled this check by default, to reduce the risk of
-        false positives. Experimenters wishing to enable the check for an individual
-        experiment are recommended to verify that the check works appropriately
-        before relying on it. We'd be grateful for any contributions of updated
-        developer tools checks.
-
-    window_width : ``int``
-        Determines the width in pixels of the window that opens when the
-        participant starts the experiment.
-        Default: ``1024``.
-
-    window_height : ``int``
-        Determines the width in pixels of the window that opens when the
-        participant starts the experiment.
-        Default: ``768``.
-
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
 
@@ -227,6 +188,91 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         this payment limit being reached.
 
 
+    In addition to the config variables in Dallinger, PsyNet adds the following:
+
+    min_browser_version : `str`
+        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
+
+    wage_per_hour : `float`
+        The payment in currency the participant gets per hour. Default: `9.0`.
+
+    currency : `str`
+        The currency in which the participant gets paid. Default: `$`.
+
+    min_accumulated_bonus_for_abort : `float`
+        The threshold of bonus accumulated in US dollars for the participant to be able to receive
+        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
+
+    show_abort_button : `bool`
+        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
+        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
+        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+        Default ``False``.
+
+    show_bonus : `bool`
+        If ``True`` (default), then the participant's current estimated bonus is displayed
+        at the bottom of the page.
+
+    show_footer : `bool`
+        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
+        and bonus information if `show_bonus` is set to `True`.
+
+    show_progress_bar : `bool`
+        If ``True`` (default), then a progress bar is displayed at the top of the page.
+
+    check_participant_opened_devtools : ``bool``
+        If ``True``, whenever a participant opens the developer tools in the web browser,
+        this is logged as participant.var.opened_devtools = ``True``,
+        and the participant is shown a warning alert message.
+        Default: ``False``.
+        Note: Chrome does not currently expose an official way of checking whether
+        the participant opens the developer tools. People therefore have to rely
+        on hacks to detect it. These hacks can often be broken by updates to Chrome.
+        We've therefore disabled this check by default, to reduce the risk of
+        false positives. Experimenters wishing to enable the check for an individual
+        experiment are recommended to verify that the check works appropriately
+        before relying on it. We'd be grateful for any contributions of updated
+        developer tools checks.
+
+    window_width : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment. Only active if
+        recruiter.start_experiment_in_popup_window is True.
+        Default: ``1024``.
+
+    window_height : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment. Only active if
+        recruiter.start_experiment_in_popup_window is True.
+        Default: ``768``.
+
+    supported_locales : ``list``
+        List of locales (i.e., ISO language codes) a user can pick from, e.g., ``'["en"]'``.
+        Default: ``'[]'``.
+
+    allow_switching_locale : ``bool``
+        Allow the user to change the language of the experiment during the experiment.
+        Default: ``False``.
+
+    force_google_chrome : ``bool``
+        Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions
+        on how to install Google Chrome.
+        Default: ``True``.
+
+    force_incognito_mode : ``bool``
+        Forces the user to open the experiment in a private browsing (i.e. incognito mode). This is helpful as incognito
+        mode prevents the user from accessing their browsing history, which could be used to influence the experiment.
+        Furthermore it does not enable addons which can interfere with the experiment. If the user is not using
+        incognito mode, it will give detailed instructions on how to open the experiment in incognito mode.
+        Default: ``False``.
+
+    allow_mobile_devices : ``bool``
+        Allows the user to use mobile devices. If it is set to false it will tell the user to open the experiment on
+        their computer.
+        Default: ``False``.
+
+
+
     Parameters
     ----------
 
@@ -237,8 +283,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    label = None
-    initial_recruitment_size = 1
+    initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
+    logos = []
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -253,9 +299,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        # Ignore the default initial_recruitment_size set by Dallinger
-        # and use our own (by default just taken from the class attribute)
-        self.initial_recruitment_size = self.__class__.initial_recruitment_size
+        config_initial_recruitment_size = self.get_initial_recruitment_size()
+        initial_recruitment_size_config_changed = (
+            config_initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
+        )
+        initial_recruitment_size_experiment_changed = (
+            self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
+        )
+
+        assert not (
+            initial_recruitment_size_config_changed
+            and initial_recruitment_size_experiment_changed
+        ), "You have set the initial recruitment size in both the config file and in your experiment class."
+
+        if initial_recruitment_size_config_changed:
+            self.initial_recruitment_size = config_initial_recruitment_size
+        elif initial_recruitment_size_experiment_changed:
+            raise RuntimeError(
+                "You can no longer directly set the initial recruitment size in your experiment class, you need to "
+                "specify it in the config.txt file or in experiment.config"
+            )
+        else:
+            assert self.initial_recruitment_size == INITIAL_RECRUITMENT_SIZE
 
         if not self.label:
             raise RuntimeError(
@@ -346,7 +411,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         pass
 
-    test_num_bots = 1
+    test_n_bots = 1
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -356,7 +421,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
     def test_create_bots(self):
-        return [Bot() for _ in range(self.test_num_bots)]
+        return [Bot() for _ in range(self.test_n_bots)]
 
     def test_run_bots(self, bots):
         for bot in bots:
@@ -437,8 +502,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def base_payment(self):
-        config = get_config()
-        return config.get("base_payment")
+        return get_config().get("base_payment")
+
+    def get_initial_recruitment_size(self):
+        return get_and_load_config().get("initial_recruitment_size")
+
+    @property
+    def label(self):
+        return get_and_load_config().get("label")
 
     @property
     def var(self):
@@ -493,13 +564,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.add(network)
             db.session.commit()
 
+    @classproperty
+    def config(cls):
+        return {}
+
     @classmethod
     def config_defaults(cls):
         """
         Override this classmethod to register new default values for config variables.
         Remember to call super!
         """
-        return {
+
+        try:
+            folder_name = deployment_info.read("folder_name")
+        except (KeyError, FileNotFoundError):
+            folder_name = os.path.basename(os.getcwd())
+
+        config = {
             **super().config_defaults(),
             "host": "0.0.0.0",
             "base_payment": 0.10,
@@ -507,22 +588,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
-        }
-
-    @property
-    def _default_variables(self):
-        return {
-            "psynet_version": __version__,
-            "dallinger_version": dallinger_version,
-            "python_version": python_version(),
-            "launch_finished": False,
+            "protected_routes": json.dumps(_protected_routes),
+            "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
+            "label": folder_name,
             "min_browser_version": "80.0",
-            "max_participant_payment": 25.0,
-            "hard_max_experiment_payment": 1100.0,
-            "hard_max_experiment_payment_email_sent": False,
-            "soft_max_experiment_payment": 1000.0,
-            "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
+            "currency": "$",
             "min_accumulated_bonus_for_abort": 0.20,
             "show_abort_button": False,
             "show_bonus": True,
@@ -531,11 +602,61 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
-            "supported_locales": [],
-            "currency": "$",
-            "current_locale": get_language(),
+            "supported_locales": "[]",
             "allow_switching_locale": True,
+            "force_google_chrome": True,
+            "force_incognito_mode": False,
+            "allow_mobile_devices": False,
+            "color_mode": "light",
+            **cls.config,
         }
+
+        config_types = get_config().types
+
+        for key, value in config.items():
+            if not isinstance(value, (bool, int, float, str)):
+                # Dallinger expects non-primitive types to be expressed as JSON-encoded strings.
+                # We should probably update this behavior in the future.
+                value = serialize(value)
+
+            expected_type = config_types[key]
+            value = expected_type(value)
+
+            config[key] = value
+
+        return config
+
+    @property
+    def _default_variables(self):
+        return {
+            "psynet_version": __version__,
+            "dallinger_version": dallinger_version,
+            "python_version": python_version(),
+            "launch_finished": False,
+            "hard_max_experiment_payment_email_sent": False,
+            "soft_max_experiment_payment_email_sent": False,
+            "current_locale": get_language(),
+            "hard_max_experiment_payment": 1100.0,
+            "soft_max_experiment_payment": 1000.0,
+            "max_participant_payment": 25.0,
+        }
+
+    @property
+    def psynet_logo(self):
+        return PsyNetLogo()
+
+    @property
+    def start_experiment_in_popup_window(self):
+        if self.var.has("start_experiment_in_popup_window"):
+            # This is for simulating pop up behaviour in psynet demo tests
+            return self.var.get("start_experiment_in_popup_window")
+        elif hasattr(self.recruiter, "start_experiment_in_popup_window"):
+            return self.recruiter.start_experiment_in_popup_window
+        elif isinstance(self.recruiter, MTurkRecruiter):
+            return True
+
+        else:
+            return False
 
     @property
     def description(self):
@@ -568,6 +689,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def variables_initial_values(self):
+        config = get_and_load_config()
+
+        for key, value in self.variables.items():
+            assert key not in list(config.as_dict().keys()), (
+                f"Variable {key} is a config variable and should solely be specified in the config.txt or in "
+                "experiment.config but NOT as experiment variable."
+            )
         return {**self._default_variables, **self.variables}
 
     @property
@@ -576,10 +704,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def estimated_bonus_in_dollars(self):
+        wage_per_hour = get_and_load_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(
                 mode="bonus",
-                wage_per_hour=self.variables_initial_values["wage_per_hour"],
+                wage_per_hour=wage_per_hour,
             ),
             2,
         )
@@ -618,7 +747,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.pre_deploy_routines.append(elt)
 
     def pre_deploy(self):
-        self.check_config()
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
@@ -701,6 +829,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise RuntimeError(
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
             )
+
+        parser = configparser.ConfigParser()
+        parser.read("config.txt")
+        config_txt = {}
+
+        for section in parser.sections():
+            config_txt.update(dict(parser.items(section)))
+
+        for key in cls.config:
+            if key in config_txt:
+                raise ValueError(
+                    f"Config variable {key} was registered both in config.txt and experiment.py. "
+                    f"Please choose just one location."
+                )
 
     def fail_participant(self, participant):
         logger.info(
@@ -1043,15 +1185,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "/templates",
             ),
             (
-                resource_filename("psynet", "resources/favicon.ico"),
-                "/static/favicon.ico",
+                resource_filename("psynet", "resources/favicon.png"),
+                "/static/favicon.png",
+            ),
+            (
+                resource_filename("psynet", "resources/favicon.svg"),
+                "/static/favicon.svg",
             ),
             (
                 resource_filename("psynet", "resources/logo.png"),
                 "/static/images/logo.png",
             ),
             (
-                resource_filename("psynet", "resources/logo.svg"),
+                resource_filename("psynet", "resources/images/psynet.svg"),
                 "/static/images/logo.svg",
             ),
             (
@@ -1065,6 +1211,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             (
                 resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
                 "/static/scripts/dashboard_timeline.js",
+            ),
+            (
+                resource_filename("psynet", "resources/css/bootstrap.min.css"),
+                "/static/css/bootstrap.min.css",
             ),
             (
                 resource_filename("psynet", "resources/css/consent.css"),
@@ -1088,15 +1238,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             (
                 resource_filename(
+                    "psynet",
+                    "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
+                ),
+                "/static/scripts/detectIncognito.min.js",
+            ),
+            (
+                resource_filename(
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
                 resource_filename(
-                    "psynet", "resources/libraries/jQuery-Knob/dist/jquery.knob.min.js"
+                    "psynet", "resources/libraries/jQuery-Knob/js/jquery.knob.js"
                 ),
-                "/static/scripts/jquery.knob.min.js",
+                "/static/scripts/jquery.knob.js",
             ),
             (
                 resource_filename("psynet", "resources/libraries/js-synthesizer"),
@@ -1157,6 +1314,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("lucid_recruitment_config", unicode)
         config.register("debug_storage_root", unicode)
         config.register("default_export_root", unicode)
+        config.register("enable_google_search_console", bool)
+        config.register("initial_recruitment_size", int)
+        config.register("label", unicode)
+        config.register("min_browser_version", unicode)
+        config.register("wage_per_hour", float)
+        config.register("currency", unicode)
+        config.register("min_accumulated_bonus_for_abort", float)
+        config.register("show_abort_button", bool)
+        config.register("show_bonus", bool)
+        config.register("show_footer", bool)
+        config.register("show_progress_bar", bool)
+        config.register("check_participant_opened_devtools", bool)
+        config.register("window_width", int)
+        config.register("window_height", int)
+        config.register("supported_locales", unicode, validators=[is_valid_json])
+        config.register("allow_switching_locale", bool)
+        config.register("force_google_chrome", bool)
+        config.register("force_incognito_mode", bool)
+        config.register("allow_mobile_devices", bool)
+
+        def color_mode_validator(value):
+            assert value in ["light", "dark", "auto"]
+
+        config.register("color_mode", unicode, validators=[color_mode_validator])
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
@@ -1269,6 +1450,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
+    @experiment_route("/google3580fca13e19b596.html")
+    @staticmethod
+    def google_search_console():
+        """
+        This route is disabled by default, but can be enabled by setting
+        `enable_google_search_console = true` in config.txt.
+        Enabling this route allows the site to be claimed in the Google Search Console
+        dashboard of the computational.audition@gmail.com Google account.
+        This allows the account to investigate and debug Chrome warnings
+        (e.g. 'Deceptive website ahead'). See https://search.google.com/u/4/search-console.
+        """
+        config = get_config()
+        if config.get("enable_google_search_console", default=False):
+            return render_template("google3580fca13e19b596.html")
+        else:
+            return flask.Response(
+                (
+                    "Google search console verification is disabled, "
+                    "you can activate it by setting enable_google_search_console = true in config.txt.",
+                ),
+                status=404,
+            )
+
     @experiment_route("/consent")
     @staticmethod
     def consent():
@@ -1333,15 +1537,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/fast-function-asset", methods=["GET"])
     @staticmethod
     def get_fast_function_asset():
-        key = request.args.get("key")
+        id = request.args.get("id")
         secret = request.args.get("secret")
 
-        assert key
+        assert id
         assert secret
 
-        key_parsed = urllib.parse.unquote(key)
+        id = int(id)
 
-        asset = FastFunctionAsset.query.filter_by(key=key_parsed).one()
+        asset = FastFunctionAsset.query.filter_by(id=id).one()
         suffix = asset.extension if asset.extension else ""
 
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
@@ -1365,15 +1569,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_module_details_as_rendered_html(cls):
         exp = get_experiment()
-        trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
-        return trial_maker.visualize()
+        module = exp.timeline.get_module(request.values["moduleId"])
+        return module.visualize()
 
     @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
     def get_module_tooltip_as_rendered_html(cls):
         exp = get_experiment()
-        trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
-        return trial_maker.visualize_tooltip()
+        module = exp.timeline.get_module(request.values["moduleId"])
+        return module.visualize_tooltip()
 
     @experiment_route("/module/progress_info", methods=["GET"])
     @classmethod
@@ -1526,9 +1730,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant_abort_info = None
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                if (
-                    participant.calculate_bonus()
-                    >= cls.new(db.session).var.min_accumulated_bonus_for_abort
+                if participant.calculate_bonus() >= get_and_load_config().get(
+                    "min_accumulated_bonus_for_abort"
                 ):
                     template_name = "abort_possible.html"
                     participant_abort_info = participant.abort_info()
@@ -1687,7 +1890,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if process:
             context["process_id"] = process.id
         if asset:
-            context["asset_key"] = asset.key
+            context["asset_id"] = asset.id
         return context
 
     class AuthTokenError(PermissionError):
@@ -1770,7 +1973,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if cls.new(db.session).var.show_bonus:
+        if get_and_load_config().get("show_bonus"):
             performance_bonus = participant.performance_bonus
             basic_bonus = participant.time_credit.get_bonus()
             total_bonus = participant.calculate_bonus()
@@ -1954,3 +2157,26 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+# Dallinger defines various HTTP routes that provide access to database content.
+# We disable the following HTTP routes in PsyNet experiments because they could
+# in theory leak personal data or be used to manipulate the state of the
+# experiment. Most data should instead be transferred via authenticated PsyNet routes.
+_protected_routes = [
+    "/network/<network_id>",
+    "/question/<participant_id>",
+    "/node/<int:node_id>/neighbors",
+    "/node/<participant_id>",
+    "/node/<int:node_id>/vectors",
+    "/node/<int:node_id>/connect/<int:other_node_id>",
+    "/info/<int:node_id>/<int:info_id>",
+    "/node/<int:node_id>/infos",
+    "/node/<int:node_id>/received_infos",
+    "/tracking_event/<int:node_id>",
+    "/info/<int:node_id>",
+    "/node/<int:node_id>/transmissions",
+    "/node/<int:node_id>/transmit",
+    "/node/<int:node_id>/transformations",
+    "/transformation/<int:node_id>/<int:info_in_id>/<int:info_out_id>",
+]

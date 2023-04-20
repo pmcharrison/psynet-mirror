@@ -22,11 +22,12 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
 from pkg_resources import resource_filename
+from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -637,10 +638,27 @@ def _pre_launch(
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     if not archive:
-        if local_:
-            run_prepare_in_subprocess()
-        else:
-            ctx.invoke(prepare)
+        ctx.invoke(prepare)
+
+    _forget_tables_defined_in_experiment_directory()
+
+
+def _forget_tables_defined_in_experiment_directory():
+    # We need to instruct SQLAlchemy to forget tables defined in the experiment directory,
+    # because otherwise SQLAlchemy will get confused and throw errors when we run subsequent commands
+    # that import the same experiment from other locations (e.g. /tmp/dallinger_develop).
+
+    from dallinger.db import Base
+
+    tables_defined_in_experiment_directory = [
+        mapper.class_.__tablename__
+        for mapper in dallinger.db.Base.registry.mappers
+        if mapper.class_.__module__.startswith("dallinger_experiment")
+        and not mapper.class_.inherits_table
+    ]
+
+    for table in tables_defined_in_experiment_directory:
+        Base.metadata.remove(Base.metadata.tables[table])
 
 
 @psynet.group("deploy")
@@ -827,10 +845,13 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
+    from .experiment import get_and_load_config
+
     cents = config.get("prolific_reward_cents")
     minutes = config.get("prolific_estimated_completion_minutes")
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
     assert (
-        experiment.var.wage_per_hour * minutes / 60 == cents / 100
+        wage_per_hour * minutes / 60 == cents / 100
     ), "Wage per hour does not match Prolific reward"
 
 
@@ -839,6 +860,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     from .asset import DebugStorage
     from .experiment import get_experiment
+
+    exp = get_experiment()
+    exp.check_config()
 
     try:
         with open("requirements.txt", "r") as f:
@@ -883,10 +907,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             )
 
     if not local_:
-        # Running these following tests in advance of local deployment is skipped because it confuses SQLAlchemy
-        # to import the experiment in advance of the experiment launch itself, you get errors like this:
-        # sqlalchemy.exc.InvalidRequestError: Table 'coin' is already defined for this MetaData instance.
-        # Specify 'extend_existing=True' to redefine options and columns on an existing Table object.
         init_db(drop_all=True)
 
         config = get_config()
@@ -917,8 +937,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
             ):
                 raise click.Abort
-
-        exp = get_experiment()
 
         config.set("id", exp.make_uuid(app))
 
@@ -1139,7 +1157,7 @@ def update(dallinger_version, psynet_version, verbose):
         )
 
     if is_editable("dallinger"):
-        text = "Installing development requirements and base packages..."
+        text = "Installing base packages and development requirements..."
         install_command = "pip install --editable '.[data]'"
     else:
         text = "Installing base packages..."
@@ -1226,6 +1244,23 @@ def is_editable(project):
 ############
 # estimate #
 ############
+def _estimate(mode):
+    from .experiment import get_and_load_config, import_local_experiment
+
+    log(header)
+    experiment_class = import_local_experiment()["class"]
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
+
+    if mode in ["bonus", "both"]:
+        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
+        log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
+    if mode in ["time", "both"]:
+        completion_time = experiment_class.estimated_completion_time(wage_per_hour)
+        log(
+            f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
+        )
+
+
 @psynet.command()
 @click.option(
     "--mode",
@@ -1237,27 +1272,19 @@ def estimate(mode):
     """
     Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
     """
-    from .experiment import import_local_experiment
-
-    log(header)
-    experiment_class = import_local_experiment()["class"]
-    experiment = setup_experiment_variables(experiment_class)
-    if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(
-            experiment.var.wage_per_hour
-        )
-        log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
-    if mode in ["time", "both"]:
-        completion_time = experiment_class.estimated_completion_time(
-            experiment.var.wage_per_hour
-        )
-        log(
-            f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
-        )
+    try:
+        _estimate(mode)
+    except ProgrammingError:
+        log("Initialize the database and try again.")
+        db.session.rollback()
+        init_db(drop_all=True)
+        db.session.commit()
+        _estimate(mode)
 
 
 def setup_experiment_variables(experiment_class):
     experiment = experiment_class()
+    experiment.setup_experiment_config()
     experiment.setup_experiment_variables()
     return experiment
 
@@ -1430,6 +1457,11 @@ def export_(
     from .experiment import import_local_experiment
 
     log(header)
+
+    if not experiment_available():
+        raise click.UsageError(
+            "This command must be run within an experiment directory."
+        )
 
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0

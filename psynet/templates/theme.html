@@ -1,0 +1,225 @@
+{% macro logo(id, extra_class_name) %}
+    <div id="logo_container">
+        <div id="psynet_logo" class="float-start col">
+            {{ experiment.psynet_logo }}
+        </div>
+        <div id="logos" class="col">
+            {% for logo in experiment.logos %}
+                <div class="logo">{{ logo }}</div>
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}
+
+<div style="display: none" class="hidden_logos">
+    {{ logo("logo", "mr-3") }}
+</div>
+
+<script>
+    // replace logos
+    document.addEventListener("DOMContentLoaded", function (event) {
+        let svg = $({{ logo("logo", "mr-3") | tojson }});
+        var oldLogo = $('#adlogo');
+        if (oldLogo.length > 0) {
+            $(oldLogo[0].parentElement).append(svg);
+            oldLogo.remove();
+        }
+    });
+
+    /*!
+     * Color mode toggler for Bootstrap's docs (https://getbootstrap.com/)
+     * Copyright 2011-2023 The Bootstrap Authors
+     * Licensed under the Creative Commons Attribution 3.0 Unported License.
+     */
+    (() => {
+        'use strict'
+
+        const storedTheme = "{{ config.color_mode }}"
+
+        const getPreferredTheme = () => {
+            if (storedTheme) {
+                return storedTheme
+            }
+
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+
+        const setTheme = function (theme) {
+            console.log(theme)
+            if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark')
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme)
+            }
+        }
+
+        setTheme(getPreferredTheme())
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            setTheme(getPreferredTheme())
+        })
+    })()
+</script>
+<style>
+    /* Color definitions */
+    :root, [data-bs-theme=light] {
+        --bs-body-color: #222 !important;
+        --bs-body-color-rgb: 34, 34, 34 !important;
+        --bs-body-bg: #fff !important;
+        --bs-light: #f7f7f7 !important;
+        --background-rgb: 255 255 255 !important;
+        --bs-body-font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif !important;
+    }
+
+    [data-bs-theme=dark] {
+        color-scheme: dark;
+        --bs-body-color: #f0f0f0 !important;
+        --bs-body-color-rgb: 240, 240, 240 !important;
+        --bs-body-bg: #000 !important;
+        --bs-light: #252525 !important;
+        --background-rgb: 0 0 0 !important;
+    }
+
+    :root {
+        font-family: var(--bs-body-font-family);
+    }
+
+    @supports (font-variation-settings: normal) {
+        :root {
+            font-family: var(--bs-body-font-family);
+        }
+    }
+
+
+    /* General */
+    body {
+        background-color: var(--bs-body-bg) !important;
+        color: var(--bs-body-color) !important;
+        letter-spacing: -0.02em;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        font-kerning: normal;
+        -webkit-font-kerning: normal;
+        -ms-font-kerning: normal;
+        -moz-font-kerning: normal;
+        -o-font-kerning: normal;
+        font-variant-ligatures: contextual common-ligatures;
+        -webkit-font-variant-ligatures: contextual common-ligatures;
+        -ms-font-variant-ligatures: contextual common-ligatures;
+        -moz-font-variant-ligatures: contextual common-ligatures;
+        -o-font-variant-ligatures: contextual common-ligatures;
+        font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    }
+    .fw-bold {
+        font-weight: 500 !important;
+    }
+
+    .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+        letter-spacing: -0.015em;
+    }
+
+    @media (max-width: 1000px) {
+        #main-body {
+            margin-bottom: 90px !important;
+        }
+
+        #main-body .text-justify .btn-lg {
+            margin-bottom: 1rem;
+        }
+    }
+
+    /* Logos */
+    .logo {
+        float: right;
+        padding-left: 10px;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        padding-top: 100px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(var(--background-rgb) / 65%);
+    }
+
+    .modal-content {
+        margin: auto;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .vspace {
+        height: 25px;
+        margin: 0px
+    }
+
+    #help-modal {
+        z-index: 1000;
+    }
+
+    #help-modal .modal-content, #resume-modal .modal-content {
+        max-width: 700px;
+        margin-top: 40px;
+    }
+
+
+    /* Footer */
+    #help-button {
+        border: none;
+    }
+
+    .progress, .progress-stacked {
+        border-radius: 0 !important;
+    }
+
+    #media-download-progress-bar {
+        background-color: var(--bs-body-bg) !important;
+    }
+
+    #footer {
+        background-color: var(--bs-secondary-bg) !important;
+        color: var(--bs-body-color) !important;
+    }
+
+    /* Animations */
+    .colorfadeanim {
+        background-image: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+        color: #fff;
+    }
+
+    .consent-gradient {
+        background: linear-gradient(to top, rgb(var(--background-rgb)) 0%, rgb(var(--background-rgb)) 62%, rgb(var(--background-rgb) / 22%) 68%, rgba(125, 185, 232, 0) 100%)
+    }
+
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%
+        }
+
+        50% {
+            background-position: 100% 50%
+        }
+
+        100% {
+            background-position: 0% 50%
+        }
+    }
+
+</style>
+

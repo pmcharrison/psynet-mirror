@@ -11,16 +11,14 @@ from psynet.consent import (
     PrincetonConsent,
     VoluntaryWithNoCompensationConsent,
 )
+from psynet.graphics import PrincetonLogo
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Consents demo"
-
+    logos = [PrincetonLogo()]
     timeline = Timeline(
         NoConsent(),
         MainConsent(),
