@@ -3,7 +3,8 @@
 ![Logo](https://gitlab.com/PsyNetDev/PsyNet/-/raw/master/psynet/resources/logo.svg)
 
 PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
-It streamlines the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
+It builds on the virtual lab framework [Dallinger](https://dallinger.readthedocs.io/)
+to streamline the development of highly complex experiment paradigms, ranging from simulated cultural evolution to
 perceptual prior estimation to adaptive psychophysical experiments. Once an experiment is implemented, it can be
 deployed with a single terminal command, which looks after server provisioning, participant recruitment, data-quality
 monitoring, and participant payment. Researchers using PsyNet can enjoy a paradigm shift in productivity, running many
