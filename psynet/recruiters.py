@@ -405,5 +405,8 @@ class GenericRecruiter(PsyNetRecruiter):
         res["message"] = re.sub(
             "Open the logs for this experiment.*", "", res["message"]
         )
+        res["message"] = re.sub(
+            ".*in the logs for subsequent recruitment URLs\\.", "", res["message"]
+        )
 
         return res
