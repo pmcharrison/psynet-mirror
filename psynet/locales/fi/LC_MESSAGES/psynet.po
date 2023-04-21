@@ -1713,7 +1713,7 @@ msgstr ""
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
-msgctxt "consent"
+msgctxt "consent-contact"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
 "the main researcher in this project, Nori Jacoby at: "
@@ -2577,6 +2577,16 @@ msgstr ""
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgctxt "consent-disclaimer"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Näin ollen voit halutessasi rajoittaa, mitä tietoja päätät jakaa julkisesti."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
 msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
@@ -5717,7 +5727,7 @@ msgstr "Zulu"
 
 #: psynet/utils.py psynet/utils.py
 #, fuzzy
-msgctxt "country_name"
+msgctxt "language_name"
 msgid "Tonga"
 msgstr "Tonga"
 
@@ -5730,5 +5740,23 @@ msgstr "Laos"
 #: psynet/utils.py psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Laos"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
 msgid "Nauru"
 msgstr "Nauru"

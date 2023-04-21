@@ -1047,11 +1047,11 @@ msgstr "本实验只支持Chrome浏览器。"
 #. "\u5982\u679c\u60a8\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u968f\u65f6\u4e0e\u672c\u9879\u76ee\u7684\u4e3b\u8981\u7814\u7a76\u4eba\u5458Nori
 #. Jacoby\u8054\u7cfb\uff0c\u7535\u8bdd\u662f\uff1a\u3002"]}
 #: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-contact"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
-msgstr "如果您对这项研究有任何疑问，请立即与本项目的主要研究人员Nori Jacoby联系： "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr "如果您对这项研究有任何疑问，请立即与本项目的主要研究人员Nori Jacoby联系："
 
 #. {"msgid":
 #. ["\u5982\u679c\u4f60\u9009\u62e9\u53c2\u52a0\u5b9e\u9a8c\uff0c\u91cd\u8981\u7684\u662f\uff0c\u4f60\u6709\u8d23\u4efb\u786e\u4fdd\u5728\u4f60\u5f55\u5236\u97f3\u9891\u548c\u89c6\u9891\u65f6\uff0c\u6ca1\u6709\u4efb\u4f55\u4f60\u4e0d\u6253\u7b97\u88ab\u8bb0\u5f55\u7684\u4e1c\u897f\u88ab\u8bb0\u5f55\u4e0b\u6765\u3002
@@ -2525,6 +2525,14 @@ msgstr "我们将只保存您匿名化的字母数字代码在我们的系统中
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-disclaimer"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr "因此，您可能希望限制您选择公开分享的信息。"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
 msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
@@ -4826,6 +4834,11 @@ msgid "Zulu"
 msgstr "祖鲁语"
 
 #: psynet/utils.py psynet/utils.py
+msgctxt "language_name"
+msgid "Tonga"
+msgstr "汤加"
+
+#: psynet/utils.py psynet/utils.py
 msgctxt "country_name"
 msgid "Tonga"
 msgstr "汤加"
@@ -4834,6 +4847,16 @@ msgstr "汤加"
 msgctxt "language_name"
 msgid "Lao"
 msgstr "老挝语"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Lao"
+msgstr "老挝语"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "瑙鲁语"
 
 #: psynet/utils.py psynet/utils.py
 msgctxt "language_name"
