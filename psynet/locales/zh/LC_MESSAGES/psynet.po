@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-20/04/ 12:42:51\n"
+"POT-Creation-Date: 2023-20/04/ 20:21:01\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -46,12 +46,10 @@ msgid ""
 "following information:"
 msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以下信息："
 
-#. ""
 #, fuzzy
 msgid "Image not found"
 msgstr "未找到图像"
 
-#. ""
 #, python-format, fuzzy
 msgid ""
 "In addition to your base payment of "
@@ -61,7 +59,6 @@ msgid ""
 msgstr ""
 "除了你的基本报酬<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>之外，你还会收到<strong>%(CURRENCY)s%(BONUS)s</strong>的奖金，以奖励你在实验中花费的时间。"
 
-#. ""
 #, fuzzy
 msgid "Loop"
 msgstr "循环"
@@ -69,22 +66,18 @@ msgstr "循环"
 msgid "Next"
 msgstr "下一页"
 
-#. ""
 #, fuzzy
 msgid "Play all"
 msgstr "播放所有"
 
-#. ""
 #, fuzzy
 msgid "Play from start"
 msgstr "从头开始玩"
 
-#. ""
 #, fuzzy
 msgid "Play prompt"
 msgstr "播放提示"
 
-#. ""
 #, fuzzy
 msgid "Play recording"
 msgstr "播放录音"
@@ -92,12 +85,10 @@ msgstr "播放录音"
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "请点击 \"完成 \"来完成HIT。"
 
-#. ""
 #, fuzzy
 msgid "Record from start"
 msgstr "从头开始记录"
 
-#. ""
 #, fuzzy
 msgid "Reset"
 msgstr "复位"
@@ -108,7 +99,6 @@ msgstr "恢复实验......"
 msgid "Scroll up/down to see all text"
 msgstr "向上/向下滚动以查看所有文本"
 
-#. ""
 #, fuzzy
 msgid "Stop"
 msgstr "停止"
@@ -116,7 +106,6 @@ msgstr "停止"
 msgid "Thank you for taking part."
 msgstr "谢谢您的参与。"
 
-#. ""
 #, fuzzy
 msgid "Video not found"
 msgstr "未找到视频"
@@ -124,14 +113,12 @@ msgstr "未找到视频"
 msgid "Worker ID"
 msgstr "工作者身份"
 
-#. ""
 #, python-format, fuzzy
 msgid ""
 "You have also been awarded a performance bonus of "
 "<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr "你还获得了<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>的业绩奖金!"
 
-#. ""
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
@@ -140,7 +127,6 @@ msgid ""
 msgstr ""
 "你必须积累<strong>至少%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>的奖金，才能得到补偿。"
 
-#. ""
 #, python-format, fuzzy
 msgid ""
 "You will also see one or more consent pages and have up to\n"
@@ -148,7 +134,6 @@ msgid ""
 msgstr ""
 "你还会看到一个或多个同意书页面，并有多达<strong>%(TERMINATION_TIME)s</strong>的时间来阅读和接受/拒绝它们。"
 
-#. ""
 #, fuzzy
 msgid "You will be redirected."
 msgstr "你将会被重新定向。"
@@ -213,7 +198,6 @@ msgctxt "ad"
 msgid "Thanks for accepting this HIT."
 msgstr "谢谢您接受这项HIT。"
 
-#. ""
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
@@ -227,7 +211,6 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "警告"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -235,19 +218,16 @@ msgid ""
 "(i.e. high smoothing)."
 msgstr "高衰减参数意味着信号需要很长的时间来衰减（即高平滑度）。"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Documentation"
 msgstr "文件"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Sliders"
 msgstr "滑块"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -255,7 +235,6 @@ msgid ""
 " happens to the signal, and have units of seconds."
 msgstr "<strong>decay</strong>参数决定信号的平滑程度，单位是秒。"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -263,7 +242,6 @@ msgid ""
 "outside the respective threshold for a warning message to be triggered."
 msgstr "<strong>grace</strong>参数决定音量必须在各自的阈值之外多长时间才会触发警告信息。"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -271,7 +249,6 @@ msgid ""
 "messages are displayed for."
 msgstr "<strong>信息持续时间</strong>参数决定了警告信息的显示时间。"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -279,7 +256,6 @@ msgid ""
 "volume is determined to be 'too high' or 'too low'."
 msgstr "<strong>阈值</strong>参数决定了音量被确定为 \"过高 \"或 \"过低 \"的点。"
 
-#. ""
 #, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid ""
@@ -287,37 +263,31 @@ msgid ""
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr "有三个衰减参数：一个用于显示的音频表，一个用于 \"过高 \"检测器，一个用于 \"过低 \"检测器。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
 msgstr "出现一个新的窗口，在顶部角落，检查隐身图标"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "在右上方，点击更多"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Click here"
 msgstr "点击这里"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
 msgstr "将当前的URL复制到剪贴板上："
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the link below"
 msgstr "复制下面的链接"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Follow the steps below to make sure the experiment works."
@@ -327,121 +297,101 @@ msgctxt "browser_compatibility"
 msgid "If your browser is not compatible we have to reject the survey."
 msgstr "如果您的浏览器不兼容，我们就不得不中断这次调查。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install Google Chrome if you haven't"
 msgstr "如果你还没有安装谷歌浏览器"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome"
 msgstr "安装最新版本的谷歌浏览器"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install the latest version of Google Chrome on your computer"
 msgstr "在你的电脑上安装最新版本的谷歌浏览器"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "New Incognito Window"
 msgstr "新建隐身窗口"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Mac: Press"
 msgstr "在Mac上：按"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Windows, Linux, or Chrome OS: Press"
 msgstr "在Windows、Linux或Chrome OS上：按下"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On your computer, open Chrome."
 msgstr "在你的电脑上，打开Chrome。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open Google Chrome"
 msgstr "打开谷歌浏览器"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window"
 msgstr "打开一个新的隐身窗口"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window with  the following keyboard shortcuts:"
 msgstr "用以下键盘快捷键打开一个新的隐身窗口："
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to continue the experiment"
 msgstr "将链接粘贴到Chrome浏览器中，继续进行实验"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to start the experiment"
 msgstr "将链接粘贴到Chrome浏览器中，开始实验"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to continue the experiment"
 msgstr "将链接粘贴到隐身窗口中，继续进行实验"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to start the experiment"
 msgstr "将链接粘贴到隐身窗口中，开始实验"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
 msgstr "请在您的浏览器中启用JavaScript。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below to continue."
 msgstr "请按照下面的指示继续。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please open the survey on your computer."
 msgstr "请在您的电脑上打开调查问卷。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Press"
 msgstr "按"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "This site requires JavaScript to function properly."
 msgstr "本网站需要JavaScript才能正常运行。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Warning!"
@@ -451,43 +401,36 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "我们现在要对您的浏览器进行兼容性测试。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
 msgstr "你正在使用"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "您正在使用："
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
 msgstr "您也可以使用键盘快捷键来打开隐身窗口"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You cannot take part in the experiment from a mobile device."
 msgstr "你不能从移动设备上参加实验。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "你需要使用谷歌浏览器来参加实验。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You need to use the incognito mode to take part in the experiment."
 msgstr "你需要使用隐身模式来参加实验。"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid ""
