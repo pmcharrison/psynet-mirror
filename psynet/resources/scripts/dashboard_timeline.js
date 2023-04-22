@@ -48,6 +48,7 @@ $(document).ready(function() {
     $.get('/module/progress_info', getData)
       .done(function(data) {
         // update spending
+        let currency = data['spending']['currency'];
         let hardMaxExperimentPayment = data['spending']['hard_max_experiment_payment'].toFixed(2);
         let softMaxExperimentPayment = data['spending']['soft_max_experiment_payment'].toFixed(2);
         if ($('#hard-max-experiment-payment').val() == '') {
@@ -58,7 +59,7 @@ $(document).ready(function() {
         }
         let amountSpent = (data['spending']['amount_spent']).toFixed(2);
         let spendingPercentage = Number((amountSpent / softMaxExperimentPayment * 100).toFixed(1));
-        $('.show.spending').text(spendingPercentage + '% spent: $' + amountSpent + ' of $' + softMaxExperimentPayment + ' (Hard max. limit: $' + hardMaxExperimentPayment + ')');
+        $('.show.spending').text(spendingPercentage + '% spent: ' + currency + amountSpent + ' of ' + currency + softMaxExperimentPayment + ' (Hard max. limit: ' + currency + hardMaxExperimentPayment + ')');
         let status = '';
         if (spendingPercentage >= 80 && spendingPercentage < 90) {
           status = 'scarce';
