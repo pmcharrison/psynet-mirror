@@ -2,6 +2,8 @@ import os
 import tempfile
 import zipfile
 
+from collections import Counter
+
 import dallinger
 import pandas
 import pytest
@@ -74,12 +76,21 @@ class TestExport:
     def test_networks_and_trials_files(self, data_dir):
         networks_file = os.path.join(data_dir, "CustomNetwork.csv")
         networks = pandas.read_csv(networks_file)
+
         trials_file = os.path.join(data_dir, "CustomTrial.csv")
         trials = pandas.read_csv(trials_file)
+
+        nodes_file = os.path.join(data_dir, "CustomNode.csv")
+        nodes = pandas.read_csv(nodes_file)
+
         assert networks.shape[0] == 8
         assert not networks.failed.any()
-        assert (networks.n_all_nodes == 2).all()
-        assert (networks.n_alive_nodes == 2).all()
+
+        network_node_counts = Counter(nodes.network_id)
+        for network_id, n_all_nodes in zip(networks.id, networks.n_all_nodes):
+            assert n_all_nodes == network_node_counts[network_id]
+
+        assert (networks.n_all_nodes == networks.n_alive_nodes).all()
         assert (networks.n_failed_nodes == 0).all()
         assert (networks.n_failed_trials == 0).all()
         assert networks.n_all_trials.sum() == trials.shape[0]
