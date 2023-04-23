@@ -71,7 +71,18 @@ class TestExport:
         nrow = participants.shape[0]
         assert nrow == 4
 
-    # test_participants_file(data_dir)
+    def test_networks_and_trials_files(self, data_dir):
+        networks_file = os.path.join(data_dir, "CustomNetwork.csv")
+        networks = pandas.read_csv(networks_file)
+        trials_file = os.path.join(data_dir, "CustomTrial.csv")
+        trials = pandas.read_csv(trials_file)
+        assert networks.shape[0] == 8
+        assert not networks.failed.any()
+        assert (networks.n_all_nodes == 2).all()
+        assert (networks.n_alive_nodes == 2).all()
+        assert (networks.n_failed_nodes == 0).all()
+        assert (networks.n_failed_trials == 0).all()
+        assert networks.n_all_trials.sum() == trials.shape[0]
 
     def test_coins_file(self, data_dir):
         coins_file = os.path.join(data_dir, "Coin.csv")
