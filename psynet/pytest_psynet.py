@@ -215,6 +215,12 @@ def deployment_info():
     from psynet import deployment_info
 
     deployment_info.reset()
+    deployment_info.init(
+        redeploying_from_archive=False,
+        mode="debug",
+        is_local_deployment=True,
+        is_ssh_deployment=False,
+    )
     deployment_info.write(deployment_id="Test deployment")
     yield
     deployment_info.delete()

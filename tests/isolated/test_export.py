@@ -2,6 +2,8 @@ import os
 import tempfile
 import zipfile
 
+from collections import Counter
+
 import dallinger
 import pandas
 import pytest
@@ -71,7 +73,27 @@ class TestExport:
         nrow = participants.shape[0]
         assert nrow == 4
 
-    # test_participants_file(data_dir)
+    def test_networks_and_trials_files(self, data_dir):
+        networks_file = os.path.join(data_dir, "CustomNetwork.csv")
+        networks = pandas.read_csv(networks_file)
+
+        trials_file = os.path.join(data_dir, "CustomTrial.csv")
+        trials = pandas.read_csv(trials_file)
+
+        nodes_file = os.path.join(data_dir, "CustomNode.csv")
+        nodes = pandas.read_csv(nodes_file)
+
+        assert networks.shape[0] == 8
+        assert not networks.failed.any()
+
+        network_node_counts = Counter(nodes.network_id)
+        for network_id, n_all_nodes in zip(networks.id, networks.n_all_nodes):
+            assert n_all_nodes == network_node_counts[network_id]
+
+        assert (networks.n_all_nodes == networks.n_alive_nodes).all()
+        assert (networks.n_failed_nodes == 0).all()
+        assert (networks.n_failed_trials == 0).all()
+        assert networks.n_all_trials.sum() == trials.shape[0]
 
     def test_coins_file(self, data_dir):
         coins_file = os.path.join(data_dir, "Coin.csv")
@@ -115,9 +137,11 @@ class TestExport:
             "CustomTrial.csv",
             "ExperimentAsset.csv",
             "ExperimentConfig.csv",
-            # "Notification.csv",  # Bots don't produce notifications
             "ModuleState.csv",
+            # "Notification.csv",  # We don't expect any notifications to be created
+            # "Recruitment.csv",  # We don't expect any recruitment
             "Response.csv",
+            # "Transmission.csv",  # We don't expect any transmissions to be created
             "WorkerAsyncProcess.csv",
         ]
 
