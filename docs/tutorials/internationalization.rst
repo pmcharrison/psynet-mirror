@@ -196,16 +196,16 @@ Contexts, variables, and numbers
 
 We now know the basics about ``gettext``, but it can do way more. One feature is called 'context' which you can pass along with your translation. A context disambiguates a translation with the same key which occurs in a different context. For example, consider the word “print”. In most contexts, this word refers to printing something (e.g., using a printer), but in another context, it might mean displaying something, e.g. (``print("Hello!")``). In those situations, one should use contexts. This can be done with ``pgettext('my-context', 'print')``. I would recommend *always* adding context as it will help you disambiguate meanings and is useful information for the translator. There’s a few exceptions, e.g., for words such as “Yes” or “Next” which usually have the same translation regardless of the context.
 
-Another consideration is how to display variables in translations. The general advice is to avoid variable names in translations where possible, as translators can forget to mark the variable in the translation leading to a runtime error. Translatable strings **cannot** use fstring-formatting, e.g. ``"Hello {name}!"``. The problem about fstrings is that the variable is replaced before looking up the translation (e.g., the translation would exist for “Hello {name}!”, but not for “Hello Adam!” if ``name="Adam"``). Therefore, it’s recommended to use the ``format`` function, e.g. ``"Hello {}!".format(name)``.
+Another consideration is how to display variables in translations. The general advice is to avoid variable names in translations where possible, as translators can forget to mark the variable in the translation leading to a runtime error. If you are using variables in translations, we encourage to use fstrings. However, we recommend using capital variable names, e.g. ``"This is your {AGE}"`` instead of ``"This is your {age}"`` as the uppercase letters are less likely to be translated into the target language. Furthermore, you **should only use** use ``"This is your {AGE}".format(AGE=12)`` and NOT ``f"This is your {AGE}"`` as the second command will replace the variable in the string before looking up the translation. Where ``"This is your {AGE}"`` is a defined translation, ``"This is your 12"`` is probably not!
 
-A final consideration is how to deal with plurals in translation. One can
-use ``ngettext`` (plural without context) or ``npgettext`` (plural with context):
+Plural forms are highly language dependent, so this it is strongly *discouraged* to use in gettext. Instead it's better to write a separate translation for each condition separately, i.e.:
 
 ::
 
-    _np("word", "The word will disappear after {} second.", "The word will disappear after {} seconds.", hide_after).format(hide_after)
-
-However, since plurals are highly language dependent, it is generally *discouraged* to use them.
+    if score < 10:
+        msg = pgettext("feedback", "Sorry, your score was too low and you have to leave the experiment early.")
+    else:
+        msg = pgettext("feedback", "Congratulations! You passed the test.")
 
 Use high-level tools where possible!
 ------------------------------------
@@ -253,8 +253,7 @@ To get the translation from the participant, we can run:
    )
 
 
-Note that ``_`` is an alias for ``gettext``, ``_p`` for ``pgettext``, and
-``_np`` for ``npgettext``. ``participant.get_locale()`` will return the
+Note that ``_`` is an alias for ``gettext`` and ``_p`` for ``pgettext``. ``participant.get_locale()`` will return the
 language settings of a participant.
 
 You can also set additional language settings in the config:
