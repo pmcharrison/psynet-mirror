@@ -1,14 +1,17 @@
 # CHANGELOG
 
-# [9.4.5] Released on 2023-xx-xx
+# [9.4.5] Released on 2023-04-24
+
+#### Fixed
+- Added a random key to Unity assets to avoid caching in the browser (author: Pol van Rijn, reviewer: Frank Höger).
 
 #### Added
-- Added `BigFiveQuestionnaire` and `AltruismQuestionnaire` (author: Pol van Rijn).
+- Added `BigFiveQuestionnaire` and `AltruismQuestionnaire` (author: Pol van Rijn, reviewer: Frank Höger).
 
 #### Updated
 - Completed migration to `pyproject.toml`, incl. removal of `setup.cfg` and `setup.py` (author: Frank Höger).
 - Updated docs for bumpversion removal (author: Frank Höger).
-- Updated `Dallinger` to `v9.5.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.5.0.
+- Updated `Dallinger` to `v9.6.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.6.0.
 
 # [9.4.4] Released on 2023-02-14
 
