@@ -55,13 +55,13 @@ msgstr "Resim bulunamadı"
 #, python-format
 msgid ""
 "In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong> tutarındaki temel ödemenize ek"
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> tutarındaki temel ödemenize ek"
 " olarak, deneyde harcadığınız zaman için "
-"<strong>%(currency)s%(BONUS)s</strong> tutarında bir bonus alacaksınız."
+"<strong>%(CURRENCY)s%(BONUS)s</strong> tutarında bir bonus alacaksınız."
 
 #, fuzzy
 msgid "Loop"
@@ -117,24 +117,24 @@ msgstr "İşçi Kimliği"
 #, python-format
 msgid ""
 "You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
-"Ekstra <strong>%(currency)s%(PERFORMANCE_BONUS)s</strong> bonus kazandınız!"
+"Ekstra <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> bonus kazandınız!"
 
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
 msgstr ""
 "Ödüllendirilmek için <strong> en az "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonus kazanmanız "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonus kazanmanız "
 "gerekmektedir."
 
 #, python-format, fuzzy
 msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+"You will also see one or more consent pages and have up to\n"
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
 "Ayrıca bir veya daha fazla onay sayfası göreceksiniz ve bunları okumak ve "
 "kabul etmek/ret etmek için <strong>%(TERMINATION_TIME)s</strong> kadar "
@@ -307,7 +307,6 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Sağ üstte, Daha Fazla'ya tıklayın"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Click here"
@@ -439,7 +438,6 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Şimdi tarayıcınızın uyumluluğunu test edeceğiz."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
@@ -511,7 +509,6 @@ msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
 msgstr "Ne yazık ki deney erken bitmek zorunda."
 
-msgctxt "mturk_error"
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Bir hata durumunda telafi edilmek için yukarıdaki düğmeyi tıklayın."
 
@@ -984,7 +981,7 @@ msgid "Please update your browser and open this web page again."
 msgstr "Lütfen tarayıcınızı güncelleyin ve bu web sayfasını tekrar açın."
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
@@ -996,13 +993,13 @@ msgstr ""
 msgctxt "consent"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
+"the main researcher in this project, Nori Jacoby at:"
 msgstr ""
 "Bu araştırma hakkında herhangi bir sorunuz varsa, bu projedeki baş "
 "araştırmacı Nori Jacoby ile iletişime geçmekten çekinmeyin: "
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
 msgstr "Bu deneyde sizden ses veya video kaydı yapmanız istenebilir."
@@ -1598,7 +1595,7 @@ msgstr "Araştırma Katılımcı Onam Formu"
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
+msgctxt "consent"
 msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
@@ -2084,7 +2081,7 @@ msgstr ""
 "kaydedeceğiz."
 
 #: psynet/templates/consents/main_consent.html
-msgctxt "consent-disclaimer"
+msgctxt "consent-confidentiality"
 msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
@@ -5123,6 +5120,21 @@ msgstr "Zuluca"
 
 #: psynet/utils.py psynet/utils.py
 msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Lao"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "Nauruca"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "language_name"
 msgid "Tonga"
 msgstr "Tonga"
 

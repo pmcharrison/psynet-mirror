@@ -56,13 +56,13 @@ msgstr "Image non trouvée"
 #, python-format
 msgid ""
 "In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""
 "En plus de votre paiement de base de "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, vous recevrez un bonus de "
-"<strong>%(currency)s%(BONUS)s</strong> pour le temps que vous avez passé sur"
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, vous recevrez un bonus de "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> pour le temps que vous avez passé sur"
 " l'expérience."
 
 #, fuzzy
@@ -119,25 +119,25 @@ msgstr "ID du travailleur"
 #, python-format
 msgid ""
 "You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
 "Vous avez également reçu un bonus de performance de "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong> !"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> !"
 
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
 msgstr ""
 "Vous devez accumuler <strong>au moins "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bonus pour "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bonus pour "
 "pouvoir être récompensé."
 
 #, python-format, fuzzy
 msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+"You will also see one or more consent pages and have up to\n"
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
 "Vous verrez également une ou plusieurs pages de consentement et aurez "
 "jusqu'à <strong>%(TERMINATION_TIME)s</strong> pour les lire et les "
@@ -317,7 +317,6 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "En haut à droite, cliquez sur Plus"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Click here"
@@ -422,12 +421,6 @@ msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
 msgstr "Veuillez activer JavaScript dans votre navigateur."
 
-#. ""
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please follow the instructions below continue."
-msgstr "Veuillez suivre les instructions ci-dessous pour continuer."
-
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below to continue."
@@ -458,7 +451,6 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Nous allons maintenant tester la compatibilité de votre navigateur."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
@@ -536,7 +528,6 @@ msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
 msgstr "Malheureusement, l'expérience doit se terminer plus tôt que prévu."
 
-msgctxt "mturk_error"
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Cliquez sur le bouton ci-dessus pour être récompensé en cas d'erreur."
 
@@ -1015,7 +1006,7 @@ msgid "This experiment only supports Chrome."
 msgstr "Cette expérience ne prend en charge que Chrome."
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
@@ -1028,14 +1019,14 @@ msgstr ""
 msgctxt "consent"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
+"the main researcher in this project, Nori Jacoby at:"
 msgstr ""
 "Si vous avez des questions sur ce project de recherche, n'hésitez pas à "
 "contacter le chercheur principal de ce projet, Nori Jacoby, à l'adresse "
 "suivante :"
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
 msgstr ""
@@ -1651,7 +1642,7 @@ msgstr "Formulaire de consentement du participant à la recherche"
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
+msgctxt "consent"
 msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
@@ -2154,7 +2145,7 @@ msgstr ""
 "cette expérience ou à d'autres."
 
 #: psynet/templates/consents/main_consent.html
-msgctxt "consent-disclaimer"
+msgctxt "consent-confidentiality"
 msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
@@ -5658,7 +5649,7 @@ msgstr "Zoulou"
 
 #: psynet/utils.py psynet/utils.py
 #, fuzzy
-msgctxt "country_name"
+msgctxt "language_name"
 msgid "Tonga"
 msgstr "Tonga"
 
@@ -5671,5 +5662,23 @@ msgstr "Lao"
 #: psynet/utils.py psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Lao"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
 msgid "Nauru"
 msgstr "Nauru"

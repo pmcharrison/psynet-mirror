@@ -73,10 +73,10 @@
 
                             {% if config.show_abort_button %}
                                 <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
-                                    {{ pgettext("ad", "Abort Experiment") }}
+                                    {{ gettext("Abort Experiment") }}
                                 </button>
                                 <div style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
-                                    <span class="alert-danger text-disabled">{{ pgettext("ad", "Click the above button to be compensated in case of an error.") }}</span>
+                                    <span class="alert-danger text-disabled">{{ gettext("Click the above button to be compensated in case of an error.") }}</span>
                                 </div>
                                 <script>
                                     function abortExperiment(event) {

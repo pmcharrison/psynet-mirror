@@ -63,12 +63,12 @@ msgstr "Bild nicht gefunden"
 #, python-format
 msgid ""
 "In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""
-"Zur Basisbezahlung <strong>%(currency)s%(BASE_PAYMENT)s</strong>, bekommen "
-"Sie einen Bonus von: <strong>%(currency)s%(BONUS)s</strong>."
+"Zur Basisbezahlung <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, bekommen "
+"Sie einen Bonus von: <strong>%(CURRENCY)s%(BONUS)s</strong>."
 
 #, fuzzy
 msgid "Loop"
@@ -127,37 +127,37 @@ msgstr "ID des Arbeitnehmers"
 #, python-format
 msgid ""
 "You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
 "Sie haben außerdem einen Leistungsbonus von "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong> erhalten!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> erhalten!"
 
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
 msgstr ""
 "Sie müssen <strong>mindestens "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> an Bonus anhäufen, "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> an Bonus anhäufen, "
 "um eine Entschädigung zu erhalten."
 
 #, python-format
 msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+"You will also see one or more consent pages and have up to\n"
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
 "Sie werden auch eine oder mehrere Seiten mit Einwilligungen sehen und haben "
 "bis zu <strong>%(TERMINATION_TIME)s</strong> Zeit, diese zu lesen und zu "
 "akzeptieren/ablehnen."
 
 #, fuzzy
-msgctxt "abort_not_possible"
+msgctxt "abort_possible"
 msgid "Aborting not possible."
 msgstr "Abbruch nicht möglich."
 
 #, fuzzy
-msgctxt "abort_not_possible"
+msgctxt "abort_possible"
 msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
@@ -166,7 +166,7 @@ msgstr ""
 " diesem Zeitpunkt nicht zulässt!"
 
 #, fuzzy
-msgctxt "abort_not_possible"
+msgctxt "abort_possible"
 msgid "See below information on your currently accumulated bonus."
 msgstr "Hier finden Sie Informationen zu Ihrem derzeit angesammelten Bonus."
 
@@ -324,7 +324,6 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Klicken Sie oben rechts auf Mehr"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Click here"
@@ -436,7 +435,6 @@ msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
 msgstr "Bitte aktivieren Sie JavaScript in Ihrem Browser."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below continue."
@@ -471,7 +469,6 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Wir werden nun Ihren Browser auf Kompatibilität testen."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
@@ -558,7 +555,6 @@ msgid "Unfortunately the experiment must end early."
 msgstr "Leider muss das Experiment vorzeitig beendet werden."
 
 #, fuzzy
-msgctxt "mturk_error"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klicken Sie auf die obige Schaltfläche, um im Falle eines Fehlers "
@@ -1120,7 +1116,7 @@ msgstr "Dieses Experiment unterstützt nur Chrome."
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
@@ -1133,14 +1129,14 @@ msgstr ""
 msgctxt "consent"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
+"the main researcher in this project, Nori Jacoby at:"
 msgstr ""
 "Wenn Sie Fragen zu dieser Studie haben, zögern Sie nicht, sich an die "
 "Leitung dieses Projekts, Nori Jacoby, zu wenden: "
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
 msgstr ""
@@ -1810,7 +1806,7 @@ msgstr "Einwilligungsformular für Forschungsteilnehmer"
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
-msgctxt "consent-cap"
+msgctxt "consent"
 msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
@@ -2359,7 +2355,7 @@ msgstr ""
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
-msgctxt "consent-disclaimer"
+msgctxt "consent-confidentiality"
 msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
@@ -2712,8 +2708,8 @@ msgid ""
 "You are free to discontinue participation in this study at any time without "
 "penalty."
 msgstr ""
-"Es steht Ihnen jederzeit frei, die Studie abzubrechen, ohne dass Ihnen "
-"dadurch Nachteile entstehen."
+"Sie können jeder Zeit die Teilnahme an der Studie abzubrechen, ohne dass "
+"Ihnen dadurch Nachteile entstehen."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -4488,7 +4484,7 @@ msgstr "Mauretanien"
 #: psynet/utils.py
 msgctxt "country_name"
 msgid "Mauritius"
-msgstr "Mauretanien"
+msgstr "Mauritius"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -5978,7 +5974,7 @@ msgid "Zulu"
 msgstr "Zulu"
 
 #: psynet/utils.py psynet/utils.py
-msgctxt "country_name"
+msgctxt "language_name"
 msgid "Tonga"
 msgstr "Tonga"
 
@@ -5989,5 +5985,20 @@ msgstr "Laotisch"
 
 #: psynet/utils.py psynet/utils.py
 msgctxt "language_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Laotisch"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
 msgid "Nauru"
 msgstr "Nauru"

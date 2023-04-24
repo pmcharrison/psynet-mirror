@@ -61,12 +61,11 @@ msgstr ""
 msgid "Image not found"
 msgstr "Kuvaa ei löydy"
 
-#. ""
 #, python-format
 msgid ""
 "In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""
 
@@ -126,25 +125,23 @@ msgstr "Videota ei löydy"
 msgid "Worker ID"
 msgstr "Työntekijän tunnus"
 
-#. ""
 #, python-format
 msgid ""
 "You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
 
-#. ""
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
 msgstr ""
 
 #, python-format, fuzzy
 msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+"You will also see one or more consent pages and have up to\n"
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
 "Näet myös yhden tai useamman suostumussivun, ja sinulla on enintään "
 "<strong>%(TERMINATION_TIME)s</strong> aikaa lukea ja hyväksyä tai hylätä ne."
@@ -320,7 +317,6 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Napsauta oikeassa yläkulmassa Lisää"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Click here"
@@ -421,7 +417,6 @@ msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
 msgstr "Ota JavaScript käyttöön selaimessasi."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below continue."
@@ -457,7 +452,6 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Testaamme nyt selaimesi yhteensopivuuden."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
@@ -538,7 +532,6 @@ msgid "Unfortunately the experiment must end early."
 msgstr "Valitettavasti kokeilu on lopetettava aikaisin."
 
 #, fuzzy
-msgctxt "mturk_error"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klikkaa yllä olevaa painiketta saadaksesi korvauksen virhetilanteessa."
@@ -802,19 +795,19 @@ msgstr "Piditkö kokeesta?"
 #, fuzzy
 msgctxt "formal-education"
 msgid "College"
-msgstr "Korkeakoulu"
+msgstr "College"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "Graduate School"
-msgstr "Korkeakoulu"
+msgstr "Graduate School"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "High school"
-msgstr "Lukio"
+msgstr "High school"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -1095,7 +1088,7 @@ msgstr "Tämä kokeilu tukee vain Chromea."
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
@@ -1108,14 +1101,14 @@ msgstr ""
 msgctxt "consent"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
+"the main researcher in this project, Nori Jacoby at:"
 msgstr ""
 "Jos sinulla on kysyttävää tästä tutkimuksesta, älä epäröi ottaa yhteyttä "
 "tämän hankkeen päätutkijaan Nori Jacobyyn osoitteessa:"
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
 msgstr ""
@@ -1774,7 +1767,7 @@ msgstr "Tutkimuksen osallistujan suostumuslomake"
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
-msgctxt "consent-cap"
+msgctxt "consent"
 msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
@@ -2318,7 +2311,7 @@ msgstr ""
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
-msgctxt "consent-disclaimer"
+msgctxt "consent-confidentiality"
 msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
@@ -5875,7 +5868,7 @@ msgstr "Zulu"
 
 #: psynet/utils.py psynet/utils.py
 #, fuzzy
-msgctxt "country_name"
+msgctxt "language_name"
 msgid "Tonga"
 msgstr "Tonga"
 
@@ -5888,5 +5881,23 @@ msgstr "Laos"
 #: psynet/utils.py psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Laos"
+
+#: psynet/utils.py psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
 msgid "Nauru"
 msgstr "Nauru"

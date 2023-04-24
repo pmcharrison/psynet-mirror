@@ -37,7 +37,7 @@
     <h4>{{ pgettext("consent-overview", "Overview") }}</h4>
     <p class="consent-text">
         {{ pgettext("consent-overview", "This research is being conducted by researchers at the Max-Planck-Institute for Empirical Aesthetics.") }}
-        {{ pgettext("consent-overview", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }}
+        {{ pgettext("consent", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }}
         <a href="mailto:{{ contact_email_on_error }}">{{ contact_email_on_error }}</a>.
         {{ pgettext("consent-overview", "The purpose of this online form is to give you information to help you decide whether you want to take part in a research study.") }}
     </p>
@@ -187,7 +187,7 @@
 {% macro contact(config) %}
     <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
     <p class="consent-text">
-        {{ pgettext("consent-contact", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }}
+        {{ pgettext("consent", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }}
         <a href="mailto:{{ contact_email_on_error }}">{{ contact_email_on_error }}</a>.
     </p>
 {% endmacro %}
