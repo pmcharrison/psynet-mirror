@@ -313,7 +313,7 @@ class MotherTongue(ModularPage):
         self.locale = locale
         self.prompt = _p(
             "language-select",
-            "What is your mother tongue - i.e., the language which you have grown up speaking from early childhood)?",
+            "What is your mother tongue - i.e., the language which you have grown up speaking from early childhood?",
         )
         self.time_estimate = 5
 

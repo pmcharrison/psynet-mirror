@@ -450,6 +450,12 @@ msgid "I agree"
 msgstr "我同意"
 
 msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr "如果您对此研究有任何问题，请随时联系本项目的主要研究者Nori Jacoby，他的联系方式是："
+
+msgctxt "consent"
 msgid "No, thank you (return task)"
 msgstr "不同意，谢谢 (返回任务)"
 
@@ -645,12 +651,6 @@ msgstr "如果您不愿意同意，请关闭本页面。"
 msgctxt "consent-contact"
 msgid "Contact information"
 msgstr "联系信息"
-
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr "如果您对此研究有任何问题，请随时联系本项目的主要研究者Nori Jacoby，他的联系方式是："
 
 msgctxt "consent-overview"
 msgid "Overview"
@@ -958,343 +958,6 @@ msgid ""
 "during the test."
 msgstr "您的参与者ID未被定义，可能是因为您在测试期间切换了浏览器。"
 
-#: psynet/templates/consent.html
-#, python-format
-msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr "您还会看到一个或多个同意页面，最多有<strong>%(TERMINATION_TIME)s</strong>的时间阅读并接受/拒绝它们。"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid ""
-"If you're using a different browser, please reopen the same page in Chrome."
-msgstr "如果您使用不同的浏览器，请在Chrome浏览器中重新打开同一页面。"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "It seems like you're using a different browser than Chrome"
-msgstr "看起来您使用的浏览器不是Chrome"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "It seems like you're using an out-of-date version of Chrome "
-msgstr "看起来您使用的是一个过时的Chrome版本"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "Please update your browser and open this web page again."
-msgstr "请更新您的浏览器并再次打开此网页。"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "This app requires at least: "
-msgstr "本应用至少需要： "
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "This experiment only supports Chrome."
-msgstr "本实验只支持Chrome浏览器。"
-
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "请启用Javascript，然后刷新本页面。"
-
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "除非您的浏览器启用了Javascript，否则该研究将无法运行。"
-
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "警告：你的浏览器未启用JavaScript"
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded. For example, you may want "
-"to sit in a room that is isolated from the rest of the house."
-msgstr ""
-"如果您选择参加实验，重要的是，您有责任确保在您录制音频和视频时，没有任何您不打算被记录的东西被记录下来。 "
-"例如，您可能想坐在一个与房子其他地方隔离的房间里。"
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"In addition, while you perform a recording, the microphone or camera can "
-"capture unintended audio or video, for example the camera can capture "
-"another family member, or the microphone can capture something you say to "
-"another person."
-msgstr ""
-"此外，在您进行录音的时候，麦克风或摄像机可能会捕捉到非预期的音频或视频，例如，摄像机可以捕捉到另一个家庭成员，或者麦克风可以捕捉到您与另一个人的对话。"
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information."
-msgstr "您可能希望确保在您的环境中没有声音/视觉材料可以与您的个人信息联系起来。"
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr "在数据收集期间，视听材料将被记录在单独的服务器上，并使用强大的加密协议（如高级加密标准）进行加密。"
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-security"
-msgid "MTurk ID information will not be used to index this data."
-msgstr "MTurk的ID信息将不会被用于索引这些数据。"
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-consent"
-msgid ""
-"If you do not wish to consent, please close this page and return the HIT on "
-"Mechanical Turk."
-msgstr "如果您不同意，请关闭本页面，并返回Mechanical Turk上的HIT。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgid "minutes"
-msgstr "分钟"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"Anonymized data could be published in open access data repository "
-"accompanying publications of the study."
-msgstr "匿名的数据可以在开放的数据存储库中公布，并伴随着该研究的出版物。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"The data for this study will be stored in a confidential manner for a "
-"duration of 10 years for the purpose of helping scientific replications."
-msgstr "这项研究的数据将以保密的方式保存，持续时间为10年，以帮助科学复制。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"We will only share with collaborators demographic, aggregated or extracted "
-"data without personal identifiers (not indexed by Amazon’s Mechanical Turk "
-"IDs)."
-msgstr "我们将只与合作者分享人口统计学、汇总或提取的数据，不含个人识别信息（不被亚马逊的Mechanical Turk ID所索引）。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-compensation"
-msgid ""
-"If you satisfactorily complete the study, you will receive approximately:"
-msgstr "如果您令人满意地完成了这项测试，你将得到大约："
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"MTurk worker IDs will not be used to derive your real identity, will not be "
-"shared with anyone outside of the research team and will be deleted after "
-"use."
-msgstr "MTurk工作者的ID不会被用来得出您的真实身份，不会与研究团队以外的任何人分享，使用后将被删除。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will also collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"我们还将收集一些人口统计学数据（如年龄、性别、居住国），以及关于您的学习和接触历史的信息（如演奏乐器的经验、接受正规教育的年限、使用的语言）。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized Amazon’s Mechanical Turk IDs in our "
-"system, in order to distinguish participants who have already taken part on "
-"this or other experiments."
-msgstr "我们将只在我们的系统中保存您的匿名亚马逊Mechanical Turk ID，以便区分已经参加过本实验或其他实验的参与者。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about Your rights or treatment as a participant in"
-" this research project, please contact:"
-msgstr "如果您对您作为本研究项目参与者的权利或待遇有任何疑问，请联系："
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact:"
-msgstr "如果您对这项研究有任何疑问，请立即联系："
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-disclaimer"
-msgid ""
-"Although researchers will not use your MTurk ID to derive your real "
-"identity, your MTurk ID could be linked to your Amazon public profile page "
-"if a data breach takes place."
-msgstr "虽然研究人员不会使用您的MTurk ID来推断您的真实身份，但如果发生数据泄露，您的MTurk ID可能会被链接到您的亚马逊公共档案页面。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Any known risks involved."
-msgstr "任何涉及的已知风险。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Any potential benefits."
-msgstr "任何潜在的好处。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "In case of questions you can contact:"
-msgstr "如果有问题，您可以联系："
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Purpose of the study."
-msgstr "研究的目的。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "The things that you will be asked to do if you are in the study."
-msgstr "如果您参加研究，您将被要求做的事情。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "This online consent form includes the following information:"
-msgstr "这份在线同意书包括以下信息："
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Why the study is being done."
-msgstr "为什么要进行这项研究。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent, consenting to these additional elements is voluntary."
-msgstr "如果实验中包含这些内容，我们会要求您额外同意，同意这些额外内容是自愿的。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"In some cases, you may be asked to make a voice or video recording, for "
-"example, you may be asked to record your finger-tapping in response to a "
-"sound or video, or to record yourself speaking or singing."
-msgstr "在某些情况下，您可能会被要求录制语音或视频，例如，您可能会被要求在听到声音或观看视频时录制您的手指敲击，或录制您自己的说话或唱歌。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid "The experiment will take you approximately:"
-msgstr "这项实验将大约持续："
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we would like to understand how predictive mechanisms in "
-"perception rely on experience, learning and memory."
-msgstr "具体来说，我们希望了解感知中的预测机制如何依赖于经验、学习和记忆。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The long-term goals of this project are to understand how humans derive "
-"information from sound and vision, and potentially to help engineer machines"
-" that can replicate our abilities (e.g. in sound/image recognition and "
-"computer vision) and to help improve perceptual abilities in people whose "
-"hearing or sight is impaired."
-msgstr ""
-"这个项目的长期目标是了解人类如何从声音和视觉中获取信息，并有可能帮助设计能够复制我们能力的机器（例如在声音/图像识别和计算机视觉方面），并帮助改善听力或视觉受损的人的感知能力。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to characterize internal representations in "
-"audition and vision."
-msgstr "这个项目的目的是为了描述听觉和视觉的内部表征。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"We hope to use the judgments and interactions made by the experiment "
-"participants to infer the mechanisms of the auditory and visual systems."
-msgstr "我们希望利用实验参与者的判断和互动来推断听觉和视觉系统的机制。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is"
-msgstr "对于马克斯-普朗克协会来说，这就是"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"All USB keys used for transporting protected data will be encrypted USB "
-"devices."
-msgstr "所有用于运输受保护数据的USB钥匙将是加密的USB设备。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"All backup hard drives (Apple Time Machine, etc) will have encryption "
-"(FileVault2) enabled."
-msgstr "所有备份硬盘（Apple Time Machine等）将启用加密（FileVault2）。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"Theft of an individual laptop/desktop or stolen hard drive will yield no "
-"usable personal identifiers."
-msgstr "个人笔记本电脑/台式机被盗或硬盘被盗将不会产生可用的个人识别信息。"
-
-#: psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time. "
-msgstr "您可以自由选择不参于，也可以在任何时候停止参与。 "
-
-#: psynet/templates/mturk_error.html
-#, python-format
-msgid ""
-"To enquire about compensation, please contact the researcher at %(EMAIL)s "
-"and describe what led to this error."
-msgstr "如需询问赔偿事宜，请通过%(EMAIL)s联系研究人员，并描述导致这一错误的原因。"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "请同时引用以下信息："
-
 #: psynet/demography/general.py
 msgid "I don’t know"
 msgstr "我不知道"
@@ -1316,8 +979,8 @@ msgstr "您的年龄是？"
 msgctxt "age"
 msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{}'"
-msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！您的答案是：'{}'"
+"was: '{AGE}'"
+msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！您的答案是：'{AGE}'"
 
 #: psynet/demography/general.py
 msgctxt "country-select"
@@ -1483,63 +1146,63 @@ msgstr "指定您自己"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "10,000 to 19,999 {}"
-msgstr "10,000 至 19,999 {}"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "10,000 至 19,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "100,000 to 149,999 {}"
-msgstr "100,000至149,999 {}"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "100,000至149,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "150,000 {} or more"
-msgstr "150,000 {}或更多"
+msgid "150,000 {CURRENCY} or more"
+msgstr "150,000 {CURRENCY}或更多"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "20,000 to 29,999 {}"
-msgstr "20,000 至 29,999 {}"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "20,000 至 29,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "30,000 to 39,999 {}"
-msgstr "30,000至39,999 {}"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "30,000至39,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "40,000 to 49,999 {}"
-msgstr "40,000 至 49,999 {}"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "40,000 至 49,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "50,000 to 59,999 {}"
-msgstr "50,000至59,999 {}"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "50,000至59,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "60,000 to 69,999 {}"
-msgstr "60,000 至 69,999 {}"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "60,000 至 69,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "70,000 to 79,999 {}"
-msgstr "70,000至79,999 {}"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "70,000至79,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "80,000 to 89,999 {}"
-msgstr "80,000至89,999 {}"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "80,000至89,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "90,000 to 99,999 {}"
-msgstr "90,000至99,999 {}"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "90,000至99,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "Less than 10,000 {}"
-msgstr "小于10,000 {}"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "小于10,000 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
@@ -1561,7 +1224,7 @@ msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
-msgstr "请按熟练程度列出您所讲的语言（第一语言第一，第二语言第二，...）。"
+msgstr "请按熟练程度列出您所讲的语言（第一语言第一，第二语言第二，...）"
 
 #: psynet/demography/general.py
 msgctxt "language-select"
@@ -1572,7 +1235,7 @@ msgstr "选择一种语言"
 msgctxt "language-select"
 msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
-"speaking from early childhood)?"
+"speaking from early childhood?"
 msgstr "您的母语是什么 - 即您从小到大一直说的语言？"
 
 #: psynet/demography/general.py
@@ -1647,7 +1310,7 @@ msgstr "(请在适用处打勾)"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
-msgid "Addendum for demonstrations."
+msgid "Addendum for demonstrations"
 msgstr "用于演示的补充说明。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -1656,7 +1319,7 @@ msgid ""
 "I agree that my <i>audiovisual</i> recordings can be used for demonstration "
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
-msgstr "我同意我的<i>音频和视频<i>数据可以在参与人数有限的演示（例如教学课程或科学展示）中用于演示目进行使用。"
+msgstr "我同意我的<i>音频和视频</i>数据可以在参与人数有限的演示（例如教学课程或科学展示）中用于演示目进行使用。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
@@ -1700,14 +1363,14 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"我已被告知，对<i>音频和视频<i>数据的存储和处理将以化名的形式进行，即使用一个号码，不包含我的名字，并且有一个编码表，将我的名字和号码联系起来。"
+"我已被告知，对<i>音频和视频</i>数据的存储和处理将以化名的形式进行，即使用一个号码，不包含我的名字，并且有一个编码表，将我的名字和号码联系起来。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
 msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
-msgstr "我已经阅读并理解了所有内容，并在此同意对我进行<i>音频和视频<i>录制。"
+msgstr "我已经阅读并理解了所有内容，并在此同意对我进行<i>音频和视频</i>录制。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
@@ -1719,7 +1382,7 @@ msgctxt "consent-audiovisual"
 msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
-msgstr "我已经收到口头和书面的信息，说明在这项研究中将会进行<i>音频和视频<i>录制。"
+msgstr "我已经收到口头和书面的信息，说明在这项研究中将会进行<i>音频和视频</i>录制。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
@@ -1740,13 +1403,13 @@ msgid ""
 "Researchers associated with this project will have access to my "
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
-msgstr "与该项目相关的研究人员在录音和分析材料期间将可以访问我的<i>音频和视频<i>数据。"
+msgstr "与该项目相关的研究人员在录音和分析材料期间将可以访问我的<i>音频和视频</i>数据。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "对于<i>音频和视频<i>录制的声明是自愿的。"
+msgstr "对于<i>音频和视频</i>录制的声明是自愿的。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
@@ -2258,17 +1921,17 @@ msgstr "此代码将不会用于确定您的真实身份，也不会与研究团
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr "我们将只保存您匿名化的字母数字代码在我们的系统中，以便区分已经参加过此或其他实验的参与者。"
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr "因此，您可能希望限制您选择公开分享的信息。"
 
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr "因此，您可能希望限制您选择公开分享的信息。"
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr "我们将只保存您匿名化的字母数字代码在我们的系统中，以便区分已经参加过此或其他实验的参与者。"
 
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-purpose"
@@ -2961,6 +2624,11 @@ msgstr "吉尔吉斯斯坦"
 
 #: psynet/utils.py
 msgctxt "country_name"
+msgid "Lao"
+msgstr "老挝语"
+
+#: psynet/utils.py
+msgctxt "country_name"
 msgid "Latvia"
 msgstr "拉脱维亚"
 
@@ -3113,6 +2781,11 @@ msgstr "缅甸"
 msgctxt "country_name"
 msgid "Namibia"
 msgstr "纳米比亚"
+
+#: psynet/utils.py
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "瑙鲁语"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3288,11 +2961,6 @@ msgstr "圣基茨和尼维斯"
 msgctxt "country_name"
 msgid "Saint Lucia"
 msgstr "圣卢西亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Martin"
-msgstr "圣马丁"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3473,17 +3141,6 @@ msgstr "托克劳群岛"
 msgctxt "country_name"
 msgid "Tonga"
 msgstr "汤加"
-
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Nauru"
-msgstr "瑙鲁语"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Lao"
-msgstr "老挝语"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -4177,11 +3834,6 @@ msgstr "瑙鲁语"
 
 #: psynet/utils.py
 msgctxt "language_name"
-msgid "Tonga"
-msgstr "汤加"
-
-#: psynet/utils.py
-msgctxt "language_name"
 msgid "Navajo"
 msgstr "纳瓦霍语"
 
@@ -4462,6 +4114,11 @@ msgstr "提格里尼亚语"
 
 #: psynet/utils.py
 msgctxt "language_name"
+msgid "Tonga"
+msgstr "汤加"
+
+#: psynet/utils.py
+msgctxt "language_name"
 msgid "Tsonga"
 msgstr "桑加语"
 
@@ -4569,5 +4226,3 @@ msgstr "壮语"
 msgctxt "language_name"
 msgid "Zulu"
 msgstr "祖鲁语"
-
-

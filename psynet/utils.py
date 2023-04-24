@@ -667,7 +667,7 @@ def clean_occurences_po(po, package_name):
 def po_to_dict(po):
     entries_dict = OrderedDict()
     for entry in po:
-        key = (entry.msgid, entry.msgid_plural, entry.msgctxt)
+        key = (entry.msgid, entry.msgctxt)
         if key in entries_dict:
             old_entry = entries_dict[key]
             assert old_entry.msgid == entry.msgid

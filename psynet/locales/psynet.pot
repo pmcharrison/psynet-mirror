@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-24/04/ 12:41:51\n"
+"POT-Creation-Date: 2023-24/04/ 20:58:43\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: internat\n"
@@ -912,10 +912,11 @@ msgid "What is your age?"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "age"
 msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{}'"
+"was: '{AGE}'"
 msgstr ""
 
 #: psynet/demography/general.py
@@ -1081,63 +1082,75 @@ msgid "Specify yourself"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "10,000 to 19,999 {}"
+msgid "10,000 to 19,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "100,000 to 149,999 {}"
+msgid "100,000 to 149,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "150,000 {} or more"
+msgid "150,000 {CURRENCY} or more"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "20,000 to 29,999 {}"
+msgid "20,000 to 29,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "30,000 to 39,999 {}"
+msgid "30,000 to 39,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "40,000 to 49,999 {}"
+msgid "40,000 to 49,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "50,000 to 59,999 {}"
+msgid "50,000 to 59,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "60,000 to 69,999 {}"
+msgid "60,000 to 69,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "70,000 to 79,999 {}"
+msgid "70,000 to 79,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "80,000 to 89,999 {}"
+msgid "80,000 to 89,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "90,000 to 99,999 {}"
+msgid "90,000 to 99,999 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
+#, python-brace-format
 msgctxt "income"
-msgid "Less than 10,000 {}"
+msgid "Less than 10,000 {CURRENCY}"
 msgstr ""
 
 #: psynet/demography/general.py
@@ -1171,7 +1184,7 @@ msgstr ""
 msgctxt "language-select"
 msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
-"speaking from early childhood)?"
+"speaking from early childhood?"
 msgstr ""
 
 #: psynet/demography/general.py
@@ -1246,7 +1259,7 @@ msgstr ""
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
-msgid "Addendum for demonstrations."
+msgid "Addendum for demonstrations"
 msgstr ""
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
