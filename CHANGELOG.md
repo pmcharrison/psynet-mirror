@@ -1,5 +1,15 @@
 # CHANGELOG
 
+# [9.4.5] Released on 2023-xx-xx
+
+#### Added
+- Added `BigFiveQuestionnaire` and `AltruismQuestionnaire` (author: Pol van Rijn).
+
+#### Updated
+- Completed migration to `pyproject.toml`, incl. removal of `setup.cfg` and `setup.py` (author: Frank Höger).
+- Updated docs for bumpversion removal (author: Frank Höger).
+- Updated `Dallinger` to `v9.5.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.5.0.
+
 # [9.4.4] Released on 2023-02-14
 
 #### Updated
