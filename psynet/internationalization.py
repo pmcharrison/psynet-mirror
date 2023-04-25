@@ -218,8 +218,10 @@ def po_to_dict(po):
     return entries_dict
 
 
-def get_po_path(locale, locales_dir):
-    return join_path(get_locales_dir(locales_dir), locale, "LC_MESSAGES", "psynet.po")
+def get_po_path(locale, locales_dir, module):
+    return join_path(
+        get_locales_dir(locales_dir), locale, "LC_MESSAGES", module + ".po"
+    )
 
 
 def compile_mo(po_path):
@@ -277,14 +279,13 @@ LANGUAGES_WITHOUT_CAPITALIZATION = [
 ]
 
 
-def get_all_translations(locales_dir=None):
+def get_all_translations(module, locales_dir):
     from psynet.utils import get_available_locales
 
-    locales_dir = get_locales_dir(locales_dir)
     locales = get_available_locales(locales_dir)
     translations = {}
     for locale in locales:
-        po_path = join_path(locales_dir, locale, "LC_MESSAGES", "psynet.po")
+        po_path = join_path(locales_dir, locale, "LC_MESSAGES", module + ".po")
         translations[locale] = load_po(po_path)
     return translations
 
@@ -330,7 +331,7 @@ def assert_no_missing_translations(po_entries, pot_entries, locale):
 
     assert (
         pot_entries.keys() == po_entries.keys()
-    ), f"Keys in {locale} do not match keys in template.pot"
+    ), f"Keys in {locale} do not match keys in the template"
 
 
 def assert_no_duplicate_translations_in_same_context(po_entries, locale):
@@ -514,7 +515,7 @@ def assert_no_runtime_errors(
 
 
 def validate_translations(
-    pot_entries, translations, locales_dir, variable_placeholders
+    pot_entries, translations, locales_dir, variable_placeholders, module
 ):
     extracted_variables = extract_variable_names_from_entries(pot_entries)
     assert_all_variables_defined(extracted_variables, variable_placeholders)
@@ -527,7 +528,7 @@ def validate_translations(
 
         assert_no_duplicate_translations_in_same_context(po_entries, locale)
 
-        po_path = get_po_path(locale, locales_dir)
+        po_path = get_po_path(locale, locales_dir, module)
         compile_mo(po_path)
         gettext, pgettext = get_translator(locale, locales_dir)
 
@@ -545,6 +546,7 @@ def validate_translations(
 
 
 def check_translations(
+    module="psynet",
     locales_dir=None,
     variable_placeholders=None,
     extract_translations_function=extract_psynet_pot,
@@ -552,13 +554,14 @@ def check_translations(
     locales_dir = get_locales_dir(locales_dir)
     pot = extract_translations_function(locales_dir)
     pot_entries = po_to_dict(pot)
-    translations = get_all_translations(locales_dir)
+    translations = get_all_translations(module, locales_dir)
 
+    if variable_placeholders is None:
+        variable_placeholders = {}
     validate_translations(
         pot_entries=pot_entries,
         translations=translations,
         locales_dir=locales_dir,
-        variable_placeholders={}
-        if variable_placeholders is None
-        else variable_placeholders,
+        variable_placeholders=variable_placeholders,
+        module=module,
     )

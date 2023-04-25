@@ -8,6 +8,7 @@ import traceback
 import uuid
 from collections import OrderedDict
 from datetime import datetime
+from glob import glob
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -41,6 +42,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
+from .internationalization import check_translations, compile_mo, extract_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -67,6 +69,7 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
     Recording,
 )
 from .utils import (
+    LOCALES_DIR,
     NoArgumentProvided,
     cache,
     call_function,
@@ -332,12 +335,70 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.pre_deploy_routines = []
+        self.pre_deploy_routines = [
+            PreDeployRoutine(
+                "check_experiment_translations", self.check_experiment_translations, {}
+            ),
+            PreDeployRoutine(
+                "compile_translations_if_necessary",
+                self.compile_translations_if_necessary,
+                {
+                    "locales_dir": self.get_experiment_locales_folder(),
+                    "module": "experiment",
+                },
+            ),
+        ]
 
         self.process_timeline()
 
+    def get_experiment_locales_folder(self):
+        return os.path.join(self.get_experiment_folder_path(), "locales")
+
+    def extraction_pot_from_experiment_folder(self, locales_dir):
+        folder_path = self.get_experiment_folder_path()
+        locales_dir = self.get_experiment_locales_folder()
+        os.makedirs(locales_dir, exist_ok=True)
+
+        pot_path = os.path.join(locales_dir, "experiment.pot")
+        extract_pot(folder_path, ".", pot_path, start_with_fresh_file=True)
+        if any(
+            [path for path in glob(os.path.join(folder_path, "templates", "*.html"))]
+        ):
+            extract_pot(folder_path, "templates/*.html", pot_path)
+
+        return load_po(pot_path)
+
+    def check_experiment_translations(self):
+        check_translations(
+            module="experiment",
+            locales_dir=self.get_experiment_locales_folder(),
+            variable_placeholders=self.var.get("variable_placeholders", {}),
+            extract_translations_function=self.extraction_pot_from_experiment_folder,
+        )
+
+    def compile_translations_if_necessary(self, locales_dir, module):
+        """Compiles translations if necessary."""
+        supported_locales = self.config["supported_locales"]
+        if os.path.exists(locales_dir):
+            locales = get_available_locales(locales_dir)
+            for locale in supported_locales:
+                if locale == "en":
+                    continue
+                assert (
+                    locale in locales
+                ), f"Locale {locale} is not found in {locales_dir}"
+                po_path = os.path.join(
+                    locales_dir, locale, "LC_MESSAGES", module + ".po"
+                )
+                compile_mo(po_path)
+        else:
+            assert supported_locales == [
+                "en"
+            ], "No locales folder found, so we only support English"
+
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
+        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
         redis_vars.set("launch_started", True)
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
@@ -570,16 +631,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {}
 
     @classmethod
+    def get_experiment_folder_path(cls):
+        try:
+            return deployment_info.read("folder_path")
+        except (KeyError, FileNotFoundError):
+            return os.getcwd()
+
+    @classmethod
+    def get_experiment_folder_name(cls):
+        return os.path.basename(cls.get_experiment_folder_path())
+
+    @classmethod
+    def get_folder_name_and_path(cls):
+        try:
+            folder_path = deployment_info.read("folder_path")
+        except (KeyError, FileNotFoundError):
+            folder_path = os.getcwd()
+
+        return os.path.basename(folder_path), folder_path
+
+    @classmethod
     def config_defaults(cls):
         """
         Override this classmethod to register new default values for config variables.
         Remember to call super!
         """
-
-        try:
-            folder_name = deployment_info.read("folder_name")
-        except (KeyError, FileNotFoundError):
-            folder_name = os.path.basename(os.getcwd())
 
         config = {
             **super().config_defaults(),
@@ -591,7 +667,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "protected_routes": json.dumps(_protected_routes),
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
-            "label": folder_name,
+            "label": cls.get_experiment_folder_name(),
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",
@@ -640,6 +716,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "hard_max_experiment_payment": 1100.0,
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
+            "variable_placeholders": {},  # Used for variable placeholders to test translations before deploying
         }
 
     @property
