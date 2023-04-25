@@ -368,18 +368,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return load_po(pot_path)
 
+    def translation_checks_needed(self, locales_dir):
+        return len(get_available_locales(locales_dir)) > 0
+
     def check_experiment_translations(self):
-        check_translations(
-            module="experiment",
-            locales_dir=self.get_experiment_locales_folder(),
-            variable_placeholders=self.var.get("variable_placeholders", {}),
-            extract_translations_function=self.extraction_pot_from_experiment_folder,
-        )
+        locales_dir = self.get_experiment_locales_folder()
+        if self.translation_checks_needed(locales_dir):
+            check_translations(
+                module="experiment",
+                locales_dir=locales_dir,
+                variable_placeholders=self.var.get("variable_placeholders", {}),
+                extract_translations_function=self.extraction_pot_from_experiment_folder,
+            )
 
     def compile_translations_if_necessary(self, locales_dir, module):
         """Compiles translations if necessary."""
-        supported_locales = self.config["supported_locales"]
-        if os.path.exists(locales_dir):
+        supported_locales = self.config.get("supported_locales", [])
+        if self.translation_checks_needed(locales_dir):
             locales = get_available_locales(locales_dir)
             for locale in supported_locales:
                 if locale == "en":
@@ -392,9 +397,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
                 compile_mo(po_path)
         else:
-            assert supported_locales == [
-                "en"
-            ], "No locales folder found, so we only support English"
+            assert supported_locales == [], "No locales folder found"
 
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
