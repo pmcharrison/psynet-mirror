@@ -369,7 +369,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return load_po(pot_path)
 
     def translation_checks_needed(self, locales_dir):
-        return len(get_available_locales(locales_dir)) > 0
+        return (
+            os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
+        )
 
     def check_experiment_translations(self):
         locales_dir = self.get_experiment_locales_folder()
