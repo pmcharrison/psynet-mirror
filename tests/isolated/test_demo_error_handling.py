@@ -16,6 +16,12 @@ from psynet.pytest_psynet import (
 from psynet.utils import log_pexpect_errors
 
 
+def test_empty():
+    # We need to include this empty test otherwise the test suite will throw an error
+    # while the below test is skipped
+    pass
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo("error_handling")], indirect=True
 )
