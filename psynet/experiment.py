@@ -1438,6 +1438,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def dashboard_timeline(cls):
         exp = get_experiment()
         panes = exp.monitoring_panels()
+        config = get_config()
 
         module_info = {
             "modules": [{"id": module.id} for module in exp.timeline.module_list]
@@ -1448,6 +1449,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             title="Timeline modules",
             panes=panes,
             timeline_modules=json.dumps(module_info, default=serialise),
+            currency=config.currency,
         )
 
     @dashboard_tab("Participant", after_route="monitoring")
@@ -1676,9 +1678,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_progress_info(cls):
         exp = get_experiment()
+        config = get_config()
         progress_info = {
             "spending": {
                 "amount_spent": exp.amount_spent(),
+                "currency": config.currency,
                 "soft_max_experiment_payment": exp.var.soft_max_experiment_payment,
                 "hard_max_experiment_payment": exp.var.hard_max_experiment_payment,
             }

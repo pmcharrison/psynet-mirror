@@ -1251,9 +1251,15 @@ def _estimate(mode):
     experiment_class = import_local_experiment()["class"]
     wage_per_hour = get_and_load_config().get("wage_per_hour")
 
+    config = get_config()
+    if not config.ready:
+        config.load()
+
     if mode in ["bonus", "both"]:
         maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
-        log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
+        log(
+            f"Estimated maximum bonus for participant: {config.currency}{round(maximum_bonus, 2)}."
+        )
     if mode in ["time", "both"]:
         completion_time = experiment_class.estimated_completion_time(wage_per_hour)
         log(

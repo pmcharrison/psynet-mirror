@@ -23,7 +23,7 @@ from psynet import field
 
 from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
-from ..field import PythonDict, PythonObject, VarStore, extra_var, register_extra_var
+from ..field import PythonDict, PythonObject, VarStore, register_extra_var
 from ..page import InfoPage, UnsuccessfulEndPage, WaitPage, wait_while
 from ..participant import Participant
 from ..process import AsyncProcess, WorkerAsyncProcess
@@ -2445,22 +2445,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     id_within_participant = Column(Integer)
 
     all_trials = relationship("psynet.trial.main.Trial")
-    # all_nodes = relationship("psynet.trial.main.TrialNode")
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_all_nodes(self):
-        return len(self.all_nodes)
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_alive_nodes(self):
-        return len(self.alive_nodes)
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_failed_nodes(self):
-        return len(self.failed_nodes)
 
     @property
     def alive_nodes(self):
@@ -2469,21 +2453,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     @property
     def failed_nodes(self):
         return [node for node in self.all_nodes if self.failed]
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_all_trials(self):
-        return len(self.all_trials)
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_alive_trials(self):
-        return len(self.alive_trials)
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_failed_trials(self):
-        return len(self.failed_trials)
 
     @property
     def alive_trials(self):
@@ -2578,18 +2547,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
         # Currently this function is redundant, but it's there in case we want to
         # add wrapping logic one day.
         self.async_post_grow_network()
-
-
-TrialNetwork.n_completed_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.network_id == TrialNetwork.id,
-        ~Trial.failed,
-        Trial.complete,
-        ~Trial.is_repeat_trial,
-    )
-    .scalar_subquery()
-)
 
 
 # This column_property has to be defined outside the class main definition because of a quirk with
@@ -2789,3 +2746,67 @@ class GenericTrialNode(TrialNode):
         network = GenericTrialNetwork(module_id, experiment)
         db.session.add(network)
         return network
+
+
+TrialNetwork.n_all_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.network_id == TrialNetwork.id,
+    )
+    .scalar_subquery()
+)
+
+TrialNetwork.n_alive_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.network_id == TrialNetwork.id,
+        ~Trial.failed,
+    )
+    .scalar_subquery()
+)
+
+TrialNetwork.n_failed_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.network_id == TrialNetwork.id,
+        Trial.failed,
+    )
+    .scalar_subquery()
+)
+
+TrialNetwork.n_completed_trials = column_property(
+    select(func.count(Trial.id))
+    .where(
+        Trial.network_id == TrialNetwork.id,
+        ~Trial.failed,
+        Trial.complete,
+        ~Trial.is_repeat_trial,
+    )
+    .scalar_subquery()
+)
+
+TrialNetwork.n_all_nodes = column_property(
+    select(func.count(TrialNode.id))
+    .where(
+        TrialNode.network_id == TrialNetwork.id,
+    )
+    .scalar_subquery()
+)
+
+TrialNetwork.n_alive_nodes = column_property(
+    select(func.count(TrialNode.id))
+    .where(
+        TrialNode.network_id == TrialNetwork.id,
+        ~TrialNode.failed,
+    )
+    .scalar_subquery()
+)
+
+TrialNetwork.n_failed_nodes = column_property(
+    select(func.count(TrialNode.id))
+    .where(
+        TrialNode.network_id == TrialNetwork.id,
+        TrialNode.failed,
+    )
+    .scalar_subquery()
+)
