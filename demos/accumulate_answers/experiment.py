@@ -110,8 +110,8 @@ def part_2_check(participant):
         assert len(participant.alive_trials) == 3
         trial = participant.alive_trials[0]
         assert trial.answer == {"kindness": "Very much", "bravery": "A little"}
-        assert trial.to_dict()["answer__kindness"] == "Very much"
-        assert trial.to_dict()["answer__bravery"] == "A little"
+        assert trial.to_dict()["kindness"] == "Very much"
+        assert trial.to_dict()["bravery"] == "A little"
 
 
 part_2 = join(

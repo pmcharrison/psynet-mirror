@@ -30,6 +30,7 @@ from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
+from pandas.api.types import is_object_dtype
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import deferred, undefer
@@ -46,6 +47,7 @@ from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
+from .serialize import serialize
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -165,6 +167,8 @@ def _get_preferred_superclass_version(cls):
 def _db_instance_to_dict(obj, scrub_pii: bool):
     """
     Converts an ORM-mapped instance to a JSON-style representation.
+    Complex types (e.g. lists, dicts) are serialized to strings using
+    psynet.serialize.serialize.
 
     Parameters
     ----------
@@ -188,6 +192,9 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data["class"] = obj.__class__.__name__  # for the Dallinger classes
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
+    for key, value in data.items():
+        if not is_basic_type(value):
+            data[key] = serialize(value)
     return data
 
 
