@@ -17,7 +17,7 @@ reference_language = "en"
 
 def get_timeline_in_locale(locale):
     _, _p = get_translator(
-        locale=locale, module="experiment", localedir=abspath("locales")
+        locale=locale, module="experiment", locales_dir=abspath("locales")
     )
     return join(
         InfoPage(

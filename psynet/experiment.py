@@ -75,6 +75,7 @@ from .utils import (
     disable_logger,
     error_page,
     get_arg_from_dict,
+    get_available_locales,
     get_language,
     get_logger,
     log_time_taken,
@@ -1328,7 +1329,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("check_participant_opened_devtools", bool)
         config.register("window_width", int)
         config.register("window_height", int)
-        config.register("supported_locales", unicode, validators=[is_valid_json])
+
+        def is_valid_locale(value):
+            available_psynet_locales = get_available_locales()
+            for locale in json.loads(value):
+                if locale == "en":
+                    continue
+                assert (
+                    locale in available_psynet_locales
+                ), f"Locale {locale} not available in PsyNet."
+
+        config.register(
+            "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
+        )
         config.register("allow_switching_locale", bool)
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)

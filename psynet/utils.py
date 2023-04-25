@@ -9,9 +9,7 @@ import json
 import logging
 import os
 import re
-import subprocess
 import sys
-import tempfile
 import time
 from collections import OrderedDict
 from datetime import datetime
@@ -24,7 +22,6 @@ from urllib.parse import ParseResult, urlparse
 
 import jsonpickle
 import pexpect
-import polib
 from _hashlib import HASH as Hash
 from babel.support import Translations
 from dallinger.config import get_config
@@ -40,6 +37,7 @@ def get_logger():
 
 logger = get_logger()
 DEFAULT_LOCALE = "en"
+LOCALES_DIR = join_path(abspath(dirname(__file__)), "locales")
 
 
 class NoArgumentProvided:
@@ -558,7 +556,7 @@ def render_string_with_translations(template_string, locale=None, **kwargs):
 def get_translator(
     locale=None,
     module="psynet",
-    localedir=join_path(abspath(dirname(__file__)), "locales"),
+    locales_dir=LOCALES_DIR,
 ):
     if locale is None:
         try:
@@ -584,8 +582,8 @@ def get_translator(
             pass
     if locale is None:
         locale = get_language()
-    if exists(join_path(localedir, locale, "LC_MESSAGES", f"{module}.mo")):
-        translator = gettext.translation(module, localedir, [locale])
+    if exists(join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")):
+        translator = gettext.translation(module, locales_dir, [locale])
     else:
         if locale != "en":
             logger.warning(f"No translation file found for locale {locale}.")
@@ -594,216 +592,10 @@ def get_translator(
     return translator.gettext, translator.pgettext
 
 
-def new_pot(fpath):
-    pot = polib.POFile()
-    pot.metadata = {
-        "Project-Id-Version": "PACKAGE VERSION",
-        "Report-Msgid-Bugs-To": "",
-        "POT-Creation-Date": datetime.now().strftime("%Y-%d/%m/ %H:%M:%S"),
-        "PO-Revision-Date": "YEAR-MO-DA HO:MI+ZONE",
-        "Last-Translator": "FULL NAME <EMAIL@ADDRESS>",
-        "Language-Team": "internat",
-        "Language": "",
-        "MIME-Version": "1.0",
-        "Content-Type": "text/plain; charset=CHARSET",
-        "Content-Transfer-Encoding": "8bit",
-    }
-    pot.encoding = "utf-8"
-    pot.metadata_is_fuzzy = ["fuzzy"]
-    pot.fpath = fpath
-    return pot
-
-
-def get_pot(cmd, tmp_pot_file):
-    subprocess.call(
-        cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
-    )
-    if os.path.exists(tmp_pot_file):
-        pot = polib.pofile(tmp_pot_file)
-        os.remove(tmp_pot_file)
-        return list(pot)
-    else:
-        return []
-
-
-def pybabel(input):
-    # Setup a config file
-    cfg = """
-            [jinja2: **.html]
-            encoding = utf-8
-            """
-    with tempfile.TemporaryDirectory() as tempdir:
-        tmp_cfg_file = join_path(tempdir, "babel.cfg")
-        tmp_pot_file = join_path(tempdir, "babel.pot")
-        with open(tmp_cfg_file, "w") as f:
-            f.write(cfg)
-        return get_pot(
-            f"pybabel extract -F {tmp_cfg_file} -o {tmp_pot_file} {input}", tmp_pot_file
-        )
-
-
-def xgettext(input_file):
-    with tempfile.TemporaryDirectory() as tempdir:
-        tmp_pot_file = join_path(tempdir, "xgettext.pot")
-        return get_pot(
-            f'xgettext -o {tmp_pot_file} {input_file} -L Python --keyword="_p:1c,2"',
-            tmp_pot_file,
-        )
-
-
-def clean_occurences_po(po, package_name):
-    key = package_name + "/"
-    for entry in po:
-        occurrences = sorted(set([occurrence for occurrence, _ in entry.occurrences]))
-        # Make paths relative to the package
-        occurrences = [
-            (key).join(occurrence.split(key)[1:]) for occurrence in occurrences
-        ]
-        # Only store the file name and not the line numbers
-        entry.occurrences = [(occurrence, None) for occurrence in occurrences]
-    return po
-
-
-def po_to_dict(po):
-    entries_dict = OrderedDict()
-    for entry in po:
-        key = (entry.msgid, entry.msgctxt)
-        if key in entries_dict:
-            old_entry = entries_dict[key]
-            assert old_entry.msgid == entry.msgid
-            assert old_entry.msgid_plural == entry.msgid_plural
-            assert old_entry.msgctxt == entry.msgctxt
-            assert old_entry.msgstr == entry.msgstr
-            assert old_entry.msgstr_plural == entry.msgstr_plural
-        else:
-            entries_dict[key] = entry
-    return entries_dict
-
-
-def remove_duplicates_po(po):
-    entries_dict = po_to_dict(po)
-    po.clear()
-    po.extend(list(entries_dict.values()))
-    return po
-
-
-def extract_pot(root_dir, relative_path, pot_path, start_with_fresh_file=False):
-    absolute_root_dir = os.path.abspath(root_dir)
-    package_name = absolute_root_dir.split("/")[-1]
-    input_path = join_path(absolute_root_dir, relative_path)
-    assert os.path.isabs(input_path), "Input path must be absolute."
-    if start_with_fresh_file and os.path.exists(pot_path):
-        os.remove(pot_path)
-    old_entries = []
-    new_entries = []
-    if os.path.exists(pot_path):
-        pot = polib.pofile(pot_path)
-        old_entries = list(pot)
-    else:
-        pot = new_pot(pot_path)
-    if input_path.endswith("."):
-        new_entries.extend(pybabel(input_path))
-        for root, dirs, files in os.walk(input_path[:-1]):
-            for file in files:
-                if file.endswith(".py"):
-                    new_entries.extend(xgettext(join_path(root, file)))
-    elif input_path.endswith(".html"):
-        new_entries.extend(pybabel(input_path))
-    elif input_path.endswith(".py"):
-        new_entries.extend(xgettext(input_path))
-    else:
-        raise ValueError("Input file must be a Python or Jinja file.")
-    blocked_entries = [(e.msgid, e.msgctxt) for e in old_entries]
-    pot_entries = [
-        e for e in new_entries if (e.msgid, e.msgctxt) not in blocked_entries
+def get_available_locales(locales_dir=LOCALES_DIR):
+    return [
+        f for f in os.listdir(locales_dir) if os.path.isdir(join_path(locales_dir, f))
     ]
-    if len(pot_entries) > 0:
-        pot.extend(pot_entries)
-        pot = clean_occurences_po(pot, package_name)
-        pot = remove_duplicates_po(pot)
-        pot.sort()
-        pot.save(pot_path)
-    return len(pot_entries)
-
-
-def get_psynet_root():
-    import psynet
-
-    return os.path.abspath(psynet.__file__).replace("psynet/__init__.py", "")
-
-
-def extract_psynet_translation_template():
-    psynet_folder = get_psynet_root()
-    pot_path = join_path(psynet_folder, "psynet", "locales/psynet.pot")
-    n_translatable_strings = 0
-    n_translatable_strings += extract_pot(
-        psynet_folder, "psynet/templates/*.html", pot_path, start_with_fresh_file=True
-    )
-    n_translatable_strings += extract_pot(
-        psynet_folder, "psynet/templates/consent/*.html", pot_path
-    )
-    n_translatable_strings += extract_pot(
-        psynet_folder, "psynet/templates/macros/*.html", pot_path
-    )
-    n_translatable_strings += extract_pot(psynet_folder, "psynet/.", pot_path)
-    print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
-    return polib.pofile(pot_path)
-
-
-def get_po_path(locale):
-    psynet_folder = get_psynet_root()
-    return join_path(
-        psynet_folder, "psynet", "locales", locale, "LC_MESSAGES", "psynet.po"
-    )
-
-
-def load_po(po_path):
-    assert po_path.endswith(".po"), "po_path must end with .po"
-    assert exists(po_path), f"File {po_path} does not exist"
-    return polib.pofile(po_path)
-
-
-def compile_mo(po_path):
-    po = load_po(po_path)
-    mo_path = po_path.replace(".po", ".mo")
-    for entry in po:
-        entry.flags = (
-            []
-        )  # Make sure fuzzy entries are excluded, this will lead to the translation not being recognized
-    po.save_as_mofile(mo_path)
-
-
-def remove_unused_translations():
-    psynet_folder = get_psynet_root()
-    pot = extract_psynet_translation_template()
-    pot_entries = po_to_dict(pot)
-
-    translations = get_all_translations()
-    for locale, po in translations.items():
-        po_entries = po_to_dict(po)
-        entries = []
-        for key, pot_entry in pot_entries.items():
-            po_entry = po_entries[key]
-            po_entry.comment = pot_entry.comment
-            entries.append(po_entry)
-        po.clear()
-        po.extend(entries)
-        po_path = join_path(
-            psynet_folder, "psynet", "locales", locale, "LC_MESSAGES", "psynet.po"
-        )
-        po.save(po_path)
-
-
-def get_all_translations(folder=join_path(get_psynet_root(), "psynet", "locales")):
-    translations = {}
-    for file in os.listdir(folder):
-        path = join_path(folder, file)
-        if os.path.isdir(path):
-            locale = file
-            po_path = join_path(path, "LC_MESSAGES", "psynet.po")
-            assert exists(po_path), f"Missing translation file for locale {locale}"
-            translations[locale] = polib.pofile(po_path)
-    return translations
 
 
 def countries(locale=None):
