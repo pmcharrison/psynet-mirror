@@ -12,7 +12,7 @@ COPY pyproject.toml pyproject.toml
 COPY LICENSE LICENSE
 
 RUN apt update
-RUN apt -f -y install curl redis-server unzip libpq-dev, gettext
+RUN apt -f -y install curl redis-server unzip libpq-dev gettext
 RUN service redis-server start
 RUN curl https://cli-assets.heroku.com/install.sh | sh
 RUN wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_109.0.5414.74-1_amd64.deb
