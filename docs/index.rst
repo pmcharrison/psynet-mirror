@@ -64,6 +64,7 @@ but see the sidebar for a full list.
 
    experiment_directory
    development_workflow
+   troubleshooting
    demos/index
 
 .. toctree::
