@@ -448,7 +448,8 @@ class Trial(SQLMixinDallinger, Info):
 
     def to_dict(self):
         x = super().to_dict()
-        field.json_unpack_answer(x)
+        field.json_unpack_field(x, "definition")
+        field.json_unpack_field(x, "answer")
         return x
 
     @property
