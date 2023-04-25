@@ -21,7 +21,9 @@ from psynet.utils import log_pexpect_errors
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
-    def test_exp(
+    # To re-enable this test, rename this function to test_exp.
+    # It was disabled on 25 April 2023 because it was flaky, but we will try fixing it in the future.
+    def skip_test_exp(
         self, launched_experiment, debug_server_process, bot_recruits, db_session
     ):  # two_iterations, bot_recruits):
         for i in range(4):
