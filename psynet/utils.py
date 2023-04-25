@@ -582,7 +582,15 @@ def get_translator(
             pass
     if locale is None:
         locale = get_language()
-    if exists(join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")):
+    mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")
+    po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.po")
+    if exists(mo_path):
+        translator = gettext.translation(module, locales_dir, [locale])
+    elif exists(po_path):
+        logger.info(f"Compiling translation file on demand {po_path}.")
+        from psynet.internationalization import compile_mo
+
+        compile_mo(po_path)
         translator = gettext.translation(module, locales_dir, [locale])
     else:
         if locale != "en":
