@@ -558,6 +558,8 @@ def get_translator(
     module="psynet",
     locales_dir=LOCALES_DIR,
 ):
+    from psynet.internationalization import compile_mo
+
     if locale is None:
         try:
             GET = request.args.to_dict()
@@ -585,11 +587,12 @@ def get_translator(
     mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")
     po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.po")
     if exists(mo_path):
+        if os.path.getmtime(po_path) > os.path.getmtime(mo_path):
+            logger.info(f"Compiling translation again, because {po_path} was updated.")
+            compile_mo(po_path)
         translator = gettext.translation(module, locales_dir, [locale])
     elif exists(po_path):
         logger.info(f"Compiling translation file on demand {po_path}.")
-        from psynet.internationalization import compile_mo
-
         compile_mo(po_path)
         translator = gettext.translation(module, locales_dir, [locale])
     else:
