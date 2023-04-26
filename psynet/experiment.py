@@ -352,19 +352,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.process_timeline()
 
     def get_experiment_locales_folder(self):
-        return os.path.join(self.get_experiment_folder_path(), "locales")
+        return os.path.join(self.get_source_experiment_directory_path(), "locales")
 
     def extract_pot_from_experiment_folder(self, locales_dir):
-        folder_path = self.get_experiment_folder_path()
+        source_experiment_directory_path = self.get_source_experiment_directory_path()
         locales_dir = self.get_experiment_locales_folder()
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
-        extract_pot(folder_path, ".", pot_path, start_with_fresh_file=True)
+        extract_pot(
+            source_experiment_directory_path, ".", pot_path, start_with_fresh_file=True
+        )
         if any(
-            [path for path in glob(os.path.join(folder_path, "templates", "*.html"))]
+            [
+                path
+                for path in glob(
+                    os.path.join(
+                        source_experiment_directory_path, "templates", "*.html"
+                    )
+                )
+            ]
         ):
-            extract_pot(folder_path, "templates/*.html", pot_path)
+            extract_pot(source_experiment_directory_path, "templates/*.html", pot_path)
 
         return load_po(pot_path)
 
@@ -636,15 +645,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {}
 
     @classmethod
-    def get_experiment_folder_path(cls):
+    def get_source_experiment_directory_path(cls):
         try:
-            return deployment_info.read("folder_path")
+            return deployment_info.read("source_experiment_directory_path")
         except (KeyError, FileNotFoundError):
             return os.getcwd()
 
     @classmethod
     def get_experiment_folder_name(cls):
-        return os.path.basename(cls.get_experiment_folder_path())
+        return os.path.basename(cls.get_source_experiment_directory_path())
 
     @classmethod
     def config_defaults(cls):
