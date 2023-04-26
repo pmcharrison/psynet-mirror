@@ -9,7 +9,7 @@ from os.path import join as join_path
 import pandas as pd
 import polib
 
-from psynet.utils import get_translator, logger
+from .utils import logger
 
 
 ###################
@@ -18,7 +18,7 @@ from psynet.utils import get_translator, logger
 def get_locales_dir(locales_dir):
     """Get the locales directory."""
     if locales_dir is None:
-        from psynet.utils import LOCALES_DIR
+        from .utils import LOCALES_DIR
 
         locales_dir = LOCALES_DIR
     return locales_dir
@@ -280,7 +280,7 @@ LANGUAGES_WITHOUT_CAPITALIZATION = [
 
 
 def get_all_translations(module, locales_dir):
-    from psynet.utils import get_available_locales
+    from .utils import get_available_locales
 
     locales = get_available_locales(locales_dir)
     translations = {}
@@ -517,11 +517,13 @@ def assert_no_runtime_errors(
 def validate_translations(
     pot_entries, translations, locales_dir, variable_placeholders, module
 ):
+    import gettext
+
     extracted_variables = extract_variable_names_from_entries(pot_entries)
     assert_all_variables_defined(extracted_variables, variable_placeholders)
 
     for locale, po in translations.items():
-        logger.info(f"Checking {locale} for runtime errors...")
+        logger.info(f"Checking {locale} translation for errors...")
         po_entries = po_to_dict(po)
 
         assert_no_missing_translations(po_entries, pot_entries, locale)
@@ -530,7 +532,7 @@ def validate_translations(
 
         po_path = get_po_path(locale, locales_dir, module)
         compile_mo(po_path)
-        gettext, pgettext = get_translator(locale, locales_dir)
+        translator = gettext.translation(module, locales_dir, [locale])
 
         for key, po_entry in po_entries.items():
             msgid, msgctxt = key
@@ -541,8 +543,15 @@ def validate_translations(
                 msgid, msgstr, locale
             )
             assert_no_runtime_errors(
-                gettext, pgettext, locale, msgid, msgstr, msgctxt, variable_placeholders
+                translator.gettext,
+                translator.pgettext,
+                locale,
+                msgid,
+                msgstr,
+                msgctxt,
+                variable_placeholders,
             )
+        os.remove(po_path.replace(".po", ".mo"))
 
 
 def check_translations(
