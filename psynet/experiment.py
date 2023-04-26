@@ -647,15 +647,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return os.path.basename(cls.get_experiment_folder_path())
 
     @classmethod
-    def get_folder_name_and_path(cls):
-        try:
-            folder_path = deployment_info.read("folder_path")
-        except (KeyError, FileNotFoundError):
-            folder_path = os.getcwd()
-
-        return os.path.basename(folder_path), folder_path
-
-    @classmethod
     def config_defaults(cls):
         """
         Override this classmethod to register new default values for config variables.
