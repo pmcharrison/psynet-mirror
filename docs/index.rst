@@ -41,6 +41,14 @@ but see the sidebar for a full list.
 .. toctree::
    :maxdepth: 1
    :hidden:
+   :caption: Learning
+
+   exercises/index
+   tracks/index
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
    :caption: Dependencies
 
    dependencies/dallinger
