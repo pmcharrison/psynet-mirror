@@ -316,15 +316,16 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
     _cleanup_before_debug()
 
     try:
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
         if legacy:
             # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
             # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
             # This problem manifests specifically when the experiment contains custom tables.
-            _debug_legacy(ctx, archive=archive, no_browsers=no_browsers)
+            _debug_legacy(ctx, archive=None, no_browsers=no_browsers)
         elif docker:
-            _debug_docker(ctx, archive=archive, no_browsers=no_browsers)
+            _debug_docker(ctx, archive=None, no_browsers=no_browsers)
         else:
-            _debug_auto_reload(ctx, archive=archive, no_browsers=no_browsers)
+            _debug_auto_reload(ctx, archive=None, no_browsers=no_browsers)
     finally:
         kill_psynet_worker_processes()
 
@@ -609,6 +610,8 @@ def _pre_launch(
 ):
     log("Preparing for launch...")
 
+    from .experiment import get_experiment
+
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
@@ -637,7 +640,14 @@ def _pre_launch(
             # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
-    if not archive:
+    experiment = get_experiment()
+    experiment.update_deployment_id()
+
+    if archive:
+        from psynet.experiment import database_template_path
+
+        shutil.copyfile(archive, database_template_path)
+    else:
         ctx.invoke(prepare)
 
     _forget_tables_defined_in_experiment_directory()
@@ -681,7 +691,8 @@ def deploy__heroku(ctx, app, archive, docker):
         _pre_launch(
             ctx, mode="live", archive=archive, local_=False, heroku=True, app=app
         )
-        result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=archive)
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
+        result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=None)
         _post_deploy(result)
     finally:
         _cleanup_exp_directory()
@@ -744,13 +755,14 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
             deploy as dallinger_docker_ssh_deploy,
         )
 
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             dallinger_docker_ssh_deploy,
             mode="sandbox",  # TODO - but does this even matter?
             server=server,
             dns_host=dns_host,
             app_name=app,
-            archive_path=archive,
+            archive_path=None,
             # config_options -- this could be useful
         )
 
@@ -994,9 +1006,8 @@ def debug__heroku(ctx, app, docker, archive):
             _pre_launch(
                 ctx, mode="sandbox", archive=archive, local_=False, heroku=True, app=app
             )
-            result = ctx.invoke(
-                dallinger_sandbox, verbose=True, app=app, archive=archive
-            )
+            # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
+            result = ctx.invoke(dallinger_sandbox, verbose=True, app=app, archive=None)
             _post_deploy(result)
         finally:
             _cleanup_exp_directory()
@@ -1053,13 +1064,14 @@ def debug__docker_ssh(ctx, app, archive, server):
             app=app,
         )
 
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             deploy,
             mode="sandbox",
             server=server,
             app_name=app,
             config_options={},
-            archive_path=archive,
+            archive_path=None,
         )
 
         _post_deploy(result)
