@@ -343,7 +343,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "compile_translations_if_necessary",
                 self.compile_translations_if_necessary,
                 {
-                    "locales_dir": self.extract_pot_from_experiment_folder(),
+                    "locales_dir": self.get_experiment_locales_folder(),
                     "module": "experiment",
                 },
             ),
@@ -351,12 +351,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
-    def extract_pot_from_experiment_folder(self):
+    def get_experiment_locales_folder(self):
         return os.path.join(self.get_experiment_folder_path(), "locales")
 
-    def extraction_pot_from_experiment_folder(self, locales_dir):
+    def extract_pot_from_experiment_folder(self, locales_dir):
         folder_path = self.get_experiment_folder_path()
-        locales_dir = self.extract_pot_from_experiment_folder()
+        locales_dir = self.get_experiment_locales_folder()
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
@@ -374,13 +374,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     def check_experiment_translations(self):
-        locales_dir = self.extract_pot_from_experiment_folder()
+        locales_dir = self.get_experiment_locales_folder()
         if self.translation_checks_needed(locales_dir):
             check_translations(
                 module="experiment",
                 locales_dir=locales_dir,
                 variable_placeholders=self.var.get("variable_placeholders", {}),
-                extract_translations_function=self.extraction_pot_from_experiment_folder,
+                extract_translations_function=self.extract_pot_from_experiment_folder,
             )
 
     def compile_translations_if_necessary(self, locales_dir, module):
