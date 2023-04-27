@@ -35,8 +35,16 @@ but see the sidebar for a full list.
    introduction/applications
    introduction/history
    introduction/team
-   introduction/how_to_learn
    introduction/command_line
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Learning
+
+   learning/how_to_learn
+   exercises/index
+   tracks/index
 
 .. toctree::
    :maxdepth: 1
@@ -64,6 +72,7 @@ but see the sidebar for a full list.
 
    experiment_directory
    development_workflow
+   troubleshooting
    demos/index
 
 .. toctree::

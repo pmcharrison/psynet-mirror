@@ -1,8 +1,10 @@
+import json
 import os
 import tempfile
 import zipfile
 
 from collections import Counter
+from json import JSONDecodeError
 
 import dallinger
 import pandas
@@ -94,6 +96,17 @@ class TestExport:
         assert (networks.n_failed_nodes == 0).all()
         assert (networks.n_failed_trials == 0).all()
         assert networks.n_all_trials.sum() == trials.shape[0]
+
+        try:
+            decoded = json.loads(trials.definition[0])
+            assert set(decoded) == {'active_index', 'initial_index', 'reverse_scale', 'vector'}
+            assert decoded["active_index"] == trials["active_index"][0]
+            assert decoded["initial_index"] == trials["initial_index"][0]
+            assert decoded["reverse_scale"] == trials["reverse_scale"][0]
+            assert decoded["vector"] == json.loads(trials["vector"][0])
+
+        except JSONDecodeError:
+            raise ValueError(f"The following exported trial definition was not valid JSON: {trials.definition[0]}")
 
     def test_coins_file(self, data_dir):
         coins_file = os.path.join(data_dir, "Coin.csv")

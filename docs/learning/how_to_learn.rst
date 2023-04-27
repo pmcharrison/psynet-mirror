@@ -3,30 +3,23 @@
 How to learn
 ============
 
-The first thing you should do is skim a few `example PsyNet experiments <example_experiments/introduction.html>`_
+.. note::
+
+    See also the work-in-progress `Tracks <tracks/index.html>`_ section, which will provide learning programmes
+    for various uses of PsyNet.
+
+Before you start learning PsyNet there are a few general-purpose programming tools you should
+familiarize yourself with, such as Python and Git; see `Prerequisites <prerequisites.html>`_
+for details.
+
+Once you're happy with the prerequisites, the next thing you should do is skim a few
+`example PsyNet experiments <../example_experiments/index.html>`_
 to get a feel for the way that real-life experiments can be implemented using PsyNet.
 A good starting point is the repository's ``experiment.py`` file, but it's worth exploring other `.py` files in the
 repository too.
 
-Before you can implement your own PsyNet experiments, you will need to invest some time in learning the programming
-language Python. Python is a very popular language, and there are many tutorials available online. You could consider
-taking online courses via programmes such as DataCamp and Udemy. You will want to be confident with the following
-essential Python features:
-
-- Functions
-- Classes
-- List and dictionary comprehensions
-- Decorators
-- Imports, modules, packages
-
-You will need to have a basic knowledge of the Unix command line, or the Unix shell. You want to be comfortable
-with navigating directories using the `cd` command, listing files with `ls`, and so on.
-
-You will also normally need to use Git for version control on PsyNet projects. If you're not familiar with Git,
-it's worth taking some online tutorials for this too.
-
 You should now spend some time reading about essential PsyNet principles. This online documentation website contains
-lots of material here. Have a read through the `Tutorials <tutorials/index.html>`_ section and see what catches your
+lots of material here. Have a read through the `Tutorials <../tutorials/index.html>`_ section and see what catches your
 eye. Some tutorials will not be relevant to you, depending on what kinds of experiments you're planning on running;
 feel free to skip them.
 
@@ -72,14 +65,14 @@ a Git repository in this location and link it to a remote repository on GitHub o
 can start changing code more wholesale.
 
 Often you will only need to understand a particular subset of PsyNet's features for implementing a particular
-experiment. Some of these features will be described in this website's `Tutorials <tutorials/index.html>`_
+experiment. Some of these features will be described in this website's `Tutorials <../tutorials/index.html>`_
 section. Many of them will be illustrated in one or more of the PsyNet demos. It's worth having a look
 through these demos to identify which of them provide relevant examples, and try to repurpose them for
 your own experiment.
 
 When writing specific bits of PsyNet code you will often need to consult lower-level documentation
 for individual classes and functions. One way to do this is to search the class/function name in this
-website's search box, or to look it up in the `API documentation <api/index.html>`_ section.
+website's search box, or to look it up in the `API documentation <../api/index.html>`_ section.
 Alternatively, most IDEs will let you right click on PsyNet classes/functions and follow the link to the
 PsyNet source code, where you can see the documentation directly in the code. The latter approach is often
 more powerful as it allows you to see the underlying code itself, which is often the best way of
