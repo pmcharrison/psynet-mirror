@@ -33,6 +33,24 @@
                 if (injectedWorkerId) {
                     dallinger.identity.workerId = injectedWorkerId;
                 }
+
+                {% if experiment.with_lucid_recruitment() %}
+                {% if is_consent_page %}
+                var setIntervalHandle = setInterval(check_participant_termination, 1000);
+
+                function check_participant_termination() {
+                    postData = {};
+                    postData["auth_token"] = "{{ auth_token }}";
+                    postData["participant_id"] = parseInt("{{ participant.id }}");
+                    $.post("/check_participant_termination", postData, function(seconds) {
+                        if (parseInt(seconds) < 0) {
+                            clearInterval(setIntervalHandle);
+                            $("#consent-rejected").click();
+                        }
+                    });
+                }
+                {% endif %}
+                {% endif %}
             }
         </script>
     {% endif %}

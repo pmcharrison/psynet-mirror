@@ -172,6 +172,70 @@ class CAPRecruiterAudiovisualConsent(Module):
             }
 
 
+#########
+# Lucid #
+#########
+class LucidConsent(Module):
+    """
+    The Lucid consent form.
+
+    Parameters
+    ----------
+
+    time_estimate:
+        Time estimated for the page.
+    """
+
+    def __init__(
+        self,
+        time_estimate: Optional[float] = 30,
+    ):
+        self.label = "lucid_consent"
+        self.elts = join(
+            self.LucidConsentPage(),
+            conditional(
+                "lucid_consent_conditional",
+                lambda experiment, participant: (
+                    not participant.answer["lucid_consent"]
+                ),
+                RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "lucid_consent",
+                    participant.answer["lucid_consent"],
+                )
+            ),
+        )
+        super().__init__(self.label, self.elts)
+
+    class LucidConsentPage(Page, Consent):
+        """
+        This page displays the Lucid consent page.
+
+        Parameters
+        ----------
+
+        time_estimate:
+            Time estimated for the page.
+        """
+
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("consents/lucid_consent.html"),
+            )
+
+        def format_answer(self, raw_answer, **kwargs):
+            return {"lucid_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"lucid_consent": True}
+
+
 #############
 # Princeton #
 #############
