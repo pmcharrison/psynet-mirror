@@ -341,11 +341,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             PreDeployRoutine(
                 "compile_translations_if_necessary",
-                self.compile_translations_if_necessary,
-                {
-                    "locales_dir": self.get_source_experiment_locales_folder(),
-                    "module": "experiment",
-                },
+                self.compile_experiment_translations_if_necessary,
+                {},
             ),
         ]
 
@@ -409,9 +406,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             assert supported_locales == [], "No locales folder found"
 
+    def compile_psynet_translations_if_necessary(self):
+        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
+
+    def compile_experiment_translations_if_necessary(self):
+        self.compile_translations_if_necessary(
+            self.get_source_experiment_locales_folder(), "experiment"
+        )
+
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
-        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
+        self.compile_psynet_translations_if_necessary()
         redis_vars.set("launch_started", True)
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
