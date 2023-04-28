@@ -336,14 +336,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+
+        try:
+            source_experiment_directory_path = deployment_info.read(
+                "source_experiment_directory_path"
+            )
+        except (KeyError, FileNotFoundError):
+            source_experiment_directory_path = os.getcwd()
+
         self.pre_deploy_routines = [
             PreDeployRoutine(
                 "check_experiment_translations", self.check_experiment_translations, {}
             ),
             PreDeployRoutine(
                 "compile_translations_if_necessary",
-                self.compile_experiment_translations_if_necessary,
-                {},
+                self.compile_translations_if_necessary,
+                {
+                    "locales_dir": os.path.join(
+                        source_experiment_directory_path, "locales"
+                    ),
+                    "module": "experiment",
+                },
             ),
         ]
 
@@ -429,19 +442,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
-
-    def compile_experiment_translations_if_necessary(self):
-        try:
-            source_experiment_directory_path = deployment_info.read(
-                "source_experiment_directory_path"
-            )
-        except (KeyError, FileNotFoundError):
-            source_experiment_directory_path = os.getcwd()
-
-        self.compile_translations_if_necessary(
-            os.path.join(source_experiment_directory_path, "locales"),
-            "experiment",
-        )
 
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
