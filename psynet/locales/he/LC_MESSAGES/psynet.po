@@ -152,13 +152,13 @@ msgstr ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> של בונוס כדי שתוכל "
 "לקבל פיצוי."
 
-#. ""
 #, python-format
 msgid ""
 "You will also see one or more consent pages and have up to\n"
 "                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr "תראה גם דף הסכמה אחד או יותר ויש לך עדn\"
-"<strong>%(TERMINATION_TIME)s</strong> כדי לקרוא ולקבל/לדחות אותם."
+msgstr ""
+"תראה גם דף הסכמה אחד או יותר ויש לך "
+"עדn\\<strong>%(TERMINATION_TIME)s</strong> כדי לקרוא ולקבל/לדחות אותם."
 
 #, fuzzy
 msgctxt "abort_possible"
@@ -1196,15 +1196,13 @@ msgctxt "age"
 msgid "What is your age?"
 msgstr "מה הגיל שלך?"
 
-#. ""
 #: psynet/demography/general.py
 #, python-brace-format
 msgctxt "age"
 msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
 "was: '{AGE}'"
-msgstr "עליך לספק את הגיל שלך כמספר שלם בין 0 ל-120!"
-"התשובה שלך היתה: '{AGE}'"
+msgstr "עליך לספק את הגיל שלך כמספר שלם בין 0 ל-120!התשובה שלך היתה: '{AGE}'"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -1575,6 +1573,43 @@ msgstr "האם קיבלת טיפול בדיבור בילדותך?"
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "האם אי פעם אובחנת עם דיסלקציה?"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "רשום את המספר בתמונה."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "בכל ניסיון תוצג בפניכם תמונה המכילה מספר."
+
+#. ""
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "תמונה זו תיעלם לאחר {HIDE_AFTER} שניות."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr "כעת נבצע בדיקה מהירה כדי לבדוק את היכולת שלך לתפוס צבעים."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "עליך להזין את המספר שאתה רואה בתיבת הטקסט."
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
@@ -3239,6 +3274,12 @@ msgstr "קירגיזסטן"
 #: psynet/utils.py
 #, fuzzy
 msgctxt "country_name"
+msgid "Lao"
+msgstr "לאו"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
 msgid "Latvia"
 msgstr "לטביה"
 
@@ -3421,6 +3462,12 @@ msgstr "מיאנמר"
 msgctxt "country_name"
 msgid "Namibia"
 msgstr "נמיביה"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "נאורו"
 
 #: psynet/utils.py
 #, fuzzy
@@ -3841,6 +3888,12 @@ msgstr "ללכת"
 msgctxt "country_name"
 msgid "Tokelau"
 msgstr "טוקלאו"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "טונגה"
 
 #: psynet/utils.py
 #, fuzzy
@@ -4559,18 +4612,6 @@ msgstr "כּוּרדִי"
 #: psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Lao"
-msgstr "לאו"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "country_name"
-msgid "Lao"
-msgstr "לאו"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "language_name"
 msgid "Latin"
 msgstr "לָטִינִית"
 
@@ -4669,18 +4710,6 @@ msgstr "מרשלזי"
 msgctxt "language_name"
 msgid "Mongolian"
 msgstr "מוֹנגוֹלִי"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Nauru"
-msgstr "נאורו"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "country_name"
-msgid "Nauru"
-msgstr "נאורו"
 
 #: psynet/utils.py
 #, fuzzy
@@ -5017,18 +5046,6 @@ msgstr "טיבטי"
 msgctxt "language_name"
 msgid "Tigrinya"
 msgstr "טיגריניה"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Tonga"
-msgstr "טונגה"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "country_name"
-msgid "Tonga"
-msgstr "טונגה"
 
 #: psynet/utils.py
 #, fuzzy
