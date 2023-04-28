@@ -3,7 +3,6 @@ import re
 import subprocess
 import tempfile
 from collections import OrderedDict
-from glob import glob
 from os.path import exists
 from os.path import join as join_path
 
@@ -45,42 +44,12 @@ def extract_psynet_pot(locales_dir=None):
     return load_po(pot_path)
 
 
-def extract_pot_from_experiment_folder(
-    locales_dir=os.path.join(os.getcwd(), "locales")
-):
-    from . import deployment_info
-
-    try:
-        source_experiment_directory_path = deployment_info.read(
-            "source_experiment_directory_path"
-        )
-    except (KeyError, FileNotFoundError):
-        source_experiment_directory_path = os.getcwd()
-    os.makedirs(locales_dir, exist_ok=True)
-
-    pot_path = os.path.join(locales_dir, "experiment.pot")
-    extract_pot(
-        source_experiment_directory_path, ".", pot_path, start_with_fresh_file=True
-    )
-    if any(
-        [
-            path
-            for path in glob(
-                os.path.join(source_experiment_directory_path, "templates", "*.html")
-            )
-        ]
-    ):
-        extract_pot(source_experiment_directory_path, "templates/*.html", pot_path)
-
-    return load_po(pot_path)
-
-
 def new_pot(fpath):
     """Returns an empty pot file."""
     pot = polib.POFile()
     pot.metadata = {
         "MIME-Version": "1.0",
-        "Content-Type": "text/plain; charset=CHARSET",
+        "Content-Type": "text/plain; charset=UTF-8",
         "Content-Transfer-Encoding": "8bit",
     }
     pot.encoding = "utf-8"
@@ -133,6 +102,13 @@ def extract_translations_with_xgettext(input_file):
             f'xgettext -o {tmp_pot_file} {input_file} -L Python --keyword="_p:1c,2"',
             tmp_pot_file,
         )
+
+
+def clean_po(po, package_name):
+    po = clean_code_occurence_paths_in_po(po, package_name)
+    po = remove_duplicate_entries_po(po)
+    po.sort()
+    return po
 
 
 def extract_pot(
@@ -192,9 +168,7 @@ def extract_pot(
     ]
     if len(pot_entries) > 0:
         pot.extend(pot_entries)
-        pot = clean_code_occurence_paths_in_po(pot, package_name)
-        pot = remove_duplicate_entries_po(pot)
-        pot.sort()
+        pot = clean_po(pot, package_name)
         pot.save(pot_path)
     return len(pot_entries)
 
