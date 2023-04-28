@@ -1810,7 +1810,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def route_set_locale_participant(cls, participant_id):
         participant = cls.get_participant_from_participant_id(participant_id)
-        old_locale = participant.var.locale
+        try:
+            old_locale = participant.var.locale
+        except KeyError:
+            old_locale = get_language()
         GET = request.args.to_dict()
         assert "locale" in GET, "locale not in GET"
         new_locale = GET["locale"]
