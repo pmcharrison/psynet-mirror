@@ -393,9 +393,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return load_po(pot_path)
 
     def check_experiment_translations(self):
-        locales_dir = os.path.join(
-            deployment_info.read("source_experiment_directory_path"), "locales"
-        )
+        try:
+            source_experiment_directory_path = deployment_info.read(
+                "source_experiment_directory_path"
+            )
+        except (KeyError, FileNotFoundError):
+            source_experiment_directory_path = os.getcwd()
+        locales_dir = os.path.join(source_experiment_directory_path, "locales")
+
         if self.translation_checks_needed(locales_dir):
             check_translations(
                 module="experiment",
@@ -426,10 +431,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
 
     def compile_experiment_translations_if_necessary(self):
+        try:
+            source_experiment_directory_path = deployment_info.read(
+                "source_experiment_directory_path"
+            )
+        except (KeyError, FileNotFoundError):
+            source_experiment_directory_path = os.getcwd()
+
         self.compile_translations_if_necessary(
-            os.path.join(
-                deployment_info.read("source_experiment_directory_path"), "locales"
-            ),
+            os.path.join(source_experiment_directory_path, "locales"),
             "experiment",
         )
 
@@ -672,9 +682,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def get_experiment_folder_name(cls):
-        return os.path.basename(
-            deployment_info.read("source_experiment_directory_path")
-        )
+        try:
+            source_experiment_directory_path = deployment_info.read(
+                "source_experiment_directory_path"
+            )
+        except (KeyError, FileNotFoundError):
+            source_experiment_directory_path = os.getcwd()
+        return os.path.basename(source_experiment_directory_path)
 
     @classmethod
     def config_defaults(cls):
