@@ -3,6 +3,7 @@ import re
 import subprocess
 import tempfile
 from collections import OrderedDict
+from glob import glob
 from os.path import exists
 from os.path import join as join_path
 
@@ -41,6 +42,36 @@ def extract_psynet_pot(locales_dir=None):
     )
     n_translatable_strings += extract_pot(psynet_folder, "psynet/.", pot_path)
     print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
+    return load_po(pot_path)
+
+
+def extract_pot_from_experiment_folder(
+    locales_dir=os.path.join(os.getcwd(), "locales")
+):
+    from . import deployment_info
+
+    try:
+        source_experiment_directory_path = deployment_info.read(
+            "source_experiment_directory_path"
+        )
+    except (KeyError, FileNotFoundError):
+        source_experiment_directory_path = os.getcwd()
+    os.makedirs(locales_dir, exist_ok=True)
+
+    pot_path = os.path.join(locales_dir, "experiment.pot")
+    extract_pot(
+        source_experiment_directory_path, ".", pot_path, start_with_fresh_file=True
+    )
+    if any(
+        [
+            path
+            for path in glob(
+                os.path.join(source_experiment_directory_path, "templates", "*.html")
+            )
+        ]
+    ):
+        extract_pot(source_experiment_directory_path, "templates/*.html", pot_path)
+
     return load_po(pot_path)
 
 
