@@ -348,11 +348,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
-    def get_source_experiment_locales_folder(self):
-        return os.path.join(self.get_source_experiment_directory_path(), "locales")
-
     def extract_pot_from_experiment_folder(self, locales_dir):
-        source_experiment_directory_path = self.get_source_experiment_directory_path()
+        source_experiment_directory_path = deployment_info.read(
+            "source_experiment_directory_path"
+        )
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
@@ -379,7 +378,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     def check_experiment_translations(self):
-        locales_dir = self.get_source_experiment_locales_folder()
+        locales_dir = os.path.join(
+            deployment_info.read("source_experiment_directory_path"), "locales"
+        )
         if self.translation_checks_needed(locales_dir):
             check_translations(
                 module="experiment",
@@ -411,7 +412,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def compile_experiment_translations_if_necessary(self):
         self.compile_translations_if_necessary(
-            self.get_source_experiment_locales_folder(), "experiment"
+            os.path.join(
+                deployment_info.read("source_experiment_directory_path"), "locales"
+            ),
+            "experiment",
         )
 
     def on_launch(self):
@@ -652,15 +656,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {}
 
     @classmethod
-    def get_source_experiment_directory_path(cls):
-        try:
-            return deployment_info.read("source_experiment_directory_path")
-        except (KeyError, FileNotFoundError):
-            return os.getcwd()
-
-    @classmethod
     def get_experiment_folder_name(cls):
-        return os.path.basename(cls.get_source_experiment_directory_path())
+        return os.path.basename(
+            deployment_info.read("source_experiment_directory_path")
+        )
 
     @classmethod
     def config_defaults(cls):
