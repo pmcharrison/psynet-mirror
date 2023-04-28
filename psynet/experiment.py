@@ -8,6 +8,8 @@ import traceback
 import uuid
 from collections import OrderedDict
 from datetime import datetime
+from glob import glob
+from os.path import exists
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -41,11 +43,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
-from .internationalization import (
-    check_translations,
-    compile_mo,
-    extract_pot_from_experiment_folder,
-)
+from .internationalization import check_translations, compile_mo, extract_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -356,6 +354,44 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
         )
 
+    @classmethod
+    def extract_pot_from_experiment_folder(cls, input_directory, pot_path):
+        extract_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
+        if any(
+            [
+                path
+                for path in glob(os.path.join(input_directory, "templates", "*.html"))
+            ]
+        ):
+            extract_pot(input_directory, "templates/*.html", pot_path)
+
+    @classmethod
+    def create_pot_from_experiment_folder(cls):
+        from . import deployment_info
+
+        try:
+            source_experiment_directory_path = deployment_info.read(
+                "source_experiment_directory_path"
+            )
+        except (KeyError, FileNotFoundError):
+            source_experiment_directory_path = os.getcwd()
+
+        if not source_experiment_directory_path.endswith("/"):
+            source_experiment_directory_path += "/"
+
+        locales_dir = os.path.join(source_experiment_directory_path, "locales")
+        os.makedirs(locales_dir, exist_ok=True)
+
+        pot_path = os.path.join(locales_dir, "experiment.pot")
+        if exists(pot_path):
+            os.remove(pot_path)
+        cls.extract_pot_from_experiment_folder(
+            source_experiment_directory_path, pot_path
+        )
+        if not exists(pot_path):
+            raise FileNotFoundError(f"Could not find pot file at {pot_path}")
+        return load_po(pot_path)
+
     def check_experiment_translations(self):
         locales_dir = os.path.join(
             deployment_info.read("source_experiment_directory_path"), "locales"
@@ -365,7 +401,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 module="experiment",
                 locales_dir=locales_dir,
                 variable_placeholders=self.var.get("variable_placeholders", {}),
-                extract_translations_function=extract_pot_from_experiment_folder,
+                extract_translations_function=self.create_pot_from_experiment_folder,
             )
 
     def compile_translations_if_necessary(self, locales_dir, module):
