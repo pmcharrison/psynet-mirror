@@ -12,7 +12,7 @@ def init(
     mode: bool,
     is_local_deployment: bool,
     is_ssh_deployment: bool,
-    source_experiment_directory_path: str = os.getcwd(),
+    folder_name: str = os.path.basename(os.getcwd()),
 ):
     secret = uuid.uuid4()
     write_all(locals())

@@ -337,14 +337,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
-        try:
-            source_experiment_directory_path = deployment_info.read(
-                "source_experiment_directory_path"
-            )
-        except (KeyError, FileNotFoundError):
-            source_experiment_directory_path = os.getcwd()
-
-        locales_dir = os.path.join(source_experiment_directory_path, "locales")
+        locales_dir = os.path.abspath("locales")
 
         self.pre_deploy_routines = []
         if self.translation_checks_needed(locales_dir):
@@ -368,9 +361,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "compile_translations_if_necessary",
                 self.compile_translations_if_necessary,
                 {
-                    "locales_dir": os.path.join(
-                        source_experiment_directory_path, "locales"
-                    ),
+                    "locales_dir": os.path.abspath("locales"),
                     "module": "experiment",
                 },
             )
@@ -395,20 +386,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             extract_pot(input_directory, "templates/*.html", pot_path)
 
     @classmethod
-    def create_pot_from_experiment_folder(cls):
-        from . import deployment_info
-
-        try:
-            source_experiment_directory_path = deployment_info.read(
-                "source_experiment_directory_path"
-            )
-        except (KeyError, FileNotFoundError):
-            source_experiment_directory_path = os.getcwd()
-
+    def create_pot_from_experiment_folder(cls, locales_dir=None):
+        source_experiment_directory_path = os.path.abspath(os.getcwd())
         if not source_experiment_directory_path.endswith("/"):
             source_experiment_directory_path += "/"
-
-        locales_dir = os.path.join(source_experiment_directory_path, "locales")
+        if locales_dir is None:
+            locales_dir = os.path.join(source_experiment_directory_path, "locales")
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
@@ -682,12 +665,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_experiment_folder_name(cls):
         try:
-            source_experiment_directory_path = deployment_info.read(
-                "source_experiment_directory_path"
-            )
+            return deployment_info.read("folder_name")
         except (KeyError, FileNotFoundError):
-            source_experiment_directory_path = os.getcwd()
-        return os.path.basename(source_experiment_directory_path)
+            return os.path.basename(os.getcwd())
 
     @classmethod
     def config_defaults(cls):
