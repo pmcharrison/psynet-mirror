@@ -1291,6 +1291,7 @@ class ColorBlindnessTest(StaticTrialMaker):
         trial_class=ColorBlindnessTrial,
         locale=DEFAULT_LOCALE,
     ):
+        label += f"_{locale}"
         self.hide_after = hide_after
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
