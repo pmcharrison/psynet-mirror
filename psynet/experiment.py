@@ -344,10 +344,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except (KeyError, FileNotFoundError):
             source_experiment_directory_path = os.getcwd()
 
-        self.pre_deploy_routines = [
-            PreDeployRoutine(
-                "check_experiment_translations", self.check_experiment_translations, {}
-            ),
+        locales_dir = os.path.join(source_experiment_directory_path, "locales")
+
+        self.pre_deploy_routines = []
+        if self.translation_checks_needed(locales_dir):
+            self.pre_deploy_routines.append(
+                PreDeployRoutine(
+                    "check_experiment_translations",
+                    check_translations,
+                    {
+                        "module": "experiment",
+                        "locales_dir": locales_dir,
+                        "variable_placeholders": self.var.get(
+                            "variable_placeholders", {}
+                        ),
+                        "extract_translations_function": self.create_pot_from_experiment_folder,
+                    },
+                )
+            )
+
+        self.pre_deploy_routines.append(
             PreDeployRoutine(
                 "compile_translations_if_necessary",
                 self.compile_translations_if_necessary,
@@ -357,8 +373,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     ),
                     "module": "experiment",
                 },
-            ),
-        ]
+            )
+        )
 
         self.process_timeline()
 
@@ -404,23 +420,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not exists(pot_path):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
-
-    def check_experiment_translations(self):
-        try:
-            source_experiment_directory_path = deployment_info.read(
-                "source_experiment_directory_path"
-            )
-        except (KeyError, FileNotFoundError):
-            source_experiment_directory_path = os.getcwd()
-        locales_dir = os.path.join(source_experiment_directory_path, "locales")
-
-        if self.translation_checks_needed(locales_dir):
-            check_translations(
-                module="experiment",
-                locales_dir=locales_dir,
-                variable_placeholders=self.var.get("variable_placeholders", {}),
-                extract_translations_function=self.create_pot_from_experiment_folder,
-            )
 
     def compile_translations_if_necessary(self, locales_dir, module):
         """Compiles translations if necessary."""
