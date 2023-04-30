@@ -30,10 +30,9 @@ from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
-from pandas.api.types import is_object_dtype
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import deferred, undefer
+from sqlalchemy.orm import deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
