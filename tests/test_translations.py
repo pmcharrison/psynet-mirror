@@ -51,5 +51,6 @@ def test_run():
         "PERFORMANCE_BONUS": 1.2,
         "TERMINATION_TIME": 120,
         "AGE": 12,
+        "HIDE_AFTER": 2,
     }
     check_translations(variable_placeholders=VARIABLE_PLACEHOLDERS)
