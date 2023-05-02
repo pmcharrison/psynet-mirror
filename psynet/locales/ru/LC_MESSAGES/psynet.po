@@ -3121,6 +3121,12 @@ msgstr "Науру"
 
 #: psynet/utils.py
 #, fuzzy
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "Науру"
+
+#: psynet/utils.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Nepal"
 msgstr "Непал"
@@ -4261,6 +4267,12 @@ msgstr "Лаос"
 
 #: psynet/utils.py
 #, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Лаос"
+
+#: psynet/utils.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Latin"
 msgstr "Латинский"
@@ -4700,6 +4712,12 @@ msgstr "Тигринья"
 #: psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Tonga"
+msgstr "Тонга"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
 msgid "Tonga"
 msgstr "Тонга"
 
