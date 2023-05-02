@@ -334,8 +334,8 @@ def assert_no_missing_translations(po_entries, pot_entries, locale):
         ]
         raise IndexError(f"Missing translations for {locale} (see above)")
 
-    assert (
-        pot_entries.keys() == po_entries.keys()
+    assert all(
+        [key in po_entries for key in pot_entries.keys()]
     ), f"Keys in {locale} do not match keys in the template"
 
 
