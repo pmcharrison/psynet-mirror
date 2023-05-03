@@ -73,6 +73,34 @@ Now you can right click on a particular test file or test function within PyChar
 and run the test by clicking 'Run pytest in ...', or alternatively
 'Debug pytest in ...'. The latter mode is slower but supports breakpoints.
 
+Debugging tests via Docker
+--------------------------
+
+If you are making changes to the ``Dockerfile`` in your merge request, 
+then these changes may not be reflected in the tests you run, because the 
+tests by default pull the PsyNet master Docker base image. 
+In order to make these tests work properly, you need to run the tests on 
+a Docker image built from your branch. To do this, do the following.
+
+First, go to your PsyNet source code directory and run the following
+(make sure you are not within a demo directory):
+
+:: 
+
+    docker build -t registry.gitlab.com/psynetdev/psynet:master .
+
+This will build the PsyNet docker image from your local branch and tag it as if it were
+the master branch. Don't worry, this won't be uploaded to GitLab unless you say so.
+
+If you now want to run a demo test, then you should be able to do so as follows:
+
+::
+
+    docker/run pytest test.py
+
+Note that this does not quite match the Docker environment that the CI tests are using, 
+but it should be close enough. We might document alternative approaches later.
+
 
 Ignorable errors
 ----------------
