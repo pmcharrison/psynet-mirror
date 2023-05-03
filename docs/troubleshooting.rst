@@ -6,6 +6,17 @@ Troubleshooting
 ===============
 
 
+Annoying deprecation warnings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some situations you can find that your PsyNet logs are filled with annoying deprecation warnings.
+We think that the environment variable ``PYTHONWARNINGS`` should work for suppressing such warnings:
+
+.. code :: bash
+
+    PYTHONWARNINGS="ignore::DeprecationWarning" psynet debug local
+
+
 Database connection refused
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
