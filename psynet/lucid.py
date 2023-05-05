@@ -12,6 +12,49 @@ from .utils import get_logger
 logger = get_logger()
 
 
+def compute_lucid_reach(
+    initial_recruitment_size,
+    days,
+    completion_time,
+    incidence_rate,
+    price_ceiling,
+    language_code,
+    country_code,
+    api_key,
+):
+    url = "https://api.samplicio.us/demand/v2-beta/reach/audience-estimate"
+    data = json.dumps(
+        {
+            "qualifications": [
+                {
+                    # MS_is_mobile
+                    "question_id": 8214,
+                    "condition": "false",
+                },
+                {
+                    # MS_browser_type_Non_Wurfl
+                    "question_id": 1035,
+                    "condition": "Chrome",
+                },
+            ],
+            "completes": initial_recruitment_size,
+            "days": days,
+            "length_of_interview": completion_time,
+            "incidence_rate": incidence_rate,
+            "price_ceiling": price_ceiling,
+            "locale": f"{language_code}_{country_code}",
+        }
+    )
+    headers = {
+        "Content-type": "application/json",
+        "Authorization": api_key,
+        "Accept": "text/plain",
+    }
+    response = requests.post(url, data=data, headers=headers)
+    assert response.status_code == 200, f"Error: {response.status_code} {response.text}"
+    return response.json()
+
+
 class LucidServiceException(Exception):
     """Custom exception type"""
 
