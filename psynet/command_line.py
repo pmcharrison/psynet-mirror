@@ -9,6 +9,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
+from math import ceil
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -37,6 +38,7 @@ from psynet import __version__
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
+from .recruiters import LucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -859,6 +861,41 @@ def docs(force_rebuild):
 ##############
 
 
+def check_lucid_reach(experiment):
+    from .experiment import get_and_load_config
+
+    config = get_and_load_config()
+    wage_per_hour = config.get("wage_per_hour")
+    price_ceiling = experiment.estimated_max_bonus(wage_per_hour)
+    completion_time = ceil(experiment.estimated_completion_time(wage_per_hour) / 60)
+    lucid_recruitment_config = json.loads(config.get("lucid_recruitment_config"))
+
+    incidence_rate = lucid_recruitment_config["survey"]["BidIncidence"] / 100
+    days = lucid_recruitment_config["expected_duration_in_days"]
+    country_code = lucid_recruitment_config["country_code"].lower()
+    language_code = lucid_recruitment_config["language_code"].lower()
+
+    from psynet.lucid import compute_lucid_reach
+
+    response_json = compute_lucid_reach(
+        initial_recruitment_size=experiment.initial_recruitment_size,
+        days=days,
+        completion_time=completion_time,
+        incidence_rate=incidence_rate,
+        price_ceiling=price_ceiling,
+        language_code=language_code,
+        country_code=country_code,
+        api_key=config.get("lucid_api_key"),
+    )
+
+    feasibility = int(response_json["result"]["feasibility"])
+    assert feasibility > experiment.initial_recruitment_size, (
+        f"You aim to recruit {experiment.initial_recruitment_size} participants, but Lucid predicts that only "
+        f"{feasibility} participants will be available. Consider increasing the number of days of recruitment "
+        f"(currently {days}) or increase the wage per hour (currently {wage_per_hour} {config.get('currency')})."
+    )
+
+
 def check_prolific_payment(experiment, config):
     from .experiment import get_and_load_config
 
@@ -920,7 +957,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 "To add a generic Dockerfile to your experiment directory, run the following command:\n"
                 "psynet update-scripts"
             )
-
     if not local_:
         init_db(drop_all=True)
 
@@ -958,6 +994,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         recruiter = exp.recruiter
         is_mturk = isinstance(recruiter, MTurkRecruiter)
         is_prolific = isinstance(recruiter, ProlificRecruiter)
+        is_lucid = isinstance(recruiter, LucidRecruiter)
 
         if mode in ["sandbox", "deploy"]:
             if isinstance(exp.asset_storage, DebugStorage):
@@ -969,6 +1006,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 )
             if is_prolific:
                 check_prolific_payment(exp, config)
+            elif is_lucid:
+                check_lucid_reach(exp)
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
