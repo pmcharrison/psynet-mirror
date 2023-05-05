@@ -348,9 +348,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     {
                         "module": "experiment",
                         "locales_dir": locales_dir,
-                        "variable_placeholders": self.var.get(
-                            "variable_placeholders", {}
-                        ),
+                        "variable_placeholders": self.variable_placeholders,
                         "extract_translations_function": self.create_pot_from_experiment_folder,
                     },
                 )
@@ -598,6 +596,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def base_payment(self):
         return get_config().get("base_payment")
 
+    @property
+    def variable_placeholders(self):
+        return {}
+
     def get_initial_recruitment_size(self):
         return get_and_load_config().get("initial_recruitment_size")
 
@@ -735,7 +737,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "hard_max_experiment_payment": 1100.0,
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
-            "variable_placeholders": {},  # Used for variable placeholders to test translations before deploying
         }
 
     @property
