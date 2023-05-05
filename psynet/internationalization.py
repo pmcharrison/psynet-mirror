@@ -1,12 +1,13 @@
 import os
 import re
-import subprocess
+import sys
 import tempfile
 from collections import OrderedDict
 from os.path import exists
 from os.path import join as join_path
 
 import pandas as pd
+import pexpect
 import polib
 
 from .utils import logger
@@ -67,9 +68,14 @@ def load_po(po_path):
 
 def get_pot_from_command(cmd, tmp_pot_file):
     """Create a pot file from a command and open."""
-    subprocess.call(
-        cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
-    )
+    timeout = 60
+    p = pexpect.spawn(cmd, timeout=timeout)
+    while not p.eof():
+        line = p.readline().decode("utf-8")
+        print(line, end="")
+    p.close()
+    if p.exitstatus > 0:
+        sys.exit(p.exitstatus)
     if os.path.exists(tmp_pot_file):
         pot = load_po(tmp_pot_file)
         os.remove(tmp_pot_file)
