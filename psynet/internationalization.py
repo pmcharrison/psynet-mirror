@@ -30,17 +30,9 @@ def extract_psynet_pot(locales_dir=None):
     locales_dir = get_locales_dir(locales_dir)
     psynet_folder = locales_dir.replace("psynet/locales", "")
     pot_path = join_path(locales_dir, "psynet.pot")
-    n_translatable_strings = 0
-    n_translatable_strings += extract_pot(
-        psynet_folder, "psynet/templates/*.html", pot_path, start_with_fresh_file=True
+    n_translatable_strings = extract_pot(
+        psynet_folder, "psynet/.", pot_path, start_with_fresh_file=True
     )
-    n_translatable_strings += extract_pot(
-        psynet_folder, "psynet/templates/consent/*.html", pot_path
-    )
-    n_translatable_strings += extract_pot(
-        psynet_folder, "psynet/templates/macros/*.html", pot_path
-    )
-    n_translatable_strings += extract_pot(psynet_folder, "psynet/.", pot_path)
     print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
     return load_po(pot_path)
 
