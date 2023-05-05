@@ -30,7 +30,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger>=9.6.0",
+    "dallinger>=9.7.0",
     "dominate",
     "importlib_resources",
     "ipywidgets",

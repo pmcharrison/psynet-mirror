@@ -406,13 +406,11 @@ def json_clean(x, details=False, contents=False):
         del x["metadata_"]
 
 
-def json_unpack_answer(x):
-    if "answer" in x and isinstance(x["answer"], dict):
-        answer = x["answer"]
-        del x["answer"]
-        for key, value in answer.items():
-            x[f"answer__{key}"] = value
-
+def json_unpack_field(x: dict, field: str, replace: bool = False):
+    if field in x and isinstance(x[field], dict):
+        for key, value in x[field].items():
+            if replace or (key not in x):
+                x[key] = value
     return x
 
 

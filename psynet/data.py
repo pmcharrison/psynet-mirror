@@ -46,6 +46,7 @@ from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
+from .serialize import serialize
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -69,19 +70,9 @@ def _get_superclasses_by_table():
     A dictionary where the keys enumerate the different tables in the database
     and the values correspond to the superclasses for each of those tables.
     """
-    # try:
-    #     mappers = list(db.Base.registry.mappers)
-    # except Exception:
-    #     import pydevd_pycharm
-    #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-    # mapped_classes = [m.class_ for m in mappers]
 
     mappers = list(db.Base.registry.mappers)
     mapped_classes = [m.class_ for m in mappers]
-
-    # candidate_classes = {x.class_ for x in list(dict(db.Base.registry._managers))}
-    # candidate_classes = organize_by_key(candidate_classes, lambda x: x.__name__)
-    # mapped_classes = [classes[0] for classes in candidate_classes.values()]
 
     mapped_classes_by_table = organize_by_key(mapped_classes, lambda x: x.__tablename__)
     superclasses_by_table = {
@@ -172,41 +163,11 @@ def _get_preferred_superclass_version(cls):
     return cls
 
 
-def _db_class_instances_to_dicts(cls, scrub_pii: bool):
-    """
-    Given a class, retrieves all instances of that class from the database,
-    encodes them as JSON-style dictionaries, and returns the resulting list.
-
-    Parameters
-    ----------
-    cls
-        Class to retrieve.
-
-    scrub_pii
-        Whether to remove personally identifying information.
-
-    Returns
-    -------
-
-    List of dictionaries corresponding to JSON-encoded objects.
-
-    """
-    primary_keys = [c.name for c in cls.__table__.primary_key.columns]
-    obj_sql = cls.query.order_by(*primary_keys).all()
-    if len(obj_sql) == 0:
-        print(f"{cls.__name__}: skipped (nothing to export)")
-        return []
-    else:
-        obj_dict = [
-            _db_instance_to_dict(obj, scrub_pii)
-            for obj in tqdm(obj_sql, desc=cls.__name__)
-        ]
-        return obj_dict
-
-
 def _db_instance_to_dict(obj, scrub_pii: bool):
     """
     Converts an ORM-mapped instance to a JSON-style representation.
+    Complex types (e.g. lists, dicts) are serialized to strings using
+    psynet.serialize.serialize.
 
     Parameters
     ----------
@@ -230,6 +191,9 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data["class"] = obj.__class__.__name__  # for the Dallinger classes
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
+    for key, value in data.items():
+        if not is_basic_type(value):
+            data[key] = serialize(value)
     return data
 
 
@@ -251,13 +215,23 @@ def _prepare_db_export(scrub_pii):
     The keys correspond to the most-specific available class names,
     e.g. ``CustomNetwork`` as opposed to ``Network``.
     """
-    superclasses = list(_get_superclasses_by_table().values())
-    superclasses.sort(key=lambda cls: cls.__name__)
-    res = []
-    for superclass in superclasses:
-        res.extend(_db_class_instances_to_dicts(superclass, scrub_pii))
-    res = organize_by_key(res, key=lambda x: x["class"])
-    return res
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+    tables = get_db_tables().values()
+
+    obj_sql_by_table = [exp.pull_table(table) for table in tables]
+    obj_sql = [obj for sublist in obj_sql_by_table for obj in sublist]
+    obj_sql_by_cls = organize_by_key(obj_sql, key=lambda x: x.__class__.__name__)
+
+    obj_dict_by_cls = {
+        _cls_name: [
+            _db_instance_to_dict(obj, scrub_pii)
+            for obj in tqdm(_obj_sql_for_cls, desc=_cls_name)
+        ]
+        for _cls_name, _obj_sql_for_cls in obj_sql_by_cls.items()
+    }
+    return obj_dict_by_cls
 
 
 def copy_db_table_to_csv(tablename, path):

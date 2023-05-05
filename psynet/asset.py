@@ -24,7 +24,7 @@ from psynet.timeline import NullElt
 
 from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
-from .field import PythonDict, PythonObject, register_extra_var
+from .field import PythonDict, PythonObject  # , register_extra_var
 from .media import get_aws_credentials
 from .process import AsyncProcess, LocalAsyncProcess
 from .utils import (
@@ -332,7 +332,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         .where(AsyncProcess.asset_id == id, AsyncProcess.pending)
         .exists()
     )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     participant_links = relationship(
         "AssetParticipant",

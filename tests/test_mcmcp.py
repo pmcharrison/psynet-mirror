@@ -43,6 +43,37 @@ def summarize_trials(trial_class, experiment_object, node, participant, answers)
 
 @pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+def test_trial_to_dict(experiment_module, experiment_object, participant):
+    node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
+    trial_class = experiment_module.CustomTrial
+    trial = make_mcmcp_trial(
+        trial_class,
+        experiment_object,
+        node,
+        participant=participant,
+        answer=[{"role": "proposal"}],
+    )
+    trial_dict = trial.to_dict()
+
+    # Test that the definition is unpacked into separate columns
+    assert trial_dict["current_state"] == trial.definition["current_state"]
+    assert trial_dict["proposal"] == trial.definition["proposal"]
+    assert trial_dict["ordered"] == trial.definition["ordered"]
+
+    # Unpacking a dictionary that contains the 'answer' field should not clobber the original answer column
+    trial_2 = make_mcmcp_trial(
+        trial_class,
+        experiment_object,
+        node,
+        participant=participant,
+        answer={"answer": "123"},
+    )
+    trial_dict_2 = trial_2.to_dict()
+    assert trial_dict_2["answer"] == {"answer": "123"}
+
+
+@pytest.mark.usefixtures("in_experiment_directory")
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 def test_summarize(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
 

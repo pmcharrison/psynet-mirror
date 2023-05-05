@@ -14,7 +14,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
+from .field import PythonList, PythonObject, VarStore, extra_var
 from .process import AsyncProcess
 from .utils import get_logger, organize_by_key
 
@@ -160,7 +160,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     browser_platform = Column(String, default="")
     module_state_id = Column(Integer, ForeignKey("module_state.id"))
     module_state = relationship(
-        "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="joined"
+        "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
     current_trial_id = Column(Integer, ForeignKey("info.id"))
     current_trial = relationship(
@@ -242,7 +242,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
         .exists()
     )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     asset_links = relationship(
         "AssetParticipant",
