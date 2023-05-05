@@ -432,6 +432,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
+        self.timeline.verify_consents(self)
         self.on_every_launch()
         self.var.launch_finished = True
         logger.info("Experiment launch complete!")
@@ -1561,6 +1562,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
+    @experiment_route("/exit_recruiter", methods=["GET"])
+    @staticmethod
+    def exit_recruiter():
+        assignment_id = request.values["assignment_id"]
+        reason = request.values["reason"]
+        exp = dallinger.experiment.load().new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
+        recruiter.terminate_participant(assignment_id)
+        logger.info(
+            f"Terminating participant with RID {assignment_id} with reason {reason}"
+        )
+
+        return render_template_with_translations(
+            "exit_recruiter_lucid.html",
+            external_submit_url=external_submit_url,
+        )
+
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
     def google_search_console():
@@ -1665,8 +1684,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return flask.send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
-    @staticmethod
-    def render_error():
+    @classmethod
+    def render_error(cls):
         from psynet.utils import error_page
 
         request_data = request.form.get("request_data")
@@ -1674,7 +1693,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = None
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-        return error_page(participant=participant, request_data=request_data)
+        exp = cls.new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = None
+        if hasattr(recruiter, "external_submit_url"):
+            external_submit_url = recruiter.external_submit_url(participant=participant)
+        return error_page(
+            participant=participant,
+            request_data=request_data,
+            recruiter=cls.new(db.session).recruiter.nickname,
+            external_submit_url=external_submit_url,
+        )
 
     @experiment_route("/module", methods=["POST"])
     @classmethod
@@ -1794,6 +1823,58 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return success_response()
 
+    @experiment_route("/terminate_participant", methods=["GET"])
+    @classmethod
+    def terminate_participant(cls):
+        participant_id = request.values.get("participant_id")
+        if participant_id is None:
+            logger.error("Error getting participant ID.")
+
+        participant = get_participant(participant_id)
+        rid = participant.entry_information["RID"]
+        exp = cls.new(db.session)
+
+        try:
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+            external_submit_url = None
+            if hasattr(recruiter, "external_submit_url"):
+                external_submit_url = recruiter.external_submit_url(assignment_id=rid)
+            if hasattr(recruiter, "terminate_participant"):
+                recruiter.terminate_participant(rid)
+        except Exception as e:
+            logger.error(f"Error terminating participant with RID '{rid}': {e}")
+
+        return render_template_with_translations(
+            "exit_recruiter_lucid.html",
+            external_submit_url=external_submit_url,
+        )
+
+    @experiment_route("/check_participant_termination", methods=["POST"])
+    @classmethod
+    def check_participant_termination(cls):
+        # auth_token = request.values["auth_token"]
+        # Experiment.validate_auth_token(participant, auth_token)
+
+        participant_id = request.values.get("participant_id")
+        if participant_id is None:
+            logger.error("Error getting participant ID.")
+
+        participant = get_participant(participant_id)
+        rid = participant.entry_information["RID"]
+
+        try:
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+            if hasattr(recruiter, "check_participant_termination"):
+                return str(recruiter.check_participant_termination(rid))
+        except Exception as e:
+            logger.error(
+                f"Exception checking participant termination for RID '{rid}': {e}"
+            )
+
+        return success_response()
+
     @staticmethod
     def get_client_ip_address():
         if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
@@ -1880,6 +1961,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             try:
                 cls.check_auth_token(participant, auth_token)
             except cls.AuthTokenError as e:
+                recruiter = experiment.recruiter
+                if hasattr(recruiter, "external_submit_url"):
+                    recruiter.external_submit_url(participant=participant)
                 return e.http_response()
 
         return cls._route_timeline(experiment, participant, mode)

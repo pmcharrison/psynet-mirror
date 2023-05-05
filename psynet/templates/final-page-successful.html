@@ -2,17 +2,36 @@
 
 {% block main_body %}
     {{ pgettext("final_page_successful", "That's the end of the experiment!") }}
-    {% if config.show_bonus %}
+    {% if config.show_bonus and not experiment.with_lucid_recruitment() %}
         {% include "final-page-bonuses.html" %}
     {% endif %}
     {{ gettext("Thank you for taking part.") }}
-
+    {% if not experiment.with_lucid_recruitment() %}
     <p class="vspace"></p>
     <p>
         {{ gettext('Please click "Finish" to complete the HIT.') }}
     </p>
     <p class="vspace"></p>
 
-    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">
+    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="finish();">
         {{ gettext("Finish") }}</button>
+    {% else %}
+        <p>
+        {{ gettext('You will be redirected.') }}
+    </p>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function finish() {
+          dallinger.submitAssignment();
+        }
+        {% if experiment.with_lucid_recruitment() %}
+            setTimeout(() => {
+              finish();
+            }, 2000)
+        {% endif %}
+    </script>
 {% endblock %}
