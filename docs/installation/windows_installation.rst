@@ -44,6 +44,7 @@ Once you've installed WSL, you probably will need to restart your computer befor
 
 Troubleshooting
 ^^^^^^^^^^^^^^^
+
 When starting Docker for Windows you might run into following error: "A timeout occured while waiting for a WSL integration agent to become ready". In that case, try to install an older version of Docker Desktop (e.g. 4.17.1).
 
 When trying to run an experiment you might encounter an error message simmilar to the following: "docker: Error response from daemon: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mou
