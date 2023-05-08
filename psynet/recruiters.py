@@ -149,6 +149,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
+        self.config.set("show_bonus", False)
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
