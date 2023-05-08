@@ -2,7 +2,6 @@
     "survey": {
         "BidIncidence": 66,
         "CollectsPII": false,
-        "CountryLanguageID": 9,
         "FulcrumExchangeAllocation": 0,
         "FulcrumExchangeHedgeAccess": true,
         "IndustryID": 30,
@@ -15,5 +14,7 @@
         "headphones": true
     },
     "termination_time_in_s": 600,
-    "inactivity_timeout_in_s": 5
+    "inactivity_timeout_in_s": 5,
+    "language": "Spanish",
+    "country": "Mexico"
 }
