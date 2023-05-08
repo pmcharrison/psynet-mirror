@@ -36,5 +36,9 @@ host = 0.0.0.0
 clock_on = true
 disable_when_duration_exceeded = false
 
+[PsyNet]
+# allow_mobile_devices = true
+# force_google_chrome = false
+
 [Lucid]
 lucid_recruitment_config = file:./lucid_recruitment_config.json

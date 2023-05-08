@@ -66,14 +66,16 @@ class LucidService(object):
         self,
         api_key,
         sha1_hashing_key,
+        exp_config,
+        recruitment_config,
         sandbox=True,
-        recruitment_config=None,
         max_wait_secs=0,
     ):
         self.api_key = api_key
         self.sha1_hashing_key = sha1_hashing_key
-        self.sandbox = False  # sandbox
+        self.exp_config = exp_config
         self.recruitment_config = recruitment_config
+        self.sandbox = False  # sandbox
         self.max_wait_secs = max_wait_secs
         self.headers = {
             "Content-type": "application/json",
@@ -200,28 +202,34 @@ class LucidService(object):
         return response_data
 
     def add_qualifications_to_survey(self, survey_number):
-        # TODO: make compatible with experiment.var, e.g. experiment.var.force_google_chrome
         """Add platform and browser specific qualifications to a survey."""
-        qualifications = [
-            {
-                "Name": "MS_is_mobile",
-                "QuestionID": 8214,
-                "LogicalOperator": "NOT",
-                "NumberOfRequiredConditions": 0,
-                "IsActive": True,
-                "Order": 1,
-                "PreCodes": ["true"],
-            },
-            {
-                "Name": "MS_browser_type_Non_Wurfl",
-                "QuestionID": 1035,
-                "LogicalOperator": "OR",
-                "NumberOfRequiredConditions": 0,
-                "IsActive": True,
-                "Order": 2,
-                "PreCodes": ["Chrome"],
-            },
-        ]
+        qualifications = []
+
+        if not self.exp_config.allow_mobile_devices:
+            qualifications.append(
+                {
+                    "Name": "MS_is_mobile",
+                    "QuestionID": 8214,
+                    "LogicalOperator": "NOT",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 1,
+                    "PreCodes": ["true"],
+                }
+            )
+
+        if self.exp_config.force_google_chrome:
+            qualifications.append(
+                {
+                    "Name": "MS_browser_type_Non_Wurfl",
+                    "QuestionID": 1035,
+                    "LogicalOperator": "OR",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 2,
+                    "PreCodes": ["Chrome"],
+                }
+            )
 
         if self.recruitment_config["qualifications"].get("headphones"):
             qualifications.append(
