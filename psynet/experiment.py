@@ -82,6 +82,7 @@ from .utils import (
     get_available_locales,
     get_language,
     get_logger,
+    get_translator,
     log_time_taken,
     pretty_log_dict,
     render_template_with_translations,
@@ -533,48 +534,64 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def error_page_content(
         self,
-        gettext,
-        pgettext,
         contact_address,
         error_type,
         hit_id,
         assignment_id,
         worker_id,
     ):
+        try:
+            from psynet.participant import Participant
+
+            participant = Participant.query.filter_by(worker_id=worker_id).one()
+            locale = participant.var.locale
+        except Exception:
+            locale = None
+        gettext, pgettext = get_translator(locale)
+        _, _p = gettext, pgettext
+
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
             return self.error_page_content__prolific(gettext, pgettext)
-
-        html = tags.div()
-        with html:
-            tags.p(
-                pgettext(
-                    "mturk_error",
-                    "To enquire about compensation, please contact the researcher at %(EMAIL)s and describe what led to this error."
-                    % {"EMAIL": contact_address},
+        elif isinstance(self.recruiter, MTurkRecruiter):
+            html = tags.div()
+            with html:
+                tags.p(
+                    _p(
+                        "mturk_error",
+                        "To enquire about compensation, please contact the researcher at {EMAIL} and describe what led to this error.",
+                    ).format(EMAIL=contact_address)
                 )
-            )
-            tags.p(
-                pgettext("mturk_error", "Please also quote the following information:")
-            )
-            tags.ul(
-                tags.li(f'{gettext("Error type")}: {error_type}'),
-                tags.li(f'{gettext("HIT ID")}: {hit_id}'),
-                tags.li(f'{gettext("Assignment ID")}: {assignment_id}'),
-                tags.li(f'{gettext("Worker ID")}: {worker_id}'),
-            )
+                tags.p(
+                    _p("mturk_error", "Please also quote the following information:")
+                )
+                tags.ul(
+                    tags.li(f'{_("Error type")}: {error_type}'),
+                    tags.li(f'{_("HIT ID")}: {hit_id}'),
+                    tags.li(f'{_("Assignment ID")}: {assignment_id}'),
+                    tags.li(f'{_("Worker ID")}: {worker_id}'),
+                )
 
-        return html
+            return html
+        else:
+            return ""
 
-    def error_page_content__prolific(self, gettext, pgettext):
+    def error_page_content__prolific(self, _, _p):
         html = tags.div()
         with html:
             tags.p(
-                """
-                Don't worry, your progress has been recorded.
-                To enquire about compensation, please send the researcher a message via the Prolific website
-                and describe what led to your error.
-                """
+                " ".join(
+                    [
+                        _p(
+                            "prolific_error",
+                            "Don't worry, your progress has been recorded.",
+                        ),
+                        _p(
+                            "prolific_error",
+                            "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
+                        ),
+                    ]
+                )
             )
         return html
 
