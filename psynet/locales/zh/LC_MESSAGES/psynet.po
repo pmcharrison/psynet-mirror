@@ -1,9 +1,10 @@
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-20/04/ 20:21:01\n"
+"POT-Creation-Date: 2023-24/04/ 11:46:12\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: DeepL API\n"
 "Language-Team: DeepL\n"
@@ -25,8 +26,14 @@ msgstr "积累的奖金"
 msgid "Assignment ID"
 msgstr "任务编号"
 
+msgid "Click the above button to be compensated in case of an error."
+msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
+
 msgid "Close window"
 msgstr "关闭窗口"
+
+msgid "Complete Survey"
+msgstr "完整的调查"
 
 msgid "Do you understand and consent to these terms?"
 msgstr "您是否理解并同意这些条款？"
@@ -130,13 +137,9 @@ msgstr ""
 #, python-format, fuzzy
 msgid ""
 "You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
 "你还会看到一个或多个同意书页面，并有多达<strong>%(TERMINATION_TIME)s</strong>的时间来阅读和接受/拒绝它们。"
-
-#, fuzzy
-msgid "You will be redirected."
-msgstr "你将会被重新定向。"
 
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -447,6 +450,12 @@ msgid "I agree"
 msgstr "我同意"
 
 msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr "如果您对此研究有任何问题，请随时联系本项目的主要研究者Nori Jacoby，他的联系方式是："
+
+msgctxt "consent"
 msgid "No, thank you (return task)"
 msgstr "不同意，谢谢 (返回任务)"
 
@@ -642,12 +651,6 @@ msgstr "如果您不愿意同意，请关闭本页面。"
 msgctxt "consent-contact"
 msgid "Contact information"
 msgstr "联系信息"
-
-msgctxt "consent-overview"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr "如果您对此研究有任何问题，请随时联系本项目的主要研究者Nori Jacoby，他的联系方式是："
 
 msgctxt "consent-overview"
 msgid "Overview"
@@ -877,10 +880,6 @@ msgid "Unfortunately the experiment must end early."
 msgstr "不幸的是，这个实验必须提前结束。"
 
 msgctxt "mturk_error"
-msgid "Click the above button to be compensated in case of an error."
-msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
-
-msgctxt "mturk_error"
 msgid "Error!"
 msgstr "错误!"
 
@@ -959,602 +958,6 @@ msgid ""
 "during the test."
 msgstr "您的参与者ID未被定义，可能是因为您在测试期间切换了浏览器。"
 
-#. ""
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/abort_not_possible.html
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
-msgstr ""
-"您需要累计到 <strong> 最少 %(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> "
-"的奖励才能获得报酬"
-
-#. {"msgid":
-#. ["\u4f60\u8fd8\u4f1a\u770b\u5230\u4e00\u4e2a\u6216\u591a\u4e2a\u540c\u610f\u4e66\u9875\u9762\uff0c\u5e76\u6709\u591a\u8fbe<strong>%(TERMINATION_TIME)s</strong>\u7684\u65f6\u95f4\u6765\u9605\u8bfb\u548c\u63a5\u53d7/\u62d2\u7edd\u5b83\u4eec\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-#, python-format
-msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr "您还会看到一个或多个同意页面，最多有<strong>%(TERMINATION_TIME)s</strong>的时间阅读并接受/拒绝它们。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u4f60\u4f7f\u7528\u4e0d\u540c\u7684\u6d4f\u89c8\u5668\uff0c\u8bf7\u5728Chrome\u6d4f\u89c8\u5668\u4e2d\u91cd\u65b0\u6253\u5f00\u540c\u4e00\u9875\u9762\u3002",
-#. "\u5982\u679c\u60a8\u4f7f\u7528\u4e0d\u540c\u7684\u6d4f\u89c8\u5668\uff0c\u8bf7\u5728Chrome\u6d4f\u89c8\u5668\u4e2d\u91cd\u65b0\u6253\u5f00\u540c\u4e00\u9875\u9762\u3002",
-#. "\u5982\u679c\u60a8\u4f7f\u7528\u7684\u662f\u4e0d\u540c\u7684\u6d4f\u89c8\u5668\uff0c\u8bf7\u5728Chrome\u6d4f\u89c8\u5668\u4e2d\u91cd\u65b0\u6253\u5f00\u540c\u4e00\u9875\u9762\u3002",
-#. "\u5982\u679c\u4f60\u4f7f\u7528\u7684\u662f\u4e0d\u540c\u7684\u6d4f\u89c8\u5668\uff0c\u8bf7\u5728Chrome\u6d4f\u89c8\u5668\u4e2d\u91cd\u65b0\u6253\u5f00\u540c\u4e00\u9875\u9762\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid ""
-"If you're using a different browser, please reopen the same page in Chrome."
-msgstr "如果您使用不同的浏览器，请在Chrome浏览器中重新打开同一页面。"
-
-#. {"msgid":
-#. ["\u770b\u8d77\u6765\u60a8\u4f7f\u7528\u7684\u662f\u4e0eChrome\u4e0d\u540c\u7684\u6d4f\u89c8\u5668",
-#. "\u770b\u6765\u60a8\u4f7f\u7528\u7684\u662f\u4e0eChrome\u4e0d\u540c\u7684\u6d4f\u89c8\u5668",
-#. "\u770b\u8d77\u6765\u60a8\u4f7f\u7528\u7684\u662f\u4e0d\u540c\u4e8eChrome\u7684\u6d4f\u89c8\u5668",
-#. "\u770b\u8d77\u6765\u60a8\u4f7f\u7528\u7684\u662f\u4e0eChrome\u4e0d\u540c\u7684\u6d4f\u89c8\u5668\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "It seems like you're using a different browser than Chrome"
-msgstr "看起来您使用的浏览器不是Chrome"
-
-#. {"msgid":
-#. ["\u770b\u6765\u60a8\u4f7f\u7528\u7684\u662f\u8fc7\u65f6\u7684Chrome\u6d4f\u89c8\u5668",
-#. "\u770b\u8d77\u6765\u60a8\u4f7f\u7528\u7684\u662f\u8fc7\u65f6\u7684Chrome\u6d4f\u89c8\u5668",
-#. "\u4f3c\u4e4e\u60a8\u4f7f\u7528\u7684\u662f\u8fc7\u65f6\u7684Chrome\u6d4f\u89c8\u5668",
-#. "\u60a8\u4f3c\u4e4e\u4f7f\u7528\u4e86\u8fc7\u65f6\u7684Chrome\u6d4f\u89c8\u5668"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "It seems like you're using an out-of-date version of Chrome "
-msgstr "看起来您使用的是一个过时的Chrome版本"
-
-#. {"msgid":
-#. ["\u8bf7\u66f4\u65b0\u60a8\u7684\u6d4f\u89c8\u5668\u5e76\u518d\u6b21\u6253\u5f00\u6b64\u7f51\u9875\u3002",
-#. "\u8bf7\u66f4\u65b0\u60a8\u7684\u6d4f\u89c8\u5668\u5e76\u518d\u6b21\u6253\u5f00\u8be5\u7f51\u9875\u3002",
-#. "\u8bf7\u66f4\u65b0\u60a8\u7684\u6d4f\u89c8\u5668\uff0c\u5e76\u518d\u6b21\u6253\u5f00\u6b64\u7f51\u9875\u3002",
-#. "\u8bf7\u66f4\u65b0\u60a8\u7684\u6d4f\u89c8\u5668\uff0c\u5e76\u518d\u6b21\u6253\u5f00\u8fd9\u4e2a\u7f51\u9875\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "Please update your browser and open this web page again."
-msgstr "请更新您的浏览器并再次打开此网页。"
-
-#. {"msgid": ["\u672c\u5e94\u7528\u81f3\u5c11\u9700\u8981\u3002",
-#. "\u6b64\u5e94\u7528\u7a0b\u5e8f\u81f3\u5c11\u9700\u8981\u3002",
-#. "\u8fd9\u4e2a\u5e94\u7528\u81f3\u5c11\u9700\u8981\u3002",
-#. "\u672c\u5e94\u7528\u7a0b\u5e8f\u81f3\u5c11\u9700\u8981\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "This app requires at least: "
-msgstr "本应用至少需要： "
-
-#. {"msgid":
-#. ["\u672c\u5b9e\u9a8c\u53ea\u652f\u6301Chrome\u6d4f\u89c8\u5668\u3002",
-#. "\u672c\u5b9e\u9a8c\u4ec5\u652f\u6301Chrome\u6d4f\u89c8\u5668\u3002",
-#. "\u672c\u5b9e\u9a8c\u53ea\u652f\u6301Chrome\u3002",
-#. "\u672c\u5b9e\u9a8c\u4ec5\u652f\u6301Chrome\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "This experiment only supports Chrome."
-msgstr "本实验只支持Chrome浏览器。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u4f60\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u4e0d\u8981\u72b9\u8c6b\uff0c\u4e0e\u672c\u9879\u76ee\u7684\u4e3b\u8981\u7814\u7a76\u4eba\u5458\u8bfa\u91cc-\u96c5\u5404\u6bd4\u8054\u7cfb\u3002",
-#. "\u5982\u679c\u4f60\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u4e0d\u8981\u72b9\u8c6b\uff0c\u4e0e\u672c\u9879\u76ee\u7684\u4e3b\u8981\u7814\u7a76\u4eba\u5458\u8bfa\u91cc-\u96c5\u5404\u6bd4\u8054\u7cfb\uff0c\u7535\u8bdd\uff1a\u3002",
-#. "\u5982\u679c\u60a8\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u968f\u65f6\u4e0e\u672c\u9879\u76ee\u7684\u4e3b\u8981\u7814\u7a76\u4eba\u5458Nori
-#. Jacoby\u8054\u7cfb\uff0c\u7535\u8bdd\uff1a\u3002",
-#. "\u5982\u679c\u60a8\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u968f\u65f6\u4e0e\u672c\u9879\u76ee\u7684\u4e3b\u8981\u7814\u7a76\u4eba\u5458Nori
-#. Jacoby\u8054\u7cfb\uff0c\u7535\u8bdd\u662f\uff1a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr "如果您对这项研究有任何疑问，请立即与本项目的主要研究人员Nori Jacoby联系："
-
-#. {"msgid":
-#. ["\u5982\u679c\u4f60\u9009\u62e9\u53c2\u52a0\u5b9e\u9a8c\uff0c\u91cd\u8981\u7684\u662f\uff0c\u4f60\u6709\u8d23\u4efb\u786e\u4fdd\u5728\u4f60\u5f55\u5236\u97f3\u9891\u548c\u89c6\u9891\u65f6\uff0c\u6ca1\u6709\u4efb\u4f55\u4f60\u4e0d\u6253\u7b97\u88ab\u8bb0\u5f55\u7684\u4e1c\u897f\u88ab\u8bb0\u5f55\u4e0b\u6765\u3002
-#. \u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u60f3\u5750\u5728\u4e00\u4e2a\u4e0e\u623f\u5b50\u5176\u4ed6\u5730\u65b9\u9694\u79bb\u7684\u623f\u95f4\u91cc\u3002",
-#. "\u5982\u679c\u4f60\u9009\u62e9\u53c2\u52a0\u5b9e\u9a8c\uff0c\u91cd\u8981\u7684\u662f\uff0c\u4f60\u6709\u8d23\u4efb\u786e\u4fdd\u5728\u4f60\u5f55\u5236\u97f3\u9891\u548c\u89c6\u9891\u65f6\uff0c\u6ca1\u6709\u4efb\u4f55\u4f60\u4e0d\u6253\u7b97\u88ab\u8bb0\u5f55\u7684\u4e1c\u897f\u88ab\u8bb0\u5f55\u4e0b\u6765\u3002
-#. \u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u5e0c\u671b\u5750\u5728\u4e00\u4e2a\u4e0e\u623f\u5b50\u5176\u4ed6\u5730\u65b9\u9694\u79bb\u7684\u623f\u95f4\u91cc\u3002",
-#. "\u5982\u679c\u4f60\u9009\u62e9\u53c2\u52a0\u5b9e\u9a8c\uff0c\u91cd\u8981\u7684\u662f\uff0c\u4f60\u6709\u8d23\u4efb\u786e\u4fdd\u5728\u4f60\u5f55\u5236\u97f3\u9891\u548c\u89c6\u9891\u65f6\uff0c\u6ca1\u6709\u4efb\u4f55\u4f60\u4e0d\u6253\u7b97\u88ab\u8bb0\u5f55\u7684\u4e1c\u897f\u88ab\u8bb0\u5f55\u4e0b\u6765\u3002
-#. \u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u60f3\u5750\u5728\u4e00\u4e2a\u4e0e\u623f\u5b50\u7684\u5176\u4ed6\u5730\u65b9\u9694\u79bb\u7684\u623f\u95f4\u91cc\u3002",
-#. "\u5982\u679c\u4f60\u9009\u62e9\u53c2\u52a0\u5b9e\u9a8c\uff0c\u91cd\u8981\u7684\u662f\uff0c\u4f60\u6709\u8d23\u4efb\u786e\u4fdd\u5728\u4f60\u5f55\u5236\u97f3\u9891\u548c\u89c6\u9891\u65f6\uff0c\u6ca1\u6709\u4efb\u4f55\u4f60\u4e0d\u6253\u7b97\u88ab\u8bb0\u5f55\u7684\u4e1c\u897f\u88ab\u8bb0\u5f55\u4e0b\u6765\u3002
-#. \u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u60f3\u5750\u5728\u4e00\u4e2a\u4e0e\u623f\u5b50\u7684\u5176\u4ed6\u90e8\u5206\u9694\u79bb\u7684\u623f\u95f4\u91cc\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded. For example, you may want "
-"to sit in a room that is isolated from the rest of the house."
-msgstr ""
-"如果您选择参加实验，重要的是，您有责任确保在您录制音频和视频时，没有任何您不打算被记录的东西被记录下来。 "
-"例如，您可能想坐在一个与房子其他地方隔离的房间里。"
-
-#. {"msgid":
-#. ["\u6b64\u5916\uff0c\u5728\u4f60\u8fdb\u884c\u5f55\u97f3\u7684\u65f6\u5019\uff0c\u9ea6\u514b\u98ce\u6216\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u975e\u9884\u671f\u7684\u97f3\u9891\u6216\u89c6\u9891\uff0c\u4f8b\u5982\uff0c\u6444\u50cf\u673a\u53ef\u4ee5\u6355\u6349\u5230\u53e6\u4e00\u4e2a\u5bb6\u5ead\u6210\u5458\uff0c\u6216\u8005\u9ea6\u514b\u98ce\u53ef\u4ee5\u6355\u6349\u5230\u4f60\u5bf9\u53e6\u4e00\u4e2a\u4eba\u8bf4\u7684\u8bdd\u3002",
-#. "\u6b64\u5916\uff0c\u5728\u4f60\u8fdb\u884c\u5f55\u97f3\u7684\u65f6\u5019\uff0c\u9ea6\u514b\u98ce\u6216\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u975e\u9884\u671f\u7684\u97f3\u9891\u6216\u89c6\u9891\uff0c\u4f8b\u5982\uff0c\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u53e6\u4e00\u4e2a\u5bb6\u5ead\u6210\u5458\uff0c\u6216\u8005\u9ea6\u514b\u98ce\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u4f60\u5bf9\u53e6\u4e00\u4e2a\u4eba\u8bf4\u7684\u4e1c\u897f\u3002",
-#. "\u6b64\u5916\uff0c\u5728\u4f60\u8fdb\u884c\u5f55\u97f3\u7684\u65f6\u5019\uff0c\u9ea6\u514b\u98ce\u6216\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u975e\u9884\u671f\u7684\u97f3\u9891\u6216\u89c6\u9891\uff0c\u4f8b\u5982\uff0c\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u53e6\u4e00\u4e2a\u5bb6\u5ead\u6210\u5458\uff0c\u6216\u8005\u9ea6\u514b\u98ce\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u4f60\u5bf9\u53e6\u4e00\u4e2a\u4eba\u8bf4\u7684\u8bdd\u3002",
-#. "\u6b64\u5916\uff0c\u5728\u4f60\u8fdb\u884c\u5f55\u97f3\u7684\u65f6\u5019\uff0c\u9ea6\u514b\u98ce\u6216\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u975e\u9884\u671f\u7684\u97f3\u9891\u6216\u89c6\u9891\uff0c\u4f8b\u5982\uff0c\u6444\u50cf\u673a\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u53e6\u4e00\u4e2a\u5bb6\u5ead\u6210\u5458\uff0c\u6216\u9ea6\u514b\u98ce\u53ef\u80fd\u4f1a\u6355\u6349\u5230\u4f60\u5bf9\u53e6\u4e00\u4e2a\u4eba\u8bf4\u7684\u8bdd\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"In addition, while you perform a recording, the microphone or camera can "
-"capture unintended audio or video, for example the camera can capture "
-"another family member, or the microphone can capture something you say to "
-"another person."
-msgstr ""
-"此外，在您进行录音的时候，麦克风或摄像机可能会捕捉到非预期的音频或视频，例如，摄像机可以捕捉到另一个家庭成员，或者麦克风可以捕捉到您与另一个人的对话。"
-
-#. {"msgid":
-#. ["\u4f60\u53ef\u80fd\u5e0c\u671b\u786e\u4fdd\u5728\u4f60\u7684\u73af\u5883\u4e2d\u6ca1\u6709\u58f0\u97f3/\u89c6\u89c9\u6750\u6599\u53ef\u4ee5\u4e0e\u4f60\u7684\u4e2a\u4eba\u4fe1\u606f\u8054\u7cfb\u8d77\u6765\u3002",
-#. "\u4f60\u53ef\u80fd\u5e0c\u671b\u786e\u4fdd\u5728\u4f60\u7684\u73af\u5883\u4e2d\u6ca1\u6709\u58f0\u97f3/\u89c6\u89c9\u6750\u6599\u53ef\u4ee5\u4e0e\u4f60\u7684\u4e2a\u4eba\u4fe1\u606f\u76f8\u8054\u7cfb\u3002",
-#. "\u4f60\u53ef\u80fd\u5e0c\u671b\u786e\u4fdd\u5728\u4f60\u7684\u73af\u5883\u4e2d\u6ca1\u6709\u4efb\u4f55\u58f0\u97f3/\u89c6\u89c9\u6750\u6599\u53ef\u4ee5\u4e0e\u4f60\u7684\u4e2a\u4eba\u4fe1\u606f\u8054\u7cfb\u8d77\u6765\u3002",
-#. "\u4f60\u53ef\u80fd\u5e0c\u671b\u786e\u4fdd\u5728\u4f60\u7684\u73af\u5883\u4e2d\u6ca1\u6709\u4efb\u4f55\u58f0\u97f3/\u89c6\u89c9\u6750\u6599\u53ef\u4ee5\u4e0e\u4f60\u7684\u4e2a\u4eba\u4fe1\u606f\u76f8\u8054\u7cfb\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information."
-msgstr "您可能希望确保在您的环境中没有声音/视觉材料可以与您的个人信息联系起来。"
-
-#. {"msgid":
-#. ["\u5728\u6570\u636e\u6536\u96c6\u671f\u95f4\uff0c\u89c6\u542c\u6750\u6599\u5c06\u88ab\u8bb0\u5f55\u5728\u5355\u72ec\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u5e76\u4f7f\u7528\u5f3a\u5927\u7684\u52a0\u5bc6\u534f\u8bae\uff08\u5982\u9ad8\u7ea7\u52a0\u5bc6\u6807\u51c6\uff09\u8fdb\u884c\u52a0\u5bc6\u3002",
-#. "\u5728\u6570\u636e\u6536\u96c6\u8fc7\u7a0b\u4e2d\uff0c\u89c6\u542c\u6750\u6599\u5c06\u88ab\u8bb0\u5f55\u5728\u4e00\u4e2a\u5355\u72ec\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u5e76\u4f7f\u7528\u5f3a\u5927\u7684\u52a0\u5bc6\u534f\u8bae\uff08\u5982\u9ad8\u7ea7\u52a0\u5bc6\u6807\u51c6\uff09\u8fdb\u884c\u52a0\u5bc6\u3002",
-#. "\u5728\u6570\u636e\u6536\u96c6\u8fc7\u7a0b\u4e2d\uff0c\u89c6\u542c\u6750\u6599\u5c06\u88ab\u8bb0\u5f55\u5728\u5355\u72ec\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u5e76\u4f7f\u7528\u5f3a\u5927\u7684\u52a0\u5bc6\u534f\u8bae\uff08\u5982\u9ad8\u7ea7\u52a0\u5bc6\u6807\u51c6\uff09\u8fdb\u884c\u52a0\u5bc6\u3002",
-#. "\u5728\u6570\u636e\u6536\u96c6\u8fc7\u7a0b\u4e2d\uff0c\u89c6\u542c\u6750\u6599\u5c06\u88ab\u8bb0\u5f55\u5728\u72ec\u7acb\u7684\u670d\u52a1\u5668\u4e0a\uff0c\u5e76\u4f7f\u7528\u5f3a\u5927\u7684\u52a0\u5bc6\u534f\u8bae\uff08\u5982\u9ad8\u7ea7\u52a0\u5bc6\u6807\u51c6\uff09\u8fdb\u884c\u52a0\u5bc6\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr "在数据收集期间，视听材料将被记录在单独的服务器上，并使用强大的加密协议（如高级加密标准）进行加密。"
-
-#. {"msgid":
-#. ["MTurk\u7684ID\u4fe1\u606f\u5c06\u4e0d\u4f1a\u88ab\u7528\u4e8e\u7d22\u5f15\u8fd9\u4e9b\u6570\u636e\u3002",
-#. "MTurk\u7684ID\u4fe1\u606f\u5c06\u4e0d\u4f1a\u88ab\u7528\u6765\u7d22\u5f15\u8fd9\u4e9b\u6570\u636e\u3002",
-#. "MTurk
-#. ID\u4fe1\u606f\u5c06\u4e0d\u4f1a\u88ab\u7528\u4e8e\u7d22\u5f15\u8fd9\u4e9b\u6570\u636e\u3002",
-#. "MTurk\u7684ID\u4fe1\u606f\u5c06\u4e0d\u4f1a\u88ab\u7528\u6765\u4e3a\u8fd9\u4e9b\u6570\u636e\u7f16\u5236\u7d22\u5f15\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-msgctxt "consent-security"
-msgid "MTurk ID information will not be used to index this data."
-msgstr "MTurk的ID信息将不会被用于索引这些数据。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u60a8\u4e0d\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\u9762\uff0c\u5e76\u8fd4\u56deMechanical
-#. Turk\u4e0a\u7684HIT\u3002",
-#. "\u5982\u679c\u60a8\u4e0d\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\u9762\uff0c\u5e76\u8fd4\u56deMechanical
-#. Turk\u7684HIT\u3002",
-#. "\u5982\u679c\u60a8\u4e0d\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\uff0c\u5e76\u8fd4\u56deMechanical
-#. Turk\u4e0a\u7684HIT\u3002",
-#. "\u5982\u679c\u60a8\u4e0d\u540c\u610f\uff0c\u8bf7\u5173\u95ed\u672c\u9875\uff0c\u5e76\u8fd4\u56deMechanical
-#. Turk\u7684HIT\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_audiovisual_consent.html
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-consent"
-msgid ""
-"If you do not wish to consent, please close this page and return the HIT on "
-"Mechanical Turk."
-msgstr "如果您不同意，请关闭本页面，并返回Mechanical Turk上的HIT。"
-
-#. {"msgid": ["\u5206\u949f", "\u7eaa\u8981",
-#. "\u5206\u949f\u7684\u65f6\u95f4", "\u7eaa\u5b9e"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgid "minutes"
-msgstr "分钟"
-
-#. {"msgid":
-#. ["\u533f\u540d\u7684\u6570\u636e\u53ef\u4ee5\u5728\u5f00\u653e\u7684\u6570\u636e\u5b58\u50a8\u5e93\u4e2d\u516c\u5e03\uff0c\u5e76\u4f34\u968f\u7740\u8be5\u7814\u7a76\u7684\u51fa\u7248\u7269\u3002",
-#. "\u533f\u540d\u7684\u6570\u636e\u53ef\u4ee5\u5728\u5f00\u653e\u7684\u6570\u636e\u5b58\u50a8\u5e93\u4e2d\u516c\u5e03\uff0c\u5e76\u4f34\u968f\u7740\u8be5\u7814\u7a76\u7684\u51fa\u7248\u3002",
-#. "\u533f\u540d\u7684\u6570\u636e\u53ef\u4ee5\u5728\u5f00\u653e\u7684\u6570\u636e\u5b58\u50a8\u5e93\u4e2d\u516c\u5e03\uff0c\u5e76\u4f34\u968f\u7740\u8be5\u7814\u7a76\u7684\u53d1\u8868\u3002",
-#. "\u533f\u540d\u7684\u6570\u636e\u53ef\u4ee5\u5728\u5f00\u653e\u7684\u6570\u636e\u5b58\u50a8\u5e93\u4e2d\u516c\u5e03\uff0c\u4f34\u968f\u7740\u7814\u7a76\u7684\u51fa\u7248\u7269\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"Anonymized data could be published in open access data repository "
-"accompanying publications of the study."
-msgstr "匿名的数据可以在开放的数据存储库中公布，并伴随着该研究的出版物。"
-
-#. {"msgid":
-#. ["\u8fd9\u9879\u7814\u7a76\u7684\u6570\u636e\u5c06\u4ee5\u4fdd\u5bc6\u7684\u65b9\u5f0f\u4fdd\u5b58\uff0c\u6301\u7eed\u65f6\u95f4\u4e3a10\u5e74\uff0c\u4ee5\u5e2e\u52a9\u79d1\u5b66\u590d\u5236\u3002",
-#. "\u8fd9\u9879\u7814\u7a76\u7684\u6570\u636e\u5c06\u4ee5\u4fdd\u5bc6\u7684\u65b9\u5f0f\u4fdd\u5b58\uff0c\u6301\u7eed\u65f6\u95f4\u4e3a10\u5e74\uff0c\u4ee5\u5e2e\u52a9\u79d1\u5b66\u7684\u590d\u5236\u3002",
-#. "\u8fd9\u9879\u7814\u7a76\u7684\u6570\u636e\u5c06\u4ee5\u4fdd\u5bc6\u7684\u65b9\u5f0f\u4fdd\u5b58\uff0c\u6301\u7eed\u65f6\u95f4\u4e3a10\u5e74\uff0c\u4ee5\u5e2e\u52a9\u79d1\u5b66\u91cd\u590d\u3002",
-#. "\u8fd9\u9879\u7814\u7a76\u7684\u6570\u636e\u5c06\u4ee5\u4fdd\u5bc6\u7684\u65b9\u5f0f\u4fdd\u5b5810\u5e74\uff0c\u4ee5\u5e2e\u52a9\u79d1\u5b66\u590d\u5236\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"The data for this study will be stored in a confidential manner for a "
-"duration of 10 years for the purpose of helping scientific replications."
-msgstr "这项研究的数据将以保密的方式保存，持续时间为10年，以帮助科学复制。"
-
-#. {"msgid":
-#. ["\u6211\u4eec\u5c06\u53ea\u4e0e\u5408\u4f5c\u8005\u5206\u4eab\u4eba\u53e3\u7edf\u8ba1\u5b66\u3001\u6c47\u603b\u6216\u63d0\u53d6\u7684\u6570\u636e\uff0c\u4e0d\u542b\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u4e0d\u88ab\u4e9a\u9a6c\u900a\u7684Mechanical
-#. Turk ID\u6240\u7d22\u5f15\uff09\u3002",
-#. "\u6211\u4eec\u5c06\u53ea\u4e0e\u5408\u4f5c\u8005\u5206\u4eab\u4eba\u53e3\u7edf\u8ba1\u5b66\u3001\u6c47\u603b\u6216\u63d0\u53d6\u7684\u6570\u636e\uff0c\u4e0d\u542b\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u4e0d\u88ab\u4e9a\u9a6c\u900a\u7684Mechanical
-#. Turk ID\u7d22\u5f15\uff09\u3002",
-#. "\u6211\u4eec\u5c06\u53ea\u4e0e\u5408\u4f5c\u8005\u5206\u4eab\u4eba\u53e3\u7edf\u8ba1\u5b66\u3001\u6c47\u603b\u6216\u63d0\u53d6\u7684\u6570\u636e\uff0c\u4e0d\u542b\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u4e0d\u88ab\u4e9a\u9a6c\u900aMechanical
-#. Turk ID\u7d22\u5f15\uff09\u3002",
-#. "\u6211\u4eec\u5c06\u53ea\u4e0e\u5408\u4f5c\u8005\u5206\u4eab\u4eba\u53e3\u7edf\u8ba1\u5b66\u3001\u6c47\u603b\u6216\u63d0\u53d6\u7684\u6570\u636e\uff0c\u4e0d\u542b\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\uff08\u4e0d\u542b\u4e9a\u9a6c\u900aMechanical
-#. Turk ID\u7684\u7d22\u5f15\uff09\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent"
-msgid ""
-"We will only share with collaborators demographic, aggregated or extracted "
-"data without personal identifiers (not indexed by Amazon’s Mechanical Turk "
-"IDs)."
-msgstr "我们将只与合作者分享人口统计学、汇总或提取的数据，不含个人识别信息（不被亚马逊的Mechanical Turk ID所索引）。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u4f60\u6ee1\u610f\u5730\u5b8c\u6210\u4e86\u8fd9\u9879\u7814\u7a76\uff0c\u4f60\u5c06\u5f97\u5230\u5927\u7ea6\u3002",
-#. "\u5982\u679c\u4f60\u6ee1\u610f\u5730\u5b8c\u6210\u4e86\u8fd9\u9879\u7814\u7a76\uff0c\u4f60\u5c06\u6536\u5230\u5927\u7ea6\u3002",
-#. "\u5982\u679c\u4f60\u6ee1\u610f\u5730\u5b8c\u6210\u4e86\u8fd9\u9879\u7814\u7a76\uff0c\u4f60\u5c06\u83b7\u5f97\u5927\u7ea6\u3002",
-#. "\u5982\u679c\u4f60\u6ee1\u610f\u5730\u5b8c\u6210\u4e86\u8fd9\u9879\u7814\u7a76\uff0c\u4f60\u5c06\u4f1a\u5f97\u5230\u5927\u7ea6\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-compensation"
-msgid ""
-"If you satisfactorily complete the study, you will receive approximately:"
-msgstr "如果您令人满意地完成了这项测试，你将得到大约："
-
-#. {"msgid":
-#. ["MTurk\u5de5\u4f5c\u8005\u7684ID\u4e0d\u4f1a\u88ab\u7528\u6765\u5f97\u51fa\u4f60\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4e0d\u4f1a\u4e0e\u7814\u7a76\u56e2\u961f\u4ee5\u5916\u7684\u4efb\u4f55\u4eba\u5206\u4eab\uff0c\u4f7f\u7528\u540e\u5c06\u88ab\u5220\u9664\u3002",
-#. "MTurk\u5de5\u4f5c\u8005\u7684ID\u4e0d\u4f1a\u88ab\u7528\u6765\u5f97\u51fa\u4f60\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4e0d\u4f1a\u4e0e\u7814\u7a76\u56e2\u961f\u4ee5\u5916\u7684\u4efb\u4f55\u4eba\u5206\u4eab\uff0c\u5e76\u4e14\u5728\u4f7f\u7528\u540e\u4f1a\u88ab\u5220\u9664\u3002",
-#. "MTurk\u5de5\u4f5c\u8005\u7684ID\u4e0d\u4f1a\u88ab\u7528\u6765\u5f97\u51fa\u4f60\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4e5f\u4e0d\u4f1a\u4e0e\u7814\u7a76\u56e2\u961f\u4ee5\u5916\u7684\u4efb\u4f55\u4eba\u5206\u4eab\uff0c\u5e76\u4e14\u5728\u4f7f\u7528\u540e\u4f1a\u88ab\u5220\u9664\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"MTurk worker IDs will not be used to derive your real identity, will not be "
-"shared with anyone outside of the research team and will be deleted after "
-"use."
-msgstr "MTurk工作者的ID不会被用来得出您的真实身份，不会与研究团队以外的任何人分享，使用后将被删除。"
-
-#. {"msgid":
-#. ["\u6211\u4eec\u8fd8\u5c06\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\uff0c\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u4f7f\u7528\u7684\u8bed\u8a00\uff09\u3002",
-#. "\u6211\u4eec\u8fd8\u5c06\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\uff0c\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u97f3\u4e50\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u6240\u8bb2\u8bed\u8a00\uff09\u3002",
-#. "\u6211\u4eec\u8fd8\u5c06\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\uff0c\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u6240\u8bb2\u8bed\u8a00\uff09\u3002",
-#. "\u6211\u4eec\u8fd8\u5c06\u6536\u96c6\u4e00\u4e9b\u4eba\u53e3\u7edf\u8ba1\u5b66\u6570\u636e\uff08\u5982\u5e74\u9f84\u3001\u6027\u522b\u3001\u5c45\u4f4f\u56fd\uff09\uff0c\u4ee5\u53ca\u5173\u4e8e\u4f60\u7684\u5b66\u4e60\u548c\u63a5\u89e6\u5386\u53f2\u7684\u4fe1\u606f\uff08\u5982\u6f14\u594f\u4e50\u5668\u7684\u7ecf\u9a8c\u3001\u63a5\u53d7\u6b63\u89c4\u6559\u80b2\u7684\u5e74\u9650\u3001\u6240\u8bb2\u7684\u8bed\u8a00\uff09\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will also collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"我们还将收集一些人口统计学数据（如年龄、性别、居住国），以及关于您的学习和接触历史的信息（如演奏乐器的经验、接受正规教育的年限、使用的语言）。"
-
-#. {"msgid":
-#. ["\u6211\u4eec\u5c06\u53ea\u5728\u6211\u4eec\u7684\u7cfb\u7edf\u4e2d\u4fdd\u5b58\u60a8\u7684\u533f\u540d\u4e9a\u9a6c\u900aMechanical
-#. Turk
-#. ID\uff0c\u4ee5\u4fbf\u533a\u5206\u5df2\u7ecf\u53c2\u52a0\u8fc7\u672c\u5b9e\u9a8c\u6216\u5176\u4ed6\u5b9e\u9a8c\u7684\u53c2\u4e0e\u8005\u3002",
-#. "\u6211\u4eec\u5c06\u53ea\u5728\u6211\u4eec\u7684\u7cfb\u7edf\u4e2d\u4fdd\u5b58\u60a8\u7684\u533f\u540d\u4e9a\u9a6c\u900aMechanical
-#. Turk
-#. ID\uff0c\u4ee5\u533a\u5206\u5df2\u7ecf\u53c2\u52a0\u8fc7\u672c\u5b9e\u9a8c\u6216\u5176\u4ed6\u5b9e\u9a8c\u7684\u53c2\u4e0e\u8005\u3002",
-#. "\u6211\u4eec\u5c06\u53ea\u5728\u6211\u4eec\u7684\u7cfb\u7edf\u4e2d\u4fdd\u5b58\u60a8\u7684\u533f\u540d\u4e9a\u9a6c\u900aMechanical
-#. Turk
-#. ID\uff0c\u4ee5\u4fbf\u533a\u5206\u5df2\u7ecf\u53c2\u52a0\u8fc7\u8fd9\u4e2a\u6216\u5176\u4ed6\u5b9e\u9a8c\u7684\u53c2\u4e0e\u8005\u3002",
-#. "\u6211\u4eec\u5c06\u53ea\u5728\u6211\u4eec\u7684\u7cfb\u7edf\u4e2d\u4fdd\u5b58\u60a8\u7684\u533f\u540d\u4e9a\u9a6c\u900aMechanical
-#. Turk
-#. ID\uff0c\u4ee5\u533a\u5206\u5df2\u7ecf\u53c2\u52a0\u8fc7\u8fd9\u4e2a\u6216\u5176\u4ed6\u5b9e\u9a8c\u7684\u53c2\u4e0e\u8005\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized Amazon’s Mechanical Turk IDs in our "
-"system, in order to distinguish participants who have already taken part on "
-"this or other experiments."
-msgstr "我们将只在我们的系统中保存您的匿名亚马逊Mechanical Turk ID，以便区分已经参加过本实验或其他实验的参与者。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u60a8\u5bf9\u60a8\u4f5c\u4e3a\u672c\u7814\u7a76\u9879\u76ee\u53c2\u4e0e\u8005\u7684\u6743\u5229\u6216\u5f85\u9047\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u8054\u7cfb\u3002",
-#. "\u5982\u679c\u60a8\u5bf9\u60a8\u4f5c\u4e3a\u672c\u7814\u7a76\u9879\u76ee\u53c2\u4e0e\u8005\u7684\u6743\u5229\u6216\u5f85\u9047\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u8054\u7cfb\uff1a\u3002",
-#. "\u5982\u679c\u4f60\u5bf9\u4f60\u4f5c\u4e3a\u672c\u7814\u7a76\u9879\u76ee\u53c2\u4e0e\u8005\u7684\u6743\u5229\u6216\u5f85\u9047\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u8054\u7cfb\uff1a\u3002",
-#. "\u5982\u679c\u60a8\u5bf9\u81ea\u5df1\u4f5c\u4e3a\u672c\u7814\u7a76\u9879\u76ee\u53c2\u4e0e\u8005\u7684\u6743\u5229\u6216\u5f85\u9047\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u8054\u7cfb\uff1a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about Your rights or treatment as a participant in"
-" this research project, please contact:"
-msgstr "如果您对您作为本研究项目参与者的权利或待遇有任何疑问，请联系："
-
-#. {"msgid":
-#. ["\u5982\u679c\u4f60\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u7acb\u5373\u8054\u7cfb\u3002",
-#. "\u5982\u679c\u4f60\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u53ca\u65f6\u8054\u7cfb\u3002",
-#. "\u5982\u679c\u4f60\u5bf9\u8fd9\u9879\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u7acb\u5373\u8054\u7cfb\uff1a\u3002",
-#. "\u5982\u679c\u60a8\u5bf9\u672c\u7814\u7a76\u6709\u4efb\u4f55\u7591\u95ee\uff0c\u8bf7\u7acb\u5373\u8054\u7cfb\uff1a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact:"
-msgstr "如果您对这项研究有任何疑问，请立即联系："
-
-#. {"msgid":
-#. ["\u867d\u7136\u7814\u7a76\u4eba\u5458\u4e0d\u4f1a\u4f7f\u7528\u60a8\u7684MTurk
-#. ID\u6765\u63a8\u65ad\u60a8\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4f46\u5982\u679c\u53d1\u751f\u6570\u636e\u6cc4\u9732\uff0c\u60a8\u7684MTurk
-#. ID\u53ef\u80fd\u4f1a\u88ab\u94fe\u63a5\u5230\u60a8\u7684\u4e9a\u9a6c\u900a\u516c\u5171\u6863\u6848\u9875\u9762\u3002",
-#. "\u867d\u7136\u7814\u7a76\u4eba\u5458\u4e0d\u4f1a\u4f7f\u7528\u60a8\u7684MTurk
-#. ID\u6765\u83b7\u53d6\u60a8\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4f46\u5982\u679c\u53d1\u751f\u6570\u636e\u6cc4\u9732\uff0c\u60a8\u7684MTurk
-#. ID\u53ef\u80fd\u4f1a\u88ab\u94fe\u63a5\u5230\u60a8\u7684\u4e9a\u9a6c\u900a\u516c\u5171\u6863\u6848\u9875\u9762\u3002",
-#. "\u5c3d\u7ba1\u7814\u7a76\u4eba\u5458\u4e0d\u4f1a\u4f7f\u7528\u60a8\u7684MTurk
-#. ID\u6765\u83b7\u53d6\u60a8\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4f46\u5982\u679c\u53d1\u751f\u6570\u636e\u6cc4\u9732\uff0c\u60a8\u7684MTurk
-#. ID\u53ef\u80fd\u4f1a\u88ab\u94fe\u63a5\u5230\u60a8\u7684\u4e9a\u9a6c\u900a\u516c\u5171\u6863\u6848\u9875\u9762\u3002",
-#. "\u867d\u7136\u7814\u7a76\u4eba\u5458\u4e0d\u4f1a\u4f7f\u7528\u60a8\u7684MTurk
-#. ID\u6765\u63a8\u65ad\u60a8\u7684\u771f\u5b9e\u8eab\u4efd\uff0c\u4f46\u5982\u679c\u53d1\u751f\u6570\u636e\u6cc4\u9732\uff0c\u60a8\u7684MTurk
-#. ID\u53ef\u80fd\u4f1a\u88ab\u94fe\u63a5\u5230\u60a8\u7684\u4e9a\u9a6c\u900a\u516c\u5171\u6863\u6848\u9875\u9762\u4e0a\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-disclaimer"
-msgid ""
-"Although researchers will not use your MTurk ID to derive your real "
-"identity, your MTurk ID could be linked to your Amazon public profile page "
-"if a data breach takes place."
-msgstr "虽然研究人员不会使用您的MTurk ID来推断您的真实身份，但如果发生数据泄露，您的MTurk ID可能会被链接到您的亚马逊公共档案页面。"
-
-#. {"msgid": ["\u4efb\u4f55\u6d89\u53ca\u7684\u5df2\u77e5\u98ce\u9669\u3002",
-#. "\u6d89\u53ca\u7684\u4efb\u4f55\u5df2\u77e5\u98ce\u9669\u3002",
-#. "\u4efb\u4f55\u5df2\u77e5\u7684\u98ce\u9669\u3002",
-#. "\u6240\u6d89\u53ca\u7684\u4efb\u4f55\u5df2\u77e5\u98ce\u9669\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Any known risks involved."
-msgstr "任何涉及的已知风险。"
-
-#. {"msgid": ["\u4efb\u4f55\u6f5c\u5728\u7684\u597d\u5904\u3002",
-#. "\u4efb\u4f55\u6f5c\u5728\u7684\u76ca\u5904\u3002",
-#. "\u4efb\u4f55\u6f5c\u5728\u7684\u5229\u76ca\u3002",
-#. "\u4efb\u4f55\u6f5c\u5728\u5229\u76ca\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Any potential benefits."
-msgstr "任何潜在的好处。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u6709\u95ee\u9898\uff0c\u4f60\u53ef\u4ee5\u8054\u7cfb\u3002",
-#. "\u5982\u6709\u7591\u95ee\uff0c\u60a8\u53ef\u4ee5\u8054\u7cfb\u3002",
-#. "\u5982\u6709\u7591\u95ee\uff0c\u4f60\u53ef\u4ee5\u8054\u7cfb\u3002",
-#. "\u5982\u679c\u6709\u95ee\u9898\uff0c\u60a8\u53ef\u4ee5\u8054\u7cfb\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "In case of questions you can contact:"
-msgstr "如果有问题，您可以联系："
-
-#. {"msgid": ["\u7814\u7a76\u7684\u76ee\u7684\u3002",
-#. "\u8be5\u7814\u7a76\u7684\u76ee\u7684\u3002",
-#. "\u8fd9\u9879\u7814\u7a76\u7684\u76ee\u7684\u3002",
-#. "\u7814\u7a76\u76ee\u7684\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Purpose of the study."
-msgstr "研究的目的。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u4f60\u53c2\u52a0\u7814\u7a76\uff0c\u4f60\u5c06\u88ab\u8981\u6c42\u505a\u7684\u4e8b\u60c5\u3002",
-#. "\u5982\u679c\u4f60\u53c2\u4e0e\u7814\u7a76\uff0c\u4f60\u5c06\u88ab\u8981\u6c42\u505a\u7684\u4e8b\u60c5\u3002",
-#. "\u5982\u679c\u4f60\u53c2\u52a0\u7814\u7a76\uff0c\u4f60\u5c06\u88ab\u8981\u6c42\u505a\u7684\u4e8b\u3002",
-#. "\u5982\u679c\u4f60\u53c2\u52a0\u7814\u7a76\uff0c\u4f60\u4f1a\u88ab\u8981\u6c42\u505a\u7684\u4e8b\u60c5\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "The things that you will be asked to do if you are in the study."
-msgstr "如果您参加研究，您将被要求做的事情。"
-
-#. {"msgid":
-#. ["\u8fd9\u4efd\u5728\u7ebf\u540c\u610f\u4e66\u5305\u62ec\u4ee5\u4e0b\u4fe1\u606f\u3002",
-#. "\u672c\u5728\u7ebf\u540c\u610f\u4e66\u5305\u62ec\u4ee5\u4e0b\u4fe1\u606f\u3002",
-#. "\u8fd9\u4efd\u7f51\u4e0a\u540c\u610f\u4e66\u5305\u62ec\u4ee5\u4e0b\u4fe1\u606f\u3002",
-#. "\u8fd9\u4efd\u5728\u7ebf\u540c\u610f\u4e66\u5305\u62ec\u4e0b\u5217\u4fe1\u606f\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "This online consent form includes the following information:"
-msgstr "这份在线同意书包括以下信息："
-
-#. {"msgid":
-#. ["\u4e3a\u4ec0\u4e48\u8981\u8fdb\u884c\u8fd9\u9879\u7814\u7a76\u3002",
-#. "\u4e3a\u4ec0\u4e48\u8fdb\u884c\u8fd9\u9879\u7814\u7a76\u3002",
-#. "\u4e3a\u4ec0\u4e48\u8981\u505a\u8fd9\u9879\u7814\u7a76\u3002",
-#. "\u4e3a\u4ec0\u4e48\u8981\u8fdb\u884c\u8fd9\u9879\u7814\u7a76\uff1f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-overview"
-msgid "Why the study is being done."
-msgstr "为什么要进行这项研究。"
-
-#. {"msgid":
-#. ["\u5982\u679c\u5b9e\u9a8c\u4e2d\u5305\u542b\u8fd9\u4e9b\u5185\u5bb9\uff0c\u6211\u4eec\u4f1a\u8981\u6c42\u4f60\u989d\u5916\u540c\u610f\uff0c\u540c\u610f\u8fd9\u4e9b\u989d\u5916\u5185\u5bb9\u662f\u81ea\u613f\u7684\u3002",
-#. "\u5982\u679c\u5b9e\u9a8c\u4e2d\u5305\u542b\u8fd9\u4e9b\u5185\u5bb9\uff0c\u6211\u4eec\u4f1a\u8981\u6c42\u4f60\u505a\u51fa\u989d\u5916\u7684\u540c\u610f\uff0c\u540c\u610f\u8fd9\u4e9b\u989d\u5916\u5185\u5bb9\u662f\u81ea\u613f\u7684\u3002",
-#. "\u5982\u679c\u5b9e\u9a8c\u4e2d\u5305\u542b\u8fd9\u4e9b\u5185\u5bb9\uff0c\u6211\u4eec\u4f1a\u8981\u6c42\u4f60\u989d\u5916\u540c\u610f\uff0c\u540c\u610f\u8fd9\u4e9b\u989d\u5916\u7684\u5185\u5bb9\u662f\u81ea\u613f\u7684\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent, consenting to these additional elements is voluntary."
-msgstr "如果实验中包含这些内容，我们会要求您额外同意，同意这些额外内容是自愿的。"
-
-#. {"msgid":
-#. ["\u5728\u67d0\u4e9b\u60c5\u51b5\u4e0b\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u8bed\u97f3\u6216\u89c6\u9891\u8bb0\u5f55\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8bb0\u5f55\u4f60\u81ea\u5df1\u8bf4\u8bdd\u6216\u5531\u6b4c\u3002",
-#. "\u5728\u67d0\u4e9b\u60c5\u51b5\u4e0b\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u8bed\u97f3\u6216\u89c6\u9891\u8bb0\u5f55\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8bb0\u5f55\u4f60\u81ea\u5df1\u7684\u8bf4\u8bdd\u6216\u5531\u6b4c\u3002",
-#. "\u5728\u67d0\u4e9b\u60c5\u51b5\u4e0b\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u5f55\u97f3\u6216\u5f55\u50cf\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8bb0\u5f55\u4f60\u81ea\u5df1\u7684\u8bf4\u8bdd\u6216\u5531\u6b4c\u3002",
-#. "\u5728\u67d0\u4e9b\u60c5\u51b5\u4e0b\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8fdb\u884c\u8bed\u97f3\u6216\u89c6\u9891\u8bb0\u5f55\uff0c\u4f8b\u5982\uff0c\u4f60\u53ef\u80fd\u4f1a\u88ab\u8981\u6c42\u8bb0\u5f55\u4f60\u5bf9\u58f0\u97f3\u6216\u89c6\u9891\u7684\u6572\u51fb\uff0c\u6216\u8bb0\u5f55\u4f60\u81ea\u5df1\u8bf4\u8bdd\u6216\u5531\u6b4c\u7684\u58f0\u97f3\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"In some cases, you may be asked to make a voice or video recording, for "
-"example, you may be asked to record your finger-tapping in response to a "
-"sound or video, or to record yourself speaking or singing."
-msgstr "在某些情况下，您可能会被要求录制语音或视频，例如，您可能会被要求在听到声音或观看视频时录制您的手指敲击，或录制您自己的说话或唱歌。"
-
-#. {"msgid": ["\u5b9e\u9a8c\u5c06\u82b1\u8d39\u4f60\u5927\u7ea6\u3002",
-#. "\u5b9e\u9a8c\u5c06\u82b1\u8d39\u4f60\u5927\u7ea6\u65f6\u95f4\u3002",
-#. "\u5b9e\u9a8c\u5c06\u82b1\u8d39\u4f60\u5927\u7ea6",
-#. "\u5b9e\u9a8c\u5c06\u8017\u8d39\u4f60\u5927\u7ea6\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-procedure"
-msgid "The experiment will take you approximately:"
-msgstr "这项实验将大约持续："
-
-#. {"msgid":
-#. ["\u5177\u4f53\u6765\u8bf4\uff0c\u6211\u4eec\u5e0c\u671b\u4e86\u89e3\u611f\u77e5\u4e2d\u7684\u9884\u6d4b\u673a\u5236\u5982\u4f55\u4f9d\u8d56\u4e8e\u7ecf\u9a8c\u3001\u5b66\u4e60\u548c\u8bb0\u5fc6\u3002",
-#. "\u5177\u4f53\u6765\u8bf4\uff0c\u6211\u4eec\u60f3\u4e86\u89e3\u611f\u77e5\u4e2d\u7684\u9884\u6d4b\u673a\u5236\u5982\u4f55\u4f9d\u8d56\u4e8e\u7ecf\u9a8c\u3001\u5b66\u4e60\u548c\u8bb0\u5fc6\u3002",
-#. "\u5177\u4f53\u6765\u8bf4\uff0c\u6211\u4eec\u60f3\u4e86\u89e3\u611f\u77e5\u4e2d\u7684\u9884\u6d4b\u673a\u5236\u662f\u5982\u4f55\u4f9d\u8d56\u7ecf\u9a8c\u3001\u5b66\u4e60\u548c\u8bb0\u5fc6\u7684\u3002",
-#. "\u5177\u4f53\u6765\u8bf4\uff0c\u6211\u4eec\u5e0c\u671b\u4e86\u89e3\u611f\u77e5\u4e2d\u7684\u9884\u6d4b\u673a\u5236\u662f\u5982\u4f55\u4f9d\u8d56\u7ecf\u9a8c\u3001\u5b66\u4e60\u548c\u8bb0\u5fc6\u7684\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we would like to understand how predictive mechanisms in "
-"perception rely on experience, learning and memory."
-msgstr "具体来说，我们希望了解感知中的预测机制如何依赖于经验、学习和记忆。"
-
-#. {"msgid":
-#. ["\u8fd9\u4e2a\u9879\u76ee\u7684\u957f\u671f\u76ee\u6807\u662f\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u53d6\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3/\u56fe\u50cf\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u89c9\u53d7\u635f\u7684\u4eba\u7684\u611f\u77e5\u80fd\u529b\u3002",
-#. "\u8fd9\u4e2a\u9879\u76ee\u7684\u957f\u671f\u76ee\u6807\u662f\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u53d6\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3/\u56fe\u50cf\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u89c9\u53d7\u635f\u8005\u7684\u611f\u77e5\u80fd\u529b\u3002",
-#. "\u8fd9\u4e2a\u9879\u76ee\u7684\u957f\u671f\u76ee\u6807\u662f\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u53d6\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3/\u56fe\u50cf\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u529b\u53d7\u635f\u7684\u4eba\u7684\u611f\u77e5\u80fd\u529b\u3002",
-#. "\u8fd9\u4e2a\u9879\u76ee\u7684\u957f\u671f\u76ee\u6807\u662f\u4e86\u89e3\u4eba\u7c7b\u5982\u4f55\u4ece\u58f0\u97f3\u548c\u89c6\u89c9\u4e2d\u83b7\u53d6\u4fe1\u606f\uff0c\u5e76\u6709\u53ef\u80fd\u5e2e\u52a9\u8bbe\u8ba1\u80fd\u591f\u590d\u5236\u6211\u4eec\u80fd\u529b\u7684\u673a\u5668\uff08\u4f8b\u5982\u5728\u58f0\u97f3/\u56fe\u50cf\u8bc6\u522b\u548c\u8ba1\u7b97\u673a\u89c6\u89c9\u65b9\u9762\uff09\uff0c\u5e76\u5e2e\u52a9\u6539\u5584\u542c\u529b\u6216\u89c6\u529b\u53d7\u635f\u8005\u7684\u611f\u77e5\u80fd\u529b\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The long-term goals of this project are to understand how humans derive "
-"information from sound and vision, and potentially to help engineer machines"
-" that can replicate our abilities (e.g. in sound/image recognition and "
-"computer vision) and to help improve perceptual abilities in people whose "
-"hearing or sight is impaired."
-msgstr ""
-"这个项目的长期目标是了解人类如何从声音和视觉中获取信息，并有可能帮助设计能够复制我们能力的机器（例如在声音/图像识别和计算机视觉方面），并帮助改善听力或视觉受损的人的感知能力。"
-
-#. {"msgid":
-#. ["\u8fd9\u4e2a\u9879\u76ee\u7684\u76ee\u7684\u662f\u4e3a\u4e86\u63cf\u8ff0\u542c\u89c9\u548c\u89c6\u89c9\u7684\u5185\u90e8\u8868\u5f81\u3002",
-#. "\u672c\u9879\u76ee\u7684\u76ee\u7684\u662f\u63cf\u8ff0\u542c\u89c9\u548c\u89c6\u89c9\u4e2d\u7684\u5185\u90e8\u8868\u5f81\u3002",
-#. "\u672c\u9879\u76ee\u7684\u76ee\u7684\u662f\u63cf\u8ff0\u542c\u89c9\u548c\u89c6\u89c9\u7684\u5185\u90e8\u8868\u5f81\u3002",
-#. "\u672c\u9879\u76ee\u7684\u76ee\u7684\u662f\u63cf\u8ff0\u5728\u542c\u89c9\u548c\u89c6\u89c9\u4e2d\u7684\u5185\u90e8\u8868\u5f81\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to characterize internal representations in "
-"audition and vision."
-msgstr "这个项目的目的是为了描述听觉和视觉的内部表征。"
-
-#. {"msgid":
-#. ["\u6211\u4eec\u5e0c\u671b\u5229\u7528\u5b9e\u9a8c\u53c2\u4e0e\u8005\u7684\u5224\u65ad\u548c\u4e92\u52a8\u6765\u63a8\u65ad\u542c\u89c9\u548c\u89c6\u89c9\u7cfb\u7edf\u7684\u673a\u5236\u3002",
-#. "\u6211\u4eec\u5e0c\u671b\u5229\u7528\u5b9e\u9a8c\u53c2\u4e0e\u8005\u7684\u5224\u65ad\u548c\u4e92\u52a8\u6765\u63a8\u65ad\u51fa\u542c\u89c9\u548c\u89c6\u89c9\u7cfb\u7edf\u7684\u673a\u5236\u3002",
-#. "\u6211\u4eec\u5e0c\u671b\u5229\u7528\u5b9e\u9a8c\u53c2\u4e0e\u8005\u505a\u51fa\u7684\u5224\u65ad\u548c\u4e92\u52a8\u6765\u63a8\u65ad\u542c\u89c9\u548c\u89c6\u89c9\u7cfb\u7edf\u7684\u673a\u5236\u3002",
-#. "\u6211\u4eec\u5e0c\u671b\u5229\u7528\u5b9e\u9a8c\u53c2\u4e0e\u8005\u4f5c\u51fa\u7684\u5224\u65ad\u548c\u4e92\u52a8\u6765\u63a8\u65ad\u542c\u89c9\u548c\u89c6\u89c9\u7cfb\u7edf\u7684\u673a\u5236\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"We hope to use the judgments and interactions made by the experiment "
-"participants to infer the mechanisms of the auditory and visual systems."
-msgstr "我们希望利用实验参与者的判断和互动来推断听觉和视觉系统的机制。"
-
-#. {"msgid":
-#. ["\u5bf9\u4e8e\u9a6c\u514b\u65af-\u666e\u6717\u514b\u534f\u4f1a\u6765\u8bf4\uff0c\u8fd9\u5c31\u662f",
-#. "\u5bf9\u4e8e\u9a6c\u514b\u65af-\u666e\u6717\u514b\u534f\u4f1a\uff0c\u8fd9\u662f",
-#. "\u5bf9\u4e8e\u9a6c\u514b\u65af-\u666e\u6717\u514b\u534f\u4f1a\u800c\u8a00\uff0c\u8fd9\u5c31\u662f",
-#. "\u5bf9\u9a6c\u514b\u65af-\u666e\u6717\u514b\u534f\u4f1a\u6765\u8bf4\uff0c\u8fd9\u5c31\u662f"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is"
-msgstr "对于马克斯-普朗克协会来说，这就是"
-
-#. {"msgid":
-#. ["\u6240\u6709\u7528\u4e8e\u8fd0\u8f93\u53d7\u4fdd\u62a4\u6570\u636e\u7684USB\u94a5\u5319\u5c06\u662f\u52a0\u5bc6\u7684USB\u8bbe\u5907\u3002",
-#. "\u6240\u6709\u7528\u4e8e\u8fd0\u8f93\u53d7\u4fdd\u62a4\u6570\u636e\u7684USB\u5bc6\u94a5\u5c06\u662f\u52a0\u5bc6\u7684USB\u8bbe\u5907\u3002",
-#. "\u6240\u6709\u7528\u4e8e\u8fd0\u8f93\u53d7\u4fdd\u62a4\u6570\u636e\u7684USB\u94a5\u5319\u90fd\u5c06\u662f\u52a0\u5bc6\u7684USB\u8bbe\u5907\u3002",
-#. "\u6240\u6709\u7528\u4e8e\u8fd0\u8f93\u53d7\u4fdd\u62a4\u6570\u636e\u7684USB\u5bc6\u94a5\u90fd\u5c06\u662f\u52a0\u5bc6\u7684USB\u8bbe\u5907\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"All USB keys used for transporting protected data will be encrypted USB "
-"devices."
-msgstr "所有用于运输受保护数据的USB钥匙将是加密的USB设备。"
-
-#. {"msgid": ["\u6240\u6709\u5907\u4efd\u786c\u76d8\uff08Apple Time
-#. Machine\u7b49\uff09\u5c06\u542f\u7528\u52a0\u5bc6\uff08FileVault2\uff09\u3002",
-#. "\u6240\u6709\u7684\u5907\u4efd\u786c\u76d8\uff08Apple Time
-#. Machine\u7b49\uff09\u90fd\u5c06\u542f\u7528\u52a0\u5bc6\u529f\u80fd\uff08FileVault2\uff09\u3002",
-#. "\u6240\u6709\u7684\u5907\u4efd\u786c\u76d8\uff08Apple Time
-#. Machine\u7b49\uff09\u5c06\u542f\u7528\u52a0\u5bc6\uff08FileVault2\uff09\u3002",
-#. "\u6240\u6709\u7684\u5907\u4efd\u786c\u76d8\uff08Apple Time
-#. Machine\u7b49\uff09\u90fd\u5c06\u542f\u7528\u52a0\u5bc6\uff08FileVault2\uff09\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"All backup hard drives (Apple Time Machine, etc) will have encryption "
-"(FileVault2) enabled."
-msgstr "所有备份硬盘（Apple Time Machine等）将启用加密（FileVault2）。"
-
-#. {"msgid":
-#. ["\u4e2a\u4eba\u7b14\u8bb0\u672c\u7535\u8111/\u53f0\u5f0f\u673a\u88ab\u76d7\u6216\u786c\u76d8\u88ab\u76d7\u5c06\u4e0d\u4f1a\u4ea7\u751f\u53ef\u7528\u7684\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\u3002",
-#. "\u4e2a\u4eba\u7b14\u8bb0\u672c\u7535\u8111/\u684c\u9762\u88ab\u76d7\u6216\u786c\u76d8\u88ab\u76d7\u5c06\u4e0d\u4f1a\u4ea7\u751f\u53ef\u7528\u7684\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\u3002",
-#. "\u4e2a\u4eba\u7b14\u8bb0\u672c\u7535\u8111/\u53f0\u5f0f\u673a\u88ab\u76d7\u6216\u786c\u76d8\u88ab\u76d7\u5c06\u4e0d\u4f1a\u4ea7\u751f\u4efb\u4f55\u53ef\u7528\u7684\u4e2a\u4eba\u8bc6\u522b\u4fe1\u606f\u3002",
-#. "\u4e2a\u4eba\u7b14\u8bb0\u672c\u7535\u8111/\u53f0\u5f0f\u673a\u88ab\u76d7\u6216\u786c\u76d8\u88ab\u76d7\u5c06\u4e0d\u4f1a\u4ea7\u751f\u4efb\u4f55\u53ef\u7528\u7684\u4e2a\u4eba\u8bc6\u522b\u8d44\u6599\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-security"
-msgid ""
-"Theft of an individual laptop/desktop or stolen hard drive will yield no "
-"usable personal identifiers."
-msgstr "个人笔记本电脑/台式机被盗或硬盘被盗将不会产生可用的个人识别信息。"
-
-#. {"msgid":
-#. ["\u4f60\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u52a0\uff0c\u4e5f\u53ef\u4ee5\u5728\u4efb\u4f55\u65f6\u5019\u505c\u6b62\u53c2\u52a0\u3002",
-#. "\u4f60\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u52a0\uff0c\u4e5f\u53ef\u4ee5\u5728\u4efb\u4f55\u65f6\u5019\u505c\u6b62\u53c2\u4e0e\u3002",
-#. "\u4f60\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u52a0\uff0c\u4e5f\u53ef\u4ee5\u968f\u65f6\u505c\u6b62\u53c2\u52a0\u3002",
-#. "\u4f60\u53ef\u4ee5\u81ea\u7531\u5730\u62d2\u7edd\u53c2\u52a0\uff0c\u4f60\u53ef\u4ee5\u968f\u65f6\u505c\u6b62\u53c2\u52a0\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/consents/mturk_standard_consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time. "
-msgstr "您可以自由选择不参于，也可以在任何时候停止参与。 "
-
-#. {"msgid": ["\u5b8c\u6574\u7684\u8c03\u67e5", "\u5b8c\u6210\u8c03\u67e5",
-#. "\u5168\u9762\u8c03\u67e5", "\u5b8c\u5168\u8c03\u67e5"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/exit_recruiter_lucid.html
-msgid "Complete Survey"
-msgstr "完整的调查"
-
-#. ""
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"除了<strong>%(currency)s%(BASE_PAYMENT)s</strong>的基本报酬外，您将为您在实验上付出的时间获得<strong>%(currency)s%(BONUS)s</strong>"
-" 的额外奖励。"
-
-#. {"msgid":
-#. ["\u60a8\u8fd8\u83b7\u5f97\u4e86<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>\u7684\u4e1a\u7ee9\u5956\u91d1!",
-#. "\u60a8\u8fd8\u83b7\u5f97\u4e86<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>\u7684\u7ee9\u6548\u5956\u91d1!",
-#. "\u60a8\u8fd8\u83b7\u5f97\u4e86<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>\u7684\u7ee9\u6548\u5956\u91d1\uff01</strong>\u3002",
-#. "\u60a8\u8fd8\u83b7\u5f97\u4e86<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>\u7684\u7ee9\u6548\u5956\u91d1\uff01</strong>!"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr "您还能获得<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>的业绩奖金!"
-
-#. {"msgid":
-#. ["\u5982\u9700\u8be2\u95ee\u8d54\u507f\u4e8b\u5b9c\uff0c\u8bf7\u901a\u8fc7%(EMAIL)s\u8054\u7cfb\u7814\u7a76\u4eba\u5458\uff0c\u5e76\u63cf\u8ff0\u5bfc\u81f4\u8fd9\u4e00\u9519\u8bef\u7684\u539f\u56e0\u3002",
-#. "\u5982\u9700\u8be2\u95ee\u8d54\u507f\u4e8b\u5b9c\uff0c\u8bf7\u901a\u8fc7%(EMAIL)s\u4e0e\u7814\u7a76\u4eba\u5458\u8054\u7cfb\uff0c\u5e76\u8bf4\u660e\u5bfc\u81f4\u8fd9\u4e00\u9519\u8bef\u7684\u539f\u56e0\u3002",
-#. "\u5982\u9700\u8be2\u95ee\u8d54\u507f\u4e8b\u5b9c\uff0c\u8bf7\u901a\u8fc7%(EMAIL)s\u4e0e\u7814\u7a76\u4eba\u5458\u8054\u7cfb\uff0c\u5e76\u63cf\u8ff0\u5bfc\u81f4\u8fd9\u4e00\u9519\u8bef\u7684\u539f\u56e0\u3002",
-#. "\u5982\u679c\u8981\u8be2\u95ee\u8d54\u507f\u95ee\u9898\uff0c\u8bf7\u901a\u8fc7%(EMAIL)s\u4e0e\u7814\u7a76\u4eba\u5458\u8054\u7cfb\uff0c\u5e76\u8bf4\u660e\u5bfc\u81f4\u8fd9\u4e00\u9519\u8bef\u7684\u539f\u56e0\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
-#, python-format
-msgid ""
-"To enquire about compensation, please contact the researcher at %(EMAIL)s "
-"and describe what led to this error."
-msgstr "如需询问赔偿事宜，请通过%(EMAIL)s联系研究人员，并描述导致这一错误的原因。"
-
-#. {"msgid": ["\u8bf7\u540c\u65f6\u5f15\u7528\u4ee5\u4e0b\u4fe1\u606f\u3002",
-#. "\u4e5f\u8bf7\u5f15\u7528\u4ee5\u4e0b\u4fe1\u606f\u3002",
-#. "\u8bf7\u540c\u65f6\u5f15\u7528\u4e0b\u5217\u4fe1\u606f\u3002",
-#. "\u8fd8\u8bf7\u5f15\u7528\u4ee5\u4e0b\u4fe1\u606f\u3002"]}
-#: /Users/pol.van-rijn/psynet-package/psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "请同时引用以下信息："
-
 #: psynet/demography/general.py
 msgid "I don’t know"
 msgstr "我不知道"
@@ -1576,8 +979,8 @@ msgstr "您的年龄是？"
 msgctxt "age"
 msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{}'"
-msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！您的答案是：'{}'"
+"was: '{AGE}'"
+msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！您的答案是：'{AGE}'"
 
 #: psynet/demography/general.py
 msgctxt "country-select"
@@ -1743,63 +1146,63 @@ msgstr "指定您自己"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "10,000 to 19,999 {}"
-msgstr "10,000 至 19,999 {}"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "10,000 至 19,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "100,000 to 149,999 {}"
-msgstr "100,000至149,999 {}"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "100,000至149,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "150,000 {} or more"
-msgstr "150,000 {}或更多"
+msgid "150,000 {CURRENCY} or more"
+msgstr "150,000 {CURRENCY}或更多"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "20,000 to 29,999 {}"
-msgstr "20,000 至 29,999 {}"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "20,000 至 29,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "30,000 to 39,999 {}"
-msgstr "30,000至39,999 {}"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "30,000至39,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "40,000 to 49,999 {}"
-msgstr "40,000 至 49,999 {}"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "40,000 至 49,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "50,000 to 59,999 {}"
-msgstr "50,000至59,999 {}"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "50,000至59,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "60,000 to 69,999 {}"
-msgstr "60,000 至 69,999 {}"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "60,000 至 69,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "70,000 to 79,999 {}"
-msgstr "70,000至79,999 {}"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "70,000至79,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "80,000 to 89,999 {}"
-msgstr "80,000至89,999 {}"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "80,000至89,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "90,000 to 99,999 {}"
-msgstr "90,000至99,999 {}"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "90,000至99,999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "Less than 10,000 {}"
-msgstr "小于10,000 {}"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "小于10,000 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
@@ -1821,7 +1224,7 @@ msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
-msgstr "请按熟练程度列出您所讲的语言（第一语言第一，第二语言第二，...）。"
+msgstr "请按熟练程度列出您所讲的语言（第一语言第一，第二语言第二，...）"
 
 #: psynet/demography/general.py
 msgctxt "language-select"
@@ -1832,7 +1235,7 @@ msgstr "选择一种语言"
 msgctxt "language-select"
 msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
-"speaking from early childhood)?"
+"speaking from early childhood?"
 msgstr "您的母语是什么 - 即您从小到大一直说的语言？"
 
 #: psynet/demography/general.py
@@ -1888,14 +1291,14 @@ msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "您是否曾被诊断出有阅读障碍？"
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
 msgstr "例如，您可能会被要求记录您对声音或视频的敲击，或者记录自己的说话或唱歌。"
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
 msgstr "在本实验中，您可能被要求进行语音或视频记录。"
@@ -1907,7 +1310,7 @@ msgstr "(请在适用处打勾)"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
-msgid "Addendum for demonstrations."
+msgid "Addendum for demonstrations"
 msgstr "用于演示的补充说明。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -1916,7 +1319,7 @@ msgid ""
 "I agree that my <i>audiovisual</i> recordings can be used for demonstration "
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
-msgstr "我同意我的<i>音频和视频<i>数据可以在参与人数有限的演示（例如教学课程或科学展示）中用于演示目进行使用。"
+msgstr "我同意我的<i>音频和视频</i>数据可以在参与人数有限的演示（例如教学课程或科学展示）中用于演示目进行使用。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
@@ -1960,14 +1363,14 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"我已被告知，对<i>音频和视频<i>数据的存储和处理将以化名的形式进行，即使用一个号码，不包含我的名字，并且有一个编码表，将我的名字和号码联系起来。"
+"我已被告知，对<i>音频和视频</i>数据的存储和处理将以化名的形式进行，即使用一个号码，不包含我的名字，并且有一个编码表，将我的名字和号码联系起来。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
 msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
-msgstr "我已经阅读并理解了所有内容，并在此同意对我进行<i>音频和视频<i>录制。"
+msgstr "我已经阅读并理解了所有内容，并在此同意对我进行<i>音频和视频</i>录制。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
@@ -1979,7 +1382,7 @@ msgctxt "consent-audiovisual"
 msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
-msgstr "我已经收到口头和书面的信息，说明在这项研究中将会进行<i>音频和视频<i>录制。"
+msgstr "我已经收到口头和书面的信息，说明在这项研究中将会进行<i>音频和视频</i>录制。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
@@ -2000,13 +1403,13 @@ msgid ""
 "Researchers associated with this project will have access to my "
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
-msgstr "与该项目相关的研究人员在录音和分析材料期间将可以访问我的<i>音频和视频<i>数据。"
+msgstr "与该项目相关的研究人员在录音和分析材料期间将可以访问我的<i>音频和视频</i>数据。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "对于<i>音频和视频<i>录制的声明是自愿的。"
+msgstr "对于<i>音频和视频</i>录制的声明是自愿的。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent-audiovisual"
@@ -2026,6 +1429,14 @@ msgstr "录制的目的是为了理解人类如何感知和处理来自声音和
 msgctxt "consent-title"
 msgid "Research Participant Consent Form for Image/Sound Recordings"
 msgstr "图像/声音记录的研究参与者同意书"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+msgctxt "consent"
+msgid ""
+"I understand that I am free to withdraw my consent to the collection and "
+"storage of my personal data without negative consequences."
+msgstr "我明白，我可以自由地撤回对收集和储存我的个人数据的同意，而不会产生负面影响。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -2128,14 +1539,6 @@ msgstr "在纸上有一个编码表，将我的名字和这个号码联系起来
 msgctxt "consent-title"
 msgid "Research Participant Consent Form"
 msgstr "研究参与者同意书"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"I understand that I am free to withdraw my consent to the collection and "
-"storage of my personal data without negative consequences."
-msgstr "我明白，我可以自由地撤回对收集和储存我的个人数据的同意，而不会产生负面影响。"
 
 #: psynet/templates/consents/database_consent.html
 msgctxt "consent"
@@ -2451,114 +1854,12 @@ msgid ""
 msgstr "您的数据被储存在一个安全的操作环境中，公众无法进入。"
 
 #: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
 msgstr "我们需要您的同意才能进行"
-
-#: psynet/templates/consents/lucid_consent.html
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "请启用Javascript，然后刷新本页面。"
-
-#: psynet/templates/consents/lucid_consent.html
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "除非您的浏览器启用了Javascript，否则该研究将无法运行。"
-
-#: psynet/templates/consents/lucid_consent.html
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "警告：你的浏览器未启用JavaScript"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr "我们在研究中获取的所有信息都将保密。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr "虽然研究人员不会使用您的字母数字代码来确定您的真实身份，但如果发生数据泄露，该记录有时可能与您的公共个人资料页面相关联。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr "同意这些额外要求也是完全自愿的。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr "如果实验收集的数据无法完全匿名化，我们将告知您并要求额外的同意。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr "此代码将不会用于确定您的真实身份，也不会与研究团队以外的任何人共享，并将在使用后被删除。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr "我们将只保存您匿名化的字母数字代码在我们的系统中，以便区分已经参加过此或其他实验的参与者。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-disclaimer"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr "因此，您可能希望限制您选择公开分享的信息。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr "因此，您可能希望限制您选择公开分享的信息。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr "此项目的目的是研究来自世界不同地区的人们如何体验声音（例如：语音、音乐）和图像（例如：面孔、颜色）。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "对于Max-Planck-Society来说，这就是："
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "您也有权向监管机构提交异议。"
 
 #: psynet/templates/consents/main_consent.html
 msgid "per hour"
@@ -2582,6 +1883,74 @@ msgid ""
 "You may also receive an additional payment based on your performance in the "
 "task."
 msgstr "您也可以根据您在任务中的表现获得额外的报酬。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr "我们在研究中获取的所有信息都将保密。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr "虽然研究人员不会使用您的字母数字代码来确定您的真实身份，但如果发生数据泄露，该记录有时可能与您的公共个人资料页面相关联。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "同意这些额外要求也是完全自愿的。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr "如果实验收集的数据无法完全匿名化，我们将告知您并要求额外的同意。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr "此代码将不会用于确定您的真实身份，也不会与研究团队以外的任何人共享，并将在使用后被删除。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr "因此，您可能希望限制您选择公开分享的信息。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr "我们将只保存您匿名化的字母数字代码在我们的系统中，以便区分已经参加过此或其他实验的参与者。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr "此项目的目的是研究来自世界不同地区的人们如何体验声音（例如：语音、音乐）和图像（例如：面孔、颜色）。"
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "对于Max-Planck-Society来说，这就是："
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "您也有权向监管机构提交异议。"
 
 #: psynet/templates/consents/open_science_consent.html
 msgctxt "consent"
@@ -3181,7 +2550,7 @@ msgstr "印度尼西亚"
 #: psynet/utils.py
 msgctxt "country_name"
 msgid "Iran"
-msgstr "危地马拉"
+msgstr "伊朗"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3252,6 +2621,11 @@ msgstr "科威特"
 msgctxt "country_name"
 msgid "Kyrgyzstan"
 msgstr "吉尔吉斯斯坦"
+
+#: psynet/utils.py
+msgctxt "country_name"
+msgid "Lao"
+msgstr "老挝语"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3381,7 +2755,7 @@ msgstr "蒙古国"
 #: psynet/utils.py
 msgctxt "country_name"
 msgid "Montenegro"
-msgstr "蒙特塞拉特"
+msgstr "黑山"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3407,6 +2781,11 @@ msgstr "缅甸"
 msgctxt "country_name"
 msgid "Namibia"
 msgstr "纳米比亚"
+
+#: psynet/utils.py
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "瑙鲁语"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3585,11 +2964,6 @@ msgstr "圣卢西亚"
 
 #: psynet/utils.py
 msgctxt "country_name"
-msgid "Saint Martin"
-msgstr "圣马丁"
-
-#: psynet/utils.py
-msgctxt "country_name"
 msgid "Saint Pierre and Miquelon"
 msgstr "圣皮埃尔和密克隆"
 
@@ -3671,7 +3045,7 @@ msgstr "索马里"
 #: psynet/utils.py
 msgctxt "country_name"
 msgid "South Africa"
-msgstr "斐济"
+msgstr "南非"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3765,6 +3139,11 @@ msgstr "托克劳群岛"
 
 #: psynet/utils.py
 msgctxt "country_name"
+msgid "Tonga"
+msgstr "汤加"
+
+#: psynet/utils.py
+msgctxt "country_name"
 msgid "Trinidad and Tobago"
 msgstr "特立尼达和多巴哥"
 
@@ -3811,7 +3190,7 @@ msgstr "阿拉伯联合酋长国"
 #: psynet/utils.py
 msgctxt "country_name"
 msgid "United Kingdom"
-msgstr "斐济"
+msgstr "英国"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -4096,7 +3475,7 @@ msgstr "迪维希语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Dutch"
-msgstr "孟加拉语"
+msgstr "荷兰语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4106,7 +3485,7 @@ msgstr "宗卡语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "English"
-msgstr "孟加拉语"
+msgstr "英语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4141,7 +3520,7 @@ msgstr "芬兰语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "French"
-msgstr "孟加拉语"
+msgstr "法语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4360,6 +3739,11 @@ msgstr "库尔德语"
 
 #: psynet/utils.py
 msgctxt "language_name"
+msgid "Lao"
+msgstr "老挝语"
+
+#: psynet/utils.py
+msgctxt "language_name"
 msgid "Latin"
 msgstr "拉丁语"
 
@@ -4411,7 +3795,7 @@ msgstr "马来语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Malayalam"
-msgstr "马来语"
+msgstr "马拉雅拉姆语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4445,6 +3829,11 @@ msgstr "蒙古语"
 
 #: psynet/utils.py
 msgctxt "language_name"
+msgid "Nauru"
+msgstr "瑙鲁语"
+
+#: psynet/utils.py
+msgctxt "language_name"
 msgid "Navajo"
 msgstr "纳瓦霍语"
 
@@ -4471,7 +3860,7 @@ msgstr "北萨米语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Norwegian"
-msgstr "孟加拉语"
+msgstr "挪威语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4566,7 +3955,7 @@ msgstr "伦迪语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Russian"
-msgstr "孟加拉语"
+msgstr "俄罗斯语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4666,7 +4055,7 @@ msgstr "斯瓦希里语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Swati"
-msgstr "孟加拉语"
+msgstr "斯瓦特语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4725,6 +4114,11 @@ msgstr "提格里尼亚语"
 
 #: psynet/utils.py
 msgctxt "language_name"
+msgid "Tonga"
+msgstr "汤加"
+
+#: psynet/utils.py
+msgctxt "language_name"
 msgid "Tsonga"
 msgstr "桑加语"
 
@@ -4776,12 +4170,12 @@ msgstr "文达语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Vietnamese"
-msgstr "孟加拉语"
+msgstr "越南语"
 
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Volapük"
-msgstr "孟加拉语"
+msgstr "沃拉普克语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4791,7 +4185,7 @@ msgstr "瓦隆语"
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Welsh"
-msgstr "孟加拉语"
+msgstr "威尔士语"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -4832,33 +4226,3 @@ msgstr "壮语"
 msgctxt "language_name"
 msgid "Zulu"
 msgstr "祖鲁语"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "language_name"
-msgid "Tonga"
-msgstr "汤加"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "country_name"
-msgid "Tonga"
-msgstr "汤加"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "language_name"
-msgid "Lao"
-msgstr "老挝语"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "country_name"
-msgid "Lao"
-msgstr "老挝语"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "country_name"
-msgid "Nauru"
-msgstr "瑙鲁语"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "language_name"
-msgid "Nauru"
-msgstr "瑙鲁语"
