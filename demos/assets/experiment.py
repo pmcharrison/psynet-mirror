@@ -2,7 +2,7 @@ import random
 import tempfile
 import time
 
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import (

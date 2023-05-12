@@ -5,7 +5,7 @@ from psynet.timeline import get_template, templates
 
 def get_template_legacy(name):
     assert isinstance(name, str)
-    return importlib_resources.read_text(templates, name)
+    return importlib_resources.files(templates).joinpath(name).read_text()
 
 
 def test_get_template():

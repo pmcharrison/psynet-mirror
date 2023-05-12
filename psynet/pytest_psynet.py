@@ -37,6 +37,9 @@ from .utils import clear_all_caches, disable_logger, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
+warnings.filterwarnings(
+    "ignore", "color, on_color and attrs are not supported when running in jupyter"
+)
 
 
 def assert_text(driver, element_id, value):

@@ -1,7 +1,7 @@
 import json
 
 import numpy as np
-from flask import Markup, escape
+from markupsafe import Markup, escape
 
 import psynet.experiment
 from psynet.consent import NoConsent

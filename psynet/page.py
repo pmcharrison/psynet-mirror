@@ -4,7 +4,7 @@ from math import ceil
 from typing import List, Optional, Union
 
 from dominate.dom_tag import dom_tag
-from flask import Markup, escape
+from markupsafe import Markup, escape
 from pkg_resources import resource_filename
 
 from .asset import CachedAsset, ExternalAsset
