@@ -1,4 +1,4 @@
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media

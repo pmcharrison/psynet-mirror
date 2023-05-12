@@ -3,7 +3,7 @@
 # Imports
 ##########################################################################################
 from dominate import tags
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import DebugStorage

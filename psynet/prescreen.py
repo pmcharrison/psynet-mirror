@@ -7,7 +7,7 @@ from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from flask import Markup
+from markupsafe import Markup
 from pkg_resources import resource_filename
 
 from psynet.trial import Node

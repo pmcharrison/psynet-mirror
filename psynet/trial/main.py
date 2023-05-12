@@ -11,7 +11,7 @@ import dallinger.nodes
 from dallinger import db
 from dallinger.models import Info, Network
 from dominate import tags
-from flask import Markup
+from markupsafe import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy

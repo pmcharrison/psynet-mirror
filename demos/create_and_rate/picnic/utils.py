@@ -1,5 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
-from flask import Markup
+from markupsafe import Markup
 
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage

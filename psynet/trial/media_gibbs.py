@@ -6,7 +6,7 @@ import random
 import tempfile
 from uuid import uuid4
 
-from flask import Markup, escape
+from markupsafe import Markup, escape
 
 from ..asset import ExperimentAsset
 from ..field import claim_var
