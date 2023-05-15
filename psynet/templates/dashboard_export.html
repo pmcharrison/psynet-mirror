@@ -1,0 +1,67 @@
+{% extends "base/dashboard.html" %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        function exportData() {
+            let anonymize = $('input[name="anonymize"]:checked').val();
+            let assets = $('input[name="assets"]:checked').val();
+            window.location.href = "/dashboard/export?anonymize=" + anonymize + "&assets=" + assets;
+        }
+    </script>
+{% endblock %}
+
+{% block body %}
+<h1>{{ title }}</h1>
+    <div id="dashboard-participant">
+        <div class="col-3"  style="float: left;">
+            <b>Anonymize data</b>
+            <div class="form-check">
+                <input type="radio" id="input-anonymize-yes" class="form-check-input" name="anonymize" value="yes">
+                <label class="form-check-label" for="input-anonymize-yes">
+                    Yes
+                </label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="input-anonymize-no" class="form-check-input" name="anonymize" value="no">
+                 <label class="form-check-label" for="input-anonymize-no">
+                    No
+                </label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="input-anonymize-both" class="form-check-input" name="anonymize" value="both" checked>
+                 <label class="form-check-label" for="input-anonymize-both">
+                    Export both ways
+                </label>
+            </div>
+        </div>
+        <div class="col-3" style="float: left;">
+            <b>Assets</b>
+            <div class="form-check">
+                <input type="radio" id="input-assets-none" class="form-check-input" name="assets" value="none">
+                <label class="form-check-label" for="input-assets-none">
+                    None
+                </label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="input-assets-experiment" class="form-check-input" name="assets" value="experiment" checked>
+                 <label class="form-check-label" for="input-assets-experiment">
+                    Experiment-specific assets only
+                </label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="input-assets-all" class="form-check-input" name="assets" value="all">
+                 <label class="form-check-label" for="input-assets-all">
+                    All
+                </label>
+            </div>
+        </div>
+        <div class="col-3" style="clear: both; float: left; margin-top: 18px;">
+            <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
+        </div>
+    </div>
+{% endblock %}
+{% block libs %}
+  {{ super() }}
+{% endblock %}

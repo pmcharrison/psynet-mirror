@@ -17,6 +17,7 @@ import dallinger.models
 import flask
 import rpdb
 import sqlalchemy.orm.exc
+from click import Context
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
@@ -28,7 +29,7 @@ from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
-from flask import jsonify, render_template, request
+from flask import jsonify, render_template, request, send_file
 from pkg_resources import resource_filename
 
 from psynet import __version__
@@ -1343,6 +1344,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("color_mode", unicode, validators=[color_mode_validator])
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
+    @dashboard_tab("Export", after_route="database")
+    @classmethod
+    def dashboard_export(cls):
+        return render_template(
+            "dashboard_export.html",
+            title="Database export",
+        )
+
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
     def dashboard_timeline(cls):
@@ -1520,6 +1529,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         return exp.deployment_id
 
+    @experiment_route("/dashboard/export", methods=["GET"])
+    @classmethod
+    def export(cls):
+        from .command_line import export__local
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            ctx = Context(export__local)
+            ctx.invoke(export__local, path=tempdir, n_parallel=None)
+
+            file_basename = get_config().get("label")
+            zip_filepath = shutil.make_archive(f"{file_basename}-data", "zip", tempdir)
+
+            return send_file(zip_filepath, mimetype="zip")
+
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
     def get_participant_info_for_debug_mode():
@@ -1556,7 +1579,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             asset.export(temp_file.name)
 
-            return flask.send_file(temp_file.name, max_age=0)
+            return send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @staticmethod
