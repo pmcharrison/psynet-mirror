@@ -347,7 +347,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     check_translations,
                     {
                         "module": "experiment",
-                        "locales_dir": locales_dir,
                         "variable_placeholders": self.variable_placeholders,
                         "extract_translations_function": self.create_pot_from_experiment_folder,
                     },
@@ -384,20 +383,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             extract_pot(input_directory, "templates/*.html", pot_path)
 
     @classmethod
-    def create_pot_from_experiment_folder(cls, locales_dir=None):
-        source_experiment_directory_path = os.path.abspath(os.getcwd())
-        if not source_experiment_directory_path.endswith("/"):
-            source_experiment_directory_path += "/"
-        if locales_dir is None:
-            locales_dir = os.path.join(source_experiment_directory_path, "locales")
+    def create_pot_from_experiment_folder(cls):
+        locales_dir = "locales"
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
         if exists(pot_path):
             os.remove(pot_path)
-        cls.extract_pot_from_experiment_folder(
-            source_experiment_directory_path, pot_path
-        )
+        cls.extract_pot_from_experiment_folder(os.getcwd(), pot_path)
         if not exists(pot_path):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
