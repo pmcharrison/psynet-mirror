@@ -6,887 +6,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Abort Experiment"
-msgstr ""
-
-msgid "Abort experiment"
-msgstr ""
-
-msgid "Accumulated bonus"
-msgstr ""
-
-msgid "Assignment ID"
-msgstr ""
-
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-
-msgid "Close window"
-msgstr ""
-
-msgid "Complete Survey"
-msgstr ""
-
-msgid "Do you understand and consent to these terms?"
-msgstr ""
-
-msgid "Error type"
-msgstr ""
-
-msgid "Finish"
-msgstr ""
-
-msgid "HIT ID"
-msgstr ""
-
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-
-msgid "Image not found"
-msgstr ""
-
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-
-msgid "Loop"
-msgstr ""
-
-msgid "Next"
-msgstr ""
-
-msgid "Play all"
-msgstr ""
-
-msgid "Play from start"
-msgstr ""
-
-msgid "Play prompt"
-msgstr ""
-
-msgid "Play recording"
-msgstr ""
-
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr ""
-
-msgid "Record from start"
-msgstr ""
-
-msgid "Reset"
-msgstr ""
-
-msgid "Resuming experiment ..."
-msgstr ""
-
-msgid "Scroll up/down to see all text"
-msgstr ""
-
-msgid "Stop"
-msgstr ""
-
-msgid "Thank you for taking part."
-msgstr ""
-
-msgid "Video not found"
-msgstr ""
-
-msgid "Worker ID"
-msgstr ""
-
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
-msgstr ""
-
-#, python-format
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-
-msgctxt "abort_possible"
-msgid "Aborting not possible."
-msgstr ""
-
-msgctxt "abort_possible"
-msgid ""
-"Aborting the experiment is not possible as the experimenter does not allow "
-"it at this time!"
-msgstr ""
-
-msgctxt "abort_possible"
-msgid "Are you sure you want to abort the experiment?"
-msgstr ""
-
-msgctxt "abort_possible"
-msgid ""
-"If you click the Abort button, the experiment will end early, and you will "
-"be automatically paid the compensation you have earned so far."
-msgstr ""
-
-msgctxt "abort_possible"
-msgid "Please only contact us if you have trouble receiving your payment."
-msgstr ""
-
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr ""
-
-msgctxt "abort_possible"
-msgid "See the information below for details of your compensation."
-msgstr ""
-
-msgctxt "ad"
-msgid "Begin Experiment"
-msgstr ""
-
-msgctxt "ad"
-msgid ""
-"By clicking the following URL link, you will be taken to the experiment, "
-"including complete instructions and an informed consent agreement."
-msgstr ""
-
-msgctxt "ad"
-msgid "Call for participants"
-msgstr ""
-
-msgctxt "ad"
-msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
-" task."
-msgstr ""
-
-msgctxt "ad"
-msgid "Please disable pop-up blockers before continuing."
-msgstr ""
-
-msgctxt "ad"
-msgid "Thanks for accepting this HIT."
-msgstr ""
-
-msgctxt "ad"
-msgid "Thanks for your interest in this experiment."
-msgstr ""
-
-msgctxt "ad"
-msgid "The requirements to participate are as follows"
-msgstr ""
-
-msgctxt "ad"
-msgid "Warning"
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid ""
-"A high decay parameter means that the signal takes a long time to decay "
-"(i.e. high smoothing)."
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid "Documentation"
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid "Sliders"
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>decay</strong> parameters determine the amount of smoothing that"
-" happens to the signal, and have units of seconds."
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>grace</strong> parameters determine how long the volume must be "
-"outside the respective threshold for a warning message to be triggered."
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>message duration</strong> parameters determine how long warning "
-"messages are displayed for."
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>threshold</strong> parameters determine the point at which the "
-"volume is determined to be 'too high' or 'too low'."
-msgstr ""
-
-msgctxt "audio_meter_calibrate"
-msgid ""
-"There are three decay parameters: one for the displayed audio meter, one for"
-" the 'too-high' detector, and one for the 'too-low' detector."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "A new window appears. In the top corner, check for the Incognito icon"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "At the top right, click More"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Click here"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Copy the current URL to the clipboard:"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Copy the link below"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Follow the steps below to make sure the experiment works."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Install Google Chrome if you haven't"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Install the latest version of Google Chrome"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Install the latest version of Google Chrome on your computer"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "New Incognito Window"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "On Mac: Press"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "On Windows, Linux, or Chrome OS: Press"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "On your computer, open Chrome."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Open Google Chrome"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Open a new incognito window"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Open a new incognito window with  the following keyboard shortcuts:"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Paste the link into the Chrome browser to continue the experiment"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Paste the link into the Chrome browser to start the experiment"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Paste the link into the incognito window to continue the experiment"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Paste the link into the incognito window to start the experiment"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Please enable JavaScript in your browser."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Please follow the instructions below to continue."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Please open the survey on your computer."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Press"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "This site requires JavaScript to function properly."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "Warning!"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "You are using"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "You are using:"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "You can also use a keyboard shortcut to open an Incognito window"
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "You cannot take part in the experiment from a mobile device."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "You need to use Google Chrome to take part in the experiment."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr ""
-
-msgctxt "browser_compatibility"
-msgid ""
-"You need to use the latest version of Google Chrome to take part in the "
-"experiment."
-msgstr ""
-
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr ""
-
-msgctxt "consent"
-msgid "I agree"
-msgstr ""
-
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr ""
-
-msgctxt "consent"
-msgid "Principal Investigator"
-msgstr ""
-
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr ""
-
-msgctxt "consent-collaborations"
-msgid ""
-"Audio-visual material will be shared only if your consent to an additional "
-"consent form as explained above."
-msgstr ""
-
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr ""
-
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we may share your audio-visual material along with fully "
-"anonymized data, such as demographic, aggregated, or extracted data."
-msgstr ""
-
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr ""
-
-msgctxt "consent-collaborations"
-msgid ""
-"We will never connect your real name or any of your personal information "
-"directly to your image or sound recording, even though it is off course "
-"possible to recognize individuals based on audio-visual material."
-msgstr ""
-
-msgctxt "consent-compensation"
-msgid "By doing the task you are helping science, thank you!"
-msgstr ""
-
-msgctxt "consent-compensation"
-msgid "Compensation"
-msgstr ""
-
-msgctxt "consent-compensation"
-msgid ""
-"This study is completely voluntary; you will not receive any monetary "
-"compensation for participation."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"All the recordings we obtain during this research will be kept confidential,"
-" and nobody outside the group of researchers will be able to share or store "
-"them."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your recordings to derive your real "
-"identity, personal information could be leaked if you are not in an isolated"
-" environment."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"By consenting to this experiment, you are committing not to use profanity "
-"while recording audio or nudity while recording video."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"For example, you may want to sit in a room that is isolated from the rest of"
-" the house."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"However, in some experiments, your recordings may be seen or heard by other "
-"participants in order to evaluate them in different attributes or create new"
-" materials (for example replicate a rhythm that you created, or continue a "
-"melody that you sang)."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
-"additional requirements is also fully voluntary."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"Raw audio/video will not be shared with collaborators (we will only share "
-"extracted data from recordings without personal identifiers)."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information. In addition, while you "
-"perform a recording, the microphone or camera can capture unintended audio "
-"or video, for example the camera can capture another family member, or the "
-"microphone can capture something you say to another person."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"Your recordings will not be associated with your name or other identifiers "
-"in any way."
-msgstr ""
-
-msgctxt "consent-confidentiality"
-msgid ""
-"Your recordings will not be used to derive your real identity, and they will"
-" not be made public."
-msgstr ""
-
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr ""
-
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr ""
-
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr ""
-
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr ""
-
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr ""
-
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr ""
-
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we aim to combine a wide range of behavioural methodologies to"
-" characterize the ways in which people from diverse backgrounds internalize "
-"and process external conditions, both in the auditory (e.g., speech, music) "
-"and visual (e.g., faces, color) domains."
-msgstr ""
-
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study the role of experience and exposure "
-"in creating and affecting our perception, decisions and actions."
-msgstr ""
-
-msgctxt "consent-purpose"
-msgid ""
-"We are also interested in the way that these internal representations affect"
-" human decision making and behaviour."
-msgstr ""
-
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
-msgstr ""
-
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr ""
-
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr ""
-
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-
-msgctxt "consent-security"
-msgid ""
-"Audio-visual material will not be indexed by personal information but will "
-"be linked to personal information by a key (such as “afasd12314asdasd”)."
-msgstr ""
-
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server."
-msgstr ""
-
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr ""
-
-msgctxt "consent-security"
-msgid ""
-"Personal information will be stored separately from audio-visual materials "
-"and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr ""
-
-msgctxt "consent-security"
-msgid "Security"
-msgstr ""
-
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr ""
-
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr ""
-
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr ""
-
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr ""
-
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr ""
-
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr ""
-
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr ""
-
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr ""
-
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr ""
-
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-
-msgctxt "start"
-msgid "Starting experiment..."
-msgstr ""
-
-msgctxt "timeline"
-msgid "Bonus"
-msgstr ""
-
-msgctxt "timeline"
-msgid "Help!"
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr ""
-
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr ""
-
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr ""
-
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr ""
-
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr ""
-
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr ""
-
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-
 #: psynet/demography/general.py
 msgid "I don’t know"
 msgstr ""
@@ -1230,6 +349,161 @@ msgstr ""
 #: psynet/demography/general.py
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+" to be compensated."
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+msgid "Accumulated bonus"
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+msgid "Close window"
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+msgid "Assignment ID"
+msgstr ""
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+msgid "HIT ID"
+msgstr ""
+
+#: psynet/templates/abort_possible.html
+msgid "Abort experiment"
+msgstr ""
+
+#: psynet/templates/abort_possible.html
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr ""
+
+#: psynet/templates/abort_possible.html
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+
+#: psynet/templates/abort_possible.html
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+
+#: psynet/templates/abort_possible.html
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "Call for participants"
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr ""
+
+#: psynet/templates/ad.html
+msgctxt "ad"
+msgid "Warning"
+msgstr ""
+
+#: psynet/templates/ad.html psynet/templates/mturk_error.html
+msgid "Abort Experiment"
+msgstr ""
+
+#: psynet/templates/ad.html psynet/templates/mturk_error.html
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+
+#: psynet/templates/consent.html
+#, python-format
+msgid ""
+"You will also see one or more consent pages and have up to\n"
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr ""
+
+#: psynet/templates/consent.html
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr ""
+
+#: psynet/templates/consent.html
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr ""
+
+#: psynet/templates/consent.html psynet/templates/macros.html
+#: psynet/templates/macros/control.html
+msgid "Next"
 msgstr ""
 
 #: psynet/templates/consents/audiovisual_consent.html
@@ -1802,6 +1076,14 @@ msgctxt "consent-title"
 msgid "We need your consent to proceed"
 msgstr ""
 
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid "Security"
+msgstr ""
+
 #: psynet/templates/consents/main_consent.html
 msgid "per hour"
 msgstr ""
@@ -1893,6 +1175,266 @@ msgid ""
 "You also have the right to submit an objection to the supervisory authority."
 msgstr ""
 
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr ""
+
 #: psynet/templates/consents/open_science_consent.html
 msgctxt "consent"
 msgid ""
@@ -1971,6 +1513,699 @@ msgctxt "consent-security"
 msgid ""
 "Data will be published on open science frameworks/websites such as OSF "
 "(https://osf.io/) and will be available to everybody with internet access."
+msgstr ""
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr ""
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-compensation"
+msgid ""
+"This study is completely voluntary; you will not receive any monetary "
+"compensation for participation."
+msgstr ""
+
+#: psynet/templates/exit_recruiter_lucid.html
+msgid "Complete Survey"
+msgstr ""
+
+#: psynet/templates/exit_recruiter_lucid.html
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr ""
+
+#: psynet/templates/exit_recruiter_lucid.html
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr ""
+
+#: psynet/templates/final-page-bonuses.html
+#, python-format
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+
+#: psynet/templates/final-page-bonuses.html
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+
+#: psynet/templates/final-page-rejected-consent.html
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr ""
+
+#: psynet/templates/final-page-rejected-consent.html
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr ""
+
+#: psynet/templates/final-page-rejected-consent.html
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+msgid "Finish"
+msgstr ""
+
+#: psynet/templates/final-page-rejected-consent.html
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr ""
+
+#: psynet/templates/final-page-successful.html
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr ""
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+msgid "Thank you for taking part."
+msgstr ""
+
+#: psynet/templates/final-page-unsuccessful.html
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+
+#: psynet/templates/final-page-unsuccessful.html
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr ""
+
+#: psynet/templates/macros/browser-detect.html
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgid "Do you understand and consent to these terms?"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgid "Scroll up/down to see all text"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent"
+msgid "I agree"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"However, in some experiments, your recordings may be seen or heard by other "
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent. Consenting to these "
+"additional requirements is also fully voluntary."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Raw audio/video will not be shared with collaborators (we will only share "
+"extracted data from recordings without personal identifiers)."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+" For the Max-Planck-Society, this is:"
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
+msgstr ""
+
+#: psynet/templates/macros/consent.html
+msgctxt "consent-security"
+msgid ""
+"Personal information will be stored separately from audio-visual materials "
+"and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgid "Play all"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgid "Play prompt"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgid "Play recording"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgid "Record from start"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgid "Reset"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+
+#: psynet/templates/macros/control.html
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+msgid "Loop"
+msgstr ""
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+msgid "Stop"
+msgstr ""
+
+#: psynet/templates/macros/prompt.html
+msgid "Image not found"
+msgstr ""
+
+#: psynet/templates/macros/prompt.html
+msgid "Play from start"
+msgstr ""
+
+#: psynet/templates/macros/prompt.html
+msgid "Video not found"
+msgstr ""
+
+#: psynet/templates/mturk_error.html
+msgid "Error type"
+msgstr ""
+
+#: psynet/templates/mturk_error.html
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+
+#: psynet/templates/mturk_error.html
+msgid "Worker ID"
+msgstr ""
+
+#: psynet/templates/mturk_error.html
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr ""
+
+#: psynet/templates/mturk_error.html
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+
+#: psynet/templates/mturk_error.html
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+
+#: psynet/templates/resume.html
+msgid "Resuming experiment ..."
+msgstr ""
+
+#: psynet/templates/start.html
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline"
+msgid "Bonus"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline"
+msgid "Help!"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr ""
+
+#: psynet/templates/timeline-page.html
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
 msgstr ""
 
 #: psynet/utils.py
