@@ -125,13 +125,13 @@ In PsyNet, we use a wrapper for this:
 
 ::
 
-    extract_pot(
+    create_pot(
         input_folder, "path/to/my/files/*.html", pot_path
     )
 
 Which looks for all HTML files in the folder ``f"{input_folder}/path/to/my/files"`` and extracts the strings into the ``.pot`` file ``pot_path``.
 
-We provide a default extraction script for the PsyNet package ``extract_psynet_pot()`` and for experiment folder ``Experiment.create_pot_from_experiment_folder()``.
+We provide a default extraction script for the PsyNet package ``create_psynet_translation_template()`` and for experiment folder ``Experiment.create_translation_template_from_experiment_folder()``.
 
 While this probably works for most experiments (it scans all .py files in the experiment directory and the templates folder if it exists), it can be easily extended to scan other subdirectories:
 
@@ -139,10 +139,10 @@ While this probably works for most experiments (it scans all .py files in the ex
 
     class Exp(psynet.experiment.Experiment):
         @classmethod
-        def extract_pot_from_experiment_folder(cls, input_directory, pot_path):
+        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
             super(Exp, cls).extract_pot_from_experiment_folder(input_directory, pot_path)
-            from psynet.internationalization import extract_pot
-            extract_pot(input_directory, "my_module/.", pot_path)
+            from psynet.internationalization import create_pot
+            create_pot(input_directory, "my_module/.", pot_path)
 
 We also provide a command line interface to extract the strings: ``psynet prepare-translation <iso_code>``.
 

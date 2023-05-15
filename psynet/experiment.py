@@ -43,7 +43,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
-from .internationalization import check_translations, compile_mo, extract_pot, load_po
+from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -348,7 +348,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     {
                         "module": "experiment",
                         "variable_placeholders": self.variable_placeholders,
-                        "extract_translations_function": self.create_pot_from_experiment_folder,
+                        "create_translation_template_function": self._create_translation_template_from_experiment_folder,
                     },
                 )
             )
@@ -372,25 +372,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def extract_pot_from_experiment_folder(cls, input_directory, pot_path):
-        extract_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
+    def create_translation_template_from_experiment_folder(
+        cls, input_directory, pot_path
+    ):
+        create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
         if any(
             [
                 path
                 for path in glob(os.path.join(input_directory, "templates", "*.html"))
             ]
         ):
-            extract_pot(input_directory, "templates/*.html", pot_path)
+            create_pot(input_directory, "templates/*.html", pot_path)
 
     @classmethod
-    def create_pot_from_experiment_folder(cls):
+    def _create_translation_template_from_experiment_folder(cls):
         locales_dir = "locales"
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
         if exists(pot_path):
             os.remove(pot_path)
-        cls.extract_pot_from_experiment_folder(os.getcwd(), pot_path)
+        cls.create_translation_template_from_experiment_folder(os.getcwd(), pot_path)
         if not exists(pot_path):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)

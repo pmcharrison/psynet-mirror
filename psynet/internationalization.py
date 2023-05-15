@@ -25,12 +25,12 @@ def get_locales_dir(locales_dir):
     return locales_dir
 
 
-def extract_psynet_pot(locales_dir=None):
+def create_psynet_translation_template(locales_dir=None):
     """Extract the psynet pot file."""
     locales_dir = get_locales_dir(locales_dir)
     psynet_folder = locales_dir.replace("psynet/locales", "")
     pot_path = join_path(locales_dir, "psynet.pot")
-    n_translatable_strings = extract_pot(
+    n_translatable_strings = create_pot(
         psynet_folder, "psynet/.", pot_path, start_with_fresh_file=True
     )
     print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
@@ -76,7 +76,7 @@ def get_pot_from_command(cmd, tmp_pot_file):
         return []
 
 
-def extract_translations_with_pybabel(input):
+def create_translation_template_with_pybabel(input):
     """Extract translations from a file or multiple files using pybabel."""
     cfg = """
             [jinja2: **.html]
@@ -92,7 +92,7 @@ def extract_translations_with_pybabel(input):
         )
 
 
-def extract_translations_with_xgettext(input_file):
+def create_translation_template_with_xgettext(input_file):
     """Extract translations from a file using xgettext."""
     with tempfile.TemporaryDirectory() as tempdir:
         tmp_pot_file = join_path(tempdir, "xgettext.pot")
@@ -109,7 +109,7 @@ def clean_po(po, package_name):
     return po
 
 
-def extract_pot(
+def create_pot(
     root_dir: str, input_path: str, pot_path: str, start_with_fresh_file=False
 ):
     """
@@ -147,17 +147,17 @@ def extract_pot(
     else:
         pot = new_pot(pot_path)
     if input_path.endswith("."):
-        new_entries.extend(extract_translations_with_pybabel(input_path))
+        new_entries.extend(create_translation_template_with_pybabel(input_path))
         for root, dirs, files in os.walk(input_path[:-1]):
             for file in files:
                 if file.endswith(".py"):
                     new_entries.extend(
-                        extract_translations_with_xgettext(join_path(root, file))
+                        create_translation_template_with_xgettext(join_path(root, file))
                     )
     elif input_path.endswith(".html"):
-        new_entries.extend(extract_translations_with_pybabel(input_path))
+        new_entries.extend(create_translation_template_with_pybabel(input_path))
     elif input_path.endswith(".py"):
-        new_entries.extend(extract_translations_with_xgettext(input_path))
+        new_entries.extend(create_translation_template_with_xgettext(input_path))
     else:
         raise ValueError("Input file must be a Python or Jinja file.")
     blocked_entries = [(e.msgid, e.msgctxt) for e in old_entries]
@@ -517,7 +517,7 @@ def assert_no_runtime_errors(
         ) from e
 
 
-def validate_translations(
+def _check_translations(
     pot_entries, translations, locales_dir, variable_placeholders, module
 ):
     import gettext
@@ -561,16 +561,16 @@ def check_translations(
     module="psynet",
     locales_dir=None,
     variable_placeholders=None,
-    extract_translations_function=extract_psynet_pot,
+    create_translation_template_function=create_psynet_translation_template,
 ):
     locales_dir = get_locales_dir(locales_dir)
-    pot = extract_translations_function(locales_dir)
+    pot = create_translation_template_function(locales_dir)
     pot_entries = po_to_dict(pot)
     translations = get_all_translations(module, locales_dir)
 
     if variable_placeholders is None:
         variable_placeholders = {}
-    validate_translations(
+    _check_translations(
         pot_entries=pot_entries,
         translations=translations,
         locales_dir=locales_dir,

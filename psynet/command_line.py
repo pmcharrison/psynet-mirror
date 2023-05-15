@@ -1869,7 +1869,7 @@ def _prepare_translation(iso_code):
     experiment_class = import_local_experiment().get("class")
 
     try:
-        pot = experiment_class.create_pot_from_experiment_folder()
+        pot = experiment_class._create_translation_template_from_experiment_folder()
     except FileNotFoundError as e:
         print(
             '''
@@ -1904,13 +1904,13 @@ def _prepare_translation(iso_code):
         {{ gettext("You have to select the music you like most.") }}
         ###################
         In case you have stored your strings in a subfolder, you can also register the subfolder to be scanned, by
-        extending the extract_pot_from_experiment_folder function in your experiment class. Here's an example:
+        extending the create_translation_template_from_experiment_folder function in your experiment class. Here's an example:
         ###################
         @classmethod
-        def extract_pot_from_experiment_folder(cls, input_directory, pot_path):
-            super(Exp, cls).extract_pot_from_experiment_folder(input_directory, pot_path)
-            from psynet.internationalization import extract_pot
-            extract_pot(input_directory, "my_module/.", pot_path)
+        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
+            super(Exp, cls).create_translation_template_from_experiment_folder(input_directory, pot_path)
+            from psynet.internationalization import create_pot
+            create_pot(input_directory, "my_module/.", pot_path)
         ###################
         This will look for strings in the my_module subfolder.
         '''
