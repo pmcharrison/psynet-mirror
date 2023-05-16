@@ -10,10 +10,10 @@ from importlib import resources
 from statistics import median
 from typing import Callable, Dict, List, Optional, Union
 
-import flask
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
+from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
@@ -731,10 +731,10 @@ class Page(Elt):
         self.media = MediaSpec() if media is None else media
         self.media.check()
 
-        self.scripts = [] if scripts is None else [flask.Markup(x) for x in scripts]
+        self.scripts = [] if scripts is None else [Markup(x) for x in scripts]
         assert isinstance(self.scripts, list)
 
-        self.css = [] if css is None else [flask.Markup(x) for x in css]
+        self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
 
         self._contents = contents
@@ -1067,10 +1067,10 @@ class Page(Elt):
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": flask.Markup(
+            "init_js_vars": Markup(
                 dict_to_js_vars({**self.js_vars, **internal_js_vars})
             ),
-            "define_media_requests": flask.Markup(self.define_media_requests),
+            "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
             "extra_bonus": "%.2f" % participant.performance_bonus,

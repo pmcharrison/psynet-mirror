@@ -3,7 +3,7 @@
 import random
 import time
 
-import flask
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.consent import MainConsent
@@ -33,7 +33,7 @@ class CustomTrial(MCMCPTrial):
         occupation = self.context["occupation"]
         age_1 = self.first_stimulus["age"]
         age_2 = self.second_stimulus["age"]
-        prompt = flask.Markup(
+        prompt = Markup(
             f"<p>Person A is {age_1} years old. "
             f"Person B is {age_2} years old. "
             f"Which one is the {occupation}?</p>"

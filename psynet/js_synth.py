@@ -414,7 +414,7 @@ class JSSynth(Prompt):
 
     text:
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     sequence:
         Sequence to play to the participant. This should be a list of objects
