@@ -1822,6 +1822,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             return handled_error.error_page()
 
+    @experiment_route("/dashboard/network-visualizer", methods=["GET"])
+    @classmethod
+    def network_visualizer(cls):
+        # TODO from .visualizing.graph import …
+        pass
+        # TODO
+
     @classmethod
     def handle_error(cls, error, **kwargs):
         parents = cls._compile_error_parents(**kwargs)
