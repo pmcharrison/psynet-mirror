@@ -1,5 +1,9 @@
 # Installation instructions
 
+Note: if you are planning to develop your own PsyNet experiments, we recommend exploring the 
+[PsyNet documentation website](https://psynet.dev) first and following the generic 
+installation instructions listed there.
+
 ## Prerequisites
 
 This experiment should be compatible with any modern computer running MacOS, Linux, or Windows.
