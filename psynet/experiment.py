@@ -8,6 +8,8 @@ import traceback
 import uuid
 from collections import OrderedDict
 from datetime import datetime
+from glob import glob
+from os.path import exists
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -42,6 +44,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
+from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -68,6 +71,7 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
     Recording,
 )
 from .utils import (
+    LOCALES_DIR,
     NoArgumentProvided,
     cache,
     call_function,
@@ -76,6 +80,7 @@ from .utils import (
     disable_logger,
     error_page,
     get_arg_from_dict,
+    get_available_locales,
     get_language,
     get_logger,
     log_time_taken,
@@ -332,12 +337,91 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+
+        locales_dir = os.path.abspath("locales")
+
         self.pre_deploy_routines = []
+        if self.translation_checks_needed(locales_dir):
+            self.pre_deploy_routines.append(
+                PreDeployRoutine(
+                    "check_experiment_translations",
+                    check_translations,
+                    {
+                        "module": "experiment",
+                        "locales_dir": locales_dir,
+                        "variable_placeholders": self.variable_placeholders,
+                        "create_translation_template_function": self._create_translation_template_from_experiment_folder,
+                    },
+                )
+            )
+
+        self.pre_deploy_routines.append(
+            PreDeployRoutine(
+                "compile_translations_if_necessary",
+                self.compile_translations_if_necessary,
+                {
+                    "locales_dir": os.path.abspath("locales"),
+                    "module": "experiment",
+                },
+            )
+        )
 
         self.process_timeline()
 
+    def translation_checks_needed(self, locales_dir):
+        return (
+            os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
+        )
+
+    @classmethod
+    def create_translation_template_from_experiment_folder(
+        cls, input_directory, pot_path
+    ):
+        create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
+        if any(
+            [
+                path
+                for path in glob(os.path.join(input_directory, "templates", "*.html"))
+            ]
+        ):
+            create_pot(input_directory, "templates/*.html", pot_path)
+
+    @classmethod
+    def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
+        os.makedirs(locales_dir, exist_ok=True)
+
+        pot_path = os.path.join(locales_dir, "experiment.pot")
+        if exists(pot_path):
+            os.remove(pot_path)
+        cls.create_translation_template_from_experiment_folder(os.getcwd(), pot_path)
+        if not exists(pot_path):
+            raise FileNotFoundError(f"Could not find pot file at {pot_path}")
+        return load_po(pot_path)
+
+    def compile_translations_if_necessary(self, locales_dir, module):
+        """Compiles translations if necessary."""
+        supported_locales = self.config.get("supported_locales", [])
+        if self.translation_checks_needed(locales_dir):
+            locales = get_available_locales(locales_dir)
+            for locale in supported_locales:
+                if locale == "en":
+                    continue
+                assert (
+                    locale in locales
+                ), f"Locale {locale} is not found in {locales_dir}"
+                po_path = os.path.join(
+                    locales_dir, locale, "LC_MESSAGES", module + ".po"
+                )
+                compile_mo(po_path)
+        else:
+            assert supported_locales == [], "No locales folder found"
+
+    def compile_psynet_translations_if_necessary(self):
+        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
+
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
+        self.compile_psynet_translations_if_necessary()
         redis_vars.set("launch_started", True)
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
@@ -508,6 +592,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def base_payment(self):
         return get_config().get("base_payment")
 
+    @property
+    def variable_placeholders(self):
+        return {}
+
     def get_initial_recruitment_size(self):
         return get_and_load_config().get("initial_recruitment_size")
 
@@ -573,16 +661,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {}
 
     @classmethod
+    def get_experiment_folder_name(cls):
+        try:
+            return deployment_info.read("folder_name")
+        except (KeyError, FileNotFoundError):
+            return os.path.basename(os.getcwd())
+
+    @classmethod
     def config_defaults(cls):
         """
         Override this classmethod to register new default values for config variables.
         Remember to call super!
         """
-
-        try:
-            folder_name = deployment_info.read("folder_name")
-        except (KeyError, FileNotFoundError):
-            folder_name = os.path.basename(os.getcwd())
 
         config = {
             **super().config_defaults(),
@@ -594,7 +684,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "protected_routes": json.dumps(_protected_routes),
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
-            "label": folder_name,
+            "label": cls.get_experiment_folder_name(),
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",
@@ -1332,7 +1422,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("check_participant_opened_devtools", bool)
         config.register("window_width", int)
         config.register("window_height", int)
-        config.register("supported_locales", unicode, validators=[is_valid_json])
+
+        def is_valid_locale(value):
+            available_psynet_locales = get_available_locales()
+            for locale in json.loads(value):
+                if locale == "en":
+                    continue
+                assert (
+                    locale in available_psynet_locales
+                ), f"Locale {locale} not available in PsyNet."
+
+        config.register(
+            "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
+        )
         config.register("allow_switching_locale", bool)
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
@@ -1727,7 +1829,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def route_set_locale_participant(cls, participant_id):
         participant = cls.get_participant_from_participant_id(participant_id)
-        old_locale = participant.var.locale
+        try:
+            old_locale = participant.var.locale
+        except KeyError:
+            old_locale = get_language()
         GET = request.args.to_dict()
         assert "locale" in GET, "locale not in GET"
         new_locale = GET["locale"]

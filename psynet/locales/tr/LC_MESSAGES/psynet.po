@@ -25,11 +25,24 @@ msgstr "Birikmiş bonus"
 msgid "Assignment ID"
 msgstr "Katılımcı No"
 
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Bir hata durumunda telafi edilmek için yukarıdaki düğmeyi tıklayın."
+
 msgid "Close window"
 msgstr "Pencereyi kapat"
 
 msgid "Complete Survey"
 msgstr "Anketi Tamamlayın"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgid "Do you understand and consent to these terms?"
+msgstr "Bu şartları anlıyor ve kabul ediyor musunuz?"
 
 msgid "Error type"
 msgstr "Hata türü"
@@ -55,13 +68,13 @@ msgstr "Resim bulunamadı"
 #, python-format
 msgid ""
 "In addition to your base payment of "
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(currency)s%(BONUS)s</strong> for the time you spent on the "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""
-"<strong>%(currency)s%(BASE_PAYMENT)s</strong> tutarındaki temel ödemenize ek"
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> tutarındaki temel ödemenize ek"
 " olarak, deneyde harcadığınız zaman için "
-"<strong>%(currency)s%(BONUS)s</strong> tutarında bir bonus alacaksınız."
+"<strong>%(CURRENCY)s%(BONUS)s</strong> tutarında bir bonus alacaksınız."
 
 #, fuzzy
 msgid "Loop"
@@ -100,6 +113,14 @@ msgstr "Sıfırla"
 msgid "Resuming experiment ..."
 msgstr "Deneye devam ediyoruz..."
 
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgid "Scroll up/down to see all text"
+msgstr "Tüm metni görmek için yukarı/aşağı kaydırın"
+
 #, fuzzy
 msgid "Stop"
 msgstr "Dur"
@@ -117,24 +138,24 @@ msgstr "İşçi Kimliği"
 #, python-format
 msgid ""
 "You have also been awarded a performance bonus of "
-"<strong>%(currency)s%(PERFORMANCE_BONUS)s</strong>!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
-"Ekstra <strong>%(currency)s%(PERFORMANCE_BONUS)s</strong> bonus kazandınız!"
+"Ekstra <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> bonus kazandınız!"
 
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
 msgstr ""
 "Ödüllendirilmek için <strong> en az "
-"%(currency)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonus kazanmanız "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonus kazanmanız "
 "gerekmektedir."
 
 #, python-format, fuzzy
 msgid ""
-"You will also see one or more consent pages and have up to "
-"<strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+"You will also see one or more consent pages and have up to\n"
+"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
 "Ayrıca bir veya daha fazla onay sayfası göreceksiniz ve bunları okumak ve "
 "kabul etmek/ret etmek için <strong>%(TERMINATION_TIME)s</strong> kadar "
@@ -307,7 +328,6 @@ msgctxt "browser_compatibility"
 msgid "At the top right, click More"
 msgstr "Sağ üstte, Daha Fazla'ya tıklayın"
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Click here"
@@ -439,7 +459,6 @@ msgctxt "browser_compatibility"
 msgid "We are now going to test your browser for compatibility."
 msgstr "Şimdi tarayıcınızın uyumluluğunu test edeceğiz."
 
-#. ""
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
@@ -483,6 +502,677 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Devam etmek için aşağıdaki düğmeyi tıklayın."
 
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent"
+msgid "I agree"
+msgstr "Kabul ediyorum"
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Bu araştırma hakkında herhangi bir sorunuz varsa, bu projedeki baş "
+"araştırmacı Nori Jacoby ile iletişime geçmekten çekinmeyin: "
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Hayır, teşekkür ederim (deneyi sonlandır)"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr "Baş Araştırmacı"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Size doğrudan bir faydası olmasa da, bu çalışma insanların ses ve görüntüden"
+" nasıl bilgi elde ettiğini anlamamıza yardımcı olarak topluma fayda "
+"sağlayabilir ve potansiyel olarak yeteneklerimizi taklit edebilecek "
+"makinelerin (örneğin ses tanıma ve bilgisayar görüşü) mühendisliğine "
+"yardımcı olabilir ve işitme veya görme engelli kişilerde algısal "
+"yeteneklerin geliştirilmesine yardımcı olabilir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Avantajlar"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr ""
+"Görsel-işitsel materyaller yalnızca yukarıda açıklandığı gibi ek bir onay "
+"formuna onay vermeniz halinde paylaşılacaktır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"Bilimsel ilerleme ve çoğaltmaya yardımcı olmak amacıyla, bazen verileri "
+"araştırma işbirlikçileriyle paylaşabiliriz."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr ""
+"Bu durumlarda, görsel-işitsel materyalinizi demografik, toplu veya "
+"çıkarılmış veriler gibi tamamen anonimleştirilmiş verilerle birlikte "
+"paylaşabiliriz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"Bu durumlarda, yalnızca herhangi bir kişisel tanımlayıcı içermeyen "
+"demografik, toplu veya çıkarılmış veriler gibi tamamen anonimleştirilmiş "
+"verileri paylaşacağız."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Araştırma işbirlikleri"
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-collaborations"
+msgid ""
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr ""
+"Görsel-işitsel materyale dayanarak bireyleri tanımak elbette mümkün olsa da,"
+" gerçek adınızı veya kişisel bilgilerinizden herhangi birini asla doğrudan "
+"görüntünüze veya ses kaydınıza bağlamayacağız."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr "Bu görevi yerine getirerek bilime yardımcı oluyorsunuz, teşekkürler!"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr "Tazminat"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-compensation"
+msgid ""
+"This study is completely voluntary; you will not receive any monetary "
+"compensation for participation."
+msgstr ""
+"Bu çalışma tamamen gönüllülük esasına dayanmaktadır; katılımınız için "
+"herhangi bir maddi karşılık almayacaksınız."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
+msgstr ""
+"Bu araştırma sırasında elde ettiğimiz tüm kayıtlar gizli tutulacak ve "
+"araştırmacı grubu dışında hiç kimse bunları paylaşamayacak veya "
+"saklayamayacaktır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr ""
+"Araştırmacılar kayıtlarınızı gerçek kimliğinizi ortaya çıkarmak için "
+"kullanmayacak olsalar da, izole bir ortamda değilseniz kişisel bilgileriniz "
+"sızdırılabilir."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"Bu deneye rıza göstererek, ses kaydı sırasında küfür kullanmayacağınızı veya"
+" video kaydı sırasında çıplaklık kullanmayacağınızı taahhüt ediyorsunuz."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Gizlilik"
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr ""
+"Örneğin, evin geri kalanından izole edilmiş bir odada oturmak "
+"isteyebilirsiniz."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"However, in some experiments, your recordings may be seen or heard by other "
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
+msgstr ""
+"Ancak bazı deneylerde kayıtlarınız, farklı niteliklerde değerlendirmek veya "
+"yeni materyaller oluşturmak (örneğin oluşturduğunuz bir ritmi tekrarlamak "
+"veya söylediğiniz bir melodiyi devam ettirmek) amacıyla diğer katılımcılar "
+"tarafından görülebilir veya duyulabilir."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent. Consenting to these "
+"additional requirements is also fully voluntary."
+msgstr ""
+"Eğer bir deney tamamen anonimleştirilemeyecek veriler topluyorsa, sizi "
+"bilgilendireceğiz ve ayrıca ek onay isteyeceğiz. Bu ek gerekliliklere onay "
+"vermek de tamamen gönüllülük esasına dayanmaktadır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr ""
+"Deneye katılmayı seçerseniz, ses ve video kaydı yaparken kaydedilmesini "
+"istemediğiniz hiçbir şeyin kaydedilmediğinden emin olmak önemlidir ve sizin "
+"sorumluluğunuzdadır."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"Deneyin herhangi bir aşamasında hiçbir kişisel tanımlayıcı (örneğin adınız "
+"veya iletişim verileriniz) toplanmayacak veya kullanılmayacaktır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Raw audio/video will not be shared with collaborators (we will only share "
+"extracted data from recordings without personal identifiers)."
+msgstr ""
+"Ham ses/video çalışanlarla paylaşılmayacaktır (sadece kişisel tanımlayıcılar"
+" olmadan kayıtlardan çıkarılan verileri paylaşacağız)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Bunlar, görsel-işitsel kayıtlar yaptığımız veya gelecekte başka bir deney "
+"yapmak üzere sizinle iletişime geçmek için iletişim bilgilerinize ihtiyaç "
+"duyduğumuz deneyleri içerir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "Dolayısıyla, deneysel veriler anonimdir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Bazı demografik verilerin (örn. yaş, cinsiyet, ikamet edilen ülke) yanı sıra"
+" öğrenme ve maruz kalma geçmişiniz (örn. bir enstrüman çalma deneyimi, örgün"
+" eğitim yılları, konuşulan diller) hakkında bilgi toplayabiliriz."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
+msgstr ""
+"Çevrenizdeki hiçbir ses/görüntü materyalinin kişisel bilgilerinizle "
+"ilişkilendirilemeyeceğinden emin olmak isteyebilirsiniz. Ayrıca, siz kayıt "
+"yaparken mikrofon veya kamera istenmeyen ses veya görüntü yakalayabilir, "
+"örneğin kamera başka bir aile üyesini yakalayabilir veya mikrofon başka bir "
+"kişiye söylediğiniz bir şeyi yakalayabilir."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr ""
+"Kayıtlarınız hiçbir şekilde isminizle veya diğer tanımlayıcılarla "
+"ilişkilendirilmeyecektir."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr ""
+"Kayıtlarınız gerçek kimliğinizi ortaya çıkarmak için kullanılmayacak ve "
+"kamuya açıklanmayacaktır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"Katılmayı kabul ederek, 18 yaşında veya daha büyük olduğunuzu, bu onay "
+"formunu okuduğunuzu, içeriğini kabul ettiğinizi ve bu araştırmada yer almayı"
+" kabul ettiğinizi onaylamış olursunuz."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Rıza"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "Onay vermek istemiyorsanız lütfen bu sayfayı kapatın."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "İletişim bilgileri"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Genel Bakış"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Bu çevrimiçi formun amacı, bir araştırma çalışmasında yer almak isteyip "
+"istemediğinize karar vermenize yardımcı olacak bilgileri size vermektir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Bu araştırma Max-Planck-Institute for Empirical Aesthetics'teki "
+"araştırmacılar tarafından yürütülmektedir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Son olarak, bazı deneylerde sizden ses veya video kaydı yapmanız "
+"istenebilir; örneğin, bir ses veya videoya yanıt olarak parmak vuruşlarınızı"
+" kaydetmeniz veya kendinizi konuşurken veya şarkı söylerken kaydetmeniz "
+"istenebilir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Örneğin, belirli bir sesin veya görüntünün ne kadar hoş olduğuna karar "
+"vermeniz veya sesleri veya görüntüleri kategorize etmeniz (örneğin, bir "
+"sesin veya görüntünün bir arabaya mı yoksa bir ineğe mi ait olduğu) veya "
+"seslerin veya görüntülerin diğer temel özelliklerini değerlendirmeniz "
+"(örneğin, bu tür ses veya görüntülerle ne sıklıkta karşılaşıyorsunuz? "
+"belirli bir sesi veya görüntüyü estetik olarak ne kadar hoş buluyorsunuz?)"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr "Deney bu unsurları içerecekse ek bir onay isteyeceğiz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Bu çalışmaya katılmaya gönüllü olursanız, sesleri dinlerken veya görüntüleri"
+" ya da videoları izlerken klavyenizi veya farenizi kullanarak basit "
+"görevleri yerine getirmeniz istenecektir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"Bazı deneylerde hafif aldatma kullanabiliriz, yani deneysel bir görevle "
+"ilgili tüm gerçeği açıklamayabiliriz (örneğin, bir görüntünün bir insan "
+"tarafından değil yapay bir bilgisayar sistemi tarafından oluşturulduğunu "
+"söylemeyeceğiz)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Hafif aldatma sadece deneye başlamadan önce katılımcıların önyargılı "
+"olmasını engellememiz gereken bazı deneylerde kullanılacaktır."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Prosedür"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"Kullanılan belirli sesler, görüntüler ve videolar değişiklik gösterecektir, "
+"ancak şunları içerebilir: ortam seslerinin kayıtları, gürültü patlamaları, "
+"konuşma, müzik, basit tonlar, doğal görüntüler, animasyonlu görüntüler, "
+"çizgi romanlar, yüzler, nesneler, geometrik şekiller, fraktal görüntüler "
+"veya doğal ortamların videoları."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Amaç"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+"Özellikle, farklı geçmişlere sahip insanların hem işitsel (örn. konuşma, "
+"müzik) hem de görsel (örn. yüzler, renkler) alanlardaki dış koşulları "
+"içselleştirme ve işleme biçimlerini karakterize etmek için çok çeşitli "
+"davranışsal metodolojileri birleştirmeyi amaçlıyoruz."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr ""
+"Bu projenin amacı, deneyim ve maruz kalmanın algı, karar ve eylemlerimizi "
+"oluşturma ve etkilemedeki rolünü incelemektir."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr ""
+"Ayrıca bu içsel temsillerin insan karar verme ve davranışlarını nasıl "
+"etkilediğiyle de ilgileniyoruz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Bazı çalışmalarda verilerin silinmesinin mümkün olmayacağını, bu durumda "
+"sizden ayrı bir onay formunda bu prosedüre özellikle izin vermenizi "
+"isteyeceğimizi unutmayın."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+" For the Max-Planck-Society, this is:"
+msgstr ""
+"Ayrıca denetim makamına itirazda bulunma hakkına da sahipsiniz. Max-Planck-"
+"Society için bu makam:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"Max-Planck Enstitüsü'nde saklanan sizinle ilgili veriler hakkında bilgi "
+"alma, yanlış verileri düzeltme ve kabul edilemez veri saklama durumlarında "
+"verilerin silinmesini talep etme ve veri taşınabilirliği hakkına sahipsiniz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Sizin haklarınız"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Riskler/Rahatsızlıklar"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"Bu çalışmaya katılmanın normal bilgisayar kullanımıyla ilişkili olanların "
+"ötesinde herhangi bir riski yoktur."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr ""
+"Görsel-işitsel materyaller kişisel bilgilere göre indekslenmeyecek ancak bir"
+" anahtarla (\"afasd12314asdasd\" gibi) kişisel bilgilere bağlanacaktır."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Veriler geçici olarak harici sunucularda ve şifre korumalı masaüstü/dizüstü "
+"bilgisayarlarda saklanacaktır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
+msgstr ""
+"Veri toplama sırasında, görsel-işitsel materyal ayrı bir sunucuya "
+"kaydedilecektir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Hiçbir veri harici sunucularda kalıcı olarak saklanmayacaktır."
+
+#: psynet/templates/consents/audiovisual_consent.html
+msgctxt "consent-security"
+msgid ""
+"Personal information will be stored separately from audio-visual materials "
+"and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+"Kişisel bilgiler görsel-işitsel materyallerden ayrı olarak saklanacak ve "
+"güçlü bir şifreleme protokolü (Advanced Encryption Standard gibi) "
+"kullanılarak şifrelenecektir."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-security"
+msgid "Security"
+msgstr "Güvenlik"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"Veriler daha sonra endüstri standardı şifreleme yazılımı kullanılarak "
+"şifrelenmiş sabit disklerle enstitü sunucularında kalıcı olarak "
+"saklanacaktır."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"Araştırmacı, bunu gerektirecek koşullar ortaya çıkarsa sizi bu araştırmadan "
+"çekebilir."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Gönüllü katılım"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"Bu çalışmaya katılmayı herhangi bir ceza olmaksızın istediğiniz zaman "
+"bırakmakta özgürsünüz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"Katılmayı reddetmekte özgürsünüz ve istediğiniz zaman katılmayı "
+"bırakabilirsiniz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Bu araştırmaya katılımınız gönüllülük esasına dayanmaktadır."
+
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid Anket Gönderimi"
@@ -510,10 +1200,6 @@ msgstr "Ancak yine de harcadığınız zaman için size ödeme yapılacaktır."
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
 msgstr "Ne yazık ki deney erken bitmek zorunda."
-
-msgctxt "mturk_error"
-msgid "Click the above button to be compensated in case of an error."
-msgstr "Bir hata durumunda telafi edilmek için yukarıdaki düğmeyi tıklayın."
 
 msgctxt "mturk_error"
 msgid "Error!"
@@ -624,10 +1310,10 @@ msgstr "Lütfen yaşınızı belirtiniz?"
 msgctxt "age"
 msgid ""
 "You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{}'"
+"was: '{AGE}'"
 msgstr ""
 "Yaşınızı 0 ile 120 arasında bir tamsayı olarak girmeniz gerekiyor! "
-"Cevabınız: '{}'"
+"Cevabınız: '{AGE}'"
 
 #: psynet/demography/general.py
 msgctxt "country-select"
@@ -795,63 +1481,63 @@ msgstr "Kendinizi belirtin"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "10,000 to 19,999 {}"
-msgstr "10.000 ila 19.999 {}"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "10.000 ila 19.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "100,000 to 149,999 {}"
-msgstr "100.000 ila 149.999 {}"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "100.000 ila 149.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "150,000 {} or more"
-msgstr "150.000 {} veya daha fazla"
+msgid "150,000 {CURRENCY} or more"
+msgstr "150.000 {CURRENCY} veya daha fazla"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "20,000 to 29,999 {}"
-msgstr "20.000 ila 29.999 {}"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "20.000 ila 29.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "30,000 to 39,999 {}"
-msgstr "30.000 ila 39.999 {}"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "30.000 ila 39.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "40,000 to 49,999 {}"
-msgstr "40.000 ila 49.999 {}"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "40.000 ila 49.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "50,000 to 59,999 {}"
-msgstr "50.000 ila 59.999 {}"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "50.000 ila 59.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "60,000 to 69,999 {}"
-msgstr "60.000 ila 69.999 {}"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "60.000 ila 69.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "70,000 to 79,999 {}"
-msgstr "70.000 ila 79.999 {}"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "70.000 ila 79.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "80,000 to 89,999 {}"
-msgstr "80.000 ila 89.999 {}"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "80.000 ila 89.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "90,000 to 99,999 {}"
-msgstr "90.000 ila 99.999 {}"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "90.000 ila 99.999 {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
-msgid "Less than 10,000 {}"
-msgstr "10.000'den az {}"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "10.000'den az {CURRENCY}"
 
 #: psynet/demography/general.py
 msgctxt "income"
@@ -886,9 +1572,9 @@ msgstr "Bir dil seçin"
 msgctxt "language-select"
 msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
-"speaking from early childhood)?"
+"speaking from early childhood?"
 msgstr ""
-"Ana diliniz - yani çocukluğunuzdan beri konuşarak büyüdüğünüz dil - nedir?)"
+"Ana diliniz - yani çocukluğunuzdan beri konuşarak büyüdüğünüz dil - nedir?"
 
 #: psynet/demography/general.py
 msgctxt "language-select"
@@ -944,47 +1630,8 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Size hiç disleksi teşhisi konuldu mu?"
 
-#: psynet/templates/consent.html:81
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "It seems like you're using a different browser than Chrome"
-msgstr "Görünüşe göre Chrome'dan farklı bir tarayıcı kullanıyorsunuz"
-
-#: psynet/templates/consent.html:82
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "This experiment only supports Chrome."
-msgstr "Bu deney sadece Chrome'u desteklemektedir."
-
-#: psynet/templates/consent.html:83
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid ""
-"If you're using a different browser, please reopen the same page in Chrome."
-msgstr ""
-"Farklı bir tarayıcı kullanıyorsanız, lütfen aynı sayfayı Chrome'da yeniden "
-"açın."
-
-#: psynet/templates/consent.html:89
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "It seems like you're using an out-of-date version of Chrome "
-msgstr "Görünüşe göre Chrome'un güncel olmayan bir sürümünü kullanıyorsunuz"
-
-#: psynet/templates/consent.html:90
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "This app requires at least: "
-msgstr "Bu uygulama en azından gerektirir:"
-
-#: psynet/templates/consent.html:92
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please update your browser and open this web page again."
-msgstr "Lütfen tarayıcınızı güncelleyin ve bu web sayfasını tekrar açın."
-
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
@@ -993,329 +1640,10 @@ msgstr ""
 "veya kendinizi konuşurken veya şarkı söylerken kaydetmeniz istenebilir."
 
 #: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at: "
-msgstr ""
-"Bu araştırma hakkında herhangi bir sorunuz varsa, bu projedeki baş "
-"araştırmacı Nori Jacoby ile iletişime geçmekten çekinmeyin: "
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent"
+msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
 msgstr "Bu deneyde sizden ses veya video kaydı yapmanız istenebilir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we may share your audio-visual material along with fully "
-"anonymized data, such as demographic, aggregated, or extracted data."
-msgstr ""
-"Bu durumlarda, görsel-işitsel materyalinizi demografik, toplu veya "
-"çıkarılmış veriler gibi tamamen anonimleştirilmiş verilerle birlikte "
-"paylaşabiliriz."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"We will never connect your real name or any of your personal information "
-"directly to your image or sound recording, even though it is off course "
-"possible to recognize individuals based on audio-visual material."
-msgstr ""
-"Görsel-işitsel materyale dayanarak bireyleri tanımak elbette mümkün olsa da,"
-" gerçek adınızı veya kişisel bilgilerinizden herhangi birini asla doğrudan "
-"görüntünüze veya ses kaydınıza bağlamayacağız."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"All the recordings we obtain during this research will be kept confidential,"
-" and nobody outside the group of researchers will be able to share or store "
-"them."
-msgstr ""
-"Bu araştırma sırasında elde ettiğimiz tüm kayıtlar gizli tutulacak ve "
-"araştırmacı grubu dışında hiç kimse bunları paylaşamayacak veya "
-"saklayamayacaktır."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your recordings to derive your real "
-"identity, personal information could be leaked if you are not in an isolated"
-" environment."
-msgstr ""
-"Araştırmacılar kayıtlarınızı gerçek kimliğinizi ortaya çıkarmak için "
-"kullanmayacak olsalar da, izole bir ortamda değilseniz kişisel bilgileriniz "
-"sızdırılabilir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"By consenting to this experiment, you are committing not to use profanity "
-"while recording audio or nudity while recording video."
-msgstr ""
-"Bu deneye rıza göstererek, ses kaydı sırasında küfür kullanmayacağınızı veya"
-" video kaydı sırasında çıplaklık kullanmayacağınızı taahhüt ediyorsunuz."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"For example, you may want to sit in a room that is isolated from the rest of"
-" the house."
-msgstr ""
-"Örneğin, evin geri kalanından izole edilmiş bir odada oturmak "
-"isteyebilirsiniz."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"However, in some experiments, your recordings may be seen or heard by other "
-"participants in order to evaluate them in different attributes or create new"
-" materials (for example replicate a rhythm that you created, or continue a "
-"melody that you sang)."
-msgstr ""
-"Ancak bazı deneylerde kayıtlarınız, farklı niteliklerde değerlendirmek veya "
-"yeni materyaller oluşturmak (örneğin oluşturduğunuz bir ritmi tekrarlamak "
-"veya söylediğiniz bir melodiyi devam ettirmek) amacıyla diğer katılımcılar "
-"tarafından görülebilir veya duyulabilir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded."
-msgstr ""
-"Deneye katılmayı seçerseniz, ses ve video kaydı yaparken kaydedilmesini "
-"istemediğiniz hiçbir şeyin kaydedilmediğinden emin olmak önemlidir ve sizin "
-"sorumluluğunuzdadır."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Raw audio/video will not be shared with collaborators (we will only share "
-"extracted data from recordings without personal identifiers)."
-msgstr ""
-"Ham ses/video çalışanlarla paylaşılmayacaktır (sadece kişisel tanımlayıcılar"
-" olmadan kayıtlardan çıkarılan verileri paylaşacağız)."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information. In addition, while you "
-"perform a recording, the microphone or camera can capture unintended audio "
-"or video, for example the camera can capture another family member, or the "
-"microphone can capture something you say to another person."
-msgstr ""
-"Çevrenizdeki hiçbir ses/görüntü materyalinin kişisel bilgilerinizle "
-"ilişkilendirilemeyeceğinden emin olmak isteyebilirsiniz. Ayrıca, siz kayıt "
-"yaparken mikrofon veya kamera istenmeyen ses veya görüntü yakalayabilir, "
-"örneğin kamera başka bir aile üyesini yakalayabilir veya mikrofon başka bir "
-"kişiye söylediğiniz bir şeyi yakalayabilir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Your recordings will not be associated with your name or other identifiers "
-"in any way."
-msgstr ""
-"Kayıtlarınız hiçbir şekilde isminizle veya diğer tanımlayıcılarla "
-"ilişkilendirilmeyecektir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Your recordings will not be used to derive your real identity, and they will"
-" not be made public."
-msgstr ""
-"Kayıtlarınız gerçek kimliğinizi ortaya çıkarmak için kullanılmayacak ve "
-"kamuya açıklanmayacaktır."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-security"
-msgid ""
-"Audio-visual material will not be indexed by personal information but will "
-"be linked to personal information by a key (such as “afasd12314asdasd”)."
-msgstr ""
-"Görsel-işitsel materyaller kişisel bilgilere göre indekslenmeyecek ancak bir"
-" anahtarla (\"afasd12314asdasd\" gibi) kişisel bilgilere bağlanacaktır."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server."
-msgstr ""
-"Veri toplama sırasında, görsel-işitsel materyal ayrı bir sunucuya "
-"kaydedilecektir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-msgctxt "consent-security"
-msgid ""
-"Personal information will be stored separately from audio-visual materials "
-"and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr ""
-"Kişisel bilgiler görsel-işitsel materyallerden ayrı olarak saklanacak ve "
-"güçlü bir şifreleme protokolü (Advanced Encryption Standard gibi) "
-"kullanılarak şifrelenecektir."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgid "Do you understand and consent to these terms?"
-msgstr "Bu şartları anlıyor ve kabul ediyor musunuz?"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent"
-msgid "I agree"
-msgstr "Kabul ediyorum"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "Hayır, teşekkür ederim (deneyi sonlandır)"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Lütfen Javascript'i etkinleştirin ve ardından bu sayfayı yenileyin."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Tarayıcınızda Javascript etkinleştirilmediği sürece deney çalışmayacaktır."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Uyarı: Javascript tarayıcınızda çalışmıyor"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"Katılmayı kabul ederek, 18 yaşında veya daha büyük olduğunuzu, bu onay "
-"formunu okuduğunuzu, içeriğini kabul ettiğinizi ve bu araştırmada yer almayı"
-" kabul ettiğinizi onaylamış olursunuz."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "Rıza"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "Onay vermek istemiyorsanız lütfen bu sayfayı kapatın."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgid "Scroll up/down to see all text"
-msgstr "Tüm metni görmek için yukarı/aşağı kaydırın"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "İletişim bilgileri"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-security"
-msgid "Security"
-msgstr "Güvenlik"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "Gizlilik"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr ""
-"Bilimsel ilerleme ve çoğaltmaya yardımcı olmak amacıyla, bazen verileri "
-"araştırma işbirlikçileriyle paylaşabiliriz."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "Araştırma işbirlikleri"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
@@ -1324,7 +1652,7 @@ msgstr "(Lütfen uygun olan yerleri işaretleyin)"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 msgctxt "consent"
-msgid "Addendum for demonstrations."
+msgid "Addendum for demonstrations"
 msgstr "Gösteriler için ek."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -1470,17 +1798,21 @@ msgctxt "consent-title"
 msgid "Research Participant Consent Form for Image/Sound Recordings"
 msgstr "Görüntü/Ses Kayıtları için Araştırma Katılımcı Onam Formu"
 
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+msgctxt "consent"
+msgid ""
+"I understand that I am free to withdraw my consent to the collection and "
+"storage of my personal data without negative consequences."
+msgstr ""
+"Kişisel verilerimin toplanması ve saklanması için verdiğim onayı herhangi "
+"bir olumsuz sonuçla karşılaşmaksızın geri çekebileceğimi biliyorum."
+
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 msgctxt "consent"
 msgid "Investigator"
 msgstr "Araştırmacı"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent"
-msgid "Principal Investigator"
-msgstr "Baş Araştırmacı"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1595,16 +1927,6 @@ msgstr ""
 msgctxt "consent-title"
 msgid "Research Participant Consent Form"
 msgstr "Araştırma Katılımcı Onam Formu"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"I understand that I am free to withdraw my consent to the collection and "
-"storage of my personal data without negative consequences."
-msgstr ""
-"Kişisel verilerimin toplanması ve saklanması için verdiğim onayı herhangi "
-"bir olumsuz sonuçla karşılaşmaksızın geri çekebileceğimi biliyorum."
 
 #: psynet/templates/consents/database_consent.html
 msgctxt "consent"
@@ -2075,6 +2397,15 @@ msgstr ""
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Bu nedenle, hangi bilgileri herkese açık olarak paylaşmayı seçtiğinizi "
+"kısıtlamak isteyebilirsiniz."
+
+#: psynet/templates/consents/main_consent.html
+msgctxt "consent-confidentiality"
+msgid ""
 "We will only save your anonymized alpha numeric code in our system, in order"
 " to distinguish participants who have already taken part in this or other "
 "experiments."
@@ -2082,15 +2413,6 @@ msgstr ""
 "Anonimleştirilmiş alfa nümerik kodunuzu sistemimize yalnızca bu veya diğer "
 "deneylere daha önce katılmış olan katılımcıları ayırt etmek için "
 "kaydedeceğiz."
-
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-disclaimer"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Bu nedenle, hangi bilgileri herkese açık olarak paylaşmayı seçtiğinizi "
-"kısıtlamak isteyebilirsiniz."
 
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-purpose"
@@ -2113,650 +2435,6 @@ msgctxt "consent-rights"
 msgid ""
 "You also have the right to submit an objection to the supervisory authority."
 msgstr "Ayrıca denetim makamına itirazda bulunma hakkına da sahipsiniz."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-overview"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-"Bu araştırma hakkında herhangi bir sorunuz varsa, bu projedeki baş "
-"araştırmacı Nori Jacoby ile iletişime geçmekten çekinmeyin:"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"Size doğrudan bir faydası olmasa da, bu çalışma insanların ses ve görüntüden"
-" nasıl bilgi elde ettiğini anlamamıza yardımcı olarak topluma fayda "
-"sağlayabilir ve potansiyel olarak yeteneklerimizi taklit edebilecek "
-"makinelerin (örneğin ses tanıma ve bilgisayar görüşü) mühendisliğine "
-"yardımcı olabilir ve işitme veya görme engelli kişilerde algısal "
-"yeteneklerin geliştirilmesine yardımcı olabilir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "Avantajlar"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-"Bu durumlarda, yalnızca herhangi bir kişisel tanımlayıcı içermeyen "
-"demografik, toplu veya çıkarılmış veriler gibi tamamen anonimleştirilmiş "
-"verileri paylaşacağız."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-compensation"
-msgid "Compensation"
-msgstr "Tazminat"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-"Deneyin herhangi bir aşamasında hiçbir kişisel tanımlayıcı (örneğin adınız "
-"veya iletişim verileriniz) toplanmayacak veya kullanılmayacaktır."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-"Bunlar, görsel-işitsel kayıtlar yaptığımız veya gelecekte başka bir deney "
-"yapmak üzere sizinle iletişime geçmek için iletişim bilgilerinize ihtiyaç "
-"duyduğumuz deneyleri içerir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "Dolayısıyla, deneysel veriler anonimdir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Bazı demografik verilerin (örn. yaş, cinsiyet, ikamet edilen ülke) yanı sıra"
-" öğrenme ve maruz kalma geçmişiniz (örn. bir enstrüman çalma deneyimi, örgün"
-" eğitim yılları, konuşulan diller) hakkında bilgi toplayabiliriz."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "Genel Bakış"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-"Bu çevrimiçi formun amacı, bir araştırma çalışmasında yer almak isteyip "
-"istemediğinize karar vermenize yardımcı olacak bilgileri size vermektir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-"Bu araştırma Max-Planck-Institute for Empirical Aesthetics'teki "
-"araştırmacılar tarafından yürütülmektedir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Son olarak, bazı deneylerde sizden ses veya video kaydı yapmanız "
-"istenebilir; örneğin, bir ses veya videoya yanıt olarak parmak vuruşlarınızı"
-" kaydetmeniz veya kendinizi konuşurken veya şarkı söylerken kaydetmeniz "
-"istenebilir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"Örneğin, belirli bir sesin veya görüntünün ne kadar hoş olduğuna karar "
-"vermeniz veya sesleri veya görüntüleri kategorize etmeniz (örneğin, bir "
-"sesin veya görüntünün bir arabaya mı yoksa bir ineğe mi ait olduğu) veya "
-"seslerin veya görüntülerin diğer temel özelliklerini değerlendirmeniz "
-"(örneğin, bu tür ses veya görüntülerle ne sıklıkta karşılaşıyorsunuz? "
-"belirli bir sesi veya görüntüyü estetik olarak ne kadar hoş buluyorsunuz?)"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr "Deney bu unsurları içerecekse ek bir onay isteyeceğiz."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"Bu çalışmaya katılmaya gönüllü olursanız, sesleri dinlerken veya görüntüleri"
-" ya da videoları izlerken klavyenizi veya farenizi kullanarak basit "
-"görevleri yerine getirmeniz istenecektir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"Bazı deneylerde hafif aldatma kullanabiliriz, yani deneysel bir görevle "
-"ilgili tüm gerçeği açıklamayabiliriz (örneğin, bir görüntünün bir insan "
-"tarafından değil yapay bir bilgisayar sistemi tarafından oluşturulduğunu "
-"söylemeyeceğiz)."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-"Hafif aldatma sadece deneye başlamadan önce katılımcıların önyargılı "
-"olmasını engellememiz gereken bazı deneylerde kullanılacaktır."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "Prosedür"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"Kullanılan belirli sesler, görüntüler ve videolar değişiklik gösterecektir, "
-"ancak şunları içerebilir: ortam seslerinin kayıtları, gürültü patlamaları, "
-"konuşma, müzik, basit tonlar, doğal görüntüler, animasyonlu görüntüler, "
-"çizgi romanlar, yüzler, nesneler, geometrik şekiller, fraktal görüntüler "
-"veya doğal ortamların videoları."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "Amaç"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"Bazı çalışmalarda verilerin silinmesinin mümkün olmayacağını, bu durumda "
-"sizden ayrı bir onay formunda bu prosedüre özellikle izin vermenizi "
-"isteyeceğimizi unutmayın."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"Max-Planck Enstitüsü'nde saklanan sizinle ilgili veriler hakkında bilgi "
-"alma, yanlış verileri düzeltme ve kabul edilemez veri saklama durumlarında "
-"verilerin silinmesini talep etme ve veri taşınabilirliği hakkına sahipsiniz."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "Sizin haklarınız"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "Riskler/Rahatsızlıklar"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-"Bu çalışmaya katılmanın normal bilgisayar kullanımıyla ilişkili olanların "
-"ötesinde herhangi bir riski yoktur."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-"Veriler geçici olarak harici sunucularda ve şifre korumalı masaüstü/dizüstü "
-"bilgisayarlarda saklanacaktır."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "Hiçbir veri harici sunucularda kalıcı olarak saklanmayacaktır."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-"Veriler daha sonra endüstri standardı şifreleme yazılımı kullanılarak "
-"şifrelenmiş sabit disklerle enstitü sunucularında kalıcı olarak "
-"saklanacaktır."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-"Araştırmacı, bunu gerektirecek koşullar ortaya çıkarsa sizi bu araştırmadan "
-"çekebilir."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "Gönüllü katılım"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-"Bu çalışmaya katılmayı herhangi bir ceza olmaksızın istediğiniz zaman "
-"bırakmakta özgürsünüz."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-"Katılmayı reddetmekte özgürsünüz ve istediğiniz zaman katılmayı "
-"bırakabilirsiniz."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "Bu araştırmaya katılımınız gönüllülük esasına dayanmaktadır."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html:35
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information."
-msgstr ""
-"Çevrenizdeki hiçbir ses/görsel materyalin kişisel bilgilerinizle "
-"ilişkilendirilemeyeceğinden emin olmak isteyebilirsiniz."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html:36
-msgctxt "consent-confidentiality"
-msgid ""
-"In addition, while you perform a recording, the microphone or camera can "
-"capture unintended audio or video, for example the camera can capture "
-"another family member, or the microphone can capture something you say to "
-"another person."
-msgstr ""
-"Ayrıca, siz bir kayıt gerçekleştirirken mikrofon veya kamera istenmeyen ses "
-"veya görüntü yakalayabilir, örneğin kamera başka bir aile üyesini "
-"yakalayabilir veya mikrofon başka bir kişiye söylediğiniz bir şeyi "
-"yakalayabilir."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html:37
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded. For example, you may want "
-"to sit in a room that is isolated from the rest of the house."
-msgstr ""
-"Deneye katılmayı seçerseniz, ses ve video kaydı yaparken kaydedilmesini "
-"istemediğiniz hiçbir şeyin kaydedilmediğinden emin olmak önemlidir ve sizin "
-"sorumluluğunuzdadır. Örneğin, evin geri kalanından izole edilmiş bir odada "
-"oturmak isteyebilirsiniz."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html:43
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr ""
-"Veri toplama sırasında, görsel-işitsel materyal ayrı bir sunucuya "
-"kaydedilecek ve güçlü bir şifreleme protokolü (Gelişmiş Şifreleme Standardı "
-"gibi) kullanılarak şifrelenecektir."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html:44
-msgctxt "consent-security"
-msgid "MTurk ID information will not be used to index this data."
-msgstr ""
-"MTurk kimlik bilgileri bu verileri indekslemek için kullanılmayacaktır."
-
-#: psynet/templates/consents/mturk_audiovisual_consent.html:50
-#: psynet/templates/consents/mturk_standard_consent.html:140
-msgctxt "consent-consent"
-msgid ""
-"If you do not wish to consent, please close this page and return the HIT on "
-"Mechanical Turk."
-msgstr ""
-"Onay vermek istemiyorsanız, lütfen bu sayfayı kapatın ve Mechanical "
-"Turk'teki HIT'i iade edin."
-
-#: psynet/templates/consents/mturk_standard_consent.html:110
-msgctxt "consent-compensation"
-msgid ""
-"If you satisfactorily complete the study, you will receive approximately:"
-msgstr ""
-"Çalışmayı istenilen şekilde tamamlarsanız, yaklaşık olarak alacaksınız:"
-
-#: psynet/templates/consents/mturk_standard_consent.html:117
-msgctxt "consent-disclaimer"
-msgid ""
-"Although researchers will not use your MTurk ID to derive your real "
-"identity, your MTurk ID could be linked to your Amazon public profile page "
-"if a data breach takes place."
-msgstr ""
-"Araştırmacılar MTurk kimliğinizi gerçek kimliğinizi elde etmek için "
-"kullanmayacak olsalar da, bir veri ihlali gerçekleşirse MTurk kimliğiniz "
-"Amazon genel profil sayfanızla ilişkilendirilebilir."
-
-#: psynet/templates/consents/mturk_standard_consent.html:125
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is"
-msgstr "Max-Planck Topluluğu için bu"
-
-#: psynet/templates/consents/mturk_standard_consent.html:133
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact:"
-msgstr ""
-"Bu araştırma hakkında herhangi bir sorunuz varsa, lütfen iletişime geçmekten"
-" çekinmeyin:"
-
-#: psynet/templates/consents/mturk_standard_consent.html:134
-msgctxt "consent-contact"
-msgid ""
-"If you have any questions about Your rights or treatment as a participant in"
-" this research project, please contact:"
-msgstr ""
-"Bu araştırma projesinin bir katılımcısı olarak haklarınız veya muameleniz "
-"hakkında herhangi bir sorunuz varsa, lütfen iletişime geçin:"
-
-#: psynet/templates/consents/mturk_standard_consent.html:21
-msgctxt "consent-overview"
-msgid "In case of questions you can contact:"
-msgstr "Sorularınız olması halinde iletişime geçebilirsiniz:"
-
-#: psynet/templates/consents/mturk_standard_consent.html:26
-msgctxt "consent-overview"
-msgid "This online consent form includes the following information:"
-msgstr "Bu çevrimiçi onay formu aşağıdaki bilgileri içermektedir:"
-
-#: psynet/templates/consents/mturk_standard_consent.html:29
-msgctxt "consent-overview"
-msgid "Purpose of the study."
-msgstr "Çalışmanın amacı."
-
-#: psynet/templates/consents/mturk_standard_consent.html:30
-msgctxt "consent-overview"
-msgid "Why the study is being done."
-msgstr "Çalışmanın neden yapıldığı."
-
-#: psynet/templates/consents/mturk_standard_consent.html:31
-msgctxt "consent-overview"
-msgid "The things that you will be asked to do if you are in the study."
-msgstr "Çalışmaya katılmanız halinde yapmanız istenecek şeyler."
-
-#: psynet/templates/consents/mturk_standard_consent.html:32
-msgctxt "consent-overview"
-msgid "Any known risks involved."
-msgstr "Bilinen tüm riskler."
-
-#: psynet/templates/consents/mturk_standard_consent.html:33
-msgctxt "consent-overview"
-msgid "Any potential benefits."
-msgstr "Herhangi bir potansiyel fayda."
-
-#: psynet/templates/consents/mturk_standard_consent.html:38
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to characterize internal representations in "
-"audition and vision."
-msgstr ""
-"Bu projenin amacı, işitme ve görmedeki iç temsilleri karakterize etmektir."
-
-#: psynet/templates/consents/mturk_standard_consent.html:39
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we would like to understand how predictive mechanisms in "
-"perception rely on experience, learning and memory."
-msgstr ""
-"Özellikle, algıdaki öngörücü mekanizmaların deneyim, öğrenme ve hafızaya "
-"nasıl dayandığını anlamak istiyoruz."
-
-#: psynet/templates/consents/mturk_standard_consent.html:40
-msgctxt "consent-purpose"
-msgid ""
-"We hope to use the judgments and interactions made by the experiment "
-"participants to infer the mechanisms of the auditory and visual systems."
-msgstr ""
-"İşitsel ve görsel sistemlerin mekanizmalarını çıkarmak için deney "
-"katılımcıları tarafından yapılan yargıları ve etkileşimleri kullanmayı "
-"umuyoruz."
-
-#: psynet/templates/consents/mturk_standard_consent.html:41
-msgctxt "consent-purpose"
-msgid ""
-"The long-term goals of this project are to understand how humans derive "
-"information from sound and vision, and potentially to help engineer machines"
-" that can replicate our abilities (e.g. in sound/image recognition and "
-"computer vision) and to help improve perceptual abilities in people whose "
-"hearing or sight is impaired."
-msgstr ""
-"Bu projenin uzun vadeli hedefleri, insanların ses ve görüntüden nasıl bilgi "
-"elde ettiğini anlamak ve potansiyel olarak yeteneklerimizi taklit edebilecek"
-" makinelerin (örneğin ses / görüntü tanıma ve bilgisayar görüşü) "
-"mühendisliğine yardımcı olmak ve işitme veya görme engelli kişilerde algısal"
-" yetenekleri geliştirmeye yardımcı olmaktır."
-
-#: psynet/templates/consents/mturk_standard_consent.html:49
-msgctxt "consent-procedure"
-msgid ""
-"In some cases, you may be asked to make a voice or video recording, for "
-"example, you may be asked to record your finger-tapping in response to a "
-"sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Bazı durumlarda, sizden bir ses veya video kaydı yapmanız istenebilir, "
-"örneğin, bir ses veya videoya yanıt olarak parmak vuruşunuzu kaydetmeniz "
-"veya kendinizi konuşurken veya şarkı söylerken kaydetmeniz istenebilir."
-
-#: psynet/templates/consents/mturk_standard_consent.html:50
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent, consenting to these additional elements is voluntary."
-msgstr ""
-"Deney bu unsurları içerecekse ek bir onay isteyeceğiz, bu ek unsurlara onay "
-"vermek gönüllülük esasına dayanmaktadır."
-
-#: psynet/templates/consents/mturk_standard_consent.html:55
-msgctxt "consent-procedure"
-msgid "The experiment will take you approximately:"
-msgstr "Deney yaklaşık olarak şu kadar sürecektir:"
-
-#: psynet/templates/consents/mturk_standard_consent.html:56
-msgid "minutes"
-msgstr "dakika"
-
-#: psynet/templates/consents/mturk_standard_consent.html:62
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time. "
-msgstr ""
-"Katılmayı reddetmekte özgürsünüz ve istediğiniz zaman katılmayı "
-"bırakabilirsiniz. "
-
-#: psynet/templates/consents/mturk_standard_consent.html:73
-msgctxt "consent-confidentiality"
-msgid ""
-"We will also collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Ayrıca bazı demografik verilerin (örn. yaş, cinsiyet, ikamet edilen ülke) "
-"yanı sıra öğrenme ve maruz kalma geçmişiniz (örn. bir enstrüman çalma "
-"deneyimi, örgün eğitim yılları, konuşulan diller) hakkında bilgi "
-"toplayacağız."
-
-#: psynet/templates/consents/mturk_standard_consent.html:77
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized Amazon’s Mechanical Turk IDs in our "
-"system, in order to distinguish participants who have already taken part on "
-"this or other experiments."
-msgstr ""
-"Bu veya diğer deneylerde daha önce yer almış olan katılımcıları ayırt etmek "
-"için sistemimize yalnızca anonimleştirilmiş Amazon's Mechanical Turk "
-"ID'lerinizi kaydedeceğiz."
-
-#: psynet/templates/consents/mturk_standard_consent.html:78
-msgctxt "consent-confidentiality"
-msgid ""
-"MTurk worker IDs will not be used to derive your real identity, will not be "
-"shared with anyone outside of the research team and will be deleted after "
-"use."
-msgstr ""
-"MTurk çalışan kimlikleri gerçek kimliğinizi türetmek için kullanılmayacak, "
-"araştırma ekibi dışında kimseyle paylaşılmayacak ve kullanıldıktan sonra "
-"silinecektir."
-
-#: psynet/templates/consents/mturk_standard_consent.html:81
-msgctxt "consent"
-msgid ""
-"We will only share with collaborators demographic, aggregated or extracted "
-"data without personal identifiers (not indexed by Amazon’s Mechanical Turk "
-"IDs)."
-msgstr ""
-"Kişisel tanımlayıcılar (Amazon'un Mechanical Turk ID'leri tarafından "
-"indekslenmeyen) olmadan yalnızca demografik, toplu veya çıkarılmış verileri "
-"ortak çalışanlarla paylaşacağız."
-
-#: psynet/templates/consents/mturk_standard_consent.html:84
-msgctxt "consent"
-msgid ""
-"The data for this study will be stored in a confidential manner for a "
-"duration of 10 years for the purpose of helping scientific replications."
-msgstr ""
-"Bu çalışmanın verileri, bilimsel tekrarlara yardımcı olmak amacıyla 10 yıl "
-"süreyle gizli bir şekilde saklanacaktır."
-
-#: psynet/templates/consents/mturk_standard_consent.html:85
-msgctxt "consent"
-msgid ""
-"Anonymized data could be published in open access data repository "
-"accompanying publications of the study."
-msgstr ""
-"Anonimleştirilmiş veriler, çalışmanın yayınlarına eşlik eden açık erişimli "
-"veri havuzunda yayınlanabilir."
-
-#: psynet/templates/consents/mturk_standard_consent.html:93
-msgctxt "consent-security"
-msgid ""
-"Theft of an individual laptop/desktop or stolen hard drive will yield no "
-"usable personal identifiers."
-msgstr ""
-"Bireysel bir dizüstü/masaüstü bilgisayarın çalınması veya sabit diskin "
-"çalınması, kullanılabilir hiçbir kişisel tanımlayıcıya yol açmayacaktır."
-
-#: psynet/templates/consents/mturk_standard_consent.html:94
-msgctxt "consent-security"
-msgid ""
-"All backup hard drives (Apple Time Machine, etc) will have encryption "
-"(FileVault2) enabled."
-msgstr ""
-"Tüm yedekleme sabit disklerinde (Apple Time Machine, vb.) şifreleme "
-"(FileVault2) etkin olacaktır."
-
-#: psynet/templates/consents/mturk_standard_consent.html:95
-msgctxt "consent-security"
-msgid ""
-"All USB keys used for transporting protected data will be encrypted USB "
-"devices."
-msgstr ""
-"Korunan verilerin taşınması için kullanılan tüm USB anahtarları şifrelenmiş "
-"USB cihazları olacaktır."
 
 #: psynet/templates/consents/open_science_consent.html
 msgctxt "consent"
@@ -2862,94 +2540,6 @@ msgid ""
 msgstr ""
 "Veriler OSF (https://osf.io/) gibi açık bilim çerçevelerinde/web sitelerinde"
 " yayınlanacak ve internet erişimi olan herkesin erişimine açık olacaktır."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"Audio-visual material will be shared only if your consent to an additional "
-"consent form as explained above."
-msgstr ""
-"Görsel-işitsel materyaller yalnızca yukarıda açıklandığı gibi ek bir onay "
-"formuna onay vermeniz halinde paylaşılacaktır."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-compensation"
-msgid "By doing the task you are helping science, thank you!"
-msgstr "Bu görevi yerine getirerek bilime yardımcı oluyorsunuz, teşekkürler!"
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-compensation"
-msgid ""
-"This study is completely voluntary; you will not receive any monetary "
-"compensation for participation."
-msgstr ""
-"Bu çalışma tamamen gönüllülük esasına dayanmaktadır; katılımınız için "
-"herhangi bir maddi karşılık almayacaksınız."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
-"additional requirements is also fully voluntary."
-msgstr ""
-"Eğer bir deney tamamen anonimleştirilemeyecek veriler topluyorsa, sizi "
-"bilgilendireceğiz ve ayrıca ek onay isteyeceğiz. Bu ek gerekliliklere onay "
-"vermek de tamamen gönüllülük esasına dayanmaktadır."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we aim to combine a wide range of behavioural methodologies to"
-" characterize the ways in which people from diverse backgrounds internalize "
-"and process external conditions, both in the auditory (e.g., speech, music) "
-"and visual (e.g., faces, color) domains."
-msgstr ""
-"Özellikle, farklı geçmişlere sahip insanların hem işitsel (örn. konuşma, "
-"müzik) hem de görsel (örn. yüzler, renkler) alanlardaki dış koşulları "
-"içselleştirme ve işleme biçimlerini karakterize etmek için çok çeşitli "
-"davranışsal metodolojileri birleştirmeyi amaçlıyoruz."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study the role of experience and exposure "
-"in creating and affecting our perception, decisions and actions."
-msgstr ""
-"Bu projenin amacı, deneyim ve maruz kalmanın algı, karar ve eylemlerimizi "
-"oluşturma ve etkilemedeki rolünü incelemektir."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"We are also interested in the way that these internal representations affect"
-" human decision making and behaviour."
-msgstr ""
-"Ayrıca bu içsel temsillerin insan karar verme ve davranışlarını nasıl "
-"etkilediğiyle de ilgileniyoruz."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
-msgstr ""
-"Ayrıca denetim makamına itirazda bulunma hakkına da sahipsiniz. Max-Planck-"
-"Society için bu makam:"
-
-#: psynet/templates/mturk_error.html:22
-#, python-format
-msgid ""
-"To enquire about compensation, please contact the researcher at %(EMAIL)s "
-"and describe what led to this error."
-msgstr ""
-"Tazminat hakkında bilgi almak için lütfen %(EMAIL)s adresinden "
-"araştırmacıyla iletişime geçin ve bu hataya neyin yol açtığını açıklayın."
-
-#: psynet/templates/mturk_error.html:23
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "Lütfen aşağıdaki bilgileri de alıntılayın:"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3541,6 +3131,11 @@ msgctxt "country_name"
 msgid "Kyrgyzstan"
 msgstr "Kırgızistan"
 
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Lao"
+
 #: psynet/utils.py
 msgctxt "country_name"
 msgid "Latvia"
@@ -3695,6 +3290,11 @@ msgstr "Myanmar"
 msgctxt "country_name"
 msgid "Namibia"
 msgstr "Namibya"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "Nauruca"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -3873,11 +3473,6 @@ msgstr "Saint Lucia"
 
 #: psynet/utils.py
 msgctxt "country_name"
-msgid "Saint Martin"
-msgstr "Saint Martin"
-
-#: psynet/utils.py
-msgctxt "country_name"
 msgid "Saint Pierre and Miquelon"
 msgstr "Saint Pierre ve Miquelon"
 
@@ -4050,6 +3645,11 @@ msgstr "Togo"
 msgctxt "country_name"
 msgid "Tokelau"
 msgstr "Tokelau"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
 
 #: psynet/utils.py
 msgctxt "country_name"
@@ -4646,6 +4246,11 @@ msgctxt "language_name"
 msgid "Kurdish"
 msgstr "Kürtçe"
 
+#: psynet/utils.py psynet/utils.py
+msgctxt "language_name"
+msgid "Lao"
+msgstr "Lao"
+
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Latin"
@@ -4730,6 +4335,11 @@ msgstr "Marshall adaları dili"
 msgctxt "language_name"
 msgid "Mongolian"
 msgstr "Moğolca"
+
+#: psynet/utils.py psynet/utils.py
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "Nauruca"
 
 #: psynet/utils.py
 msgctxt "language_name"
@@ -5011,6 +4621,11 @@ msgctxt "language_name"
 msgid "Tigrinya"
 msgstr "Tigrinya"
 
+#: psynet/utils.py psynet/utils.py
+msgctxt "language_name"
+msgid "Tonga"
+msgstr "Tonga"
+
 #: psynet/utils.py
 msgctxt "language_name"
 msgid "Tsonga"
@@ -5120,18 +4735,3 @@ msgstr "Zhuang dili"
 msgctxt "language_name"
 msgid "Zulu"
 msgstr "Zuluca"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "country_name"
-msgid "Tonga"
-msgstr "Tonga"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "language_name"
-msgid "Lao"
-msgstr "Lao"
-
-#: psynet/utils.py psynet/utils.py
-msgctxt "language_name"
-msgid "Nauru"
-msgstr "Nauruca"

@@ -113,6 +113,7 @@ but see the sidebar for a full list.
    developer/running_tests
    developer/prescreening_tasks
    developer/updating_documentation
+   developer/internationalization
 
 .. toctree::
    :maxdepth: 2

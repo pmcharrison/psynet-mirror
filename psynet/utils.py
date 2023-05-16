@@ -37,6 +37,7 @@ def get_logger():
 
 logger = get_logger()
 DEFAULT_LOCALE = "en"
+LOCALES_DIR = join_path(abspath(dirname(__file__)), "locales")
 
 
 class NoArgumentProvided:
@@ -521,8 +522,8 @@ def _render_with_translations(
     ) == 1, "Only one of template_name or template_string should be provided."
 
     app = current_app._get_current_object()  # type: ignore[attr-defined]
-    gettext, pgettext, npgettext = get_translator(locale)
-    gettext_functions = [gettext, pgettext, npgettext, url_for]
+    gettext, pgettext = get_translator(locale)
+    gettext_functions = [gettext, pgettext, url_for]
     gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
     translation = Translations.load("translations", [locale])
 
@@ -555,8 +556,10 @@ def render_string_with_translations(template_string, locale=None, **kwargs):
 def get_translator(
     locale=None,
     module="psynet",
-    localedir=join_path(abspath(dirname(__file__)), "locales"),
+    locales_dir=LOCALES_DIR,
 ):
+    from psynet.internationalization import compile_mo
+
     if locale is None:
         try:
             GET = request.args.to_dict()
@@ -581,14 +584,217 @@ def get_translator(
             pass
     if locale is None:
         locale = get_language()
-    if exists(join_path(localedir, locale, "LC_MESSAGES", f"{module}.mo")):
-        translator = gettext.translation(module, localedir, [locale])
+    mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")
+    po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.po")
+    if exists(mo_path):
+        if os.path.getmtime(po_path) > os.path.getmtime(mo_path):
+            logger.info(f"Compiling translation again, because {po_path} was updated.")
+            compile_mo(po_path)
+        translator = gettext.translation(module, locales_dir, [locale])
+    elif exists(po_path):
+        logger.info(f"Compiling translation file on demand {po_path}.")
+        compile_mo(po_path)
+        translator = gettext.translation(module, locales_dir, [locale])
     else:
         if locale != "en":
             logger.warning(f"No translation file found for locale {locale}.")
         translator = gettext.NullTranslations()
 
-    return translator.gettext, translator.pgettext, translator.npgettext
+    return translator.gettext, translator.pgettext
+
+
+ISO_639_1_CODES = [
+    "ab",
+    "aa",
+    "af",
+    "ak",
+    "sq",
+    "am",
+    "ar",
+    "an",
+    "hy",
+    "as",
+    "av",
+    "ae",
+    "ay",
+    "az",
+    "bm",
+    "ba",
+    "eu",
+    "be",
+    "bn",
+    "bh",
+    "bi",
+    "bs",
+    "br",
+    "bg",
+    "my",
+    "ca",
+    "ch",
+    "ce",
+    "ny",
+    "zh",
+    "cv",
+    "kw",
+    "co",
+    "cr",
+    "hr",
+    "cs",
+    "da",
+    "dv",
+    "nl",
+    "dz",
+    "en",
+    "eo",
+    "et",
+    "ee",
+    "fo",
+    "fj",
+    "fi",
+    "fr",
+    "ff",
+    "gl",
+    "ka",
+    "de",
+    "el",
+    "gn",
+    "gu",
+    "ht",
+    "ha",
+    "he",
+    "hz",
+    "hi",
+    "ho",
+    "hu",
+    "ia",
+    "id",
+    "ie",
+    "ga",
+    "ig",
+    "ik",
+    "io",
+    "is",
+    "it",
+    "iu",
+    "ja",
+    "jv",
+    "kl",
+    "kn",
+    "kr",
+    "ks",
+    "kk",
+    "km",
+    "ki",
+    "rw",
+    "ky",
+    "kv",
+    "kg",
+    "ko",
+    "ku",
+    "kj",
+    "la",
+    "lb",
+    "lg",
+    "li",
+    "ln",
+    "lo",
+    "lt",
+    "lu",
+    "lv",
+    "gv",
+    "mk",
+    "mg",
+    "ms",
+    "ml",
+    "mt",
+    "mi",
+    "mr",
+    "mh",
+    "mn",
+    "na",
+    "nv",
+    "nd",
+    "ne",
+    "ng",
+    "nb",
+    "nn",
+    "no",
+    "ii",
+    "nr",
+    "oc",
+    "oj",
+    "cu",
+    "om",
+    "or",
+    "os",
+    "pa",
+    "pi",
+    "fa",
+    "pl",
+    "ps",
+    "pt",
+    "qu",
+    "rm",
+    "rn",
+    "ro",
+    "ru",
+    "sa",
+    "sc",
+    "sd",
+    "se",
+    "sh",
+    "sm",
+    "sg",
+    "sr",
+    "gd",
+    "sn",
+    "si",
+    "sk",
+    "sl",
+    "so",
+    "st",
+    "es",
+    "su",
+    "sw",
+    "ss",
+    "sv",
+    "ta",
+    "te",
+    "tg",
+    "th",
+    "ti",
+    "bo",
+    "tk",
+    "tl",
+    "tn",
+    "to",
+    "tr",
+    "ts",
+    "tt",
+    "tw",
+    "ty",
+    "ug",
+    "uk",
+    "ur",
+    "uz",
+    "ve",
+    "vi",
+    "vo",
+    "wa",
+    "cy",
+    "wo",
+    "fy",
+    "xh",
+    "yi",
+    "yo",
+    "za",
+]
+
+
+def get_available_locales(locales_dir=LOCALES_DIR):
+    return [
+        f for f in os.listdir(locales_dir) if os.path.isdir(join_path(locales_dir, f))
+    ]
 
 
 def countries(locale=None):
@@ -600,7 +806,7 @@ def countries(locale=None):
         sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
-    _, _p, _np = get_translator(locale)
+    _, _p = get_translator(locale)
     return [
         ("AF", _p("country_name", "Afghanistan")),
         ("AL", _p("country_name", "Albania")),
@@ -790,7 +996,6 @@ def countries(locale=None):
         ("SH", _p("country_name", "Saint Helena, Ascension and Tristan da Cunha")),
         ("KN", _p("country_name", "Saint Kitts and Nevis")),
         ("LC", _p("country_name", "Saint Lucia")),
-        ("MF", _p("country_name", "Saint Martin")),
         ("PM", _p("country_name", "Saint Pierre and Miquelon")),
         ("VC", _p("country_name", "Saint Vincent and the Grenadines")),
         ("WS", _p("country_name", "Samoa")),
@@ -863,7 +1068,7 @@ def languages(locale=None):
         sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
-    _, _p, _np = get_translator(locale)
+    _, _p = get_translator(locale)
     return [
         ("ab", _p("language_name", "Abkhazian")),
         ("aa", _p("language_name", "Afar")),
@@ -1098,7 +1303,7 @@ def error_page(
     from flask import make_response, request
 
     config = get_config()
-    _, _p, _np = get_translator(locale)
+    _, _p = get_translator(locale)
     if error_text is None:
         error_text = _p(
             "error-msg",
