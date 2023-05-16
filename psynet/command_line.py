@@ -9,6 +9,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
+from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -27,7 +28,6 @@ from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
-from pkg_resources import resource_filename
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
@@ -1793,16 +1793,22 @@ def update_scripts_():
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
     click.echo("...updating .gitignore.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/.gitignore"),
-        ".gitignore",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/.gitignore"
+    ) as path:
+        shutil.copyfile(
+            path,
+            ".gitignore",
+        )
 
     click.echo("...updating Dockerfile.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
-        "Dockerfile",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/Dockerfile"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "Dockerfile",
+        )
 
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
@@ -1810,38 +1816,53 @@ def update_scripts_():
         file.write("\n")
 
     click.echo("...updating test.py and pytest.ini.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/test.py"),
-        "test.py",
-    )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/pytest.ini"),
-        "pytest.ini",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/test.py"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "test.py",
+        )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/pytest.ini"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "pytest.ini",
+        )
 
     click.echo("...updating docs directory.")
     if Path("docs").exists():
         shutil.rmtree("docs", ignore_errors=True)
-    shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/docs"),
-        "docs",
-        dirs_exist_ok=True,
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/docs"
+    ) as path:
+        shutil.copytree(
+            path,
+            "docs",
+            dirs_exist_ok=True,
+        )
 
     click.echo("...updating Docker scripts.")
     shutil.rmtree("docker", ignore_errors=True)
-    shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/docker"),
-        "docker",
-        dirs_exist_ok=True,
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/docker"
+    ) as path:
+        shutil.copytree(
+            path,
+            "docker",
+            dirs_exist_ok=True,
+        )
     os.system("chmod +x docker/*")
 
     click.echo("...updating README.md.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/README.md"),
-        "README.md",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/README.md"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "README.md",
+        )
 
 
 @psynet.command()

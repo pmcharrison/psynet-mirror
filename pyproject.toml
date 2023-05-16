@@ -32,7 +32,6 @@ classifiers = [
 dependencies = [
     "dallinger>=9.7.0",
     "dominate",
-    "importlib_resources",
     "ipywidgets",
     "joblib",
     "jsonpickle",

@@ -1,8 +1,7 @@
 import random
 import re
+from importlib import resources
 from typing import List, Optional
-
-from pkg_resources import resource_filename
 
 from .modular_page import Control, ModularPage, Prompt
 from .timeline import MediaSpec
@@ -788,7 +787,7 @@ class SVGLogo:
 class PsyNetLogo(SVGLogo):
     def __init__(
         self,
-        svg_path=resource_filename("psynet", "resources/images/psynet.svg"),
+        svg_path=resources.files("psynet") / "resources/images/psynet.svg",
         id="psynet-logo",
         width="100px",
         height="83px",
@@ -804,7 +803,7 @@ class PsyNetLogo(SVGLogo):
 class CAPLogo(SVGLogo):
     def __init__(
         self,
-        svg_path=resource_filename("psynet", "resources/images/cap.svg"),
+        svg_path=resources.files("psynet") / "resources/images/cap.svg",
         id="cap-logo",
         width="125px",
         height="83px",
@@ -820,7 +819,7 @@ class CAPLogo(SVGLogo):
 class MPIAELogo(SVGLogo):
     def __init__(
         self,
-        svg_path=resource_filename("psynet", "resources/images/mpiae.svg"),
+        svg_path=resources.files("psynet") / "resources/images/mpiae.svg",
         id="mpiae-logo",
         width="200px",
         height="83px",
@@ -836,7 +835,7 @@ class MPIAELogo(SVGLogo):
 class CambridgeLogo(SVGLogo):
     def __init__(
         self,
-        svg_path=resource_filename("psynet", "resources/images/cambridge.svg"),
+        svg_path=resources.files("psynet") / "resources/images/cambridge.svg",
         id="cambridge-logo",
         width="180px",
         height="83px",
@@ -849,7 +848,7 @@ class CambridgeLogo(SVGLogo):
 class PrincetonLogo(SVGLogo):
     def __init__(
         self,
-        svg_path=resource_filename("psynet", "resources/images/princeton.svg"),
+        svg_path=resources.files("psynet") / "resources/images/princeton.svg",
         id="princeton-logo",
         width="160px",
         height="83px",

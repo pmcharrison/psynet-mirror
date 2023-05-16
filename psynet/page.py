@@ -1,11 +1,11 @@
 import json
 import warnings
+from importlib import resources
 from math import ceil
 from typing import List, Optional, Union
 
 from dominate.dom_tag import dom_tag
 from markupsafe import Markup, escape
-from pkg_resources import resource_filename
 
 from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
@@ -377,7 +377,7 @@ class DebugResponsePage(PageMaker):
 class VolumeCalibration(Module):
     def __init__(
         self,
-        url=resource_filename("psynet", "resources/audio/brown_noise.wav"),
+        url=str(resources.files("psynet") / "resources/audio/brown_noise.wav"),
         min_time=2.5,
         time_estimate=5.0,
         id_="volume_calibration",
@@ -391,7 +391,7 @@ class VolumeCalibration(Module):
         )
 
     def asset(self, url):
-        if url.startswith("http"):
+        if str(url).startswith("http"):
             return ExternalAsset(url=url)
         else:
             return CachedAsset(input_path=url)

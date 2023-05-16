@@ -116,7 +116,7 @@ class TestProcesses2:
             with open(file.name, "r") as file_reader:
                 assert file_reader.readline() != message
 
-            time.sleep(0.75)
+            time.sleep(1.5)
 
             db.session.refresh(process)
             assert process.finished

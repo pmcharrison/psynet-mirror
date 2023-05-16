@@ -9,6 +9,7 @@ import uuid
 from collections import OrderedDict
 from datetime import datetime
 from glob import glob
+from importlib import resources
 from os.path import exists
 from platform import python_version
 from smtplib import SMTPAuthenticationError
@@ -32,7 +33,6 @@ from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request, send_file
-from pkg_resources import resource_filename
 
 from psynet import __version__
 
@@ -1275,106 +1275,98 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = [
             (
                 # Warning: this won't affect templates that already exist in Dallinger
-                resource_filename("psynet", "templates"),
+                resources.files("psynet") / "templates",
                 "/templates",
             ),
             (
-                resource_filename("psynet", "resources/favicon.png"),
+                resources.files("psynet") / "resources/favicon.png",
                 "/static/favicon.png",
             ),
             (
-                resource_filename("psynet", "resources/favicon.svg"),
+                resources.files("psynet") / "resources/favicon.svg",
                 "/static/favicon.svg",
             ),
             (
-                resource_filename("psynet", "resources/logo.png"),
+                resources.files("psynet") / "resources/logo.png",
                 "/static/images/logo.png",
             ),
             (
-                resource_filename("psynet", "resources/images/psynet.svg"),
+                resources.files("psynet") / "resources/images/psynet.svg",
                 "/static/images/logo.svg",
             ),
             (
-                resource_filename("psynet", "resources/images/princeton-consent.png"),
+                resources.files("psynet") / "resources/images/princeton-consent.png",
                 "/static/images/princeton-consent.png",
             ),
             (
-                resource_filename("psynet", "resources/images/unity_logo.png"),
+                resources.files("psynet") / "resources/images/unity_logo.png",
                 "/static/images/unity_logo.png",
             ),
             (
-                resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
+                resources.files("psynet") / "resources/scripts/dashboard_timeline.js",
                 "/static/scripts/dashboard_timeline.js",
             ),
             (
-                resource_filename("psynet", "resources/css/bootstrap.min.css"),
+                resources.files("psynet") / "resources/css/bootstrap.min.css",
                 "/static/css/bootstrap.min.css",
             ),
             (
-                resource_filename("psynet", "resources/css/consent.css"),
+                resources.files("psynet") / "resources/css/consent.css",
                 "/static/css/consent.css",
             ),
             (
-                resource_filename("psynet", "resources/css/dashboard_timeline.css"),
+                resources.files("psynet") / "resources/css/dashboard_timeline.css",
                 "/static/css/dashboard_timeline.css",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/jQuery/jquery-3.6.0.min.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/jQuery/jquery-3.6.0.min.js",
                 "/static/scripts/jquery-3.6.0.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/platform-1.3.6/platform.min.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/platform-1.3.6/platform.min.js",
                 "/static/scripts/platform.min.js",
             ),
             (
-                resource_filename(
-                    "psynet",
-                    "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
-                ),
+                resources.files("psynet")
+                / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
                 "/static/scripts/detectIncognito.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/raphael-2.3.0/raphael.min.js",
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/jQuery-Knob/js/jquery.knob.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/jQuery-Knob/js/jquery.knob.js",
                 "/static/scripts/jquery.knob.js",
             ),
             (
-                resource_filename("psynet", "resources/libraries/js-synthesizer"),
+                resources.files("psynet") / "resources/libraries/js-synthesizer",
                 "/static/scripts/js-synthesizer",
             ),
             (
-                resource_filename("psynet", "resources/libraries/Tonejs"),
+                resources.files("psynet") / "resources/libraries/Tonejs",
                 "/static/scripts/Tonejs",
             ),
             (
-                resource_filename("psynet", "resources/libraries/survey-jquery"),
+                resources.files("psynet") / "resources/libraries/survey-jquery",
                 "/static/scripts/survey-jquery",
             ),
             (
-                resource_filename("psynet", "resources/libraries/abc-js"),
+                resources.files("psynet") / "resources/libraries/abc-js",
                 "/static/scripts/abc-js",
             ),
             (
                 # This is presumably getting ignored, because Dallinger ignores extra_files specifications if they
                 # overwrite a predefined file -- see dallinger.utils.collate_experiment_files
-                resource_filename("psynet", "templates/mturk_error.html"),
+                resources.files("psynet") / "templates/mturk_error.html",
                 "templates/mturk_error.html",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/scripts/prepare_docker_image.sh"
-                ),
+                resources.files("psynet") / "resources/scripts/prepare_docker_image.sh",
                 "prepare_docker_image.sh",
             ),
             (
@@ -1382,10 +1374,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ".deploy",
             ),
             (
-                resource_filename(
-                    "psynet",
-                    "resources/DEPLOYMENT_PACKAGE",
-                ),
+                resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
                 "DEPLOYMENT_PACKAGE",
             ),
         ]

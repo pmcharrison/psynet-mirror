@@ -1,5 +1,6 @@
 import json
 import random
+from importlib import resources
 from os.path import exists as file_exists
 from os.path import join as join_path
 from random import shuffle
@@ -8,7 +9,6 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from markupsafe import Markup
-from pkg_resources import resource_filename
 
 from psynet.trial import Node
 
@@ -342,9 +342,8 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
-                bot_response_media=resource_filename(
-                    "psynet", "resources/repp/free_tapping_record.wav"
-                ),
+                bot_response_media=resources.files("psynet")
+                / "resources/repp/free_tapping_record.wav",
             ),
             time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
@@ -514,9 +513,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
                     show_meter=True,
                     controls=False,
                     auto_advance=False,
-                    bot_response_media=resource_filename(
-                        "psynet", "resources/repp/free_tapping_record.wav"
-                    ),
+                    bot_response_media=resources.files("psynet")
+                    / "resources/repp/free_tapping_record.wav",
                 ),
                 time_estimate=5,
                 progress_display=ProgressDisplay(
@@ -605,9 +603,8 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
-                bot_response_media=resource_filename(
-                    "psynet", "resources/repp/markers_test_record.wav"
-                ),
+                bot_response_media=resources.files("psynet")
+                / "resources/repp/markers_test_record.wav",
             ),
             time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
