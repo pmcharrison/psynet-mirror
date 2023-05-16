@@ -35,7 +35,7 @@ class InfoPage(Page):
     ----------
 
     content:
-        The content to display to the user. Use :class:`flask.Markup`
+        The content to display to the user. Use :class:`markupsafe.Markup`
         to display raw HTML.
 
     time_estimate:

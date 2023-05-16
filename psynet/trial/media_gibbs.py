@@ -233,7 +233,7 @@ class MediaGibbsTrial(GibbsTrial):
         Constructs and returns the prompt to display to the participant.
         This can either be a string of text to display, or raw HTML.
         In the latter case, the HTML should be wrapped in a call to
-        ``flask.Markup``.
+        ``markupsafe.Markup``.
         """
         raise NotImplementedError
 
