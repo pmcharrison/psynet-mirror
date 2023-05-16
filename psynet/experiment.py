@@ -347,6 +347,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     check_translations,
                     {
                         "module": "experiment",
+                        "locales_dir": locales_dir,
                         "variable_placeholders": self.variable_placeholders,
                         "create_translation_template_function": self._create_translation_template_from_experiment_folder,
                     },
@@ -385,8 +386,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             create_pot(input_directory, "templates/*.html", pot_path)
 
     @classmethod
-    def _create_translation_template_from_experiment_folder(cls):
-        locales_dir = "locales"
+    def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
