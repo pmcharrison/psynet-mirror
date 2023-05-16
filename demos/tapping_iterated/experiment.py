@@ -3,7 +3,7 @@ import json
 from statistics import mean
 
 import numpy as np
-from flask import Markup
+from markupsafe import Markup
 from repp.config import ConfigUpdater, sms_tapping
 from reppextension.iterated_tapping import (
     REPPAnalysisItap,

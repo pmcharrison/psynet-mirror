@@ -6,11 +6,11 @@ import time
 from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
+from importlib import resources
 from statistics import median
 from typing import Callable, Dict, List, Optional, Union
 
 import flask
-import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
@@ -156,7 +156,7 @@ class Trigger(dict):
 
 def get_template(name):
     assert isinstance(name, str)
-    path_all_templates = importlib_resources.files(templates)
+    path_all_templates = resources.files(templates)
     path_template = path_all_templates.joinpath(name)
     with open(path_template, "r") as file:
         return file.read()

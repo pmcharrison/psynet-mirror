@@ -102,7 +102,7 @@ The :meth:`instruction_page` method returns an :class:`~psynet.page.InfoPage`, e
 
 ::
 
-    from flask import Markup
+    from markupsafe import Markup
     from psynet.page import InfoPage
 
     def instruction_page(self):

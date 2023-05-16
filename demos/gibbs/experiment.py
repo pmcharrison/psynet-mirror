@@ -4,7 +4,7 @@ import time
 from typing import List, Union
 
 from dallinger import db
-from flask import Markup
+from markupsafe import Markup
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 

@@ -45,18 +45,56 @@ Once you've installed WSL, you probably will need to restart your computer befor
 Troubleshooting
 ^^^^^^^^^^^^^^^
 
-When starting Docker for Windows you might run into following error: "A timeout occured while waiting for a WSL integration agent to become ready". In that case, try to install an older version of Docker Desktop (e.g. 4.17.1).
+WSL 2 installation is incomplete
+--------------------------------
 
-When trying to run an experiment you might encounter an error message simmilar to the following:
+If you see a message beginning with "WSL 2 installation is incomplete", you probably need to do the following:
+
+- Click on the link it gives you
+- Click on the link under 'download the latest package', open and run the installer once it has downloaded
+- Continue with the next steps of the installation
+- Note: if you run Powershell, it might fail if you run it on admin mode! If you get stuck (Access Denied),
+  try running it again without admin mode and see if it works.
+
+Hardware assisted virtualization
+--------------------------------
+
+If you see a message beginning "Hardware assisted virtualization and data execution protection must be enabled in the
+BIOS", you need to restart your computer into BIOS and change some settings to enable those two things. The precise set
+of steps will depend on your computer. The first step though is to restart your computer, and press a certain key to
+launch into BIOS -- ordinarily that key will be printed on the screen at some point during the startup sequence.
+Hint -- you might find that the option you need to select is called 'SVM mode'...
+
+Failed to solve with frontend dockerfile
+----------------------------------------
+
+If you see a message starting "failed to solve with frontend dockerfile.v0",
+you may want to try rebooting your computer and trying again.
+
+Invalid option name: pipefail
+-----------------------------
+
+If you see an error message like this when running a Docker command:
 
 ::
 
-    "docker: Error response from daemon: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mou
-    nting "/run/desktop/mnt/host/wsl/docker-desktop-bind-mounts/Ubuntu-22.04/647ede0919eb9497eef4fc4d3073b8954528e4e97e5aa5995e0caf21f0b1cddc" to rootfs at "/root/.dallingerconfig": mount
-    /run/desktop/mnt/host/wsl/docker-desktop-bind-mounts/Ubuntu-22.04/647ede0919eb9497eef4fc4d3073b8954528e4e97e5aa5995e0caf21f0b1cddc:/root/.dallingerconfig (via /proc/self/fd/14), flags: 0x5000: not a directory: unknown: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type."
+    command not found 2:
+    command not found 4:
+    invalid option name: set: pipefail
 
-You can fix this by creating an empty file called .dallingerconfig in the home directory of the Linux Subsystem. To do this you can run following command in your home directory
 
-::
+The problem is probably that your project has the wrong line endings;
+on Windows, if you are not configured correctly, then your files may end up
+with Windows-style line endings (CRLF) instead of Unix-style line endings (LF).
+To fix this, first follow the line-endings instructions described above for
+setting up Git and PyCharm in Windows.
+Then select your project folder in the project pane,
+and from the task bar select File | File Properties | Line Separators | LF - Unix and MacOS.
+Your command should now run without the error.
 
-    touch .dallingerconfig
+A timeout occurred
+------------------
+
+When starting Docker for Windows you might run into following error: "A timeout occured while waiting for a
+WSL integration agent to become ready". In that case, you may want to try installing
+an older version of Docker Desktop (e.g. 4.17.1).

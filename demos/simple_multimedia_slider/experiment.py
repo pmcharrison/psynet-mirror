@@ -1,6 +1,6 @@
 import json
 
-from flask import Markup, escape
+from markupsafe import Markup, escape
 
 import psynet.experiment
 from psynet.consent import NoConsent

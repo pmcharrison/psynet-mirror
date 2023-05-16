@@ -309,10 +309,12 @@ processes in an experiment. Restarting is fast and should not significantly impa
 To restart processes for a given app, run the following:
 
 .. code:: bash
+
     cd ~/dallinger/your-app-name
     docker compose restart web
     docker compose restart worker
     docker compose restart clock
+
 
 .. warning::
 
