@@ -1,4 +1,4 @@
-import flask
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import CachedAsset, DebugStorage
@@ -44,7 +44,7 @@ video_pages = join(
             "simple_video_prompt",
             VideoPrompt(
                 assets["flower"],
-                flask.Markup(
+                Markup(
                     """
                 <h3>Example video prompt:</h3>
                 <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
@@ -59,7 +59,7 @@ video_pages = join(
             "video_play_window",
             VideoPrompt(
                 assets["flower"],
-                flask.Markup(
+                Markup(
                     """
                 <h3>Example video prompt with play window:</h3>
                 <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
@@ -229,7 +229,7 @@ video_pages = join(
             "video_playback",
             VideoPrompt(
                 participant.assets["video_record_page_camera"],
-                flask.Markup(
+                Markup(
                     f"""
                         Here's the camera recording you just made.
                         <br>

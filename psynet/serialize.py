@@ -3,10 +3,10 @@ import re
 from functools import cached_property
 
 import dominate.tags
-import flask
 import jsonpickle
 from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
+from markupsafe import Markup
 
 from .data import SQLBase
 
@@ -123,7 +123,7 @@ def unserialize(x):
 
 # These classes cannot be reliably pickled by the `jsonpickle` library.
 # Instead we fall back to Python's built-in pickle library.
-no_json_classes = [flask.Markup]
+no_json_classes = [Markup]
 
 
 class NoJSONHandler(jsonpickle.handlers.BaseHandler):

@@ -54,7 +54,7 @@ class Prompt:
         Optional text to display to the participant.
         This can either be a string, which will be HTML-escaped
         and displayed as regular text, or an HTML string
-        as produced by ``flask.Markup``.
+        as produced by ``markupsafe.Markup``.
 
     text_align
         CSS alignment of the text.
@@ -89,8 +89,8 @@ class Prompt:
 
     @property
     def metadata(self):
-        # Sometimes self.text will be a flask.Markup object, which will be encoded
-        # strangely by jsonpickle. We call str() to ensure a simpler representation.
+        # Sometimes `self.text` will be a `markupsafe.Markup` object, which will be encoded
+        # strangely by jsonpickle. We call `str()` to ensure a simpler representation.
         return {"text": str(self.text)}
 
     @property
@@ -125,7 +125,7 @@ class AudioPrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     loop
         Whether the audio should loop back to the beginning after finishing.
@@ -255,7 +255,7 @@ class VideoPrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     text_align
         CSS alignment of the text.
@@ -388,7 +388,7 @@ class ImagePrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     width
         CSS width specification for the image (e.g. ``'50%'``).
@@ -474,7 +474,7 @@ class ColorPrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     width
         CSS width specification for the color box (default ``'200px'``).
@@ -1306,7 +1306,7 @@ class ModularPage(Page):
     prompt
         A :class:`~psynet.modular_page.Prompt` object that
         determines the prompt to be displayed to the participant.
-        Alternatively, you can also provide text or a ``flask.Markup`` object,
+        Alternatively, you can also provide text or a ``markupsafe.Markup`` object,
         which will then be automatically wrapped in a :class:`~psynet.modular_page.Prompt` object.
 
     control
