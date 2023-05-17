@@ -29,7 +29,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
 ]
 dependencies = [
-    "dallinger>=9.6.0, <10",
+    "dallinger>=9.7.0, <10",
     "dominate",
     "importlib_resources",
     "joblib",
