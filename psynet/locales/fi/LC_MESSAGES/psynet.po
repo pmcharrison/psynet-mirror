@@ -1258,16 +1258,6 @@ msgid "Your participation in this research is voluntary."
 msgstr "Osallistumisesi tähän tutkimukseen on vapaaehtoista."
 
 #, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "Lucid Survey Submission"
-
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Täytä Lucid-kysely klikkaamalla alla olevaa painiketta."
-
-#, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
 msgstr "Suostumus hylättiin."

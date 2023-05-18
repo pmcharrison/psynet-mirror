@@ -18,18 +18,6 @@
             <img id="adlogo" src="/static/images/logo.svg" alt="PsyNet logo" style="width: 150px; float: left;">
         </div>
         <div class="row">
-            {% if experiment.with_lucid_recruitment() %}
-                <p style="clear: both; text-align: left;">
-                    {{ pgettext("browser_compatibility", "We are now going to test your browser for compatibility.") }}<br>
-                    {{ pgettext("browser_compatibility", "If your browser is not compatible we have to reject the survey.") }}
-                </p>
-                <p style="text-align: left;">
-                    {% set TERMINATION_TIME = experiment.recruiter.termination_time_in_min %}
-                    {% trans name="consent" %}You will also see one or more consent pages and have up to
-                        <strong>{{ TERMINATION_TIME }}</strong> to read and accept/reject them.{% endtrans %}
-
-                </p>
-            {% endif %}
             <div class="text-center">
                 <h3 class="mb-3">
                     {{ pgettext("concent", "To proceed, click the button below.") }}

@@ -48,13 +48,7 @@ from .internationalization import check_translations, compile_mo, create_pot, lo
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
-from .recruiters import (  # noqa: F401
-    CapRecruiter,
-    DevCapRecruiter,
-    DevLucidRecruiter,
-    LucidRecruiter,
-    StagingCapRecruiter,
-)
+from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
 from .redis import redis_vars
 from .serialize import serialize
 from .timeline import (
@@ -1158,12 +1152,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
 
-    def with_lucid_recruitment(self):
-        return self.recruiter.__class__.__name__ in [
-            "DevLucidRecruiter",
-            "LucidRecruiter",
-        ]
-
     def process_response(
         self,
         participant_id,
@@ -1392,9 +1380,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def extra_parameters(cls):
         config = get_config()
         config.register("cap_recruiter_auth_token", unicode)
-        config.register("lucid_api_key", unicode)
-        config.register("lucid_sha1_hashing_key", unicode)
-        config.register("lucid_recruitment_config", unicode)
         config.register("debug_storage_root", unicode)
         config.register("default_export_root", unicode)
         config.register("enable_google_search_console", bool)

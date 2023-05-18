@@ -1173,14 +1173,6 @@ msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
 msgstr "Bu araştırmaya katılımınız gönüllülük esasına dayanmaktadır."
 
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "Lucid Anket Gönderimi"
-
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Lucid Anketinizi tamamlamak için aşağıdaki düğmeyi tıklayın."
-
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
 msgstr "Onay reddedildi."
