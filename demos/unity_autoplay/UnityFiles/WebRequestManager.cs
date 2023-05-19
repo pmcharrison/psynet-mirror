@@ -11,7 +11,7 @@ using SimpleJSON;
 public class PsynetResponse
 {
     public int participant_id;
-    public string auth_token;
+    public string unique_id;
     public string page_uuid;
     public Answer raw_answer;
     public Metadata metadata;
@@ -25,7 +25,7 @@ public class PsynetSyncResponse
     public PsynetSyncResponse(int opCode, string data)
     {
         this.opCode = opCode;
-        this.data = data;// "{}";
+        this.data = data;
     }
 }
 public class WebRequestManager : MonoBehaviour
@@ -42,7 +42,7 @@ public class WebRequestManager : MonoBehaviour
     public string getPageJsonData;
     public int participantId = -1;
     public string assignmentId = "", PageURL, ResponseURL, debugParticipantsUrl;
-    public string authToken = "dummy";
+    public string uniqueId = "dummy";
     public string pageUuid = "dummy";
     [DllImport("__Internal")]
     private static extern string GetAssignmentId();
@@ -50,9 +50,10 @@ public class WebRequestManager : MonoBehaviour
     private static extern int GetParticipantId();
     [DllImport("__Internal")]
     private static extern void ReloadPsynetPage();
-    
+
     [DllImport("__Internal")]
-    private static extern string GetAuthToken();
+    private static extern string GetUniqueId();
+    
     void Awake()
     {
         if (instance == null)
@@ -82,9 +83,9 @@ public class WebRequestManager : MonoBehaviour
                 var jsonData = SimpleJsonImporter.Import(initRequest.downloadHandler.text);
                 participantId = int.Parse(jsonData["id"].ToString());
                 assignmentId = jsonData["assignment_id"].ToString();
-                authToken = jsonData["auth_token"].ToString();
+                uniqueId = jsonData["unique_id"].ToString();
                 pageUuid = jsonData["page_uuid"].ToString();
-                Debug.Log("Init: participantId: " + participantId + ", authToken: " + authToken + ", assignmentId: " + assignmentId + ", pageUuid: " + pageUuid);
+                Debug.Log("Init: participantId: " + participantId + ", assignmentId: " + assignmentId + ", pageUuid: " + pageUuid + ", uniqueId: " + uniqueId);
             }
         }
         else
@@ -95,7 +96,7 @@ public class WebRequestManager : MonoBehaviour
             {
                 participantId = GetParticipantId();
                 assignmentId = GetAssignmentId();
-                authToken = GetAuthToken();
+                uniqueId = GetUniqueId();
             }
             catch (Exception e)
             {
@@ -104,15 +105,15 @@ public class WebRequestManager : MonoBehaviour
                 Console.WriteLine(e);
                 throw;
             }
-            Debug.Log("Init: participantId: " + participantId + ", assignmentId: " + assignmentId + ", authToken: " + authToken);
+            Debug.Log("Init: participantId: " + participantId + ", assignmentId: " + assignmentId + ", uniqueId: " + uniqueId);
         }
-        PsynetSyncResponse res = new PsynetSyncResponse(opcode, participantId.ToString());
+        PsynetSyncResponse res = new PsynetSyncResponse(opcode, uniqueId.ToString());
         if (onPsynetSyncResponse != null)
             onPsynetSyncResponse(res);
     }
     public IEnumerator GetPage(int opcode) // Get JSON data from PsyNet
     {
-        string getPageUrl = PageURL +  "?participant_id=" + participantId + "&auth_token=" + authToken + "&mode=json";
+        string getPageUrl = PageURL +  "?unique_id=" + uniqueId + "&mode=json";
         //Debug.Log("GetPage: Sending GET request to PsyNet...");
         UnityWebRequest getPageRequest = UnityWebRequest.Get(getPageUrl);
         yield return getPageRequest.SendWebRequest();
@@ -127,11 +128,11 @@ public class WebRequestManager : MonoBehaviour
             // Convert to a valid JSON string
             getPageJsonData = getPageJsonData.Replace("\"{", "{").Replace("}\"", "}").Replace("\\", "");
             //Debug.Log("GetPage: getPageJsonData: " + getPageJsonData);
-            // Get the page_uuid and auth_token from the response
+            // Get the page_uuid and unique_id from the response
             var jsonData = SimpleJsonImporter.Import(getPageRequest.downloadHandler.text);
             var attributes = (Hashtable)jsonData["attributes"];
             pageUuid = attributes["page_uuid"].ToString();
-            authToken = attributes["auth_token"].ToString();
+            uniqueId = attributes["unique_id"].ToString();
             yield return new WaitForSeconds(0.1f); // Gives all other processes time to complete before GetInfo is called
             // New version March 29
             PsynetSyncResponse res = new PsynetSyncResponse(opcode, getPageJsonData);
@@ -146,7 +147,7 @@ public class WebRequestManager : MonoBehaviour
         PsynetResponse myresp = new PsynetResponse();
         myresp.participant_id = participantId;
         myresp.page_uuid = pageUuid;
-        myresp.auth_token = authToken;
+        myresp.unique_id = uniqueId;
         myresp.raw_answer = myAnswer; // Island case: empty string, question case: a number string //This is where simple question answer string will go
         myresp.metadata = myMeta; // Island case: This is where current answer object will go
         string json = JsonUtility.ToJson(myresp);

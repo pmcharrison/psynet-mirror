@@ -117,9 +117,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     progress : float [0 <= x <= 1]
         The participant's estimated progress through the experiment.
 
-    auth_token : str
-        The participant's randomly generated authentication token.
-
     client_ip_address : str
         The participant's IP address as reported by Flask.
 
@@ -155,7 +152,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     performance_bonus = Column(Float)
     unpaid_bonus = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
-    auth_token = Column(String)
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
     module_state_id = Column(Integer, ForeignKey("module_state.id"))
@@ -369,7 +365,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
-        self.auth_token = None
         self.branch_log = []
 
         db.session.add(self)

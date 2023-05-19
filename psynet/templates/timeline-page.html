@@ -184,8 +184,7 @@
                 window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (a, name, value) {
                     $_GET[name] = value;
                 });
-                var participant_id = $_GET['participant_id'];
-                $.get('/set_locale_participant/' + participant_id + '?locale=' + $(this).val(), function (data) {
+                $.get("/set_locale_participant/{{ participant.id }}?locale=" + $(this).val(), function (data) {
                     location.reload();
                 });
                 $('#iso-language').val()
@@ -306,12 +305,7 @@
 
                     if (level != "debug" && psynet.log.counter < psynet.log.max) {
                         psynet.log.counter += 1;
-
-                        route = (
-                            '/log/' + level
-                            + "/" + dallinger.identity.participantId
-                            + "/{{ auth_token }}"
-                        );
+                        route = '/log/' + level + "/{{ unique_id }}";
 
                         dallinger.post(route, {message: msg});
                     }
@@ -1287,19 +1281,11 @@
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
-                    psynet.authToken = "{{ auth_token }}";
+                    psynet.assignmentId = dallinger.identity.assignmentId;
                     psynet.participantId = dallinger.identity.participantId;
+                    psynet.uniqueId = dallinger.identity.uniqueId;
                     updateProgressAndBonus();
 
-                    // In some cases (e.g. the first timeline page) the auth_token
-                    // may not yet be set in the browser's URL string.
-                    // This is problematic if the participant refreshes the page.
-                    // The following code therefore sets the auth_token using
-                    // the value provided by the backend.
-                    let urlParams = new URLSearchParams(window.location.search);
-                    urlParams.set("auth_token", "{{ auth_token }}");
-                    let fixedUrl = window.location.origin + window.location.pathname + "?" + urlParams;
-                    window.history.replaceState({}, null, fixedUrl);
                     if (correctBrowser) {
                         setTimeout(() => psynet.trial.init(), 25);
                     }
@@ -1341,7 +1327,7 @@
                             response.page.attributes.session_id == psynet.page.attributes.session_id
                         );
                         if (shouldRefreshPage) {
-                            window.location = "/timeline?participant_id=" + dallinger.identity.participantId + "&auth_token=" + "{{ auth_token }}";
+                            window.location = "/timeline?unique_id=" + psynet.uniqueId;
                         } else {
                             psynet.page = response.page;
                             psynet.registerEvent("pageUpdated");
@@ -1408,9 +1394,10 @@
                     }
 
                     return JSON.stringify({
-                        "participant_id": dallinger.identity.participantId,
+                        "participant_id": psynet.participantId,
                         "page_uuid": pageUuid,
-                        "auth_token": authToken,
+                        "assignment_id": psynet.assignmentId,
+                        "unique_id": psynet.uniqueId,
                         "raw_answer": rawAnswer,
                         "metadata": allMetadata
                     });
@@ -1605,8 +1592,7 @@
 
         function writeToDbParticipantOpenedDevtools() {
             dallinger.post(
-                '/participant_opened_devtools/' + dallinger.identity.participantId
-                + "/{{ auth_token }}"
+                "/participant_opened_devtools/{{ unique_id }}"
             );
         }
 
