@@ -478,6 +478,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         db.session.commit()
 
+    def create_participant(self, **kwargs):
+        assignment_id = kwargs["assignment_id"]
+        if Participant.query.filter_by(assignment_id=assignment_id).count() > 0:
+            raise ValueError(
+                f"The assignment_id '{assignment_id}' already exists in the database."
+            )
+        return super().create_participant(**kwargs)
+
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
 
@@ -1540,6 +1548,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
+    @classmethod
+    def get_participant_from_unique_id(cls, unique_id):
+        """
+        Get a participant with a specified ``unique_id``.
+        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
+        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
+
+        Parameters
+        ----------
+        unique_id :
+            Unique ID of the participant to retrieve.
+
+        Returns
+        -------
+
+        The corresponding participant object.
+        """
+        return Participant.query.filter_by(unique_id=unique_id).one()
+
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
     def google_search_console():
@@ -1575,11 +1602,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         hit_id = entry_data.get("hit_id")
         assignment_id = entry_data.get("assignment_id")
         worker_id = entry_data.get("worker_id")
+        unique_id = worker_id + ":" + assignment_id
         return render_template_with_translations(
             "consent.html",
             hit_id=hit_id,
             assignment_id=assignment_id,
             worker_id=worker_id,
+            unique_id=unique_id,
             mode=config.get("mode"),
             query_string=request.query_string.decode(),
         )
@@ -1630,7 +1659,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         json_data = {
             "id": participant.id,
             "assignment_id": participant.assignment_id,
-            "auth_token": participant.auth_token,
             "page_uuid": participant.page_uuid,
         }
         logger.debug(
@@ -1794,11 +1822,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
-    @experiment_route("/resume/<auth_token>", methods=["GET"])
-    @classmethod
-    def route_resume(cls, auth_token):
-        return render_template_with_translations("resume.html", auth_token=auth_token)
-
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
     def route_set_locale_participant(cls, participant_id):
@@ -1860,20 +1883,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
     def route_timeline(cls):
-        participant_id = request.args.get("participant_id")
-        auth_token = request.args.get("auth_token")
-
+        unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = get_participant(participant_id)
+        participant = cls.get_participant_from_unique_id(unique_id)
         experiment = get_experiment()
-
-        if participant.auth_token is None:
-            participant.auth_token = str(uuid.uuid4())
-        else:
-            try:
-                cls.check_auth_token(participant, auth_token)
-            except cls.AuthTokenError as e:
-                return e.http_response()
 
         return cls._route_timeline(experiment, participant, mode)
 
@@ -2002,14 +2015,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             context["asset_id"] = asset.id
         return context
 
-    class AuthTokenError(PermissionError):
+    class UniqueIdError(PermissionError):
         def __init__(self, expected, provided, participant):
             self.participant = participant
 
             message = "".join(
                 [
-                    f"Mismatch between expected auth_token ({expected}) "
-                    f"and provided auth_token ({provided}) "
+                    f"Mismatch between expected unique_id ({expected}) "
+                    f"and provided unique_id ({provided}) "
                     f"for participant {participant.id}."
                 ]
             )
@@ -2056,12 +2069,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return page.render(experiment, participant)
 
     @classmethod
-    def check_auth_token(cls, participant, auth_token):
-        valid = participant.auth_token == auth_token
+    def check_unique_id(cls, participant, unique_id):
+        valid = participant.unique_id == unique_id
         if not valid:
-            raise cls.AuthTokenError(
-                expected=auth_token,
-                provided=participant.auth_token,
+            raise cls.UniqueIdError(
+                expected=unique_id,
+                provided=participant.unique_id,
                 participant=participant,
             )
         else:
@@ -2120,22 +2133,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return res
 
-    @experiment_route(
-        "/log/<level>/<int:participant_id>/<auth_token>", methods=["POST"]
-    )
+    @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
-    def http_log(cls, level, participant_id, auth_token):
-        participant = get_participant(participant_id)
+    def http_log(cls, level, unique_id):
+        participant = cls.get_participant_from_unique_id(unique_id)
         try:
-            cls.check_auth_token(participant, auth_token)
-        except cls.AuthTokenError as e:
+            cls.check_unique_id(participant, unique_id)
+        except cls.UniqueIdError as e:
             return e.http_response()
 
         message = request.values["message"]
 
         assert level in ["warning", "info", "error"]
 
-        string = f"[CLIENT {participant_id}]: {message}"
+        string = f"[CLIENT {participant.id}]: {message}"
 
         if level == "info":
             logger.info(string)
@@ -2158,14 +2169,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @experiment_route(
-        "/participant_opened_devtools/<int:participant_id>/<auth_token>",
+        "/participant_opened_devtools/<unique_id>",
         methods=["POST"],
     )
     @classmethod
-    def participant_opened_devtools(cls, participant_id, auth_token):
-        participant = get_participant(participant_id)
+    def participant_opened_devtools(cls, unique_id):
+        participant = cls.get_participant_from_unique_id(unique_id)
 
-        Experiment.check_auth_token(participant, auth_token)
+        cls.check_unique_id(participant, unique_id)
 
         participant.var.opened_devtools = True
         db.session.commit()

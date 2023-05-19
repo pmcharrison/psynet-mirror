@@ -34,13 +34,11 @@
 {{super()}}
     <script>
         dallinger.identity.participantId = "undefined";
+        // Change to 'let uniqueId = dallinger.identity.uniqueId' once the Dallinger is updated to contain dallinger.identity.uniqueId
+        let uniqueId = dallinger.identity.workerId + ":" + dallinger.identity.assignmentId;
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
-                let auth_token = "start";
-                if ("{{ auth_token }}".length > 0) {
-                    auth_token = "{{ auth_token }}";
-                }
-                window.location = "/timeline?participant_id=" + dallinger.identity.participantId + "&auth_token=" + auth_token;
+                window.location = "/timeline?unique_id=" + uniqueId;
             }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);

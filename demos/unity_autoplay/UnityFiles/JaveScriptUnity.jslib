@@ -13,20 +13,19 @@ mergeInto(LibraryManager.library, {
     var buffer = _malloc(bufferSize);
     stringToUTF8(returnStr, buffer, bufferSize);
     return buffer;
- },
+  },
 
   GetParticipantId: function() {
     return dallinger.identity.participantId;
   },
 
-GetAuthToken: function() {
-    returnStr=psynet.authToken;
+  GetUniqueId: function() {
+    returnStr=psynet.uniqueId;
     var bufferSize = lengthBytesUTF8(returnStr) + 1;
     var buffer = _malloc(bufferSize);
     stringToUTF8(returnStr, buffer, bufferSize);
     return buffer;
   },
-
 
   ReloadPsynetPage: function() {
     console.log("Reloading page...");
