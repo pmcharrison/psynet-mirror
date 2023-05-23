@@ -1529,20 +1529,6 @@ msgid ""
 "compensation for participation."
 msgstr ""
 
-#: psynet/templates/exit_recruiter_lucid.html
-msgid "Complete Survey"
-msgstr ""
-
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr ""
-
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-
 #: psynet/templates/final-page-bonuses.html
 #, python-format
 msgid ""

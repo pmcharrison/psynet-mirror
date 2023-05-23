@@ -820,7 +820,7 @@ class Page(Elt):
         return {
             "session_id": self.session_id,
             "type": type(self).__name__,
-            "auth_token": participant.auth_token,
+            "unique_id": participant.unique_id,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
         }
@@ -1057,7 +1057,7 @@ class Page(Elt):
         from .experiment import get_and_load_config
 
         internal_js_vars = {
-            "authToken": participant.auth_token,
+            "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
@@ -1081,7 +1081,7 @@ class Page(Elt):
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
             "participant": participant,
-            "auth_token": participant.auth_token,
+            "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
             "css": self.css,

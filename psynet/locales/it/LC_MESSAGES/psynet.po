@@ -1248,15 +1248,6 @@ msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
 msgstr "La sua partecipazione a questa ricerca è volontaria."
 
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "Invio del Sondaggio Lucid"
-
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-"Per completare il suo Sondaggio Lucid, clicchi sul pulsante qui sotto."
-
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
 msgstr "Il consenso è stato rifiutato."

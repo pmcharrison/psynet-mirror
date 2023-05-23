@@ -19,7 +19,7 @@
                     dallinger.identity.participantId = injectedParticipantId;
                 }
 
-                let injectedAssignmentId = parseInt("{{ participant.assignment_id }}");
+                let injectedAssignmentId = "{{ participant.assignment_id }}";
                 if (injectedAssignmentId) {
                     dallinger.identity.assignmentId = injectedAssignmentId;
                 }
@@ -29,7 +29,12 @@
                     dallinger.identity.hitId = injectedHitId;
                 }
 
-                let injectedWorkerId = parseInt("{{ participant.worker_id }}");
+                let injectedUniqueId = "{{ participant.unique_id }}";
+                if (injectedUniqueId) {
+                    dallinger.identity.uniqueId = injectedUniqueId;
+                }
+
+                let injectedWorkerId = "{{ participant.worker_id }}";
                 if (injectedWorkerId) {
                     dallinger.identity.workerId = injectedWorkerId;
                 }

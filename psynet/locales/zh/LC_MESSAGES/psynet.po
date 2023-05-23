@@ -851,14 +851,6 @@ msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
 msgstr "您对这项研究的参与是自愿的。"
 
-msgctxt "exit_recruiter_lucid"
-msgid "Lucid Survey Submission"
-msgstr "提交Lucid调查报告"
-
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "要完成您的Lucid调查，请点击下面的按钮。"
-
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
 msgstr "协议被拒绝。"

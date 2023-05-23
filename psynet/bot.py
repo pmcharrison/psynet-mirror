@@ -27,6 +27,7 @@ class Bot(Participant):
         recruiter_id="bot_recruiter",
         worker_id=None,
         assignment_id=None,
+        unique_id=None,
         hit_id="",
         mode="debug",
     ):
@@ -113,7 +114,7 @@ class Bot(Participant):
             if render_pages:
                 with time_logger("timeline_route"):
                     req = requests.get(
-                        f"http://localhost:5000/timeline?participant_id={self.id}&auth_token={self.auth_token}"
+                        f"http://localhost:5000/timeline?unique_id={self.unique_id}"
                     )
                 assert req.status_code == 200
             with time_logger("take_page"):
