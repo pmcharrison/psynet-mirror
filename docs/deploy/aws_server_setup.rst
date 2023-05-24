@@ -58,7 +58,7 @@ Here is a brief summary of the steps involved:
 
 ::
 
-    ssh -i ubuntu@ec2-18-170-115-131.eu-west-2.compute.amazonaws.com
+    ssh ubuntu@ec2-18-170-115-131.eu-west-2.compute.amazonaws.com
 
 
 replacing the example with your own IPv4 DNS as appropriate.
