@@ -185,9 +185,8 @@ class Age(ModularPage):
         _, _p = get_translator(self.locale)
         answer = response.answer
         error_msg = _p(
-            "age",
-            "You need to provide your age as an integer between 0 and 120! Your answer was: '{AGE}'",
-        ).format(AGE=answer)
+            "age", "You need to provide your age as an integer between 0 and 120!"
+        ) + _p("age", "Your answer was: '{AGE}'").format(AGE=answer)
         try:
             age = int(answer)
             if not (0 < age < 120):
@@ -731,7 +730,10 @@ class EncounteredTechnicalProblems(ModularPage):
         self.label = label
         self.prompt = _p(
             "experiment-feedback",
-            "Did you encounter any technical problems during the experiment? If so, please provide a few words describing the problem.",
+            "Did you encounter any technical problems during the experiment?",
+        ) + _p(
+            "experiment-feedback",
+            "If so, please provide a few words describing the problem.",
         )
         self.time_estimate = 5
         super().__init__(

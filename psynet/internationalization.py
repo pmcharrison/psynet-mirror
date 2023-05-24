@@ -10,7 +10,7 @@ import pandas as pd
 import pexpect
 import polib
 
-from .utils import logger
+from .utils import get_language_dict, logger
 
 
 ###################
@@ -360,7 +360,8 @@ def assert_no_duplicate_translations_in_same_context(po_entries, locale):
             f"msgctxt == '{context}'"
         ).msgstr.value_counts()
         duplicate_translations = list(translation_counts.index[translation_counts > 1])
-        msg = f"Same translation occured multiple times in context: {context} for {locale}. {duplicate_translations}"
+        language_name = get_language_dict("en")[locale]
+        msg = f"Same translation occured multiple times in context: {context} for {locale} {language_name}. {duplicate_translations}"
         assert all(translation_counts == 1), msg
 
 
@@ -524,9 +525,15 @@ def _check_translations(
 
     extracted_variables = extract_variable_names_from_entries(pot_entries)
     assert_all_variables_defined(extracted_variables, variable_placeholders)
+    language_dict = get_language_dict("en")
 
     for locale, po in translations.items():
-        logger.info(f"Checking {locale} translation for errors...")
+        language_name = language_dict[locale]
+        logger.info(
+            "\033[1m"
+            + f"Checking {locale} translation ({language_name}) for errors..."
+            + "\033[0m"
+        )
         po_entries = po_to_dict(po)
 
         assert_no_missing_translations(po_entries, pot_entries, locale)

@@ -46,10 +46,13 @@ msgstr "您的年龄是？"
 
 #: psynet/demography/general.py
 msgctxt "age"
-msgid ""
-"You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{AGE}'"
-msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！您的答案是：'{AGE}'"
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！"
+
+#: psynet/demography/general.py
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "您的答案是：'{AGE}'"
 
 #: psynet/demography/general.py
 msgctxt "country-select"
@@ -133,10 +136,8 @@ msgstr "您最后一次跳舞是什么时候？ （请选择最准确的答案�
 
 #: psynet/demography/general.py
 msgctxt "experiment-feedback"
-msgid ""
-"Did you encounter any technical problems during the experiment? If so, "
-"please provide a few words describing the problem."
-msgstr "在实验过程中，您是否遇到了任何技术问题？ 如果是，请用几句话描述一下问题的情况。"
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "在实验过程中，您是否遇到了任何技术问题？"
 
 #: psynet/demography/general.py
 msgctxt "experiment-feedback"
@@ -147,6 +148,11 @@ msgstr "您觉得这个实验难吗？"
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
 msgstr "您喜欢这个实验吗？"
+
+#: psynet/demography/general.py
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr "如果是，请用几句话描述一下问题的情况。"
 
 #: psynet/demography/general.py
 msgctxt "formal-education"
@@ -359,14 +365,12 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "您是否曾被诊断出有阅读障碍？"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "请同时引用以下信息："
 
-#. ""
 #: psynet/experiment.py
 #, python-brace-format, fuzzy
 msgctxt "mturk_error"
@@ -375,14 +379,12 @@ msgid ""
 "describe what led to this error."
 msgstr "如需询问赔偿事宜，请通过{EMAIL}联系研究人员，并描述导致这一错误的原因。"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
 msgstr "别担心，你的进展已经被记录下来了。"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
@@ -521,7 +523,6 @@ msgstr "中止实验"
 msgid "Click the above button to be compensated in case of an error."
 msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
 
-#. ""
 #: psynet/templates/consent.html
 #, python-format, fuzzy
 msgid ""
@@ -1131,21 +1132,18 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "安全性"
 
-#. ""
 #: psynet/templates/consents/lucid_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
 msgstr "请启用Javascript，然后刷新此页面。"
 
-#. ""
 #: psynet/templates/consents/lucid_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "The study will not work unless Javascript is enabled on your browser."
 msgstr "除非你的浏览器启用了Javascript，否则这项研究将无法进行。"
 
-#. ""
 #: psynet/templates/consents/lucid_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
@@ -1174,14 +1172,6 @@ msgstr "虽然研究人员不会使用您的字母数字代码来确定您的真
 msgctxt "consent-confidentiality"
 msgid "Consenting to these additional requirements is also fully voluntary."
 msgstr "同意这些额外要求也是完全自愿的。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr "如果实验收集的数据无法完全匿名化，我们将告知您并要求额外的同意。"
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1216,19 +1206,6 @@ msgid ""
 "the world experience sounds (e.g., speech, music) and images (e.g., faces, "
 "color)."
 msgstr "此项目的目的是研究来自世界不同地区的人们如何体验声音（例如：语音、音乐）和图像（例如：面孔、颜色）。"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "对于Max-Planck-Society来说，这就是："
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "您也有权向监管机构提交异议。"
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1282,6 +1259,15 @@ msgstr "在这些情况下，我们将只分享完全匿名的数据，如没有
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
 msgstr "研究合作"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr "如果实验收集的数据无法完全匿名化，我们将告知您并要求额外的同意。"
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1414,11 +1400,26 @@ msgstr "目的"
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
 msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "对于Max-Planck-Society来说，这就是："
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
 msgid ""
 "Note that in some studies data deletion will not be possible, in this case "
 "we will ask you specifically to consent to this procedure in a separate "
 "consent form."
 msgstr "请注意，在某些研究中，数据的删除是不可能的，在这种情况下，我们会在单独的同意书中特别要求您同意这一程序。"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "您也有权向监管机构提交异议。"
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1723,14 +1724,12 @@ msgid ""
 "compensation for participation."
 msgstr "这项研究完全是自愿的；您不会因为参与而得到任何金钱上的补偿。"
 
-#. ""
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "提交Lucid调查报告"
 
-#. ""
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -1786,7 +1785,6 @@ msgstr "这里是实验的末尾!"
 msgid "Thank you for taking part."
 msgstr "谢谢您的参与。"
 
-#. ""
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy

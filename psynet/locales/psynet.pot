@@ -24,11 +24,14 @@ msgid "What is your age?"
 msgstr ""
 
 #: psynet/demography/general.py
+msgctxt "age"
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr ""
+
+#: psynet/demography/general.py
 #, python-brace-format
 msgctxt "age"
-msgid ""
-"You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{AGE}'"
+msgid "Your answer was: '{AGE}'"
 msgstr ""
 
 #: psynet/demography/general.py
@@ -113,9 +116,7 @@ msgstr ""
 
 #: psynet/demography/general.py
 msgctxt "experiment-feedback"
-msgid ""
-"Did you encounter any technical problems during the experiment? If so, "
-"please provide a few words describing the problem."
+msgid "Did you encounter any technical problems during the experiment?"
 msgstr ""
 
 #: psynet/demography/general.py
@@ -126,6 +127,11 @@ msgstr ""
 #: psynet/demography/general.py
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
+msgstr ""
+
+#: psynet/demography/general.py
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
 msgstr ""
 
 #: psynet/demography/general.py
@@ -1153,14 +1159,6 @@ msgstr ""
 #: psynet/templates/consents/main_consent.html
 msgctxt "consent-confidentiality"
 msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
 "This code will not be used to derive your real identity, will not be shared "
 "with anyone outside of the research team and will be deleted after use."
 msgstr ""
@@ -1189,19 +1187,6 @@ msgid ""
 "The purpose of this project is to study how people from different places in "
 "the world experience sounds (e.g., speech, music) and images (e.g., faces, "
 "color)."
-msgstr ""
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr ""
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
 msgstr ""
 
 #: psynet/templates/consents/lucid_consent.html
@@ -1254,6 +1239,15 @@ msgstr ""
 #: psynet/templates/macros/consent.html
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
+msgstr ""
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
 msgstr ""
 
 #: psynet/templates/consents/lucid_consent.html
@@ -1383,10 +1377,25 @@ msgstr ""
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
 msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr ""
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
 msgid ""
 "Note that in some studies data deletion will not be possible, in this case "
 "we will ask you specifically to consent to this procedure in a separate "
 "consent form."
+msgstr ""
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
 msgstr ""
 
 #: psynet/templates/consents/lucid_consent.html
@@ -2001,14 +2010,6 @@ msgstr ""
 #: psynet/templates/macros/consent.html
 msgctxt "consent-confidentiality"
 msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
-"additional requirements is also fully voluntary."
-msgstr ""
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
 "If you choose to participate in the experiment, it is important and your "
 "responsibility to make sure that while you record audio and video nothing "
 "that you don’t intend to be recorded is recorded."
@@ -2066,13 +2067,6 @@ msgctxt "consent-purpose"
 msgid ""
 "We are also interested in the way that these internal representations affect"
 " human decision making and behaviour."
-msgstr ""
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
 msgstr ""
 
 #: psynet/templates/macros/consent.html

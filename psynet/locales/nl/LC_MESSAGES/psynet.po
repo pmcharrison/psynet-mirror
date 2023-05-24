@@ -47,12 +47,13 @@ msgstr "Wat is uw leeftijd?"
 
 #: psynet/demography/general.py
 msgctxt "age"
-msgid ""
-"You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{AGE}'"
-msgstr ""
-"Uw leeftijd moet een geheel getal zijn tussen 0 en 120! Uw antwoord was: "
-"\"{AGE}\""
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr "Uw leeftijd moet een geheel getal zijn tussen 0 en 120!"
+
+#: psynet/demography/general.py
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "Uw antwoord was: '{AGE}'"
 
 #: psynet/demography/general.py
 msgctxt "country-select"
@@ -138,12 +139,8 @@ msgstr ""
 
 #: psynet/demography/general.py
 msgctxt "experiment-feedback"
-msgid ""
-"Did you encounter any technical problems during the experiment? If so, "
-"please provide a few words describing the problem."
-msgstr ""
-"Hebt u tijdens het experiment technische problemen ondervonden? Zo ja, geef "
-"dan een korte beschrijving van het probleem."
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "Hebt u tijdens het experiment technische problemen ondervonden?"
 
 #: psynet/demography/general.py
 msgctxt "experiment-feedback"
@@ -154,6 +151,11 @@ msgstr "Vond u het experiment moeilijk?"
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
 msgstr "Vond u het experiment leuk?"
+
+#: psynet/demography/general.py
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr "Zo ja, geef dan een korte beschrijving van het probleem."
 
 #: psynet/demography/general.py
 msgctxt "formal-education"
@@ -368,14 +370,12 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Is bij u ooit dyslexie gediagnosticeerd?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Vermeld ook de volgende informatie:"
 
-#. ""
 #: psynet/experiment.py
 #, python-brace-format, fuzzy
 msgctxt "mturk_error"
@@ -386,14 +386,12 @@ msgstr ""
 "Om te informeren naar compensatie, neem contact op met de onderzoeker op "
 "{EMAIL} en beschrijf wat tot deze fout heeft geleid."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
 msgstr "Maakt u zich geen zorgen, uw vorderingen zijn geregistreerd."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
@@ -550,7 +548,6 @@ msgstr ""
 "Klik op de bovenstaande knop om gecompenseerd te worden in geval van een "
 "fout."
 
-#. ""
 #: psynet/templates/consent.html
 #, python-format, fuzzy
 msgid ""
@@ -1300,14 +1297,12 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Beveiliging van gegevens"
 
-#. ""
 #: psynet/templates/consents/lucid_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
 msgid "Please enable Javascript then refresh this page."
 msgstr "Schakel Javascript in en vernieuw deze pagina."
 
-#. ""
 #: psynet/templates/consents/lucid_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
@@ -1315,7 +1310,6 @@ msgid "The study will not work unless Javascript is enabled on your browser."
 msgstr ""
 "De studie zal niet werken tenzij Javascript is ingeschakeld in uw browser."
 
-#. ""
 #: psynet/templates/consents/lucid_consent.html
 #, fuzzy
 msgctxt "consent-javascript"
@@ -1349,17 +1343,6 @@ msgstr ""
 msgctxt "consent-confidentiality"
 msgid "Consenting to these additional requirements is also fully voluntary."
 msgstr "Toestemming voor deze aanvullende eisen is ook volledig vrijwillig."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-"Als een experiment gegevens verzamelt die niet volledig geanonimiseerd "
-"kunnen worden, zullen wij u daarover informeren en ook om aanvullende "
-"toestemming vragen."
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1405,21 +1388,6 @@ msgstr ""
 "Het doel van dit project is om te bestuderen hoe mensen uit verschillende "
 "plaatsen in de wereld geluiden (bijv. spraak, muziek) en beelden (bijv. "
 "gezichten, kleur) ervaren."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "Voor de Max-Planck-Society is dit:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr ""
-"U hebt ook het recht om bezwaar aan te tekenen bij de toezichthoudende "
-"autoriteit."
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1482,6 +1450,18 @@ msgstr ""
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
 msgstr "Delen van onderzoeksdata"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Als een experiment gegevens verzamelt die niet volledig geanonimiseerd "
+"kunnen worden, zullen wij u daarover informeren en ook om aanvullende "
+"toestemming vragen."
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1644,6 +1624,13 @@ msgstr "Doel"
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
 msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "Voor de Max-Planck-Society is dit:"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
 msgid ""
 "Note that in some studies data deletion will not be possible, in this case "
 "we will ask you specifically to consent to this procedure in a separate "
@@ -1652,6 +1639,16 @@ msgstr ""
 "Merk op dat in sommige onderzoeken het verwijderen van gegevens niet "
 "mogelijk is; in dat geval zullen wij u specifiek vragen om toestemming voor "
 "deze procedure in een apart toestemmingsformulier."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr ""
+"U hebt ook het recht om bezwaar aan te tekenen bij de toezichthoudende "
+"autoriteit."
 
 #: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -2011,14 +2008,12 @@ msgstr ""
 "Dit onderzoek is volledig vrijwillig; u ontvangt geen financiele vergoeding "
 "voor deelname."
 
-#. ""
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid enquête indienen"
 
-#. ""
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2078,7 +2073,6 @@ msgstr "Dat is het einde van het experiment!"
 msgid "Thank you for taking part."
 msgstr "Bedankt voor uw deelname."
 
-#. ""
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
