@@ -105,6 +105,12 @@ To login to the GitLab docker registry:
     you can probably continue without worrying about it. We are still working out
     the best way to deal with Docker credential management in PsyNet/Dallinger.
 
+.. note::
+
+    You might not be able to login, if you created your gitlab account via an external service (e.g. github, gmail). In that case, make sure, that you can 
+    login to gitlab in the browser, using only your email adress. You might need to disconnect your external (e.g. github) account from your gitlab account 
+    (user settings -> account) and reset your password to do so.
+
 You then need to do exactly the same `docker login` process but on your remote server.
 To do this, you need to open an SSH terminal to your server, if you haven't already:
 
