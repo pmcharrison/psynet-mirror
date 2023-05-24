@@ -1,4 +1,5 @@
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -14,163 +15,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Keskeytä koe"
-
-#, fuzzy
-msgid "Abort experiment"
-msgstr "Keskeytä koe"
-
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Kertynyt bonus"
-
-#, fuzzy
-msgid "Assignment ID"
-msgstr "Toimeksiannon tunnus"
-
-#, fuzzy
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-"Klikkaa yllä olevaa painiketta saadaksesi korvauksen virhetilanteessa."
-
-#, fuzzy
-msgid "Close window"
-msgstr "Sulje ikkuna"
-
-#, fuzzy
 msgid "Complete Survey"
 msgstr "Täydellinen kysely"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "Ymmärrätkö ja hyväksytkö nämä ehdot?"
-
-#, fuzzy
-msgid "Error type"
-msgstr "Virhetyyppi"
-
-#, fuzzy
-msgid "Finish"
-msgstr "Viimeistely"
-
-#, fuzzy
-msgid "HIT ID"
-msgstr "HIT-TUNNUS"
-
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
-"seuraavat tiedot:"
-
-#, fuzzy
-msgid "Image not found"
-msgstr "Kuvaa ei löydy"
-
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Perusmaksun lisäksi, joka on "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, saat bonusta "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> ajasta, jonka olet käyttänyt "
-"kokeiluun."
-
-#, fuzzy
-msgid "Loop"
-msgstr "Silmukka"
-
-#, fuzzy
-msgid "Next"
-msgstr "Seuraava"
-
-#, fuzzy
-msgid "Play all"
-msgstr "Pelaa kaikki"
-
-#, fuzzy
-msgid "Play from start"
-msgstr "Pelaa alusta alkaen"
-
-#, fuzzy
-msgid "Play prompt"
-msgstr "Toista kehote"
-
-#, fuzzy
-msgid "Play recording"
-msgstr "Toista tallennus"
-
-#, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Klikkaa \"Finish\" saadaksesi HIT:n valmiiksi."
-
-#, fuzzy
-msgid "Record from start"
-msgstr "Tietue alusta alkaen"
-
-#, fuzzy
-msgid "Reset"
-msgstr "Nollaa"
 
 #, fuzzy
 msgid "Resuming experiment ..."
 msgstr "Kokeen jatkaminen ..."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "Selaa ylös/alas nähdäksesi koko tekstin"
-
-#, fuzzy
-msgid "Stop"
-msgstr "Stop"
-
-#, fuzzy
-msgid "Thank you for taking part."
-msgstr "Kiitos osallistumisesta."
-
-#, fuzzy
-msgid "Video not found"
-msgstr "Videota ei löydy"
-
-#, fuzzy
-msgid "Worker ID"
-msgstr "Työntekijän tunnus"
-
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Sinulle on myös myönnetty tulospalkkio, jonka suuruus on "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
-msgstr ""
-"Sinun on kerättävä <strong>vähintään "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusta, jotta voit"
-" jotta voit saada korvauksen."
 
 #, python-format, fuzzy
 msgid ""
@@ -179,1214 +29,6 @@ msgid ""
 msgstr ""
 "Näet myös yhden tai useamman suostumussivun, ja sinulla on enintään "
 "<strong>%(TERMINATION_TIME)s</strong> aikaa lukea ja hyväksyä tai hylätä ne."
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid "Aborting not possible."
-msgstr "Keskeyttäminen ei ole mahdollista."
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid ""
-"Aborting the experiment is not possible as the experimenter does not allow "
-"it at this time!"
-msgstr ""
-"Kokeen keskeyttäminen ei ole mahdollista, koska kokeen suorittaja ei salli "
-"sitä tällä hetkellä!"
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid "Are you sure you want to abort the experiment?"
-msgstr "Haluatko varmasti keskeyttää kokeen?"
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid ""
-"If you click the Abort button, the experiment will end early, and you will "
-"be automatically paid the compensation you have earned so far."
-msgstr ""
-"Jos napsautat Keskeytä-painiketta, kokeilu päättyy ennenaikaisesti, ja "
-"sinulle maksetaan automaattisesti tähän mennessä ansaitsemasi korvaus."
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid "Please only contact us if you have trouble receiving your payment."
-msgstr "Ota meihin yhteyttä vain, jos sinulla on ongelmia maksun saamisessa."
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Katso alla olevat tiedot tällä hetkellä kertyneestä bonuksestasi."
-
-#, fuzzy
-msgctxt "abort_possible"
-msgid "See the information below for details of your compensation."
-msgstr "Katso lisätietoja korvauksistasi alla olevista tiedoista."
-
-#, fuzzy
-msgctxt "ad"
-msgid "Begin Experiment"
-msgstr "Aloita koe"
-
-#, fuzzy
-msgctxt "ad"
-msgid ""
-"By clicking the following URL link, you will be taken to the experiment, "
-"including complete instructions and an informed consent agreement."
-msgstr ""
-"Napsauttamalla seuraavaa URL-linkkiä pääset kokeeseen, joka sisältää "
-"täydelliset ohjeet ja tietoon perustuvan suostumuksen."
-
-#, fuzzy
-msgctxt "ad"
-msgid "Call for participants"
-msgstr "Osallistumispyyntö"
-
-#, fuzzy
-msgctxt "ad"
-msgid ""
-"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
-" task."
-msgstr ""
-"Napsauta \"Accept HIT\" -painiketta yllä olevalla Amazon-sivustolla "
-"aloittaaksesi tehtävän."
-
-#, fuzzy
-msgctxt "ad"
-msgid "Please disable pop-up blockers before continuing."
-msgstr "Poista ponnahdusikkunoiden estimet käytöstä ennen kuin jatkat."
-
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for accepting this HIT."
-msgstr "Kiitos, että hyväksyt tämän HIT:n."
-
-#, fuzzy
-msgctxt "ad"
-msgid "Thanks for your interest in this experiment."
-msgstr "Kiitos kiinnostuksestasi tätä kokeilua kohtaan."
-
-#, fuzzy
-msgctxt "ad"
-msgid "The requirements to participate are as follows"
-msgstr "Osallistumisvaatimukset ovat seuraavat"
-
-#, fuzzy
-msgctxt "ad"
-msgid "Warning"
-msgstr "Varoitus"
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"A high decay parameter means that the signal takes a long time to decay "
-"(i.e. high smoothing)."
-msgstr ""
-"Korkea decay-parametri tarkoittaa, että signaalin hajoaminen kestää kauan "
-"(eli suuri tasoitus)."
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid "Documentation"
-msgstr "Dokumentaatio"
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid "Sliders"
-msgstr "Liukusäätimet"
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>decay</strong> parameters determine the amount of smoothing that"
-" happens to the signal, and have units of seconds."
-msgstr ""
-"<strong>decay</strong>-parametrit määrittävät signaalille tapahtuvan "
-"tasoituksen määrän, ja niiden yksikkö on sekunti."
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>grace</strong> parameters determine how long the volume must be "
-"outside the respective threshold for a warning message to be triggered."
-msgstr ""
-"<strong>grace</strong> -parametrit määrittävät, kuinka kauan "
-"äänenvoimakkuuden on oltava kyseisen raja-arvon ulkopuolella, jotta "
-"varoitusviesti laukeaa."
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>message duration</strong> parameters determine how long warning "
-"messages are displayed for."
-msgstr ""
-"<strong>viestin kesto</strong> -parametrit määrittävät, kuinka kauan "
-"varoitusviestejä näytetään."
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>threshold</strong> parameters determine the point at which the "
-"volume is determined to be 'too high' or 'too low'."
-msgstr ""
-"<strong>kynnysarvo</strong> -parametrit määrittävät pisteen, jossa "
-"äänenvoimakkuus määritetään 'liian suureksi' tai 'liian pieneksi'."
-
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"There are three decay parameters: one for the displayed audio meter, one for"
-" the 'too-high' detector, and one for the 'too-low' detector."
-msgstr ""
-"Hajoamisparametreja on kolme: yksi näytettävälle äänimittarille, yksi "
-"\"liian korkea\"-ilmaisimelle ja yksi \"liian matala\"-ilmaisimelle."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "A new window appears. In the top corner, check for the Incognito icon"
-msgstr "Avautuu uusi ikkuna, jonka yläkulmassa on Incognito-kuvake."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "At the top right, click More"
-msgstr "Napsauta oikeassa yläkulmassa Lisää"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Click here"
-msgstr "Klikkaa tästä"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Copy the current URL to the clipboard:"
-msgstr "Kopioi nykyinen URL-osoite leikepöydälle:"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Copy the link below"
-msgstr "Kopioi alla oleva linkki"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Follow the steps below to make sure the experiment works."
-msgstr "Seuraa alla olevia ohjeita varmistaaksesi, että kokeilu toimii."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "Jos selaimesi ei ole yhteensopiva, meidän on hylättävä kysely."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Install Google Chrome if you haven't"
-msgstr "Asenna Google Chrome, jos et ole vielä asentanut"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Install the latest version of Google Chrome"
-msgstr "Asenna Google Chromen uusin versio"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Install the latest version of Google Chrome on your computer"
-msgstr "Asenna Google Chromen uusin versio tietokoneellesi."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "New Incognito Window"
-msgstr "Uusi inkognito-ikkuna"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "On Mac: Press"
-msgstr "Macissa: Paina"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "On Windows, Linux, or Chrome OS: Press"
-msgstr "Windowsissa, Linuxissa tai Chrome OS:ssä: Paina"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "On your computer, open Chrome."
-msgstr "Avaa tietokoneessa Chrome."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Open Google Chrome"
-msgstr "Avaa Google Chrome"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Open a new incognito window"
-msgstr "Avaa uusi inkognito-ikkuna"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Open a new incognito window with  the following keyboard shortcuts:"
-msgstr "Avaa uusi inkognito-ikkuna seuraavilla pikanäppäimillä:"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the Chrome browser to continue the experiment"
-msgstr "Liitä linkki Chrome-selaimeen jatkaaksesi koetta"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the Chrome browser to start the experiment"
-msgstr "Liitä linkki Chrome-selaimeen aloittaaksesi kokeen"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the incognito window to continue the experiment"
-msgstr "Liitä linkki inkognito-ikkunaan jatkaaksesi kokeilua."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the incognito window to start the experiment"
-msgstr "Liitä linkki inkognito-ikkunaan aloittaaksesi kokeen."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please enable JavaScript in your browser."
-msgstr "Ota JavaScript käyttöön selaimessasi."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please follow the instructions below to continue."
-msgstr "Seuraa alla olevia ohjeita jatkaaksesi."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please open the survey on your computer."
-msgstr "Avaa kysely tietokoneellasi."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Press"
-msgstr "Paina"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "This site requires JavaScript to function properly."
-msgstr "Tämä sivusto vaatii JavaScriptin toimiakseen oikein."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Warning!"
-msgstr "Varoitus!"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Testaamme nyt selaimesi yhteensopivuuden."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You are using"
-msgstr "Käytät"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You are using:"
-msgstr "Käytät:"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You can also use a keyboard shortcut to open an Incognito window"
-msgstr "Voit avata Incognito-ikkunan myös pikanäppäimellä"
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You cannot take part in the experiment from a mobile device."
-msgstr "Et voi osallistua kokeeseen mobiililaitteella."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use Google Chrome to take part in the experiment."
-msgstr "Sinun on käytettävä Google Chromea osallistuaksesi kokeeseen."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "Sinun on käytettävä incognito-tilaa osallistuaksesi kokeeseen."
-
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid ""
-"You need to use the latest version of Google Chrome to take part in the "
-"experiment."
-msgstr ""
-"Sinun on käytettävä Google Chromen uusinta versiota osallistuaksesi "
-"kokeeseen."
-
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Jatka klikkaamalla alla olevaa painiketta."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "I agree"
-msgstr "Hyväksyn"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-"Jos sinulla on kysyttävää tästä tutkimuksesta, älä epäröi ottaa yhteyttä "
-"tämän hankkeen päätutkijaan Nori Jacobyyn osoitteessa:"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "Ei, kiitos (palauta tehtävä)"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "Principal Investigator"
-msgstr "Päätutkija"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"Vaikka et ehkä suoraan hyödy tästä tutkimuksesta, se voi hyödyttää "
-"yhteiskuntaa, koska se auttaa ymmärtämään, miten ihmiset saavat tietoa "
-"äänestä ja näöstä, ja mahdollisesti auttaa kehittämään koneita, jotka voivat"
-" jäljitellä kykyjämme (esim. äänentunnistuksessa ja tietokonenäössä), ja "
-"auttaa parantamaan kuulo- tai näkövammaisten ihmisten havaintokykyä."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "Edut"
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"Audio-visual material will be shared only if your consent to an additional "
-"consent form as explained above."
-msgstr ""
-"Audiovisuaalista aineistoa jaetaan vain, jos annat suostumuksesi edellä "
-"selostetulla lisäsuostumuslomakkeella."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr ""
-"Tieteellisen edistyksen ja monistamisen edistämiseksi saatamme joskus jakaa "
-"tietoja tutkimusyhteistyökumppaneiden kanssa."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we may share your audio-visual material along with fully "
-"anonymized data, such as demographic, aggregated, or extracted data."
-msgstr ""
-"Näissä tapauksissa voimme jakaa audiovisuaalisen aineistosi yhdessä täysin "
-"anonymisoitujen tietojen, kuten demografisten, aggregoitujen tai poimittujen"
-" tietojen kanssa."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-"Näissä tapauksissa jaamme vain täysin anonymisoituja tietoja, kuten "
-"demografisia, yhdistettyjä tai poimittuja tietoja, joissa ei ole mitään "
-"henkilötunnisteita."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "Tutkimusyhteistyö"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"We will never connect your real name or any of your personal information "
-"directly to your image or sound recording, even though it is off course "
-"possible to recognize individuals based on audio-visual material."
-msgstr ""
-"Emme koskaan yhdistä oikeaa nimeäsi tai muita henkilökohtaisia tietojasi "
-"suoraan kuva- tai äänitallenteeseesi, vaikka henkilöiden tunnistaminen "
-"audiovisuaalisen aineiston perusteella on tietenkin mahdollista."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-compensation"
-msgid "By doing the task you are helping science, thank you!"
-msgstr "Tekemällä tehtävän autat tiedettä, kiitos!"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-compensation"
-msgid "Compensation"
-msgstr "Korvaus"
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-compensation"
-msgid ""
-"This study is completely voluntary; you will not receive any monetary "
-"compensation for participation."
-msgstr ""
-"Tämä tutkimus on täysin vapaaehtoinen; et saa osallistumisestasi rahallista "
-"korvausta."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All the recordings we obtain during this research will be kept confidential,"
-" and nobody outside the group of researchers will be able to share or store "
-"them."
-msgstr ""
-"Kaikki tämän tutkimuksen aikana saamamme tallenteet pidetään "
-"luottamuksellisina, eikä kukaan tutkijaryhmän ulkopuolinen voi jakaa tai "
-"tallentaa niitä."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your recordings to derive your real "
-"identity, personal information could be leaked if you are not in an isolated"
-" environment."
-msgstr ""
-"Vaikka tutkijat eivät käytä nauhoituksiasi todellisen henkilöllisyytesi "
-"selvittämiseen, henkilökohtaiset tiedot voivat vuotaa, jos et ole "
-"eristetyssä ympäristössä."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"By consenting to this experiment, you are committing not to use profanity "
-"while recording audio or nudity while recording video."
-msgstr ""
-"Suostumalla tähän kokeiluun sitoudut olemaan käyttämättä kirosanoja "
-"äänitallennuksen aikana tai alastomuutta videotallennuksen aikana."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "Luottamuksellisuus"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"For example, you may want to sit in a room that is isolated from the rest of"
-" the house."
-msgstr "Voit esimerkiksi istua huoneessa, joka on eristetty muusta talosta."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"However, in some experiments, your recordings may be seen or heard by other "
-"participants in order to evaluate them in different attributes or create new"
-" materials (for example replicate a rhythm that you created, or continue a "
-"melody that you sang)."
-msgstr ""
-"Joissakin kokeissa muut osallistujat voivat kuitenkin nähdä tai kuulla "
-"tallenteesi arvioidakseen niitä eri ominaisuuksissa tai luodakseen uutta "
-"materiaalia (esimerkiksi toistaaksesi luomasi rytmin tai jatkaaksesi "
-"laulamaasi melodiaa)."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
-"additional requirements is also fully voluntary."
-msgstr ""
-"Jos kokeessa kerätään tietoja, joita ei voida täysin anonymisoida, "
-"ilmoitamme siitä sinulle ja pyydämme myös lisäsuostumusta. Suostumus näihin "
-"lisävaatimuksiin on myös täysin vapaaehtoinen."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded."
-msgstr ""
-"Jos päätät osallistua kokeeseen, on tärkeää ja sinun vastuullasi varmistaa, "
-"että ääni- ja videotallennuksen aikana ei tallenneta mitään sellaista, mitä "
-"et halua tallentaa."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-"Henkilötunnisteita (esim. nimeäsi tai yhteystietojasi) ei kerätä tai käytetä"
-" missään kokeen vaiheessa."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Raw audio/video will not be shared with collaborators (we will only share "
-"extracted data from recordings without personal identifiers)."
-msgstr ""
-"Raakaääntä/videota ei jaeta yhteistyökumppaneiden kanssa (jaamme vain "
-"tallenteista poimittuja tietoja ilman henkilötunnuksia)."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-"Tällaisia ovat esimerkiksi kokeet, joissa teemme audiovisuaalisia "
-"tallenteita tai joissa tarvitsemme yhteystietojasi, jotta voimme ottaa "
-"sinuun yhteyttä tulevaisuudessa uutta koetta varten."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "Näin ollen kokeen tiedot ovat anonyymejä."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Saatamme kerätä joitakin demografisia tietoja (esim. ikä, sukupuoli, "
-"asuinmaa) sekä tietoja oppimis- ja altistumishistoriastasi (esim. "
-"soittokokemus soittimella, muodollisen koulutuksen vuodet, puhutut kielet)."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"You may wish to make sure that no sounds/visual material in your environment"
-" could be linked to your personal information. In addition, while you "
-"perform a recording, the microphone or camera can capture unintended audio "
-"or video, for example the camera can capture another family member, or the "
-"microphone can capture something you say to another person."
-msgstr ""
-"Voit halutessasi varmistaa, ettei ympäristöstäsi tulevaa ääni- tai "
-"kuvamateriaalia voida yhdistää henkilötietoihisi. Lisäksi nauhoituksen "
-"aikana mikrofoni tai kamera voi tallentaa tahatonta ääntä tai videokuvaa, "
-"esimerkiksi kamera voi kuvata toista perheenjäsentä tai mikrofoni voi "
-"tallentaa jotain, mitä sanot toiselle henkilölle."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Your recordings will not be associated with your name or other identifiers "
-"in any way."
-msgstr ""
-"Nauhoituksiasi ei yhdistetä mitenkään nimeesi tai muihin tunnistetietoihin."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Your recordings will not be used to derive your real identity, and they will"
-" not be made public."
-msgstr ""
-"Nauhoituksiasi ei käytetä todellisen henkilöllisyytesi selvittämiseen, eikä "
-"niitä julkisteta."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"Osallistumalla tutkimukseen ilmoitat, että olet vähintään 18-vuotias, olet "
-"lukenut tämän suostumuslomakkeen, hyväksyt sen sisällön ja suostut "
-"osallistumaan tähän tutkimukseen."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "Suostumus"
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "Jos et halua suostua, sulje tämä sivu."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "Yhteystiedot"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "Yleiskatsaus"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-"Tämän verkkolomakkeen tarkoituksena on antaa sinulle tietoa, joka auttaa "
-"sinua päättämään, haluatko osallistua tutkimukseen."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-"Tätä tutkimusta tekevät Max-Planck-instituutin empiirisen estetiikan "
-"tutkijat."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Joissakin kokeissa sinua saatetaan pyytää tekemään ääni- tai videotallenne, "
-"esimerkiksi nauhoittamaan sormen naputteluasi äänen tai videon perusteella "
-"tai nauhoittamaan itsesi puhumassa tai laulamassa."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"Sinua saatetaan esimerkiksi pyytää arvioimaan, kuinka miellyttävä tietty "
-"ääni tai kuva on, tai luokittelemaan ääniä tai kuvia (esim. onko ääni tai "
-"kuva auton vai lehmän ääni tai kuva), tai arvioimaan äänien tai kuvien muita"
-" perusominaisuuksia (esim. kuinka usein kohtaat tämäntyyppisiä ääniä tai "
-"kuvia, kuinka esteettisesti miellyttävänä pidät tiettyä ääntä tai kuvaa)."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr "Jos koe sisältää tällaisia elementtejä, pyydämme lisäsuostumuksen."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"Jos osallistut vapaaehtoisesti tähän tutkimukseen, sinua pyydetään "
-"suorittamaan yksinkertaisia tehtäviä näppäimistön tai hiiren avulla samalla "
-"kun kuuntelet ääniä tai katselet kuvia tai videoita."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"Joissakin kokeissa saatamme käyttää lievää harhaanjohtamista, eli emme ehkä "
-"kerro koko totuutta kokeellisesta tehtävästä (emme esimerkiksi kerro, että "
-"kuva on keinotekoisen tietokonejärjestelmän eikä ihmisen luoma)."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-"Lievää harhaanjohtamista käytetään vain joissakin kokeissa, joissa meidän on"
-" estettävä osallistujien vääristyminen ennen kokeen suorittamista."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "Menettely"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"Käytettävät äänet, kuvat ja videot vaihtelevat, mutta niihin voi sisältyä "
-"esimerkiksi äänitallenteita ympäristön äänistä, melupätkiä, puhetta, "
-"musiikkia, yksinkertaisia ääniä, naturalistisia kuvia, animoituja kuvia, "
-"sarjakuvia, kasvoja, esineitä, geometrisia muotoja, fraktaalikuvia tai "
-"videoita luonnonympäristöistä."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "Käyttötarkoitus"
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"Specifically, we aim to combine a wide range of behavioural methodologies to"
-" characterize the ways in which people from diverse backgrounds internalize "
-"and process external conditions, both in the auditory (e.g., speech, music) "
-"and visual (e.g., faces, color) domains."
-msgstr ""
-"Tarkemmin sanottuna pyrimme yhdistämään monenlaisia käyttäytymismenetelmiä "
-"luonnehtimaan tapoja, joilla erilaisista taustoista tulevat ihmiset "
-"sisäistävät ja käsittelevät ulkoisia olosuhteita sekä auditiivisella (esim. "
-"puhe, musiikki) että visuaalisella (esim. kasvot, värit) osa-alueella."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study the role of experience and exposure "
-"in creating and affecting our perception, decisions and actions."
-msgstr ""
-"Tämän hankkeen tarkoituksena on tutkia kokemuksen ja altistumisen merkitystä"
-" havaintokyvyn, päätösten ja toiminnan luomisessa ja niihin vaikuttamisessa."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"We are also interested in the way that these internal representations affect"
-" human decision making and behaviour."
-msgstr ""
-"Olemme myös kiinnostuneita siitä, miten nämä sisäiset representaatiot "
-"vaikuttavat ihmisen päätöksentekoon ja käyttäytymiseen."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"Huomaa, että joissakin tutkimuksissa tietojen poistaminen ei ole "
-"mahdollista, jolloin pyydämme sinua erikseen antamaan suostumuksesi tähän "
-"menettelyyn erillisellä suostumuslomakkeella."
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
-msgstr ""
-"Sinulla on myös oikeus esittää vastalause valvontaviranomaiselle. Max-"
-"Planck-seuran osalta tämä on:"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"Sinulla on oikeus saada tietoja Max-Planck-instituutissa säilytettävistä "
-"sinua koskevista tiedoista, oikeus oikaista virheelliset tiedot ja oikeus "
-"vaatia tietojen poistamista, jos tietojen säilyttäminen ei ole sallittua, "
-"sekä oikeus tietojen siirrettävyyteen."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "Sinun oikeutesi"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "Riskit/haitat"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-"Tähän tutkimukseen osallistumiseen ei liity muita riskejä kuin ne, jotka "
-"liittyvät normaaliin tietokoneen käyttöön."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Audio-visual material will not be indexed by personal information but will "
-"be linked to personal information by a key (such as “afasd12314asdasd”)."
-msgstr ""
-"Audiovisuaalista aineistoa ei indeksoida henkilötietojen mukaan, vaan se "
-"yhdistetään henkilötietoihin avaimella (esimerkiksi \"afasd12314asdasd\")."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-"Tiedot tallennetaan väliaikaisesti ulkoisille palvelimille ja "
-"työpöydille/kannettaville tietokoneille, jotka on suojattu salasanalla."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"During data collection, audio-visual material will be recorded on a separate"
-" server."
-msgstr ""
-"Tiedonkeruun aikana audiovisuaalinen materiaali tallennetaan erilliselle "
-"palvelimelle."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "Mitään tietoja ei tallenneta pysyvästi ulkoisille palvelimille."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Personal information will be stored separately from audio-visual materials "
-"and encrypted using a strong encryption protocol (such as Advanced "
-"Encryption Standard)."
-msgstr ""
-"Henkilötiedot tallennetaan erillään audiovisuaalisesta aineistosta ja "
-"salataan käyttäen vahvaa salausprotokollaa (kuten Advanced Encryption "
-"Standard)."
-
-#: psynet/templates/consents/audiovisual_consent.html
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid "Security"
-msgstr "Turvallisuus"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-"Tämän jälkeen tiedot tallennetaan pysyvästi instituutin palvelimille, joiden"
-" kiintolevyt on salattu alan standardien mukaisilla salausohjelmilla."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-"Tutkija voi vetää sinut pois tästä tutkimuksesta, jos olosuhteet antavat "
-"siihen aihetta."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "Vapaaehtoinen osallistuminen"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-"Voit keskeyttää tutkimukseen osallistumisen milloin tahansa ilman "
-"seuraamuksia."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-"Voit vapaasti kieltäytyä osallistumasta, ja voit lopettaa osallistumisen "
-"milloin tahansa."
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "Osallistumisesi tähän tutkimukseen on vapaaehtoista."
-
-#, fuzzy
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr "Suostumus hylättiin."
-
-#, fuzzy
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr "Koe päättyi."
-
-#, fuzzy
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr "Kokeilu on päättynyt!"
-
-#, fuzzy
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr "Sinulle kuitenkin maksetaan jo käyttämästäsi ajasta."
-
-#, fuzzy
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr "Valitettavasti kokeilu on lopetettava aikaisin."
-
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Virhe!"
-
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Kun kokeilu on keskeytetty, sinun ei tarvitse ottaa meihin yhteyttä "
-"saadaksesi korvauksen; sen pitäisi tulla sinulle automaattisesti MTurkin "
-"kautta muutaman minuutin kuluttua."
-
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
-"-painiketta <strong>MTurkin mainossivulla</strong>."
-
-#, fuzzy
-msgctxt "start"
-msgid "Starting experiment..."
-msgstr "Aloitetaan kokeilu..."
-
-#, fuzzy
-msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#, fuzzy
-msgctxt "timeline"
-msgid "Help!"
-msgstr "Apua!"
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Linkki nykyiselle verkkosivulle;"
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Tarkista, että internet-yhteys toimii."
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Jos edellä mainitut toimet eivät auta, lähetä meille sähköpostia, jossa on "
-"seuraavat tiedot:"
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Jos ongelma ilmenee, kokeile seuraavaa:"
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Lataa sivu uudelleen."
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Ongelmasi."
-
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Työntekijätunnuksesi;"
-
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr "Oletko valmis?"
-
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr "Klikkaa painiketta, kun olet valmis jatkamaan kokeilua."
-
-#, fuzzy
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr "Jatka"
-
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Valitettavasti tätä toimintatapaa ei tällä hetkellä tueta."
-
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Osallistujatunnuksesi on määrittelemätön, ehkä siksi, että vaihdoit selainta"
-" testin aikana."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -1412,12 +54,14 @@ msgstr "Minkä ikäinen olet?"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "age"
-msgid ""
-"You need to provide your age as an integer between 0 and 120! Your answer "
-"was: '{AGE}'"
-msgstr ""
-"Sinun on annettava ikäsi kokonaislukuna välillä 0-120! Vastauksesi oli: "
-"'{AGE}'."
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr "Sinun on annettava ikäsi kokonaislukuna välillä 0-120!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "Vastauksesi oli: '{AGE}'."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -1518,12 +162,8 @@ msgstr "Milloin tanssit viimeksi (valitse tarkin vastaus)?"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
-msgid ""
-"Did you encounter any technical problems during the experiment? If so, "
-"please provide a few words describing the problem."
-msgstr ""
-"Oliko kokeen aikana teknisiä ongelmia? Jos oli, kuvailkaa ongelmaa "
-"muutamalla sanalla."
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "Oliko kokeen aikana teknisiä ongelmia?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -1536,6 +176,12 @@ msgstr "Oliko kokeilu mielestäsi vaikea?"
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
 msgstr "Piditkö kokeesta?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr "Jos oli, kuvailkaa ongelmaa muutamalla sanalla."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -1795,6 +441,234 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Onko sinulla koskaan diagnosoitu lukihäiriö?"
 
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Ilmoittakaa myös seuraavat tiedot:"
+
+#: psynet/experiment.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"Jos haluatte tiedustella korvausta, ottakaa yhteyttä tutkijaan {EMAIL} ja "
+"kuvailkaa, mikä johti tähän virheeseen."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Älä huoli, edistymisesi on tallennettu."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"Jos haluat tiedustella korvausta, lähetä tutkijalle viesti Prolificin "
+"verkkosivuston kautta ja kerro, mikä johti virheeseesi."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
+" to be compensated."
+msgstr ""
+"Sinun on kerättävä <strong>vähintään "
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusta, jotta voit"
+" jotta voit saada korvauksen."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "Keskeyttäminen ei ole mahdollista."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Kokeen keskeyttäminen ei ole mahdollista, koska kokeen suorittaja ei salli "
+"sitä tällä hetkellä!"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Katso alla olevat tiedot tällä hetkellä kertyneestä bonuksestasi."
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Kertynyt bonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Close window"
+msgstr "Sulje ikkuna"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#, fuzzy
+msgid "Assignment ID"
+msgstr "Toimeksiannon tunnus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#, fuzzy
+msgid "HIT ID"
+msgstr "HIT-TUNNUS"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Keskeytä koe"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Haluatko varmasti keskeyttää kokeen?"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Jos napsautat Keskeytä-painiketta, kokeilu päättyy ennenaikaisesti, ja "
+"sinulle maksetaan automaattisesti tähän mennessä ansaitsemasi korvaus."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "Ota meihin yhteyttä vain, jos sinulla on ongelmia maksun saamisessa."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Katso lisätietoja korvauksistasi alla olevista tiedoista."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "Aloita koe"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"Napsauttamalla seuraavaa URL-linkkiä pääset kokeeseen, joka sisältää "
+"täydelliset ohjeet ja tietoon perustuvan suostumuksen."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "Osallistumispyyntö"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"Napsauta \"Accept HIT\" -painiketta yllä olevalla Amazon-sivustolla "
+"aloittaaksesi tehtävän."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "Poista ponnahdusikkunoiden estimet käytöstä ennen kuin jatkat."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "Kiitos, että hyväksyt tämän HIT:n."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "Kiitos kiinnostuksestasi tätä kokeilua kohtaan."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "Osallistumisvaatimukset ovat seuraavat"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "Varoitus"
+
+#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Keskeytä koe"
+
+#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#, fuzzy
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Klikkaa yllä olevaa painiketta saadaksesi korvauksen virhetilanteessa."
+
+#: psynet/templates/consent.html
+#, python-format, fuzzy
+msgid ""
+"You will also see one or more consent pages and have up to\n"
+"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+"Näet myös yhden tai useamman suostumussivun, ja sinulla on enintään "
+"<strong>%(TERMINATION_TIME)s</strong> aikaa lukea ja hyväksyä tai hylätä ne."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr "Jos selaimesi ei ole yhteensopiva, meidän on hylättävä kysely."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr "Testaamme nyt selaimesi yhteensopivuuden."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Jatka klikkaamalla alla olevaa painiketta."
+
+#: psynet/templates/consent.html psynet/templates/macros.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Next"
+msgstr "Seuraava"
+
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-title"
@@ -1987,7 +861,7 @@ msgid "Research Participant Consent Form for Image/Sound Recordings"
 msgstr ""
 "Tutkimukseen osallistuvan suostumuslomake kuva- ja äänitallenteita varten."
 
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent"
@@ -2564,10 +1438,7 @@ msgstr ""
 "ole pääsyä."
 
 #: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -2575,6 +1446,615 @@ msgstr ""
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
 msgstr "Tarvitsemme suostumuksesi jatkaaksemme"
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "Security"
+msgstr "Turvallisuus"
+
+#: psynet/templates/consents/lucid_consent.html
+#, fuzzy
+msgctxt "consent-javascript"
+msgid "Please enable Javascript then refresh this page."
+msgstr "Ota Javascript käyttöön ja päivitä sitten tämä sivu."
+
+#: psynet/templates/consents/lucid_consent.html
+#, fuzzy
+msgctxt "consent-javascript"
+msgid "The study will not work unless Javascript is enabled on your browser."
+msgstr "Tutkimus ei toimi, ellei Javascript ole käytössä selaimessasi."
+
+#: psynet/templates/consents/lucid_consent.html
+#, fuzzy
+msgctxt "consent-javascript"
+msgid "Warning: Javascript is not working on your browser"
+msgstr "Varoitus: Javascript ei toimi selaimessasi."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr ""
+"Kaikki tutkimuksen aikana saamamme tiedot pidetään luottamuksellisina."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"Vaikka tutkijat eivät käytä aakkosnumeerista koodiasi todellisen "
+"henkilöllisyytesi selvittämiseen, tämä tietue voidaan joissakin tapauksissa "
+"yhdistää julkiseen profiilisivuusi, jos tietomurto tapahtuu."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "Myös näihin lisävaatimuksiin suostuminen on täysin vapaaehtoista."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"Tätä koodia ei käytetä todellisen henkilöllisyytesi selvittämiseen, sitä ei "
+"jaeta kenellekään tutkimusryhmän ulkopuoliselle, ja se poistetaan käytön "
+"jälkeen."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Näin ollen voit halutessasi rajoittaa, mitä tietoja päätät jakaa julkisesti."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"Tallennamme järjestelmäämme ainoastaan anonymisoidun aakkosnumeerisen "
+"koodisi, jotta voimme erottaa toisistaan osallistujat, jotka ovat jo "
+"osallistuneet tähän tai muihin kokeisiin."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"Tämän hankkeen tarkoituksena on tutkia, miten eri puolilla maailmaa asuvat "
+"ihmiset kokevat äänet (esim. puhe, musiikki) ja kuvat (esim. kasvot, värit)."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Luottamuksellisuus"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Vaikka et ehkä suoraan hyödy tästä tutkimuksesta, se voi hyödyttää "
+"yhteiskuntaa, koska se auttaa ymmärtämään, miten ihmiset saavat tietoa "
+"äänestä ja näöstä, ja mahdollisesti auttaa kehittämään koneita, jotka voivat"
+" jäljitellä kykyjämme (esim. äänentunnistuksessa ja tietokonenäössä), ja "
+"auttaa parantamaan kuulo- tai näkövammaisten ihmisten havaintokykyä."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Edut"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"Tieteellisen edistyksen ja monistamisen edistämiseksi saatamme joskus jakaa "
+"tietoja tutkimusyhteistyökumppaneiden kanssa."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"Näissä tapauksissa jaamme vain täysin anonymisoituja tietoja, kuten "
+"demografisia, yhdistettyjä tai poimittuja tietoja, joissa ei ole mitään "
+"henkilötunnisteita."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Tutkimusyhteistyö"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Jos kokeilussa kerätään tietoja, joita ei voida täysin anonymisoida, "
+"ilmoitamme siitä sinulle ja pyydämme myös lisäsuostumusta."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"Henkilötunnisteita (esim. nimeäsi tai yhteystietojasi) ei kerätä tai käytetä"
+" missään kokeen vaiheessa."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Tällaisia ovat esimerkiksi kokeet, joissa teemme audiovisuaalisia "
+"tallenteita tai joissa tarvitsemme yhteystietojasi, jotta voimme ottaa "
+"sinuun yhteyttä tulevaisuudessa uutta koetta varten."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "Näin ollen kokeen tiedot ovat anonyymejä."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Saatamme kerätä joitakin demografisia tietoja (esim. ikä, sukupuoli, "
+"asuinmaa) sekä tietoja oppimis- ja altistumishistoriastasi (esim. "
+"soittokokemus soittimella, muodollisen koulutuksen vuodet, puhutut kielet)."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Joissakin kokeissa sinua saatetaan pyytää tekemään ääni- tai videotallenne, "
+"esimerkiksi nauhoittamaan sormen naputteluasi äänen tai videon perusteella "
+"tai nauhoittamaan itsesi puhumassa tai laulamassa."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Sinua saatetaan esimerkiksi pyytää arvioimaan, kuinka miellyttävä tietty "
+"ääni tai kuva on, tai luokittelemaan ääniä tai kuvia (esim. onko ääni tai "
+"kuva auton vai lehmän ääni tai kuva), tai arvioimaan äänien tai kuvien muita"
+" perusominaisuuksia (esim. kuinka usein kohtaat tämäntyyppisiä ääniä tai "
+"kuvia, kuinka esteettisesti miellyttävänä pidät tiettyä ääntä tai kuvaa)."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr "Jos koe sisältää tällaisia elementtejä, pyydämme lisäsuostumuksen."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Jos osallistut vapaaehtoisesti tähän tutkimukseen, sinua pyydetään "
+"suorittamaan yksinkertaisia tehtäviä näppäimistön tai hiiren avulla samalla "
+"kun kuuntelet ääniä tai katselet kuvia tai videoita."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"Joissakin kokeissa saatamme käyttää lievää harhaanjohtamista, eli emme ehkä "
+"kerro koko totuutta kokeellisesta tehtävästä (emme esimerkiksi kerro, että "
+"kuva on keinotekoisen tietokonejärjestelmän eikä ihmisen luoma)."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Lievää harhaanjohtamista käytetään vain joissakin kokeissa, joissa meidän on"
+" estettävä osallistujien vääristyminen ennen kokeen suorittamista."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Menettely"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"Käytettävät äänet, kuvat ja videot vaihtelevat, mutta niihin voi sisältyä "
+"esimerkiksi äänitallenteita ympäristön äänistä, melupätkiä, puhetta, "
+"musiikkia, yksinkertaisia ääniä, naturalistisia kuvia, animoituja kuvia, "
+"sarjakuvia, kasvoja, esineitä, geometrisia muotoja, fraktaalikuvia tai "
+"videoita luonnonympäristöistä."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Käyttötarkoitus"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "Max-Planck-seuran osalta tämä on:"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Huomaa, että joissakin tutkimuksissa tietojen poistaminen ei ole "
+"mahdollista, jolloin pyydämme sinua erikseen antamaan suostumuksesi tähän "
+"menettelyyn erillisellä suostumuslomakkeella."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "Sinulla on myös oikeus tehdä vastalause valvontaviranomaiselle."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"Sinulla on oikeus saada tietoja Max-Planck-instituutissa säilytettävistä "
+"sinua koskevista tiedoista, oikeus oikaista virheelliset tiedot ja oikeus "
+"vaatia tietojen poistamista, jos tietojen säilyttäminen ei ole sallittua, "
+"sekä oikeus tietojen siirrettävyyteen."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Sinun oikeutesi"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Riskit/haitat"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"Tähän tutkimukseen osallistumiseen ei liity muita riskejä kuin ne, jotka "
+"liittyvät normaaliin tietokoneen käyttöön."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Tiedot tallennetaan väliaikaisesti ulkoisille palvelimille ja "
+"työpöydille/kannettaville tietokoneille, jotka on suojattu salasanalla."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Mitään tietoja ei tallenneta pysyvästi ulkoisille palvelimille."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"Tämän jälkeen tiedot tallennetaan pysyvästi instituutin palvelimille, joiden"
+" kiintolevyt on salattu alan standardien mukaisilla salausohjelmilla."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"Tutkija voi vetää sinut pois tästä tutkimuksesta, jos olosuhteet antavat "
+"siihen aihetta."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Vapaaehtoinen osallistuminen"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"Voit keskeyttää tutkimukseen osallistumisen milloin tahansa ilman "
+"seuraamuksia."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"Voit vapaasti kieltäytyä osallistumasta, ja voit lopettaa osallistumisen "
+"milloin tahansa."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Osallistumisesi tähän tutkimukseen on vapaaehtoista."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "Ymmärrätkö ja hyväksytkö nämä ehdot?"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "Selaa ylös/alas nähdäksesi koko tekstin"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "Hyväksyn"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Jos sinulla on kysyttävää tästä tutkimuksesta, älä epäröi ottaa yhteyttä "
+"tämän hankkeen päätutkijaan Nori Jacobyyn osoitteessa:"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Ei, kiitos (palauta tehtävä)"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"Osallistumalla tutkimukseen ilmoitat, että olet vähintään 18-vuotias, olet "
+"lukenut tämän suostumuslomakkeen, hyväksyt sen sisällön ja suostut "
+"osallistumaan tähän tutkimukseen."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Suostumus"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "Jos et halua suostua, sulje tämä sivu."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "Yhteystiedot"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Yleiskatsaus"
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Tämän verkkolomakkeen tarkoituksena on antaa sinulle tietoa, joka auttaa "
+"sinua päättämään, haluatko osallistua tutkimukseen."
+
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Tätä tutkimusta tekevät Max-Planck-instituutin empiirisen estetiikan "
+"tutkijat."
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2606,97 +2086,12 @@ msgstr ""
 "Saatat saada myös lisäkorvauksen, joka perustuu suoritukseesi tehtävässä."
 
 #: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
 #, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr ""
-"Kaikki tutkimuksen aikana saamamme tiedot pidetään luottamuksellisina."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr ""
-"Vaikka tutkijat eivät käytä aakkosnumeerista koodiasi todellisen "
-"henkilöllisyytesi selvittämiseen, tämä tietue voidaan joissakin tapauksissa "
-"yhdistää julkiseen profiilisivuusi, jos tietomurto tapahtuu."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr "Myös näihin lisävaatimuksiin suostuminen on täysin vapaaehtoista."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-"Jos kokeilussa kerätään tietoja, joita ei voida täysin anonymisoida, "
-"ilmoitamme siitä sinulle ja pyydämme myös lisäsuostumusta."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr ""
-"Tätä koodia ei käytetä todellisen henkilöllisyytesi selvittämiseen, sitä ei "
-"jaeta kenellekään tutkimusryhmän ulkopuoliselle, ja se poistetaan käytön "
-"jälkeen."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Näin ollen voit halutessasi rajoittaa, mitä tietoja päätät jakaa julkisesti."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr ""
-"Tallennamme järjestelmäämme ainoastaan anonymisoidun aakkosnumeerisen "
-"koodisi, jotta voimme erottaa toisistaan osallistujat, jotka ovat jo "
-"osallistuneet tähän tai muihin kokeisiin."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr ""
-"Tämän hankkeen tarkoituksena on tutkia, miten eri puolilla maailmaa asuvat "
-"ihmiset kokevat äänet (esim. puhe, musiikki) ja kuvat (esim. kasvot, värit)."
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "Max-Planck-seuran osalta tämä on:"
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "Sinulla on myös oikeus tehdä vastalause valvontaviranomaiselle."
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr "Korvaus"
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2813,6 +2208,821 @@ msgstr ""
 "Tiedot julkaistaan avoimissa tieteellisissä "
 "järjestelmissä/verkkosivustoilla, kuten OSF:ssä (https://osf.io/), ja ne "
 "ovat kaikkien saatavilla, joilla on Internet-yhteys."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr "Tekemällä tehtävän autat tiedettä, kiitos!"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"This study is completely voluntary; you will not receive any monetary "
+"compensation for participation."
+msgstr ""
+"Tämä tutkimus on täysin vapaaehtoinen; et saa osallistumisestasi rahallista "
+"korvausta."
+
+#: psynet/templates/exit_recruiter_lucid.html
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Lucid Survey Submission"
+
+#: psynet/templates/exit_recruiter_lucid.html
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr "Täytä Lucid-kysely klikkaamalla alla olevaa painiketta."
+
+#: psynet/templates/final-page-bonuses.html
+#, python-format
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Perusmaksun lisäksi, joka on <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
+"saat bonusta <strong>%(CURRENCY)s%(BONUS)s</strong> ajasta, jonka olet "
+"käyttänyt kokeiluun."
+
+#: psynet/templates/final-page-bonuses.html
+#, python-format
+msgid ""
+"You have also been awarded a performance bonus of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+msgstr ""
+"Sinulle on myös myönnetty tulospalkkio, jonka suuruus on "
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Suostumus hylättiin."
+
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Koe päättyi."
+
+#: psynet/templates/final-page-rejected-consent.html
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Finish"
+msgstr "Viimeistely"
+
+#: psynet/templates/final-page-rejected-consent.html
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Klikkaa \"Finish\" saadaksesi HIT:n valmiiksi."
+
+#: psynet/templates/final-page-successful.html
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Kokeilu on päättynyt!"
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Kiitos osallistumisesta."
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "You will be redirected."
+msgstr "Sinut ohjataan uudelleen."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "Sinulle kuitenkin maksetaan jo käyttämästäsi ajasta."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Valitettavasti kokeilu on lopetettava aikaisin."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr "Avautuu uusi ikkuna, jonka yläkulmassa on Incognito-kuvake."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "Napsauta oikeassa yläkulmassa Lisää"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "Klikkaa tästä"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "Kopioi nykyinen URL-osoite leikepöydälle:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "Kopioi alla oleva linkki"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr "Seuraa alla olevia ohjeita varmistaaksesi, että kokeilu toimii."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "Asenna Google Chrome, jos et ole vielä asentanut"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "Asenna Google Chromen uusin versio"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "Asenna Google Chromen uusin versio tietokoneellesi."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "Uusi inkognito-ikkuna"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "Macissa: Paina"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "Windowsissa, Linuxissa tai Chrome OS:ssä: Paina"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "Avaa tietokoneessa Chrome."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "Avaa Google Chrome"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "Avaa uusi inkognito-ikkuna"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr "Avaa uusi inkognito-ikkuna seuraavilla pikanäppäimillä:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "Liitä linkki Chrome-selaimeen jatkaaksesi koetta"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "Liitä linkki Chrome-selaimeen aloittaaksesi kokeen"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr "Liitä linkki inkognito-ikkunaan jatkaaksesi kokeilua."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "Liitä linkki inkognito-ikkunaan aloittaaksesi kokeen."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "Ota JavaScript käyttöön selaimessasi."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "Seuraa alla olevia ohjeita jatkaaksesi."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "Avaa kysely tietokoneellasi."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "Paina"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "Tämä sivusto vaatii JavaScriptin toimiakseen oikein."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "Varoitus!"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr "Käytät"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "Käytät:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr "Voit avata Incognito-ikkunan myös pikanäppäimellä"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "Et voi osallistua kokeeseen mobiililaitteella."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "Sinun on käytettävä Google Chromea osallistuaksesi kokeeseen."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Sinun on käytettävä incognito-tilaa osallistuaksesi kokeeseen."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+"Sinun on käytettävä Google Chromen uusinta versiota osallistuaksesi "
+"kokeeseen."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr "Päätutkija"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr ""
+"Audiovisuaalista aineistoa jaetaan vain, jos annat suostumuksesi edellä "
+"selostetulla lisäsuostumuslomakkeella."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr ""
+"Näissä tapauksissa voimme jakaa audiovisuaalisen aineistosi yhdessä täysin "
+"anonymisoitujen tietojen, kuten demografisten, aggregoitujen tai poimittujen"
+" tietojen kanssa."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr ""
+"Emme koskaan yhdistä oikeaa nimeäsi tai muita henkilökohtaisia tietojasi "
+"suoraan kuva- tai äänitallenteeseesi, vaikka henkilöiden tunnistaminen "
+"audiovisuaalisen aineiston perusteella on tietenkin mahdollista."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
+msgstr ""
+"Kaikki tämän tutkimuksen aikana saamamme tallenteet pidetään "
+"luottamuksellisina, eikä kukaan tutkijaryhmän ulkopuolinen voi jakaa tai "
+"tallentaa niitä."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr ""
+"Vaikka tutkijat eivät käytä nauhoituksiasi todellisen henkilöllisyytesi "
+"selvittämiseen, henkilökohtaiset tiedot voivat vuotaa, jos et ole "
+"eristetyssä ympäristössä."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"Suostumalla tähän kokeiluun sitoudut olemaan käyttämättä kirosanoja "
+"äänitallennuksen aikana tai alastomuutta videotallennuksen aikana."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr "Voit esimerkiksi istua huoneessa, joka on eristetty muusta talosta."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, in some experiments, your recordings may be seen or heard by other "
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
+msgstr ""
+"Joissakin kokeissa muut osallistujat voivat kuitenkin nähdä tai kuulla "
+"tallenteesi arvioidakseen niitä eri ominaisuuksissa tai luodakseen uutta "
+"materiaalia (esimerkiksi toistaaksesi luomasi rytmin tai jatkaaksesi "
+"laulamaasi melodiaa)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent. Consenting to these "
+"additional requirements is also fully voluntary."
+msgstr ""
+"Jos kokeessa kerätään tietoja, joita ei voida täysin anonymisoida, "
+"ilmoitamme siitä sinulle ja pyydämme myös lisäsuostumusta. Suostumus näihin "
+"lisävaatimuksiin on myös täysin vapaaehtoinen."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr ""
+"Jos päätät osallistua kokeeseen, on tärkeää ja sinun vastuullasi varmistaa, "
+"että ääni- ja videotallennuksen aikana ei tallenneta mitään sellaista, mitä "
+"et halua tallentaa."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Raw audio/video will not be shared with collaborators (we will only share "
+"extracted data from recordings without personal identifiers)."
+msgstr ""
+"Raakaääntä/videota ei jaeta yhteistyökumppaneiden kanssa (jaamme vain "
+"tallenteista poimittuja tietoja ilman henkilötunnuksia)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
+msgstr ""
+"Voit halutessasi varmistaa, ettei ympäristöstäsi tulevaa ääni- tai "
+"kuvamateriaalia voida yhdistää henkilötietoihisi. Lisäksi nauhoituksen "
+"aikana mikrofoni tai kamera voi tallentaa tahatonta ääntä tai videokuvaa, "
+"esimerkiksi kamera voi kuvata toista perheenjäsentä tai mikrofoni voi "
+"tallentaa jotain, mitä sanot toiselle henkilölle."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr ""
+"Nauhoituksiasi ei yhdistetä mitenkään nimeesi tai muihin tunnistetietoihin."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr ""
+"Nauhoituksiasi ei käytetä todellisen henkilöllisyytesi selvittämiseen, eikä "
+"niitä julkisteta."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+"Tarkemmin sanottuna pyrimme yhdistämään monenlaisia käyttäytymismenetelmiä "
+"luonnehtimaan tapoja, joilla erilaisista taustoista tulevat ihmiset "
+"sisäistävät ja käsittelevät ulkoisia olosuhteita sekä auditiivisella (esim. "
+"puhe, musiikki) että visuaalisella (esim. kasvot, värit) osa-alueella."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr ""
+"Tämän hankkeen tarkoituksena on tutkia kokemuksen ja altistumisen merkitystä"
+" havaintokyvyn, päätösten ja toiminnan luomisessa ja niihin vaikuttamisessa."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr ""
+"Olemme myös kiinnostuneita siitä, miten nämä sisäiset representaatiot "
+"vaikuttavat ihmisen päätöksentekoon ja käyttäytymiseen."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+" For the Max-Planck-Society, this is:"
+msgstr ""
+"Sinulla on myös oikeus esittää vastalause valvontaviranomaiselle. Max-"
+"Planck-seuran osalta tämä on:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr ""
+"Audiovisuaalista aineistoa ei indeksoida henkilötietojen mukaan, vaan se "
+"yhdistetään henkilötietoihin avaimella (esimerkiksi \"afasd12314asdasd\")."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
+msgstr ""
+"Tiedonkeruun aikana audiovisuaalinen materiaali tallennetaan erilliselle "
+"palvelimelle."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Personal information will be stored separately from audio-visual materials "
+"and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+"Henkilötiedot tallennetaan erillään audiovisuaalisesta aineistosta ja "
+"salataan käyttäen vahvaa salausprotokollaa (kuten Advanced Encryption "
+"Standard)."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play all"
+msgstr "Pelaa kaikki"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play prompt"
+msgstr "Toista kehote"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play recording"
+msgstr "Toista tallennus"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Record from start"
+msgstr "Tietue alusta alkaen"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Reset"
+msgstr "Nollaa"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+"Korkea decay-parametri tarkoittaa, että signaalin hajoaminen kestää kauan "
+"(eli suuri tasoitus)."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "Dokumentaatio"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "Liukusäätimet"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+"<strong>decay</strong>-parametrit määrittävät signaalille tapahtuvan "
+"tasoituksen määrän, ja niiden yksikkö on sekunti."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+"<strong>grace</strong> -parametrit määrittävät, kuinka kauan "
+"äänenvoimakkuuden on oltava kyseisen raja-arvon ulkopuolella, jotta "
+"varoitusviesti laukeaa."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+"<strong>viestin kesto</strong> -parametrit määrittävät, kuinka kauan "
+"varoitusviestejä näytetään."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+"<strong>kynnysarvo</strong> -parametrit määrittävät pisteen, jossa "
+"äänenvoimakkuus määritetään 'liian suureksi' tai 'liian pieneksi'."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+"Hajoamisparametreja on kolme: yksi näytettävälle äänimittarille, yksi "
+"\"liian korkea\"-ilmaisimelle ja yksi \"liian matala\"-ilmaisimelle."
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Loop"
+msgstr "Silmukka"
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Stop"
+msgstr "Stop"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Image not found"
+msgstr "Kuvaa ei löydy"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Play from start"
+msgstr "Pelaa alusta alkaen"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Video not found"
+msgstr "Videota ei löydy"
+
+#: psynet/templates/mturk_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Virhetyyppi"
+
+#: psynet/templates/mturk_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
+"seuraavat tiedot:"
+
+#: psynet/templates/mturk_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Työntekijän tunnus"
+
+#: psynet/templates/mturk_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Virhe!"
+
+#: psynet/templates/mturk_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Kun kokeilu on keskeytetty, sinun ei tarvitse ottaa meihin yhteyttä "
+"saadaksesi korvauksen; sen pitäisi tulla sinulle automaattisesti MTurkin "
+"kautta muutaman minuutin kuluttua."
+
+#: psynet/templates/mturk_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
+"-painiketta <strong>MTurkin mainossivulla</strong>."
+
+#: psynet/templates/start.html
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Aloitetaan kokeilu..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Apua!"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Linkki nykyiselle verkkosivulle;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Tarkista, että internet-yhteys toimii."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Jos edellä mainitut toimet eivät auta, lähetä meille sähköpostia, jossa on "
+"seuraavat tiedot:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Jos ongelma ilmenee, kokeile seuraavaa:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Lataa sivu uudelleen."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Ongelmasi."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Työntekijätunnuksesi;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Oletko valmis?"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Klikkaa painiketta, kun olet valmis jatkamaan kokeilua."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Jatka"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "Valitettavasti tätä toimintatapaa ei tällä hetkellä tueta."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Osallistujatunnuksesi on määrittelemätön, ehkä siksi, että vaihdoit selainta"
+" testin aikana."
 
 #: psynet/utils.py
 #, fuzzy
@@ -3522,7 +3732,7 @@ msgctxt "country_name"
 msgid "Kyrgyzstan"
 msgstr "Kirgisia"
 
-#: psynet/utils.py psynet/utils.py
+#: psynet/utils.py
 #, fuzzy
 msgctxt "country_name"
 msgid "Lao"
@@ -3714,7 +3924,7 @@ msgctxt "country_name"
 msgid "Namibia"
 msgstr "Namibia"
 
-#: psynet/utils.py psynet/utils.py
+#: psynet/utils.py
 #, fuzzy
 msgctxt "country_name"
 msgid "Nauru"
@@ -4140,7 +4350,7 @@ msgctxt "country_name"
 msgid "Tokelau"
 msgstr "Tokelau"
 
-#: psynet/utils.py psynet/utils.py
+#: psynet/utils.py
 #, fuzzy
 msgctxt "country_name"
 msgid "Tonga"
@@ -4860,7 +5070,7 @@ msgctxt "language_name"
 msgid "Kurdish"
 msgstr "Kurdi"
 
-#: psynet/utils.py psynet/utils.py
+#: psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Lao"
@@ -4968,7 +5178,7 @@ msgctxt "language_name"
 msgid "Mongolian"
 msgstr "Mongolian"
 
-#: psynet/utils.py psynet/utils.py
+#: psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
@@ -5310,7 +5520,7 @@ msgctxt "language_name"
 msgid "Tigrinya"
 msgstr "Tigrinya"
 
-#: psynet/utils.py psynet/utils.py
+#: psynet/utils.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tonga"
