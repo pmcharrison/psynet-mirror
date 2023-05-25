@@ -116,7 +116,7 @@
 
         function proceedToConsentPage(event) {
           let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
-          if ({{ experiment.start_experiment_in_popup_window|tojson }}) {
+          if ({{ experiment.start_experiment_in_popup_window | tojson }}) {
               popup = window.open(
             url,
             "Popup",
