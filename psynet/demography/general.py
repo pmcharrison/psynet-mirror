@@ -728,12 +728,16 @@ class EncounteredTechnicalProblems(ModularPage):
     ):
         _, _p = get_translator(locale)
         self.label = label
-        self.prompt = _p(
-            "experiment-feedback",
-            "Did you encounter any technical problems during the experiment?",
-        ) + _p(
-            "experiment-feedback",
-            "If so, please provide a few words describing the problem.",
+        self.prompt = (
+            _p(
+                "experiment-feedback",
+                "Did you encounter any technical problems during the experiment?",
+            )
+            + " "
+            + _p(
+                "experiment-feedback",
+                "If so, please provide a few words describing the problem.",
+            )
         )
         self.time_estimate = 5
         super().__init__(
