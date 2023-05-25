@@ -1602,6 +1602,11 @@ def log_pexpect_errors(process):
 #         raise RuntimeError(message)
 
 
+def make_bold_text(text: str):
+    bold_start, bold_end = "\033[1m", "\033[0m"
+    return bold_start + text + bold_end
+
+
 def is_method_overridden(obj, ancestor: Type, method: str):
     """
     Test whether a method has been overridden.
