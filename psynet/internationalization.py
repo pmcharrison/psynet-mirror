@@ -10,7 +10,8 @@ import pandas as pd
 import pexpect
 import polib
 
-from .utils import get_language_dict, logger, make_bold_text
+from . import log
+from .utils import get_language_dict, logger
 
 
 ###################
@@ -530,9 +531,7 @@ def _check_translations(
     for locale, po in translations.items():
         language_name = language_dict[locale]
         logger.info(
-            make_bold_text(
-                f"Checking {locale} translation ({language_name}) for errors..."
-            )
+            log.bold(f"Checking {locale} translation ({language_name}) for errors...")
         )
         po_entries = po_to_dict(po)
 
