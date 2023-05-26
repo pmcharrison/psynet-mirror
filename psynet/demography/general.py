@@ -184,9 +184,11 @@ class Age(ModularPage):
     def validate(self, response, **kwargs):
         _, _p = get_translator(self.locale)
         answer = response.answer
-        error_msg = _p(
-            "age", "You need to provide your age as an integer between 0 and 120!"
-        ) + _p("age", "Your answer was: '{AGE}'").format(AGE=answer)
+        error_msg = (
+            _p("age", "You need to provide your age as an integer between 0 and 120!")
+            + " "
+            + _p("age", "Your answer was: '{AGE}'").format(AGE=answer)
+        )
         try:
             age = int(answer)
             if not (0 < age < 120):
