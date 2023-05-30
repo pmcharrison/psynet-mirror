@@ -1331,7 +1331,7 @@ def error_page(
 
     return make_response(
         render_template_with_translations(
-            f"{recruiter_shortname(recruiter)}_error.html",
+            "mturk_error.html",
             locale=locale,
             error_text=error_text,
             compensate=compensate,
