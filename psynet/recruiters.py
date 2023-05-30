@@ -338,10 +338,15 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
 
     def data_for_submit_url(self, participant, assignment_id):
+        # Standard terminate
         ris = 20
         if participant is not None:
             assignment_id = participant.assignment_id
-            if participant.progress == 1:
+            if "performance_check" in participant.failure_tags:
+                # Security terminate
+                ris = 30
+            elif participant.progress == 1:
+                # Complete
                 ris = 10
         return {"ris": ris, "rid": assignment_id}
 
