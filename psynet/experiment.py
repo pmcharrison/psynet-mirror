@@ -32,6 +32,7 @@ from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
+from dominate.util import raw
 from flask import jsonify, render_template, request, send_file
 
 from psynet import __version__
@@ -555,6 +556,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         _, _p = gettext, pgettext
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
+        if isinstance(self.recruiter, (DevLucidRecruiter, LucidRecruiter)):
+            external_submit_url = self.recruiter.external_submit_url(
+                assignment_id=assignment_id
+            )
+            return self.error_page_content__lucid(
+                gettext, pgettext, external_submit_url
+            )
         if isinstance(self.recruiter, ProlificRecruiter):
             return self.error_page_content__prolific(gettext, pgettext)
         elif isinstance(self.recruiter, MTurkRecruiter):
@@ -579,6 +587,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return html
         else:
             return ""
+
+    def error_page_content__lucid(self, _, _p, external_submit_url):
+        html = tags.div()
+        with html:
+            tags.p(
+                " ".join(
+                    [
+                        _p(
+                            "lucid_error",
+                            "Redirecting...",
+                        ),
+                    ]
+                )
+            )
+            tags.script(
+                raw(
+                    'setTimeout(() => { window.location = "'
+                    + external_submit_url
+                    + '"; }, 2000)'
+                )
+            )
+        return html
 
     def error_page_content__prolific(self, _, _p):
         html = tags.div()
