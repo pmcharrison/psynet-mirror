@@ -420,6 +420,13 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Je, umewahi kukutwa na dyslexia?"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Inaelekeza..."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"

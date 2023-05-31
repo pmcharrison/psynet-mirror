@@ -421,6 +421,13 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Ar jums kada nors buvo diagnozuota disleksija?"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Peradresavimas..."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
@@ -460,8 +467,8 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
 msgstr ""
-"Kad gautumėte kompensaciją, turite sukaupti bent <strong>"
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> premiją."
+"Kad gautumėte kompensaciją, turite sukaupti bent "
+"<strong>%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> premiją."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy

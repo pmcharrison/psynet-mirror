@@ -416,6 +416,13 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Le è mai stata diagnosticata la dislessia?"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Reindirizzare..."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"

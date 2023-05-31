@@ -414,6 +414,13 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "난독증 진단을 받은 적이 있나요?"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "리디렉션..."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
@@ -448,7 +455,9 @@ msgid ""
 "You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
-msgstr "보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s 만큼 </strong> 적립해야 합니다."
+msgstr ""
+"보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s 만큼"
+" </strong> 적립해야 합니다."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -599,7 +608,8 @@ msgid ""
 "You will also see one or more consent pages and have up to\n"
 "                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
-"또한 하나 이상의 동의 페이지가 표시되며 최대 <strong>%(TERMINATION_TIME)s</strong> 까지 동의 페이지를 읽고 동의/거부할 수 있습니다."
+"또한 하나 이상의 동의 페이지가 표시되며 최대 <strong>%(TERMINATION_TIME)s</strong> 까지 동의 페이지를 "
+"읽고 동의/거부할 수 있습니다."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -661,8 +671,8 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"본인은 제한된 수의 참가자가 있는 프레젠테이션(예: 교육 과정 또는 과학 프레젠테이션)에서 저의 <i>시청각</i> 녹화물을 데모 목적으로 사용할"
-" 수 있음에 동의합니다."
+"본인은 제한된 수의 참가자가 있는 프레젠테이션(예: 교육 과정 또는 과학 프레젠테이션)에서 저의 <i>시청각</i> 녹화물을 데모 "
+"목적으로 사용할 수 있음에 동의합니다."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -714,8 +724,8 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"본인은 <i>시청각</i> 기록의 저장 및 처리가 가명 처리된 형태, 즉 내 이름을 포함하지 않고 번호를 사용하여 수행되며, 내 이름과 번호를 "
-"연결하는 코딩 목록이 있다는 사실을 통보받았습니다."
+"본인은 <i>시청각</i> 기록의 저장 및 처리가 가명 처리된 형태, 즉 내 이름을 포함하지 않고 번호를 사용하여 수행되며, 내 이름과 "
+"번호를 연결하는 코딩 목록이 있다는 사실을 통보받았습니다."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -2043,7 +2053,8 @@ msgstr ""
 msgid ""
 "You have also been awarded a performance bonus of "
 "<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr "또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>를 지급받았습니다!"
+msgstr ""
+"또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>를 지급받았습니다!"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2636,7 +2647,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"<strong>MTurk 광고 페이지</strong>의 <strong>실험 중단</strong> 버튼 <strong>을 사용하여 실험을 중단할 수 있습니다."
+"<strong>MTurk 광고 페이지</strong>의 <strong>실험 중단</strong> 버튼 <strong>을 사용하여 실험을 "
+"중단할 수 있습니다."
 
 #: psynet/templates/start.html
 #, fuzzy

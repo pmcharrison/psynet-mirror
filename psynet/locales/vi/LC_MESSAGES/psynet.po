@@ -421,6 +421,13 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Bạn đã bao giờ được chẩn đoán mắc chứng khó đọc chưa?"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Đang chuyển hướng..."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"

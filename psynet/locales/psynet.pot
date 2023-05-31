@@ -358,6 +358,11 @@ msgid "Have you ever been diagnosed with dyslexia?"
 msgstr ""
 
 #: psynet/experiment.py
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr ""
+
+#: psynet/experiment.py
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr ""

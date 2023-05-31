@@ -421,6 +421,13 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Alguma vez lhe foi diagnosticada dislexia?"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Redireccionar..."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
@@ -461,8 +468,8 @@ msgid ""
 " to be compensated."
 msgstr ""
 "Tem de acumular <strong>pelo menos "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bónus para poder "
-"ser compensado."
+"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> de bónus para poder"
+" ser compensado."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -757,8 +764,8 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Li e compreendi tudo e concordo que sejam efectuadas gravações <i>audiovisuais</i> "
-"de mim."
+"Li e compreendi tudo e concordo que sejam efectuadas gravações "
+"<i>audiovisuais</i> de mim."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -2274,7 +2281,8 @@ msgid ""
 "You have also been awarded a performance bonus of "
 "<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 msgstr ""
-"Também lhe foi atribuído um bónus de desempenho de <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+"Também lhe foi atribuído um bónus de desempenho de "
+"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
