@@ -1418,8 +1418,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             (
                 # This is presumably getting ignored, because Dallinger ignores extra_files specifications if they
                 # overwrite a predefined file -- see dallinger.utils.collate_experiment_files
-                resources.files("psynet") / "templates/mturk_error.html",
-                "templates/mturk_error.html",
+                resources.files("psynet") / "templates/error.html",
+                "templates/error.html",
             ),
             (
                 resources.files("psynet") / "resources/scripts/prepare_docker_image.sh",
