@@ -1,5 +1,0 @@
-INFO:root:LUCID RECRUITER: Saving RID '646edf52-e7d4-f903-b445-b09cbab4120a' into the database.
-
-http://localhost.cap:5000      /ad?recruiter=dev-lucid-recruiter&RID=646edf52-e7d4-f903-b445-b09cbab4120a
-http://localhost.cap:5000 /consent?recruiter=dev-lucid-recruiter&RID=646edf52-e7d4-f903-b445-b09cbab4120a
-http://localhost.cap:5000   /start?recruiter=dev-lucid-recruiter&RID=646edf52-e7d4-f903-b445-b09cbab4120a
