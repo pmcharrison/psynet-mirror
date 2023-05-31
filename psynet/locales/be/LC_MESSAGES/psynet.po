@@ -420,7 +420,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Вам калі-небудзь ставілі дыягназ дыслексія?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -504,13 +503,13 @@ msgid "Close window"
 msgstr "Зачыніць акно"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Ідэнтыфікатар задання"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "ХІТ ID"
@@ -614,12 +613,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Папярэджанне"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Спыніць эксперымент"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Націсніце кнопку вышэй, каб атрымаць кампенсацыю ў выпадку памылкі."
@@ -2224,6 +2223,52 @@ msgid ""
 "compensation for participation."
 msgstr "Гэта даследаванне цалкам добраахвотнае;"
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Тып памылкі"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Калі гэта не так, звяжыцеся з намі па адрасе %(EMAIL)s, прывёўшы наступную "
+"інфармацыю:"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Рабочы ID"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Памылка!"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Пасля перапынення няма неабходнасці звязвацца з намі, каб атрымаць "
+"кампенсацыю;"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Магчыма, вы зможаце перапыніць эксперымент, націснуўшы кнопку "
+"<strong>Спыніць эксперымент</strong> <strong>на старонцы рэкламы "
+"MTurk</strong>."
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2858,52 +2903,6 @@ msgstr "Гуляць з пачатку"
 #, fuzzy
 msgid "Video not found"
 msgstr "Відэа не знойдзена"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "Тып памылкі"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Калі гэта не так, звяжыцеся з намі па адрасе %(EMAIL)s, прывёўшы наступную "
-"інфармацыю:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Рабочы ID"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Памылка!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Пасля перапынення няма неабходнасці звязвацца з намі, каб атрымаць "
-"кампенсацыю;"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Магчыма, вы зможаце перапыніць эксперымент, націснуўшы кнопку "
-"<strong>Спыніць эксперымент</strong> <strong>на старонцы рэкламы "
-"MTurk</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

@@ -420,7 +420,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Har du någonsin fått diagnosen dyslexi?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -505,13 +504,13 @@ msgid "Close window"
 msgstr "Stäng fönstret"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Uppdrags-ID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT-ID"
@@ -611,12 +610,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Varning"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Avbryt experimentet"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Klicka på knappen ovan för att bli kompenserad i händelse av ett fel."
@@ -2243,6 +2242,51 @@ msgstr ""
 "Den här studien är helt frivillig; du kommer inte att få någon ekonomisk "
 "ersättning för ditt deltagande."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Typ av fel"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Om så inte är fallet kan du kontakta oss på %(EMAIL)s och uppge följande "
+"information:"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Arbetstagarens ID"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Fel!"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"När det har avbrutits behöver du inte kontakta oss för att få ersättningen, "
+"utan den bör tilldelas dig automatiskt via MTurk några minuter senare."
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Du kan eventuellt avbryta experimentet med hjälp av knappen <strong>Avbryt "
+"experiment</strong> <strong>på MTurk-annonssidan</strong>."
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2884,51 +2928,6 @@ msgstr "Spela från början"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video inte hittad"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "Typ av fel"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Om så inte är fallet kan du kontakta oss på %(EMAIL)s och uppge följande "
-"information:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Arbetstagarens ID"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Fel!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"När det har avbrutits behöver du inte kontakta oss för att få ersättningen, "
-"utan den bör tilldelas dig automatiskt via MTurk några minuter senare."
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Du kan eventuellt avbryta experimentet med hjälp av knappen <strong>Avbryt "
-"experiment</strong> <strong>på MTurk-annonssidan</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

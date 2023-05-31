@@ -416,7 +416,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "האם אי פעם אובחנת עם דיסלקציה?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -499,13 +498,13 @@ msgid "Close window"
 msgstr "חלון סגור"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "מזהה משימה"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "מזהה היט"
@@ -603,12 +602,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "אַזהָרָה"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "בטל את הניסוי"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "לחץ על הכפתור שלמעלה כדי לקבל פיצוי במקרה של שגיאה."
@@ -2122,6 +2121,49 @@ msgid ""
 "compensation for participation."
 msgstr "מחקר זה הוא וולונטרי לחלוטין; לא תקבל שום פיצוי כספי עבור ההשתתפות."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "סוג שגיאה"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "אם זה לא המקרה, אנא צור איתנו קשר ב-%(EMAIL)s תוך ציון המידע הבא:"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "זיהוי עובד"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "שְׁגִיאָה!"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"לאחר ההפלה, אין צורך לפנות אלינו כדי לקבל את הפיצוי; זה אמור להיות מוענק לך "
+"באופן אוטומטי דרך MTurk כמה דקות לאחר מכן."
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"ייתכן שתוכל לבטל את הניסוי באמצעות הלחצן <strong>בטל ניסוי</strong> "
+"<strong>בדף המודעה של MTurk</strong>."
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2733,49 +2775,6 @@ msgstr "שחק מההתחלה"
 #, fuzzy
 msgid "Video not found"
 msgstr "וידאו לא נמצא"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "סוג שגיאה"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr "אם זה לא המקרה, אנא צור איתנו קשר ב-%(EMAIL)s תוך ציון המידע הבא:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "זיהוי עובד"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "שְׁגִיאָה!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"לאחר ההפלה, אין צורך לפנות אלינו כדי לקבל את הפיצוי; זה אמור להיות מוענק לך "
-"באופן אוטומטי דרך MTurk כמה דקות לאחר מכן."
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"ייתכן שתוכל לבטל את הניסוי באמצעות הלחצן <strong>בטל ניסוי</strong> "
-"<strong>בדף המודעה של MTurk</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

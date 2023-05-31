@@ -379,7 +379,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Avez-vous reçu un diagnostic de dyslexie ?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -460,13 +459,13 @@ msgid "Close window"
 msgstr "Fermer la fenêtre"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "ID de l'affectation"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 msgid "HIT ID"
 msgstr "ID HIT"
 
@@ -566,11 +565,11 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Avertissement"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 msgid "Abort Experiment"
 msgstr "Arrêter l'expérience"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Cliquez sur le bouton ci-dessus pour être récompensé en cas d'erreur."
 
@@ -2067,6 +2066,48 @@ msgstr ""
 "Cette étude est entièrement volontaire ; vous ne recevrez aucune "
 "compensation monétaire pour votre participation."
 
+#: psynet/templates/error.html
+msgid "Error type"
+msgstr "Type d'erreur"
+
+#: psynet/templates/error.html
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Si ce n'est pas le cas, veuillez nous contacter à %(EMAIL)s en mentionnant "
+"les informations suivantes :"
+
+#: psynet/templates/error.html
+msgid "Worker ID"
+msgstr "ID du travailleur"
+
+#: psynet/templates/error.html
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Erreur !"
+
+#: psynet/templates/error.html
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Une fois l'expérience interrompue, il n'est pas nécessaire de nous contacter"
+" pour recevoir l’récompense ; celle-ci devrait vous être attribuée "
+"automatiquement via MTurk quelques minutes après."
+
+#: psynet/templates/error.html
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Vous pouvez éventuellement interrompre l'expérience en utilisant le bouton "
+"<strong>Arrêter l'expérience</strong> <strong>sur la page d'annonce "
+"MTurk</strong>."
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2713,48 +2754,6 @@ msgstr "Jouer depuis le début"
 #, fuzzy
 msgid "Video not found"
 msgstr "Vidéo non trouvée"
-
-#: psynet/templates/mturk_error.html
-msgid "Error type"
-msgstr "Type d'erreur"
-
-#: psynet/templates/mturk_error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Si ce n'est pas le cas, veuillez nous contacter à %(EMAIL)s en mentionnant "
-"les informations suivantes :"
-
-#: psynet/templates/mturk_error.html
-msgid "Worker ID"
-msgstr "ID du travailleur"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Erreur !"
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Une fois l'expérience interrompue, il n'est pas nécessaire de nous contacter"
-" pour recevoir l’récompense ; celle-ci devrait vous être attribuée "
-"automatiquement via MTurk quelques minutes après."
-
-#: psynet/templates/mturk_error.html
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Vous pouvez éventuellement interrompre l'expérience en utilisant le bouton "
-"<strong>Arrêter l'expérience</strong> <strong>sur la page d'annonce "
-"MTurk</strong>."
 
 #: psynet/templates/start.html
 msgctxt "start"

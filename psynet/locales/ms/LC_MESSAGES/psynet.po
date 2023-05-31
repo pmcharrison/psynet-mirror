@@ -423,7 +423,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Adakah anda pernah disahkan menghidap disleksia?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -508,13 +507,13 @@ msgid "Close window"
 msgstr "Tutup tingkap"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "ID Tugasan"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "ID HIT"
@@ -616,12 +615,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Amaran"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Batalkan Eksperimen"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
@@ -2255,6 +2254,52 @@ msgstr ""
 "Kajian ini adalah secara sukarela sepenuhnya; anda tidak akan menerima "
 "sebarang pampasan wang untuk penyertaan."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Jenis ralat"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Jika ini tidak berlaku, sila hubungi kami di %(EMAIL)s dengan memetik "
+"maklumat berikut:"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "ID pekerja"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Ralat!"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Setelah digugurkan, tidak perlu menghubungi kami untuk menerima pampasan; "
+"ini harus diberikan kepada anda secara automatik melalui MTurk beberapa "
+"minit selepas itu."
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Anda mungkin boleh membatalkan percubaan menggunakan butang <strong>Batalkan"
+" percubaan</strong> <strong>pada halaman iklan MTurk</strong>."
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2908,52 +2953,6 @@ msgstr "Main dari mula"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video tidak dijumpai"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "Jenis ralat"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Jika ini tidak berlaku, sila hubungi kami di %(EMAIL)s dengan memetik "
-"maklumat berikut:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "ID pekerja"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Ralat!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Setelah digugurkan, tidak perlu menghubungi kami untuk menerima pampasan; "
-"ini harus diberikan kepada anda secara automatik melalui MTurk beberapa "
-"minit selepas itu."
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Anda mungkin boleh membatalkan percubaan menggunakan butang <strong>Batalkan"
-" percubaan</strong> <strong>pada halaman iklan MTurk</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

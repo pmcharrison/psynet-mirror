@@ -418,7 +418,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "คุณเคยถูกวินิจฉัยว่าเป็นโรคดิสเล็กเซียหรือไม่?"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -500,13 +499,13 @@ msgid "Close window"
 msgstr "ปิดหน้าต่าง"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "รหัสงานที่มอบหมาย"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "รหัส HIT"
@@ -604,12 +603,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "คำเตือน"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "ยกเลิกการทดลอง"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "คลิกปุ่มด้านบนเพื่อรับการชดเชยในกรณีที่เกิดข้อผิดพลาด"
@@ -2153,6 +2152,49 @@ msgid ""
 msgstr ""
 "การศึกษานี้เป็นไปโดยสมัครใจ คุณจะไม่ได้รับค่าตอบแทนเป็นเงินสำหรับการเข้าร่วม"
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "ประเภทข้อผิดพลาด"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "หากไม่เป็นเช่นนั้น โปรดติดต่อเราที่ %(EMAIL)s โดยระบุข้อมูลต่อไปนี้:"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "รหัสผู้ปฏิบัติงาน"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "ข้อผิดพลาด!"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"เมื่อยกเลิกแล้ว ไม่จำเป็นต้องติดต่อเราเพื่อรับเงินชดเชย "
+"สิ่งนี้ควรมอบให้คุณโดยอัตโนมัติผ่าน MTurk ไม่กี่นาทีหลังจากนั้น"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"คุณอาจสามารถยกเลิกการทดสอบได้โดยใช้ปุ่ม <strong>ยกเลิกการทดสอบ</strong> "
+"<strong>บนหน้าโฆษณาของ MTurk</strong>"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2774,49 +2816,6 @@ msgstr "เล่นตั้งแต่เริ่มต้น"
 #, fuzzy
 msgid "Video not found"
 msgstr "วิดีโอไม่พบ"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "ประเภทข้อผิดพลาด"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr "หากไม่เป็นเช่นนั้น โปรดติดต่อเราที่ %(EMAIL)s โดยระบุข้อมูลต่อไปนี้:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "รหัสผู้ปฏิบัติงาน"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "ข้อผิดพลาด!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"เมื่อยกเลิกแล้ว ไม่จำเป็นต้องติดต่อเราเพื่อรับเงินชดเชย "
-"สิ่งนี้ควรมอบให้คุณโดยอัตโนมัติผ่าน MTurk ไม่กี่นาทีหลังจากนั้น"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"คุณอาจสามารถยกเลิกการทดสอบได้โดยใช้ปุ่ม <strong>ยกเลิกการทดสอบ</strong> "
-"<strong>บนหน้าโฆษณาของ MTurk</strong>"
 
 #: psynet/templates/start.html
 #, fuzzy

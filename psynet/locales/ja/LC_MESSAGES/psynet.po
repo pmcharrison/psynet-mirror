@@ -414,7 +414,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "ディスレクシアと診断されたことがありますか？"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -491,13 +490,13 @@ msgid "Close window"
 msgstr "ウィンドウを閉じる"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "アサインメントID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -591,12 +590,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "注意事項"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "実験中止"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "上記のボタンをクリックすると、エラー時の補償が受けられます。"
@@ -1997,6 +1996,45 @@ msgid ""
 "compensation for participation."
 msgstr "この研究は完全に任意であり、参加に対して金銭的な補償を受けることはありません。"
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "エラーの種類"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "その場合は、%(EMAIL)sまで、以下の情報を明記してご連絡ください："
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "作業者ID"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "エラーになりました！"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "一度中止すると、補償金を受け取るために私たちに連絡する必要はありません。これは、数分後にMTurkを通じて自動的に授与されるはずです。"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr "MTurkの広告ページにある<strong>実験中止</strong>ボタンで実験を中止することができるかもしれません</strong>。"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2574,45 +2612,6 @@ msgstr "スタートからプレイ"
 #, fuzzy
 msgid "Video not found"
 msgstr "ビデオが見つかりません"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "エラーの種類"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr "その場合は、%(EMAIL)sまで、以下の情報を明記してご連絡ください："
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "作業者ID"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "エラーになりました！"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr "一度中止すると、補償金を受け取るために私たちに連絡する必要はありません。これは、数分後にMTurkを通じて自動的に授与されるはずです。"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr "MTurkの広告ページにある<strong>実験中止</strong>ボタンで実験を中止することができるかもしれません</strong>。"
 
 #: psynet/templates/start.html
 #, fuzzy

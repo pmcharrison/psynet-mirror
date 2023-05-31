@@ -421,7 +421,6 @@ msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "کیا آپ کو کبھی dyslexia کی تشخیص ہوئی ہے؟"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -504,13 +503,13 @@ msgid "Close window"
 msgstr "بند کھڑکی"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "اسائنمنٹ ID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -612,12 +611,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "وارننگ"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "تجربہ ترک کریں۔"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "غلطی کی صورت میں تلافی کے لیے اوپر والے بٹن پر کلک کریں۔"
@@ -2217,6 +2216,51 @@ msgstr ""
 "یہ مطالعہ مکمل طور پر رضاکارانہ ہے؛ آپ کو شرکت کے لیے کوئی مالی معاوضہ نہیں "
 "ملے گا۔"
 
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Error type"
+msgstr "خرابی کی قسم"
+
+#: psynet/templates/error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"اگر ایسا نہیں ہے تو، براہ کرم درج ذیل معلومات کے حوالے سے %(EMAIL)s پر ہم سے"
+" رابطہ کریں:"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "ورکر آئی ڈی"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "غلطی!"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"ایک بار اسقاط حمل، معاوضہ حاصل کرنے کے لیے ہم سے رابطہ کرنے کی ضرورت نہیں "
+"ہے۔ یہ چند منٹ بعد MTurk کے ذریعے آپ کو خود بخود مل جائے گا۔"
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"آپ MTurk اشتہار کے صفحے پر <strong>تجربہ ختم کریں</strong> بٹن <strong> کا "
+"استعمال کرتے ہوئے تجربہ کو ختم کرنے کے قابل ہو سکتے ہیں۔"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2854,51 +2898,6 @@ msgstr "شروع سے کھیلیں"
 #, fuzzy
 msgid "Video not found"
 msgstr "ویڈیو نہیں ملی"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "خرابی کی قسم"
-
-#: psynet/templates/mturk_error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"اگر ایسا نہیں ہے تو، براہ کرم درج ذیل معلومات کے حوالے سے %(EMAIL)s پر ہم سے"
-" رابطہ کریں:"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "ورکر آئی ڈی"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "غلطی!"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"ایک بار اسقاط حمل، معاوضہ حاصل کرنے کے لیے ہم سے رابطہ کرنے کی ضرورت نہیں "
-"ہے۔ یہ چند منٹ بعد MTurk کے ذریعے آپ کو خود بخود مل جائے گا۔"
-
-#: psynet/templates/mturk_error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"آپ MTurk اشتہار کے صفحے پر <strong>تجربہ ختم کریں</strong> بٹن <strong> کا "
-"استعمال کرتے ہوئے تجربہ کو ختم کرنے کے قابل ہو سکتے ہیں۔"
 
 #: psynet/templates/start.html
 #, fuzzy
