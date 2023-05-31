@@ -7,7 +7,6 @@
         "FulcrumExchangeHedgeAccess": true,
         "IndustryID": 30,
         "StudyTypeID": 1,
-        "SurveyStatusCode": "01",
         "UniqueIPAddress": true,
         "UniquePID": true
     },

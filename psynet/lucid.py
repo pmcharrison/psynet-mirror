@@ -116,6 +116,11 @@ class LucidService(object):
 
         # Apply survey configuration from 'lucid_recruitment_config.json' file.
         survey_data = self.recruitment_config["survey"]
+        survey_status_code = "01"
+        if self.exp_config.auto_recruit:
+            survey_status_code = "03"
+        survey_data["SurveyStatusCode"] = survey_status_code
+
         request_data = json.dumps({**params, **survey_data})
         response = requests.post(
             f"{self.request_base_url_v1}/Surveys/Create",
