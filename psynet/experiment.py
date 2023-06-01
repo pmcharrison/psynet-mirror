@@ -79,7 +79,6 @@ from .utils import (
     call_function_with_context,
     classproperty,
     disable_logger,
-    error_page,
     get_arg_from_dict,
     get_available_locales,
     get_language,
@@ -97,6 +96,7 @@ logger = get_logger()
 database_template_path = ".deploy/database_template.zip"
 
 
+DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
 
 
@@ -536,6 +536,64 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
+
+    @classmethod
+    def error_page(
+        cls,
+        participant=None,
+        error_text=None,
+        recruiter=None,
+        external_submit_url=None,
+        compensate=True,
+        error_type="default",
+        request_data="",
+        locale=DEFAULT_LOCALE,
+    ):
+        """Render HTML for error page."""
+        from flask import make_response, request
+
+        config = get_config()
+        _, _p = get_translator(locale)
+        if error_text is None:
+            error_text = _p(
+                "error-msg",
+                "There has been an error and so you are unable to continue, sorry!",
+            )
+
+        if participant is not None:
+            hit_id = participant.hit_id
+            assignment_id = participant.assignment_id
+            worker_id = participant.worker_id
+            participant_id = participant.id
+        else:
+            hit_id = request.form.get("hit_id", "")
+            assignment_id = request.form.get("assignment_id", "")
+            worker_id = request.form.get("worker_id", "")
+            participant_id = request.form.get("participant_id", None)
+
+        if participant_id:
+            try:
+                participant_id = int(participant_id)
+            except (ValueError, TypeError):
+                participant_id = None
+
+        return make_response(
+            render_template_with_translations(
+                "error.html",
+                locale=locale,
+                error_text=error_text,
+                compensate=compensate,
+                contact_address=config.get("contact_email_on_error"),
+                error_type=error_type,
+                hit_id=hit_id,
+                assignment_id=assignment_id,
+                worker_id=worker_id,
+                request_data=request_data,
+                participant_id=participant_id,
+                external_submit_url=external_submit_url,
+            ),
+            500,
+        )
 
     def error_page_content(
         self,
@@ -1707,7 +1765,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else:
                 return render_template_with_translations("ad.html", **kw)
         except ExperimentError:
-            return error_page()
+            return Experiment.error_page()
 
     @experiment_route("/app_deployment_id", methods=["GET"])
     @staticmethod
@@ -1769,8 +1827,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/error-page", methods=["POST", "GET"])
     @classmethod
     def render_error(cls):
-        from psynet.utils import error_page
-
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
         participant = None
@@ -1781,7 +1837,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url = None
         if hasattr(recruiter, "external_submit_url"):
             external_submit_url = recruiter.external_submit_url(participant=participant)
-        return error_page(
+        return cls.error_page(
             participant=participant,
             request_data=request_data,
             recruiter=cls.new(db.session).recruiter.nickname,
@@ -2093,7 +2149,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.participant = participant
 
         def error_page(self):
-            return error_page(self.participant)
+            return Experiment.error_page(self.participant)
 
     @classmethod
     def report_error(
@@ -2172,8 +2228,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             super().__init__(message)
 
         def http_response(self):
-            from psynet.utils import error_page
-
             last_exception = sys.exc_info()
             if last_exception[0]:
                 logger.error(
@@ -2186,7 +2240,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 + "did you switch browsers? Unfortunately this is not currently "
                 + "supported by our system."
             )
-            return error_page(
+            return Experiment.error_page(
                 participant=self.participant,
                 error_text=msg,
                 error_type="authentication",
