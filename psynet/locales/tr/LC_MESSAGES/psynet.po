@@ -373,6 +373,11 @@ msgid "Have you ever been diagnosed with dyslexia?"
 msgstr "Size hiç disleksi teşhisi konuldu mu?"
 
 #: psynet/experiment.py
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Bir hata oluştu ve bu nedenle devam edemiyorsunuz, üzgünüz!"
+
+#: psynet/experiment.py
 #, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
@@ -3989,11 +3994,6 @@ msgstr "Zimbabve"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Åland Adaları"
-
-#: psynet/utils.py
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Bir hata oluştu ve bu nedenle devam edemiyorsunuz, üzgünüz!"
 
 #: psynet/utils.py
 msgctxt "language_name"

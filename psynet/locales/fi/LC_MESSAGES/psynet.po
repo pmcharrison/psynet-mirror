@@ -443,6 +443,12 @@ msgstr "Onko sinulla koskaan diagnosoitu lukihäiriö?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "On tapahtunut virhe, joten et voi jatkaa, anteeksi!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Uudelleenohjaus..."
@@ -4517,12 +4523,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Ahvenanmaa"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "On tapahtunut virhe, joten et voi jatkaa, anteeksi!"
 
 #: psynet/utils.py
 #, fuzzy

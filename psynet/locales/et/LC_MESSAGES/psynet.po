@@ -422,6 +422,12 @@ msgstr "Kas teil on kunagi diagnoositud düsleksia?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Tekkis viga ja te ei saa jätkata, vabandust!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Ümbersuunamine..."
@@ -4469,12 +4475,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Ahvenamaa"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Tekkis viga ja te ei saa jätkata, vabandust!"
 
 #: psynet/utils.py
 #, fuzzy

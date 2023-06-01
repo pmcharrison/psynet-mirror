@@ -422,6 +422,12 @@ msgstr "Je li vam ikada dijagnosticirana disleksija?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Došlo je do pogreške i stoga ne možete nastaviti, ispričavamo se!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Preusmjeravanje..."
@@ -4477,12 +4483,6 @@ msgstr "Zimbabve"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Ålandski otoci"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Došlo je do pogreške i stoga ne možete nastaviti, ispričavamo se!"
 
 #: psynet/utils.py
 #, fuzzy

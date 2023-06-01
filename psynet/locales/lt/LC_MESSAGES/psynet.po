@@ -423,6 +423,12 @@ msgstr "Ar jums kada nors buvo diagnozuota disleksija?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Įvyko klaida, todėl negalite tęsti, atsiprašome!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Peradresavimas..."
@@ -4490,12 +4496,6 @@ msgstr "Zimbabvė"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Alandų salos"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Įvyko klaida, todėl negalite tęsti, atsiprašome!"
 
 #: psynet/utils.py
 #, fuzzy

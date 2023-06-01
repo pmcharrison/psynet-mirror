@@ -390,6 +390,12 @@ msgstr "Ставили ли Вам когда-либо диагноз \"дисл
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Произошла ошибка, поэтому Вы не можете продолжить, извините!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Перенаправление..."
@@ -4257,12 +4263,6 @@ msgstr "Зимбабве"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Аландские острова"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Произошла ошибка, поэтому Вы не можете продолжить, извините!"
 
 #: psynet/utils.py
 #, fuzzy

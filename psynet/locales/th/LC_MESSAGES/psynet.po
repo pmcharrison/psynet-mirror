@@ -420,6 +420,12 @@ msgstr "คุณเคยถูกวินิจฉัยว่าเป็น
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "เกิดข้อผิดพลาด คุณจึงไม่สามารถดำเนินการต่อได้ ขออภัย!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "กำลังเปลี่ยนเส้นทาง..."
@@ -4399,12 +4405,6 @@ msgstr "ซิมบับเว"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "หมู่เกาะโอลันด์"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "เกิดข้อผิดพลาด คุณจึงไม่สามารถดำเนินการต่อได้ ขออภัย!"
 
 #: psynet/utils.py
 #, fuzzy

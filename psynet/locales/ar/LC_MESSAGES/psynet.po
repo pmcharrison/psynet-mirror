@@ -420,6 +420,12 @@ msgstr "هل سبق أن تم تشخيصك بعُسر القراءة؟"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "لقد حدث خطأ وبالتالي لا يمكنك المتابعة ، آسف!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "إعادة توجيه..."
@@ -4394,12 +4400,6 @@ msgstr "زيمبابوي"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "جزر آلاند"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "لقد حدث خطأ وبالتالي لا يمكنك المتابعة ، آسف!"
 
 #: psynet/utils.py
 #, fuzzy

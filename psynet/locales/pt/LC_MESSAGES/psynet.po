@@ -423,6 +423,12 @@ msgstr "Alguma vez lhe foi diagnosticada dislexia?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Ocorreu um erro e, por isso, não pode continuar, lamento!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Redireccionar..."
@@ -4524,12 +4530,6 @@ msgstr "Zimbabué"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Ilhas Åland"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Ocorreu um erro e, por isso, não pode continuar, lamento!"
 
 #: psynet/utils.py
 #, fuzzy

@@ -418,6 +418,12 @@ msgstr "האם אי פעם אובחנת עם דיסלקציה?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "אירעה שגיאה ולכן אינך יכול להמשיך, מצטער!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "מפנה מחדש..."
@@ -4356,12 +4362,6 @@ msgstr "זימבבואה"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "איי אלנד"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "אירעה שגיאה ולכן אינך יכול להמשיך, מצטער!"
 
 #: psynet/utils.py
 #, fuzzy

@@ -424,6 +424,12 @@ msgstr "क्या आपको कभी डिस्लेक्सिया
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "कोई त्रुटि हुई है और इसलिए आप जारी रखने में असमर्थ हैं, क्षमा करें!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "रीडायरेक्ट किया जा रहा है..."
@@ -4494,12 +4500,6 @@ msgstr "ज़िम्बाब्वे"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "एलैंड द्वीप समूह"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "कोई त्रुटि हुई है और इसलिए आप जारी रखने में असमर्थ हैं, क्षमा करें!"
 
 #: psynet/utils.py
 #, fuzzy

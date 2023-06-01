@@ -425,6 +425,12 @@ msgstr "Adakah anda pernah disahkan menghidap disleksia?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Terdapat ralat dan oleh itu anda tidak dapat meneruskan, maaf!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Mengubah hala..."
@@ -4538,12 +4544,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Kepulauan Åland"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Terdapat ralat dan oleh itu anda tidak dapat meneruskan, maaf!"
 
 #: psynet/utils.py
 #, fuzzy

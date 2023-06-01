@@ -416,6 +416,12 @@ msgstr "난독증 진단을 받은 적이 있나요?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "오류가 발생하여 계속하실 수 없습니다, 죄송합니다!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "리디렉션..."
@@ -4229,12 +4235,6 @@ msgstr "짐바브웨"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "올란드 제도"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "오류가 발생하여 계속하실 수 없습니다, 죄송합니다!"
 
 #: psynet/utils.py
 #, fuzzy

@@ -422,6 +422,12 @@ msgstr "Diagnosztizáltak valaha diszlexiát?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Hiba történt, ezért nem tudod folytatni, sajnálom!"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "Átirányítás..."
@@ -4514,12 +4520,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Åland-szigetek"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Hiba történt, ezért nem tudod folytatni, sajnálom!"
 
 #: psynet/utils.py
 #, fuzzy

@@ -416,6 +416,12 @@ msgstr "ディスレクシアと診断されたことがありますか？"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "エラーが発生したため、続行できません、申し訳ありません！"
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting..."
 msgstr "リダイレクト..."
@@ -4193,12 +4199,6 @@ msgstr "ジンバブエ"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "オーランド諸島"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "エラーが発生したため、続行できません、申し訳ありません！"
 
 #: psynet/utils.py
 #, fuzzy
