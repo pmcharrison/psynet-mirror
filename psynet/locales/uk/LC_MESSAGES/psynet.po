@@ -2257,6 +2257,13 @@ msgstr ""
 msgid "Worker ID"
 msgstr "Посвідчення працівника"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Помилка!"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"

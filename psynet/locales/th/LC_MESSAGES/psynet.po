@@ -2175,6 +2175,13 @@ msgstr "หากไม่เป็นเช่นนั้น โปรดต�
 msgid "Worker ID"
 msgstr "รหัสผู้ปฏิบัติงาน"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "ข้อผิดพลาด!"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"

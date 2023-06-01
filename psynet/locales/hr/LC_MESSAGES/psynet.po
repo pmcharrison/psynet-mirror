@@ -2238,6 +2238,13 @@ msgstr ""
 msgid "Worker ID"
 msgstr "Radnička iskaznica"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Greška!"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"

@@ -2144,6 +2144,13 @@ msgstr "אם זה לא המקרה, אנא צור איתנו קשר ב-%(EMAIL)s 
 msgid "Worker ID"
 msgstr "זיהוי עובד"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "שְׁגִיאָה!"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"

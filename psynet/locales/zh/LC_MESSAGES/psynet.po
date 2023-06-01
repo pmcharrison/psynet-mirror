@@ -1750,6 +1750,13 @@ msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以
 msgid "Worker ID"
 msgstr "工作者身份"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "错误!"
+
 #: psynet/templates/error.html
 msgctxt "mturk_error"
 msgid "Error!"

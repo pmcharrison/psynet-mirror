@@ -1727,7 +1727,7 @@ msgid "Worker ID"
 msgstr ""
 
 #: psynet/templates/error.html
-msgctxt "mturk_error"
+msgctxt "error"
 msgid "Error!"
 msgstr ""
 

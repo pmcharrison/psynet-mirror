@@ -2264,6 +2264,13 @@ msgstr ""
 msgid "Worker ID"
 msgstr "Munkavállaló azonosítója"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Hiba!"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"

@@ -2047,6 +2047,13 @@ msgstr "그렇지 않은 경우 다음 정보를 인용하여 %(EMAIL)s 문의�
 msgid "Worker ID"
 msgstr "작업자 ID"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "오류!"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"

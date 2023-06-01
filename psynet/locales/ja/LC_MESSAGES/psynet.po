@@ -2019,6 +2019,13 @@ msgstr "その場合は、%(EMAIL)sまで、以下の情報を明記してご連
 msgid "Worker ID"
 msgstr "作業者ID"
 
+#. ""
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "エラーになります！"
+
 #: psynet/templates/error.html
 #, fuzzy
 msgctxt "mturk_error"
