@@ -27,7 +27,7 @@ from dallinger.compat import unicode
 from dallinger.config import get_config, is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
+from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
@@ -1764,7 +1764,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return kw["redirect"]
             else:
                 return render_template_with_translations("ad.html", **kw)
-        except ExperimentError:
+        except Exception:
             return Experiment.error_page()
 
     @experiment_route("/app_deployment_id", methods=["GET"])
