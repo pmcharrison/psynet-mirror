@@ -511,13 +511,13 @@ msgid "Close window"
 msgstr "Ablak bezárása"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Hozzárendelés azonosítója"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -619,12 +619,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Figyelmeztetés"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Kísérlet megszakítása"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Kattintson a fenti gombra, ha hiba esetén kártérítést szeretne kapni."
@@ -2247,56 +2247,9 @@ msgstr ""
 
 #: psynet/templates/error.html
 #, fuzzy
-msgid "Error type"
-msgstr "Hiba típusa"
-
-#: psynet/templates/error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Ha ez nem így van, kérjük, lépjen kapcsolatba velünk a %(EMAIL)s címen, és "
-"adja meg a következő információkat:"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Munkavállaló azonosítója"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Hiba!"
-
-#: psynet/templates/error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Hiba!"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"A megszakítás után nem kell kapcsolatba lépnie velünk, hogy megkapja a "
-"kártérítést; ezt néhány perccel később automatikusan meg kell kapnia az "
-"MTurk-on keresztül."
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"A kísérletet az <strong>Kísérlet megszakítása</strong> gombbal <strong>az "
-"MTurk hirdetés oldalán</strong> megszakíthatja."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2942,6 +2895,52 @@ msgstr "Játsszon a kezdetektől"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video nem található"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Hiba típusa"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Ha ez nem így van, kérjük, lépjen kapcsolatba velünk a %(EMAIL)s címen, és "
+"adja meg a következő információkat:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Munkavállaló azonosítója"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Hiba!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"A megszakítás után nem kell kapcsolatba lépnie velünk, hogy megkapja a "
+"kártérítést; ezt néhány perccel később automatikusan meg kell kapnia az "
+"MTurk-on keresztül."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"A kísérletet az <strong>Kísérlet megszakítása</strong> gombbal <strong>az "
+"MTurk hirdetés oldalán</strong> megszakíthatja."
 
 #: psynet/templates/start.html
 #, fuzzy

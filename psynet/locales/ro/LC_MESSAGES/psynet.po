@@ -512,13 +512,13 @@ msgid "Close window"
 msgstr "Închideți fereastra"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "ID-ul atribuirii"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "ID HIT"
@@ -624,12 +624,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Avertisment"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Abandonarea experimentului"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
@@ -2287,56 +2287,9 @@ msgstr ""
 
 #: psynet/templates/error.html
 #, fuzzy
-msgid "Error type"
-msgstr "Tipul de eroare"
-
-#: psynet/templates/error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"În caz contrar, vă rugăm să ne contactați la %(EMAIL)s menționând "
-"următoarele informații:"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "ID-ul lucrătorului"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Eroare!"
-
-#: psynet/templates/error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Eroare!"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Odată anulată, nu este nevoie să ne contactați pentru a primi compensația; "
-"aceasta ar trebui să vă fie acordată automat prin MTurk la câteva minute "
-"după aceea."
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Este posibil să puteți anula experimentul folosind butonul <strong>Abort "
-"experiment</strong> <strong>pe pagina de anunțuri MTurk</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2989,6 +2942,52 @@ msgstr "Joacă de la început"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video nu a fost găsit"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Tipul de eroare"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"În caz contrar, vă rugăm să ne contactați la %(EMAIL)s menționând "
+"următoarele informații:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "ID-ul lucrătorului"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Eroare!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Odată anulată, nu este nevoie să ne contactați pentru a primi compensația; "
+"aceasta ar trebui să vă fie acordată automat prin MTurk la câteva minute "
+"după aceea."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Este posibil să puteți anula experimentul folosind butonul <strong>Abort "
+"experiment</strong> <strong>pe pagina de anunțuri MTurk</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

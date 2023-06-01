@@ -441,12 +441,12 @@ msgid "Close window"
 msgstr "关闭窗口"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 msgid "Assignment ID"
 msgstr "任务编号"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 msgid "HIT ID"
 msgstr "HIT ID"
 
@@ -526,11 +526,11 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "警告"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Abort Experiment"
 msgstr "中止实验"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Click the above button to be compensated in case of an error."
 msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
 
@@ -1736,45 +1736,9 @@ msgid ""
 msgstr "这项研究完全是自愿的；您不会因为参与而得到任何金钱上的补偿。"
 
 #: psynet/templates/error.html
-msgid "Error type"
-msgstr "错误类型"
-
-#: psynet/templates/error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以下信息："
-
-#: psynet/templates/error.html
-msgid "Worker ID"
-msgstr "工作者身份"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "错误!"
-
-#: psynet/templates/error.html
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "错误!"
-
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr "一旦中止，就不需要联系我们以获得补偿；这应该在几分钟后通过MTurk自动授予您。"
-
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr "您可以使用MTurk广告页面上的<strong>中止试验</strong>按钮</strong>来中止试验。"
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2330,6 +2294,41 @@ msgstr "从头开始玩"
 #, fuzzy
 msgid "Video not found"
 msgstr "未找到视频"
+
+#: psynet/templates/psynet_error.html
+msgid "Error type"
+msgstr "错误类型"
+
+#: psynet/templates/psynet_error.html
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以下信息："
+
+#: psynet/templates/psynet_error.html
+msgid "Worker ID"
+msgstr "工作者身份"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "错误!"
+
+#: psynet/templates/psynet_error.html
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "一旦中止，就不需要联系我们以获得补偿；这应该在几分钟后通过MTurk自动授予您。"
+
+#: psynet/templates/psynet_error.html
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr "您可以使用MTurk广告页面上的<strong>中止试验</strong>按钮</strong>来中止试验。"
 
 #: psynet/templates/start.html
 msgctxt "start"

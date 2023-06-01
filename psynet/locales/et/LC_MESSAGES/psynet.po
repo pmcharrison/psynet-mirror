@@ -510,13 +510,13 @@ msgid "Close window"
 msgstr "Sulge aken"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Ülesande ID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -618,12 +618,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Hoiatus"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Katse katkestamine"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Vajutage ülaltoodud nupule, et saada vea korral hüvitist."
@@ -2218,55 +2218,9 @@ msgstr ""
 
 #: psynet/templates/error.html
 #, fuzzy
-msgid "Error type"
-msgstr "Vea tüüp"
-
-#: psynet/templates/error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Kui see ei ole nii, võtke meiega ühendust aadressil %(EMAIL)s, märkides "
-"järgmise teabe:"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Töötaja ID"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Viga!"
-
-#: psynet/templates/error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Viga!"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Pärast katkestamist ei ole vaja meiega ühendust võtta, et saada hüvitist; "
-"see peaks teile automaatselt MTurki kaudu mõne minuti pärast kätte jõudma."
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Teil on võimalik katse katkestada, kasutades <strong>Katke katse</strong> "
-"nuppu <strong>MTurki kuulutuse lehel</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2899,6 +2853,51 @@ msgstr "Mängi algusest peale"
 #, fuzzy
 msgid "Video not found"
 msgstr "Videot ei leitud"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Vea tüüp"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Kui see ei ole nii, võtke meiega ühendust aadressil %(EMAIL)s, märkides "
+"järgmise teabe:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Töötaja ID"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Viga!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Pärast katkestamist ei ole vaja meiega ühendust võtta, et saada hüvitist; "
+"see peaks teile automaatselt MTurki kaudu mõne minuti pärast kätte jõudma."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Teil on võimalik katse katkestada, kasutades <strong>Katke katse</strong> "
+"nuppu <strong>MTurki kuulutuse lehel</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

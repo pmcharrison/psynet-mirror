@@ -511,13 +511,13 @@ msgid "Close window"
 msgstr "Tutup jendela"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "ID Penugasan"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "ID HIT"
@@ -621,12 +621,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Peringatan"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Batalkan Percobaan"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
@@ -2263,56 +2263,9 @@ msgstr ""
 
 #: psynet/templates/error.html
 #, fuzzy
-msgid "Error type"
-msgstr "Jenis kesalahan"
-
-#: psynet/templates/error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Jika tidak demikian, silakan hubungi kami di %(EMAIL)s dengan mengutip "
-"informasi berikut:"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "ID Pekerja"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Error!"
-
-#: psynet/templates/error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Kesalahan!"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Setelah dibatalkan, Anda tidak perlu menghubungi kami untuk menerima "
-"kompensasi; kompensasi akan diberikan kepada Anda secara otomatis melalui "
-"MTurk beberapa menit setelahnya."
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Anda mungkin dapat membatalkan eksperimen dengan menggunakan tombol "
-"<strong>Batalkan eksperimen</strong> pada halaman iklan MTurk</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2959,6 +2912,52 @@ msgstr "Putar dari awal"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video tidak ditemukan"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Jenis kesalahan"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Jika tidak demikian, silakan hubungi kami di %(EMAIL)s dengan mengutip "
+"informasi berikut:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "ID Pekerja"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Error!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Setelah dibatalkan, Anda tidak perlu menghubungi kami untuk menerima "
+"kompensasi; kompensasi akan diberikan kepada Anda secara otomatis melalui "
+"MTurk beberapa menit setelahnya."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Anda mungkin dapat membatalkan eksperimen dengan menggunakan tombol "
+"<strong>Batalkan eksperimen</strong> pada halaman iklan MTurk</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

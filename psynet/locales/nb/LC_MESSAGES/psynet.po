@@ -510,13 +510,13 @@ msgid "Close window"
 msgstr "Lukk vinduet"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Oppdrags-ID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT-ID"
@@ -616,12 +616,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Advarsel"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Avbryt eksperiment"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Klikk på knappen ovenfor for å bli kompensert i tilfelle feil."
@@ -2233,56 +2233,9 @@ msgstr ""
 
 #: psynet/templates/error.html
 #, fuzzy
-msgid "Error type"
-msgstr "Type feil"
-
-#: psynet/templates/error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Hvis dette ikke er tilfelle, vennligst kontakt oss på %(EMAIL)s og oppgi "
-"følgende informasjon:"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Arbeidstaker-ID"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Feil!"
-
-#: psynet/templates/error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Feil!"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Når forsøket er avbrutt, er det ikke nødvendig å kontakte oss for å få "
-"utbetalt kompensasjonen; du får den automatisk via MTurk noen minutter "
-"senere."
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Du kan eventuelt avbryte forsøket ved å bruke knappen <strong>Avbryt "
-"forsøk</strong> <strong>på MTurks annonseside</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2923,6 +2876,52 @@ msgstr "Spill fra start"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video ikke funnet"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Type feil"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Hvis dette ikke er tilfelle, vennligst kontakt oss på %(EMAIL)s og oppgi "
+"følgende informasjon:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Arbeidstaker-ID"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Feil!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Når forsøket er avbrutt, er det ikke nødvendig å kontakte oss for å få "
+"utbetalt kompensasjonen; du får den automatisk via MTurk noen minutter "
+"senere."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Du kan eventuelt avbryte forsøket ved å bruke knappen <strong>Avbryt "
+"forsøk</strong> <strong>på MTurks annonseside</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy

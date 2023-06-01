@@ -579,7 +579,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return make_response(
             render_template_with_translations(
-                "error.html",
+                "psynet_error.html",
                 locale=locale,
                 error_text=error_text,
                 compensate=compensate,
@@ -1472,12 +1472,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             (
                 resources.files("psynet") / "resources/libraries/abc-js",
                 "/static/scripts/abc-js",
-            ),
-            (
-                # This is presumably getting ignored, because Dallinger ignores extra_files specifications if they
-                # overwrite a predefined file -- see dallinger.utils.collate_experiment_files
-                resources.files("psynet") / "templates/error.html",
-                "templates/error.html",
             ),
             (
                 resources.files("psynet") / "resources/scripts/prepare_docker_image.sh",

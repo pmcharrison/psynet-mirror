@@ -456,12 +456,12 @@ msgid "Close window"
 msgstr "Pencereyi kapat"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 msgid "Assignment ID"
 msgstr "Katılımcı No"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 msgid "HIT ID"
 msgstr "HIT kimliği"
 
@@ -558,11 +558,11 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Uyarı"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Abort Experiment"
 msgstr "Deneyi İptal Et"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Bir hata durumunda telafi edilmek için yukarıdaki düğmeyi tıklayın."
 
@@ -2007,52 +2007,9 @@ msgstr ""
 "herhangi bir maddi karşılık almayacaksınız."
 
 #: psynet/templates/error.html
-msgid "Error type"
-msgstr "Hata türü"
-
-#: psynet/templates/error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Eğer durum böyle değilse, lütfen aşağıdaki bilgileri aktararak %(EMAIL)s "
-"adresinden bizimle iletişime geçin:"
-
-#: psynet/templates/error.html
-msgid "Worker ID"
-msgstr "İşçi Kimliği"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Hata!"
-
-#: psynet/templates/error.html
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Hata!"
-
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"İptal edildikten sonra, tazminatı almak için bizimle iletişime geçmenize "
-"gerek yoktur; bu, birkaç dakika sonra MTurk aracılığıyla otomatik olarak "
-"size verilecektir."
-
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"MTurk reklam sayfasındaki <strong>Deneyi iptal et</strong> düğmesini "
-"kullanarak deneyi iptal edebilirsiniz</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2679,6 +2636,48 @@ msgstr "Başlangıçtan itibaren oynayın"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video bulunamadı"
+
+#: psynet/templates/psynet_error.html
+msgid "Error type"
+msgstr "Hata türü"
+
+#: psynet/templates/psynet_error.html
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Eğer durum böyle değilse, lütfen aşağıdaki bilgileri aktararak %(EMAIL)s "
+"adresinden bizimle iletişime geçin:"
+
+#: psynet/templates/psynet_error.html
+msgid "Worker ID"
+msgstr "İşçi Kimliği"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Hata!"
+
+#: psynet/templates/psynet_error.html
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"İptal edildikten sonra, tazminatı almak için bizimle iletişime geçmenize "
+"gerek yoktur; bu, birkaç dakika sonra MTurk aracılığıyla otomatik olarak "
+"size verilecektir."
+
+#: psynet/templates/psynet_error.html
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"MTurk reklam sayfasındaki <strong>Deneyi iptal et</strong> düğmesini "
+"kullanarak deneyi iptal edebilirsiniz</strong>."
 
 #: psynet/templates/start.html
 msgctxt "start"

@@ -454,12 +454,12 @@ msgid "Close window"
 msgstr "Venster sluiten"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 msgid "Assignment ID"
 msgstr "Opdracht ID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 msgid "HIT ID"
 msgstr "HIT ID"
 
@@ -549,11 +549,11 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Waarschuwing"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Abort Experiment"
 msgstr "Experiment afbreken"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klik op de bovenstaande knop om gecompenseerd te worden in geval van een "
@@ -2020,52 +2020,9 @@ msgstr ""
 "voor deelname."
 
 #: psynet/templates/error.html
-msgid "Error type"
-msgstr "Foutmelding"
-
-#: psynet/templates/error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Als dit niet het geval is, neem dan contact met ons op via %(EMAIL)s onder "
-"vermelding van de volgende informatie:"
-
-#: psynet/templates/error.html
-msgid "Worker ID"
-msgstr "Werknemer ID"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Fout!"
-
-#: psynet/templates/error.html
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Er is een fout opgetreden!"
-
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Eenmaal afgebroken, hoeft u geen contact met ons op te nemen om de "
-"compensatie te ontvangen; deze wordt u enkele minuten later automatisch door"
-" MTurk uitbetaald."
-
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"U kunt het experiment afbreken via de knop <strong>Experiment "
-"afbreken</strong> <strong>op de advertentiepagina van MTurk</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2696,6 +2653,48 @@ msgstr "Spelen vanaf het begin"
 #, fuzzy
 msgid "Video not found"
 msgstr "Video niet gevonden"
+
+#: psynet/templates/psynet_error.html
+msgid "Error type"
+msgstr "Foutmelding"
+
+#: psynet/templates/psynet_error.html
+#, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Als dit niet het geval is, neem dan contact met ons op via %(EMAIL)s onder "
+"vermelding van de volgende informatie:"
+
+#: psynet/templates/psynet_error.html
+msgid "Worker ID"
+msgstr "Werknemer ID"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Fout!"
+
+#: psynet/templates/psynet_error.html
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Eenmaal afgebroken, hoeft u geen contact met ons op te nemen om de "
+"compensatie te ontvangen; deze wordt u enkele minuten later automatisch door"
+" MTurk uitbetaald."
+
+#: psynet/templates/psynet_error.html
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"U kunt het experiment afbreken via de knop <strong>Experiment "
+"afbreken</strong> <strong>op de advertentiepagina van MTurk</strong>."
 
 #: psynet/templates/start.html
 msgctxt "start"

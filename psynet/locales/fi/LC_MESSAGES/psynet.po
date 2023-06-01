@@ -531,13 +531,13 @@ msgid "Close window"
 msgstr "Sulje ikkuna"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Toimeksiannon tunnus"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT-TUNNUS"
@@ -637,12 +637,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Varoitus"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Keskeytä koe"
 
-#: psynet/templates/ad.html psynet/templates/error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
@@ -2241,56 +2241,9 @@ msgstr ""
 
 #: psynet/templates/error.html
 #, fuzzy
-msgid "Error type"
-msgstr "Virhetyyppi"
-
-#: psynet/templates/error.html
-#, python-format, fuzzy
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
-"seuraavat tiedot:"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Työntekijän tunnus"
-
-#. ""
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "error"
-msgid "Error!"
-msgstr "Virhe!"
-
-#: psynet/templates/error.html
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Error!"
 msgstr "Virhe!"
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"Kun kokeilu on keskeytetty, sinun ei tarvitse ottaa meihin yhteyttä "
-"saadaksesi korvauksen; sen pitäisi tulla sinulle automaattisesti MTurkin "
-"kautta muutaman minuutin kuluttua."
-
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"You may be able to abort the experiment using the <strong>Abort "
-"experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-"Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
-"-painiketta <strong>MTurkin mainossivulla</strong>."
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2945,6 +2898,52 @@ msgstr "Pelaa alusta alkaen"
 #, fuzzy
 msgid "Video not found"
 msgstr "Videota ei löydy"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Virhetyyppi"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Jos näin ei ole, ota meihin yhteyttä osoitteeseen %(EMAIL)s ja ilmoita "
+"seuraavat tiedot:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Työntekijän tunnus"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Virhe!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Kun kokeilu on keskeytetty, sinun ei tarvitse ottaa meihin yhteyttä "
+"saadaksesi korvauksen; sen pitäisi tulla sinulle automaattisesti MTurkin "
+"kautta muutaman minuutin kuluttua."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
+"-painiketta <strong>MTurkin mainossivulla</strong>."
 
 #: psynet/templates/start.html
 #, fuzzy
