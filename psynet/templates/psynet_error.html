@@ -52,7 +52,7 @@
                     {% endif %}
                 {% else %}
                     <p id="error-text-main">
-                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id) }}
+                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
                     </p>
                 {% endif %}
             </div>

@@ -348,6 +348,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             elif participant.progress == 1:
                 # Complete
                 ris = 10
+        if assignment_id is None:
+            assignment_id = assignment_id
         return {"ris": ris, "rid": assignment_id}
 
     def check_participant_termination(self, rid):

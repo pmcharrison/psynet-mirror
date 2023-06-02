@@ -577,6 +577,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             except (ValueError, TypeError):
                 participant_id = None
 
+        if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+            compensate = False
+
         return make_response(
             render_template_with_translations(
                 "psynet_error.html",
@@ -588,6 +591,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 hit_id=hit_id,
                 assignment_id=assignment_id,
                 worker_id=worker_id,
+                recruiter=recruiter,
                 request_data=request_data,
                 participant_id=participant_id,
                 external_submit_url=external_submit_url,
@@ -602,6 +606,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         hit_id,
         assignment_id,
         worker_id,
+        external_submit_url,
     ):
         try:
             from psynet.participant import Participant
@@ -615,9 +620,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, (DevLucidRecruiter, LucidRecruiter)):
-            external_submit_url = self.recruiter.external_submit_url(
-                assignment_id=assignment_id
-            )
+            if external_submit_url is None:
+                external_submit_url = self.recruiter.external_submit_url(
+                    assignment_id=assignment_id
+                )
             return self.error_page_content__lucid(
                 gettext, pgettext, external_submit_url
             )
@@ -1759,6 +1765,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else:
                 return render_template_with_translations("ad.html", **kw)
         except Exception:
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+
+            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+                external_submit_url = recruiter.external_submit_url(
+                    assignment_id=request.args.to_dict()["RID"]
+                )
+                print(external_submit_url)
+                return Experiment.error_page(
+                    recruiter=recruiter, external_submit_url=external_submit_url
+                )
             return Experiment.error_page()
 
     @experiment_route("/app_deployment_id", methods=["GET"])
