@@ -1742,15 +1742,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id = entry_data.get("assignment_id")
         worker_id = entry_data.get("worker_id")
         unique_id = worker_id + ":" + assignment_id
-        return render_template_with_translations(
-            "consent.html",
-            hit_id=hit_id,
-            assignment_id=assignment_id,
-            worker_id=worker_id,
-            unique_id=unique_id,
-            mode=config.get("mode"),
-            query_string=request.query_string.decode(),
-        )
+        try:
+            return render_template_with_translations(
+                "consent.html",
+                hit_id=hit_id,
+                assignment_id=assignment_id,
+                worker_id=worker_id,
+                unique_id=unique_id,
+                mode=config.get("mode"),
+                query_string=request.query_string.decode(),
+            )
+        except Exception as e:
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+
+            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+                logger.error(f"Consent route: {e}")
+                external_submit_url = recruiter.external_submit_url(
+                    assignment_id=request.args.to_dict()["RID"]
+                )
+                return Experiment.error_page(
+                    recruiter=recruiter, external_submit_url=external_submit_url
+                )
+            return Experiment.error_page()
 
     @experiment_route("/ad", methods=["GET"])
     @nocache
@@ -1772,7 +1786,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 external_submit_url = recruiter.external_submit_url(
                     assignment_id=request.args.to_dict()["RID"]
                 )
-                print(external_submit_url)
                 return Experiment.error_page(
                     recruiter=recruiter, external_submit_url=external_submit_url
                 )
