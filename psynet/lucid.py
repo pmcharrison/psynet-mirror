@@ -7,6 +7,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.participant import Participant
 
+from . import deployment_info
 from .utils import get_logger
 
 logger = get_logger()
@@ -117,7 +118,10 @@ class LucidService(object):
         # Apply survey configuration from 'lucid_recruitment_config.json' file.
         survey_data = self.recruitment_config["survey"]
         survey_status_code = "01"
-        if self.exp_config.auto_recruit:
+        print(deployment_info.read("mode"))
+        print(deployment_info.read("mode"))
+        print(deployment_info.read("mode"))
+        if self.exp_config.auto_recruit and deployment_info.read("mode") == "live":
             survey_status_code = "03"
         survey_data["SurveyStatusCode"] = survey_status_code
 
