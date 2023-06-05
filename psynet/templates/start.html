@@ -34,11 +34,10 @@
 {{super()}}
     <script>
         dallinger.identity.participantId = "undefined";
-        // Change to 'let uniqueId = dallinger.identity.uniqueId' once the Dallinger is updated to contain dallinger.identity.uniqueId
-        let uniqueId = dallinger.identity.workerId + ":" + dallinger.identity.assignmentId;
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
-                window.location = "/timeline?unique_id=" + uniqueId;
+                // dallinger.createParticipant() sets dallinger.identity.uniqueId from the remote server's response
+                window.location = "/timeline?unique_id=" + dallinger.identity.uniqueId;
             }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);
