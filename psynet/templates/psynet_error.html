@@ -10,8 +10,8 @@
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
-                {% if compensate == True %}
-                    {% if config.show_abort_button %}
+                {% if config.show_abort_button %}
+                    {% if compensate == True %}
                         <p id="error-text-main">
                             {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
                             {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}

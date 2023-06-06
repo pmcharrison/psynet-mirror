@@ -1753,18 +1753,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 query_string=request.query_string.decode(),
             )
         except Exception as e:
-            exp = dallinger.experiment.load().new(db.session)
-            recruiter = exp.recruiter
-
-            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-                logger.error(f"Consent route: {e}")
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=request.args.to_dict()["RID"]
-                )
-                return Experiment.error_page(
-                    recruiter=recruiter, external_submit_url=external_submit_url
-                )
-            return Experiment.error_page()
+            return Experiment.pre_timeline_error_page(e, request)
 
     @experiment_route("/ad", methods=["GET"])
     @nocache
@@ -1778,18 +1767,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return kw["redirect"]
             else:
                 return render_template_with_translations("ad.html", **kw)
-        except Exception:
-            exp = dallinger.experiment.load().new(db.session)
-            recruiter = exp.recruiter
+        except Exception as e:
+            return Experiment.pre_timeline_error_page(e, request)
 
-            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=request.args.to_dict()["RID"]
-                )
-                return Experiment.error_page(
-                    recruiter=recruiter, external_submit_url=external_submit_url
-                )
-            return Experiment.error_page()
+    @staticmethod
+    def pre_timeline_error_page(e, request):
+        logger.error(f"{request.path} route: {e}")
+        exp = dallinger.experiment.load().new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = None
+        if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+            external_submit_url = recruiter.external_submit_url(
+                assignment_id=request.args.to_dict()["RID"]
+            )
+        return Experiment.error_page(
+            recruiter=recruiter, external_submit_url=external_submit_url
+        )
 
     @experiment_route("/app_deployment_id", methods=["GET"])
     @staticmethod
