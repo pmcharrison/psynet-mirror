@@ -483,6 +483,13 @@ msgstr ""
 "Nachricht über die Prolific-Website und beschreiben Sie, wie es zu Ihrem "
 "Fehler kam."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Weiterleitung zum Lucid-Marktplatz..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format
 msgid ""

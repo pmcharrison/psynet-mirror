@@ -464,6 +464,13 @@ msgstr ""
 "Untuk menanyakan tentang kompensasi, silakan kirim pesan kepada peneliti "
 "melalui situs web Prolific dan jelaskan apa yang menyebabkan kesalahan Anda."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Mengalihkan ke Pasar Lucid..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

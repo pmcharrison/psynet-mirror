@@ -466,6 +466,13 @@ msgstr ""
 "मुआवजे के बारे में पूछताछ करने के लिए, कृपया शोधकर्ता को प्रोलिफिक वेबसाइट "
 "के माध्यम से एक संदेश भेजें और बताएं कि आपकी त्रुटि का कारण क्या है।"
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "ल्यूसिड मार्केटप्लेस पर रीडायरेक्ट किया जा रहा है..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

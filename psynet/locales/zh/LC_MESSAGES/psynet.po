@@ -404,6 +404,13 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "重定向到Lucid Marketplace..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

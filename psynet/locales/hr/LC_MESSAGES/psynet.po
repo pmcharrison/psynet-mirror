@@ -464,6 +464,13 @@ msgstr ""
 "Za upit o naknadi, pošaljite istraživaču poruku putem web stranice Prolific "
 "i opišite što je dovelo do vaše pogreške."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Preusmjeravanje na Lucid Marketplace..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

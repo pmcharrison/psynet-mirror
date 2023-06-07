@@ -465,6 +465,13 @@ msgstr ""
 "Jei norite pasiteirauti dėl kompensacijos, nusiųskite tyrėjui žinutę per "
 "\"Prolific\" svetainę ir aprašykite, dėl ko įvyko jūsų klaida."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Peradresavimas į \"Lucid Marketplace\"..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

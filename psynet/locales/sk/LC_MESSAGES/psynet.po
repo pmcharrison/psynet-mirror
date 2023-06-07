@@ -464,6 +464,13 @@ msgstr ""
 "Ak chcete požiadať o kompenzáciu, pošlite výskumníkovi správu "
 "prostredníctvom webovej stránky Prolific a opíšte, čo viedlo k vašej chybe."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Presmerovanie na trhovisko Lucid..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

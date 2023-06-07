@@ -464,6 +464,13 @@ msgstr ""
 "Hüvitise küsimiseks saatke uurijale sõnum Prolifici veebisaidi kaudu ja "
 "kirjeldage, mis põhjustas teie vea."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Ümbersuunamine Lucid Marketplace'ile..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

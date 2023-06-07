@@ -472,6 +472,13 @@ msgstr ""
 "mananaliksik sa pamamagitan ng Prolific na website at ilarawan kung ano ang "
 "humantong sa iyong error."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Nire-redirect sa Lucid Marketplace..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

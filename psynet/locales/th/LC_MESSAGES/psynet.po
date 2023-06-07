@@ -462,6 +462,13 @@ msgstr ""
 "หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดส่งข้อความถึงผู้วิจัยผ่านเว็บไซต์ "
 "Prolific และอธิบายสิ่งที่นำไปสู่ข้อผิดพลาดของคุณ"
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "กำลังเปลี่ยนเส้นทางไปยัง Lucid Marketplace..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""

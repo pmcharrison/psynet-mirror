@@ -423,6 +423,13 @@ msgstr ""
 "Pour demander une indemnisation, envoyez un message au chercheur via le site"
 " web de Prolific et décrivez ce qui a conduit à votre erreur."
 
+#. ""
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Redirection vers Lucid Marketplace..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format
 msgid ""
