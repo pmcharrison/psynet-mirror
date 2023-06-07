@@ -109,7 +109,7 @@
             let isValidBrowser = browser.validate();
             {% if experiment.with_lucid_recruitment() %}
                 if (!isValidBrowser) {
-                    terminateParticipant();
+                    terminateParticipant("invalid-browser");
                 }
             {% endif %}
         });
