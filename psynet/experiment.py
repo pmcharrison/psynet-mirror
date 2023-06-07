@@ -577,7 +577,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id = None
 
         if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-            print(f"Request data: {request_data}")
             compensate = False
 
         return make_response(
@@ -620,7 +619,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
-                gettext, pgettext, assignment_id, external_submit_url
+                gettext,
+                pgettext,
+                assignment_id=assignment_id,
+                external_submit_url=external_submit_url,
             )
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
@@ -1652,7 +1654,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = dallinger.experiment.load().new(db.session)
         recruiter = exp.recruiter
         external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
-        recruiter.terminate_participant(assignment_id)
+        recruiter.terminate_participant(assignment_id, reason)
         logger.info(
             f"Terminating participant with RID {assignment_id} with reason {reason}"
         )
@@ -1704,6 +1706,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 status=404,
             )
 
+    @experiment_route("/ad", methods=["GET"])
+    @nocache
+    @staticmethod
+    def advertisement():
+        from dallinger.experiment_server.experiment_server import prepare_advertisement
+
+        try:
+            is_redirect, kw = prepare_advertisement()
+            if is_redirect:
+                return kw["redirect"]
+            else:
+                return render_template_with_translations("ad.html", **kw)
+        except Exception as e:
+            return Experiment.pre_timeline_error_page(e, request)
+
     @experiment_route("/consent")
     @staticmethod
     def consent():
@@ -1730,31 +1747,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception as e:
             return Experiment.pre_timeline_error_page(e, request)
 
-    @experiment_route("/ad", methods=["GET"])
-    @nocache
+    @experiment_route("/start", methods=["GET"])
     @staticmethod
-    def advertisement():
-        from dallinger.experiment_server.experiment_server import prepare_advertisement
-
+    def route_start():
         try:
-            is_redirect, kw = prepare_advertisement()
-            if is_redirect:
-                return kw["redirect"]
-            else:
-                return render_template_with_translations("ad.html", **kw)
+            return render_template_with_translations("start.html")
         except Exception as e:
             return Experiment.pre_timeline_error_page(e, request)
 
     @staticmethod
     def pre_timeline_error_page(e, request):
-        logger.error(f"{request.path} route: {e}")
+        error_text = f"Error when calling {request.path} route: {e}"
+        logger.error(error_text)
         exp = dallinger.experiment.load().new(db.session)
         recruiter = exp.recruiter
         external_submit_url = None
         if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-            external_submit_url = recruiter.external_submit_url(
-                assignment_id=request.args.to_dict()["RID"]
-            )
+            rid = request.args.to_dict()["RID"]
+            recruiter.set_termination_details(rid, error_text)
+            external_submit_url = recruiter.external_submit_url(assignment_id=rid)
         return Experiment.error_page(
             recruiter=recruiter, external_submit_url=external_submit_url
         )
@@ -1887,11 +1898,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return success_response()
 
-    @experiment_route("/start", methods=["GET"])
-    @staticmethod
-    def route_start():
-        return render_template_with_translations("start.html")
-
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
     def route_debugger(cls, password):
@@ -1972,7 +1978,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(assignment_id=rid)
             if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(rid)
+                recruiter.terminate_participant(
+                    rid, "'/terminate_participant' route was called"
+                )
         except Exception as e:
             logger.error(f"Error terminating participant with RID '{rid}': {e}")
 
@@ -2086,6 +2094,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             page = cls.get_current_page(experiment, participant)
             participant.client_ip_address = cls.get_client_ip_address()
+
             return cls.serialize_page(page, experiment, participant, mode)
         except cls.HandledError as err:
             return err.error_page()

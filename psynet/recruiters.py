@@ -131,6 +131,7 @@ class LucidRID(SQLBase, SQLMixin):
     rid = Column(String, index=True)
     completed_at = Column(DateTime, index=True)
     terminated_at = Column(DateTime, index=True)
+    termination_reason = Column(String)
 
 
 class LucidRecruiterException(Exception):
@@ -326,7 +327,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         if participant is not None and participant.progress == 1:
             self.complete_participant(participant.assignment_id)
         else:
-            self.terminate_participant(participant.assignment_id)
+            self.terminate_participant(
+                participant.assignment_id,
+                "Termination in 'reward_bonus' as 'participant.progress' was < 1",
+            )
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
@@ -385,8 +389,11 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, rid):
-        return self.lucidservice.terminate_respondent(rid)
+    def terminate_participant(self, rid, reason):
+        return self.lucidservice.terminate_respondent(rid, reason)
+
+    def set_termination_details(self, rid, reason):
+        self.lucidservice.set_termination_details(rid, reason)
 
     @property
     def termination_time_in_min(self):

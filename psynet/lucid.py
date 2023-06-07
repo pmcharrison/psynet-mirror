@@ -294,11 +294,15 @@ class LucidService(object):
         if lucid_rid.terminated_at is not None:
             return -1
 
+        termination_time_in_s = self.recruitment_config["termination_time_in_s"]
+
         if self.can_be_terminated(lucid_rid):
-            self.terminate_respondent(rid)
+            self.terminate_respondent(
+                rid, f"Termination time ({termination_time_in_s}s) exceeded"
+            )
         else:
             time_until_termination_in_s = (
-                self.recruitment_config["termination_time_in_s"]
+                termination_time_in_s
                 - (datetime.now() - lucid_rid.creation_time).seconds
             )
             logger.info(
@@ -348,13 +352,19 @@ class LucidService(object):
                 "Completion canceled. Respondent already completed or terminated survey."
             )
 
-    def terminate_respondent(self, rid):
+    def set_termination_details(self, rid, reason=None):
+        lucid_rid = get_lucid_rid(rid)
+        lucid_rid.terminated_at = datetime.now()
+        lucid_rid.termination_reason = reason
+        session.commit()
+
+    def terminate_respondent(self, rid, reason):
         lucid_rid = get_lucid_rid(rid)
 
         if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
             response = self.send_terminate_request(rid)
             if response.ok:
-                lucid_rid.terminated_at = datetime.now()
+                self.set_termination_details(rid, reason)
                 session.commit()
                 self.log("Respondent terminated successfully.")
             else:
