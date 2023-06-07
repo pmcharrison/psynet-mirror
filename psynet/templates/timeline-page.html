@@ -1724,7 +1724,7 @@
                 } else {
                     noFocusSince += POLLING_FREQUENCY;
                     if (noFocusSince > NO_FOCUS_TIMEOUT) {
-                        terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT + "s");
+                        terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
                     } else {
                         console.log("Document has no focus since " + noFocusSince / 1000 + " seconds");
                     }
@@ -1737,7 +1737,7 @@
             function startTimer() {
                 secondsOfInactivity += POLLING_FREQUENCY;
                 if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
-                    terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT + "s");
+                    terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
                 } else {
                     console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
                 }
