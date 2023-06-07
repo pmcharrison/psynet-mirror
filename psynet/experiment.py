@@ -8,7 +8,6 @@ import traceback
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from glob import glob
 from importlib import resources
 from os.path import exists
 from platform import python_version
@@ -372,13 +371,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         cls, input_directory, pot_path
     ):
         create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
-        if any(
-            [
-                path
-                for path in glob(os.path.join(input_directory, "templates", "*.html"))
-            ]
-        ):
-            create_pot(input_directory, "templates/*.html", pot_path)
 
     @classmethod
     def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
