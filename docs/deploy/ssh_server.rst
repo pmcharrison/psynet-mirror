@@ -59,36 +59,85 @@ Run the following:
 
 Setting up your Docker registry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Docker registry will host your Docker images. There are multiple platforms you can use to host your Docker images. Here we will cover docker.io and GitLab.
+We will cover three ways to setup a Docker registry:
+- personal Docker registry on docker.io
+- group Docker registry on GitLab
+- self-hosted Docker registry on GitLab
 
-Deploying via SSH requires you to setup a Docker registry which will host your
-Docker images. GitHub and GitLab both allow you to create suitable Docker registries.
+Personal Docker registry on docker.io
+=====================================
 
-The first step is to login to the Docker registry service on your local machine.
-To login to the GitLab docker registry:
+- Go to `docker.io <https://www.docker.com/>` and setup an account
+- Download the Docker Desktop app and sign in
+- Add the following line to your ``config.txt`` if you only want to use it for this experiment or in ``~/.dallingerconfig`` if you want to use it as your default registry:
+
+    .. code:: bash
+
+        docker_image_base_name = docker.io/<docker_io_username>/<name_of_your_image>
+
+
+
+Group Docker registry on GitLab
+===============================
+
+Group Docker registries are a nice way to have all of your lab's Docker images under the same umbrella. 
+
+There's two ways to set up a Docker registry:
+- A hosted Docker registry
+- A self-hosted Docker registry
+
+We'll first go through the steps to setup a hosted Docker registry on Gitlab. First login to the GitLab docker registry:
 
 .. code:: bash
 
     docker login registry.gitlab.com
 
-.. note::
 
-    If you are using a self-hosted registry then you will need to change the URL,
-    for example:
+The next step is to setup a public repository, e.g. a repository called "experiment-images" by the user "computational-audition". This means the particular user ("computational-audition") can now push to this registry. In the case of the lab, we suggest setting up a lab group where all users have "Maintainer" permissions. You can now add this group to your repository https://gitlab.com/<user>/<repo>/-/project_members (e.g., https://gitlab.com/computational-audition/experiment-images/-/project_members). Now each user in the lab group can push to the repository.
 
-    .. code:: bash
+The last step is to add the registry to ``.dallingerconfig``. To do this, you need to edit your local
+``~/.dallingerconfig`` file.
 
-        docker login registry.gitlab.developers.cam.ac.uk
+If you don't have such a file already, you can create it like this:
 
-    In some situations (e.g. federated authentication) you will not be able to login
-    to your account via the command-line in this way. Instead, you will have to create
-    a `personal access token via GitLab <https://gitlab.developers.cam.ac.uk/-/profile/personal_access_tokens>`_
-    and then login with a command like the following:
+.. code:: bash
 
-    .. code:: bash
+    touch ~/.dallingerconfig
 
-        docker login registry.gitlab.developers.cam.ac.uk -u your-username
+You can then edit it on Mac like this:
 
-    You should then enter your access token when prompted.
+.. code:: bash
+
+    open ~/.dallingerconfig
+
+or simply with a text editor via your GUI.
+
+Place a line like the following in your ``~/.dallingerconfig``,
+putting the link to your own image registry:
+
+.. code:: bash
+
+    docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images
+
+
+
+You can also host the registry yourself, e.g. under ``registry.gitlab.developers.cam.ac.uk``. The steps are similar to above, but you will need to change the URL if you are using a self-hosted registry. For example:
+
+.. code:: bash
+
+    docker login registry.gitlab.developers.cam.ac.uk
+
+In some situations (e.g. federated authentication) you will not be able to login
+to your account via the command-line in this way. Instead, you will have to create
+a `personal access token via GitLab <https://gitlab.developers.cam.ac.uk/-/profile/personal_access_tokens>`_
+and then login with a command like the following:
+
+.. code:: bash
+
+    docker login registry.gitlab.developers.cam.ac.uk -u your-username
+
+You should then enter your access token when prompted.
 
 .. note::
 
@@ -121,30 +170,7 @@ To do this, you need to open an SSH terminal to your server, if you haven't alre
 
 Then run the same `docker login` command that you ran previously.
 
-You then need to create a container registry in GitLab/GitHub. You can do it
-using their web interface. Note that, for now, you probably need to make it public
-(we are still working on private authentication), so make sure that you don't have to
-deploy experiments with sensitive data in their experiment code.
-
-Finally, you then need to tell your local PsyNet/Dallinger installation to store
-its experiment images in this registry. To do this, you need to edit your local
-``~/.dallingerconfig`` file.
-
-If you don't have such a file already, you can create it like this:
-
-.. code:: bash
-
-    touch ~/.dallingerconfig
-
-You can then edit it on Mac like this:
-
-.. code:: bash
-
-    open ~/.dallingerconfig
-
-or simply with a text editor via your GUI.
-
-Place a line like the following in your ``~/.dallingerconfig``,
+Finally, you need to place a line like the following in your ``~/.dallingerconfig``,
 putting the link to your own image registry:
 
 .. code:: bash
