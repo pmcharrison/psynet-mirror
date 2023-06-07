@@ -2101,7 +2101,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             page = cls.get_current_page(experiment, participant)
             participant.client_ip_address = cls.get_client_ip_address()
-
             return cls.serialize_page(page, experiment, participant, mode)
         except cls.HandledError as err:
             return err.error_page()

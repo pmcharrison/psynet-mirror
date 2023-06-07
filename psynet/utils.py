@@ -1290,13 +1290,6 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
     return res[:, 0].tolist()
 
 
-def recruiter_shortname(nickname):
-    if nickname is not None and "lucid" in nickname:
-        return "lucid"
-    else:
-        return "mturk"
-
-
 class ClassPropertyDescriptor(object):
     def __init__(self, fget, fset=None):
         self.fget = fget
