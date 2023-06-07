@@ -298,7 +298,7 @@ class LucidService(object):
 
         if self.can_be_terminated(lucid_rid):
             self.terminate_respondent(
-                rid, f"Termination time ({termination_time_in_s}s) exceeded"
+                rid, f"termination-timeout-{termination_time_in_s}s"
             )
         else:
             time_until_termination_in_s = (

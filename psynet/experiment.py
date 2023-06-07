@@ -576,9 +576,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             except (ValueError, TypeError):
                 participant_id = None
 
-        if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-            compensate = False
-
         return make_response(
             render_template_with_translations(
                 "psynet_error.html",
@@ -1656,7 +1653,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
         recruiter.terminate_participant(assignment_id, reason)
         logger.info(
-            f"Terminating participant with RID {assignment_id} with reason {reason}"
+            f"Terminating participant with RID {assignment_id} with reason '{reason}'"
         )
 
         return render_template_with_translations(
@@ -1832,19 +1829,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def render_error(cls):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
+        compensate = True
         participant = None
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-        exp = cls.new(db.session)
-        recruiter = exp.recruiter
-        external_submit_url = None
-        if hasattr(recruiter, "external_submit_url"):
-            external_submit_url = recruiter.external_submit_url(participant=participant)
+            recruiter = cls.new(db.session).recruiter
+            external_submit_url = None
+            if hasattr(recruiter, "external_submit_url"):
+                external_submit_url = recruiter.external_submit_url(
+                    participant=participant
+                )
+
+            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+                compensate = False
+                recruiter.set_termination_details(
+                    participant.assignment_id, "Terminated calling /error-page route"
+                )
+
         return cls.error_page(
             participant=participant,
             request_data=request_data,
             recruiter=recruiter,
             external_submit_url=external_submit_url,
+            compensate=compensate,
         )
 
     @experiment_route("/module", methods=["POST"])
