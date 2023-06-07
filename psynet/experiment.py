@@ -32,7 +32,6 @@ from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
-from dominate.util import raw
 from flask import jsonify, render_template, request, send_file
 
 from psynet import __version__
@@ -578,6 +577,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id = None
 
         if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+            print(f"Request data: {request_data}")
             compensate = False
 
         return make_response(
@@ -618,15 +618,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         gettext, pgettext = get_translator(locale)
         _, _p = gettext, pgettext
 
-        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
-        if isinstance(self.recruiter, (DevLucidRecruiter, LucidRecruiter)):
-            if external_submit_url is None:
-                external_submit_url = self.recruiter.external_submit_url(
-                    assignment_id=assignment_id
-                )
-            return self.error_page_content__lucid(
-                gettext, pgettext, external_submit_url
+        if hasattr(self.recruiter, "error_page_content"):
+            return self.recruiter.error_page_content(
+                gettext, pgettext, assignment_id, external_submit_url
             )
+
+        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
             return self.error_page_content__prolific(gettext, pgettext)
         elif isinstance(self.recruiter, MTurkRecruiter):
@@ -651,28 +648,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return html
         else:
             return ""
-
-    def error_page_content__lucid(self, _, _p, external_submit_url):
-        html = tags.div()
-        with html:
-            tags.p(
-                " ".join(
-                    [
-                        _p(
-                            "lucid_error",
-                            "Redirecting...",
-                        ),
-                    ]
-                )
-            )
-            tags.script(
-                raw(
-                    'setTimeout(() => { window.location = "'
-                    + external_submit_url
-                    + '"; }, 2000)'
-                )
-            )
-        return html
 
     def error_page_content__prolific(self, _, _p):
         html = tags.div()
@@ -1857,7 +1832,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls.error_page(
             participant=participant,
             request_data=request_data,
-            recruiter=cls.new(db.session).recruiter.nickname,
+            recruiter=recruiter,
             external_submit_url=external_submit_url,
         )
 

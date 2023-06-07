@@ -13,6 +13,8 @@ from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
+from dominate import tags
+from dominate.util import raw
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
@@ -351,6 +353,31 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         if assignment_id is None:
             assignment_id = assignment_id
         return {"ris": ris, "rid": assignment_id}
+
+    def error_page_content(self, _, _p, assignment_id, external_submit_url):
+        if external_submit_url is None:
+            external_submit_url = self.external_submit_url(assignment_id=assignment_id)
+
+        html = tags.div()
+        with html:
+            tags.p(
+                " ".join(
+                    [
+                        _p(
+                            "lucid_error",
+                            "Redirecting to Lucid Marketplace...",
+                        ),
+                    ]
+                )
+            )
+            tags.script(
+                raw(
+                    'setTimeout(() => { window.location = "'
+                    + external_submit_url
+                    + '"; }, 2000)'
+                )
+            )
+        return html
 
     def check_participant_termination(self, rid):
         return self.lucidservice.check_respondent_termination(rid)
