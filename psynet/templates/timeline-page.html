@@ -1668,7 +1668,6 @@
 
             function check_participant_termination() {
                 postData = {};
-                postData["auth_token"] = "{{ auth_token }}";
                 postData["participant_id"] = parseInt("{{ participant.id }}");
                 $.post("/check_participant_termination", postData, function (seconds) {
                     console.log("Seconds left before termination: " + seconds);

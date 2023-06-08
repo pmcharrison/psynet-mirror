@@ -1991,9 +1991,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/check_participant_termination", methods=["POST"])
     @classmethod
     def check_participant_termination(cls):
-        # auth_token = request.values["auth_token"]
-        # Experiment.validate_auth_token(participant, auth_token)
-
         participant_id = request.values.get("participant_id")
         if participant_id is None:
             logger.error("Error getting participant ID.")
