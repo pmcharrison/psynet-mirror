@@ -6,14 +6,6 @@ base_payment = 0.10
 debug_recruiter = DevLucidRecruiter
 recruiter = LucidRecruiter
 
-lifetime = 2
-duration = 1
-us_only = true
-group_name = lucid
-assign_qualifications = true
-
-approve_requirement = 99
-
 [Advert metadata]
 description = [Headphone required] You will do some short tests and questionnaires.
 contact_email_on_error = computational.audition+online_running_nori@gmail.com
