@@ -35,10 +35,6 @@
     <script>
         dallinger.identity.participantId = "undefined";
         dallinger.createParticipant().done(function(resp) {
-            {% if experiment.with_lucid_recruitment() %}
-                let rid = dallinger.identity.entryInformation["RID"];
-                uniqueId = rid + ":"+ rid;
-            {% endif %}
             setTimeout(function() {
                 // dallinger.createParticipant() sets dallinger.identity.uniqueId from the remote server's response
                 window.location = "/timeline?unique_id=" + dallinger.identity.uniqueId;
