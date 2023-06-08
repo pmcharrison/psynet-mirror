@@ -305,9 +305,10 @@ class LucidService(object):
                 termination_time_in_s
                 - (datetime.now() - lucid_rid.creation_time).seconds
             )
-            logger.info(
-                f"Seconds until termination of RID '{rid}': {time_until_termination_in_s}"
-            )
+            if time_until_termination_in_s % 10 == 0:
+                logger.info(
+                    f"Seconds until termination of RID '{rid}': {time_until_termination_in_s}"
+                )
             return time_until_termination_in_s
 
     def send_complete_request(self, rid):
