@@ -1670,7 +1670,7 @@
                 postData = {};
                 postData["participant_id"] = parseInt("{{ participant.id }}");
                 $.post("/check_participant_termination", postData, function (seconds) {
-                    console.log("Seconds left before termination: " + seconds);
+                    psynet.log.debug("Seconds left before termination: " + seconds);
                     if (parseInt(seconds) < 0) {
                         clearInterval(setIntervalHandle);
                         window.removeEventListener("beforeunload", beforeunloadFunction);
@@ -1723,7 +1723,7 @@
                     if (noFocusSince > NO_FOCUS_TIMEOUT) {
                         terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
                     } else {
-                        console.log("Document has no focus since " + noFocusSince / 1000 + " seconds");
+                        psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
                     }
                 }
             }
@@ -1736,7 +1736,7 @@
                 if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
                     terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
                 } else {
-                    console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+                    psynet.log.debug("User inactive since " + secondsOfInactivity / 1000 + " seconds");
                 }
             }
 
