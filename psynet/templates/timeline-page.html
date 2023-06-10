@@ -159,7 +159,7 @@
                             </div>
                         {% endif %}
 
-                        {% if config.allow_switching_locale and supported_language_dict|length > 1 %}
+                        {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
                             <div>
                                 <select id="iso-language" class="form-control">
                                     {% for iso, language in supported_language_dict.items() %}
@@ -201,13 +201,6 @@
 
 
     <script>
-        {% if experiment.with_lucid_recruitment() %}
-            function beforeunloadFunction(event) {
-                event.returnValue = `Are you sure you want to leave?`;
-                triedToLeave = true;
-            }
-        {% endif %}
-
         {{ init_js_vars }}
         var psynet = (function () {
                 /**
@@ -282,6 +275,10 @@
                         total += numbers[i];
                     }
                     return total / numbers.length;
+                };
+
+                psynet.removeBeforeunloadEventListener = function () {
+                    window.removeEventListener("beforeunload", beforeunloadFunction);
                 };
 
                 psynet.waitForEventListener = async function (target, type) {
@@ -1577,14 +1574,14 @@
                         let progressPercentage = data['progressPercentage'];
                         let progressPercentageStr = progressPercentage + '%';
                         $('#timeline-progress-bar').text(progressPercentageStr);
-                        $('#timeline-progress-bar').css("width", progressPercentageStr)
-                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+                        $('#timeline-progress-bar').css("width", progressPercentageStr);
+                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage);
 
                         if (data['bonus'] !== undefined) {
                             if (data['bonus']['extra'].toFixed(2) > 0) {
                                 $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
                                 $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                                $("#bonus-details").show()
+                                $("#bonus-details").show();
                             }
                             $('#total-bonus').text(data['bonus']['total'].toFixed(2));
                         }
@@ -1673,7 +1670,7 @@
                     psynet.log.debug("Seconds left before termination: " + seconds);
                     if (parseInt(seconds) < 0) {
                         clearInterval(setIntervalHandle);
-                        window.removeEventListener("beforeunload", beforeunloadFunction);
+                        psynet.removeBeforeunloadEventListener();
                         return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
                     }
                 });
@@ -1681,28 +1678,33 @@
 
             // Terminate on 'page reload', 'window/tab close', and 'no focus'
             const INACTIVITY_TIMEOUT =
-            {{experiment.recruiter.inactivity_timeout_in_s}} *
+            {{ experiment.recruiter.inactivity_timeout_in_s }} *
             1000;
             const NO_FOCUS_TIMEOUT =
-            {{experiment.recruiter.no_focus_timeout_in_s}} *
+            {{ experiment.recruiter.no_focus_timeout_in_s }} *
             1000;
             const POLLING_FREQUENCY = 1000;
             const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
             const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
             var triedToLeave = false;
             var noFocusSince = 0;
-            var assignmentId = "{{worker_id}}";
-            var url = "{{experiment.recruiter.external_submit_url(assignment_id=worker_id)|safe}}";
+            var assignmentId = "{{ worker_id }}";
+            var url = "{{ experiment.recruiter.external_submit_url(assignment_id=worker_id) | safe }}";
 
             window.addEventListener("beforeunload", beforeunloadFunction);
 
             // Proceed to next page
             $(".btn, .sd-btn").click(function () {
-                window.removeEventListener("beforeunload", beforeunloadFunction);
-            })
+                psynet.removeBeforeunloadEventListener();
+            });
+
+            function beforeunloadFunction(event) {
+                event.returnValue = `Are you sure you want to leave?`;
+                triedToLeave = true;
+            }
 
             function terminateParticipant(reason) {
-                window.removeEventListener("beforeunload", beforeunloadFunction);
+                psynet.removeBeforeunloadEventListener();
                 clearInterval(checkFocusInterval);
                 clearInterval(checkParticipantInterval);
                 navigator.sendBeacon(url, {});
@@ -1753,15 +1755,13 @@
             window.ontouchstart = resetInactivityTimer;
             window.onclick = resetInactivityTimer;
             window.onkeypress = resetInactivityTimer;
-        </script>
-        <script>
-        document.addEventListener("DOMContentLoaded", function (event) {
-            let isValidBrowser = browser.validate();
-            if (!isValidBrowser) {
-                terminateParticipant("invalid-browser");
-            }
-        });
-    </script>
-    {% endif %}
 
+            document.addEventListener("DOMContentLoaded", function (event) {
+                let isValidBrowser = browser.validate();
+                if (!isValidBrowser) {
+                    terminateParticipant("invalid-browser");
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock %}
