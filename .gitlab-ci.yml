@@ -54,8 +54,13 @@ tests:
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       $DOCKER_IMAGE bash -c
-      "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
+      "pytest --cov=psynet --cov-report=html --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
+  artifacts:
+    paths:
+      - coverage
+    when: on_success
+    expire_in: 1 month
   coverage: /(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
 
 deploy_docker:
