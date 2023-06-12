@@ -58,11 +58,11 @@ tests:
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
   coverage: '/TOTAL.*\s+(\d+%)$/'
     artifacts:
-        name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
-        paths:
-            - /workspace/coverage/
-        when: on_success
-        expire_in: 1 month
+      name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+      paths:
+        - /workspace/coverage/
+      when: on_success
+      expire_in: 1 month
     coverage: '/TOTAL.*\s+(\d+%)$/'
 
 deploy_docker:
