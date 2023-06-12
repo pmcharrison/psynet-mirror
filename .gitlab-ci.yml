@@ -59,7 +59,7 @@ tests:
   artifacts:
     name: $CI_JOB_NAME-$CI_COMMIT_REF_NAME
     paths:
-      - /workspace/coverage/
+      - coverage/
     when: on_success
     expire_in: 1 month
   coverage: '/TOTAL.*\s+(\d+%)$/'
