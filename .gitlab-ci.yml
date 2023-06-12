@@ -61,7 +61,7 @@ tests:
       - coverage
     when: on_success
     expire_in: 1 month
-  coverage: /(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
+  coverage: '/TOTAL.*\s+(\d+%)$/'
 
 deploy_docker:
   stage: deploy
