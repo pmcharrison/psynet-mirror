@@ -36,7 +36,7 @@ variables:
 
 before_script:
   - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 }')
-  - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 }')
+  - export REDIS_IP=$(getent hosts redis | awk '{ print $1 }')
   - echo $POSTGRES_IP
   - echo $REDIS_IP
   - docker image prune --all --force
@@ -62,7 +62,7 @@ tests:
       - /workspace/coverage/
     when: on_success
     expire_in: 1 month
-  coverage: "/TOTAL.*\s+(\d+%)$/"
+  coverage: '/TOTAL.*\s+(\d+%)$/'
 
 deploy_docker:
   stage: deploy
