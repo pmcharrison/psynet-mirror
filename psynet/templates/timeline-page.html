@@ -1322,7 +1322,7 @@
                         blobs = psynet.response.staged.blobs;
                     }
                     {% if experiment.with_lucid_recruitment() %}
-                        window.removeEventListener("beforeunload", beforeunloadFunction);
+                        psynet.removeBeforeunloadEventListener();
                     {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                     return passedValidation
