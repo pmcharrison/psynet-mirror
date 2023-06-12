@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = psynet
+
+[html]
+directory = coverage
