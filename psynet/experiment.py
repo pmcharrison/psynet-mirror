@@ -52,6 +52,7 @@ from .redis import redis_vars
 from .serialize import serialize
 from .timeline import (
     DatabaseCheck,
+    ExtraResource,
     FailedValidation,
     ParticipantFailRoutine,
     PreDeployRoutine,
@@ -1374,6 +1375,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     _path,
                 )
             )
+
+        for elt in cls.timeline.elts:
+            if isinstance(elt, ExtraResource):
+                files.append((elt.input_path, elt.output_path))
+
         return files
 
     @classmethod

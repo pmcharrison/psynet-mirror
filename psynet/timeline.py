@@ -188,6 +188,12 @@ class NullElt(Elt):
         pass
 
 
+class ExtraResource(NullElt):
+    def __init__(self, input_path, output_path):
+        self.input_path = input_path
+        self.output_path = output_path
+
+
 class CodeBlock(Elt):
     """
     A timeline component that executes some back-end logic without showing
