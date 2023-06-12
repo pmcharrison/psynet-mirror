@@ -48,6 +48,7 @@ tests:
   parallel: 10
   stage: test
   script:
+    - pip install -U pytest-cov
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP

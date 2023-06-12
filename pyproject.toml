@@ -39,7 +39,6 @@ dependencies = [
     "polib",
     "praat-parselmouth",
     "progress",
-    "pytest-cov",
     "python-gettext",
     "rpdb",
     "sphinx",
