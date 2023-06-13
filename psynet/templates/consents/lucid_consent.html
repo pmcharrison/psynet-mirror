@@ -32,11 +32,7 @@
                 {{ pgettext("consent-confidentiality", "Although researchers will not use your alpha numeric code to derive your real identity, this record could be linked in some cases to your public profile page if a data breach takes place.") }}
                 {{ pgettext("consent-confidentiality", "Thus, you may wish to restrict what information you choose to share publicly.") }}
             </p>
-            <h4>{{ pgettext("consent-collaborations", "Research collaborations") }}</h4>
-            <p class="consent-text">
-                {{ pgettext("consent-collaborations", "For the purpose of helping scientific progress and replication, sometimes we may share the data with research collaborators.") }}
-                {{ pgettext("consent-collaborations", "In these cases, we will only share fully anonymized data, such as demographic, aggregated, or extracted data without any personal identifiers.") }}
-            </p>
+            {{ consent.collaborations(config) }}
             {{ consent.security(config) }}
             {{ consent.risks(config) }}
             {{ consent.benefits(config) }}
