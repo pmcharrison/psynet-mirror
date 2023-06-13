@@ -3,7 +3,7 @@ title = Short tests (~ 6 min.)
 base_payment = 0.10
 
 [Recruitment strategy]
-recruiter = DevLucidRecruiter
+recruiter = lucid
 
 [Advert metadata]
 description = [Headphone required] You will do some short tests and questionnaires.

@@ -337,6 +337,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self.set_recruiter()
 
         locales_dir = os.path.abspath("locales")
 
@@ -367,6 +368,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         self.process_timeline()
+
+    def set_recruiter(self):
+        if get_config().get("recruiter", None) == "lucid":
+            recruiter = LucidRecruiter()
+            if deployment_info.read("mode") == "debug":
+                recruiter = DevLucidRecruiter()
+            self.recruiter = recruiter
 
     def translation_checks_needed(self, locales_dir):
         return (
