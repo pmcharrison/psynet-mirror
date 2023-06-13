@@ -1707,7 +1707,6 @@
                 psynet.removeBeforeunloadEventListener();
                 clearInterval(checkFocusInterval);
                 clearInterval(checkParticipantInterval);
-                navigator.sendBeacon(url, {});
                 return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
             }
 
