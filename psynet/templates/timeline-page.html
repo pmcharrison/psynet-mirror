@@ -1661,20 +1661,28 @@
     {% if experiment.with_lucid_recruitment() %}
         <script>
             // Terminate on overall timeout
-            var setIntervalHandle = setInterval(check_participant_termination, 1000);
+            postData = {};
+            postData["participant_id"] = {{ participant.id }};
 
-            function check_participant_termination() {
-                postData = {};
-                postData["participant_id"] = parseInt("{{ participant.id }}");
-                $.post("/check_participant_termination", postData, function (seconds) {
+            function checkParticipantTermination(postData, func) {
+                $.post("/check_participant_termination", postData).done(function (seconds) {
+                    func(seconds);
+                });
+            }
+
+            checkParticipantTermination(postData, function(seconds) {
+                setIntervalHandle = setInterval(countDownToTermination, 1000);
+
+                function countDownToTermination() {
                     psynet.log.debug("Seconds left before termination: " + seconds);
                     if (parseInt(seconds) < 0) {
                         clearInterval(setIntervalHandle);
                         psynet.removeBeforeunloadEventListener();
                         return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
                     }
-                });
-            }
+                    seconds -= 1;
+                }
+            });
 
             // Terminate on 'page reload', 'window/tab close', and 'no focus'
             const INACTIVITY_TIMEOUT =
