@@ -248,11 +248,11 @@ class LucidService(object):
 
         return False
 
-    def check_respondent_termination(self, rid):
+    def time_until_termination_in_s(self, rid):
         lucid_rid = get_lucid_rid(rid)
 
         if lucid_rid.terminated_at is not None:
-            return -1
+            return 0
 
         termination_time_in_s = self.recruitment_config["termination_time_in_s"]
 

@@ -383,8 +383,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
         return html
 
-    def check_participant_termination(self, rid):
-        return self.lucidservice.check_respondent_termination(rid)
+    def time_until_termination_in_s(self, rid):
+        return self.lucidservice.time_until_termination_in_s(rid)
 
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)

@@ -1996,28 +1996,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             external_submit_url=external_submit_url,
         )
 
-    @experiment_route("/check_participant_termination", methods=["POST"])
-    @classmethod
-    def check_participant_termination(cls):
-        participant_id = request.values.get("participant_id")
-        if participant_id is None:
-            logger.error("Error getting participant ID.")
-
-        participant = get_participant(participant_id)
-        rid = participant.entry_information["RID"]
-
-        try:
-            exp = dallinger.experiment.load().new(db.session)
-            recruiter = exp.recruiter
-            if hasattr(recruiter, "check_participant_termination"):
-                return str(recruiter.check_participant_termination(rid))
-        except Exception as e:
-            logger.error(
-                f"Exception checking participant termination for RID '{rid}': {e}"
-            )
-
-        return success_response()
-
     @staticmethod
     def get_client_ip_address():
         if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
