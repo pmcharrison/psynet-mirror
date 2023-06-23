@@ -44,16 +44,22 @@ def find_demo_dirs():
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
+        update_psynet_requirement(dir)
         generate_constraints(dir)
 
 
 def generate_constraints(dir):
     subprocess.run(
-        "dallinger generate-constraints",
+        "psynet generate-constraints",
         shell=True,
         cwd=dir,
         capture_output=True,
     )
+
+
+def update_psynet_requirement(dir):
+    with working_directory(dir):
+        psynet.command_line.update_psynet_requirement_()
 
 
 def update_scripts(dir):
