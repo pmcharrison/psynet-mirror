@@ -1,4 +1,4 @@
-FROM ghcr.io/dallinger/dallinger:9.8.0
+FROM ghcr.io/dallinger/dallinger:9.8.1
 # If you want to pin a Dallinger development version, don't do it here!
 # Instead pin it below (see comments)
 #
