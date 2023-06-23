@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# [9.4.6] Released on 2023-06-23
+
+- Updated `Dallinger` to `v9.8.1`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.8.1.
+
 # [9.4.5] Released on 2023-04-24
 
 #### Fixed
