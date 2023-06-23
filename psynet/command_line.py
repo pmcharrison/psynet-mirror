@@ -579,6 +579,7 @@ def is_chromedriver_process(process):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk):
+    verify_psynet_requirement()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -1325,9 +1326,49 @@ def generate_constraints(ctx):
 
     log(header)
     try:
+        verify_psynet_requirement()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
+
+
+def verify_psynet_requirement():
+    with yaspin(
+        text="Verifying PsyNet version in 'requirements.txt'...",
+        color="green",
+    ) as spinner:
+        valid = False
+        with open("requirements.txt", "r") as file:
+            version_tag_or_commit_hash = [
+                "[a-fA-F0-9]{8,40}",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+            ]
+            file_content = file.read()
+            for regex in version_tag_or_commit_hash:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    + regex
+                    + "#egg=psynet$",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+
+        if valid:
+            spinner.ok("✔")
+        else:
+            spinner.color = "red"
+            spinner.fail("✗")
+
+        assert valid, (
+            "Incorrect specification for PsyNet in 'requirements.txt'.\n"
+            "\nExamples:\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet"
+        )
 
 
 ##########
@@ -1785,6 +1826,25 @@ def update_scripts():
     latest PsyNet versions.
     """
     update_scripts_()
+
+
+def update_psynet_requirement_():
+    with open("requirements.txt", "r") as orig_file:
+        with open("updated_requirements.txt", "w") as updated_file:
+            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            for line in orig_file:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    + version_tag
+                    + "#egg=psynet$",
+                    line,
+                )
+                if match is not None:
+                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                    break
+            updated_file.close()
+        orig_file.close()
+    shutil.move("updated_requirements.txt", "requirements.txt")
 
 
 def update_scripts_():
