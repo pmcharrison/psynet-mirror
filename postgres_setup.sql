@@ -2,4 +2,4 @@ CREATE DATABASE dallinger;
 CREATE DATABASE "dallinger-import";
 GRANT ALL PRIVILEGES ON DATABASE dallinger TO dallinger;
 GRANT ALL PRIVILEGES ON DATABASE "dallinger-import" TO dallinger;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO dallinger;
+GRANT ALL ON SCHEMA public TO dallinger;
