@@ -7,13 +7,13 @@
         "FulcrumExchangeHedgeAccess": true,
         "IndustryID": 30,
         "StudyTypeID": 1,
-        "SurveyStatusCode": "01",
         "UniqueIPAddress": true,
         "UniquePID": true
     },
     "qualifications": {
         "headphones": true
     },
-    "termination_time_in_s": 600,
-    "inactivity_timeout_in_s": 5
+    "inactivity_timeout_in_s": 60,
+    "no_focus_timeout_in_s": 10,
+    "termination_time_in_s": 600
 }

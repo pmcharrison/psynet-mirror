@@ -7,6 +7,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.participant import Participant
 
+from . import deployment_info
 from .utils import get_logger
 
 logger = get_logger()
@@ -66,14 +67,16 @@ class LucidService(object):
         self,
         api_key,
         sha1_hashing_key,
+        exp_config,
+        recruitment_config,
         sandbox=True,
-        recruitment_config=None,
         max_wait_secs=0,
     ):
         self.api_key = api_key
         self.sha1_hashing_key = sha1_hashing_key
-        self.sandbox = False  # sandbox
+        self.exp_config = exp_config
         self.recruitment_config = recruitment_config
+        self.sandbox = False  # sandbox
         self.max_wait_secs = max_wait_secs
         self.headers = {
             "Content-type": "application/json",
@@ -113,7 +116,16 @@ class LucidService(object):
         }
 
         # Apply survey configuration from 'lucid_recruitment_config.json' file.
-        request_data = json.dumps({**params, **self.recruitment_config["survey"]})
+        survey_data = self.recruitment_config["survey"]
+        survey_status_code = "01"
+        if (
+            self.exp_config.activate_recruiter_on_start
+            and deployment_info.read("mode") == "live"
+        ):
+            survey_status_code = "03"
+        survey_data["SurveyStatusCode"] = survey_status_code
+
+        request_data = json.dumps({**params, **survey_data})
         response = requests.post(
             f"{self.request_base_url_v1}/Surveys/Create",
             data=request_data,
@@ -196,28 +208,34 @@ class LucidService(object):
         return response_data
 
     def add_qualifications_to_survey(self, survey_number):
-        # TODO: make compatible with experiment.var, e.g. experiment.var.force_google_chrome
         """Add platform and browser specific qualifications to a survey."""
-        qualifications = [
-            {
-                "Name": "MS_is_mobile",
-                "QuestionID": 8214,
-                "LogicalOperator": "NOT",
-                "NumberOfRequiredConditions": 0,
-                "IsActive": True,
-                "Order": 1,
-                "PreCodes": ["true"],
-            },
-            {
-                "Name": "MS_browser_type_Non_Wurfl",
-                "QuestionID": 1035,
-                "LogicalOperator": "OR",
-                "NumberOfRequiredConditions": 0,
-                "IsActive": True,
-                "Order": 2,
-                "PreCodes": ["Chrome"],
-            },
-        ]
+        qualifications = []
+
+        if not self.exp_config.allow_mobile_devices:
+            qualifications.append(
+                {
+                    "Name": "MS_is_mobile",
+                    "QuestionID": 8214,
+                    "LogicalOperator": "NOT",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 1,
+                    "PreCodes": ["true"],
+                }
+            )
+
+        if self.exp_config.force_google_chrome:
+            qualifications.append(
+                {
+                    "Name": "MS_browser_type_Non_Wurfl",
+                    "QuestionID": 1035,
+                    "LogicalOperator": "OR",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 2,
+                    "PreCodes": ["Chrome"],
+                }
+            )
 
         if self.recruitment_config["qualifications"].get("headphones"):
             qualifications.append(
@@ -273,21 +291,22 @@ class LucidService(object):
 
         return False
 
-    def check_respondent_termination(self, rid):
+    def time_until_termination_in_s(self, rid):
         lucid_rid = get_lucid_rid(rid)
 
         if lucid_rid.terminated_at is not None:
-            return -1
+            return 0
+
+        termination_time_in_s = self.recruitment_config["termination_time_in_s"]
 
         if self.can_be_terminated(lucid_rid):
-            self.terminate_respondent(rid)
+            self.terminate_respondent(
+                rid, f"termination-timeout-{termination_time_in_s}s"
+            )
         else:
             time_until_termination_in_s = (
-                self.recruitment_config["termination_time_in_s"]
+                termination_time_in_s
                 - (datetime.now() - lucid_rid.creation_time).seconds
-            )
-            logger.info(
-                f"Seconds until termination of RID '{rid}': {time_until_termination_in_s}"
             )
             return time_until_termination_in_s
 
@@ -333,13 +352,19 @@ class LucidService(object):
                 "Completion canceled. Respondent already completed or terminated survey."
             )
 
-    def terminate_respondent(self, rid):
+    def set_termination_details(self, rid, reason=None):
+        lucid_rid = get_lucid_rid(rid)
+        lucid_rid.terminated_at = datetime.now()
+        lucid_rid.termination_reason = reason
+        session.commit()
+
+    def terminate_respondent(self, rid, reason):
         lucid_rid = get_lucid_rid(rid)
 
         if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
             response = self.send_terminate_request(rid)
             if response.ok:
-                lucid_rid.terminated_at = datetime.now()
+                self.set_termination_details(rid, reason)
                 session.commit()
                 self.log("Respondent terminated successfully.")
             else:

@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 4cb1ae8900c90848d9cc668e63da4931
+# Compiled from a requirement.txt file with md5sum: 5080136a295a65b04ec04c45586c22f5
 #
 alabaster==0.7.13
     # via
@@ -109,7 +109,7 @@ docutils==0.18.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.7.0/dev-requirements.txt
     #   sphinx
-dominate==2.7.0
+dominate==2.8.0
     # via psynet
 exceptiongroup==1.1.1
     # via
@@ -189,8 +189,6 @@ imagesize==1.4.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.7.0/dev-requirements.txt
     #   sphinx
-importlib-resources==5.12.0
-    # via psynet
 ipykernel==6.22.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.7.0/dev-requirements.txt
@@ -309,6 +307,8 @@ platformdirs==3.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.7.0/dev-requirements.txt
     #   jupyter-core
+polib==1.2.0
+    # via psynet
 praat-parselmouth==0.4.3
     # via psynet
 progress==1.6
@@ -327,7 +327,7 @@ psycopg2==2.9.6
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.7.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet
+psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@385-388_lucid-detect-js-v10
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -475,7 +475,7 @@ stack-data==0.6.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.7.0/dev-requirements.txt
     #   ipython
-statsmodels==0.13.5
+statsmodels==0.14.0
     # via psynet
 tabulate==0.9.0
     # via

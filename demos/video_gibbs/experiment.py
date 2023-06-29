@@ -1,6 +1,6 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media

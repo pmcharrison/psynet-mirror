@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+touch "${HOME}/.dallingerconfig"
+
 . docker/params
 
 if [[ ${PSYNET_DEVELOPER_MODE:-} == "1" ]]; then

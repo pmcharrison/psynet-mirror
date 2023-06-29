@@ -8,7 +8,7 @@ import traceback
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from glob import glob
+from importlib import resources
 from os.path import exists
 from platform import python_version
 from smtplib import SMTPAuthenticationError
@@ -19,19 +19,19 @@ import dallinger.models
 import flask
 import rpdb
 import sqlalchemy.orm.exc
+from click import Context
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
 from dallinger.config import get_config, is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import ExperimentError, nocache, success_response
+from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
-from flask import jsonify, render_template, request
-from pkg_resources import resource_filename
+from flask import jsonify, render_template, request, send_file
 
 from psynet import __version__
 
@@ -43,7 +43,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
-from .internationalization import check_translations, compile_mo, extract_pot, load_po
+from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -77,11 +77,11 @@ from .utils import (
     call_function_with_context,
     classproperty,
     disable_logger,
-    error_page,
     get_arg_from_dict,
     get_available_locales,
     get_language,
     get_logger,
+    get_translator,
     log_time_taken,
     pretty_log_dict,
     render_template_with_translations,
@@ -94,6 +94,7 @@ logger = get_logger()
 database_template_path = ".deploy/database_template.zip"
 
 
+DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
 
 
@@ -336,6 +337,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self.set_recruiter()
 
         locales_dir = os.path.abspath("locales")
 
@@ -349,7 +351,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         "module": "experiment",
                         "locales_dir": locales_dir,
                         "variable_placeholders": self.variable_placeholders,
-                        "extract_translations_function": self.create_pot_from_experiment_folder,
+                        "create_translation_template_function": self._create_translation_template_from_experiment_folder,
                     },
                 )
             )
@@ -367,37 +369,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
+    def set_recruiter(self):
+        if get_config().get("recruiter", None) == "lucid":
+            recruiter = LucidRecruiter()
+            if deployment_info.read("mode") == "debug":
+                recruiter = DevLucidRecruiter()
+            self.recruiter = recruiter
+
     def translation_checks_needed(self, locales_dir):
         return (
             os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
         )
 
     @classmethod
-    def extract_pot_from_experiment_folder(cls, input_directory, pot_path):
-        extract_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
-        if any(
-            [
-                path
-                for path in glob(os.path.join(input_directory, "templates", "*.html"))
-            ]
-        ):
-            extract_pot(input_directory, "templates/*.html", pot_path)
+    def create_translation_template_from_experiment_folder(
+        cls, input_directory, pot_path
+    ):
+        create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
 
     @classmethod
-    def create_pot_from_experiment_folder(cls, locales_dir=None):
-        source_experiment_directory_path = os.path.abspath(os.getcwd())
-        if not source_experiment_directory_path.endswith("/"):
-            source_experiment_directory_path += "/"
-        if locales_dir is None:
-            locales_dir = os.path.join(source_experiment_directory_path, "locales")
+    def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
         os.makedirs(locales_dir, exist_ok=True)
 
         pot_path = os.path.join(locales_dir, "experiment.pot")
         if exists(pot_path):
             os.remove(pot_path)
-        cls.extract_pot_from_experiment_folder(
-            source_experiment_directory_path, pot_path
-        )
+        cls.create_translation_template_from_experiment_folder(os.getcwd(), pot_path)
         if not exists(pot_path):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
@@ -489,6 +486,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         db.session.commit()
 
+    def create_participant(self, **kwargs):
+        assignment_id = kwargs["assignment_id"]
+        if Participant.query.filter_by(assignment_id=assignment_id).count() > 0:
+            raise ValueError(
+                f"The assignment_id '{assignment_id}' already exists in the database."
+            )
+        return super().create_participant(**kwargs)
+
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
 
@@ -531,50 +536,134 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
 
+    @classmethod
+    def error_page(
+        cls,
+        participant=None,
+        error_text=None,
+        recruiter=None,
+        external_submit_url=None,
+        compensate=True,
+        error_type="default",
+        request_data="",
+        locale=DEFAULT_LOCALE,
+    ):
+        """Render HTML for error page."""
+        from flask import make_response, request
+
+        config = get_config()
+        _, _p = get_translator(locale)
+        if error_text is None:
+            error_text = _p(
+                "error-msg",
+                "There has been an error and so you are unable to continue, sorry!",
+            )
+
+        if participant is not None:
+            hit_id = participant.hit_id
+            assignment_id = participant.assignment_id
+            worker_id = participant.worker_id
+            participant_id = participant.id
+        else:
+            hit_id = request.form.get("hit_id", "")
+            assignment_id = request.form.get("assignment_id", "")
+            worker_id = request.form.get("worker_id", "")
+            participant_id = request.form.get("participant_id", None)
+
+        if participant_id:
+            try:
+                participant_id = int(participant_id)
+            except (ValueError, TypeError):
+                participant_id = None
+
+        return make_response(
+            render_template_with_translations(
+                "psynet_error.html",
+                locale=locale,
+                error_text=error_text,
+                compensate=compensate,
+                contact_address=config.get("contact_email_on_error"),
+                error_type=error_type,
+                hit_id=hit_id,
+                assignment_id=assignment_id,
+                worker_id=worker_id,
+                recruiter=recruiter,
+                request_data=request_data,
+                participant_id=participant_id,
+                external_submit_url=external_submit_url,
+            ),
+            500,
+        )
+
     def error_page_content(
         self,
-        gettext,
-        pgettext,
         contact_address,
         error_type,
         hit_id,
         assignment_id,
         worker_id,
+        external_submit_url,
     ):
+        try:
+            from psynet.participant import Participant
+
+            participant = Participant.query.filter_by(worker_id=worker_id).one()
+            locale = participant.var.locale
+        except Exception:
+            locale = None
+        gettext, pgettext = get_translator(locale)
+        _, _p = gettext, pgettext
+
+        if hasattr(self.recruiter, "error_page_content"):
+            return self.recruiter.error_page_content(
+                gettext,
+                pgettext,
+                assignment_id=assignment_id,
+                external_submit_url=external_submit_url,
+            )
+
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
             return self.error_page_content__prolific(gettext, pgettext)
-
-        html = tags.div()
-        with html:
-            tags.p(
-                pgettext(
-                    "mturk_error",
-                    "To enquire about compensation, please contact the researcher at %(EMAIL)s and describe what led to this error."
-                    % {"EMAIL": contact_address},
+        elif isinstance(self.recruiter, MTurkRecruiter):
+            html = tags.div()
+            with html:
+                tags.p(
+                    _p(
+                        "mturk_error",
+                        "To enquire about compensation, please contact the researcher at {EMAIL} and describe what led to this error.",
+                    ).format(EMAIL=contact_address)
                 )
-            )
-            tags.p(
-                pgettext("mturk_error", "Please also quote the following information:")
-            )
-            tags.ul(
-                tags.li(f'{gettext("Error type")}: {error_type}'),
-                tags.li(f'{gettext("HIT ID")}: {hit_id}'),
-                tags.li(f'{gettext("Assignment ID")}: {assignment_id}'),
-                tags.li(f'{gettext("Worker ID")}: {worker_id}'),
-            )
+                tags.p(
+                    _p("mturk_error", "Please also quote the following information:")
+                )
+                tags.ul(
+                    tags.li(f'{_("Error type")}: {error_type}'),
+                    tags.li(f'{_("HIT ID")}: {hit_id}'),
+                    tags.li(f'{_("Assignment ID")}: {assignment_id}'),
+                    tags.li(f'{_("Worker ID")}: {worker_id}'),
+                )
 
-        return html
+            return html
+        else:
+            return ""
 
-    def error_page_content__prolific(self, gettext, pgettext):
+    def error_page_content__prolific(self, _, _p):
         html = tags.div()
         with html:
             tags.p(
-                """
-                Don't worry, your progress has been recorded.
-                To enquire about compensation, please send the researcher a message via the Prolific website
-                and describe what led to your error.
-                """
+                " ".join(
+                    [
+                        _p(
+                            "prolific_error",
+                            "Don't worry, your progress has been recorded.",
+                        ),
+                        _p(
+                            "prolific_error",
+                            "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
+                        ),
+                    ]
+                )
             )
         return html
 
@@ -1280,106 +1369,92 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = [
             (
                 # Warning: this won't affect templates that already exist in Dallinger
-                resource_filename("psynet", "templates"),
+                resources.files("psynet") / "templates",
                 "/templates",
             ),
             (
-                resource_filename("psynet", "resources/favicon.png"),
+                resources.files("psynet") / "resources/favicon.png",
                 "/static/favicon.png",
             ),
             (
-                resource_filename("psynet", "resources/favicon.svg"),
+                resources.files("psynet") / "resources/favicon.svg",
                 "/static/favicon.svg",
             ),
             (
-                resource_filename("psynet", "resources/logo.png"),
+                resources.files("psynet") / "resources/logo.png",
                 "/static/images/logo.png",
             ),
             (
-                resource_filename("psynet", "resources/images/psynet.svg"),
+                resources.files("psynet") / "resources/images/psynet.svg",
                 "/static/images/logo.svg",
             ),
             (
-                resource_filename("psynet", "resources/images/princeton-consent.png"),
+                resources.files("psynet") / "resources/images/princeton-consent.png",
                 "/static/images/princeton-consent.png",
             ),
             (
-                resource_filename("psynet", "resources/images/unity_logo.png"),
+                resources.files("psynet") / "resources/images/unity_logo.png",
                 "/static/images/unity_logo.png",
             ),
             (
-                resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
+                resources.files("psynet") / "resources/scripts/dashboard_timeline.js",
                 "/static/scripts/dashboard_timeline.js",
             ),
             (
-                resource_filename("psynet", "resources/css/bootstrap.min.css"),
+                resources.files("psynet") / "resources/css/bootstrap.min.css",
                 "/static/css/bootstrap.min.css",
             ),
             (
-                resource_filename("psynet", "resources/css/consent.css"),
+                resources.files("psynet") / "resources/css/consent.css",
                 "/static/css/consent.css",
             ),
             (
-                resource_filename("psynet", "resources/css/dashboard_timeline.css"),
+                resources.files("psynet") / "resources/css/dashboard_timeline.css",
                 "/static/css/dashboard_timeline.css",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/jQuery/jquery-3.6.0.min.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/jQuery/jquery-3.6.0.min.js",
                 "/static/scripts/jquery-3.6.0.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/platform-1.3.6/platform.min.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/platform-1.3.6/platform.min.js",
                 "/static/scripts/platform.min.js",
             ),
             (
-                resource_filename(
-                    "psynet",
-                    "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
-                ),
+                resources.files("psynet")
+                / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
                 "/static/scripts/detectIncognito.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/raphael-2.3.0/raphael.min.js",
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
-                resource_filename(
-                    "psynet", "resources/libraries/jQuery-Knob/js/jquery.knob.js"
-                ),
+                resources.files("psynet")
+                / "resources/libraries/jQuery-Knob/js/jquery.knob.js",
                 "/static/scripts/jquery.knob.js",
             ),
             (
-                resource_filename("psynet", "resources/libraries/js-synthesizer"),
+                resources.files("psynet") / "resources/libraries/js-synthesizer",
                 "/static/scripts/js-synthesizer",
             ),
             (
-                resource_filename("psynet", "resources/libraries/Tonejs"),
+                resources.files("psynet") / "resources/libraries/Tonejs",
                 "/static/scripts/Tonejs",
             ),
             (
-                resource_filename("psynet", "resources/libraries/survey-jquery"),
+                resources.files("psynet") / "resources/libraries/survey-jquery",
                 "/static/scripts/survey-jquery",
             ),
             (
-                resource_filename("psynet", "resources/libraries/abc-js"),
+                resources.files("psynet") / "resources/libraries/abc-js",
                 "/static/scripts/abc-js",
             ),
             (
-                # This is presumably getting ignored, because Dallinger ignores extra_files specifications if they
-                # overwrite a predefined file -- see dallinger.utils.collate_experiment_files
-                resource_filename("psynet", "templates/mturk_error.html"),
-                "templates/mturk_error.html",
-            ),
-            (
-                resource_filename(
-                    "psynet", "resources/scripts/prepare_docker_image.sh"
-                ),
+                resources.files("psynet") / "resources/scripts/prepare_docker_image.sh",
                 "prepare_docker_image.sh",
             ),
             (
@@ -1387,10 +1462,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ".deploy",
             ),
             (
-                resource_filename(
-                    "psynet",
-                    "resources/DEPLOYMENT_PACKAGE",
-                ),
+                resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
                 "DEPLOYMENT_PACKAGE",
             ),
         ]
@@ -1450,6 +1522,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
+
+    @dashboard_tab("Export", after_route="database")
+    @classmethod
+    def dashboard_export(cls):
+        return render_template(
+            "dashboard_export.html",
+            title="Database export",
+        )
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
@@ -1571,15 +1651,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = dallinger.experiment.load().new(db.session)
         recruiter = exp.recruiter
         external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
-        recruiter.terminate_participant(assignment_id)
+        recruiter.terminate_participant(assignment_id, reason)
         logger.info(
-            f"Terminating participant with RID {assignment_id} with reason {reason}"
+            f"Terminating participant with RID {assignment_id} with reason '{reason}'"
         )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
+
+    @classmethod
+    def get_participant_from_unique_id(cls, unique_id):
+        """
+        Get a participant with a specified ``unique_id``.
+        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
+        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
+
+        Parameters
+        ----------
+        unique_id :
+            Unique ID of the participant to retrieve.
+
+        Returns
+        -------
+
+        The corresponding participant object.
+        """
+        return Participant.query.filter_by(unique_id=unique_id).one()
 
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
@@ -1604,27 +1703,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 status=404,
             )
 
-    @experiment_route("/consent")
-    @staticmethod
-    def consent():
-        config = get_config()
-
-        entry_information = request.args.to_dict()
-        exp = get_experiment()
-        entry_data = exp.normalize_entry_information(entry_information)
-
-        hit_id = entry_data.get("hit_id")
-        assignment_id = entry_data.get("assignment_id")
-        worker_id = entry_data.get("worker_id")
-        return render_template_with_translations(
-            "consent.html",
-            hit_id=hit_id,
-            assignment_id=assignment_id,
-            worker_id=worker_id,
-            mode=config.get("mode"),
-            query_string=request.query_string.decode(),
-        )
-
     @experiment_route("/ad", methods=["GET"])
     @nocache
     @staticmethod
@@ -1637,14 +1715,77 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return kw["redirect"]
             else:
                 return render_template_with_translations("ad.html", **kw)
-        except ExperimentError:
-            return error_page()
+        except Exception as e:
+            return Experiment.pre_timeline_error_page(e, request)
+
+    @experiment_route("/consent")
+    @staticmethod
+    def consent():
+        config = get_config()
+
+        entry_information = request.args.to_dict()
+        exp = get_experiment()
+        entry_data = exp.normalize_entry_information(entry_information)
+
+        hit_id = entry_data.get("hit_id")
+        assignment_id = entry_data.get("assignment_id")
+        worker_id = entry_data.get("worker_id")
+        unique_id = worker_id + ":" + assignment_id
+        try:
+            return render_template_with_translations(
+                "consent.html",
+                hit_id=hit_id,
+                assignment_id=assignment_id,
+                worker_id=worker_id,
+                unique_id=unique_id,
+                mode=config.get("mode"),
+                query_string=request.query_string.decode(),
+            )
+        except Exception as e:
+            return Experiment.pre_timeline_error_page(e, request)
+
+    @experiment_route("/start", methods=["GET"])
+    @staticmethod
+    def route_start():
+        try:
+            return render_template_with_translations("start.html")
+        except Exception as e:
+            return Experiment.pre_timeline_error_page(e, request)
+
+    @staticmethod
+    def pre_timeline_error_page(e, request):
+        error_text = f"Error when calling {request.path} route: {e}"
+        logger.error(error_text)
+        exp = dallinger.experiment.load().new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = None
+        if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+            rid = request.args.to_dict()["RID"]
+            recruiter.set_termination_details(rid, error_text)
+            external_submit_url = recruiter.external_submit_url(assignment_id=rid)
+        return Experiment.error_page(
+            recruiter=recruiter, external_submit_url=external_submit_url
+        )
 
     @experiment_route("/app_deployment_id", methods=["GET"])
     @staticmethod
     def app_deployment_id():
         exp = get_experiment()
         return exp.deployment_id
+
+    @experiment_route("/dashboard/export", methods=["GET"])
+    @classmethod
+    def export(cls):
+        from .command_line import export__local
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            ctx = Context(export__local)
+            ctx.invoke(export__local, path=tempdir, n_parallel=None)
+
+            file_basename = get_config().get("label")
+            zip_filepath = shutil.make_archive(f"{file_basename}-data", "zip", tempdir)
+
+            return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
@@ -1657,7 +1798,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         json_data = {
             "id": participant.id,
             "assignment_id": participant.assignment_id,
-            "auth_token": participant.auth_token,
             "page_uuid": participant.page_uuid,
         }
         logger.debug(
@@ -1682,28 +1822,36 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             asset.export(temp_file.name)
 
-            return flask.send_file(temp_file.name, max_age=0)
+            return send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @classmethod
     def render_error(cls):
-        from psynet.utils import error_page
-
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
+        compensate = True
         participant = None
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-        exp = cls.new(db.session)
-        recruiter = exp.recruiter
-        external_submit_url = None
-        if hasattr(recruiter, "external_submit_url"):
-            external_submit_url = recruiter.external_submit_url(participant=participant)
-        return error_page(
+            recruiter = cls.new(db.session).recruiter
+            external_submit_url = None
+            if hasattr(recruiter, "external_submit_url"):
+                external_submit_url = recruiter.external_submit_url(
+                    participant=participant
+                )
+
+            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
+                compensate = False
+                recruiter.set_termination_details(
+                    participant.assignment_id, "Terminated calling /error-page route"
+                )
+
+        return cls.error_page(
             participant=participant,
             request_data=request_data,
-            recruiter=cls.new(db.session).recruiter.nickname,
+            recruiter=recruiter,
             external_submit_url=external_submit_url,
+            compensate=compensate,
         )
 
     @experiment_route("/module", methods=["POST"])
@@ -1756,11 +1904,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         db.session.commit()
         return success_response()
-
-    @experiment_route("/start", methods=["GET"])
-    @staticmethod
-    def route_start():
-        return render_template_with_translations("start.html")
 
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
@@ -1842,7 +1985,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(assignment_id=rid)
             if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(rid)
+                recruiter.terminate_participant(
+                    rid, "'/terminate_participant' route was called"
+                )
         except Exception as e:
             logger.error(f"Error terminating participant with RID '{rid}': {e}")
 
@@ -1851,42 +1996,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             external_submit_url=external_submit_url,
         )
 
-    @experiment_route("/check_participant_termination", methods=["POST"])
-    @classmethod
-    def check_participant_termination(cls):
-        # auth_token = request.values["auth_token"]
-        # Experiment.validate_auth_token(participant, auth_token)
-
-        participant_id = request.values.get("participant_id")
-        if participant_id is None:
-            logger.error("Error getting participant ID.")
-
-        participant = get_participant(participant_id)
-        rid = participant.entry_information["RID"]
-
-        try:
-            exp = dallinger.experiment.load().new(db.session)
-            recruiter = exp.recruiter
-            if hasattr(recruiter, "check_participant_termination"):
-                return str(recruiter.check_participant_termination(rid))
-        except Exception as e:
-            logger.error(
-                f"Exception checking participant termination for RID '{rid}': {e}"
-            )
-
-        return success_response()
-
     @staticmethod
     def get_client_ip_address():
         if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
             return request.environ["REMOTE_ADDR"]
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
-
-    @experiment_route("/resume/<auth_token>", methods=["GET"])
-    @classmethod
-    def route_resume(cls, auth_token):
-        return render_template_with_translations("resume.html", auth_token=auth_token)
 
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
@@ -1949,23 +2064,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
     def route_timeline(cls):
-        participant_id = request.args.get("participant_id")
-        auth_token = request.args.get("auth_token")
-
+        unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = get_participant(participant_id)
+        participant = cls.get_participant_from_unique_id(unique_id)
         experiment = get_experiment()
-
-        if participant.auth_token is None:
-            participant.auth_token = str(uuid.uuid4())
-        else:
-            try:
-                cls.check_auth_token(participant, auth_token)
-            except cls.AuthTokenError as e:
-                recruiter = experiment.recruiter
-                if hasattr(recruiter, "external_submit_url"):
-                    recruiter.external_submit_url(participant=participant)
-                return e.http_response()
 
         return cls._route_timeline(experiment, participant, mode)
 
@@ -2029,7 +2131,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.participant = participant
 
         def error_page(self):
-            return error_page(self.participant)
+            return Experiment.error_page(self.participant)
 
     @classmethod
     def report_error(
@@ -2094,22 +2196,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             context["asset_id"] = asset.id
         return context
 
-    class AuthTokenError(PermissionError):
+    class UniqueIdError(PermissionError):
         def __init__(self, expected, provided, participant):
             self.participant = participant
 
             message = "".join(
                 [
-                    f"Mismatch between expected auth_token ({expected}) "
-                    f"and provided auth_token ({provided}) "
+                    f"Mismatch between expected unique_id ({expected}) "
+                    f"and provided unique_id ({provided}) "
                     f"for participant {participant.id}."
                 ]
             )
             super().__init__(message)
 
         def http_response(self):
-            from psynet.utils import error_page
-
             last_exception = sys.exc_info()
             if last_exception[0]:
                 logger.error(
@@ -2122,7 +2222,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 + "did you switch browsers? Unfortunately this is not currently "
                 + "supported by our system."
             )
-            return error_page(
+            return Experiment.error_page(
                 participant=self.participant,
                 error_text=msg,
                 error_type="authentication",
@@ -2148,12 +2248,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return page.render(experiment, participant)
 
     @classmethod
-    def check_auth_token(cls, participant, auth_token):
-        valid = participant.auth_token == auth_token
+    def check_unique_id(cls, participant, unique_id):
+        valid = participant.unique_id == unique_id
         if not valid:
-            raise cls.AuthTokenError(
-                expected=auth_token,
-                provided=participant.auth_token,
+            raise cls.UniqueIdError(
+                expected=unique_id,
+                provided=participant.unique_id,
                 participant=participant,
             )
         else:
@@ -2212,22 +2312,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return res
 
-    @experiment_route(
-        "/log/<level>/<int:participant_id>/<auth_token>", methods=["POST"]
-    )
+    @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
-    def http_log(cls, level, participant_id, auth_token):
-        participant = get_participant(participant_id)
+    def http_log(cls, level, unique_id):
+        participant = cls.get_participant_from_unique_id(unique_id)
         try:
-            cls.check_auth_token(participant, auth_token)
-        except cls.AuthTokenError as e:
+            cls.check_unique_id(participant, unique_id)
+        except cls.UniqueIdError as e:
             return e.http_response()
 
         message = request.values["message"]
 
         assert level in ["warning", "info", "error"]
 
-        string = f"[CLIENT {participant_id}]: {message}"
+        string = f"[CLIENT {participant.id}]: {message}"
 
         if level == "info":
             logger.info(string)
@@ -2250,14 +2348,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @experiment_route(
-        "/participant_opened_devtools/<int:participant_id>/<auth_token>",
+        "/participant_opened_devtools/<unique_id>",
         methods=["POST"],
     )
     @classmethod
-    def participant_opened_devtools(cls, participant_id, auth_token):
-        participant = get_participant(participant_id)
+    def participant_opened_devtools(cls, unique_id):
+        participant = cls.get_participant_from_unique_id(unique_id)
 
-        Experiment.check_auth_token(participant, auth_token)
+        cls.check_unique_id(participant, unique_id)
 
         participant.var.opened_devtools = True
         db.session.commit()

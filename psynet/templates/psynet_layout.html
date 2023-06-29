@@ -19,7 +19,7 @@
                     dallinger.identity.participantId = injectedParticipantId;
                 }
 
-                let injectedAssignmentId = parseInt("{{ participant.assignment_id }}");
+                let injectedAssignmentId = "{{ participant.assignment_id }}";
                 if (injectedAssignmentId) {
                     dallinger.identity.assignmentId = injectedAssignmentId;
                 }
@@ -29,28 +29,15 @@
                     dallinger.identity.hitId = injectedHitId;
                 }
 
-                let injectedWorkerId = parseInt("{{ participant.worker_id }}");
+                let injectedUniqueId = "{{ participant.unique_id }}";
+                if (injectedUniqueId) {
+                    dallinger.identity.uniqueId = injectedUniqueId;
+                }
+
+                let injectedWorkerId = "{{ participant.worker_id }}";
                 if (injectedWorkerId) {
                     dallinger.identity.workerId = injectedWorkerId;
                 }
-
-                {% if experiment.with_lucid_recruitment() %}
-                {% if is_consent_page %}
-                var setIntervalHandle = setInterval(check_participant_termination, 1000);
-
-                function check_participant_termination() {
-                    postData = {};
-                    postData["auth_token"] = "{{ auth_token }}";
-                    postData["participant_id"] = parseInt("{{ participant.id }}");
-                    $.post("/check_participant_termination", postData, function(seconds) {
-                        if (parseInt(seconds) < 0) {
-                            clearInterval(setIntervalHandle);
-                            $("#consent-rejected").click();
-                        }
-                    });
-                }
-                {% endif %}
-                {% endif %}
             }
         </script>
     {% endif %}

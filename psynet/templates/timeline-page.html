@@ -159,7 +159,7 @@
                             </div>
                         {% endif %}
 
-                        {% if config.allow_switching_locale and supported_language_dict|length > 1 %}
+                        {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
                             <div>
                                 <select id="iso-language" class="form-control">
                                     {% for iso, language in supported_language_dict.items() %}
@@ -184,8 +184,7 @@
                 window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (a, name, value) {
                     $_GET[name] = value;
                 });
-                var participant_id = $_GET['participant_id'];
-                $.get('/set_locale_participant/' + participant_id + '?locale=' + $(this).val(), function (data) {
+                $.get("/set_locale_participant/{{ participant.id }}?locale=" + $(this).val(), function (data) {
                     location.reload();
                 });
                 $('#iso-language').val()
@@ -202,13 +201,6 @@
 
 
     <script>
-        {% if experiment.with_lucid_recruitment() %}
-            function beforeunloadFunction(event) {
-                event.returnValue = `Are you sure you want to leave?`;
-                triedToLeave = true;
-            }
-        {% endif %}
-
         {{ init_js_vars }}
         var psynet = (function () {
                 /**
@@ -285,6 +277,10 @@
                     return total / numbers.length;
                 };
 
+                psynet.removeBeforeunloadEventListener = function () {
+                    window.removeEventListener("beforeunload", beforeunloadFunction);
+                };
+
                 psynet.waitForEventListener = async function (target, type) {
                     await new Promise((resolve) => {
                         target.addEventListener(type, () => resolve(), {once: true});
@@ -313,12 +309,7 @@
 
                     if (level != "debug" && psynet.log.counter < psynet.log.max) {
                         psynet.log.counter += 1;
-
-                        route = (
-                            '/log/' + level
-                            + "/" + dallinger.identity.participantId
-                            + "/{{ auth_token }}"
-                        );
+                        route = '/log/' + level + "/{{ unique_id }}";
 
                         dallinger.post(route, {message: msg});
                     }
@@ -1225,8 +1216,8 @@
                 let checkParticipantId = function () {
                     if (dallinger.identity.participantId === undefined) {
                         alert(
-                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") }}" +
-                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") }}"
+                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") | replace('"',"'") | safe }}" +
+                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") | replace('"',"'") | safe }}"
                         );
                         throw console.error("Undefined participant ID.");
                     }
@@ -1298,19 +1289,11 @@
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
-                    psynet.authToken = "{{ auth_token }}";
+                    psynet.assignmentId = dallinger.identity.assignmentId;
                     psynet.participantId = dallinger.identity.participantId;
+                    psynet.uniqueId = dallinger.identity.uniqueId;
                     updateProgressAndBonus();
 
-                    // In some cases (e.g. the first timeline page) the auth_token
-                    // may not yet be set in the browser's URL string.
-                    // This is problematic if the participant refreshes the page.
-                    // The following code therefore sets the auth_token using
-                    // the value provided by the backend.
-                    let urlParams = new URLSearchParams(window.location.search);
-                    urlParams.set("auth_token", "{{ auth_token }}");
-                    let fixedUrl = window.location.origin + window.location.pathname + "?" + urlParams;
-                    window.history.replaceState({}, null, fixedUrl);
                     if (correctBrowser) {
                         setTimeout(() => psynet.trial.init(), 25);
                     }
@@ -1339,7 +1322,7 @@
                         blobs = psynet.response.staged.blobs;
                     }
                     {% if experiment.with_lucid_recruitment() %}
-                        window.removeEventListener("beforeunload", beforeunloadFunction);
+                        psynet.removeBeforeunloadEventListener();
                     {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                     return passedValidation
@@ -1355,7 +1338,7 @@
                             response.page.attributes.session_id == psynet.page.attributes.session_id
                         );
                         if (shouldRefreshPage) {
-                            window.location = "/timeline?participant_id=" + dallinger.identity.participantId + "&auth_token=" + "{{ auth_token }}";
+                            window.location = "/timeline?unique_id=" + psynet.uniqueId;
                         } else {
                             psynet.page = response.page;
                             psynet.registerEvent("pageUpdated");
@@ -1422,9 +1405,10 @@
                     }
 
                     return JSON.stringify({
-                        "participant_id": dallinger.identity.participantId,
+                        "participant_id": psynet.participantId,
                         "page_uuid": pageUuid,
-                        "auth_token": authToken,
+                        "assignment_id": psynet.assignmentId,
+                        "unique_id": psynet.uniqueId,
                         "raw_answer": rawAnswer,
                         "metadata": allMetadata
                     });
@@ -1590,14 +1574,14 @@
                         let progressPercentage = data['progressPercentage'];
                         let progressPercentageStr = progressPercentage + '%';
                         $('#timeline-progress-bar').text(progressPercentageStr);
-                        $('#timeline-progress-bar').css("width", progressPercentageStr)
-                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+                        $('#timeline-progress-bar').css("width", progressPercentageStr);
+                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage);
 
                         if (data['bonus'] !== undefined) {
                             if (data['bonus']['extra'].toFixed(2) > 0) {
                                 $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
                                 $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                                $("#bonus-details").show()
+                                $("#bonus-details").show();
                             }
                             $('#total-bonus').text(data['bonus']['total'].toFixed(2));
                         }
@@ -1619,8 +1603,7 @@
 
         function writeToDbParticipantOpenedDevtools() {
             dallinger.post(
-                '/participant_opened_devtools/' + dallinger.identity.participantId
-                + "/{{ auth_token }}"
+                "/participant_opened_devtools/{{ unique_id }}"
             );
         }
 
@@ -1678,57 +1661,55 @@
     {% if experiment.with_lucid_recruitment() %}
         <script>
             // Terminate on overall timeout
-            var setIntervalHandle = setInterval(check_participant_termination, 1000);
-
-            function check_participant_termination() {
-                postData = {};
-                postData["auth_token"] = "{{ auth_token }}";
-                postData["participant_id"] = parseInt("{{ participant.id }}");
-                $.post("/check_participant_termination", postData, function (seconds) {
-                    console.log("Seconds left before termination: " + seconds);
-                    if (parseInt(seconds) < 0) {
-                        clearInterval(setIntervalHandle);
-                        window.removeEventListener("beforeunload", beforeunloadFunction);
-                        return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }})
-                    }
-                });
-            }
+            secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
+            intervalInSeconds = 1;
+            var setIntervalHandle = setInterval(function () {
+                psynet.log.debug("Seconds left before termination: " + secondsLeft);
+                if (secondsLeft <= 0) {
+                    clearInterval(setIntervalHandle);
+                    psynet.removeBeforeunloadEventListener();
+                    return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }});
+                }
+                secondsLeft -= intervalInSeconds;
+            }, intervalInSeconds * 1000);
 
             // Terminate on 'page reload', 'window/tab close', and 'no focus'
             const INACTIVITY_TIMEOUT =
-            {{experiment.recruiter.inactivity_timeout_in_s}} *
+            {{ experiment.recruiter.inactivity_timeout_in_s }} *
             1000;
             const NO_FOCUS_TIMEOUT =
-            {{experiment.recruiter.no_focus_timeout_in_s}} *
+            {{ experiment.recruiter.no_focus_timeout_in_s }} *
             1000;
             const POLLING_FREQUENCY = 1000;
             const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
             const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
             var triedToLeave = false;
             var noFocusSince = 0;
-            var assignmentId = "{{worker_id}}";
-            var url = "{{experiment.recruiter.external_submit_url(assignment_id=worker_id)|safe}}";
+            var assignmentId = "{{ worker_id }}";
+            var url = "{{ experiment.recruiter.external_submit_url(assignment_id=worker_id) | safe }}";
 
             window.addEventListener("beforeunload", beforeunloadFunction);
 
             // Proceed to next page
             $(".btn, .sd-btn").click(function () {
-                window.removeEventListener("beforeunload", beforeunloadFunction);
-            })
+                psynet.removeBeforeunloadEventListener();
+            });
 
-
+            function beforeunloadFunction(event) {
+                event.returnValue = `Are you sure you want to leave?`;
+                triedToLeave = true;
+            }
 
             function terminateParticipant(reason) {
-                window.removeEventListener("beforeunload", beforeunloadFunction);
+                psynet.removeBeforeunloadEventListener();
                 clearInterval(checkFocusInterval);
                 clearInterval(checkParticipantInterval);
-                navigator.sendBeacon(url, {});
                 return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
             }
 
             function checkParticipant() {
                 if (triedToLeave) {
-                    terminateParticipant("tried_to_leave");
+                    terminateParticipant("user-tried-to-leave");
                 }
             }
 
@@ -1738,9 +1719,9 @@
                 } else {
                     noFocusSince += POLLING_FREQUENCY;
                     if (noFocusSince > NO_FOCUS_TIMEOUT) {
-                        terminateParticipant("lost_focus");
+                        terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
                     } else {
-                        console.log("Document lost focus since " + noFocusSince / 1000 + " seconds");
+                        psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
                     }
                 }
             }
@@ -1751,9 +1732,9 @@
             function startTimer() {
                 secondsOfInactivity += POLLING_FREQUENCY;
                 if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
-                    terminateParticipant("inactivity");
+                    terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
                 } else {
-                    console.log("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+                    psynet.log.debug("User inactive since " + secondsOfInactivity / 1000 + " seconds");
                 }
             }
 
@@ -1770,15 +1751,13 @@
             window.ontouchstart = resetInactivityTimer;
             window.onclick = resetInactivityTimer;
             window.onkeypress = resetInactivityTimer;
-        </script>
-        <script>
-        document.addEventListener("DOMContentLoaded", function (event) {
-            let isValidBrowser = browser.validate();
-            if (!isValidBrowser) {
-                terminateParticipant("invalid_browser");
-            }
-        });
-    </script>
-    {% endif %}
 
+            document.addEventListener("DOMContentLoaded", function (event) {
+                let isValidBrowser = browser.validate();
+                if (!isValidBrowser) {
+                    terminateParticipant("invalid-browser");
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock %}

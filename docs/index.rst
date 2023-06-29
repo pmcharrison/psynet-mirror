@@ -72,6 +72,7 @@ but see the sidebar for a full list.
 
    experiment_directory
    development_workflow
+   dependencies
    troubleshooting
    demos/index
 

@@ -9,7 +9,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
-from math import ceil
+from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -28,7 +28,6 @@ from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
-from pkg_resources import resource_filename
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
@@ -38,7 +37,6 @@ from psynet import __version__
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
-from .recruiters import LucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -861,41 +859,6 @@ def docs(force_rebuild):
 ##############
 
 
-def check_lucid_reach(experiment):
-    from .experiment import get_and_load_config
-
-    config = get_and_load_config()
-    wage_per_hour = config.get("wage_per_hour")
-    price_ceiling = experiment.estimated_max_bonus(wage_per_hour)
-    completion_time = ceil(experiment.estimated_completion_time(wage_per_hour) / 60)
-    lucid_recruitment_config = json.loads(config.get("lucid_recruitment_config"))
-
-    incidence_rate = lucid_recruitment_config["survey"]["BidIncidence"] / 100
-    days = lucid_recruitment_config["expected_duration_in_days"]
-    country_code = lucid_recruitment_config["country_code"].lower()
-    language_code = lucid_recruitment_config["language_code"].lower()
-
-    from psynet.lucid import compute_lucid_reach
-
-    response_json = compute_lucid_reach(
-        initial_recruitment_size=experiment.initial_recruitment_size,
-        days=days,
-        completion_time=completion_time,
-        incidence_rate=incidence_rate,
-        price_ceiling=price_ceiling,
-        language_code=language_code,
-        country_code=country_code,
-        api_key=config.get("lucid_api_key"),
-    )
-
-    feasibility = int(response_json["result"]["feasibility"])
-    assert feasibility > experiment.initial_recruitment_size, (
-        f"You aim to recruit {experiment.initial_recruitment_size} participants, but Lucid predicts that only "
-        f"{feasibility} participants will be available. Consider increasing the number of days of recruitment "
-        f"(currently {days}) or increase the wage per hour (currently {wage_per_hour} {config.get('currency')})."
-    )
-
-
 def check_prolific_payment(experiment, config):
     from .experiment import get_and_load_config
 
@@ -957,6 +920,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 "To add a generic Dockerfile to your experiment directory, run the following command:\n"
                 "psynet update-scripts"
             )
+
     if not local_:
         init_db(drop_all=True)
 
@@ -994,7 +958,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         recruiter = exp.recruiter
         is_mturk = isinstance(recruiter, MTurkRecruiter)
         is_prolific = isinstance(recruiter, ProlificRecruiter)
-        is_lucid = isinstance(recruiter, LucidRecruiter)
 
         if mode in ["sandbox", "deploy"]:
             if isinstance(exp.asset_storage, DebugStorage):
@@ -1006,8 +969,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 )
             if is_prolific:
                 check_prolific_payment(exp, config)
-            elif is_lucid:
-                check_lucid_reach(exp)
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
@@ -1467,7 +1428,9 @@ def export__heroku(ctx, app, **kwargs):
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables, location="ssh", app=app)
+    exp_variables = ctx.invoke(
+        experiment_variables, location="ssh", app=app, server=server
+    )
     export_(
         ctx,
         app=app,
@@ -1832,16 +1795,22 @@ def update_scripts_():
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
     click.echo("...updating .gitignore.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/.gitignore"),
-        ".gitignore",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/.gitignore"
+    ) as path:
+        shutil.copyfile(
+            path,
+            ".gitignore",
+        )
 
     click.echo("...updating Dockerfile.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
-        "Dockerfile",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/Dockerfile"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "Dockerfile",
+        )
 
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
@@ -1849,38 +1818,53 @@ def update_scripts_():
         file.write("\n")
 
     click.echo("...updating test.py and pytest.ini.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/test.py"),
-        "test.py",
-    )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/pytest.ini"),
-        "pytest.ini",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/test.py"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "test.py",
+        )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/pytest.ini"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "pytest.ini",
+        )
 
     click.echo("...updating docs directory.")
     if Path("docs").exists():
         shutil.rmtree("docs", ignore_errors=True)
-    shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/docs"),
-        "docs",
-        dirs_exist_ok=True,
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/docs"
+    ) as path:
+        shutil.copytree(
+            path,
+            "docs",
+            dirs_exist_ok=True,
+        )
 
     click.echo("...updating Docker scripts.")
     shutil.rmtree("docker", ignore_errors=True)
-    shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/docker"),
-        "docker",
-        dirs_exist_ok=True,
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/docker"
+    ) as path:
+        shutil.copytree(
+            path,
+            "docker",
+            dirs_exist_ok=True,
+        )
     os.system("chmod +x docker/*")
 
     click.echo("...updating README.md.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/README.md"),
-        "README.md",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/README.md"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "README.md",
+        )
 
 
 @psynet.command()
@@ -1908,7 +1892,7 @@ def _prepare_translation(iso_code):
     experiment_class = import_local_experiment().get("class")
 
     try:
-        pot = experiment_class.create_pot_from_experiment_folder()
+        pot = experiment_class._create_translation_template_from_experiment_folder()
     except FileNotFoundError as e:
         print(
             '''
@@ -1943,13 +1927,13 @@ def _prepare_translation(iso_code):
         {{ gettext("You have to select the music you like most.") }}
         ###################
         In case you have stored your strings in a subfolder, you can also register the subfolder to be scanned, by
-        extending the extract_pot_from_experiment_folder function in your experiment class. Here's an example:
+        extending the create_translation_template_from_experiment_folder function in your experiment class. Here's an example:
         ###################
         @classmethod
-        def extract_pot_from_experiment_folder(cls, input_directory, pot_path):
-            super(Exp, cls).extract_pot_from_experiment_folder(input_directory, pot_path)
-            from psynet.internationalization import extract_pot
-            extract_pot(input_directory, "my_module/.", pot_path)
+        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
+            super(Exp, cls).create_translation_template_from_experiment_folder(input_directory, pot_path)
+            from psynet.internationalization import create_pot
+            create_pot(input_directory, "my_module/.", pot_path)
         ###################
         This will look for strings in the my_module subfolder.
         '''

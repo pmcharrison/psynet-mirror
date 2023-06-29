@@ -1,7 +1,7 @@
 import random
 from typing import List, Union
 
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import DebugStorage

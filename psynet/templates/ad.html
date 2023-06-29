@@ -109,14 +109,14 @@
             let isValidBrowser = browser.validate();
             {% if experiment.with_lucid_recruitment() %}
                 if (!isValidBrowser) {
-                    terminateParticipant();
+                    terminateParticipant("invalid-browser");
                 }
             {% endif %}
         });
 
         function proceedToConsentPage(event) {
           let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
-          if ({{ experiment.start_experiment_in_popup_window|tojson }}) {
+          if ({{ experiment.start_experiment_in_popup_window | tojson }}) {
               popup = window.open(
             url,
             "Popup",

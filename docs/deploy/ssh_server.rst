@@ -59,68 +59,44 @@ Run the following:
 
 Setting up your Docker registry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Docker registry will host your Docker images. There are multiple platforms you can use to host your Docker images. Here we will cover docker.io and GitLab.
+We will cover three ways to setup a Docker registry:
+- personal Docker registry on docker.io
+- group Docker registry on GitLab
+- self-hosted Docker registry on GitLab
 
-Deploying via SSH requires you to setup a Docker registry which will host your
-Docker images. GitHub and GitLab both allow you to create suitable Docker registries.
+Personal Docker registry on docker.io
+=====================================
 
-The first step is to login to the Docker registry service on your local machine.
-To login to the GitLab docker registry:
+- Go to `docker.io <https://www.docker.com/>` and setup an account
+- Download the Docker Desktop app and sign in
+- Add the following line to your ``config.txt`` if you only want to use it for this experiment or in ``~/.dallingerconfig`` if you want to use it as your default registry:
+
+    .. code:: bash
+
+        docker_image_base_name = docker.io/<docker_io_username>/<name_of_your_image>
+
+
+
+Group Docker registry on GitLab
+===============================
+
+Group Docker registries are a nice way to have all of your lab's Docker images under the same umbrella. 
+
+There's two ways to set up a Docker registry:
+- A hosted Docker registry
+- A self-hosted Docker registry
+
+We'll first go through the steps to setup a hosted Docker registry on Gitlab. First login to the GitLab docker registry:
 
 .. code:: bash
 
     docker login registry.gitlab.com
 
-.. note::
 
-    If you are using a self-hosted registry then you will need to change the URL,
-    for example:
+The next step is to setup a public repository, e.g. a repository called "experiment-images" by the user "computational-audition". This means the particular user ("computational-audition") can now push to this registry. In the case of the lab, we suggest setting up a lab group where all users have "Maintainer" permissions. You can now add this group to your repository https://gitlab.com/<user>/<repo>/-/project_members (e.g., https://gitlab.com/computational-audition/experiment-images/-/project_members). Now each user in the lab group can push to the repository.
 
-    .. code:: bash
-
-        docker login registry.gitlab.developers.cam.ac.uk
-
-    In some situations (e.g. federated authentication) you will not be able to login
-    to your account via the command-line in this way. Instead, you will have to create
-    a `personal access token via GitLab <https://gitlab.developers.cam.ac.uk/-/profile/personal_access_tokens>`_
-    and then login with a command like the following:
-
-    .. code:: bash
-
-        docker login registry.gitlab.developers.cam.ac.uk -u your-username
-
-    You should then enter your access token when prompted.
-
-.. note::
-
-    If you see this error:
-
-    .. code:: bash
-
-        WARNING! Your password will be stored unencrypted in /home/pmch2/.docker/config.json.
-
-        Configure a credential helper to remove this warning. See
-
-        https://docs.docker.com/engine/reference/commandline/login/#credentials-store
-
-    you can probably continue without worrying about it. We are still working out
-    the best way to deal with Docker credential management in PsyNet/Dallinger.
-
-You then need to do exactly the same `docker login` process but on your remote server.
-To do this, you need to open an SSH terminal to your server, if you haven't already:
-
-.. code:: bash
-
-    ssh your-username@your-server.ac.uk
-
-Then run the same `docker login` command that you ran previously.
-
-You then need to create a container registry in GitLab/GitHub. You can do it
-using their web interface. Note that, for now, you probably need to make it public
-(we are still working on private authentication), so make sure that you don't have to
-deploy experiments with sensitive data in their experiment code.
-
-Finally, you then need to tell your local PsyNet/Dallinger installation to store
-its experiment images in this registry. To do this, you need to edit your local
+The last step is to add the registry to ``.dallingerconfig``. To do this, you need to edit your local
 ``~/.dallingerconfig`` file.
 
 If you don't have such a file already, you can create it like this:
@@ -138,6 +114,63 @@ You can then edit it on Mac like this:
 or simply with a text editor via your GUI.
 
 Place a line like the following in your ``~/.dallingerconfig``,
+putting the link to your own image registry:
+
+.. code:: bash
+
+    docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images
+
+
+
+You can also host the registry yourself, e.g. under ``registry.gitlab.developers.cam.ac.uk``. The steps are similar to above, but you will need to change the URL if you are using a self-hosted registry. For example:
+
+.. code:: bash
+
+    docker login registry.gitlab.developers.cam.ac.uk
+
+In some situations (e.g. federated authentication) you will not be able to login
+to your account via the command-line in this way. Instead, you will have to create
+a `personal access token via GitLab <https://gitlab.developers.cam.ac.uk/-/profile/personal_access_tokens>`_
+and then login with a command like the following:
+
+.. code:: bash
+
+    docker login registry.gitlab.developers.cam.ac.uk -u your-username
+
+You should then enter your access token when prompted.
+
+.. note::
+
+    If you see this error:
+
+    .. code:: bash
+
+        WARNING! Your password will be stored unencrypted in /home/pmch2/.docker/config.json.
+
+        Configure a credential helper to remove this warning. See
+
+        https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+    you can probably continue without worrying about it. We are still working out
+    the best way to deal with Docker credential management in PsyNet/Dallinger.
+
+.. note::
+
+    You might not be able to login if you originally created your gitlab account via an external service (e.g. GitHub, Gmail).
+    In that case, make sure, that you can login to GitLab in the browser, using only your email adress. 
+    You might need to disconnect your external (e.g. GitHub) account from your GitLab account 
+    (User Settings -> Account) and reset your password to do so.
+
+You then need to do exactly the same `docker login` process but on your remote server.
+To do this, you need to open an SSH terminal to your server, if you haven't already:
+
+.. code:: bash
+
+    ssh your-username@your-server.ac.uk
+
+Then run the same `docker login` command that you ran previously.
+
+Finally, you need to place a line like the following in your ``~/.dallingerconfig``,
 putting the link to your own image registry:
 
 .. code:: bash
@@ -309,10 +342,12 @@ processes in an experiment. Restarting is fast and should not significantly impa
 To restart processes for a given app, run the following:
 
 .. code:: bash
+
     cd ~/dallinger/your-app-name
     docker compose restart web
     docker compose restart worker
     docker compose restart clock
+
 
 .. warning::
 

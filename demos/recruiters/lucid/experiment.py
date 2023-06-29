@@ -1,4 +1,4 @@
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
@@ -21,11 +21,6 @@ INITIAL_RECRUITMENT_SIZE = 1
 
 class Exp(psynet.experiment.Experiment):
     label = "LUCID demo"
-
-    variables = {
-        "show_abort_button": False,
-        "show_bonus": False,
-    }
 
     timeline = Timeline(
         LucidConsent(),

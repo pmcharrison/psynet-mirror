@@ -122,7 +122,7 @@
     </style>
 
     <div id="prompt-video-container">
-        <video id="prompt" style="width: {{ params.width }}" alt="{{ gettext("Video not found") }}" controls></video>
+        <video id="prompt" style="width: {{ params.width }}" alt="{{ gettext("Video not found")  | replace('"',"'") | safe  }}" controls></video>
     </div>
 
     <script>
@@ -205,7 +205,7 @@
         }
     </style>
 
-    <img id="prompt-image" src="{{ params.url }}" alt="{{ gettext("Image not found") }}">
+    <img id="prompt-image" src="{{ params.url }}" alt="{{ gettext("Image not found")  | replace('"',"'") | safe  }}">
 
     <script>
         let promptImage = $("#prompt-image").get(0);

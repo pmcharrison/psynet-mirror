@@ -6,14 +6,14 @@ import time
 from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
+from importlib import resources
 from statistics import median
 from typing import Callable, Dict, List, Optional, Union
 
-import flask
-import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
+from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
@@ -156,7 +156,7 @@ class Trigger(dict):
 
 def get_template(name):
     assert isinstance(name, str)
-    path_all_templates = importlib_resources.files(templates)
+    path_all_templates = resources.files(templates)
     path_template = path_all_templates.joinpath(name)
     with open(path_template, "r") as file:
         return file.read()
@@ -731,10 +731,10 @@ class Page(Elt):
         self.media = MediaSpec() if media is None else media
         self.media.check()
 
-        self.scripts = [] if scripts is None else [flask.Markup(x) for x in scripts]
+        self.scripts = [] if scripts is None else [Markup(x) for x in scripts]
         assert isinstance(self.scripts, list)
 
-        self.css = [] if css is None else [flask.Markup(x) for x in css]
+        self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
 
         self._contents = contents
@@ -820,7 +820,7 @@ class Page(Elt):
         return {
             "session_id": self.session_id,
             "type": type(self).__name__,
-            "auth_token": participant.auth_token,
+            "unique_id": participant.unique_id,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
         }
@@ -1057,7 +1057,7 @@ class Page(Elt):
         from .experiment import get_and_load_config
 
         internal_js_vars = {
-            "authToken": participant.auth_token,
+            "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
@@ -1067,10 +1067,10 @@ class Page(Elt):
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": flask.Markup(
+            "init_js_vars": Markup(
                 dict_to_js_vars({**self.js_vars, **internal_js_vars})
             ),
-            "define_media_requests": flask.Markup(self.define_media_requests),
+            "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
             "extra_bonus": "%.2f" % participant.performance_bonus,
@@ -1081,7 +1081,7 @@ class Page(Elt):
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
             "participant": participant,
-            "auth_token": participant.auth_token,
+            "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
             "css": self.css,

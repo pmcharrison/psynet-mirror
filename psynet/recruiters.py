@@ -13,6 +13,8 @@ from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
+from dominate import tags
+from dominate.util import raw
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
@@ -129,6 +131,7 @@ class LucidRID(SQLBase, SQLMixin):
     rid = Column(String, index=True)
     completed_at = Column(DateTime, index=True)
     terminated_at = Column(DateTime, index=True)
+    termination_reason = Column(String)
 
 
 class LucidRecruiterException(Exception):
@@ -149,13 +152,15 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
+        self.config.set("show_bonus", False)
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
             api_key=self.config.get("lucid_api_key"),
             sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            sandbox=self.config.get("mode") != "live",
+            exp_config=self.config,
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
+            sandbox=self.config.get("mode") != "live",
         )
         self.store = kwargs.get("store") or RedisStore()
 
@@ -322,7 +327,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         if participant is not None and participant.progress == 1:
             self.complete_participant(participant.assignment_id)
         else:
-            self.terminate_participant(participant.assignment_id)
+            self.terminate_participant(
+                participant.assignment_id,
+                "Termination in 'reward_bonus' as 'participant.progress' was < 1",
+            )
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
@@ -336,21 +344,56 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
 
     def data_for_submit_url(self, participant, assignment_id):
+        # Standard terminate
         ris = 20
         if participant is not None:
             assignment_id = participant.assignment_id
-            if participant.progress == 1:
+            if "performance_check" in participant.failure_tags:
+                # Security terminate
+                ris = 30
+            elif participant.progress == 1:
+                # Complete
                 ris = 10
+        if assignment_id is None:
+            assignment_id = assignment_id
         return {"ris": ris, "rid": assignment_id}
 
-    def check_participant_termination(self, rid):
-        return self.lucidservice.check_respondent_termination(rid)
+    def error_page_content(self, _, _p, assignment_id, external_submit_url):
+        if external_submit_url is None:
+            external_submit_url = self.external_submit_url(assignment_id=assignment_id)
+
+        html = tags.div()
+        with html:
+            tags.p(
+                " ".join(
+                    [
+                        _p(
+                            "lucid_error",
+                            "Redirecting to Lucid Marketplace...",
+                        ),
+                    ]
+                )
+            )
+            tags.script(
+                raw(
+                    'setTimeout(() => { window.location = "'
+                    + external_submit_url
+                    + '"; }, 2000)'
+                )
+            )
+        return html
+
+    def time_until_termination_in_s(self, rid):
+        return self.lucidservice.time_until_termination_in_s(rid)
 
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, rid):
-        return self.lucidservice.terminate_respondent(rid)
+    def terminate_participant(self, rid, reason):
+        return self.lucidservice.terminate_respondent(rid, reason)
+
+    def set_termination_details(self, rid, reason):
+        self.lucidservice.set_termination_details(rid, reason)
 
     @property
     def termination_time_in_min(self):

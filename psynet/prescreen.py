@@ -1,5 +1,6 @@
 import json
 import random
+from importlib import resources
 from os.path import exists as file_exists
 from os.path import join as join_path
 from random import shuffle
@@ -7,8 +8,7 @@ from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from flask import Markup
-from pkg_resources import resource_filename
+from markupsafe import Markup
 
 from psynet.trial import Node
 
@@ -38,9 +38,10 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
-from .utils import get_logger
+from .utils import get_logger, get_translator
 
 logger = get_logger()
+DEFAULT_LOCALE = "en"
 
 
 class REPPVolumeCalibration(Module):
@@ -342,9 +343,8 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
-                bot_response_media=resource_filename(
-                    "psynet", "resources/repp/free_tapping_record.wav"
-                ),
+                bot_response_media=resources.files("psynet")
+                / "resources/repp/free_tapping_record.wav",
             ),
             time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
@@ -514,9 +514,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
                     show_meter=True,
                     controls=False,
                     auto_advance=False,
-                    bot_response_media=resource_filename(
-                        "psynet", "resources/repp/free_tapping_record.wav"
-                    ),
+                    bot_response_media=resources.files("psynet")
+                    / "resources/repp/free_tapping_record.wav",
                 ),
                 time_estimate=5,
                 progress_display=ProgressDisplay(
@@ -605,9 +604,8 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
-                bot_response_media=resource_filename(
-                    "psynet", "resources/repp/markers_test_record.wav"
-                ),
+                bot_response_media=resources.files("psynet")
+                / "resources/repp/markers_test_record.wav",
             ),
             time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
@@ -1189,7 +1187,9 @@ class AttentionTest(Module):
                     participant.answer is not None
                     and self.fail_on in ["attention_test_1", "any"]
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_test_1"]),
+                UnsuccessfulEndPage(
+                    failure_tags=["performance_check", "attention_test_1"]
+                ),
             ),
             CodeBlock(
                 lambda experiment, participant: participant.var.new(
@@ -1218,7 +1218,9 @@ class AttentionTest(Module):
                         or not participant.var.first_check_passed
                     )
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_test_2"]),
+                UnsuccessfulEndPage(
+                    failure_tags=["performance_check", "attention_test_2"]
+                ),
             ),
         )
         super().__init__(self.label, self.elts)
@@ -1226,11 +1228,12 @@ class AttentionTest(Module):
 
 class ColorBlindnessTrial(StaticTrial):
     def show_trial(self, experiment, participant):
+        _, _p = get_translator(self.trial_maker.locale)
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
                 self.assets["image"].url,
-                "Write down the number in the image.",
+                _p("color_blindnes_test", "Write down the number in the image."),
                 width="350px",
                 height="344px",
                 hide_after=self.trial_maker.hide_after,
@@ -1287,10 +1290,12 @@ class ColorBlindnessTest(StaticTrialMaker):
         performance_threshold: int = 4,
         hide_after: Optional[float] = 3.0,
         trial_class=ColorBlindnessTrial,
+        locale=DEFAULT_LOCALE,
     ):
         self.hide_after = hide_after
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
+        self.locale = locale
 
         nodes = self.get_nodes(media_url)
 
@@ -1307,23 +1312,34 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     @property
     def introduction(self):
-        if self.hide_after is None:
-            hidden_instructions = ""
-        else:
-            hidden_instructions = (
-                f"This image will disappear after {self.hide_after} seconds."
-            )
-        return InfoPage(
-            Markup(
-                f"""
-            <p>We will now perform a quick test to check your ability to perceive colors.</p>
-            <p>
-                In each trial, you will be presented with an image that contains a number.
-                {hidden_instructions}
-                You must enter the number that you see into the text box.
-            </p>
-            """
+        _, _p = get_translator(self.locale)
+
+        instructions = [
+            _p(
+                "color_blindness_test_intro_1",
+                "We will now perform a quick test to check your ability to perceive colors.",
             ),
+            _p(
+                "color_blindness_test_intro_1",
+                "In each trial, you will be presented with an image that contains a number.",
+            ),
+        ]
+
+        if self.hide_after is not None:
+            instructions.append(
+                _p(
+                    "color_blindness_test_intro_1",
+                    "This image will disappear after {HIDE_AFTER} seconds.",
+                ).format(HIDE_AFTER=self.hide_after)
+            )
+        instructions.append(
+            _p(
+                "color_blindness_test_intro_1",
+                "You must enter the number that you see into the text box.",
+            )
+        )
+        return InfoPage(
+            " ".join(instructions),
             time_estimate=10,
         )
 

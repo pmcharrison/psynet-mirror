@@ -49,9 +49,6 @@ __version__ = version.psynet_version
 #         package which can cause annoying SQLAlchemy bugs. We therefore override this.
 #         """
 #         self.register("cap_recruiter_auth_token", unicode)
-#         self.register("lucid_api_key", unicode)
-#         self.register("lucid_sha1_hashing_key", unicode)
-#         self.register("lucid_recruitment_config", unicode)
 #         self.register("default_export_root", unicode)
 #
 #     Configuration.register_extra_parameters = register_extra_parameters

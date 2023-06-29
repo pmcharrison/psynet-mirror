@@ -6,7 +6,7 @@ from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
     Prompt,
 )
 
-# from pkg_resources import resource_filename
+# from importlib import resources
 
 
 def test_import_templates():
@@ -48,7 +48,7 @@ def test_import_templates():
 #     import psynet.media
 #
 #     psynet.media.upload_to_local_s3(
-#         local_path=resource_filename("psynet", "resources/logo.png"),
+#         local_path=resources.files("psynet") / "resources/logo.png",
 #         bucket_name="s3-bucket",
 #         key="key.png",
 #         public_read=True,

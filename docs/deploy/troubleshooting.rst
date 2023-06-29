@@ -98,3 +98,45 @@ The 'real' error message can be found on the remote server. If you are using Her
 the real error message by looking in the Papertrail logs. If you are using an SSH server,
 you can find the real error message by SSHing to the server, executing ``cd ~/dallinger/your-app-name``,
 then executing ``docker compose logs``.
+
+Stuck during database initialization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We have reports of experiment deployments getting stuck at:
+
+::
+
+  Experiment read-prescreener-demo5 started. Initializing database
+  Database initialized
+
+
+We have heard that the problem resolves if you restart the remote server with the following command:
+
+::
+  
+  sudo reboot
+
+though note that this may interrupt pre-existing deployed experiments.
+This problem needs further investigation.
+
+
+Stuck during experiment launch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the ``psynet deploy ssh`` or ``psynet debug ssh`` command gets stuck partway through, it's normally worth
+checking the docker compose logs on the remote server:
+
+::
+
+  cd ~/dallinger/<your-app-name>
+  docker compose logs
+
+If the error occurs during "Launching experiment", beware that the last error may not be indicative of the real issue,
+because it may instead reflect errors from the launch command repeatedly trying to relaunch over a previous partial launch.
+It's a good idea to scroll up to the first issue in this case.
+Note also that if your command fails early on then you might instead see Docker compose logs from the previous time 
+you tried to launch the experiment.
+
+Note: A common problem is that you are using a different version (e.g. branch or commit) of PsyNet locally than on the remote server. 
+This can lead to unexpected errors. You should check your ``requirements.txt`` before deploying and verify that it 
+gives the same branch/commit that you have selected locally.
