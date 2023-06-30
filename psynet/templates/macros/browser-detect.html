@@ -173,7 +173,7 @@
                     warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")  | replace('"',"'")|safe }} {{ pgettext("browser_compatibility", "You are using")  | replace('"',"'")|safe }} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.")  | replace('"',"'") | safe }}";
                 } else {
                     if (browser.isOldVersion) {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:") | replace('"',"'") | safe }}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.")  | replace('"',"'") | safe }}";
+                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.")  | replace('"',"'") | safe  }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:") | replace('"',"'") | safe }}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.")  | replace('"',"'") | safe }}";
                     }
                 }
             }
