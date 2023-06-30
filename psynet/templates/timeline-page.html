@@ -1212,8 +1212,8 @@
                 let checkParticipantId = function () {
                     if (dallinger.identity.participantId === undefined) {
                         alert(
-                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") }}" +
-                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") }}"
+                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") | replace('"',"'") | safe }}" +
+                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") | replace('"',"'") | safe }}"
                         );
                         throw console.error("Undefined participant ID.");
                     }
