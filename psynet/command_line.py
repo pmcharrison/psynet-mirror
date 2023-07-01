@@ -2077,22 +2077,25 @@ def _destroy(
     f_expire,
     app,
     expire_hit,
+    server=None,
 ):
     if user_confirms(
         "Would you like to delete the app from the web server?", default=True
     ):
         with yaspin("Destroying app...") as spinner:
             try:
+                kwargs = {"app": app}
+                kwargs = {**kwargs, "server": server} if server else kwargs
                 if expire_hit in get_args(f_destroy):
                     ctx.invoke(
                         f_destroy,
-                        app=app,
                         expire_hit=False,
+                        **kwargs,
                     )
                 else:
                     ctx.invoke(
                         f_destroy,
-                        app=app,
+                        **kwargs,
                     )
                 spinner.ok("✔")
             except subprocess.CalledProcessError:
@@ -2121,6 +2124,7 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
+@click.option("--server", default=None, help="Server to connect to")
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -2128,7 +2132,7 @@ def _destroy(
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
-def destroy__docker_ssh(ctx, app, expire_hit):
+def destroy__docker_ssh(ctx, app, server, expire_hit):
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
@@ -2138,6 +2142,7 @@ def destroy__docker_ssh(ctx, app, expire_hit):
         expire,
         app=app,
         expire_hit=expire_hit,
+        server=server,
     )
 
 
