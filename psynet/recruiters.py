@@ -162,7 +162,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
             sandbox=self.config.get("mode") != "live",
         )
-        self.store = kwargs.get("store") or RedisStore()
+        self.store = kwargs.get("store", RedisStore())
 
     @property
     def survey_number_storage_key(self):
