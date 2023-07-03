@@ -1727,7 +1727,7 @@
             }
 
             // Terminate due to inactivity
-            let timer, secondsOfInactivity = 0;
+            let inactivityTimer, secondsOfInactivity = 0;
 
             function checkInactivity() {
                 secondsOfInactivity += POLLING_FREQUENCY;
@@ -1739,12 +1739,12 @@
             }
 
             function resetInactivityTimer() {
-                clearInterval(timer);
+                clearInterval(inactivityTimer);
                 secondsOfInactivity = 0;
-                timer = setInterval(checkInactivity, POLLING_FREQUENCY);
+                inactivityTimer = setInterval(checkInactivity, POLLING_FREQUENCY);
             }
 
-            // Events that reset the timer
+            // Events that reset the inactivity timer
             window.onload = resetInactivityTimer;
             window.onmousemove = resetInactivityTimer;
             window.onmousedown = resetInactivityTimer;
