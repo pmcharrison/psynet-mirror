@@ -277,7 +277,7 @@
                     return total / numbers.length;
                 };
 
-                psynet.removeBeforeunloadEventListener = function () {
+                psynet.removeBeforeUnloadEventListener = function () {
                     window.removeEventListener("beforeunload", beforeunloadFunction);
                 };
 
@@ -1322,7 +1322,7 @@
                         blobs = psynet.response.staged.blobs;
                     }
                     {% if experiment.with_lucid_recruitment() %}
-                        psynet.removeBeforeunloadEventListener();
+                        psynet.removeBeforeUnloadEventListener();
                     {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                     return passedValidation
@@ -1667,7 +1667,7 @@
                 psynet.log.debug("Seconds left before termination: " + secondsLeft);
                 if (secondsLeft <= 0) {
                     clearInterval(setIntervalHandle);
-                    psynet.removeBeforeunloadEventListener();
+                    psynet.removeBeforeUnloadEventListener();
                     return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }});
                 }
                 secondsLeft -= intervalInSeconds;
@@ -1692,7 +1692,7 @@
 
             // Proceed to next page
             $(".btn, .sd-btn").click(function () {
-                psynet.removeBeforeunloadEventListener();
+                psynet.removeBeforeUnloadEventListener();
             });
 
             function beforeunloadFunction(event) {
@@ -1701,7 +1701,7 @@
             }
 
             function terminateParticipant(reason) {
-                psynet.removeBeforeunloadEventListener();
+                psynet.removeBeforeUnloadEventListener();
                 clearInterval(checkFocusInterval);
                 clearInterval(checkParticipantInterval);
                 return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
