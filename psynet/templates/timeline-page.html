@@ -1729,7 +1729,7 @@
             // Terminate due to inactivity
             let timer, secondsOfInactivity = 0;
 
-            function startTimer() {
+            function checkInactivity() {
                 secondsOfInactivity += POLLING_FREQUENCY;
                 if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
                     terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
@@ -1741,7 +1741,7 @@
             function resetInactivityTimer() {
                 clearInterval(timer);
                 secondsOfInactivity = 0;
-                timer = setInterval(startTimer, POLLING_FREQUENCY);
+                timer = setInterval(checkInactivity, POLLING_FREQUENCY);
             }
 
             // Events that reset the timer
