@@ -33,7 +33,7 @@ class LucidService(object):
         self.sha1_hashing_key = sha1_hashing_key
         self.exp_config = exp_config
         self.recruitment_config = recruitment_config
-        self.sandbox = False  # sandbox
+        self.sandbox = False
         self.max_wait_secs = max_wait_secs
         self.headers = {
             "Content-type": "application/json",
