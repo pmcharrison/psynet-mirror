@@ -129,8 +129,8 @@ class LucidRID(SQLBase, SQLMixin):
     time_of_death = None
 
     rid = Column(String, index=True)
-    completed_at = Column(DateTime, index=True)
-    terminated_at = Column(DateTime, index=True)
+    completed_at = Column(DateTime)
+    terminated_at = Column(DateTime)
     termination_reason = Column(String)
 
 
