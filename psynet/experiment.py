@@ -48,6 +48,7 @@ from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
+    BaseLucidRecruiter,
     CapRecruiter,
     DevCapRecruiter,
     DevLucidRecruiter,
@@ -1253,10 +1254,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return self.num_working_participants * self.base_payment
 
     def with_lucid_recruitment(self):
-        return self.recruiter.__class__.__name__ in [
-            "DevLucidRecruiter",
-            "LucidRecruiter",
-        ]
+        return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
 
     def process_response(
         self,
