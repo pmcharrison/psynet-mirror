@@ -20,6 +20,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
+from .experiment import get_experiment
 from .lucid import LucidService
 from .utils import get_logger, pretty_format_seconds, render_template_with_translations
 
@@ -205,7 +206,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
-        experiment = dallinger.experiment.load().new(db.session)
+        experiment = get_experiment()
         wage_per_hour = get_and_load_config().get("wage_per_hour")
         create_survey_request_params = {
             "bid_length_of_interview": ceil(

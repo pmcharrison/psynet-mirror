@@ -1646,7 +1646,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def exit_recruiter():
         assignment_id = request.values["assignment_id"]
         reason = request.values["reason"]
-        exp = dallinger.experiment.load().new(db.session)
+        exp = get_experiment()
         recruiter = exp.recruiter
         external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
         recruiter.terminate_participant(assignment_id, reason)
@@ -1754,7 +1754,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def pre_timeline_error_page(e, request):
         error_text = f"Error when calling {request.path} route: {e}"
         logger.error(error_text)
-        exp = dallinger.experiment.load().new(db.session)
+        exp = get_experiment()
         recruiter = exp.recruiter
         external_submit_url = None
         if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
@@ -1977,7 +1977,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = cls.new(db.session)
 
         try:
-            exp = dallinger.experiment.load().new(db.session)
+            exp = get_experiment()
             recruiter = exp.recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
