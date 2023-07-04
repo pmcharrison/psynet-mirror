@@ -20,7 +20,6 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
-from .experiment import get_experiment
 from .lucid import LucidService
 from .utils import get_logger, pretty_format_seconds, render_template_with_translations
 
@@ -198,7 +197,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .experiment import get_and_load_config
+        from .experiment import get_and_load_config, get_experiment
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
