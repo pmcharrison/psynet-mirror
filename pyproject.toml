@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "10.0.0rc4"
+version = "10.0.0"
 authors = [
   { name="Peter Harrison", email="pmch2@cam.ac.uk" },
   { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
@@ -30,7 +30,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger>=9.7.0",
+    "dallinger>=9.8.1",
     "dominate",
     "ipywidgets",
     "joblib",

@@ -579,6 +579,7 @@ def is_chromedriver_process(process):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk):
+    verify_psynet_requirement()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -1325,9 +1326,49 @@ def generate_constraints(ctx):
 
     log(header)
     try:
+        verify_psynet_requirement()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
+
+
+def verify_psynet_requirement():
+    with yaspin(
+        text="Verifying PsyNet version in 'requirements.txt'...",
+        color="green",
+    ) as spinner:
+        valid = False
+        with open("requirements.txt", "r") as file:
+            version_tag_or_commit_hash = [
+                "[a-fA-F0-9]{8,40}",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+            ]
+            file_content = file.read()
+            for regex in version_tag_or_commit_hash:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    + regex
+                    + "#egg=psynet$",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+
+        if valid:
+            spinner.ok("✔")
+        else:
+            spinner.color = "red"
+            spinner.fail("✗")
+
+        assert valid, (
+            "Incorrect specification for PsyNet in 'requirements.txt'.\n"
+            "\nExamples:\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet"
+        )
 
 
 ##########
@@ -1787,6 +1828,25 @@ def update_scripts():
     update_scripts_()
 
 
+def update_psynet_requirement_():
+    with open("requirements.txt", "r") as orig_file:
+        with open("updated_requirements.txt", "w") as updated_file:
+            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            for line in orig_file:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    + version_tag
+                    + "#egg=psynet$",
+                    line,
+                )
+                if match is not None:
+                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                    break
+            updated_file.close()
+        orig_file.close()
+    shutil.move("updated_requirements.txt", "requirements.txt")
+
+
 def update_scripts_():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2017,22 +2077,25 @@ def _destroy(
     f_expire,
     app,
     expire_hit,
+    server=None,
 ):
     if user_confirms(
         "Would you like to delete the app from the web server?", default=True
     ):
         with yaspin("Destroying app...") as spinner:
             try:
+                kwargs = {"app": app}
+                kwargs = {**kwargs, "server": server} if server else kwargs
                 if expire_hit in get_args(f_destroy):
                     ctx.invoke(
                         f_destroy,
-                        app=app,
                         expire_hit=False,
+                        **kwargs,
                     )
                 else:
                     ctx.invoke(
                         f_destroy,
-                        app=app,
+                        **kwargs,
                     )
                 spinner.ok("✔")
             except subprocess.CalledProcessError:
@@ -2061,6 +2124,7 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
+@server_option
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -2068,7 +2132,7 @@ def _destroy(
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
-def destroy__docker_ssh(ctx, app, expire_hit):
+def destroy__docker_ssh(ctx, app, server, expire_hit):
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
@@ -2078,6 +2142,7 @@ def destroy__docker_ssh(ctx, app, expire_hit):
         expire,
         app=app,
         expire_hit=expire_hit,
+        server=server,
     )
 
 

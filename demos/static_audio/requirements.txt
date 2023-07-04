@@ -1,7 +1,1 @@
-# These requirements were set temporarily for debugging.
-# For real-world use you probably want to revert to this:
-#
-# dallinger@git+https://github.com/Dallinger/Dallinger.git#egg=dallinger
-# psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet
-
 psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet
