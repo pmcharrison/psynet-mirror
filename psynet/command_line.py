@@ -2124,7 +2124,7 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
-@click.option("--server", default=None, help="Server to connect to")
+@server_option
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
