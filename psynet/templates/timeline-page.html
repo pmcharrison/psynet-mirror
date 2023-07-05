@@ -1660,105 +1660,107 @@
 
     {% if experiment.with_lucid_recruitment() %}
         <script>
-            // Terminate on overall timeout
-            secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
-            intervalInSeconds = 1;
-            var setIntervalHandle = setInterval(function () {
-                psynet.log.debug("Seconds left before termination: " + secondsLeft);
-                if (secondsLeft <= 0) {
-                    clearInterval(setIntervalHandle);
+            {
+                // Terminate on overall timeout
+                secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
+                intervalInSeconds = 1;
+                var setIntervalHandle = setInterval(function () {
+                    psynet.log.debug("Seconds left before termination: " + secondsLeft);
+                    if (secondsLeft <= 0) {
+                        clearInterval(setIntervalHandle);
+                        psynet.removeBeforeUnloadEventListener();
+                        return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }});
+                    }
+                    secondsLeft -= intervalInSeconds;
+                }, to_milliseconds(intervalInSeconds));
+
+                // Terminate on 'page reload', 'window/tab close', and 'no focus'
+                // with timeouts and polling frequency given in milliseconds.
+                const INACTIVITY_TIMEOUT = to_milliseconds({{ experiment.recruiter.inactivity_timeout_in_s }});
+                const NO_FOCUS_TIMEOUT = to_milliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
+                const POLLING_FREQUENCY = 1000;
+                const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
+                const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
+                var triedToLeave = false;
+                var noFocusSince = 0;
+                var assignmentId = "{{ worker_id }}";
+                var url = "{{ experiment.recruiter.external_submit_url(assignment_id=worker_id) | safe }}";
+
+                window.addEventListener("beforeunload", beforeunloadFunction);
+
+                // Proceed to next page
+                $(".btn, .sd-btn").click(function () {
                     psynet.removeBeforeUnloadEventListener();
-                    return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }});
+                });
+
+                function to_milliseconds(seconds) {
+                    return seconds * 1000;
                 }
-                secondsLeft -= intervalInSeconds;
-            }, to_milliseconds(intervalInSeconds));
 
-            // Terminate on 'page reload', 'window/tab close', and 'no focus'
-            // with timeouts and polling frequency given in milliseconds.
-            const INACTIVITY_TIMEOUT = to_milliseconds({{ experiment.recruiter.inactivity_timeout_in_s }});
-            const NO_FOCUS_TIMEOUT = to_milliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
-            const POLLING_FREQUENCY = 1000;
-            const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
-            const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
-            var triedToLeave = false;
-            var noFocusSince = 0;
-            var assignmentId = "{{ worker_id }}";
-            var url = "{{ experiment.recruiter.external_submit_url(assignment_id=worker_id) | safe }}";
-
-            window.addEventListener("beforeunload", beforeunloadFunction);
-
-            // Proceed to next page
-            $(".btn, .sd-btn").click(function () {
-                psynet.removeBeforeUnloadEventListener();
-            });
-
-            function to_milliseconds(seconds) {
-                return seconds * 1000;
-            }
-
-            function beforeunloadFunction(event) {
-                event.returnValue = `Are you sure you want to leave?`;
-                triedToLeave = true;
-            }
-
-            function terminateParticipant(reason) {
-                psynet.removeBeforeUnloadEventListener();
-                clearInterval(checkFocusInterval);
-                clearInterval(checkParticipantInterval);
-                return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
-            }
-
-            function checkParticipant() {
-                if (triedToLeave) {
-                    terminateParticipant("user-tried-to-leave");
+                function beforeunloadFunction(event) {
+                    event.returnValue = `Are you sure you want to leave?`;
+                    triedToLeave = true;
                 }
-            }
 
-            function checkFocus() {
-                if (document.hasFocus()) {
-                    noFocusSince = 0;
-                } else {
-                    noFocusSince += POLLING_FREQUENCY;
-                    if (noFocusSince > NO_FOCUS_TIMEOUT) {
-                        terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
-                    } else {
-                        psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
+                function terminateParticipant(reason) {
+                    psynet.removeBeforeUnloadEventListener();
+                    clearInterval(checkFocusInterval);
+                    clearInterval(checkParticipantInterval);
+                    return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
+                }
+
+                function checkParticipant() {
+                    if (triedToLeave) {
+                        terminateParticipant("user-tried-to-leave");
                     }
                 }
-            }
 
-            // Terminate due to inactivity
-            let inactivityTimer, secondsOfInactivity = 0;
-
-            function checkInactivity() {
-                secondsOfInactivity += POLLING_FREQUENCY;
-                if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
-                    terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
-                } else {
-                    psynet.log.debug("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+                function checkFocus() {
+                    if (document.hasFocus()) {
+                        noFocusSince = 0;
+                    } else {
+                        noFocusSince += POLLING_FREQUENCY;
+                        if (noFocusSince > NO_FOCUS_TIMEOUT) {
+                            terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
+                        } else {
+                            psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
+                        }
+                    }
                 }
-            }
 
-            function resetInactivityTimer() {
-                clearInterval(inactivityTimer);
-                secondsOfInactivity = 0;
-                inactivityTimer = setInterval(checkInactivity, POLLING_FREQUENCY);
-            }
+                // Terminate due to inactivity
+                let inactivityTimer, secondsOfInactivity = 0;
 
-            // Events that reset the inactivity timer
-            window.onload = resetInactivityTimer;
-            window.onmousemove = resetInactivityTimer;
-            window.onmousedown = resetInactivityTimer;
-            window.ontouchstart = resetInactivityTimer;
-            window.onclick = resetInactivityTimer;
-            window.onkeypress = resetInactivityTimer;
-
-            document.addEventListener("DOMContentLoaded", function (event) {
-                let isValidBrowser = browser.validate();
-                if (!isValidBrowser) {
-                    terminateParticipant("invalid-browser");
+                function checkInactivity() {
+                    secondsOfInactivity += POLLING_FREQUENCY;
+                    if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
+                        terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
+                    } else {
+                        psynet.log.debug("User inactive since " + secondsOfInactivity / 1000 + " seconds");
+                    }
                 }
-            });
+
+                function resetInactivityTimer() {
+                    clearInterval(inactivityTimer);
+                    secondsOfInactivity = 0;
+                    inactivityTimer = setInterval(checkInactivity, POLLING_FREQUENCY);
+                }
+
+                // Events that reset the inactivity timer
+                window.onload = resetInactivityTimer;
+                window.onmousemove = resetInactivityTimer;
+                window.onmousedown = resetInactivityTimer;
+                window.ontouchstart = resetInactivityTimer;
+                window.onclick = resetInactivityTimer;
+                window.onkeypress = resetInactivityTimer;
+
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    let isValidBrowser = browser.validate();
+                    if (!isValidBrowser) {
+                        terminateParticipant("invalid-browser");
+                    }
+                });
+            }
         </script>
     {% endif %}
 {% endblock %}
