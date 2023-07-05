@@ -21,7 +21,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
-from .utils import get_logger, pretty_format_seconds, render_template_with_translations
+from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
 
@@ -394,10 +394,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
-
-    @property
-    def termination_time_in_min(self):
-        return pretty_format_seconds(self.termination_time_in_s)
 
     @property
     def termination_time_in_s(self):
