@@ -1671,15 +1671,12 @@
                     return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }});
                 }
                 secondsLeft -= intervalInSeconds;
-            }, intervalInSeconds * 1000);
+            }, to_milliseconds(intervalInSeconds));
 
             // Terminate on 'page reload', 'window/tab close', and 'no focus'
-            const INACTIVITY_TIMEOUT =
-            {{ experiment.recruiter.inactivity_timeout_in_s }} *
-            1000;
-            const NO_FOCUS_TIMEOUT =
-            {{ experiment.recruiter.no_focus_timeout_in_s }} *
-            1000;
+            // with timeouts and polling frequency given in milliseconds.
+            const INACTIVITY_TIMEOUT = to_milliseconds({{ experiment.recruiter.inactivity_timeout_in_s }});
+            const NO_FOCUS_TIMEOUT = to_milliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
             const POLLING_FREQUENCY = 1000;
             const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
             const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
@@ -1694,6 +1691,10 @@
             $(".btn, .sd-btn").click(function () {
                 psynet.removeBeforeUnloadEventListener();
             });
+
+            function to_milliseconds(seconds) {
+                return seconds * 1000;
+            }
 
             function beforeunloadFunction(event) {
                 event.returnValue = `Are you sure you want to leave?`;
