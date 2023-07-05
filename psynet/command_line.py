@@ -1047,8 +1047,15 @@ def debug__docker_heroku(ctx, app, archive):
 #     is_flag=True,
 #     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
 # )
+@click.option(
+    "--update",
+    "-u",
+    flag_value="update",
+    default=False,
+    help="Update an existing experiment",
+)
 @click.pass_context
-def debug__docker_ssh(ctx, app, archive, server):
+def debug__docker_ssh(ctx, app, archive, server, update):
     """
     Debug the experiment on a remote server via SSH.
     """
@@ -1076,6 +1083,7 @@ def debug__docker_ssh(ctx, app, archive, server):
             app_name=app,
             config_options={},
             archive_path=None,
+            update=update,
         )
 
         _post_deploy(result)
