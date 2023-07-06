@@ -1681,10 +1681,9 @@
                 const POLLING_FREQUENCY = 1000;
                 const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
                 const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
-                var triedToLeave = false;
-                var noFocusSince = 0;
-                var assignmentId = "{{ worker_id }}";
-                var url = "{{ experiment.recruiter.external_submit_url(assignment_id=worker_id) | safe }}";
+                let triedToLeave = false;
+                let noFocusSince = 0;
+                let assignmentId = "{{ worker_id }}";
 
                 window.addEventListener("beforeunload", beforeunloadFunction);
 
