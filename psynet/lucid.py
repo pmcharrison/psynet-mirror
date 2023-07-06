@@ -90,7 +90,7 @@ class LucidService(object):
             or "SurveyNumber" not in response_data["Survey"]
         ):
             raise LucidServiceException(
-                "LUCID: 'Create survey' request was invalid for unknown reason."
+                "LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey."
             )
         self.log(
             f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
