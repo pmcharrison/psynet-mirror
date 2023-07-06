@@ -155,9 +155,13 @@ class LucidService(object):
                 data=request_data,
                 headers=self.headers,
             )
-            response_data = response.json()
 
-        return response_data
+            if not response.ok:
+                raise LucidServiceException(
+                    "LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+
+        self.log("Removed default qualifications from survey.")
 
     def add_qualifications_to_survey(self, survey_number):
         """Add platform and browser specific qualifications to a survey."""
@@ -209,9 +213,14 @@ class LucidService(object):
                 data=request_data,
                 headers=self.headers,
             )
-            response_data = response.json()
 
-        return response_data
+            if not response.ok:
+                raise LucidServiceException(
+                    "LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+
+        if qualifications:
+            self.log("Added qualifications to survey.")
 
     def can_be_terminated(self, lucid_rid):
         rid = lucid_rid.rid
