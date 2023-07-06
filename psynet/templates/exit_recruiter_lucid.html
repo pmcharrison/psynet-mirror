@@ -1,26 +1,17 @@
 {% extends "psynet_layout.html" %}
 
 {% block body %}
-    <div id="container">
-      <div class="well">
-        <h1>{{ pgettext("exit_recruiter_lucid", "Lucid Survey Submission") }}</h1>
-        <hr>
-          <p>Completing survey...</p>
-          <noscript>
-            {{ pgettext("exit_recruiter_lucid", "To complete your Lucid Survey, click the button below.") }}
-            <p>
-            <form method="GET" action="{{ external_submit_url | safe }}">
-              <input type="submit" class="btn btn-primary btn-lg" value="Close">
-            </form>
-          </p>
-          </noscript>
-      </div>
+  <div id="container">
+    <div class="well">
+      <h1>{{ pgettext("exit_recruiter_lucid", "Lucid Survey Submission") }}</h1>
+      <hr>
+      <p>Completing survey...</p>
     </div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
+  <script>
     window.location = "{{ external_submit_url | safe }}";
-</script>
-
+  </script>
 {% endblock %}
