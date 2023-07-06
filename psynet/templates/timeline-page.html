@@ -1680,7 +1680,7 @@
                 const NO_FOCUS_TIMEOUT = to_milliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
                 const POLLING_FREQUENCY = 1000;
                 const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
-                const checkParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
+                const checkTriedToLeaveInterval = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
                 let triedToLeave = false;
                 let noFocusSince = 0;
                 let assignmentId = "{{ worker_id }}";
@@ -1704,11 +1704,11 @@
                 function terminateParticipant(reason) {
                     psynet.removeBeforeUnloadEventListener();
                     clearInterval(checkFocusInterval);
-                    clearInterval(checkParticipantInterval);
+                    clearInterval(checkTriedToLeaveInterval);
                     return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
                 }
 
-                function checkParticipant() {
+                function checkTriedToLeave() {
                     if (triedToLeave) {
                         terminateParticipant("user-tried-to-leave");
                     }
