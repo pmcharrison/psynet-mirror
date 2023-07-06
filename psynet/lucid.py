@@ -223,34 +223,14 @@ class LucidService(object):
             self.log("Added qualifications to survey.")
 
     def can_be_terminated(self, lucid_rid):
-        rid = lucid_rid.rid
-        participant_rids = [
-            participant.entry_information.get("worker_id")
-            for participant in Participant.query.all()
-        ]
-
         if (
             datetime.now() - lucid_rid.creation_time
         ).seconds <= self.recruitment_config["termination_time_in_s"]:
             return False
 
-        if rid not in participant_rids:
-            return True
+        n = Participant.query.filter_by(worker_id=lucid_rid.rid, progress=0).count()
 
-        try:
-            participant = Participant.query.filter_by(worker_id=rid).one()
-        except NoResultFound:
-            raise NoResultFound(
-                f"Method 'can_be_terminated': No participant for Lucid RID '{rid}' found. This should never happen."
-            )
-        except MultipleResultsFound:
-            raise MultipleResultsFound(
-                f"Multiple participants for Lucid RID '{rid}' found. This should never happen."
-            )
-        if participant.progress == 0:
-            return True
-
-        return False
+        return n > 0
 
     def time_until_termination_in_s(self, rid):
         lucid_rid = get_lucid_rid(rid)
@@ -261,9 +241,7 @@ class LucidService(object):
         termination_time_in_s = self.recruitment_config["termination_time_in_s"]
 
         if self.can_be_terminated(lucid_rid):
-            self.terminate_respondent(
-                rid, f"termination-timeout-{termination_time_in_s}s"
-            )
+            return 0
         else:
             time_until_termination_in_s = (
                 termination_time_in_s

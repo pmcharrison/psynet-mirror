@@ -1979,13 +1979,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             exp = get_experiment()
             recruiter = exp.recruiter
+            reason = request.values["reason"]
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(assignment_id=rid)
             if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(
-                    rid, "'/terminate_participant' route was called"
-                )
+                recruiter.terminate_participant(rid, reason)
         except Exception as e:
             logger.error(f"Error terminating participant with RID '{rid}': {e}")
 
