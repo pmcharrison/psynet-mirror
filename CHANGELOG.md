@@ -1,8 +1,13 @@
 # CHANGELOG
 
-# [9.4.6] Released on 2023-06-23
+# [9.4.6] Released on 2023-07-06
 
-- Updated `Dallinger` to `v9.8.1`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.8.1.
+#### Fixed
+- Use `jquery.knob.js` instead of `jquery.knob.min.js` to avoid manifest problems (author: Peter Harrison).
+- Fixed CI problems by reverting to Postgres as a service (author: Peter Harrison).
+
+#### Updated
+- Updated `Dallinger` to `v9.8.2`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.8.2.
 
 # [9.4.5] Released on 2023-04-24
 
