@@ -26,14 +26,12 @@ class LucidService(object):
         sha1_hashing_key,
         exp_config,
         recruitment_config,
-        sandbox=True,
         max_wait_secs=0,
     ):
         self.api_key = api_key
         self.sha1_hashing_key = sha1_hashing_key
         self.exp_config = exp_config
         self.recruitment_config = recruitment_config
-        self.sandbox = False
         self.max_wait_secs = max_wait_secs
         self.headers = {
             "Content-type": "application/json",
@@ -43,10 +41,7 @@ class LucidService(object):
 
     @property
     def request_base_url_v1(self):
-        url = "https://api.samplicio.us/Demand/v1"
-        if self.sandbox:
-            url = "https://sandbox.techops.engineering/Demand/v1"
-        return url
+        return "https://api.samplicio.us/Demand/v1"
 
     @classmethod
     def log(cls, text):

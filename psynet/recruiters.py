@@ -160,7 +160,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
             exp_config=self.config,
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-            sandbox=self.config.get("mode") != "live",
         )
         self.store = kwargs.get("store", RedisStore())
 
