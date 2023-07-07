@@ -152,7 +152,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
-        self.config.set("show_bonus", False)
+        if self.config.get("show_bonus"):
+            raise RuntimeError(
+                "Lucid recruitment requires `show_bonus` to be set to `False`."
+            )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
@@ -174,7 +177,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return self.current_survey_number() is not None
 
     def verify_consents(self, consents):
-        error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)"
+        error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)."
         if isinstance(consents[0], self.required_consent_page):
             if len(consents) == 1:
                 pass
@@ -337,7 +340,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def external_submit_url(self, participant=None, assignment_id=None):
         if participant is None and assignment_id is None:
             raise RuntimeError(
-                "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided!"
+                "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided."
             )
         data = self.data_for_submit_url(participant, assignment_id)
         return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
