@@ -1209,16 +1209,6 @@
                     return processMediaBatch.extract_stimuli(data, args);
                 };
 
-                let checkParticipantId = function () {
-                    if (dallinger.identity.participantId === undefined) {
-                        alert(
-                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") | replace('"',"'") | safe }}" +
-                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") | replace('"',"'") | safe }}"
-                        );
-                        throw console.error("Undefined participant ID.");
-                    }
-                };
-
                 let initModal = function () {
                     let modal = document.getElementById("help-modal");
                     let helpBtn = document.getElementById("help-button");
@@ -1269,7 +1259,6 @@
                     console.log("Initialising page...");
 
                     psynet.registerErrorHandler();
-                    checkParticipantId();
                     initModal();
 
                     psynet.response.disable();
@@ -1281,9 +1270,10 @@
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
-                    psynet.assignmentId = dallinger.identity.assignmentId;
-                    psynet.participantId = dallinger.identity.participantId;
-                    psynet.uniqueId = dallinger.identity.uniqueId;
+                    psynet.assignmentId = "{{ participant.assignment_id }}";
+                    psynet.participantId = {{ participant.id }};
+                    psynet.uniqueId = "{{ participant.unique_id }}";
+
                     updateProgressAndBonus();
 
                     if (correctBrowser) {
@@ -1363,7 +1353,7 @@
                 let onErrorResponse = function (request) {
                     dallinger.error({
                         "data": {
-                            "participant_id": dallinger.identity.participantId
+                            "participant_id": {{ participant.id }}
                         }
                     });
                 };
