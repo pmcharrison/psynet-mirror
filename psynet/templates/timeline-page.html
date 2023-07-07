@@ -1663,8 +1663,8 @@
             {
                 // Terminate on 'page reload', 'window/tab close', and 'no focus' with timeouts and
                 // polling frequency given in milliseconds.
-                const INACTIVITY_TIMEOUT = to_milliseconds({{ experiment.recruiter.inactivity_timeout_in_s }});
-                const NO_FOCUS_TIMEOUT = to_milliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
+                const INACTIVITY_TIMEOUT = toMilliseconds({{ experiment.recruiter.inactivity_timeout_in_s }});
+                const NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
                 const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
                 const POLLING_FREQUENCY = 1000;
                 const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
@@ -1684,7 +1684,7 @@
                         return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + "overall-timeout-" + OVERALL_TIMEOUT + "s");
                     }
                     secondsLeft -= intervalInSeconds;
-                }, to_milliseconds(intervalInSeconds));
+                }, toMilliseconds(intervalInSeconds));
 
                 window.addEventListener("beforeunload", beforeunloadFunction);
 
@@ -1693,7 +1693,7 @@
                     psynet.removeBeforeUnloadEventListener();
                 });
 
-                function to_milliseconds(seconds) {
+                function toMilliseconds(seconds) {
                     return seconds * 1000;
                 }
 
