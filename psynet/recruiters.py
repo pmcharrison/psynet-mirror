@@ -15,7 +15,7 @@ from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
@@ -128,7 +128,7 @@ class LucidRID(SQLBase, SQLMixin):
     failed_reason = None
     time_of_death = None
 
-    rid = Column(String, index=True)
+    rid = Column(String, ForeignKey("participant.worker_id"), index=True)
     completed_at = Column(DateTime)
     terminated_at = Column(DateTime)
     termination_reason = Column(String)
