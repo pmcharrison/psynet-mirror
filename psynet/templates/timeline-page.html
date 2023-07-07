@@ -1747,12 +1747,10 @@
                 }
 
                 // Events that reset the inactivity timer
-                window.onload = resetInactivityTimer;
-                window.onmousemove = resetInactivityTimer;
-                window.onmousedown = resetInactivityTimer;
-                window.ontouchstart = resetInactivityTimer;
-                window.onclick = resetInactivityTimer;
-                window.onkeypress = resetInactivityTimer;
+                const events = ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"];
+                for (let i = 0; i < events.length; i++) {
+                    window.addEventListener(events[i], resetInactivityTimer);
+                }
 
                 document.addEventListener("DOMContentLoaded", function (event) {
                     let isValidBrowser = browser.validate();
