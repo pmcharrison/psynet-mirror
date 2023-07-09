@@ -41,4 +41,5 @@ docker run \
   -v "${DALLINGER_LOCAL_PATH}":/dallinger \
   --add-host=host.docker.internal:host-gateway \
   "${EXPERIMENT_IMAGE}" \
-  "$@"
+
+# cp /home/constraints.txt constraints.txt && "$@"

@@ -9,6 +9,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
+from hashlib import md5
 from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
@@ -1331,6 +1332,66 @@ def generate_constraints(ctx):
     finally:
         reset_console()
 
+
+@psynet.command()
+def check_constraints():
+    if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+        return
+
+    verify_psynet_requirement()
+
+    with yaspin(
+        text="Verifying that constraints.txt is up-to-date with requirements.txt...",
+        color="green",
+    ) as spinner:
+        _check_constraints(spinner)
+        spinner.ok("✔")
+
+def _check_constraints(spinner=None):
+    directory = os.getcwd()
+
+    # This code comes from dallinger.utils.ensure_constraints_file_presence.
+    # Ideally this Dallinger function would be refactored into exportable components.
+    requirements_path = Path(directory) / "requirements.txt"
+    constraints_path = Path(directory) / "constraints.txt"
+
+    if not requirements_path.exists():
+        if spinner:
+            spinner.fail("✘")
+        print(
+            "Error: Experiment directory is missing a requirements.txt file. "
+            "You should list your explicit Python package dependencies (e.g. PsyNet) in this file."
+        )
+        raise click.Abort()
+
+    generate_constraints_cmd = (
+        "    psynet generate-constraints\n"
+        "or, if you are using Docker:\n"
+        "    bash docker/generate-constraints"
+    )
+
+    if not constraints_path.exists():
+        if spinner:
+            spinner.fail("✘")
+        print(
+            "Error: Experiment directory is missing a constraints.txt file. "
+            "This file pins all of your experiment's Python package dependencies, both explicit and implicit. "
+            "Please check that your requirements.txt file is up-to-date, then generate the constraints.txt file "
+            "by running the following command:\n"
+            + generate_constraints_cmd
+        )
+        raise click.Abort()
+
+    requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
+    if requirements_path_hash not in constraints_path.read_text():
+        if spinner:
+            spinner.fail("✘")
+        print(
+            "Error: The requirements.txt file has been changed since the constraints.txt file was last generated. "
+            "Please generate a new constraints.txt file by running the following command:\n"
+            + generate_constraints_cmd
+        )
+        raise click.Abort()
 
 def verify_psynet_requirement():
     with yaspin(

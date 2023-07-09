@@ -18,8 +18,19 @@ RUN python3 -m pip install pydevd-pycharm~=221.6008.17
 RUN mkdir /experiment
 WORKDIR /experiment
 
+COPY *constraints.txt constraints.txt
 COPY requirements.txt requirements.txt
-RUN python3 -m pip install -r requirements.txt
+
+#ENV SKIP_DEPENDENCY_CHECK=""
+#ENV DALLINGER_NO_EGG_BUILD=1
+
+RUN psynet check-constraints
+
+#RUN python3 -c "import psynet.command_line; psynet.command_line.verify_psynet_requirement()"
+#RUN python3 -c "import dallinger.utils; import os; dallinger.utils.ensure_constraints_file_presence(os.getcwd())"
+
+RUN python3 -m pip install -r constraints.txt
+#RUN cp constraints.txt /home/constraints.txt
 
 WORKDIR /
 
