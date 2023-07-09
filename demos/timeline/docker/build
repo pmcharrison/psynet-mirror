@@ -11,7 +11,6 @@ DOCKER_SCAN_SUGGEST=false DOCKER_BUILDKIT=1 \
   docker build \
   --build-arg PSYNET_DEVELOPER_MODE="${PSYNET_DEVELOPER_MODE-}" \
   --progress=plain \
-  --platform linux/arm64/v8 \
   -t "${EXPERIMENT_IMAGE}" \
   .
 

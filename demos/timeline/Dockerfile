@@ -21,8 +21,8 @@ WORKDIR /experiment
 COPY *constraints.txt constraints.txt
 COPY requirements.txt requirements.txt
 
-#ENV SKIP_DEPENDENCY_CHECK=""
-#ENV DALLINGER_NO_EGG_BUILD=1
+ENV SKIP_DEPENDENCY_CHECK=""
+ENV DALLINGER_NO_EGG_BUILD=1
 
 RUN psynet check-constraints
 
