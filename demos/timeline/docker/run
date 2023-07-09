@@ -42,5 +42,3 @@ docker run \
   --add-host=host.docker.internal:host-gateway \
   "${EXPERIMENT_IMAGE}" \
   "$@"
-
-# cp /home/constraints.txt constraints.txt && "$@"
