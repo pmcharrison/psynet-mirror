@@ -1663,7 +1663,6 @@
             {
                 // Terminate on 'page reload', 'window/tab close', and 'no focus' with timeouts and
                 // polling frequency given in milliseconds.
-                const INACTIVITY_TIMEOUT = toMilliseconds({{ experiment.recruiter.inactivity_timeout_in_s }});
                 const NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
                 const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
                 const POLLING_FREQUENCY = 1000;
@@ -1729,21 +1728,13 @@
                 }
 
                 // Terminate due to inactivity
-                let inactivityTimer, secondsOfInactivity = 0;
-
-                function checkInactivity() {
-                    secondsOfInactivity += POLLING_FREQUENCY;
-                    if (secondsOfInactivity > INACTIVITY_TIMEOUT) {
-                        terminateParticipant("inactivity-timeout-" + INACTIVITY_TIMEOUT / 1000 + "s");
-                    } else {
-                        psynet.log.debug("User inactive since " + secondsOfInactivity / 1000 + " seconds");
-                    }
-                }
-
+                let timeoutID;
                 function resetInactivityTimer() {
-                    clearInterval(inactivityTimer);
-                    secondsOfInactivity = 0;
-                    inactivityTimer = setInterval(checkInactivity, POLLING_FREQUENCY);
+                    clearTimeout(timeoutID);
+                    let timeoutInSeconds = {{ experiment.recruiter.inactivity_timeout_in_s }};
+                    let reason = "inactivity-timeout-" + timeoutInSeconds + "s"
+                    timeoutID = setTimeout(terminateParticipant, timeoutInSeconds * 1000, reason);
+                    psynet.log.debug("Reset inactivity timer (" + timeoutInSeconds + " seconds)");
                 }
 
                 // Events that reset the inactivity timer
