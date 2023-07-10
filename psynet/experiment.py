@@ -1805,7 +1805,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = None
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-            recruiter = cls.new(db.session).recruiter
+            recruiter = get_experiment().recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(
