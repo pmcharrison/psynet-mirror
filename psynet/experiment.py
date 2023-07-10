@@ -1939,6 +1939,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return success_response()
 
+    # Lucid recruitment specific route
     @experiment_route("/terminate_participant", methods=["GET"])
     @classmethod
     def terminate_participant(cls):
