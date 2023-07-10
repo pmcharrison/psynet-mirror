@@ -1633,24 +1633,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
-    @experiment_route("/exit_recruiter", methods=["GET"])
-    @staticmethod
-    def exit_recruiter():
-        assignment_id = request.values["assignment_id"]
-        reason = request.values["reason"]
-        exp = get_experiment()
-        recruiter = exp.recruiter
-        external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
-        recruiter.terminate_participant(assignment_id, reason)
-        logger.info(
-            f"Terminating participant with RID {assignment_id} with reason '{reason}'"
-        )
-
-        return render_template_with_translations(
-            "exit_recruiter_lucid.html",
-            external_submit_url=external_submit_url,
-        )
-
     @classmethod
     def get_participant_from_unique_id(cls, unique_id):
         """
@@ -1961,24 +1943,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def terminate_participant(cls):
         participant_id = request.values.get("participant_id")
-        if participant_id is None:
-            logger.error("Error getting participant ID.")
-
-        participant = get_participant(participant_id)
-        rid = participant.entry_information["RID"]
-        exp = cls.new(db.session)
+        reason = request.values["reason"]
+        external_submit_url = None
 
         try:
-            exp = get_experiment()
-            recruiter = exp.recruiter
-            reason = request.values["reason"]
+            participant = get_participant(participant_id)
+            assignment_id = participant.assignment_id
+            recruiter = get_experiment().recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(assignment_id=rid)
+                external_submit_url = recruiter.external_submit_url(
+                    assignment_id=assignment_id
+                )
             if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(rid, reason)
+                recruiter.terminate_participant(assignment_id, reason)
+                logger.info(
+                    f"Terminating participant with RID {assignment_id} with reason '{reason}'"
+                )
+
         except Exception as e:
-            logger.error(f"Error terminating participant with RID '{rid}': {e}")
+            logger.error(
+                f"Error terminating participant with RID '{assignment_id}': {e}"
+            )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",

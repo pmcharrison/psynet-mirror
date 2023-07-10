@@ -1680,7 +1680,7 @@
                     if (secondsLeft <= 0) {
                         clearInterval(setIntervalHandle);
                         psynet.removeBeforeUnloadEventListener();
-                        return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + "overall-timeout-" + OVERALL_TIMEOUT + "s");
+                        terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
                     }
                     secondsLeft -= intervalInSeconds;
                 }, toMilliseconds(intervalInSeconds));
@@ -1705,7 +1705,7 @@
                     psynet.removeBeforeUnloadEventListener();
                     clearInterval(checkFocusInterval);
                     clearInterval(checkTriedToLeaveInterval);
-                    return window.location.replace("/exit_recruiter?assignment_id=" + assignmentId + "&reason=" + reason)
+                    return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + reason)
                 }
 
                 function checkTriedToLeave() {
