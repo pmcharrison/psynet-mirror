@@ -13,17 +13,11 @@ logger = get_logger()
 
 
 class CameraRecordTrial(RecordTrial):
-    __extra_vars__ = {}
-
-    recording_url_name = "camera_url"
-    recording_id_name = "camera_id"
+    pass
 
 
 class ScreenRecordTrial(RecordTrial):
-    __extra_vars__ = {}
-
-    recording_url_name = "screen_url"
-    recording_id_name = "screen_id"
+    pass
 
 
 class CameraImitationChainNetwork(MediaImitationChainNetwork):

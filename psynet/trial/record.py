@@ -5,7 +5,7 @@ import dominate.tags as tags
 from dallinger import db
 
 from ..asset import ExperimentAsset
-from ..field import claim_var, extra_var
+from ..field import claim_var
 from ..utils import get_logger
 from .imitation_chain import (
     ImitationChainNetwork,
@@ -31,27 +31,6 @@ class RecordTrial:
     analysis = claim_var("analysis", __extra_vars__)
 
     run_async_post_trial = True
-    recording_url_name = None
-    recording_id_name = None
-
-    @property
-    def media_answer(self):
-        """
-        This logic is here to cope with cases where the trial contains multiple answers
-        and we need to pluck out the right answer that corresponds to the recording.
-        I'm not a big fan of this logic, but I don't want to refactor it until we've changed
-        the ``accumulate_answers`` functionality into using dictionaries instead of lists
-        (https://gitlab.com/computational-audition-lab/psynet/-/issues/373)
-        """
-        if isinstance(self.answer, list):  # multipage
-            for a in self.answer:
-                try:
-                    if a["supports_record_trial"]:
-                        return a
-                except (KeyError, TypeError) as e:  # noqa
-                    continue
-        else:
-            return self.answer
 
     @property
     def recording(self):
@@ -84,51 +63,13 @@ class RecordTrial:
             )
 
     @property
-    def recording_info(self):
-        answer = self.media_answer
-        if answer is None:
-            return None
-        try:
-            return {
-                "id": answer[self.recording_id_name],
-                "url": answer[self.recording_url_name],
-            }
-        except KeyError as e:
-            raise KeyError(
-                str(e)
-                + " Did the trial include an AudioRecordControl or VideoRecordControl, as required?"
-            )
-
-    @property
-    @extra_var(__extra_vars__)
-    def has_recording(self):
-        return self.recording_info is not None
-
-    @property
-    @extra_var(__extra_vars__)
-    def plot_key(self):
-        if self.has_recording:
-            base = os.path.splitext(self.recording_info["key"])[0]
-            return base + ".png"
-
-    @property
-    @extra_var(__extra_vars__)
-    def plot_url(self):
-        if self.recording_analysis_plot is not None:
-            return self.recording_analysis_plot.url
-
-    @property
-    @extra_var(__extra_vars__)
-    def recording_url(self):
-        if self.has_recording:
-            return self.recording_info["url"]
-
-    @property
     def visualization_html(self):
         html = super().visualization_html
-        if self.has_recording:
+        if self.recording_analysis_plot is not None:
             html += tags.div(
-                tags.img(src=self.plot_url, style="max-width: 100%;"),
+                tags.img(
+                    src=self.recording_analysis_plot.url, style="max-width: 100%;"
+                ),
                 style="border-style: solid; border-width: 1px;",
             ).render()
         return html
