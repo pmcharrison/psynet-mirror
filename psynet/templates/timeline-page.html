@@ -1656,19 +1656,19 @@
                 const NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
                 const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
                 const POLLING_FREQUENCY = 1000;
-                const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
-                const checkTriedToLeaveInterval = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
+                let checkFocusIntervalID = setInterval(checkFocus, POLLING_FREQUENCY);
+                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
                 let triedToLeave = false;
                 let noFocusSince = 0;
                 let assignmentId = "{{ worker_id }}";
 
                 // Terminate on overall timeout
-                secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
-                intervalInSeconds = 1;
-                var setIntervalHandle = setInterval(function () {
+                let secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
+                let intervalInSeconds = 1;
+                let overallTimeoutIntervalID = setInterval(function () {
                     psynet.log.debug("Seconds left before termination: " + secondsLeft);
                     if (secondsLeft <= 0) {
-                        clearInterval(setIntervalHandle);
+                        clearInterval(overallTimeoutIntervalID);
                         psynet.removeBeforeUnloadEventListener();
                         terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
                     }
@@ -1693,8 +1693,8 @@
 
                 function terminateParticipant(reason) {
                     psynet.removeBeforeUnloadEventListener();
-                    clearInterval(checkFocusInterval);
-                    clearInterval(checkTriedToLeaveInterval);
+                    clearInterval(checkFocusIntervalID);
+                    clearInterval(checkTriedToLeaveIntervalID);
                     return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + reason)
                 }
 
@@ -1718,12 +1718,12 @@
                 }
 
                 // Terminate due to inactivity
-                let timeoutID;
+                let inactivityTimeoutID;
                 function resetInactivityTimer() {
-                    clearTimeout(timeoutID);
+                    clearTimeout(inactivityTimeoutID);
                     let timeoutInSeconds = {{ experiment.recruiter.inactivity_timeout_in_s }};
                     let reason = "inactivity-timeout-" + timeoutInSeconds + "s"
-                    timeoutID = setTimeout(terminateParticipant, timeoutInSeconds * 1000, reason);
+                    inactivityTimeoutID = setTimeout(terminateParticipant, timeoutInSeconds * 1000, reason);
                     psynet.log.debug("Reset inactivity timer (" + timeoutInSeconds + " seconds)");
                 }
 
