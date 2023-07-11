@@ -61,12 +61,6 @@ but see the sidebar for a full list.
    installation/index
 
 .. toctree::
-   :maxdepth: 2
-   :hidden:
-
-   developer_installation/index
-
-.. toctree::
    :hidden:
    :caption: EXPERIMENT DEVELOPMENT
 
