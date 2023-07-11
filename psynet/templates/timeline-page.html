@@ -159,7 +159,7 @@
                             </div>
                         {% endif %}
 
-                        {% if config.allow_switching_locale and supported_language_dict|length > 1 %}
+                        {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
                             <div>
                                 <select id="iso-language" class="form-control">
                                     {% for iso, language in supported_language_dict.items() %}
@@ -275,6 +275,10 @@
                         total += numbers[i];
                     }
                     return total / numbers.length;
+                };
+
+                psynet.removeBeforeUnloadEventListener = function () {
+                    window.removeEventListener("beforeunload", beforeunloadFunction);
                 };
 
                 psynet.waitForEventListener = async function (target, type) {
@@ -1303,6 +1307,9 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
+                    {% if experiment.with_lucid_recruitment() %}
+                        psynet.removeBeforeUnloadEventListener();
+                    {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                     return passedValidation
                 };
@@ -1553,14 +1560,14 @@
                         let progressPercentage = data['progressPercentage'];
                         let progressPercentageStr = progressPercentage + '%';
                         $('#timeline-progress-bar').text(progressPercentageStr);
-                        $('#timeline-progress-bar').css("width", progressPercentageStr)
-                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+                        $('#timeline-progress-bar').css("width", progressPercentageStr);
+                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage);
 
                         if (data['bonus'] !== undefined) {
                             if (data['bonus']['extra'].toFixed(2) > 0) {
                                 $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
                                 $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                                $("#bonus-details").show()
+                                $("#bonus-details").show();
                             }
                             $('#total-bonus').text(data['bonus']['total'].toFixed(2));
                         }
@@ -1637,4 +1644,98 @@
         </script>
     {% endfor %}
 
+    {% if experiment.with_lucid_recruitment() %}
+        <script>
+            {
+                // Terminate on 'page reload', 'window/tab close', and 'no focus' with timeouts and
+                // polling frequency given in milliseconds.
+                const NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
+                const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
+                const POLLING_FREQUENCY = 1000;
+                let checkFocusIntervalID = setInterval(checkFocus, POLLING_FREQUENCY);
+                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
+                let triedToLeave = false;
+                let noFocusSince = 0;
+                let assignmentId = "{{ worker_id }}";
+
+                // Terminate on overall timeout
+                let secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
+                let intervalInSeconds = 1;
+                let overallTimeoutIntervalID = setInterval(function () {
+                    psynet.log.debug("Seconds left before termination: " + secondsLeft);
+                    if (secondsLeft <= 0) {
+                        clearInterval(overallTimeoutIntervalID);
+                        psynet.removeBeforeUnloadEventListener();
+                        terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
+                    }
+                    secondsLeft -= intervalInSeconds;
+                }, toMilliseconds(intervalInSeconds));
+
+                window.addEventListener("beforeunload", beforeunloadFunction);
+
+                // Proceed to next page
+                $(".btn, .sd-btn").click(function () {
+                    psynet.removeBeforeUnloadEventListener();
+                });
+
+                function toMilliseconds(seconds) {
+                    return seconds * 1000;
+                }
+
+                function beforeunloadFunction(event) {
+                    event.returnValue = `Are you sure you want to leave?`;
+                    triedToLeave = true;
+                }
+
+                function terminateParticipant(reason) {
+                    psynet.removeBeforeUnloadEventListener();
+                    clearInterval(checkFocusIntervalID);
+                    clearInterval(checkTriedToLeaveIntervalID);
+                    return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + reason)
+                }
+
+                function checkTriedToLeave() {
+                    if (triedToLeave) {
+                        terminateParticipant("user-tried-to-leave");
+                    }
+                }
+
+                function checkFocus() {
+                    if (document.hasFocus()) {
+                        noFocusSince = 0;
+                    } else {
+                        noFocusSince += POLLING_FREQUENCY;
+                        if (noFocusSince > NO_FOCUS_TIMEOUT) {
+                            terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
+                        } else {
+                            psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
+                        }
+                    }
+                }
+
+                // Terminate due to inactivity
+                let inactivityTimeoutID;
+                function resetInactivityTimer() {
+                    clearTimeout(inactivityTimeoutID);
+                    let timeoutInSeconds = {{ experiment.recruiter.inactivity_timeout_in_s }};
+                    let reason = "inactivity-timeout-" + timeoutInSeconds + "s"
+                    inactivityTimeoutID = setTimeout(terminateParticipant, timeoutInSeconds * 1000, reason);
+                    psynet.log.debug("Reset inactivity timer (" + timeoutInSeconds + " seconds)");
+                }
+
+                // Events that reset the inactivity timer
+                const events = ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"];
+                for (let i = 0; i < events.length; i++) {
+                    window.addEventListener(events[i], resetInactivityTimer);
+                }
+
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    let isValidBrowser = browser.validate();
+                    if (!isValidBrowser) {
+                        terminateParticipant("invalid-browser");
+                    }
+                });
+            }
+        </script>
+    {% endif %}
 {% endblock %}

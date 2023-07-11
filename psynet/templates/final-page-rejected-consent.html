@@ -3,12 +3,26 @@
 {% block main_body %}
     {{ pgettext("final_page_rejected_consent", "Consent was rejected.") }}
     {{ pgettext("final_page_rejected_consent", "End of experiment.") }}
+    {% if not experiment.with_lucid_recruitment() %}
+        <p class="vspace"></p>
+        <p>
+            {{ gettext('Please click "Finish" to complete the HIT.') }}
+        </p>
+        <p class="vspace"></p>
+        <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Finish") }}</button>
+    {% endif %}
+{% endblock %}
 
-    <p class="vspace"></p>
-    <p>
-        {{ gettext('Please click "Finish" to complete the HIT.') }}
-    </p>
-    <p class="vspace"></p>
-
-    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">{{ gettext("Finish") }}</button>
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function finish() {
+          dallinger.submitAssignment();
+        }
+        {% if experiment.with_lucid_recruitment() %}
+            finish();
+        {% else %}
+            document.getElementById("next-button").onclick = finish;
+        {% endif %}
+    </script>
 {% endblock %}
