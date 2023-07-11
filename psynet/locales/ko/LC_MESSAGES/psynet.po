@@ -416,6 +416,18 @@ msgstr "난독증 진단을 받은 적이 있나요?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "오류가 발생하여 계속하실 수 없습니다, 죄송합니다!"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "리디렉션..."
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "또한 다음 정보를 인용해 주세요:"
@@ -442,13 +454,21 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "보상에 대해 문의하려면 Prolific 웹사이트를 통해 연구원에게 메시지를 보내 오류의 원인을 설명해 주세요."
 
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "루시드 마켓플레이스로 리디렉션..."
+
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
 " to be compensated."
-msgstr "보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s 만큼 </strong> 적립해야 합니다."
+msgstr ""
+"보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s 만큼"
+" </strong> 적립해야 합니다."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -483,13 +503,13 @@ msgid "Close window"
 msgstr "창 닫기"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "과제 ID"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "히트 ID"
@@ -583,12 +603,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "경고"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "실험 중단"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "오류 발생 시 보상을 받으려면 위의 버튼을 클릭하세요."
@@ -599,7 +619,8 @@ msgid ""
 "You will also see one or more consent pages and have up to\n"
 "                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
 msgstr ""
-"또한 하나 이상의 동의 페이지가 표시되며 최대 <strong>%(TERMINATION_TIME)s</strong> 까지 동의 페이지를 읽고 동의/거부할 수 있습니다."
+"또한 하나 이상의 동의 페이지가 표시되며 최대 <strong>%(TERMINATION_TIME)s</strong> 까지 동의 페이지를 "
+"읽고 동의/거부할 수 있습니다."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -616,6 +637,13 @@ msgstr "이제 브라우저의 호환성을 테스트하겠습니다."
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "계속하려면 아래 버튼을 클릭하세요."
+
+#. ""
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "계속하려면 아래 버튼을 클릭하세요."
 
@@ -661,8 +689,8 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"본인은 제한된 수의 참가자가 있는 프레젠테이션(예: 교육 과정 또는 과학 프레젠테이션)에서 저의 <i>시청각</i> 녹화물을 데모 목적으로 사용할"
-" 수 있음에 동의합니다."
+"본인은 제한된 수의 참가자가 있는 프레젠테이션(예: 교육 과정 또는 과학 프레젠테이션)에서 저의 <i>시청각</i> 녹화물을 데모 "
+"목적으로 사용할 수 있음에 동의합니다."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -714,8 +742,8 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"본인은 <i>시청각</i> 기록의 저장 및 처리가 가명 처리된 형태, 즉 내 이름을 포함하지 않고 번호를 사용하여 수행되며, 내 이름과 번호를 "
-"연결하는 코딩 목록이 있다는 사실을 통보받았습니다."
+"본인은 <i>시청각</i> 기록의 저장 및 처리가 가명 처리된 형태, 즉 내 이름을 포함하지 않고 번호를 사용하여 수행되며, 내 이름과 "
+"번호를 연결하는 코딩 목록이 있다는 사실을 통보받았습니다."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1312,7 +1340,6 @@ msgid "We need your consent to proceed"
 msgstr "계속 진행하려면 귀하의 동의가 필요합니다."
 
 #: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/macros/consent.html
@@ -1338,529 +1365,6 @@ msgstr "브라우저에서 자바스크립트를 활성화하지 않으면 이 �
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "경고: 브라우저에서 자바스크립트가 작동하지 않습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr "연구 과정에서 얻은 모든 정보는 기밀로 유지됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr ""
-"연구자가 사용자의 실제 신원을 파악하기 위해 사용자의 영숫자 코드를 사용하지는 않지만, 데이터 유출이 발생하는 경우 이 기록이 사용자의 "
-"공개 프로필 페이지에 연결될 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr "이러한 추가 요구사항에 동의하는 것은 전적으로 자발적인 선택입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr "이 코드는 귀하의 실제 신원을 파악하는 데 사용되지 않으며, 연구팀 외부의 누구와도 공유되지 않으며, 사용 후 삭제됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr "따라서 귀하는 공개적으로 공유하기로 선택한 정보를 제한할 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr ""
-"당사는 이미 이 실험 또는 다른 실험에 참여한 참가자를 구별하기 위해 귀하의 익명화된 영숫자 코드만 당사 시스템에 저장합니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr ""
-"이 프로젝트의 목적은 세계 각지의 사람들이 소리(예: 음성, 음악)와 이미지(예: 얼굴, 색상)를 어떻게 경험하는지를 연구하는 것입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "기밀 유지"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"이 연구가 직접적으로 여러분에게 도움이 되지는 않겠지만, 인간이 소리와 시각에서 정보를 얻는 방법을 이해하고, 잠재적으로 인간의 능력을 "
-"모방할 수 있는 기계(예: 소리 인식 및 컴퓨터 비전)를 설계하고 청각이나 시각 장애가 있는 사람들의 지각 능력을 개선하는 데 도움을 "
-"줌으로써 사회에 도움이 될 수 있을 것으로 기대됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "혜택"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr "과학적 발전과 복제를 돕기 위해 때때로 당사는 연구 협력자와 데이터를 공유할 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr "이러한 경우에는 개인 식별자가 없는 인구통계, 집계 또는 추출된 데이터와 같이 완전히 익명화된 데이터만 공유합니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "연구 협업"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr "실험에서 완전히 익명화할 수 없는 데이터를 수집하는 경우, 당사는 이를 사용자에게 알리고 추가 동의를 요청할 것입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr "실험의 어떤 단계에서도 개인 식별자(예: 이름 또는 연락처 데이터)는 수집되거나 사용되지 않습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr "여기에는 시청각 녹음을 하거나 향후 다른 실험을 위해 연락을 취하기 위해 귀하의 연락처 정보가 필요한 실험이 포함됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "따라서 실험 데이터는 익명으로 처리됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"당사는 일부 인구통계학적 데이터(예: 연령, 성별, 거주 국가)와 귀하의 학습 및 노출 이력에 대한 정보(예: 악기 연주 경험, 정규 "
-"교육 기간, 사용 언어)를 수집할 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"마지막으로, 일부 실험에서는 소리나 영상에 반응하여 손가락을 두드리는 모습을 녹음하거나 자신이 말하거나 노래하는 모습을 녹음하도록 "
-"요청받을 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"예를 들어, 특정 소리나 이미지가 얼마나 즐거운지 판단하거나, 소리나 이미지를 분류(예: 소리나 이미지가 자동차 소리인지 소 "
-"소리인지)하거나, 소리나 이미지의 다른 기본적인 특징(예: 이런 유형의 소리나 이미지를 얼마나 자주 접하는가? 특정 소리나 이미지가 "
-"얼마나 미학적으로 만족스러운가?)을 판단하도록 요청받을 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr "실험에 이러한 요소가 포함될 경우 추가 동의를 요청할 것입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"이 연구에 자원하여 참여하면 소리를 듣거나 이미지 또는 동영상을 관찰하면서 키보드나 마우스를 사용하여 간단한 작업을 수행하도록 요청받게 "
-"됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"일부 실험에서는 가벼운 속임수를 사용할 수 있습니다. 즉, 실험 과제에 대한 모든 진실을 설명하지 않을 수 있습니다(예: 이미지가 사람이"
-" 아닌 인공 컴퓨터 시스템에 의해 생성되었다는 사실을 알려주지 않음)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr "가벼운 속임수는 실험을 진행하기 전에 참가자의 편견을 방지해야 하는 일부 실험에만 사용됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "실험 절차"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"사용되는 구체적인 소리, 이미지 및 동영상은 다양하지만 주변 소리, 소음, 음성, 음악, 단순한 톤, 자연스러운 이미지, 애니메이션 "
-"이미지, 만화, 얼굴, 물체, 기하학적 도형, 프랙탈 이미지 또는 자연 환경의 동영상 등의 녹음이 포함될 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "목적"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "막스 플랑크 소사이어티의 경우입니다:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"일부 연구의 경우 데이터 삭제가 불가능할 수 있으며, 이 경우 별도의 동의 양식을 통해 이 절차에 대한 동의를 요청할 것입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "또한 귀하는 감독 기관에 이의를 제기할 권리가 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"귀하는 막스플랑크 연구소에 저장된 자신과 관련된 데이터에 대한 정보에 대한 권리, 부정확한 데이터를 수정할 권리, 허용되지 않는 데이터 "
-"저장의 경우 데이터 삭제를 요구할 권리 및 데이터 이동성에 대한 권리가 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "귀하의 권리"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "위험/불편 사항"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr "이 연구에 참여하는 데 있어 일반적인 컴퓨터 사용과 관련된 위험 외에 다른 위험은 없습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr "데이터는 비밀번호로 보호되는 외부 서버 및 데스크톱/노트북에 임시로 저장됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "데이터는 외부 서버에 영구적으로 저장되지 않습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr "데이터는 업계 표준 암호화 소프트웨어를 사용하여 암호화된 하드 디스크를 통해 연구소 서버에 영구적으로 저장됩니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr "조사자는 필요한 상황이 발생할 경우 귀하를 이 연구에서 철회할 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "자발적 참여"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr "귀하는 언제든지 불이익 없이 이 연구 참여를 중단할 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr "귀하는 자유롭게 참여를 거부할 수 있으며 언제든지 참여를 중단할 수 있습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "이 연구에 대한 귀하의 참여는 자발적입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "본 약관을 이해하고 동의하십니까?"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "위/아래로 스크롤하여 모든 텍스트 보기"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "I agree"
-msgstr "동의합니다"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr "이 연구에 대해 궁금한 점이 있으면 주저하지 말고 이 프로젝트의 주 연구자인 Nori Jacoby에게 문의하시기 바랍니다:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "아니요, 감사합니다(과제 반환)"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"참여에 동의함으로써 귀하는 귀하가 18세 이상이며, 본 동의서를 읽고 그 내용에 동의하며, 이 연구에 참여하는 데 동의함을 인정합니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "동의"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "동의를 원하지 않으시면 이 페이지를 닫아주세요."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "연락처 정보"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "개요"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr "이 온라인 양식의 목적은 연구 참여 여부를 결정하는 데 도움이 되는 정보를 제공하기 위한 것입니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr "이 연구는 막스 플랑크 실증 미학 연구소의 연구원들이 수행하고 있습니다."
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -1890,12 +1394,407 @@ msgid ""
 msgstr "또한 과제 수행 성과에 따라 추가 보상을 받을 수도 있습니다."
 
 #: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"이 프로젝트의 목적은 세계 각지의 사람들이 소리(예: 음성, 음악)와 이미지(예: 얼굴, 색상)를 어떻게 경험하는지를 연구하는 것입니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "기밀 유지"
+
+#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "Compensation"
 msgstr "보상"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"이 연구가 직접적으로 여러분에게 도움이 되지는 않겠지만, 인간이 소리와 시각에서 정보를 얻는 방법을 이해하고, 잠재적으로 인간의 능력을 "
+"모방할 수 있는 기계(예: 소리 인식 및 컴퓨터 비전)를 설계하고 청각이나 시각 장애가 있는 사람들의 지각 능력을 개선하는 데 도움을 "
+"줌으로써 사회에 도움이 될 수 있을 것으로 기대됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "혜택"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr "과학적 발전과 복제를 돕기 위해 때때로 당사는 연구 협력자와 데이터를 공유할 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr "이러한 경우에는 개인 식별자가 없는 인구통계, 집계 또는 추출된 데이터와 같이 완전히 익명화된 데이터만 공유합니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "연구 협업"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr "연구 과정에서 얻은 모든 정보는 기밀로 유지됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"연구자가 사용자의 실제 신원을 파악하기 위해 사용자의 영숫자 코드를 사용하지는 않지만, 데이터 유출이 발생하는 경우 이 기록이 사용자의 "
+"공개 프로필 페이지에 연결될 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "이러한 추가 요구사항에 동의하는 것은 전적으로 자발적인 선택입니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr "실험에서 완전히 익명화할 수 없는 데이터를 수집하는 경우, 당사는 이를 사용자에게 알리고 추가 동의를 요청할 것입니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr "실험의 어떤 단계에서도 개인 식별자(예: 이름 또는 연락처 데이터)는 수집되거나 사용되지 않습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr "여기에는 시청각 녹음을 하거나 향후 다른 실험을 위해 연락을 취하기 위해 귀하의 연락처 정보가 필요한 실험이 포함됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr "이 코드는 귀하의 실제 신원을 파악하는 데 사용되지 않으며, 연구팀 외부의 누구와도 공유되지 않으며, 사용 후 삭제됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "따라서 실험 데이터는 익명으로 처리됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr "따라서 귀하는 공개적으로 공유하기로 선택한 정보를 제한할 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"당사는 일부 인구통계학적 데이터(예: 연령, 성별, 거주 국가)와 귀하의 학습 및 노출 이력에 대한 정보(예: 악기 연주 경험, 정규 "
+"교육 기간, 사용 언어)를 수집할 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"당사는 이미 이 실험 또는 다른 실험에 참여한 참가자를 구별하기 위해 귀하의 익명화된 영숫자 코드만 당사 시스템에 저장합니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"마지막으로, 일부 실험에서는 소리나 영상에 반응하여 손가락을 두드리는 모습을 녹음하거나 자신이 말하거나 노래하는 모습을 녹음하도록 "
+"요청받을 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"예를 들어, 특정 소리나 이미지가 얼마나 즐거운지 판단하거나, 소리나 이미지를 분류(예: 소리나 이미지가 자동차 소리인지 소 "
+"소리인지)하거나, 소리나 이미지의 다른 기본적인 특징(예: 이런 유형의 소리나 이미지를 얼마나 자주 접하는가? 특정 소리나 이미지가 "
+"얼마나 미학적으로 만족스러운가?)을 판단하도록 요청받을 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr "실험에 이러한 요소가 포함될 경우 추가 동의를 요청할 것입니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"이 연구에 자원하여 참여하면 소리를 듣거나 이미지 또는 동영상을 관찰하면서 키보드나 마우스를 사용하여 간단한 작업을 수행하도록 요청받게 "
+"됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"일부 실험에서는 가벼운 속임수를 사용할 수 있습니다. 즉, 실험 과제에 대한 모든 진실을 설명하지 않을 수 있습니다(예: 이미지가 사람이"
+" 아닌 인공 컴퓨터 시스템에 의해 생성되었다는 사실을 알려주지 않음)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr "가벼운 속임수는 실험을 진행하기 전에 참가자의 편견을 방지해야 하는 일부 실험에만 사용됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "실험 절차"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"사용되는 구체적인 소리, 이미지 및 동영상은 다양하지만 주변 소리, 소음, 음성, 음악, 단순한 톤, 자연스러운 이미지, 애니메이션 "
+"이미지, 만화, 얼굴, 물체, 기하학적 도형, 프랙탈 이미지 또는 자연 환경의 동영상 등의 녹음이 포함될 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "목적"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "막스 플랑크 소사이어티의 경우입니다:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"일부 연구의 경우 데이터 삭제가 불가능할 수 있으며, 이 경우 별도의 동의 양식을 통해 이 절차에 대한 동의를 요청할 것입니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "또한 귀하는 감독 기관에 이의를 제기할 권리가 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"귀하는 막스플랑크 연구소에 저장된 자신과 관련된 데이터에 대한 정보에 대한 권리, 부정확한 데이터를 수정할 권리, 허용되지 않는 데이터 "
+"저장의 경우 데이터 삭제를 요구할 권리 및 데이터 이동성에 대한 권리가 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "귀하의 권리"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "위험/불편 사항"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr "이 연구에 참여하는 데 있어 일반적인 컴퓨터 사용과 관련된 위험 외에 다른 위험은 없습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr "데이터는 비밀번호로 보호되는 외부 서버 및 데스크톱/노트북에 임시로 저장됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "데이터는 외부 서버에 영구적으로 저장되지 않습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr "데이터는 업계 표준 암호화 소프트웨어를 사용하여 암호화된 하드 디스크를 통해 연구소 서버에 영구적으로 저장됩니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr "조사자는 필요한 상황이 발생할 경우 귀하를 이 연구에서 철회할 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "자발적 참여"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr "귀하는 언제든지 불이익 없이 이 연구 참여를 중단할 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr "귀하는 자유롭게 참여를 거부할 수 있으며 언제든지 참여를 중단할 수 있습니다."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "이 연구에 대한 귀하의 참여는 자발적입니다."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2015,6 +1914,12 @@ msgid ""
 "compensation for participation."
 msgstr "이 연구는 전적으로 자발적인 참여로 이루어지며, 참여에 대한 금전적 보상은 제공되지 않습니다."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "오류가 발생했습니다!"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2043,7 +1948,8 @@ msgstr ""
 msgid ""
 "You have also been awarded a performance bonus of "
 "<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr "또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>를 지급받았습니다!"
+msgstr ""
+"또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>를 지급받았습니다!"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2083,7 +1989,6 @@ msgstr "이것으로 실험이 끝났습니다!"
 msgid "Thank you for taking part."
 msgstr "참여해 주셔서 감사합니다."
 
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "You will be redirected."
@@ -2303,6 +2208,36 @@ msgstr "실험에 참여하려면 최신 버전의 Google 크롬을 사용해야
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "본 약관을 이해하고 동의하십니까?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "위/아래로 스크롤하여 모든 텍스트 보기"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "동의합니다"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr "이 연구에 대해 궁금한 점이 있으면 주저하지 말고 이 프로젝트의 주 연구자인 Nori Jacoby에게 문의하시기 바랍니다:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "아니요, 감사합니다(과제 반환)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent"
 msgid "Principal Investigator"
 msgstr "책임 연구자"
@@ -2433,6 +2368,56 @@ msgid ""
 "Your recordings will not be used to derive your real identity, and they will"
 " not be made public."
 msgstr "사용자의 녹음 내용은 사용자의 실제 신원을 파악하는 데 사용되지 않으며 공개되지 않습니다."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"참여에 동의함으로써 귀하는 귀하가 18세 이상이며, 본 동의서를 읽고 그 내용에 동의하며, 이 연구에 참여하는 데 동의함을 인정합니다."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "동의"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "동의를 원하지 않으시면 이 페이지를 닫아주세요."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "연락처 정보"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "개요"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr "이 온라인 양식의 목적은 연구 참여 여부를 결정하는 데 도움이 되는 정보를 제공하기 위한 것입니다."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr "이 연구는 막스 플랑크 실증 미학 연구소의 연구원들이 수행하고 있습니다."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2598,30 +2583,30 @@ msgstr "처음부터 재생"
 msgid "Video not found"
 msgstr "동영상을 찾을 수 없습니다."
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
 msgstr "오류 유형"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, python-format, fuzzy
 msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr "그렇지 않은 경우 다음 정보를 인용하여 %(EMAIL)s 문의하시기 바랍니다:"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
 msgstr "작업자 ID"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
-msgctxt "mturk_error"
+msgctxt "error"
 msgid "Error!"
-msgstr "오류가 발생했습니다!"
+msgstr "오류!"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -2629,14 +2614,15 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr "실험이 중단되면 보상을 받기 위해 따로 연락하실 필요가 없으며, 몇 분 후 MTurk를 통해 자동으로 보상금이 지급됩니다."
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"<strong>MTurk 광고 페이지</strong>의 <strong>실험 중단</strong> 버튼 <strong>을 사용하여 실험을 중단할 수 있습니다."
+"<strong>MTurk 광고 페이지</strong>의 <strong>실험 중단</strong> 버튼 <strong>을 사용하여 실험을 "
+"중단할 수 있습니다."
 
 #: psynet/templates/start.html
 #, fuzzy
@@ -4218,12 +4204,6 @@ msgstr "짐바브웨"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "올란드 제도"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "오류가 발생하여 계속하실 수 없습니다, 죄송합니다!"
 
 #: psynet/utils.py
 #, fuzzy

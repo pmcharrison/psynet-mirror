@@ -1186,7 +1186,9 @@ class AttentionTest(Module):
                     participant.answer is not None
                     and self.fail_on in ["attention_test_1", "any"]
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_test_1"]),
+                UnsuccessfulEndPage(
+                    failure_tags=["performance_check", "attention_test_1"]
+                ),
             ),
             CodeBlock(
                 lambda experiment, participant: participant.var.new(
@@ -1215,7 +1217,9 @@ class AttentionTest(Module):
                         or not participant.var.first_check_passed
                     )
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_test_2"]),
+                UnsuccessfulEndPage(
+                    failure_tags=["performance_check", "attention_test_2"]
+                ),
             ),
         )
         super().__init__(self.label, self.elts)

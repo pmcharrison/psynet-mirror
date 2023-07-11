@@ -1356,6 +1356,17 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
+    @property
+    def consents(self):
+        from .consent import Consent
+
+        return [elt for elt in self.elts if isinstance(elt, Consent)]
+
+    def verify_consents(self, experiment):
+        recruiter = experiment.recruiter
+        if hasattr(recruiter, "verify_consents"):
+            recruiter.verify_consents(self.consents)
+
     @cached_property
     def modules(self):
         return {e.module_id: e.module for e in self.elts}

@@ -422,6 +422,18 @@ msgstr "Je, umewahi kukutwa na dyslexia?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Kumekuwa na hitilafu na kwa hivyo huwezi kuendelea, samahani!"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Inaelekeza..."
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Tafadhali pia nukuu habari ifuatayo:"
@@ -451,6 +463,12 @@ msgid ""
 msgstr ""
 "Ili kuuliza kuhusu fidia, tafadhali mtumie mtafiti ujumbe kupitia tovuti ya "
 "Prolific na ueleze kilichosababisha kosa lako."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Inaelekezwa kwenye Soko la Lucid..."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -497,13 +515,13 @@ msgid "Close window"
 msgstr "Funga dirisha"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Kitambulisho cha kazi"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -603,12 +621,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Onyo"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Acha Jaribio"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Bofya kitufe kilicho hapo juu ili kulipwa iwapo kutatokea hitilafu."
@@ -637,6 +655,13 @@ msgstr "Sasa tutajaribu kivinjari chako ili kuona uoanifu."
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Ili kuendelea, bofya kitufe kilicho hapa chini."
+
+#. ""
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Ili kuendelea, bofya kitufe kilicho hapa chini."
 
@@ -1426,7 +1451,6 @@ msgid "We need your consent to proceed"
 msgstr "Tunahitaji kibali chako ili kuendelea"
 
 #: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/macros/consent.html
@@ -1454,586 +1478,6 @@ msgstr ""
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "Onyo: Javascript haifanyi kazi kwenye kivinjari chako"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr "Taarifa zote tunazopata wakati wa utafiti zitawekwa siri."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr ""
-"Ingawa watafiti hawatatumia msimbo wako wa nambari kupata utambulisho wako "
-"halisi, rekodi hii inaweza kuunganishwa katika baadhi ya matukio kwenye "
-"ukurasa wa wasifu wako wa umma ikiwa ukiukaji wa data utafanyika."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr "Kukubali mahitaji haya ya ziada pia ni kwa hiari kikamilifu."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr ""
-"Msimbo huu hautatumika kupata utambulisho wako halisi, hautashirikiwa na mtu"
-" yeyote nje ya timu ya utafiti na utafutwa baada ya matumizi."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Kwa hivyo, unaweza kutaka kuzuia ni maelezo gani unayochagua kushiriki "
-"hadharani."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr ""
-"Tutahifadhi msimbo wako wa nambari wa alpha usiojulikana katika mfumo wetu, "
-"ili kutofautisha washiriki ambao tayari wameshiriki katika hili au majaribio"
-" mengine."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr ""
-"Madhumuni ya mradi huu ni kujifunza jinsi watu kutoka sehemu mbalimbali "
-"duniani wanavyopata sauti (k.m., hotuba, muziki) na picha (k.m., nyuso, "
-"rangi)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "Usiri"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"Ingawa huenda usikufaidi moja kwa moja, utafiti huu unaweza kunufaisha jamii"
-" kwa kutusaidia kuelewa jinsi wanadamu hupata taarifa kutoka kwa sauti na "
-"kuona, na uwezekano wa kusaidia mashine za kihandisi zinazoweza kuiga uwezo "
-"wetu (k.m. katika utambuzi wa sauti na maono ya kompyuta) na kusaidia "
-"kuboresha. uwezo wa utambuzi kwa watu ambao kusikia au kuona kunaharibika."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "Faida"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr ""
-"Kwa madhumuni ya kusaidia maendeleo ya kisayansi na urudufishaji, wakati "
-"mwingine tunaweza kushiriki data na washirika wa utafiti."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-"Katika hali hizi, tutashiriki tu data ambayo haijatambulishwa kikamilifu, "
-"kama vile data ya demografia, iliyojumlishwa au iliyotolewa bila "
-"vitambulishi vyovyote vya kibinafsi."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "Ushirikiano wa utafiti"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-"Ikiwa jaribio linakusanya data ambayo haiwezi kufichuliwa kabisa, "
-"tutakujulisha na pia tutakuomba idhini ya ziada."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-"Hakuna vitambulishi vya kibinafsi (k.m. jina lako au data ya anwani) "
-"vitakusanywa au kutumika katika hatua yoyote ya jaribio."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-"Haya ni pamoja na majaribio ambapo tunatengeneza rekodi za sauti na "
-"mwonekano au tunapohitaji maelezo yako ya mawasiliano kuwasiliana nawe "
-"katika siku zijazo ili kufanya jaribio lingine."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "Kwa hivyo, data ya majaribio haijulikani."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Tunaweza kukusanya baadhi ya data ya demografia (k.m. umri, jinsia, nchi "
-"unakoishi) pamoja na maelezo kuhusu historia yako ya kujifunza na kufichua "
-"(k.m. uzoefu wa muziki wa kucheza ala, miaka ya elimu rasmi, lugha "
-"zinazozungumzwa)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Hatimaye, katika baadhi ya majaribio unaweza kuombwa kurekodi sauti au "
-"video, kwa mfano, unaweza kuombwa kurekodi kugonga vidole kwa kujibu sauti "
-"au video, au kujirekodi ukizungumza au kuimba."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"Kwa mfano, unaweza kuulizwa kutathmini jinsi sauti au taswira fulani "
-"inavyopendeza, au kuainisha sauti au picha (k.m., ikiwa sauti au taswira ni "
-"ya gari au ng'ombe), au kuhukumu vipengele vingine vya msingi. ya sauti au "
-"picha (k.m., ni mara ngapi unakutana na aina hii ya sauti au taswira? jinsi "
-"unavyozingatia urembo au sauti fulani?)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr "Ikiwa jaribio litakuwa na vipengele hivi tutaomba idhini ya ziada."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"Ukijitolea kushiriki katika utafiti huu, utaombwa kufanya kazi rahisi kwa "
-"kutumia kibodi au kipanya chako unaposikiliza sauti, au unapotazama picha au"
-" video."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"Katika baadhi ya majaribio, tunaweza kutumia udanganyifu mdogo, yaani, "
-"hatuwezi kueleza ukweli kamili kuhusu kazi ya majaribio (kwa mfano "
-"hatutakuambia kuwa picha ilitolewa na mfumo wa kompyuta bandia na si "
-"mwanadamu)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-"Udanganyifu mdogo utatumika tu katika baadhi ya majaribio ambapo tunahitaji "
-"kuzuia kupendelea washiriki kabla ya kufanya jaribio."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "Utaratibu"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"Sauti, picha na video mahususi zitakazotumika zitatofautiana, lakini "
-"zinaweza kujumuisha: rekodi za sauti tulivu, milipuko ya kelele, matamshi, "
-"muziki, toni rahisi, picha za asili, picha za uhuishaji, vichekesho, nyuso, "
-"vitu, maumbo ya kijiometri, picha ndogo, au video za mazingira asilia."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "Kusudi"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "Kwa Max-Planck-Society, hii ni:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"Kumbuka kwamba katika baadhi ya tafiti kufuta data haitawezekana, katika "
-"kesi hii tutakuomba mahususi ukubali idhini ya utaratibu huu katika fomu "
-"tofauti ya idhini."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "Pia una haki ya kuwasilisha pingamizi kwa mamlaka ya usimamizi."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"Una haki ya kupata taarifa kuhusu data inayokuhusu ambayo imehifadhiwa "
-"katika Max-Planck-Institute, haki ya kusahihisha data isiyo sahihi, na haki "
-"ya kudai kufutwa kwa data katika kesi za uhifadhi usiokubalika wa data na "
-"haki ya data. kubebeka."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "Haki zako"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "Hatari/Masumbuko"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-"Hakuna hatari za kushiriki katika utafiti huu zaidi ya zile zinazohusishwa "
-"na matumizi ya kawaida ya kompyuta."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-"Data itahifadhiwa kwa muda kwenye seva za nje na kompyuta za mezani/laptop "
-"ambazo zinalindwa kwa nenosiri."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "Hakuna data itakayohifadhiwa kwenye seva za nje kabisa."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-"Data itahifadhiwa kabisa katika seva za taasisi na diski kuu zilizosimbwa "
-"kwa njia fiche kwa kutumia programu ya usimbaji ya kiwango cha sekta."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-"Mpelelezi anaweza kukuondoa kwenye utafiti huu iwapo hali itatokea ambayo "
-"itawawezesha kufanya hivyo."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "Kushiriki kwa hiari"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-"Uko huru kusitisha ushiriki katika utafiti huu wakati wowote bila adhabu."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-"Uko huru kukataa kushiriki, na unaweza kuacha kushiriki wakati wowote."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "Ushiriki wako katika utafiti huu ni wa hiari."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "Je, unaelewa na kuridhia masharti haya?"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "Tembeza juu/chini ili kuona maandishi yote"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "I agree"
-msgstr "nakubali"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-"Ikiwa una maswali yoyote kuhusu utafiti huu, usisite kuwasiliana na mtafiti "
-"mkuu katika mradi huu, Nori Jacoby kwa:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "Hapana, asante (rejesha kazi)"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"Kwa kukubali kushiriki, unakubali kuwa una umri wa miaka 18 au zaidi, "
-"umesoma fomu hii ya idhini, unakubali yaliyomo, na unakubali kushiriki "
-"katika utafiti huu."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "Idhini"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "Ikiwa hutaki kukubali, tafadhali funga ukurasa huu."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "Maelezo ya mawasiliano"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "Muhtasari"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-"Madhumuni ya fomu hii ya mtandaoni ni kukupa maelezo ya kukusaidia kuamua "
-"kama ungependa kushiriki katika utafiti wa utafiti."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-"Utafiti huu unafanywa na watafiti katika Taasisi ya Max-Planck ya Epirical "
-"Aesthetics."
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2064,12 +1508,456 @@ msgstr ""
 "Unaweza pia kupokea malipo ya ziada kulingana na utendaji wako katika kazi."
 
 #: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"Madhumuni ya mradi huu ni kujifunza jinsi watu kutoka sehemu mbalimbali "
+"duniani wanavyopata sauti (k.m., hotuba, muziki) na picha (k.m., nyuso, "
+"rangi)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Usiri"
+
+#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "Compensation"
 msgstr "Fidia"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Ingawa huenda usikufaidi moja kwa moja, utafiti huu unaweza kunufaisha jamii"
+" kwa kutusaidia kuelewa jinsi wanadamu hupata taarifa kutoka kwa sauti na "
+"kuona, na uwezekano wa kusaidia mashine za kihandisi zinazoweza kuiga uwezo "
+"wetu (k.m. katika utambuzi wa sauti na maono ya kompyuta) na kusaidia "
+"kuboresha. uwezo wa utambuzi kwa watu ambao kusikia au kuona kunaharibika."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Faida"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"Kwa madhumuni ya kusaidia maendeleo ya kisayansi na urudufishaji, wakati "
+"mwingine tunaweza kushiriki data na washirika wa utafiti."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"Katika hali hizi, tutashiriki tu data ambayo haijatambulishwa kikamilifu, "
+"kama vile data ya demografia, iliyojumlishwa au iliyotolewa bila "
+"vitambulishi vyovyote vya kibinafsi."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Ushirikiano wa utafiti"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr "Taarifa zote tunazopata wakati wa utafiti zitawekwa siri."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"Ingawa watafiti hawatatumia msimbo wako wa nambari kupata utambulisho wako "
+"halisi, rekodi hii inaweza kuunganishwa katika baadhi ya matukio kwenye "
+"ukurasa wa wasifu wako wa umma ikiwa ukiukaji wa data utafanyika."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "Kukubali mahitaji haya ya ziada pia ni kwa hiari kikamilifu."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Ikiwa jaribio linakusanya data ambayo haiwezi kufichuliwa kabisa, "
+"tutakujulisha na pia tutakuomba idhini ya ziada."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"Hakuna vitambulishi vya kibinafsi (k.m. jina lako au data ya anwani) "
+"vitakusanywa au kutumika katika hatua yoyote ya jaribio."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Haya ni pamoja na majaribio ambapo tunatengeneza rekodi za sauti na "
+"mwonekano au tunapohitaji maelezo yako ya mawasiliano kuwasiliana nawe "
+"katika siku zijazo ili kufanya jaribio lingine."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"Msimbo huu hautatumika kupata utambulisho wako halisi, hautashirikiwa na mtu"
+" yeyote nje ya timu ya utafiti na utafutwa baada ya matumizi."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "Kwa hivyo, data ya majaribio haijulikani."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Kwa hivyo, unaweza kutaka kuzuia ni maelezo gani unayochagua kushiriki "
+"hadharani."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Tunaweza kukusanya baadhi ya data ya demografia (k.m. umri, jinsia, nchi "
+"unakoishi) pamoja na maelezo kuhusu historia yako ya kujifunza na kufichua "
+"(k.m. uzoefu wa muziki wa kucheza ala, miaka ya elimu rasmi, lugha "
+"zinazozungumzwa)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"Tutahifadhi msimbo wako wa nambari wa alpha usiojulikana katika mfumo wetu, "
+"ili kutofautisha washiriki ambao tayari wameshiriki katika hili au majaribio"
+" mengine."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Hatimaye, katika baadhi ya majaribio unaweza kuombwa kurekodi sauti au "
+"video, kwa mfano, unaweza kuombwa kurekodi kugonga vidole kwa kujibu sauti "
+"au video, au kujirekodi ukizungumza au kuimba."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Kwa mfano, unaweza kuulizwa kutathmini jinsi sauti au taswira fulani "
+"inavyopendeza, au kuainisha sauti au picha (k.m., ikiwa sauti au taswira ni "
+"ya gari au ng'ombe), au kuhukumu vipengele vingine vya msingi. ya sauti au "
+"picha (k.m., ni mara ngapi unakutana na aina hii ya sauti au taswira? jinsi "
+"unavyozingatia urembo au sauti fulani?)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr "Ikiwa jaribio litakuwa na vipengele hivi tutaomba idhini ya ziada."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Ukijitolea kushiriki katika utafiti huu, utaombwa kufanya kazi rahisi kwa "
+"kutumia kibodi au kipanya chako unaposikiliza sauti, au unapotazama picha au"
+" video."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"Katika baadhi ya majaribio, tunaweza kutumia udanganyifu mdogo, yaani, "
+"hatuwezi kueleza ukweli kamili kuhusu kazi ya majaribio (kwa mfano "
+"hatutakuambia kuwa picha ilitolewa na mfumo wa kompyuta bandia na si "
+"mwanadamu)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Udanganyifu mdogo utatumika tu katika baadhi ya majaribio ambapo tunahitaji "
+"kuzuia kupendelea washiriki kabla ya kufanya jaribio."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Utaratibu"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"Sauti, picha na video mahususi zitakazotumika zitatofautiana, lakini "
+"zinaweza kujumuisha: rekodi za sauti tulivu, milipuko ya kelele, matamshi, "
+"muziki, toni rahisi, picha za asili, picha za uhuishaji, vichekesho, nyuso, "
+"vitu, maumbo ya kijiometri, picha ndogo, au video za mazingira asilia."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Kusudi"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "Kwa Max-Planck-Society, hii ni:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Kumbuka kwamba katika baadhi ya tafiti kufuta data haitawezekana, katika "
+"kesi hii tutakuomba mahususi ukubali idhini ya utaratibu huu katika fomu "
+"tofauti ya idhini."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "Pia una haki ya kuwasilisha pingamizi kwa mamlaka ya usimamizi."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"Una haki ya kupata taarifa kuhusu data inayokuhusu ambayo imehifadhiwa "
+"katika Max-Planck-Institute, haki ya kusahihisha data isiyo sahihi, na haki "
+"ya kudai kufutwa kwa data katika kesi za uhifadhi usiokubalika wa data na "
+"haki ya data. kubebeka."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Haki zako"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Hatari/Masumbuko"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"Hakuna hatari za kushiriki katika utafiti huu zaidi ya zile zinazohusishwa "
+"na matumizi ya kawaida ya kompyuta."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Data itahifadhiwa kwa muda kwenye seva za nje na kompyuta za mezani/laptop "
+"ambazo zinalindwa kwa nenosiri."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Hakuna data itakayohifadhiwa kwenye seva za nje kabisa."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"Data itahifadhiwa kabisa katika seva za taasisi na diski kuu zilizosimbwa "
+"kwa njia fiche kwa kutumia programu ya usimbaji ya kiwango cha sekta."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"Mpelelezi anaweza kukuondoa kwenye utafiti huu iwapo hali itatokea ambayo "
+"itawawezesha kufanya hivyo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Kushiriki kwa hiari"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"Uko huru kusitisha ushiriki katika utafiti huu wakati wowote bila adhabu."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"Uko huru kukataa kushiriki, na unaweza kuacha kushiriki wakati wowote."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Ushiriki wako katika utafiti huu ni wa hiari."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2205,6 +2093,12 @@ msgstr ""
 "Utafiti huu ni wa hiari kabisa; hutapokea fidia yoyote ya fedha kwa "
 "ushiriki."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Hitilafu!"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2277,7 +2171,6 @@ msgstr "Huo ndio mwisho wa jaribio!"
 msgid "Thank you for taking part."
 msgstr "Asante kwa kushiriki."
 
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "You will be redirected."
@@ -2500,6 +2393,38 @@ msgstr ""
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "Je, unaelewa na kuridhia masharti haya?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "Tembeza juu/chini ili kuona maandishi yote"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "nakubali"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Ikiwa una maswali yoyote kuhusu utafiti huu, usisite kuwasiliana na mtafiti "
+"mkuu katika mradi huu, Nori Jacoby kwa:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Hapana, asante (rejesha kazi)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent"
 msgid "Principal Investigator"
 msgstr "Mpelelezi Mkuu"
@@ -2650,6 +2575,62 @@ msgid ""
 msgstr ""
 "Rekodi zako hazitatumika kupata utambulisho wako halisi, na hazitawekwa wazi"
 " kwa umma."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"Kwa kukubali kushiriki, unakubali kuwa una umri wa miaka 18 au zaidi, "
+"umesoma fomu hii ya idhini, unakubali yaliyomo, na unakubali kushiriki "
+"katika utafiti huu."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Idhini"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "Ikiwa hutaki kukubali, tafadhali funga ukurasa huu."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "Maelezo ya mawasiliano"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Muhtasari"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Madhumuni ya fomu hii ya mtandaoni ni kukupa maelezo ya kukusaidia kuamua "
+"kama ungependa kushiriki katika utafiti wa utafiti."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Utafiti huu unafanywa na watafiti katika Taasisi ya Max-Planck ya Epirical "
+"Aesthetics."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2840,12 +2821,12 @@ msgstr "Cheza tangu mwanzo"
 msgid "Video not found"
 msgstr "Video haikupatikana"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
 msgstr "Aina ya hitilafu"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, python-format, fuzzy
 msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
@@ -2854,18 +2835,18 @@ msgstr ""
 "Ikiwa sivyo hivyo, tafadhali wasiliana nasi kwa %(EMAIL)s ukinukuu taarifa "
 "ifuatayo:"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
 msgstr "Kitambulisho cha mfanyakazi"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
-msgctxt "mturk_error"
+msgctxt "error"
 msgid "Error!"
 msgstr "Hitilafu!"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -2875,7 +2856,7 @@ msgstr ""
 "Mara baada ya mimba, hakuna haja ya kuwasiliana nasi ili kupokea fidia; hii "
 "inapaswa kukabidhiwa kwako kiotomatiki kupitia MTurk dakika chache baadaye."
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -4469,12 +4450,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Visiwa vya Aland"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Kumekuwa na hitilafu na kwa hivyo huwezi kuendelea, samahani!"
 
 #: psynet/utils.py
 #, fuzzy

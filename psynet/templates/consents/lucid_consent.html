@@ -1,0 +1,29 @@
+{% extends "timeline-page.html" %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="/static/css/consent.css"/>
+{% endblock %}
+
+{% block main_body %}
+  <div class="main-div" style="padding-bottom: 200px;">
+    <h1>{{ pgettext("consent-title", "We need your consent to proceed") }}</h1>
+    <hr>
+    <div class="text-justify">
+        <div class="text-left" style="font-size:18px">
+            {{ consent.overview(config) }}
+            {{ consent.purpose(config) }}
+            {{ consent.procedure(config) }}
+            {{ consent.voluntary(config) }}
+            {{ consent.lucid_confidentiality(config) }}
+            {{ consent.collaborations(config) }}
+            {{ consent.security(config) }}
+            {{ consent.risks(config) }}
+            {{ consent.benefits(config) }}
+            {{ consent.rights(config) }}
+            {{ consent.contact(config) }}
+            {{ consent.consent(config) }}
+        </div>
+        {{ consent.fixed_buttons(config) }}
+      </div>
+  </div>
+{% endblock %}

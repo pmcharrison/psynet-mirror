@@ -429,6 +429,18 @@ msgstr "Na-diagnose ka na ba na may dyslexia?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Nagkaroon ng error at kaya hindi mo magawang magpatuloy, paumanhin!"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Nire-redirect..."
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Paki-quote din ang sumusunod na impormasyon:"
@@ -459,6 +471,12 @@ msgstr ""
 "Upang magtanong tungkol sa kabayaran, mangyaring magpadala ng mensahe sa "
 "mananaliksik sa pamamagitan ng Prolific na website at ilarawan kung ano ang "
 "humantong sa iyong error."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Nire-redirect sa Lucid Marketplace..."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -507,13 +525,13 @@ msgid "Close window"
 msgstr "Isara ang bintana"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "ID ng takdang-aralin"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -617,12 +635,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Babala"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "I-abort ang Eksperimento"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
@@ -654,6 +672,13 @@ msgstr "Susubukan na namin ngayon ang iyong browser para sa pagiging tugma."
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Upang magpatuloy, i-click ang button sa ibaba."
+
+#. ""
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Upang magpatuloy, i-click ang button sa ibaba."
 
@@ -1478,7 +1503,6 @@ msgid "We need your consent to proceed"
 msgstr "Kailangan namin ang iyong pahintulot upang magpatuloy"
 
 #: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/macros/consent.html
@@ -1508,611 +1532,6 @@ msgstr ""
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "Babala: Hindi gumagana ang Javascript sa iyong browser"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr ""
-"Ang lahat ng impormasyong makukuha namin sa panahon ng pananaliksik ay "
-"pananatiling kumpidensyal."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr ""
-"Bagama't hindi gagamitin ng mga mananaliksik ang iyong alpha numeric code "
-"upang makuha ang iyong tunay na pagkakakilanlan, maaaring maiugnay ang tala "
-"na ito sa ilang mga kaso sa iyong pampublikong pahina ng profile kung may "
-"nangyaring paglabag sa data."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr ""
-"Ang pagsang-ayon sa mga karagdagang kinakailangan na ito ay ganap ding "
-"boluntaryo."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr ""
-"Ang code na ito ay hindi gagamitin upang makuha ang iyong tunay na "
-"pagkakakilanlan, hindi ibabahagi sa sinuman sa labas ng pangkat ng "
-"pananaliksik at tatanggalin pagkatapos gamitin."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Kaya, maaari mong hilingin na paghigpitan kung anong impormasyon ang "
-"pipiliin mong ibahagi sa publiko."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr ""
-"Ise-save lang namin ang iyong anonymized na alpha numeric code sa aming "
-"system, upang makilala ang mga kalahok na nakibahagi na dito o sa iba pang "
-"mga eksperimento."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr ""
-"Ang layunin ng proyektong ito ay pag-aralan kung paano nararanasan ng mga "
-"tao mula sa iba't ibang lugar sa mundo ang mga tunog (hal., pananalita, "
-"musika) at mga larawan (hal., mga mukha, kulay)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "Pagiging kompidensyal"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"Bagama't maaaring hindi ito direktang makinabang sa iyo, ang pag-aaral na "
-"ito ay maaaring makinabang sa lipunan sa pamamagitan ng pagtulong sa amin na"
-" maunawaan kung paano nakukuha ng mga tao ang impormasyon mula sa tunog at "
-"paningin, at potensyal na tumulong sa mga makinang inhinyero na maaaring "
-"gayahin ang aming mga kakayahan (hal. sa sound recognition at computer "
-"vision) at upang makatulong na mapabuti kakayahang pang-unawa sa mga taong "
-"may kapansanan sa pandinig o paningin."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "Benepisyo"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr ""
-"Para sa layunin ng pagtulong sa siyentipikong pag-unlad at pagkopya, kung "
-"minsan ay maaari naming ibahagi ang data sa mga collaborator ng "
-"pananaliksik."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-"Sa mga kasong ito, ibabahagi lang namin ang ganap na hindi nakikilalang "
-"data, gaya ng demograpiko, pinagsama-sama, o kinuhang data nang walang "
-"anumang mga personal na pagkakakilanlan."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "Mga pakikipagtulungan sa pananaliksik"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-"Kung ang isang eksperimento ay nangongolekta ng data na hindi maaaring ganap"
-" na i-anonymize, ipapaalam namin sa iyo at hihingi din kami ng karagdagang "
-"pahintulot."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-"Walang mga personal na pagkakakilanlan (hal. iyong pangalan o data ng "
-"contact) na kokolektahin o gagamitin sa anumang yugto ng eksperimento."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-"Kabilang dito ang mga eksperimento kung saan gumagawa kami ng mga audio-"
-"visual na pag-record o kung saan kailangan namin ang iyong mga detalye sa "
-"pakikipag-ugnayan upang makipag-ugnayan sa iyo sa hinaharap upang kumuha ng "
-"isa pang eksperimento."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "Kaya, ang pang-eksperimentong data ay hindi nagpapakilala."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Maaari kaming mangolekta ng ilang demograpikong data (hal. edad, kasarian, "
-"bansang tinitirhan) pati na rin ang impormasyon tungkol sa iyong pag-aaral "
-"at kasaysayan ng pagkakalantad (hal. karanasan sa musika sa pagtugtog ng "
-"instrumento, mga taon ng pormal na edukasyon, mga wikang sinasalita)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Sa wakas, sa ilang mga eksperimento ay maaaring hilingin sa iyong gumawa ng "
-"voice o video recording, halimbawa, maaaring hilingin sa iyong i-record ang "
-"iyong pag-tap sa daliri bilang tugon sa isang tunog o video, o i-record ang "
-"iyong sarili sa pagsasalita o pagkanta."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"Halimbawa, maaaring hilingin sa iyo na husgahan kung gaano kaaya-aya ang "
-"isang partikular na tunog o isang imahe, o upang ikategorya ang mga tunog o "
-"larawan (hal., kung ang isang tunog o isang imahe ay sa kotse o baka), o "
-"upang hatulan ang iba pang mga pangunahing tampok ng mga tunog o larawan "
-"(hal., gaano kadalas ka nakakatagpo ng ganitong uri ng tunog o imahe? gaano "
-"kaganda ang iyong pagsasaalang-alang sa isang partikular na tunog o imahe?)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr ""
-"Kung maglalaman ang eksperimento ng mga elementong ito, hihingi kami ng "
-"karagdagang pahintulot."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"Kung boluntaryo kang lumahok sa pag-aaral na ito, hihilingin sa iyong "
-"magsagawa ng mga simpleng gawain gamit ang iyong keyboard o mouse habang "
-"nakikinig sa mga tunog, o habang nagmamasid sa mga larawan o video."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"Sa ilang mga eksperimento, maaari kaming gumamit ng banayad na panlilinlang,"
-" ibig sabihin, maaaring hindi namin ipaliwanag ang buong katotohanan tungkol"
-" sa isang pang-eksperimentong gawain (halimbawa, hindi namin sasabihin sa "
-"iyo na ang isang imahe ay nabuo ng isang artipisyal na sistema ng computer "
-"at hindi isang tao)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-"Gagamitin lang ang banayad na panlilinlang sa ilang eksperimento kung saan "
-"kailangan nating pigilan ang pagkiling sa mga kalahok bago gawin ang "
-"eksperimento."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "Pamamaraan"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"Mag-iiba-iba ang mga partikular na tunog, larawan, at video na ginamit, "
-"ngunit maaaring kasama ang: mga pag-record ng mga nakapaligid na tunog, "
-"ingay-burst, pagsasalita, musika, simpleng tono, naturalistic na larawan, "
-"animated na larawan, komiks, mukha, bagay, geometric na hugis, fractal na "
-"larawan, o mga video ng natural na kapaligiran."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "Layunin"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "Para sa Max-Planck-Society, ito ay:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"Tandaan na sa ilang mga pag-aaral ay hindi magiging posible ang pagtanggal "
-"ng data, sa kasong ito hihilingin namin sa iyo na partikular na pumayag sa "
-"pamamaraang ito sa isang hiwalay na form ng pahintulot."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr ""
-"May karapatan ka ring magsumite ng pagtutol sa awtoridad ng pangangasiwa."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"May karapatan ka sa impormasyon tungkol sa data na nauugnay sa iyo na naka-"
-"imbak sa Max-Planck-Institute, ang karapatang iwasto ang hindi tumpak na "
-"data, at ang karapatang humiling ng pagtanggal ng data sa mga kaso ng hindi "
-"tinatanggap na pag-iimbak ng data at ang karapatan sa data maaaring dalhin."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "Ang iyong mga karapatan"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "Mga Panganib/Kaabalahan"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-"Walang mga panganib para sa paglahok sa pag-aaral na ito na higit sa mga "
-"nauugnay sa normal na paggamit ng computer."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-"Pansamantalang iimbak ang data sa mga panlabas na server at desktop/laptop "
-"na protektado ng password."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "Walang data na permanenteng maiimbak sa mga panlabas na server."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-"Ang data ay pagkatapos ay permanenteng iimbak sa mga server ng institute na "
-"may mga hard disk na naka-encrypt gamit ang industry-standard na encryption "
-"software."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-"Maaaring bawiin ka ng imbestigador mula sa pananaliksik na ito kung may mga "
-"pangyayari na dapat gawin."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "Kusang-loob na pakikilahok"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-"Malaya kang ihinto ang paglahok sa pag-aaral na ito anumang oras nang walang"
-" parusa."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-"Malaya kang tumanggi na makilahok, at maaari kang huminto sa pakikilahok "
-"anumang oras."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "Ang iyong pakikilahok sa pananaliksik na ito ay boluntaryo."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "Naiintindihan mo ba at pumapayag ka ba sa mga tuntuning ito?"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "Mag-scroll pataas/pababa para makita ang lahat ng text"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "I agree"
-msgstr "sumasang-ayon ako"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-"Kung mayroon kang anumang mga katanungan tungkol sa pananaliksik na ito, "
-"huwag mag-atubiling makipag-ugnayan sa pangunahing mananaliksik sa "
-"proyektong ito, si Nori Jacoby sa:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "Hindi, salamat (ibalik ang gawain)"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"Sa pamamagitan ng pagpayag na lumahok, kinikilala mo na ikaw ay 18 taong "
-"gulang o mas matanda, nabasa mo ang form ng pahintulot na ito, sumasang-ayon"
-" sa mga nilalaman nito, at sumasang-ayon na makilahok sa pananaliksik na "
-"ito."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "Pagpayag"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "Kung ayaw mong pumayag, mangyaring isara ang pahinang ito."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "Impormasyon sa pakikipag-ugnayan"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "Pangkalahatang-ideya"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-"Ang layunin ng online na form na ito ay bigyan ka ng impormasyon upang "
-"matulungan kang magpasya kung gusto mong makilahok sa isang pananaliksik na "
-"pag-aaral."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-"Ang pananaliksik na ito ay isinasagawa ng mga mananaliksik sa Max-Planck-"
-"Institute for Empirical Aesthetics."
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2146,12 +1565,478 @@ msgstr ""
 "gawain."
 
 #: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"Ang layunin ng proyektong ito ay pag-aralan kung paano nararanasan ng mga "
+"tao mula sa iba't ibang lugar sa mundo ang mga tunog (hal., pananalita, "
+"musika) at mga larawan (hal., mga mukha, kulay)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Pagiging kompidensyal"
+
+#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "Compensation"
 msgstr "Kabayaran"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Bagama't maaaring hindi ito direktang makinabang sa iyo, ang pag-aaral na "
+"ito ay maaaring makinabang sa lipunan sa pamamagitan ng pagtulong sa amin na"
+" maunawaan kung paano nakukuha ng mga tao ang impormasyon mula sa tunog at "
+"paningin, at potensyal na tumulong sa mga makinang inhinyero na maaaring "
+"gayahin ang aming mga kakayahan (hal. sa sound recognition at computer "
+"vision) at upang makatulong na mapabuti kakayahang pang-unawa sa mga taong "
+"may kapansanan sa pandinig o paningin."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Benepisyo"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"Para sa layunin ng pagtulong sa siyentipikong pag-unlad at pagkopya, kung "
+"minsan ay maaari naming ibahagi ang data sa mga collaborator ng "
+"pananaliksik."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"Sa mga kasong ito, ibabahagi lang namin ang ganap na hindi nakikilalang "
+"data, gaya ng demograpiko, pinagsama-sama, o kinuhang data nang walang "
+"anumang mga personal na pagkakakilanlan."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Mga pakikipagtulungan sa pananaliksik"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr ""
+"Ang lahat ng impormasyong makukuha namin sa panahon ng pananaliksik ay "
+"pananatiling kumpidensyal."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"Bagama't hindi gagamitin ng mga mananaliksik ang iyong alpha numeric code "
+"upang makuha ang iyong tunay na pagkakakilanlan, maaaring maiugnay ang tala "
+"na ito sa ilang mga kaso sa iyong pampublikong pahina ng profile kung may "
+"nangyaring paglabag sa data."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr ""
+"Ang pagsang-ayon sa mga karagdagang kinakailangan na ito ay ganap ding "
+"boluntaryo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Kung ang isang eksperimento ay nangongolekta ng data na hindi maaaring ganap"
+" na i-anonymize, ipapaalam namin sa iyo at hihingi din kami ng karagdagang "
+"pahintulot."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"Walang mga personal na pagkakakilanlan (hal. iyong pangalan o data ng "
+"contact) na kokolektahin o gagamitin sa anumang yugto ng eksperimento."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Kabilang dito ang mga eksperimento kung saan gumagawa kami ng mga audio-"
+"visual na pag-record o kung saan kailangan namin ang iyong mga detalye sa "
+"pakikipag-ugnayan upang makipag-ugnayan sa iyo sa hinaharap upang kumuha ng "
+"isa pang eksperimento."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"Ang code na ito ay hindi gagamitin upang makuha ang iyong tunay na "
+"pagkakakilanlan, hindi ibabahagi sa sinuman sa labas ng pangkat ng "
+"pananaliksik at tatanggalin pagkatapos gamitin."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "Kaya, ang pang-eksperimentong data ay hindi nagpapakilala."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Kaya, maaari mong hilingin na paghigpitan kung anong impormasyon ang "
+"pipiliin mong ibahagi sa publiko."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Maaari kaming mangolekta ng ilang demograpikong data (hal. edad, kasarian, "
+"bansang tinitirhan) pati na rin ang impormasyon tungkol sa iyong pag-aaral "
+"at kasaysayan ng pagkakalantad (hal. karanasan sa musika sa pagtugtog ng "
+"instrumento, mga taon ng pormal na edukasyon, mga wikang sinasalita)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"Ise-save lang namin ang iyong anonymized na alpha numeric code sa aming "
+"system, upang makilala ang mga kalahok na nakibahagi na dito o sa iba pang "
+"mga eksperimento."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Sa wakas, sa ilang mga eksperimento ay maaaring hilingin sa iyong gumawa ng "
+"voice o video recording, halimbawa, maaaring hilingin sa iyong i-record ang "
+"iyong pag-tap sa daliri bilang tugon sa isang tunog o video, o i-record ang "
+"iyong sarili sa pagsasalita o pagkanta."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Halimbawa, maaaring hilingin sa iyo na husgahan kung gaano kaaya-aya ang "
+"isang partikular na tunog o isang imahe, o upang ikategorya ang mga tunog o "
+"larawan (hal., kung ang isang tunog o isang imahe ay sa kotse o baka), o "
+"upang hatulan ang iba pang mga pangunahing tampok ng mga tunog o larawan "
+"(hal., gaano kadalas ka nakakatagpo ng ganitong uri ng tunog o imahe? gaano "
+"kaganda ang iyong pagsasaalang-alang sa isang partikular na tunog o imahe?)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr ""
+"Kung maglalaman ang eksperimento ng mga elementong ito, hihingi kami ng "
+"karagdagang pahintulot."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Kung boluntaryo kang lumahok sa pag-aaral na ito, hihilingin sa iyong "
+"magsagawa ng mga simpleng gawain gamit ang iyong keyboard o mouse habang "
+"nakikinig sa mga tunog, o habang nagmamasid sa mga larawan o video."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"Sa ilang mga eksperimento, maaari kaming gumamit ng banayad na panlilinlang,"
+" ibig sabihin, maaaring hindi namin ipaliwanag ang buong katotohanan tungkol"
+" sa isang pang-eksperimentong gawain (halimbawa, hindi namin sasabihin sa "
+"iyo na ang isang imahe ay nabuo ng isang artipisyal na sistema ng computer "
+"at hindi isang tao)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Gagamitin lang ang banayad na panlilinlang sa ilang eksperimento kung saan "
+"kailangan nating pigilan ang pagkiling sa mga kalahok bago gawin ang "
+"eksperimento."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Pamamaraan"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"Mag-iiba-iba ang mga partikular na tunog, larawan, at video na ginamit, "
+"ngunit maaaring kasama ang: mga pag-record ng mga nakapaligid na tunog, "
+"ingay-burst, pagsasalita, musika, simpleng tono, naturalistic na larawan, "
+"animated na larawan, komiks, mukha, bagay, geometric na hugis, fractal na "
+"larawan, o mga video ng natural na kapaligiran."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Layunin"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "Para sa Max-Planck-Society, ito ay:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Tandaan na sa ilang mga pag-aaral ay hindi magiging posible ang pagtanggal "
+"ng data, sa kasong ito hihilingin namin sa iyo na partikular na pumayag sa "
+"pamamaraang ito sa isang hiwalay na form ng pahintulot."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr ""
+"May karapatan ka ring magsumite ng pagtutol sa awtoridad ng pangangasiwa."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"May karapatan ka sa impormasyon tungkol sa data na nauugnay sa iyo na naka-"
+"imbak sa Max-Planck-Institute, ang karapatang iwasto ang hindi tumpak na "
+"data, at ang karapatang humiling ng pagtanggal ng data sa mga kaso ng hindi "
+"tinatanggap na pag-iimbak ng data at ang karapatan sa data maaaring dalhin."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Ang iyong mga karapatan"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Mga Panganib/Kaabalahan"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"Walang mga panganib para sa paglahok sa pag-aaral na ito na higit sa mga "
+"nauugnay sa normal na paggamit ng computer."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Pansamantalang iimbak ang data sa mga panlabas na server at desktop/laptop "
+"na protektado ng password."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Walang data na permanenteng maiimbak sa mga panlabas na server."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"Ang data ay pagkatapos ay permanenteng iimbak sa mga server ng institute na "
+"may mga hard disk na naka-encrypt gamit ang industry-standard na encryption "
+"software."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"Maaaring bawiin ka ng imbestigador mula sa pananaliksik na ito kung may mga "
+"pangyayari na dapat gawin."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Kusang-loob na pakikilahok"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"Malaya kang ihinto ang paglahok sa pag-aaral na ito anumang oras nang walang"
+" parusa."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"Malaya kang tumanggi na makilahok, at maaari kang huminto sa pakikilahok "
+"anumang oras."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Ang iyong pakikilahok sa pananaliksik na ito ay boluntaryo."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2292,6 +2177,12 @@ msgstr ""
 "Ang pag-aaral na ito ay ganap na boluntaryo; hindi ka makakatanggap ng "
 "anumang pera na kabayaran para sa pakikilahok."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Error!"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2364,7 +2255,6 @@ msgstr "Iyon ang katapusan ng eksperimento!"
 msgid "Thank you for taking part."
 msgstr "Salamat sa pakikibahagi."
 
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "You will be redirected."
@@ -2598,6 +2488,39 @@ msgstr ""
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "Naiintindihan mo ba at pumapayag ka ba sa mga tuntuning ito?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "Mag-scroll pataas/pababa para makita ang lahat ng text"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "sumasang-ayon ako"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Kung mayroon kang anumang mga katanungan tungkol sa pananaliksik na ito, "
+"huwag mag-atubiling makipag-ugnayan sa pangunahing mananaliksik sa "
+"proyektong ito, si Nori Jacoby sa:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Hindi, salamat (ibalik ang gawain)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent"
 msgid "Principal Investigator"
 msgstr "Punong Imbestigador"
@@ -2755,6 +2678,64 @@ msgid ""
 msgstr ""
 "Ang iyong mga pag-record ay hindi gagamitin upang makuha ang iyong tunay na "
 "pagkakakilanlan, at hindi sila isapubliko."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"Sa pamamagitan ng pagpayag na lumahok, kinikilala mo na ikaw ay 18 taong "
+"gulang o mas matanda, nabasa mo ang form ng pahintulot na ito, sumasang-ayon"
+" sa mga nilalaman nito, at sumasang-ayon na makilahok sa pananaliksik na "
+"ito."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Pagpayag"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "Kung ayaw mong pumayag, mangyaring isara ang pahinang ito."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "Impormasyon sa pakikipag-ugnayan"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Pangkalahatang-ideya"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Ang layunin ng online na form na ito ay bigyan ka ng impormasyon upang "
+"matulungan kang magpasya kung gusto mong makilahok sa isang pananaliksik na "
+"pag-aaral."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Ang pananaliksik na ito ay isinasagawa ng mga mananaliksik sa Max-Planck-"
+"Institute for Empirical Aesthetics."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2950,12 +2931,12 @@ msgstr "Maglaro mula sa simula"
 msgid "Video not found"
 msgstr "Hindi nakita ang video"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
 msgstr "Uri ng error"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, python-format, fuzzy
 msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
@@ -2964,18 +2945,18 @@ msgstr ""
 "Kung hindi ito ang kaso, mangyaring makipag-ugnay sa amin sa %(EMAIL)s na "
 "nag-quote ng sumusunod na impormasyon:"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
 msgstr "ID ng manggagawa"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
-msgctxt "mturk_error"
+msgctxt "error"
 msgid "Error!"
 msgstr "Error!"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -2986,7 +2967,7 @@ msgstr ""
 "ang kabayaran; ito ay dapat na awtomatikong iginawad sa iyo sa pamamagitan "
 "ng MTurk ilang minuto pagkatapos."
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -4581,12 +4562,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Mga Isla ng Åland"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Nagkaroon ng error at kaya hindi mo magawang magpatuloy, paumanhin!"
 
 #: psynet/utils.py
 #, fuzzy

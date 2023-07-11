@@ -7,7 +7,17 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    desc,
+    select,
+)
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -21,6 +31,8 @@ from .utils import get_logger, organize_by_key
 logger = get_logger()
 
 # pylint: disable=unused-import
+
+UniqueConstraint(dallinger.models.Participant.worker_id)
 
 
 class Participant(SQLMixinDallinger, dallinger.models.Participant):
