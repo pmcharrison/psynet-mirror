@@ -1270,11 +1270,7 @@
                     $(".wait-for-media-load").attr("disabled", "disabled");
 
                     await waitForPageLoad();
-                    {% if not experiment.with_lucid_recruitment() %}
-                        var correctBrowser = await waitForBrowserCheck();
-                    {% else %}
-                        var correctBrowser = true;
-                    {% endif %}
+                    let correctBrowser = await waitForBrowserCheck();
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
