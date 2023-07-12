@@ -715,6 +715,12 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Upang magpatuloy, i-click ang button sa ibaba."
 
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "To proceed, click the button below."
+msgstr "Upang magpatuloy, i-click ang button sa ibaba."
+
 #: psynet/templates/consent.html psynet/templates/macros.html
 #: psynet/templates/macros/control.html
 #, fuzzy

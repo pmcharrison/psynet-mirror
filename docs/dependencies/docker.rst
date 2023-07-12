@@ -29,4 +29,4 @@ For more information see the `official Docker website <https://www.docker.com/>`
     to document all of its details. It still remains possible to use the previous
     workflow for PsyNet, which involves maintaining a Python virtual environment
     and installing various supporting services like Postgres and Redis
-    see (`<developer_installation/index.html>`_).
+    see (`Developer installation <../installation/developer_installation/index.html>`_).

@@ -22,6 +22,8 @@ Install Homebrew
 Install Google Chrome
 ~~~~~~~~~~~~~~~~~~~~~
 
+You only need to do this if you don't have Google Chrome installed already.
+
 .. code-block:: bash
 
    brew install --cask google-chrome
@@ -31,8 +33,8 @@ Install and setup PostgreSQL
 
 .. code-block:: bash
 
-   brew install postgresql
-   brew services start postgresql
+   brew install postgresql@14
+   brew services start postgresql@14
    createuser -P dallinger --createdb
 
 Password: *dallinger*
@@ -43,7 +45,7 @@ Password: *dallinger*
    createdb -O dallinger dallinger-import
    exit
 
-   brew services restart postgresql
+   brew services restart postgresql@14
 
 If you find that Postgres stops working after upgrading via Homebrew,
 you might need to delete your local Postgres files and try again.
@@ -78,7 +80,7 @@ Finally you can reinstall Postgres:
 
 .. code-block:: bash
 
-   brew install postgresql@
+   brew install postgresql@14
    brew services start postgresql@14
 
 

@@ -48,6 +48,7 @@ from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
+    BaseLucidRecruiter,
     CapRecruiter,
     DevCapRecruiter,
     DevLucidRecruiter,
@@ -337,7 +338,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.set_recruiter()
 
         locales_dir = os.path.abspath("locales")
 
@@ -368,13 +368,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         self.process_timeline()
-
-    def set_recruiter(self):
-        if get_config().get("recruiter", None) == "lucid":
-            recruiter = LucidRecruiter()
-            if deployment_info.read("mode") == "debug":
-                recruiter = DevLucidRecruiter()
-            self.recruiter = recruiter
 
     def translation_checks_needed(self, locales_dir):
         return (
@@ -1253,10 +1246,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return self.num_working_participants * self.base_payment
 
     def with_lucid_recruitment(self):
-        return self.recruiter.__class__.__name__ in [
-            "DevLucidRecruiter",
-            "LucidRecruiter",
-        ]
+        return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
 
     def process_response(
         self,
@@ -1643,24 +1633,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
-    @experiment_route("/exit_recruiter", methods=["GET"])
-    @staticmethod
-    def exit_recruiter():
-        assignment_id = request.values["assignment_id"]
-        reason = request.values["reason"]
-        exp = dallinger.experiment.load().new(db.session)
-        recruiter = exp.recruiter
-        external_submit_url = recruiter.external_submit_url(assignment_id=assignment_id)
-        recruiter.terminate_participant(assignment_id, reason)
-        logger.info(
-            f"Terminating participant with RID {assignment_id} with reason '{reason}'"
-        )
-
-        return render_template_with_translations(
-            "exit_recruiter_lucid.html",
-            external_submit_url=external_submit_url,
-        )
-
     @classmethod
     def get_participant_from_unique_id(cls, unique_id):
         """
@@ -1756,7 +1728,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def pre_timeline_error_page(e, request):
         error_text = f"Error when calling {request.path} route: {e}"
         logger.error(error_text)
-        exp = dallinger.experiment.load().new(db.session)
+        exp = get_experiment()
         recruiter = exp.recruiter
         external_submit_url = None
         if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
@@ -1833,7 +1805,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = None
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-            recruiter = cls.new(db.session).recruiter
+            recruiter = get_experiment().recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(
@@ -1967,29 +1939,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return success_response()
 
+    # Lucid recruitment specific route
     @experiment_route("/terminate_participant", methods=["GET"])
     @classmethod
     def terminate_participant(cls):
         participant_id = request.values.get("participant_id")
-        if participant_id is None:
-            logger.error("Error getting participant ID.")
-
-        participant = get_participant(participant_id)
-        rid = participant.entry_information["RID"]
-        exp = cls.new(db.session)
+        reason = request.values["reason"]
+        external_submit_url = None
 
         try:
-            exp = dallinger.experiment.load().new(db.session)
-            recruiter = exp.recruiter
+            participant = get_participant(participant_id)
+            assignment_id = participant.assignment_id
+            recruiter = get_experiment().recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(assignment_id=rid)
-            if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(
-                    rid, "'/terminate_participant' route was called"
+                external_submit_url = recruiter.external_submit_url(
+                    assignment_id=assignment_id
                 )
+            if hasattr(recruiter, "terminate_participant"):
+                recruiter.terminate_participant(assignment_id, reason)
+                logger.info(
+                    f"Terminating participant with RID {assignment_id} with reason '{reason}'"
+                )
+
         except Exception as e:
-            logger.error(f"Error terminating participant with RID '{rid}': {e}")
+            logger.error(
+                f"Error terminating participant with RID '{assignment_id}': {e}"
+            )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",

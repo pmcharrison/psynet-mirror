@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# [10.0.0] Release 2023-06-22
+
+- To be announced
+
 # [10.0.0rc4] Release candidate 2023-04-30
 
 #### Updated

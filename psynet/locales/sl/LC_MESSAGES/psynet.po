@@ -477,7 +477,7 @@ msgstr "Zapišite številko na sliki."
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "V vsakem poskusu boste videli sliko, ki vsebuje številko."
+msgstr "V vsakem poskusu bo prikazana slika, ki vsebuje številko."
 
 #. ""
 #: psynet/prescreen.py
@@ -695,6 +695,12 @@ msgstr "Zdaj bomo preverili združljivost vašega brskalnika."
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Če želite nadaljevati, kliknite spodnji gumb."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Če želite nadaljevati, kliknite spodnji gumb."
 

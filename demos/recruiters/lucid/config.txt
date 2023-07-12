@@ -28,6 +28,7 @@ clock_on = true
 disable_when_duration_exceeded = false
 
 [PsyNet]
+show_bonus = false
 # allow_mobile_devices = true
 # force_google_chrome = false
 

@@ -549,24 +549,7 @@ msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 
 #: psynet/templates/consent.html
-#, python-format
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr ""
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr ""
-
-#: psynet/templates/consent.html
-msgctxt "concent"
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr ""
 
@@ -1613,11 +1596,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr ""
 
-#: psynet/templates/exit_recruiter_lucid.html
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-
 #: psynet/templates/final-page-bonuses.html
 #, python-format
 msgid ""
@@ -2249,18 +2227,6 @@ msgstr ""
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr ""
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr ""
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
 msgstr ""
 
 #: psynet/utils.py

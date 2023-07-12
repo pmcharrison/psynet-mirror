@@ -500,7 +500,7 @@ msgstr ""
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Do textového pole musíte zadat číslo, které vidíte."
+msgstr "Číslo, které vidíte, musíte zadat do textového pole."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -695,6 +695,12 @@ msgstr "Nyní otestujeme kompatibilitu vašeho prohlížeče."
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "Chcete-li pokračovat, klikněte na tlačítko níže."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Chcete-li pokračovat, klikněte na tlačítko níže."
 

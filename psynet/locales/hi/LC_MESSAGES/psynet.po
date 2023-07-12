@@ -703,6 +703,12 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "आगे बढ़ने के लिए, नीचे दिए गए बटन पर क्लिक करें।"
 
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "To proceed, click the button below."
+msgstr "आगे बढ़ने के लिए, नीचे दिए गए बटन पर क्लिक करें।"
+
 #: psynet/templates/consent.html psynet/templates/macros.html
 #: psynet/templates/macros/control.html
 #, fuzzy

@@ -703,6 +703,12 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "A folytatáshoz kattintson az alábbi gombra."
 
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "To proceed, click the button below."
+msgstr "A folytatáshoz kattintson az alábbi gombra."
+
 #: psynet/templates/consent.html psynet/templates/macros.html
 #: psynet/templates/macros/control.html
 #, fuzzy

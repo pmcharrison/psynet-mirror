@@ -13,49 +13,6 @@ from .utils import get_logger
 logger = get_logger()
 
 
-def compute_lucid_reach(
-    initial_recruitment_size,
-    days,
-    completion_time,
-    incidence_rate,
-    price_ceiling,
-    language_code,
-    country_code,
-    api_key,
-):
-    url = "https://api.samplicio.us/demand/v2-beta/reach/audience-estimate"
-    data = json.dumps(
-        {
-            "qualifications": [
-                {
-                    # MS_is_mobile
-                    "question_id": 8214,
-                    "condition": "false",
-                },
-                {
-                    # MS_browser_type_Non_Wurfl
-                    "question_id": 1035,
-                    "condition": "Chrome",
-                },
-            ],
-            "completes": initial_recruitment_size,
-            "days": days,
-            "length_of_interview": completion_time,
-            "incidence_rate": incidence_rate,
-            "price_ceiling": price_ceiling,
-            "locale": f"{language_code}_{country_code}",
-        }
-    )
-    headers = {
-        "Content-type": "application/json",
-        "Authorization": api_key,
-        "Accept": "text/plain",
-    }
-    response = requests.post(url, data=data, headers=headers)
-    assert response.status_code == 200, f"Error: {response.status_code} {response.text}"
-    return response.json()
-
-
 class LucidServiceException(Exception):
     """Custom exception type"""
 
@@ -69,14 +26,12 @@ class LucidService(object):
         sha1_hashing_key,
         exp_config,
         recruitment_config,
-        sandbox=True,
         max_wait_secs=0,
     ):
         self.api_key = api_key
         self.sha1_hashing_key = sha1_hashing_key
         self.exp_config = exp_config
         self.recruitment_config = recruitment_config
-        self.sandbox = False  # sandbox
         self.max_wait_secs = max_wait_secs
         self.headers = {
             "Content-type": "application/json",
@@ -86,10 +41,7 @@ class LucidService(object):
 
     @property
     def request_base_url_v1(self):
-        url = "https://api.samplicio.us/Demand/v1"
-        if self.sandbox:
-            url = "https://sandbox.techops.engineering/Demand/v1"
-        return url
+        return "https://api.samplicio.us/Demand/v1"
 
     @classmethod
     def log(cls, text):
@@ -138,7 +90,7 @@ class LucidService(object):
             or "SurveyNumber" not in response_data["Survey"]
         ):
             raise LucidServiceException(
-                "LUCID: 'Create survey' request was invalid for unknown reason."
+                "LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey."
             )
         self.log(
             f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
@@ -203,9 +155,13 @@ class LucidService(object):
                 data=request_data,
                 headers=self.headers,
             )
-            response_data = response.json()
 
-        return response_data
+            if not response.ok:
+                raise LucidServiceException(
+                    "LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+
+        self.log("Removed default qualifications from survey.")
 
     def add_qualifications_to_survey(self, survey_number):
         """Add platform and browser specific qualifications to a survey."""
@@ -257,39 +213,24 @@ class LucidService(object):
                 data=request_data,
                 headers=self.headers,
             )
-            response_data = response.json()
 
-        return response_data
+            if not response.ok:
+                raise LucidServiceException(
+                    "LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+
+        if qualifications:
+            self.log("Added qualifications to survey.")
 
     def can_be_terminated(self, lucid_rid):
-        rid = lucid_rid.rid
-        participant_rids = [
-            participant.entry_information.get("worker_id")
-            for participant in Participant.query.all()
-        ]
-
         if (
             datetime.now() - lucid_rid.creation_time
         ).seconds <= self.recruitment_config["termination_time_in_s"]:
             return False
 
-        if rid not in participant_rids:
-            return True
+        n = Participant.query.filter_by(worker_id=lucid_rid.rid, progress=0).count()
 
-        try:
-            participant = Participant.query.filter_by(worker_id=rid).one()
-        except NoResultFound:
-            raise NoResultFound(
-                f"Method 'can_be_terminated': No participant for Lucid RID '{rid}' found. This should never happen."
-            )
-        except MultipleResultsFound:
-            raise MultipleResultsFound(
-                f"Multiple participants for Lucid RID '{rid}' found. This should never happen."
-            )
-        if participant.progress == 0:
-            return True
-
-        return False
+        return n > 0
 
     def time_until_termination_in_s(self, rid):
         lucid_rid = get_lucid_rid(rid)
@@ -300,9 +241,7 @@ class LucidService(object):
         termination_time_in_s = self.recruitment_config["termination_time_in_s"]
 
         if self.can_be_terminated(lucid_rid):
-            self.terminate_respondent(
-                rid, f"termination-timeout-{termination_time_in_s}s"
-            )
+            return 0
         else:
             time_until_termination_in_s = (
                 termination_time_in_s

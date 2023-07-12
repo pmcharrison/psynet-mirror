@@ -15,13 +15,13 @@ from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
-from .utils import get_logger, pretty_format_seconds, render_template_with_translations
+from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
 
@@ -128,9 +128,9 @@ class LucidRID(SQLBase, SQLMixin):
     failed_reason = None
     time_of_death = None
 
-    rid = Column(String, index=True)
-    completed_at = Column(DateTime, index=True)
-    terminated_at = Column(DateTime, index=True)
+    rid = Column(String, ForeignKey("participant.worker_id"), index=True)
+    completed_at = Column(DateTime)
+    terminated_at = Column(DateTime)
     termination_reason = Column(String)
 
 
@@ -152,7 +152,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
-        self.config.set("show_bonus", False)
+        if self.config.get("show_bonus"):
+            raise RuntimeError(
+                "Lucid recruitment requires `show_bonus` to be set to `False`."
+            )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
@@ -160,9 +163,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
             exp_config=self.config,
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-            sandbox=self.config.get("mode") != "live",
         )
-        self.store = kwargs.get("store") or RedisStore()
+        self.store = kwargs.get("store", RedisStore())
 
     @property
     def survey_number_storage_key(self):
@@ -175,7 +177,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return self.current_survey_number() is not None
 
     def verify_consents(self, consents):
-        error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)"
+        error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)."
         if isinstance(consents[0], self.required_consent_page):
             if len(consents) == 1:
                 pass
@@ -197,7 +199,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .experiment import get_and_load_config
+        from .experiment import get_and_load_config, get_experiment
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
@@ -205,7 +207,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
-        experiment = dallinger.experiment.load().new(db.session)
+        experiment = get_experiment()
         wage_per_hour = get_and_load_config().get("wage_per_hour")
         create_survey_request_params = {
             "bid_length_of_interview": ceil(
@@ -338,7 +340,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def external_submit_url(self, participant=None, assignment_id=None):
         if participant is None and assignment_id is None:
             raise RuntimeError(
-                "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided!"
+                "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided."
             )
         data = self.data_for_submit_url(participant, assignment_id)
         return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
@@ -394,10 +396,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
-
-    @property
-    def termination_time_in_min(self):
-        return pretty_format_seconds(self.termination_time_in_s)
 
     @property
     def termination_time_in_s(self):
