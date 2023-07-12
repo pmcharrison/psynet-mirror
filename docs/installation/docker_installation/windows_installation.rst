@@ -98,3 +98,13 @@ A timeout occurred
 When starting Docker for Windows you might run into following error: "A timeout occured while waiting for a
 WSL integration agent to become ready". In that case, you may want to try installing
 an older version of Docker Desktop (e.g. 4.17.1).
+
+Impersistence of ssh-agent in WSL
+----------------------------
+
+When deploying experiments, ssh-agent plays a crucial role in the communicaton between
+the scientist's computer and the experiment server. However, in WSL, ssh-agent does not
+persist across reboots of the virtual machine. To allow ssh-agent to automatically have
+re-added provided SSH credentials upon initiation of WSL, you may consider the following
+documentation from GitHub:
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases#auto-launching-ssh-agent-on-git-for-windows
