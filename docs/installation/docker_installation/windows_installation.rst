@@ -107,4 +107,4 @@ the scientist's computer and the experiment server. However, in WSL, ssh-agent d
 persist across reboots of the virtual machine. To allow ssh-agent to automatically have
 re-added provided SSH credentials upon initiation of WSL, you may consider the following
 documentation from GitHub:
-https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases#auto-launching-ssh-agent-on-git-for-windows
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases?platform=windows
