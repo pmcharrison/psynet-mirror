@@ -29,18 +29,17 @@ and typing the following:
 
 .. code-block:: bash
 
-   # I have a git folder in my home directory; you'll need to create this first if you don't have one
-   cd ~/git
+   cd # Navigates to your home directory
    git clone git@gitlab.com:PsyNetDev/psynet
 
-Open the resulting folder (``~/git/PsyNet``) in your IDE (we normally recommend PyCharm).
+Open the resulting folder (``~/PsyNet``) in your IDE (we normally recommend PyCharm).
 You can then navigate to the ``demos`` folder to see all the demos contained in PsyNet.
 In your PyCharm terminal, you can navigate to a particular demo you want to run like this:
 
 .. code-block:: bash
 
    # The precise path will depend on where you downloaded PsyNet.
-   cd ~/git/PsyNet/demos/timeline
+   cd ~/PsyNet/demos/timeline
 
 Then you can run the demo using the standard PsyNet debug command:
 
