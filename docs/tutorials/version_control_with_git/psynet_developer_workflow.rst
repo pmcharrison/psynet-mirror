@@ -543,7 +543,7 @@ After all changes to be released have been merged into the ``master`` branch fol
 
     a. Major (new version includes breaking changes)
 
-    b. Minor (new version includes only only new features and/or bugfixes)
+    b. Minor (new version includes only new features and/or bugfixes)
 
     c. Patch (new version includes only bugfixes)
 
