@@ -54,7 +54,7 @@ deploy_docker:
     - if [ "$CI_COMMIT_REF_NAME" == "master"]; then docker tag $DOCKER_IMAGE $DOCKER_REGISTRY_BASE:master && docker push $DOCKER_REGISTRY_BASE:master; fi
   only:
     - tags
-    - master
+#    - master
 
 #  rules:
 #    - if: '$CI_COMMIT_TAG'
