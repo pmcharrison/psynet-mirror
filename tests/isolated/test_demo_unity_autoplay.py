@@ -5,12 +5,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from psynet.pytest_psynet import next_page
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo
+
+PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", ["../demos/unity_autoplay"], indirect=True
+    "experiment_directory", [path_to_demo("unity_autoplay")], indirect=True
 )
+@pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
