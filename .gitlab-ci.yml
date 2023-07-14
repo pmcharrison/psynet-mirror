@@ -54,13 +54,10 @@ deploy_docker:
     - echo "Pushing Docker image to $TARGET_TAG"
     - docker tag "$DOCKER_IMAGE" "$TARGET_TAG"
     - docker push "$TARGET_TAG"
-#    - echo "CI_COMMIT_TAG = $CI_COMMIT_TAG"
-#    - echo "$CI_COMMIT_REF_NAME = $CI_COMMIT_REF_NAME"
-#    - if [ -z "$CI_COMMIT_TAG" ]; then TARGET_TAG="$DOCKER_REGISTRY_BASE:$CI_COMMIT_TAG" && echo "Pushing Docker image to $TARGET_TAG" && docker tag "$DOCKER_IMAGE" "$TARGET_TAG" && docker push "$TARGET_TAG"; fi
-#    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then TARGET_TAG="$DOCKER_REGISTRY_BASE:master" && echo "Pushing Docker image to $TARGET_TAG" && docker tag $DOCKER_IMAGE $TARGET_TAG && docker push $TARGET_TAG; fi
   only:
     - tags
-    - master
+#    - master
+    - docker-builds
 
 #  rules:
 #    - if: '$CI_COMMIT_TAG'
