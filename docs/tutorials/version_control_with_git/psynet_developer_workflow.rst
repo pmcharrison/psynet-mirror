@@ -567,7 +567,7 @@ After all changes to be released have been merged into the ``master`` branch fol
 #. On your local computer checkout the ``master`` branch and pull the changes.
 #. Create a new tag corresponding to the new version number: ``git tag vX.Y.Z``.
 #. Push the tag with ``git push --tags``.
-#. Create a new PsyNet release using GitLab's interface under 'Deployments > Releases'.
+#. Create a new PsyNet release using GitLab's interface under 'Deploy > Releases'.
 #. Run following commands to publish the new release on PyPi (you need to have the `twine` package installed; install/upgrade it with ``python3 -m pip install --upgrade twine`` if you haven't yet):
 
     .. code-block:: console
