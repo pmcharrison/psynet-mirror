@@ -52,8 +52,10 @@ deploy_docker:
   script:
     - if [ -z "$CI_COMMIT_TAG" ]; then docker tag $DOCKER_IMAGE $DOCKER_REGISTRY_BASE:$CI_COMMIT_TAG && docker push $DOCKER_REGISTRY_BASE:$CI_COMMIT_TAG; fi
     - if [ "$CI_COMMIT_REF_NAME" == "master"]; then docker tag $DOCKER_IMAGE $DOCKER_REGISTRY_BASE:master && docker push $DOCKER_REGISTRY_BASE:master; fi
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG
+#  only:
+#    - tags
 #    - master
 
 #  rules:
