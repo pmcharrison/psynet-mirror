@@ -1041,14 +1041,12 @@ def debug__docker_heroku(ctx, app, archive):
 @click.option("--app", required=True, help="Name of the experiment app.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
-# @click.option("--server", default=None, help="Name of the remote server.")
-# @click.option(
-#     "--skip-flask",
-#     is_flag=True,
-#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
-# )
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
 @click.pass_context
-def debug__docker_ssh(ctx, app, archive, server):
+def debug__docker_ssh(ctx, app, archive, server, dns_host):
     """
     Debug the experiment on a remote server via SSH.
     """
@@ -1073,6 +1071,7 @@ def debug__docker_ssh(ctx, app, archive, server):
             deploy,
             mode="sandbox",
             server=server,
+            dns_host=dns_host,
             app_name=app,
             config_options={},
             archive_path=None,
