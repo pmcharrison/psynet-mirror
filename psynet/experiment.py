@@ -32,6 +32,7 @@ from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request, send_file
+from sqlalchemy import func
 
 from psynet import __version__
 
@@ -53,6 +54,7 @@ from .serialize import serialize
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
+    ModuleState,
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
@@ -1707,21 +1709,51 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_progress_info(cls):
         exp = get_experiment()
+        module_ids = request.args.getlist("module_ids[]")
+        return exp._get_progress_info(module_ids)
+
+    def _get_progress_info(self, module_ids: list):
         config = get_config()
         progress_info = {
             "spending": {
-                "amount_spent": exp.amount_spent(),
+                "amount_spent": self.amount_spent(),
                 "currency": config.currency,
-                "soft_max_experiment_payment": exp.var.soft_max_experiment_payment,
-                "hard_max_experiment_payment": exp.var.hard_max_experiment_payment,
+                "soft_max_experiment_payment": self.var.soft_max_experiment_payment,
+                "hard_max_experiment_payment": self.var.hard_max_experiment_payment,
             }
         }
-        module_ids = request.args.getlist("module_ids[]")
-        for module_id in module_ids:
-            module = exp.timeline.modules[module_id]
-            progress_info.update(module.get_progress_info())
 
-        return jsonify(progress_info)
+        participant_counts_by_module = self.get_participant_counts_by_module()
+
+        for module_id in module_ids:
+            module = self.timeline.modules[module_id]
+            participant_counts = participant_counts_by_module[module_id]
+            progress_info.update(
+                module.get_progress_info(
+                    participant_counts,
+                )
+            )
+
+        return progress_info
+
+    def get_participant_counts_by_module(self):
+        counts = {module_id: {} for module_id in self.timeline.modules.keys()}
+
+        for attr in ["started", "finished", "aborted"]:
+            col = getattr(ModuleState, attr)
+            rows = (
+                db.session.query(
+                    ModuleState.module_id, func.count(ModuleState.id).label("count")
+                )
+                .filter(col)
+                .group_by(ModuleState.module_id)
+            ).all()
+            rows = dict(rows)
+
+            for module_id in counts.keys():
+                counts[module_id][attr] = rows.get(module_id, 0)
+
+        return counts
 
     @experiment_route("/module/update_spending_limits", methods=["POST"])
     @classmethod
