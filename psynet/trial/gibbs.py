@@ -3,9 +3,6 @@
 import random
 from statistics import mean, median
 
-import numpy as np
-import statsmodels.api as sm
-from numpy import linspace
 from sqlalchemy import Column
 from sqlalchemy.orm import declared_attr, deferred
 
@@ -236,6 +233,9 @@ class GibbsNode(ChainNode):
     kernel_width = "cv_ls"
 
     def kernel_summarize(self, observations, method):
+        import numpy as np
+        import statsmodels.api as sm
+
         assert isinstance(observations, list)
 
         kernel_width = self.kernel_width
@@ -245,7 +245,7 @@ class GibbsNode(ChainNode):
         density = sm.nonparametric.KDEMultivariate(
             data=observations, var_type="c", bw=kernel_width
         )
-        points_to_evaluate = linspace(min(observations), max(observations), num=501)
+        points_to_evaluate = np.linspace(min(observations), max(observations), num=501)
         pdf = density.pdf(points_to_evaluate)
 
         if method == "mode":
