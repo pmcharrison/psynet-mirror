@@ -46,7 +46,7 @@ The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module`
                 conditional(
                     "hearing_impairment_check",
                     lambda experiment, participant: participant.answer == "Yes",
-                    UnsuccessfulEndPage(failure_tags=["hearing_impairment_check"])
+                    UnsuccessfulEndPage(failure_tags=["performance_check", "hearing_impairment_check"])
                 )
             )
             super().__init__(self.label, self.elts)

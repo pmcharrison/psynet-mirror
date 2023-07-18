@@ -6,8 +6,6 @@ from os.path import join as join_path
 from random import shuffle
 from typing import List, Optional
 
-import numpy as np
-import pandas as pd
 from markupsafe import Markup
 
 from psynet.trial import Node
@@ -313,6 +311,8 @@ class REPPTappingCalibration(Module):
 
 class NumpySerializer(json.JSONEncoder):
     def default(self, obj):
+        import numpy as np
+
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
@@ -1186,7 +1186,9 @@ class AttentionTest(Module):
                     participant.answer is not None
                     and self.fail_on in ["attention_test_1", "any"]
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_test_1"]),
+                UnsuccessfulEndPage(
+                    failure_tags=["performance_check", "attention_test_1"]
+                ),
             ),
             CodeBlock(
                 lambda experiment, participant: participant.var.new(
@@ -1215,7 +1217,9 @@ class AttentionTest(Module):
                         or not participant.var.first_check_passed
                     )
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_test_2"]),
+                UnsuccessfulEndPage(
+                    failure_tags=["performance_check", "attention_test_2"]
+                ),
             ),
         )
         super().__init__(self.label, self.elts)
@@ -1844,6 +1848,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
     performance_check_type = "score"
 
     def load_stimuli(self, csv_path, question):
+        import pandas as pd
         assert file_exists(csv_path)
 
         df = pd.read_csv(csv_path)

@@ -304,7 +304,7 @@ In the terminal, restart Postgres:
 
     brew services restart postgresql
 
-Now all SQL commands will be streamed to a log file; on my computer this log file is located at ``/usr/local/var/log/postgres.log``, but I’ve also seen it at ``/usr/local/var/log/postgresql@14.log``.
+Now all SQL commands will be streamed to a log file; on my computer this log file is located at ``/usr/local/var/log/postgres.log``, but I’ve also seen it at ``/usr/local/var/log/postgresql@14.log`` and ``/opt/homebrew/var/log/postgres.log``.
 
 Open a live preview of this log file using the following command:
 

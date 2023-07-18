@@ -422,6 +422,18 @@ msgstr "Diagnosztizáltak valaha diszlexiát?"
 
 #: psynet/experiment.py
 #, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Hiba történt, ezért nem tudod folytatni, sajnálom!"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Átirányítás..."
+
+#: psynet/experiment.py
+#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Kérjük, adja meg a következő információkat is:"
@@ -451,6 +463,12 @@ msgid ""
 msgstr ""
 "Ha kártérítésről szeretne érdeklődni, kérjük, küldjön üzenetet a kutatónak a"
 " Prolific weboldalán keresztül, és írja le, mi vezetett az Ön hibájához."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Átirányítás a Lucid Marketplace-re..."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -499,13 +517,13 @@ msgid "Close window"
 msgstr "Ablak bezárása"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
 msgstr "Hozzárendelés azonosítója"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/mturk_error.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
 msgstr "HIT ID"
@@ -607,12 +625,12 @@ msgctxt "ad"
 msgid "Warning"
 msgstr "Figyelmeztetés"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort Experiment"
 msgstr "Kísérlet megszakítása"
 
-#: psynet/templates/ad.html psynet/templates/mturk_error.html
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Kattintson a fenti gombra, ha hiba esetén kártérítést szeretne kapni."
@@ -643,6 +661,13 @@ msgstr "Most tesztelni fogjuk a böngésző kompatibilitását."
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "A folytatáshoz kattintson az alábbi gombra."
+
+#. ""
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "A folytatáshoz kattintson az alábbi gombra."
 
@@ -1436,7 +1461,6 @@ msgid "We need your consent to proceed"
 msgstr "A folytatáshoz szükségünk van az Ön beleegyezésére"
 
 #: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/macros/consent.html
@@ -1463,598 +1487,6 @@ msgstr ""
 msgctxt "consent-javascript"
 msgid "Warning: Javascript is not working on your browser"
 msgstr "Figyelmeztetés: A Javascript nem működik a böngészőjében."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr "A kutatás során szerzett összes információt bizalmasan kezeljük."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr ""
-"Bár a kutatók nem fogják az Ön alfanumerikus kódját felhasználni az Ön "
-"valódi személyazonosságának megállapítására, ez a rekord bizonyos esetekben "
-"összekapcsolható az Ön nyilvános profiloldalával, ha adatvédelmi incidensre "
-"kerül sor."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr ""
-"Ezen további követelményekhez való hozzájárulása szintén teljesen önkéntes."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr ""
-"Ezt a kódot nem használják fel az Ön valódi személyazonosságának "
-"megállapítására, nem osztják meg senkivel a kutatócsoporton kívül, és "
-"használat után törlik."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr ""
-"Ezért Ön korlátozhatja, hogy milyen információkat kíván nyilvánosan "
-"megosztani."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr ""
-"Csak az Ön anonimizált alfanumerikus kódját fogjuk elmenteni a "
-"rendszerünkben, hogy megkülönböztessük azokat a résztvevőket, akik már részt"
-" vettek ebben vagy más kísérletekben."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study how people from different places in "
-"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
-"color)."
-msgstr ""
-"A projekt célja annak tanulmányozása, hogy a világ különböző pontjain élő "
-"emberek hogyan érzékelik a hangokat (pl. beszéd, zene) és a képeket (pl. "
-"arcok, színek)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "Bizalmasság"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"Bár nem biztos, hogy ez a tanulmány közvetlenül az Ön hasznára válik, a "
-"társadalom hasznára válhat azáltal, hogy segít megérteni, hogyan nyer "
-"információt az ember a hangból és a látásból, és potenciálisan segíthet "
-"olyan gépek tervezésében, amelyek képesek lemásolni a képességeinket (pl. a "
-"hangfelismerés és a számítógépes látás terén), valamint segíthet javítani a "
-"hallás- vagy látáskárosultak észlelési képességeit."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "Előnyök"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr ""
-"A tudományos fejlődés és a replikáció elősegítése érdekében néha "
-"megoszthatjuk az adatokat a kutatásban részt vevő munkatársakkal."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr ""
-"Ezekben az esetekben csak teljesen anonimizált adatokat osztunk meg, például"
-" demográfiai, összesített vagy kivonatolt adatokat, személyes azonosítók "
-"nélkül."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "Kutatási együttműködések"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr ""
-"Ha egy kísérlet olyan adatokat gyűjt, amelyeket nem lehet teljesen "
-"anonimizálni, erről tájékoztatni fogjuk Önt, és további hozzájárulást is "
-"kérünk."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr ""
-"A kísérlet egyetlen szakaszában sem gyűjtünk vagy használunk fel személyes "
-"azonosító adatokat (pl. az Ön nevét vagy elérhetőségi adatait)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr ""
-"Ezek közé tartoznak azok a kísérletek, amelyekben audiovizuális felvételeket"
-" készítünk, vagy amelyekben szükségünk van az Ön elérhetőségére, hogy a "
-"jövőben felvehessük Önnel a kapcsolatot egy másik kísérlet elvégzése "
-"érdekében."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "A kísérleti adatok tehát anonimak."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"Gyűjthetünk néhány demográfiai adatot (pl. életkor, nem, lakóhely szerinti "
-"ország), valamint az Ön tanulási és kitettségi múltjára vonatkozó "
-"információkat (pl. hangszeren játszott zenei tapasztalat, formális oktatás "
-"évei, beszélt nyelvek)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr ""
-"Végül, néhány kísérletben megkérhetik, hogy készítsen hang- vagy "
-"videofelvételt, például arra kérhetik, hogy rögzítse az ujjaival való "
-"kopogtatását egy hang vagy videó hatására, vagy vegye fel magát, amint "
-"beszél vagy énekel."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"For example, you may be asked to judge how pleasant a particular sound or an"
-" image is, or to categorize sounds or images (e.g., if a sound or an image "
-"is that of a car or a cow), or to judge other basic features of sounds or "
-"images (e.g., how frequently do you encounter this type of sound or image? "
-"how aesthetically pleasing you consider a particular sound or image?)."
-msgstr ""
-"Megkérhetik például arra, hogy ítélje meg, mennyire kellemes egy adott hang "
-"vagy kép, vagy kategorizáljon hangokat vagy képeket (például, hogy egy hang "
-"vagy kép egy autóé vagy egy tehéné-e), vagy ítélje meg a hangok vagy képek "
-"egyéb alapvető jellemzőit (például, milyen gyakran találkozik ilyen típusú "
-"hanggal vagy képpel, mennyire tartja esztétikailag kellemesnek az adott "
-"hangot vagy képet)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr ""
-"Ha a kísérlet tartalmazni fogja ezeket az elemeket, további beleegyezést "
-"fogunk kérni."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr ""
-"Ha Ön önként jelentkezik a vizsgálatban való részvételre, arra fogjuk kérni,"
-" hogy egyszerű feladatokat hajtson végre a billentyűzet vagy az egér "
-"segítségével, miközben hangokat hallgat, illetve képeket vagy videókat néz."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"Egyes kísérletek során előfordulhat, hogy enyhe megtévesztést alkalmazunk, "
-"azaz nem mondjuk el a teljes igazságot a kísérleti feladattal kapcsolatban "
-"(például nem mondjuk el Önnek, hogy egy képet egy mesterséges számítógépes "
-"rendszer generált, és nem egy ember)."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr ""
-"Enyhe megtévesztést csak néhány olyan kísérletben alkalmazunk, ahol meg kell"
-" akadályoznunk a résztvevők elfogultságát a kísérlet előtt."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "Eljárás"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-procedure"
-msgid ""
-"The specific sounds, images, and videos used will vary, but may include: "
-"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
-"naturalistic images, animated images, comics, faces, objects, geometric "
-"shapes, fractal images, or videos of natural environments."
-msgstr ""
-"A konkrétan használt hangok, képek és videók változóak lesznek, de lehetnek:"
-" környezeti hangok felvételei, zajok, beszéd, zene, egyszerű hangok, "
-"naturalisztikus képek, animált képek, képregények, arcok, tárgyak, "
-"geometriai alakzatok, fraktálképek vagy természetes környezetről készült "
-"videók."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "Cél"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "A Max-Planck-társaság számára ez a következő:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr ""
-"Ebben az esetben külön beleegyező nyilatkozatban fogjuk kérni, hogy "
-"hozzájáruljon ehhez az eljáráshoz."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "Önnek joga van kifogást benyújtani a felügyeleti hatósághoz."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr ""
-"Önnek joga van az Önre vonatkozó, a Max-Planck Intézetben tárolt adatokkal "
-"kapcsolatos tájékoztatáshoz, a pontatlan adatok helyesbítéséhez, valamint az"
-" adatok törlésének kéréséhez, amennyiben az adatok tárolása nem megengedett,"
-" valamint az adathordozhatósághoz való joghoz."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "Az Ön jogai"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "Kockázatok/kényelmek"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-risks"
-msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr ""
-"A vizsgálatban való részvételnek nincsenek kockázatai a szokásos számítógép-"
-"használattal járó kockázatokon túl."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr ""
-"Az adatokat ideiglenesen külső szervereken és jelszóval védett asztali "
-"számítógépeken/laptopokon tároljuk."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "Az adatokat nem tároljuk tartósan külső szervereken."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr ""
-"Az adatokat ezután véglegesen az intézet szerverein tárolják, a "
-"merevlemezeket az iparági szabványnak megfelelő titkosító szoftverrel "
-"titkosítva."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr ""
-"A vizsgálatvezető kivonhatja Önt a kutatásból, ha olyan körülmények merülnek"
-" fel, amelyek ezt indokolják."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Voluntary participation"
-msgstr "Önkéntes részvétel"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr ""
-"Ön bármikor büntetés nélkül abbahagyhatja a vizsgálatban való részvételt."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid ""
-"You are free to refuse to take part, and you may stop taking part at any "
-"time."
-msgstr ""
-"Ön szabadon megtagadhatja a részvételt, és bármikor abbahagyhatja a "
-"részvételt."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "Az Ön részvétele ebben a kutatásban önkéntes."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "Megértette és elfogadja ezeket a feltételeket?"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "Az összes szöveg megtekintéséhez görgessen fel/le"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "I agree"
-msgstr "Hozzájárulok"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid ""
-"If you have any questions about this research, do not hesitate to contact "
-"the main researcher in this project, Nori Jacoby at:"
-msgstr ""
-"Ha bármilyen kérdése van a kutatással kapcsolatban, forduljon bizalommal a "
-"projekt fő kutatójához, Nori Jacobyhoz a következő címen:"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "Nem, köszönöm (feladat visszaküldése)"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr ""
-"A részvételi hozzájárulással Ön elismeri, hogy betöltötte a 18. életévét, "
-"elolvasta ezt a beleegyező nyilatkozatot, elfogadja annak tartalmát, és "
-"beleegyezik a kutatásban való részvételbe."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "Hozzájárulás"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "Ha nem kíván hozzájárulni, kérjük, zárja be ezt az oldalt."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "Kapcsolattartási információk"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "Áttekintés"
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr ""
-"Ennek az online űrlapnak az a célja, hogy információt adjon Önnek, amely "
-"segít eldönteni, hogy részt kíván-e venni egy kutatásban."
-
-#: psynet/templates/consents/lucid_consent.html
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgctxt "consent-overview"
-msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr ""
-"Ezt a kutatást a Max-Planck-Institute for Empirical Aesthetics kutatói "
-"végzik."
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2088,12 +1520,468 @@ msgstr ""
 "részesülhet."
 
 #: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"A projekt célja annak tanulmányozása, hogy a világ különböző pontjain élő "
+"emberek hogyan érzékelik a hangokat (pl. beszéd, zene) és a képeket (pl. "
+"arcok, színek)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Bizalmasság"
+
+#: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "Compensation"
 msgstr "Kompenzáció"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Bár nem biztos, hogy ez a tanulmány közvetlenül az Ön hasznára válik, a "
+"társadalom hasznára válhat azáltal, hogy segít megérteni, hogyan nyer "
+"információt az ember a hangból és a látásból, és potenciálisan segíthet "
+"olyan gépek tervezésében, amelyek képesek lemásolni a képességeinket (pl. a "
+"hangfelismerés és a számítógépes látás terén), valamint segíthet javítani a "
+"hallás- vagy látáskárosultak észlelési képességeit."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Előnyök"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"A tudományos fejlődés és a replikáció elősegítése érdekében néha "
+"megoszthatjuk az adatokat a kutatásban részt vevő munkatársakkal."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"Ezekben az esetekben csak teljesen anonimizált adatokat osztunk meg, például"
+" demográfiai, összesített vagy kivonatolt adatokat, személyes azonosítók "
+"nélkül."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Kutatási együttműködések"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr "A kutatás során szerzett összes információt bizalmasan kezeljük."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"Bár a kutatók nem fogják az Ön alfanumerikus kódját felhasználni az Ön "
+"valódi személyazonosságának megállapítására, ez a rekord bizonyos esetekben "
+"összekapcsolható az Ön nyilvános profiloldalával, ha adatvédelmi incidensre "
+"kerül sor."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr ""
+"Ezen további követelményekhez való hozzájárulása szintén teljesen önkéntes."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Ha egy kísérlet olyan adatokat gyűjt, amelyeket nem lehet teljesen "
+"anonimizálni, erről tájékoztatni fogjuk Önt, és további hozzájárulást is "
+"kérünk."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"A kísérlet egyetlen szakaszában sem gyűjtünk vagy használunk fel személyes "
+"azonosító adatokat (pl. az Ön nevét vagy elérhetőségi adatait)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Ezek közé tartoznak azok a kísérletek, amelyekben audiovizuális felvételeket"
+" készítünk, vagy amelyekben szükségünk van az Ön elérhetőségére, hogy a "
+"jövőben felvehessük Önnel a kapcsolatot egy másik kísérlet elvégzése "
+"érdekében."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"Ezt a kódot nem használják fel az Ön valódi személyazonosságának "
+"megállapítására, nem osztják meg senkivel a kutatócsoporton kívül, és "
+"használat után törlik."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "A kísérleti adatok tehát anonimak."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Ezért Ön korlátozhatja, hogy milyen információkat kíván nyilvánosan "
+"megosztani."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Gyűjthetünk néhány demográfiai adatot (pl. életkor, nem, lakóhely szerinti "
+"ország), valamint az Ön tanulási és kitettségi múltjára vonatkozó "
+"információkat (pl. hangszeren játszott zenei tapasztalat, formális oktatás "
+"évei, beszélt nyelvek)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"Csak az Ön anonimizált alfanumerikus kódját fogjuk elmenteni a "
+"rendszerünkben, hogy megkülönböztessük azokat a résztvevőket, akik már részt"
+" vettek ebben vagy más kísérletekben."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Végül, néhány kísérletben megkérhetik, hogy készítsen hang- vagy "
+"videofelvételt, például arra kérhetik, hogy rögzítse az ujjaival való "
+"kopogtatását egy hang vagy videó hatására, vagy vegye fel magát, amint "
+"beszél vagy énekel."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Megkérhetik például arra, hogy ítélje meg, mennyire kellemes egy adott hang "
+"vagy kép, vagy kategorizáljon hangokat vagy képeket (például, hogy egy hang "
+"vagy kép egy autóé vagy egy tehéné-e), vagy ítélje meg a hangok vagy képek "
+"egyéb alapvető jellemzőit (például, milyen gyakran találkozik ilyen típusú "
+"hanggal vagy képpel, mennyire tartja esztétikailag kellemesnek az adott "
+"hangot vagy képet)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr ""
+"Ha a kísérlet tartalmazni fogja ezeket az elemeket, további beleegyezést "
+"fogunk kérni."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Ha Ön önként jelentkezik a vizsgálatban való részvételre, arra fogjuk kérni,"
+" hogy egyszerű feladatokat hajtson végre a billentyűzet vagy az egér "
+"segítségével, miközben hangokat hallgat, illetve képeket vagy videókat néz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"Egyes kísérletek során előfordulhat, hogy enyhe megtévesztést alkalmazunk, "
+"azaz nem mondjuk el a teljes igazságot a kísérleti feladattal kapcsolatban "
+"(például nem mondjuk el Önnek, hogy egy képet egy mesterséges számítógépes "
+"rendszer generált, és nem egy ember)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Enyhe megtévesztést csak néhány olyan kísérletben alkalmazunk, ahol meg kell"
+" akadályoznunk a résztvevők elfogultságát a kísérlet előtt."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Eljárás"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"A konkrétan használt hangok, képek és videók változóak lesznek, de lehetnek:"
+" környezeti hangok felvételei, zajok, beszéd, zene, egyszerű hangok, "
+"naturalisztikus képek, animált képek, képregények, arcok, tárgyak, "
+"geometriai alakzatok, fraktálképek vagy természetes környezetről készült "
+"videók."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Cél"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "A Max-Planck-társaság számára ez a következő:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Ebben az esetben külön beleegyező nyilatkozatban fogjuk kérni, hogy "
+"hozzájáruljon ehhez az eljáráshoz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "Önnek joga van kifogást benyújtani a felügyeleti hatósághoz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"Önnek joga van az Önre vonatkozó, a Max-Planck Intézetben tárolt adatokkal "
+"kapcsolatos tájékoztatáshoz, a pontatlan adatok helyesbítéséhez, valamint az"
+" adatok törlésének kéréséhez, amennyiben az adatok tárolása nem megengedett,"
+" valamint az adathordozhatósághoz való joghoz."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Az Ön jogai"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Kockázatok/kényelmek"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"A vizsgálatban való részvételnek nincsenek kockázatai a szokásos számítógép-"
+"használattal járó kockázatokon túl."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Az adatokat ideiglenesen külső szervereken és jelszóval védett asztali "
+"számítógépeken/laptopokon tároljuk."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Az adatokat nem tároljuk tartósan külső szervereken."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"Az adatokat ezután véglegesen az intézet szerverein tárolják, a "
+"merevlemezeket az iparági szabványnak megfelelő titkosító szoftverrel "
+"titkosítva."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"A vizsgálatvezető kivonhatja Önt a kutatásból, ha olyan körülmények merülnek"
+" fel, amelyek ezt indokolják."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Önkéntes részvétel"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"Ön bármikor büntetés nélkül abbahagyhatja a vizsgálatban való részvételt."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"Ön szabadon megtagadhatja a részvételt, és bármikor abbahagyhatja a "
+"részvételt."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Az Ön részvétele ebben a kutatásban önkéntes."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2233,6 +2121,12 @@ msgstr ""
 "Ez a vizsgálat teljesen önkéntes; a részvételért semmilyen pénzbeli "
 "kompenzációt nem kap."
 
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Hiba!"
+
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
@@ -2305,7 +2199,6 @@ msgstr "Ez a kísérlet vége!"
 msgid "Thank you for taking part."
 msgstr "Köszönjük a részvételt."
 
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "You will be redirected."
@@ -2531,6 +2424,38 @@ msgstr ""
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "Megértette és elfogadja ezeket a feltételeket?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "Az összes szöveg megtekintéséhez görgessen fel/le"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "Hozzájárulok"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Ha bármilyen kérdése van a kutatással kapcsolatban, forduljon bizalommal a "
+"projekt fő kutatójához, Nori Jacobyhoz a következő címen:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Nem, köszönöm (feladat visszaküldése)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent"
 msgid "Principal Investigator"
 msgstr "Vizsgálati vezető"
@@ -2686,6 +2611,62 @@ msgid ""
 msgstr ""
 "A felvételek nem használhatók fel az Ön valódi személyazonosságának "
 "megállapítására, és nem kerülnek nyilvánosságra."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"A részvételi hozzájárulással Ön elismeri, hogy betöltötte a 18. életévét, "
+"elolvasta ezt a beleegyező nyilatkozatot, elfogadja annak tartalmát, és "
+"beleegyezik a kutatásban való részvételbe."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Hozzájárulás"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "Ha nem kíván hozzájárulni, kérjük, zárja be ezt az oldalt."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "Kapcsolattartási információk"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Áttekintés"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Ennek az online űrlapnak az a célja, hogy információt adjon Önnek, amely "
+"segít eldönteni, hogy részt kíván-e venni egy kutatásban."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Ezt a kutatást a Max-Planck-Institute for Empirical Aesthetics kutatói "
+"végzik."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2878,12 +2859,12 @@ msgstr "Játsszon a kezdetektől"
 msgid "Video not found"
 msgstr "Video nem található"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
 msgstr "Hiba típusa"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, python-format, fuzzy
 msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
@@ -2892,18 +2873,18 @@ msgstr ""
 "Ha ez nem így van, kérjük, lépjen kapcsolatba velünk a %(EMAIL)s címen, és "
 "adja meg a következő információkat:"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
 msgstr "Munkavállaló azonosítója"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
-msgctxt "mturk_error"
+msgctxt "error"
 msgid "Error!"
 msgstr "Hiba!"
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -2914,7 +2895,7 @@ msgstr ""
 "kártérítést; ezt néhány perccel később automatikusan meg kell kapnia az "
 "MTurk-on keresztül."
 
-#: psynet/templates/mturk_error.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "mturk_error"
 msgid ""
@@ -4508,12 +4489,6 @@ msgstr "Zimbabwe"
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "Åland-szigetek"
-
-#: psynet/utils.py
-#, fuzzy
-msgctxt "error-msg"
-msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Hiba történt, ezért nem tudod folytatni, sajnálom!"
 
 #: psynet/utils.py
 #, fuzzy

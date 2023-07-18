@@ -2,17 +2,35 @@
 
 {% block main_body %}
     {{ pgettext("final_page_unsuccessful", "Unfortunately the experiment must end early.") }}
-    {% if config.show_bonus %}
+
+    {% if not experiment.with_lucid_recruitment() %}
         {{ pgettext("final_page_unsuccessful", "However, you will still be paid for the time you spent already.") }}
-        {% include "final-page-bonuses.html" %}
+        {% if config.show_bonus %}
+            {% include "final-page-bonuses.html" %}
+        {% endif %}
+        <p class="vspace"></p>
+        <p>
+            {{ gettext('Please click "Finish" to complete the HIT.') }}
+        </p>
+        <p class="vspace"></p>
+
+        <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="finish();">{{ gettext("Finish") }}</button>
+    {% else %}
+        {{ gettext("You will be redirected.") }}
     {% endif %}
     {{ gettext("Thank you for taking part.") }}
+{% endblock %}
 
-    <p class="vspace"></p>
-    <p>
-        {{ gettext('Please click "Finish" to complete the HIT.') }}
-    </p>
-    <p class="vspace"></p>
-
-    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">{{ gettext("Finish") }}</button>
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function finish() {
+          dallinger.submitAssignment();
+        }
+        {% if experiment.with_lucid_recruitment() %}
+            setTimeout(() => {
+              finish();
+            }, 2000)
+        {% endif %}
+</script>
 {% endblock %}

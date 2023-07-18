@@ -1,0 +1,19 @@
+{
+    "survey": {
+        "BidIncidence": 66,
+        "CollectsPII": false,
+        "CountryLanguageID": 9,
+        "FulcrumExchangeAllocation": 0,
+        "FulcrumExchangeHedgeAccess": true,
+        "IndustryID": 30,
+        "StudyTypeID": 1,
+        "UniqueIPAddress": true,
+        "UniquePID": true
+    },
+    "qualifications": {
+        "headphones": true
+    },
+    "inactivity_timeout_in_s": 60,
+    "no_focus_timeout_in_s": 10,
+    "termination_time_in_s": 600
+}

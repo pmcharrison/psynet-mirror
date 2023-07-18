@@ -1,5 +1,6 @@
 # Iterated tapping experiment, adapted from Jacoby & McDermott (2017)
 import json
+import re
 from statistics import mean
 
 import numpy as np
@@ -13,7 +14,8 @@ from reppextension.iterated_tapping import (
 from scipy.io import wavfile
 
 import psynet.experiment
-from psynet.asset import DebugStorage, S3Storage  # noqa
+from psynet.asset import Asset, DebugStorage, S3Storage  # noqa
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -246,3 +248,11 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        trial_1_html = str(self.node_visualization_html("Info", 1))
+        assert "response-visualization" in trial_1_html
+        assert "visualize-audio-response" in trial_1_html
+        img = re.search(r'img src="(.*\.png)"', trial_1_html).group(1)
+        assert img is not None
+        assert Asset.query.filter_by(url=img).count() == 1

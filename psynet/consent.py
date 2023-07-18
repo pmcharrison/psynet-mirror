@@ -45,8 +45,8 @@ class CAPRecruiterStandardConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "cap-recruiter_standard_consent"
-        self.elts = join(
+        label = "cap-recruiter_standard_consent"
+        elts = join(
             self.CAPRecruiterStandardConsentPage(),
             conditional(
                 "cap-recruiter_standard_consent_conditional",
@@ -62,7 +62,7 @@ class CAPRecruiterStandardConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class CAPRecruiterStandardConsentPage(Page, Consent):
         """
@@ -110,8 +110,8 @@ class CAPRecruiterAudiovisualConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "cap-recruiter_audiovisual_consent"
-        self.elts = join(
+        label = "cap-recruiter_audiovisual_consent"
+        elts = join(
             self.CAPRecruiterAudiovisualConsentPage(),
             conditional(
                 "cap-recruiter_audiovisual_consent_conditional",
@@ -133,7 +133,7 @@ class CAPRecruiterAudiovisualConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class CAPRecruiterAudiovisualConsentPage(Page, Consent):
         """
@@ -172,6 +172,70 @@ class CAPRecruiterAudiovisualConsent(Module):
             }
 
 
+#########
+# Lucid #
+#########
+class LucidConsent(Module):
+    """
+    The Lucid consent form.
+
+    Parameters
+    ----------
+
+    time_estimate:
+        Time estimated for the page.
+    """
+
+    def __init__(
+        self,
+        time_estimate: Optional[float] = 30,
+    ):
+        label = "lucid_consent"
+        elts = join(
+            self.LucidConsentPage(),
+            conditional(
+                "lucid_consent_conditional",
+                lambda experiment, participant: (
+                    not participant.answer["lucid_consent"]
+                ),
+                RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "lucid_consent",
+                    participant.answer["lucid_consent"],
+                )
+            ),
+        )
+        super().__init__(label, elts)
+
+    class LucidConsentPage(Page, Consent):
+        """
+        This page displays the Lucid consent page.
+
+        Parameters
+        ----------
+
+        time_estimate:
+            Time estimated for the page.
+        """
+
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("consents/lucid_consent.html"),
+            )
+
+        def format_answer(self, raw_answer, **kwargs):
+            return {"lucid_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"lucid_consent": True}
+
+
 #############
 # Princeton #
 #############
@@ -190,8 +254,8 @@ class PrincetonConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "princeton_consent"
-        self.elts = join(
+        label = "princeton_consent"
+        elts = join(
             self.PrincetonConsentPage(),
             conditional(
                 "princeton_consent_conditional",
@@ -206,7 +270,7 @@ class PrincetonConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class PrincetonConsentPage(Page, Consent):
         """
@@ -250,8 +314,8 @@ class PrincetonCAPRecruiterConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "princeton_cap_recruiter_consent"
-        self.elts = join(
+        label = "princeton_cap_recruiter_consent"
+        elts = join(
             self.PrincetonCAPRecruiterConsentPage(),
             conditional(
                 "princeton_cap_recruiter_consent_conditional",
@@ -267,7 +331,7 @@ class PrincetonCAPRecruiterConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class PrincetonCAPRecruiterConsentPage(Page, Consent):
         """
@@ -316,8 +380,8 @@ class MainConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "main_consent"
-        self.elts = join(
+        label = "main_consent"
+        elts = join(
             self.MainConsentPage(),
             conditional(
                 "main_consent_conditional",
@@ -332,7 +396,7 @@ class MainConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class MainConsentPage(Page, Consent):
         """
@@ -379,8 +443,8 @@ class DatabaseConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "database_consent"
-        self.elts = join(
+        label = "database_consent"
+        elts = join(
             self.DatabaseConsentPage(),
             conditional(
                 "database_consent_conditional",
@@ -395,7 +459,7 @@ class DatabaseConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class DatabaseConsentPage(Page, Consent):
         """
@@ -442,8 +506,8 @@ class AudiovisualConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "audiovisual_consent"
-        self.elts = join(
+        label = "audiovisual_consent"
+        elts = join(
             self.AudiovisualConsentPage(),
             conditional(
                 "audiovisual_consent_conditional",
@@ -458,7 +522,7 @@ class AudiovisualConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class AudiovisualConsentPage(Page, Consent):
         """
@@ -505,8 +569,8 @@ class OpenScienceConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "open_science_consent"
-        self.elts = join(
+        label = "open_science_consent"
+        elts = join(
             self.OpenScienceConsentPage(),
             conditional(
                 "open_science_consent_conditional",
@@ -521,7 +585,7 @@ class OpenScienceConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class OpenScienceConsentPage(Page, Consent):
         """
@@ -568,8 +632,8 @@ class VoluntaryWithNoCompensationConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        self.label = "voluntary_with_no_compensation_consent"
-        self.elts = join(
+        label = "voluntary_with_no_compensation_consent"
+        elts = join(
             self.VoluntaryWithNoCompensationConsentPage(),
             conditional(
                 "voluntary_with_no_compensation_consent_conditional",
@@ -587,7 +651,7 @@ class VoluntaryWithNoCompensationConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.elts)
+        super().__init__(label, elts)
 
     class VoluntaryWithNoCompensationConsentPage(Page, Consent):
         """

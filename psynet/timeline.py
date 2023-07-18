@@ -1356,6 +1356,17 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
+    @property
+    def consents(self):
+        from .consent import Consent
+
+        return [elt for elt in self.elts if isinstance(elt, Consent)]
+
+    def verify_consents(self, experiment):
+        recruiter = experiment.recruiter
+        if hasattr(recruiter, "verify_consents"):
+            recruiter.verify_consents(self.consents)
+
     @cached_property
     def modules(self):
         return {e.module_id: e.module for e in self.elts}
@@ -2447,7 +2458,7 @@ class Module:
 
         return span.render()
 
-    def get_progress_info(self):
+    def get_progress_info(self, participant_counts, **kwargs):
         target_n_participants = (
             self.target_n_participants
             if hasattr(self, "target_n_participants")
@@ -2455,16 +2466,16 @@ class Module:
         )
         # TODO a more sophisticated calculation of progress
         progress = (
-            len(self.finished_participants) / target_n_participants
+            participant_counts["finished"] / target_n_participants
             if target_n_participants is not None and target_n_participants > 0
             else 1
         )
 
         return {
             self.id: {
-                "started_n_participants": len(self.started_participants),
-                "finished_n_participants": len(self.finished_participants),
-                "aborted_n_participants": len(self.aborted_participants),
+                "started_n_participants": participant_counts["started"],
+                "finished_n_participants": participant_counts["finished"],
+                "aborted_n_participants": participant_counts["aborted"],
                 "target_n_participants": target_n_participants,
                 "progress": progress,
             }

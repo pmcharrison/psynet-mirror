@@ -6,16 +6,16 @@
             <div class="col-xs-2">
               <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
             </div>
-            <h1 id="header" style="clear: both;">{{ pgettext("mturk_error", "Error!") }}</h1>
+            <h1 id="header" style="clear: both;">{{ pgettext("error", "Error!") }}</h1>
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
-                {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
-                {% if compensate == True %}
-                    <p id="error-text-main">
-                        {% if config.show_abort_button %}
+                {% if config.show_abort_button %}
+                    {% if compensate == True %}
+                        <p id="error-text-main">
                             {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
                             {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
+                            {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
                             {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
                             <p>
                                 {{ gettext("Error type") }}: {{ error_type }}<br>
@@ -24,11 +24,7 @@
                                 {{ gettext("Worker ID") }}: {{ worker_id }}<br>
                             </p>
                             <div id="abort-button-location"></div>
-                        {% else %}
-                            {{ experiment.error_page_content(gettext, pgettext, contact_address, error_type, hit_id, assignment_id, worker_id) }}
-                        {% endif %}
-                    </p>
-                    {% if config.show_abort_button %}
+                        </p>
                         <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
                         {{ gettext("Abort Experiment") }}
                         </button>
@@ -54,6 +50,10 @@
                             }
                         </script>
                     {% endif %}
+                {% else %}
+                    <p id="error-text-main">
+                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
+                    </p>
                 {% endif %}
             </div>
         </div>
