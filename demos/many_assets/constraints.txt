@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 2f1fafd61bbdc44705ebf7f918f870e8
+# Compiled from a requirement.txt file with md5sum: 43ed995333226fa5dddddca3c6fb9c05
 #
 alabaster==0.7.13
     # via
@@ -329,7 +329,7 @@ psycopg2==2.9.6
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.8.2/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.0.0
+psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
