@@ -44,7 +44,6 @@ from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .serialize import serialize
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -191,6 +190,8 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data = obj.scrub_pii(data)
     for key, value in data.items():
         if not is_basic_type(value):
+            from .serialize import serialize
+
             data[key] = serialize(value)
     return data
 

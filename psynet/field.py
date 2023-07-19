@@ -5,7 +5,6 @@ from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
 
-from .serialize import serialize, unserialize
 from .utils import get_logger
 
 logger = get_logger()
@@ -49,10 +48,14 @@ class PythonObject(TypeDecorator):
 
     @classmethod
     def serialize(cls, value):
+        from .serialize import serialize
+
         return serialize(value)
 
     @classmethod
     def unserialize(cls, value):
+        from .serialize import unserialize
+
         return unserialize(value)
 
 
