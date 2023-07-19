@@ -19,3 +19,5 @@ To try some real-world PsyNet experiments for yourself, visit the following repo
 - [Vocal pitch matching in musical chords](https://github.com/pmcharrison/2022-vertical-processing-test)
 
 For more information about PsyNet, visit the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+
+For latest information on software status, see [this link](https://docs.google.com/spreadsheets/d/1e8oi2CgP4ArgqddKn0-IlIy7vh2kS_3M9l0PGZfiLnA).
