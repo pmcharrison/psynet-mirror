@@ -1266,11 +1266,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = get_participant(participant_id)
 
         if page_uuid != participant.page_uuid:
-            logger.warn(
+            raise RuntimeError(
                 f"Participant {participant_id} tried to submit data with the wrong page_uuid"
                 + f"(submitted = {page_uuid}, required = {participant.page_uuid})."
             )
-            return error_response()
 
         try:
             event = self.timeline.get_current_elt(self, participant)
