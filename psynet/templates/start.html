@@ -57,13 +57,12 @@
 
             let entryInformation = getEntryInformation();
             let fingerprintHash = await getFingerprintHash();
-
             let url = "/participant";
             let data = {};
 
             if (entryInformation) {
                 data = entryInformation;
-                data.fingerPrinthash = fingerprintHash;
+                data.fingerprint_hash = fingerprintHash;
             } else {
                 let recruiter = dallinger.getUrlParameter('recruiter');
                 let hitId = dallinger.getUrlParameter('hitId');
@@ -75,7 +74,7 @@
                 url += "/" + hitId;
                 url += "/" + assignmentId;
                 url += "/" + mode;
-                url += "?fingerprint_hash=" + (fingerprintHash);
+                url += "?fingerprint_hash=" + fingerprintHash;
                 url += '&recruiter=' + recruiter;
             }
 
