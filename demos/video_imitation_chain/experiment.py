@@ -121,7 +121,7 @@ class CustomNode(CameraImitationChainNode):
     def summarize_trials(self, trials, experiment, participant):
         assert len(trials) == 1
         trial = trials[0]
-        return dict(recording_info=trial.recording_info, analysis=trial.analysis)
+        return dict(analysis=trial.analysis)
 
     def synthesize_target(self, output_file):
         """

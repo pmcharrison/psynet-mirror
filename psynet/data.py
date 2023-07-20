@@ -9,7 +9,6 @@ from zipfile import ZipFile
 
 import dallinger.data
 import dallinger.models
-import pandas
 import postgres_copy
 import psutil
 import six
@@ -29,7 +28,6 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
-from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import deferred
@@ -46,7 +44,6 @@ from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .serialize import serialize
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -193,6 +190,8 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data = obj.scrub_pii(data)
     for key, value in data.items():
         if not is_basic_type(value):
+            from .serialize import serialize
+
             data[key] = serialize(value)
     return data
 
@@ -787,9 +786,11 @@ def ingest_to_model(
 
 
 def patch_csv(infile, outfile, clear_columns, replace_columns):
-    df = pandas.read_csv(infile)
+    import pandas as pd
 
-    _replace_columns = {**{col: pandas.NA for col in clear_columns}, **replace_columns}
+    df = pd.read_csv(infile)
+
+    _replace_columns = {**{col: pd.NA for col in clear_columns}, **replace_columns}
 
     for col, value in _replace_columns.items():
         df[col] = value
@@ -865,6 +866,8 @@ def export_assets(
     n_parallel=None,
     server=None,
 ):
+    from joblib import Parallel, delayed
+
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
     if n_parallel:

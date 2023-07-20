@@ -1,15 +1,3 @@
-workflow:
-  rules:
-    - if: $CI_COMMIT_TAG
-      variables:
-        DOCKER_TAG: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      variables:
-        DOCKER_TAG: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-    - if: $CI_COMMIT_BRANCH == "master"
-      variables:
-        DOCKER_TAG: master
-
 image: docker:20.10.16
 
 services:
@@ -28,8 +16,10 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
-  DOCKER_IMAGE_CACHE_FROM: registry.gitlab.com/psynetdev/psynet:master
-  DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$DOCKER_TAG
+  DOCKER_REGISTRY_BASE: registry.gitlab.com/psynetdev/psynet
+  DOCKER_IMAGE_CACHE_FROM: "$DOCKER_REGISTRY_BASE:master"
+  DOCKER_LOCAL_TAG: psynet-build
+  DOCKER_REMOTE_TAG: "$DOCKER_REGISTRY_BASE:$CI_COMMIT_REF_NAME"
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
@@ -42,7 +32,7 @@ before_script:
   - docker image prune --all --force
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker pull $DOCKER_IMAGE_CACHE_FROM || true
-  - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_IMAGE .
+  - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_LOCAL_TAG .
 
 tests:
   parallel: 10
@@ -53,20 +43,25 @@ tests:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      $DOCKER_IMAGE bash -c
+      $DOCKER_LOCAL_TAG bash -c
       "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
 
 deploy_docker:
   stage: deploy
   script:
-    - docker push $DOCKER_IMAGE
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "dev"'
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - echo "Pushing Docker image to $DOCKER_REMOTE_TAG..."
+    - docker tag "$DOCKER_LOCAL_TAG" "$DOCKER_REMOTE_TAG"
+    - docker push "$DOCKER_REMOTE_TAG"
+  only:
+    - tags
+    - master
 
+# To do:
+# - Skip tests if the changes are only in the docs directory
+# - The Docker build step in before_script is redundant if we're already using the pushed Docker image here
 pages:
-  image: $DOCKER_IMAGE
+  image: $DOCKER_REMOTE_TAG
   stage: deploy
   needs: [deploy_docker]
   script:
@@ -78,5 +73,5 @@ pages:
   artifacts:
     paths:
     - public
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+  only:
+    - master

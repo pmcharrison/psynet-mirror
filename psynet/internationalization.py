@@ -6,7 +6,6 @@ from collections import OrderedDict
 from os.path import exists
 from os.path import join as join_path
 
-import pandas as pd
 import pexpect
 import polib
 
@@ -346,6 +345,8 @@ def assert_no_duplicate_translations_in_same_context(po_entries, locale):
     in a list of languages then to be translated identically, e.g. Malay and Malayam. These cases are hard to eyeball,
     so we disallow an identical translation within the same context for a different input text.
     """
+    import pandas as pd
+
     translation_dict_list = [
         {
             "msgid": key[0],

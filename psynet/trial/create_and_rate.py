@@ -1,7 +1,6 @@
 import inspect
 from random import sample
 
-import numpy as np
 from dallinger import db
 from dallinger.transformations import Transformation
 from sqlalchemy import Column
@@ -236,6 +235,8 @@ class CreateAndRateNodeMixin(object):
         return {f"{target}": target for target in all_targets}
 
     def summarize_rate_trials(self, rate_trials):
+        import numpy as np
+
         str2target = self.get_str2target(rate_trials)
         all_target_strs = list(str2target.keys())
         rating_dict = {target_str: [] for target_str in all_target_strs}

@@ -80,7 +80,7 @@ $(document).ready(function() {
           }
         });
       });
-  }, 2000);
+  }, 5000);
 
   $('.progress.modules').mouseenter(function(data) {
     updateTooltip($(this).data('module-id'));

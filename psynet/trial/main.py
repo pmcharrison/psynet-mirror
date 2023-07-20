@@ -1424,9 +1424,6 @@ class TrialMaker(Module):
 
         return rendered_div + div.render()
 
-    def get_progress_info(self):
-        return super().get_progress_info()
-
     def visualize_tooltip(self):
         return super().visualize_tooltip()
 

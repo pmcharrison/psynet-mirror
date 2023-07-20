@@ -1,14 +1,31 @@
 # CHANGELOG
 
-# [10.0.0] Release 2023-06-22
+# [10.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.1.0) Release 2023-07-13
 
-- To be announced
+#### Fixed
+- Escape double quotes in translated JavaScript variables (author: Pol van Rijn, reviewer: Peter Harrison).
+- Fixed an error when setting JavaScript variables on timeline pages; removed obsolete JavaScript function `checkParticipantId` (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed bug in dashboard visualization where trial plots weren't displaying (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Added
+- Added support for the Lucid(Cint) recruiting platform (author: Frank Höger, reviewers: Peter Harrison, Pol van Rijn).
+- Users are now required to specify the version of PsyNet in requirements.txt explicitly. Additionally, demos' requirements.txt files are updated to the current version of PsyNet when running the `demos/update_demos.py` script (author: Frank Höger, reviewer: Peter Harrison).
+- Added `--server parameter` to `psynet destroy` (author: Pol van Rijn, reviewer: Frank Höger).
+
+#### Changed
+- Simplified some internal logic for RecordTrial (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Updated
+- Updated `Dallinger` to `v9.8.2`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.8.2.
+
+# [10.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.0.0) Release 2023-06-22
+
+- TO BE ANNOUNCED
 
 # [10.0.0rc4] Release candidate 2023-04-30
 
 #### Updated
 - Updated `Dallinger` to `v9.7.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.7.0.
-- TODO
 
 # [10.0.0rc3] Release candidate 2023-03-02
 
