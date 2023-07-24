@@ -67,6 +67,17 @@ uses GitLab. You will probably want to create an account on that website before 
     This is important because your Docker run scripts won't run with the latter.
 
 
+.. warning::
+
+    *Windows users only*: if you plan to use an SSH key to connect to your online Git hosting service,
+    and you want to use an SSH key with a password, then by default you will have to reenter your password
+    each time you restart WSL. If this sounds annoying, we recommend either creating your SSH key without a
+    password, or following the instructions
+    `here <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases?platform=windows>`_
+    to have you password managed by ``ssh-agent``.
+
+
+
 Step 4: Try running an experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
