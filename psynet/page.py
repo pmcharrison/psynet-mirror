@@ -26,7 +26,7 @@ logger = get_logger()
 warnings.simplefilter("always", DeprecationWarning)
 
 
-class InfoPage(Page):
+class InfoPage(ModularPage):
     """
     This page displays some content to the user alongside a button
     with which to advance to the next page.
@@ -42,7 +42,7 @@ class InfoPage(Page):
         Time estimated for the page.
 
     **kwargs:
-        Further arguments to pass to :class:`psynet.timeline.Page`.
+        Further arguments to pass to :class:`psynet.modular_page.ModularPage`.
     """
 
     def __init__(
@@ -53,9 +53,9 @@ class InfoPage(Page):
     ):
         self.content = content
         super().__init__(
+            label="info",
+            prompt=content,
             time_estimate=time_estimate,
-            template_str=get_template("info-page.html"),
-            template_arg={"content": "" if content is None else content},
             save_answer=False,
             **kwargs,
         )
