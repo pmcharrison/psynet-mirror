@@ -78,20 +78,89 @@ uses GitLab. You will probably want to create an account on that website before 
 
 
 
-Step 4: Try running an experiment
+Step 4: Download an experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To check that everything is now running properly, you should try running an experiment.
 You can start by downloading one from the :ref:`Example experiments <example_experiments_introduction>` page.
-Follow the instructions in the repository to launch the experiment using Docker,
-or just try running the following command in your system terminal:
+
+The easiest way to download the code is as a zip file. If you are viewing the repository
+online you should see a link to do this on the web page.
+
+If you want to work on the experiment yourself you should probably download it using Git.
+If you are viewing the repository online you should see button saying 'Clone' or similar;
+this will give you some download links to copy. You can use these in your terminal.
+We recommend you use the 'HTTPS' link.
+
+::
+
+    # Navigate to the parent directory where you want to download your project.
+    # The project will be downloaded as a subdirectory within this directory,
+    # defaulting to the name of the repository.
+    # Note: you should create the parent directory first if it doesn't exist yet.
+    cd ~/Documents/psynet-projects
+
+    # Clone the Git repository, replacing the URL below with the one you get from
+    # the website under the Clone with HTTPS option.
+    git clone https://gitlab.com/pmcharrison/example-experiment.git
+
+If you want to run an experiment from a private repository then someone should have added you already
+as a collaborator. You will need to use your credentials when cloning the repository;
+if you use the HTTPS link then you should be prompted for these automatically.
+
+
+Step 5: Set up PyCharm
+^^^^^^^^^^^^^^^^^^^^^^
+
+The first time you open PyCharm you may need to enter some license information,
+decide to start a free trial, or something similar. Do this first.
+
+Now, within PyCharm, click File > Open and open the folder that Git downloaded for you.
+This opens the experiment directory as a PyCharm 'project'.
+It may ask you to setup an 'interpreter' at this point; ignore this message and click Cancel.
+
+The first thing you should do is 'build' the experiment. The first time you build a PsyNet
+experiment it will download PsyNet and lots of other dependencies. Make sure you have a
+good internet connection for this, it will take a few minutes.
+You build the experiment by running the following in your PyCharm terminal:
+
+::
+
+    bash docker/build
+
+
+Note: if you see an error message like this:
+
+
+::
+
+    ./docker/run: Permission denied
+
+run the following command, then try again:
+
+::
+
+    chmod +x docker/*
+
+If you see other error messages at this point, see Troubleshooting.
+
+
+Step 6: Running the experiment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If all has gone well, you should now be able to run the experiment.
+Try this by running the following command in your PyCharm terminal:
 
 ::
 
     bash docker/psynet debug local
 
+It'll print a lot of stuff, but eventually you should see 'Dashboard link' printed.
+Open the provided URL in Google Chrome, and it'll take you to the experiment dashboard.
+From here you can start a new participant session.
 
-Step 5 (Optional, MacOS/Linux only): Install editable PsyNet and Dallinger repositories
+
+Step 6 (Optional, MacOS/Linux only): Install editable PsyNet and Dallinger repositories
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes it is useful to edit PsyNet and Dallinger source code as part of debugging an experiment.
