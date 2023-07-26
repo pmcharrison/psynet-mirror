@@ -152,6 +152,7 @@ class Gender(ModularPage):
             name="gender",
             show_free_text_option=True,
             placeholder_text_free_text=_p("gender", "Specify yourself"),
+            locale=locale,
         )
         super().__init__(
             self.label,
@@ -292,6 +293,7 @@ class FormalEducation(ModularPage):
                 _p("formal-education", "Postgraduate degree or higher"),
             ],
             name="formal_education",
+            locale=locale,
         )
         super().__init__(
             self.label,
@@ -462,6 +464,7 @@ class MoneyFromPlayingMusic(ModularPage):
             ["frequently", "sometimes", "never"],
             [_p("music", "Frequently"), _p("music", "Sometimes"), _p("music", "Never")],
             name="money_from_playing_music",
+            locale=locale,
         )
         super().__init__(
             self.label,
@@ -520,6 +523,7 @@ class DanceSociallyOrProfessionally(ModularPage):
                 _p("dance", "I never dance"),
             ],
             name="dance_socially_or_professionally",
+            locale=locale,
         )
         super().__init__(
             self.label,
@@ -562,6 +566,7 @@ class LastTimeDanced(ModularPage):
                 _p("dance", "I never danced"),
             ],
             name="last_time_danced",
+            locale=locale,
         )
         super().__init__(
             self.label,
@@ -670,6 +675,7 @@ class HouseholdIncomePerYear(ModularPage):
                 _p("income", "150,000 {CURRENCY} or more").format(CURRENCY=currency),
             ],
             name="household_income_per_year",
+            locale=locale,
         )
         super().__init__(
             self.label,
