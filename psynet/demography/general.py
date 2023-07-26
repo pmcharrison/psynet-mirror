@@ -213,7 +213,7 @@ class CountryDropdown(ModularPage):
             + [_p("country-select", "Other country")],
             default_text=_p("country-select", "Select a country"),
             name=self.label,
-            locale=self.locale,
+            locale=locale,
         )
         super().__init__(
             self.label,
