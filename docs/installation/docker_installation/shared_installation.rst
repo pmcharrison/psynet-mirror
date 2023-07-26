@@ -144,6 +144,15 @@ run the following command, then try again:
 
 If you see other error messages at this point, see Troubleshooting.
 
+Now you should configure PyCharm to use your experiment's Docker image.
+To do this, first open the Dockertag file in your experiment's directory, and copy the contents to your clipboard.
+Then look for a box in the bottom-right corner of your screen that says 'No interpreter'.
+Click on this text and click 'Add New interpreter'.
+Click 'Pull or use existing', then under 'Image tag' paste the contents of the Dockertag file you copied earlier.
+Click Next, and wait a while. The script will initially look for that tag on Dockerhub, which should fail;
+It should then look for that tag on your local computer, and successfully acquire the image you just built locally.
+Click Next, then select 'System Interpreter', then click 'Create'. You should have now successfully set up your
+interpreter.
 
 Step 6: Running the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
