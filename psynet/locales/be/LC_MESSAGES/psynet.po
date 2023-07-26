@@ -464,6 +464,27 @@ msgstr ""
 "Каб запытаць аб кампенсацыі, адпраўце даследчыку паведамленне праз вэб-сайт "
 "Prolific і апішыце, што прывяло да вашай памылкі."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Вы павінны адзначыць хаця б адзін адказ!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Вам трэба ўказаць нумар!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Вам трэба выбраць адказ!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -662,7 +683,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Каб працягнуць, націсніце кнопку ніжэй."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

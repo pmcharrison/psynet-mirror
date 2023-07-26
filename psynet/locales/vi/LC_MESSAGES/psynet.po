@@ -465,6 +465,27 @@ msgstr ""
 "Để hỏi về bồi thường, vui lòng gửi tin nhắn cho nhà nghiên cứu qua trang web"
 " Prolific và mô tả nguyên nhân dẫn đến lỗi của bạn."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Bạn cần kiểm tra ít nhất một câu trả lời!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Bạn cần cung cấp một số!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Bạn cần chọn một câu trả lời!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -663,7 +684,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Để tiếp tục, hãy nhấp vào nút bên dưới."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

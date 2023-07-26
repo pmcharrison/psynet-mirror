@@ -461,6 +461,27 @@ msgstr ""
 "للاستعلام عن التعويض ، يرجى إرسال رسالة للباحث عبر موقع Prolific ووصف سبب "
 "الخطأ."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "تحتاج إلى التحقق من إجابة واحدة على الأقل!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "تحتاج إلى توفير رقم!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "تحتاج إلى تحديد إجابة!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -651,7 +672,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "للمتابعة ، انقر فوق الزر أدناه."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

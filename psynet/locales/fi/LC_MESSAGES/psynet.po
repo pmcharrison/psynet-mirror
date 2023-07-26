@@ -485,6 +485,27 @@ msgstr ""
 "Jos haluat tiedustella korvausta, lähetä tutkijalle viesti Prolificin "
 "verkkosivuston kautta ja kerro, mikä johti virheeseesi."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Sinun on tarkistettava ainakin yksi vastaus!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Sinun on annettava numero!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Sinun on valittava vastaus!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -681,7 +702,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Jatka klikkaamalla alla olevaa painiketta."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

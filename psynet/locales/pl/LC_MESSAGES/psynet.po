@@ -469,6 +469,27 @@ msgstr ""
 "pośrednictwem strony internetowej Prolific i opisać, co doprowadziło do "
 "błędu."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Proszę zaznaczyć przynajmniej jedną odpowiedź!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Proszę podać liczbę!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Proszę wybrać odpowiedź!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -673,7 +694,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Aby kontynuować, proszę kliknąć poniższy przycisk."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

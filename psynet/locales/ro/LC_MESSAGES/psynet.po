@@ -466,6 +466,27 @@ msgstr ""
 "cercetătorului prin intermediul site-ului Prolific și să descrieți ce a dus "
 "la eroarea dumneavoastră."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Trebuie să bifați cel puțin un răspuns!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Trebuie să furnizați un număr!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Trebuie să selectați un răspuns!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -671,7 +692,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Pentru a continua, faceți clic pe butonul de mai jos."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

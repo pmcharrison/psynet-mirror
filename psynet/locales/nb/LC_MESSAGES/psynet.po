@@ -464,6 +464,27 @@ msgstr ""
 "Hvis du vil spørre om kompensasjon, kan du sende forskeren en melding via "
 "Prolific-nettstedet og beskrive hva som førte til feilen din."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Du må krysse av for minst ett svar!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Du må oppgi et tall!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Du må velge et svar!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -660,7 +681,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Klikk på knappen nedenfor for å gå videre."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

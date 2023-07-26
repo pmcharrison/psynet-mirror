@@ -463,6 +463,27 @@ msgstr ""
 "Щоб отримати компенсацію, надішліть досліднику повідомлення через сайт "
 "Prolific і опишіть, що призвело до вашої помилки."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Потрібно відмітити хоча б одну відповідь!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Потрібно вказати число!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Потрібно вибрати відповідь!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -665,7 +686,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Щоб продовжити, натисніть кнопку нижче."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

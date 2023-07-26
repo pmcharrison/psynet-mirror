@@ -404,6 +404,27 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "您需要检查至少一个答案！"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "您需要提供一个数字！"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "您需要选择一个答案！"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -563,7 +584,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "要继续，请点击下面的按钮。"
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

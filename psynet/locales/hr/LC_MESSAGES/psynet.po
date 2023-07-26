@@ -464,6 +464,27 @@ msgstr ""
 "Za upit o naknadi, pošaljite istraživaču poruku putem web stranice Prolific "
 "i opišite što je dovelo do vaše pogreške."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Morate označiti barem jedan odgovor!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Morate navesti broj!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Morate odabrati odgovor!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -658,7 +679,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Za nastavak kliknite gumb ispod."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

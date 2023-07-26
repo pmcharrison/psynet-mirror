@@ -483,6 +483,27 @@ msgstr ""
 "Nachricht über die Prolific-Website und beschreiben Sie, wie es zu Ihrem "
 "Fehler kam."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Sie müssen mindestens eine Antwort ankreuzen!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Sie müssen eine Zahl angeben!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Sie müssen eine Antwort auswählen!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -679,7 +700,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Um fortzufahren, klicken Sie auf die Schaltfläche unten."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

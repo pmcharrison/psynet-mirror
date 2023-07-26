@@ -460,6 +460,27 @@ msgstr ""
 "כדי לברר לגבי פיצוי, אנא שלח לחוקר הודעה דרך אתר האינטרנט של פרוליפיק ותאר "
 "מה הוביל לטעות שלך."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "עליך לבדוק לפחות תשובה אחת!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "אתה צריך לספק מספר!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "אתה צריך לבחור תשובה!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -651,7 +672,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "כדי להמשיך, לחץ על הכפתור למטה."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

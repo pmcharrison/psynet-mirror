@@ -462,6 +462,27 @@ msgstr ""
 "หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดส่งข้อความถึงผู้วิจัยผ่านเว็บไซต์ "
 "Prolific และอธิบายสิ่งที่นำไปสู่ข้อผิดพลาดของคุณ"
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "คุณต้องตรวจสอบอย่างน้อยหนึ่งคำตอบ!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "คุณต้องระบุหมายเลข!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "คุณต้องเลือกคำตอบ!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -652,7 +673,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "หากต้องการดำเนินการต่อ ให้คลิกปุ่มด้านล่าง"
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

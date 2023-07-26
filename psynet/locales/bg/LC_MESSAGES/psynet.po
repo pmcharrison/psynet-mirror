@@ -465,6 +465,27 @@ msgstr ""
 "изследователя чрез уебсайта Prolific и опишете какво е довело до вашата "
 "грешка."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Трябва да проверите поне един отговор!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Трябва да посочите номер!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Трябва да изберете отговор!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -665,7 +686,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "За да продължите, кликнете върху бутона по-долу."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

@@ -465,6 +465,27 @@ msgstr ""
 "Για να ζητήσετε αποζημίωση, στείλτε μήνυμα στον ερευνητή μέσω της "
 "ιστοσελίδας Prolific και περιγράψτε τι οδήγησε στο λάθος σας."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Πρέπει να ελέγξετε τουλάχιστον μία απάντηση!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Πρέπει να δώσετε έναν αριθμό!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Πρέπει να επιλέξετε μια απάντηση!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -673,7 +694,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Για να προχωρήσετε, κάντε κλικ στο παρακάτω κουμπί."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

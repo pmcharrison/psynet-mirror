@@ -464,6 +464,27 @@ msgstr ""
 "Ili kuuliza kuhusu fidia, tafadhali mtumie mtafiti ujumbe kupitia tovuti ya "
 "Prolific na ueleze kilichosababisha kosa lako."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Unahitaji kuangalia angalau jibu moja!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Unahitaji kutoa nambari!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Unahitaji kuchagua jibu!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -658,7 +679,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Ili kuendelea, bofya kitufe kilicho hapa chini."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

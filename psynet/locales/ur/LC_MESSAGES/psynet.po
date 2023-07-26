@@ -465,6 +465,27 @@ msgstr ""
 "معاوضے کے بارے میں استفسار کرنے کے لیے، براہ کرم محقق کو Prolific ویب سائٹ "
 "کے ذریعے ایک پیغام بھیجیں اور بیان کریں کہ آپ کی غلطی کی وجہ کیا ہے۔"
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "آپ کو کم از کم ایک جواب چیک کرنے کی ضرورت ہے!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "آپ کو ایک نمبر فراہم کرنے کی ضرورت ہے!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "آپ کو ایک جواب منتخب کرنے کی ضرورت ہے!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -661,7 +682,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "آگے بڑھنے کے لیے، نیچے دیئے گئے بٹن پر کلک کریں۔"
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

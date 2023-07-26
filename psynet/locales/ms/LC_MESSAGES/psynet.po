@@ -467,6 +467,27 @@ msgstr ""
 "Untuk bertanya tentang pampasan, sila hantar mesej kepada penyelidik melalui"
 " tapak web Prolific dan terangkan perkara yang membawa kepada ralat anda."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Anda perlu menyemak sekurang-kurangnya satu jawapan!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Anda perlu memberikan nombor!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Anda perlu memilih jawapan!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -666,7 +687,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Untuk meneruskan, klik butang di bawah."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"
