@@ -176,7 +176,7 @@ class Age(ModularPage):
         super().__init__(
             self.label,
             self.prompt,
-            control=NumberControl(),
+            control=NumberControl(locale=locale),
             time_estimate=self.time_estimate,
             save_answer=label,
         )
@@ -212,6 +212,7 @@ class CountryDropdown(ModularPage):
             + [_p("country-select", "Other country")],
             default_text=_p("country-select", "Select a country"),
             name=self.label,
+            locale=self.locale,
         )
         super().__init__(
             self.label,
@@ -325,6 +326,7 @@ class MotherTongue(ModularPage):
             labels=list(language_dict.values()) + ["Other language"],
             default_text=_p("language-select", "Select a language"),
             name=self.label,
+            locale=self.locale,
         )
         super().__init__(
             self.label,
@@ -418,7 +420,7 @@ class YearsOfFormalTraining(ModularPage):
         super().__init__(
             self.label,
             self.prompt,
-            control=NumberControl(),
+            control=NumberControl(locale=locale),
             time_estimate=self.time_estimate,
             save_answer=label,
         )
@@ -439,7 +441,7 @@ class HoursOfDailyMusicListening(ModularPage):
         super().__init__(
             self.label,
             self.prompt,
-            control=NumberControl(),
+            control=NumberControl(locale=locale),
             time_estimate=self.time_estimate,
             save_answer=label,
         )
