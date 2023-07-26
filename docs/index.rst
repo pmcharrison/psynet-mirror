@@ -1,12 +1,6 @@
 Overview
 ========
 
-.. warning::
-    At the time of writing (December 2022) PsyNet is under heavy development as we prepare
-    for an official release in 2023. Most of its features are ready, but some important
-    details are still undocumented or unfinished. We recommend contacting the PsyNet developers
-    for advice before starting to adopt PsyNet for your own research projects.
-
 PsyNet is a new platform for running advanced behavioral experiments
 ranging from adaptive psychophysics to simulated cultural evolution.
 It builds on the virtual lab framework `Dallinger <https://dallinger.readthedocs.io/en/latest/>`_.
