@@ -23,6 +23,9 @@ from psynet import field
 
 from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
+from ..error import (  # noqa  # Importing the error module is important to ensure sqlalchemy is happy
+    ErrorRecord,
+)
 from ..field import PythonDict, PythonObject, VarStore, register_extra_var
 from ..page import InfoPage, UnsuccessfulEndPage, WaitPage, wait_while
 from ..participant import Participant
