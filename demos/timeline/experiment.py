@@ -30,12 +30,13 @@ class Exp(psynet.experiment.Experiment):
     label = "Timeline demo"
     initial_recruitment_size = 1
 
-    config = {
-        "wage_per_hour": 12,
-    }
-
     variables = {
         "new_variable": "some-value",
+    }
+
+    config = {
+        "min_accumulated_bonus_for_abort": 0.15,
+        "show_abort_button": True,
     }
 
     @experiment_route("/custom_route", methods=["POST", "GET"])
@@ -119,7 +120,7 @@ class Exp(psynet.experiment.Experiment):
             conditional(
                 "like_chocolate",
                 lambda participant: participant.answer == "Yes",
-                InfoPage("It's nice to hear that you like chocolate!", time_estimate=5),
+                InfoPage("It's nice to hear that you like chocolate!", time_estimate=6),
                 InfoPage(
                     "I'm sorry to hear that you don't like chocolate...",
                     time_estimate=3,

@@ -53,8 +53,8 @@ class TestExp:
                 driver,
                 "error-text-main",
                 # TODO where was this message declared?
-                # "You may be able to abort the experiment using the Abort experiment button below. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at computational.audition+online_running@gmail.com quoting the following information:",
-                "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at computational.audition+online_running@gmail.com quoting the following information:",
+                # "You may be able to abort the experiment using the Abort experiment button below. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at XXX@gmail.com quoting the following information:",
+                "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at XXX@gmail.com quoting the following information:",
             )
             assert_text(
                 driver,
