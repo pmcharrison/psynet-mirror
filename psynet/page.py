@@ -422,3 +422,59 @@ class VolumeCalibration(Module):
             </p>
             """
         )
+
+
+class JsPsychPage(Page):
+    """
+    A page that embeds a jsPsych experiment. See ``demos/jspsych`` for example usage.
+
+    label :
+        Label for the page.
+
+    timeline :
+        A path to an HTML file that defines the jsPsych experiment's timeline.
+        The timeline should be saved as an object called ``timeline``.
+        See ``demos/jspsych`` for an example.
+
+    js_links :
+        A list of links to JavaScript files to include in the page. Typically this would include
+        a link to the required jsPsych version as well as links to the required plug-ins.
+        It is recommended to include these files in the ``static`` directory and refer to them
+        using relative paths; alternatively it is possible to link to these files via a CDN.
+
+    css_links :
+        A list of links to CSS stylesheets to include. Typically this would include the standard
+        jsPsych stylesheet.
+
+    js_vars :
+        An optional dictionary of variables to pass to the front-end. These can then be accessed
+        in the timeline template, writing for example ``psynet.var["my_variable"]``.
+    """
+
+    def __init__(
+        self,
+        label: str,
+        timeline: str,
+        time_estimate: float,
+        js_links: Union[str, List[str]],
+        css_links: Union[str, List[str]],
+        js_vars: Optional[dict] = None,
+        **kwargs,
+    ):
+        if isinstance(js_links, str):
+            js_links = [js_links]
+        if isinstance(css_links, str):
+            css_links = [css_links]
+
+        super().__init__(
+            time_estimate=time_estimate,
+            template_path=timeline,
+            label=label,
+            js_vars=js_vars,
+            js_links=js_links,
+            css_links=css_links,
+            **kwargs,
+        )
+
+    def format_answer(self, raw_answer, **kwargs):
+        return json.loads(raw_answer)

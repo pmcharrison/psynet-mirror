@@ -583,6 +583,9 @@ class Page(Elt):
     js_vars:
         Dictionary of arguments to instantiate as global Javascript variables.
 
+    js_links:
+        Optional list of paths to JavaScript scripts to include in the page.
+
     media: :class:`psynet.timeline.MediaSpec`
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
@@ -614,6 +617,9 @@ class Page(Elt):
                 font-size: 28px;
                 font-weight: bold;
             }
+
+    css_links:
+        Optional list of links to CSS stylesheets to include in the page.
 
     contents:
         Optional dictionary to store some experiment specific data. For example, in an experiment about melodies, the contents property might look something like this: {”melody”: [1, 5, 2]}.
@@ -683,15 +689,18 @@ class Page(Elt):
 
     def __init__(
         self,
+        *,
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
+        js_links: Optional[List] = None,
         media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
         css: Optional[List] = None,
+        css_links: Optional[List] = None,
         contents: Optional[Dict] = None,
         session_id: Optional[str] = None,
         save_answer: bool = True,
@@ -704,8 +713,12 @@ class Page(Elt):
             template_arg = {}
         if js_vars is None:
             js_vars = {}
+        if js_links is None:
+            js_links = []
         if contents is None:
             contents = {}
+        if css_links is None:
+            css_links = []
 
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
@@ -725,6 +738,7 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
+        self.js_links = js_links
 
         self.expected_repetitions = 1
 
@@ -736,6 +750,8 @@ class Page(Elt):
 
         self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
+
+        self.css_links = css_links
 
         self._contents = contents
         self.session_id = session_id
@@ -1064,12 +1080,12 @@ class Page(Elt):
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
         config = get_and_load_config()
+        js_vars = {**self.js_vars, **internal_js_vars}
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": Markup(
-                dict_to_js_vars({**self.js_vars, **internal_js_vars})
-            ),
+            "init_js_vars": Markup(dict_to_js_vars(js_vars)),
+            "js_vars": js_vars,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
@@ -1084,7 +1100,9 @@ class Page(Elt):
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
+            "js_links": self.js_links,
             "css": self.css,
+            "css_links": self.css_links,
             "events": self.events,
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
