@@ -1394,6 +1394,13 @@ def _check_constraints(spinner=None):
 
 
 def verify_psynet_requirement():
+    environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
+    if os.environ.get(environment_variable, None):
+        print(
+            f"Skipping PsyNet version requirement check because {environment_variable} was non-empty."
+        )
+        return
+
     with yaspin(
         text="Verifying PsyNet version in 'requirements.txt'...",
         color="green",
@@ -1407,7 +1414,7 @@ def verify_psynet_requirement():
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
                 match = re.search(
-                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
                     + regex
                     + "#egg=psynet$",
                     file_content,
@@ -1428,7 +1435,9 @@ def verify_psynet_requirement():
             "\nExamples:\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
+            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+            "in your terminal."
         )
 
 
