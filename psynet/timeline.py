@@ -769,10 +769,12 @@ class Page(Elt):
 
         self._bot_response = bot_response
 
-    def call__bot_response(self, experiment, bot):
+    def call__bot_response(self, experiment, bot, response=NoArgumentProvided):
         from .bot import BotResponse
 
-        if self._bot_response == NoArgumentProvided:
+        if response != NoArgumentProvided:
+            res = response
+        elif self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot)
         elif callable(self._bot_response):
             res = call_function_with_context(
@@ -1709,8 +1711,9 @@ def is_list_of(x, what):
 
 def join(*args):
     from .asset import AssetSpecification
+    from .sync import Barrier
 
-    valid_classes = (AssetSpecification, Elt, Module)
+    valid_classes = (AssetSpecification, Elt, Module, Barrier)
 
     for i, arg in enumerate(args):
         if not (
@@ -1718,7 +1721,7 @@ def join(*args):
             or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module nor a list of such objects: ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module/Barrier nor a list of such objects: ({arg})."
             )
 
     args = [a for a in args if a is not None]
@@ -1735,9 +1738,9 @@ def join(*args):
     else:
 
         def f(x, y):
-            if isinstance(x, Module):
+            if isinstance(x, (Module, Barrier)):
                 x = x.resolve()
-            if isinstance(y, Module):
+            if isinstance(y, (Module, Barrier)):
                 y = y.resolve()
             if x is None:
                 return y
@@ -1866,7 +1869,9 @@ def while_loop(
     from .page import UnsuccessfulEndPage
 
     if fail_on_timeout is True:
-        after_timeout_logic = UnsuccessfulEndPage()
+        after_timeout_logic = UnsuccessfulEndPage(
+            failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+        )
     else:
         after_timeout_logic = GoTo(end_while)
 
