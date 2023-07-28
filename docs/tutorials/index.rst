@@ -9,6 +9,7 @@ Tutorials
    assets
    specifying_dependencies
    internationalization
+   synchronization
    ad_page
    modular_page
    graphics

@@ -481,14 +481,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         db.session.commit()
 
-    def create_participant(self, **kwargs):
-        assignment_id = kwargs["assignment_id"]
-        if Participant.query.filter_by(assignment_id=assignment_id).count() > 0:
-            raise ValueError(
-                f"The assignment_id '{assignment_id}' already exists in the database."
-            )
-        return super().create_participant(**kwargs)
-
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
 
@@ -774,6 +766,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "protected_routes": json.dumps(_protected_routes),
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
+            "lock_table_when_creating_participant": False,
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",
@@ -1034,6 +1027,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             len(self.participant_fail_routines),
         )
         participant.failed = True
+        participant.failed_reason = ", ".join(participant.failure_tags)
         participant.time_of_death = datetime.now()
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(

@@ -30,6 +30,7 @@ from ..field import PythonDict, PythonObject, VarStore, register_extra_var
 from ..page import InfoPage, UnsuccessfulEndPage, WaitPage, wait_while
 from ..participant import Participant
 from ..process import AsyncProcess, WorkerAsyncProcess
+from ..sync import GroupBarrier, SyncGroup
 from ..timeline import (
     CodeBlock,
     DatabaseCheck,
@@ -973,6 +974,7 @@ class TrialMakerState(ModuleState):
     performance_check = Column(PythonDict)
     trials_to_repeat = Column(PythonObject)
     repeat_trial_index = Column(Integer)
+    n_created_trials = Column(Integer, default=0, server_default="0")
     n_completed_trials = Column(Integer, default=0, server_default="0")
 
 
@@ -1131,6 +1133,12 @@ class TrialMaker(Module):
     end_performance_check_waits : bool
         If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
+
+    sync_group_type
+        Optional SyncGroup type to use for synchronizing participant allocation to nodes.
+        When this is set, then the ordinary node allocation logic will only apply to the 'leader'
+        of each SyncGroup. The other members of this SyncGroup will follow that leader around,
+        so that in every given trial the SyncGroup works on the same node together.
     """
 
     state_class = TrialMakerState
@@ -1149,6 +1157,7 @@ class TrialMaker(Module):
         target_n_participants: Optional[int],
         n_repeat_trials: int,
         assets: List,
+        sync_group_type: Optional[str] = None,
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1178,6 +1187,7 @@ class TrialMaker(Module):
         self.recruit_mode = recruit_mode
         self.target_n_participants = target_n_participants
         self.n_repeat_trials = n_repeat_trials
+        self.sync_group_type = sync_group_type
 
         elts = self.compile_elts()
 
@@ -1509,6 +1519,7 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
         participant.select_module(self.id)
+        participant.module_state.n_created_trials = 0
         participant.module_state.n_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
@@ -1708,18 +1719,18 @@ class TrialMaker(Module):
         ).all()
         return [t for t in all_participant_trials if t.trial_maker_id == self.id]
 
-    # def _wait_for_prepared_trial(self, experiment, participant):
-    #     while_loop(
-    #         self.with_namespace("wait_for_prepared_trial"),
-    #         lambda participant, experiment:
-    #     )
-
     @log_time_taken
-    def _prepare_trial(self, experiment, participant):
+    def _prepare_trial(self, experiment, participant, leader=None):
         if not participant.module_state.in_repeat_phase:
-            trial, trial_status = self.prepare_trial(
-                experiment=experiment, participant=participant
-            )
+            if leader is None:
+                trial, trial_status = self.prepare_trial(
+                    experiment=experiment, participant=participant
+                )
+            else:
+                assert participant.id != leader.id
+                trial, trial_status = self.prepare_follower_trial(
+                    experiment=experiment, participant=participant, leader=leader
+                )
             if trial_status == "exit" and self.n_repeat_trials > 0:
                 participant.module_state.in_repeat_phase = True
 
@@ -1805,18 +1816,45 @@ class TrialMaker(Module):
         )
 
     def _wait_for_trial(self):
-        def _try_to_prepare_trial(experiment, participant):
+        def _try_to_prepare_trial__solo(experiment, participant):
             trial, trial_status = self._prepare_trial(experiment, participant)
-            if trial is None:
-                assert trial_status in ["wait", "exit"]
-            else:
-                assert isinstance(trial, Trial)
-                assert trial_status == "available"
             participant.current_trial = trial
             participant.trial_status = trial_status
 
+        def _try_to_prepare_trial__group(group: SyncGroup):
+            from ..experiment import get_experiment
+
+            experiment = get_experiment()
+
+            leader = group.leader
+            followers = [
+                participant
+                for participant in group.participants
+                if participant.id != leader.id
+            ]
+
+            leader.current_trial, leader.trial_status = self._prepare_trial(
+                experiment=experiment, participant=group.leader
+            )
+            for follower in followers:
+                follower.current_trial, follower.trial_status = self._prepare_trial(
+                    experiment=experiment,
+                    participant=follower,
+                    leader=group.leader,
+                )
+
         def try_to_prepare_trial():
-            return CodeBlock(_try_to_prepare_trial)
+            if self.sync_group_type:
+                return join(
+                    GroupBarrier(
+                        id_="prepare_trial",
+                        group_type=self.sync_group_type,
+                        on_release=_try_to_prepare_trial__group,
+                        fix_time_credit=False,  # we're already within a while loop with fixed time credit
+                    )
+                )
+            else:
+                return CodeBlock(_try_to_prepare_trial__solo)
 
         return join(
             try_to_prepare_trial(),
@@ -1973,6 +2011,12 @@ class NetworkTrialMaker(TrialMaker):
         If ``True``, then the participant will be made to wait if there are
         still more networks to participate in, but these networks are pending asynchronous processes.
 
+    sync_group_type
+        Optional SyncGroup type to use for synchronizing participant allocation to nodes.
+        When this is set, then the ordinary node allocation logic will only apply to the 'leader'
+        of each SyncGroup. The other members of this SyncGroup will follow that leader around,
+        so that in every given trial the SyncGroup works on the same node together.
+
 
     Attributes
     ----------
@@ -2039,6 +2083,7 @@ class NetworkTrialMaker(TrialMaker):
         n_repeat_trials: int,
         wait_for_networks: bool,
         assets=None,
+        sync_group_type: Optional[str] = None,
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2075,6 +2120,7 @@ class NetworkTrialMaker(TrialMaker):
             target_n_participants=target_n_participants,
             n_repeat_trials=n_repeat_trials,
             assets=assets,
+            sync_group_type=sync_group_type,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
@@ -2099,8 +2145,9 @@ class NetworkTrialMaker(TrialMaker):
         #     self.grow_network(network, experiment)
 
     @log_time_taken
-    def prepare_trial(self, experiment, participant):
+    def prepare_trial(self, experiment, participant: Participant):
         logger.info("Preparing trial for participant %i.", participant.id)
+
         self.grow_all_networks(experiment)
         networks = self.find_networks(participant=participant, experiment=experiment)
 
@@ -2142,6 +2189,24 @@ class NetworkTrialMaker(TrialMaker):
         )
         trial = None
         trial_status = "exit"
+        return trial, trial_status
+
+    def prepare_follower_trial(
+        self, experiment, participant: Participant, leader: Participant
+    ):
+        logger.info(
+            f"Will follow the SyncGroup leader (participant {leader.id}, status = {leader.trial_status})."
+        )
+        if leader.trial_status in ["wait", "exit"]:
+            assert leader.current_trial is None
+            trial, trial_status = leader.current_trial, leader.trial_status
+        else:
+            node = leader.current_trial.node
+            trial = self._create_trial(
+                node=node, participant=participant, experiment=experiment
+            )
+            assert trial is not None
+            trial_status = "available"
         return trial, trial_status
 
     ####
@@ -2221,6 +2286,7 @@ class NetworkTrialMaker(TrialMaker):
         )
         trial._initial_assets = dict(trial.assets)
         db.session.add(trial)
+        participant.module_state.n_created_trials += 1
         db.session.commit()
         return trial
 

@@ -183,15 +183,21 @@ class WaitPage(Page):
     wait_time:
         Time that the user should wait.
 
+    content:
+        Message to display to the participant while they wait.
+        Default: "Please wait, the experiment should continue shortly..."
+
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
     content = "Please wait, the experiment should continue shortly..."
 
-    def __init__(self, wait_time: float, **kwargs):
+    def __init__(self, wait_time: float, content=None, **kwargs):
         assert wait_time >= 0
         self.wait_time = wait_time
+        if content is not None:
+            self.content = content
         super().__init__(
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
@@ -308,6 +314,9 @@ class UnsuccessfulEndPage(EndPage):
         failure_tags: Optional[List] = None,
         template_filename: str = "final-page-unsuccessful.html",
     ):
+        if failure_tags is None:
+            failure_tags = []
+        failure_tags = [*failure_tags, "UnsuccessfulEndPage"]
         super().__init__(template_filename, label="UnsuccessfulEndPage")
         self.failure_tags = failure_tags
         self.show_bonus = show_bonus
