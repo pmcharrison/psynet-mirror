@@ -459,6 +459,27 @@ msgstr ""
 "Per richiedere un risarcimento, invii un messaggio al ricercatore tramite il"
 " sito web Prolific e descriva la causa del suo errore."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Deve controllare almeno una risposta!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Deve fornire un numero!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Deve selezionare una risposta!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -631,7 +652,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Per procedere, clicchi sul pulsante sottostante."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

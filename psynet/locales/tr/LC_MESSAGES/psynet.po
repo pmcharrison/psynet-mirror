@@ -415,6 +415,27 @@ msgstr ""
 "Tazminat hakkında bilgi almak için lütfen araştırmacıya Prolific web sitesi "
 "üzerinden bir mesaj gönderin ve hatanıza neyin yol açtığını açıklayın."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "En az bir cevabı kontrol etmeniz gerekiyor!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Bir sayı vermeniz gerekiyor!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Bir cevap seçmeniz gerekiyor!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -600,7 +621,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Devam etmek için aşağıdaki düğmeyi tıklayın."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

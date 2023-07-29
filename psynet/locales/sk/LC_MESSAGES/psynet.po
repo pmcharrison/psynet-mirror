@@ -464,6 +464,27 @@ msgstr ""
 "Ak chcete požiadať o kompenzáciu, pošlite výskumníkovi správu "
 "prostredníctvom webovej stránky Prolific a opíšte, čo viedlo k vašej chybe."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Musíte skontrolovať aspoň jednu odpoveď!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Musíte uviesť číslo!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Musíte vybrať odpoveď!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -664,7 +685,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Ak chcete pokračovať, kliknite na tlačidlo nižšie."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

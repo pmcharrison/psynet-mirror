@@ -464,6 +464,27 @@ msgstr ""
 "Да бисте се распитали о надокнади, пошаљите истраживачу поруку преко веб "
 "странице Пролифиц и опишите шта је довело до ваше грешке."
 
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Морате да проверите бар један одговор!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Морате да наведете број!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Морате да изаберете одговор!"
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -659,7 +680,6 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Да бисте наставили, кликните на дугме испод."
 
-#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"
