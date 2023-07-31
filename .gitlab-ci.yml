@@ -38,7 +38,6 @@ tests:
   parallel: 10
   stage: test
   script:
-    - apt update && apt -f -y install curl
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
@@ -46,9 +45,9 @@ tests:
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       $DOCKER_LOCAL_TAG bash -c
       "pytest --cov --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
-      --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
-    - curl -Os https://uploader.codecov.io/latest/linux/codecov
-    - ./codecov -t $CODECOV_TOKEN
+      --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests &&
+      curl -Os https://uploader.codecov.io/latest/linux/codecov &&
+      ./codecov -t $CODECOV_TOKEN"
 
 deploy_docker:
   stage: deploy
