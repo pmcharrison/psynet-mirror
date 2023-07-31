@@ -38,6 +38,7 @@ tests:
   parallel: 10
   stage: test
   script:
+    - apt update && apt -f -y install curl
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
