@@ -44,8 +44,10 @@ tests:
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       $DOCKER_LOCAL_TAG bash -c
-      "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
+      "pytest --cov --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
+      - curl -Os https://uploader.codecov.io/latest/linux/codecov
+      - ./codecov -t $CODECOV_TOKEN
 
 deploy_docker:
   stage: deploy
@@ -75,3 +77,12 @@ pages:
     - public
   only:
     - master
+
+api:
+  image: python:latest
+  script:
+    - pip install -r api/requirements.txt
+    - pytest --cov api/
+    - curl -Os https://uploader.codecov.io/latest/linux/codecov
+    - chmod +x codecov
+    - ./codecov -t $CODECOV_TOKEN
