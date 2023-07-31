@@ -89,6 +89,7 @@ but see the sidebar for a full list.
    deploy/ssh_server
    deploy/heroku_server
    deploy/prolific
+   deploy/deploy_from_archive
    deploy/export
    deploy/troubleshooting
 
