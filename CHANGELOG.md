@@ -16,15 +16,16 @@
 - Added experimental support for synchronous paradigms in PsyNet (see `demos/simple_sync_group` and `demos/rock_paper_scissors`) (author: Peter Harrison, reviewer: Frank Höger).
 - Added a new function `psynet check-constraints` that checks whether the `constraints.txt` file is present and correct (author: Peter Harrison, reviewer: Frank Höger).
 
-#### Updated
-- Updated Unity demo's static file directory to work with PsyNet 10 (author: Frank Höger, reviewer: Peter Harrison).
-- Propagated updated instructions to demos (author: Peter Harrison).
-- Updated documentation (author: Peter Harrison).
-
 #### Changed
 - Simplified config.txt files for all demos (author: Peter Harrison, reviewer: Frank Höger).
 - Under the hood, PsyNet now avoids the `dalligner.createParticipant` helper function, which previously would occasionally fail when running different participation sessions in different browser windows (author: Frank Höger, reviewer: Peter Harrison).
 - Reinstated `constraints.txt` as a compulsory tool for pinning dependencies for Docker deployments (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Updated
+- Updated Unity demo's static file directory to work with PsyNet 10 (author: Frank Höger, reviewer: Peter Harrison).
+- Propagated updated instructions to demos (author: Peter Harrison).
+- Updated documentation (author: Peter Harrison).
+- Updated `Dallinger` to `v9.9.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.9.0.
 
 # [10.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.1.0) Release 2023-07-13
 
