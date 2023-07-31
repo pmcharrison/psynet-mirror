@@ -1,0 +1,61 @@
+{% extends "psynet_layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <div>
+            <div class="col-xs-2">
+              <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
+            </div>
+            <h1 id="header" style="clear: both;">{{ pgettext("error", "Error!") }}</h1>
+            <hr>
+            <div>
+                <p id="error-text"><em>{{ error_text }}</em></p>
+                {% if config.show_abort_button %}
+                    {% if compensate == True %}
+                        <p id="error-text-main">
+                            {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
+                            {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
+                            {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
+                            {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
+                            <p>
+                                {{ gettext("Error type") }}: {{ error_type }}<br>
+                                {{ gettext("HIT ID") }}: {{ hit_id }}<br>
+                                {{ gettext("Assignment ID") }}: {{ assignment_id }}<br>
+                                {{ gettext("Worker ID") }}: {{ worker_id }}<br>
+                            </p>
+                            <div id="abort-button-location"></div>
+                        </p>
+                        <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
+                        {{ gettext("Abort Experiment") }}
+                        </button>
+                        <div id="abort-text" style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px; display: none;">
+                            <span class="alert-danger">{{ gettext("Click the above button to be compensated in case of an error.") }}</span>
+                        </div>
+                        <script>
+                            function abortExperiment() {
+                                let windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
+                                let windowObjectReference = window.open("/abort/" + "{{assignment_id}}", "Abort window", windowFeatures);
+                            }
+
+                            function showAbortButton() {
+                                document.getElementById("abort-button").style.display = "block";
+                                document.getElementById("abort-text").style.display = "block";
+                            }
+
+                            document.getElementById("abort-button").onclick = abortExperiment;
+
+                            if (window.opener === null) {
+                                document.getElementById("abort-button-location").textContent = "below";
+                                showAbortButton();
+                            }
+                        </script>
+                    {% endif %}
+                {% else %}
+                    <p id="error-text-main">
+                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

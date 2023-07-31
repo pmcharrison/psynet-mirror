@@ -7,7 +7,17 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    desc,
+    select,
+)
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -21,6 +31,8 @@ from .utils import get_logger, organize_by_key
 logger = get_logger()
 
 # pylint: disable=unused-import
+
+UniqueConstraint(dallinger.models.Participant.worker_id)
 
 
 class Participant(SQLMixinDallinger, dallinger.models.Participant):
@@ -250,6 +262,37 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "asset",
         creator=lambda k, v: AssetParticipant(local_key=k, asset=v),
     )
+
+    # sync_group_links and sync_groups are defined in sync.py
+    # because of import-order necessities
+
+    # sync_groups is a relationship that gives a list of all SyncGroups for that participnat
+
+    @property
+    def active_sync_groups(self):
+        return {group.group_type: group for group in self.sync_groups if group.active}
+
+    @property
+    def sync_group(self):
+        candidates = self.active_sync_groups
+        if len(candidates) == 1:
+            return list(candidates.values())[0]
+        elif len(candidates) == 0:
+            return None
+        elif len(candidates) > 1:
+            raise RuntimeError(
+                f"Participant {self.id} is in more than one SyncGroup: "
+                f"{list(self.active_sync_groups)}. "
+                "Use participant.active_sync_groups[group_type] to access the SyncGroup you need."
+            )
+
+    @property
+    def active_barriers(self):
+        return {
+            barrier_link.barrier_id: barrier_link
+            for barrier_link in self.barrier_links
+            if not barrier_link.released
+        }
 
     errors = relationship("ErrorRecord")
     # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")

@@ -9,6 +9,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
+from hashlib import md5
 from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
@@ -579,6 +580,7 @@ def is_chromedriver_process(process):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk):
+    verify_psynet_requirement()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -1040,14 +1042,12 @@ def debug__docker_heroku(ctx, app, archive):
 @click.option("--app", required=True, help="Name of the experiment app.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
-# @click.option("--server", default=None, help="Name of the remote server.")
-# @click.option(
-#     "--skip-flask",
-#     is_flag=True,
-#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
-# )
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
 @click.pass_context
-def debug__docker_ssh(ctx, app, archive, server):
+def debug__docker_ssh(ctx, app, archive, server, dns_host):
     """
     Debug the experiment on a remote server via SSH.
     """
@@ -1072,6 +1072,7 @@ def debug__docker_ssh(ctx, app, archive, server):
             deploy,
             mode="sandbox",
             server=server,
+            dns_host=dns_host,
             app_name=app,
             config_options={},
             archive_path=None,
@@ -1325,9 +1326,119 @@ def generate_constraints(ctx):
 
     log(header)
     try:
+        verify_psynet_requirement()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
+
+
+@psynet.command()
+def check_constraints():
+    "Check whether the experiment contains an appropriate constraints.txt file."
+    if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+        print("SKIP_DEPENDENCY_CHECK is set so we will skip checking constraints.txt.")
+        return
+
+    with yaspin(
+        text="Verifying that constraints.txt is up-to-date with requirements.txt...",
+        color="green",
+    ) as spinner:
+        _check_constraints(spinner)
+        spinner.ok("✔")
+
+    verify_psynet_requirement()
+
+
+def _check_constraints(spinner=None):
+    directory = os.getcwd()
+
+    # This code comes from dallinger.utils.ensure_constraints_file_presence.
+    # Ideally this Dallinger function would be refactored into exportable components.
+    requirements_path = Path(directory) / "requirements.txt"
+    constraints_path = Path(directory) / "constraints.txt"
+
+    if not requirements_path.exists():
+        if spinner:
+            spinner.fail("✘")
+        raise click.ClickException(
+            "Experiment directory is missing a requirements.txt file. "
+            "You need to create this file and put your Python package dependencies (e.g. psynet) in it."
+        )
+        # raise click.Abort()
+
+    generate_constraints_cmd = (
+        "    psynet generate-constraints\n"
+        "or, if you are using Docker:\n"
+        "    bash docker/generate-constraints"
+    )
+
+    if not constraints_path.exists():
+        if spinner:
+            spinner.fail("✘")
+        raise click.ClickException(
+            "Error: Experiment directory is missing a constraints.txt file. "
+            "This file pins all of your experiment's Python package dependencies, both explicit and implicit. "
+            "Please check that your requirements.txt file is up-to-date, then generate the constraints.txt file "
+            "by running the following command:\n" + generate_constraints_cmd
+        )
+
+    requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
+    if requirements_path_hash not in constraints_path.read_text():
+        if spinner:
+            spinner.fail("✘")
+        raise click.ClickException(
+            "The constraints.txt file is not up-to-date with the requirements.txt file. "
+            "Please generate a new constraints.txt file by running the following command:\n"
+            + generate_constraints_cmd
+        )
+
+
+def verify_psynet_requirement():
+    environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
+    if os.environ.get(environment_variable, None):
+        print(
+            f"Skipping PsyNet version requirement check because {environment_variable} was non-empty."
+        )
+        return
+
+    with yaspin(
+        text="Verifying PsyNet version in 'requirements.txt'...",
+        color="green",
+    ) as spinner:
+        valid = False
+        with open("requirements.txt", "r") as file:
+            version_tag_or_commit_hash = [
+                "[a-fA-F0-9]{8,40}",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+            ]
+            file_content = file.read()
+            for regex in version_tag_or_commit_hash:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
+                    + regex
+                    + "#egg=psynet$",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+
+        if valid:
+            spinner.ok("✔")
+        else:
+            spinner.color = "red"
+            spinner.fail("✗")
+
+        assert valid, (
+            "Incorrect specification for PsyNet in 'requirements.txt'.\n"
+            "\nExamples:\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
+            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+            "in your terminal."
+        )
 
 
 ##########
@@ -1787,6 +1898,26 @@ def update_scripts():
     update_scripts_()
 
 
+def update_psynet_requirement_():
+    with open("requirements.txt", "r") as orig_file:
+        with open("updated_requirements.txt", "w") as updated_file:
+            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            for line in orig_file:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    + version_tag
+                    + "#egg=psynet$",
+                    line,
+                )
+                if match is not None:
+                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                else:
+                    updated_file.write(line)
+            updated_file.close()
+        orig_file.close()
+    shutil.move("updated_requirements.txt", "requirements.txt")
+
+
 def update_scripts_():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -1865,6 +1996,15 @@ def update_scripts_():
             path,
             "README.md",
         )
+
+
+def post_update_constraints_():
+    import fileinput
+
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        version_tag = "PsyNet@v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        for line in file:
+            print(re.sub(version_tag, f"PsyNet@v{__version__}", line), end="")
 
 
 @psynet.command()
@@ -2017,22 +2157,25 @@ def _destroy(
     f_expire,
     app,
     expire_hit,
+    server=None,
 ):
     if user_confirms(
         "Would you like to delete the app from the web server?", default=True
     ):
         with yaspin("Destroying app...") as spinner:
             try:
+                kwargs = {"app": app}
+                kwargs = {**kwargs, "server": server} if server else kwargs
                 if expire_hit in get_args(f_destroy):
                     ctx.invoke(
                         f_destroy,
-                        app=app,
                         expire_hit=False,
+                        **kwargs,
                     )
                 else:
                     ctx.invoke(
                         f_destroy,
-                        app=app,
+                        **kwargs,
                     )
                 spinner.ok("✔")
             except subprocess.CalledProcessError:
@@ -2061,6 +2204,7 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
+@server_option
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -2068,7 +2212,7 @@ def _destroy(
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
-def destroy__docker_ssh(ctx, app, expire_hit):
+def destroy__docker_ssh(ctx, app, server, expire_hit):
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
@@ -2078,6 +2222,7 @@ def destroy__docker_ssh(ctx, app, expire_hit):
         expire,
         app=app,
         expire_hit=expire_hit,
+        server=server,
     )
 
 

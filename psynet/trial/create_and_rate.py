@@ -1,7 +1,6 @@
 import inspect
 from random import sample
 
-import numpy as np
 from dallinger import db
 from dallinger.transformations import Transformation
 from sqlalchemy import Column
@@ -204,7 +203,7 @@ class RateTrialMixin(RateOrSelectTrialMixin):
     def format_answer(self, answer, **kwargs):
         rated_target_strs = [f"{target}" for target in self.targets]
         if len(self.targets) > 1:
-            assert type(answer) == list, "The answer must be a list of ratings"
+            assert type(answer) is list, "The answer must be a list of ratings"
             assert len(answer) == len(
                 self.targets
             ), "The answer must have the same length as the number of targets"
@@ -236,6 +235,8 @@ class CreateAndRateNodeMixin(object):
         return {f"{target}": target for target in all_targets}
 
     def summarize_rate_trials(self, rate_trials):
+        import numpy as np
+
         str2target = self.get_str2target(rate_trials)
         all_target_strs = list(str2target.keys())
         rating_dict = {target_str: [] for target_str in all_target_strs}
@@ -385,7 +386,7 @@ class CreateAndRateTrialMakerMixin(object):
 
     @staticmethod
     def assert_is_positive_integer(x):
-        assert type(x) == int and x > 0, f"{x} must be a positive integer"
+        assert type(x) is int and x > 0, f"{x} must be a positive integer"
 
     def prepare_kwargs(self, kwargs, trial_maker_class, mixin_class):
         kwargs["trial_class"] = kwargs["creator_class"]

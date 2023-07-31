@@ -52,24 +52,26 @@
                         {% endblock no_assignment %}
                     {% else %}
                         {% block live %}
-                            {% if experiment.recruiter.nickname == "mturk" %}
-                                <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
-                            {% else %}
-                                <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>
-                            {% endif %}
-                            <p>
-                                {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
-                            </p>
+                            {% if not experiment.with_lucid_recruitment() %}
+                                {% if experiment.recruiter.nickname == "mturk" %}
+                                    <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
+                                {% else %}
+                                    <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>
+                                {% endif %}
+                                <p>
+                                    {{ pgettext("ad", "By clicking the following URL link, you will be taken to the experiment, including complete instructions and an informed consent agreement.") }}
+                                </p>
 
-                            {% if not config.force_incognito_mode %}
-                                <div class="alert alert-warning">
-                                    <span class="fw-bold">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
-                                </div>
-                            {% endif %}
+                                {% if not config.force_incognito_mode %}
+                                    <div class="alert alert-warning">
+                                        <span class="fw-bold">{{ pgettext("ad", "Warning") }}</span>: {{ pgettext("ad", "Please disable pop-up blockers before continuing.") }}
+                                    </div>
+                                {% endif %}
 
-                            <button type="button" id="begin-button" class="btn btn-primary btn-lg">
-                                {{ pgettext("ad", "Begin Experiment") }}
-                            </button>
+                                <button type="button" id="begin-button" class="btn btn-primary btn-lg">
+                                    {{ pgettext("ad", "Begin Experiment") }}
+                                </button>
+                            {% endif %}
 
                             {% if config.show_abort_button %}
                                 <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
@@ -104,12 +106,17 @@
 {% block scripts %}
     <script>
         document.addEventListener("DOMContentLoaded", function (event) {
-            browser.validate();
+            let isValidBrowser = browser.validate();
+            {% if experiment.with_lucid_recruitment() %}
+                if (!isValidBrowser) {
+                    terminateParticipant("invalid-browser");
+                }
+            {% endif %}
         });
 
         function proceedToConsentPage(event) {
           let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
-          if ({{ experiment.start_experiment_in_popup_window|tojson }}) {
+          if ({{ experiment.start_experiment_in_popup_window | tojson }}) {
               popup = window.open(
             url,
             "Popup",
@@ -121,6 +128,10 @@
             window.location = url;
           }
         }
-        document.getElementById("begin-button").onclick = proceedToConsentPage;
+        {% if experiment.with_lucid_recruitment() %}
+          proceedToConsentPage(null);
+        {% else %}
+          document.getElementById("begin-button").onclick = proceedToConsentPage;
+        {% endif %}
     </script>
 {% endblock %}

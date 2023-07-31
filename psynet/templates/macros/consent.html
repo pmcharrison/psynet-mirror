@@ -38,7 +38,7 @@
     <p class="consent-text">
         {{ pgettext("consent-overview", "This research is being conducted by researchers at the Max-Planck-Institute for Empirical Aesthetics.") }}
         {{ pgettext("consent", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }}
-        <a href="mailto:{{ contact_email_on_error }}">{{ contact_email_on_error }}</a>.
+        <a target="_blank" href="mailto:{{ config.contact_email_on_error }}">{{ config.contact_email_on_error }}</a>.
         {{ pgettext("consent-overview", "The purpose of this online form is to give you information to help you decide whether you want to take part in a research study.") }}
     </p>
 {% endmacro %}
@@ -91,7 +91,6 @@
 {% endmacro %}
 
 
-
 {% macro confidentiality(config, audiovisual=false) %}
     <h4>{{ pgettext("consent-confidentiality", "Confidentiality") }}</h4>
     <p class="consent-text">
@@ -114,9 +113,28 @@
             {{ pgettext("consent-confidentiality", "These include experiments where we make audio-visual recordings or where we need your contact details to contact you in the future to take another experiment.") }}
         {% endif %}
     </p>
-
 {% endmacro %}
 
+{% macro lucid_confidentiality(config) %}
+    <h4>{{ pgettext("consent-confidentiality", "Confidentiality") }}</h4>
+    <p class="consent-text">
+        {{ pgettext("consent-confidentiality", "No personal identifiers (e.g. your name or contact data) will be collected or used at any stage of the experiment.") }}
+        {{ pgettext("consent-confidentiality", "Thus, the experimental data is anonymous.") }}
+        {{ pgettext("consent-confidentiality", "We may collect some demographic data (e.g. age, gender, country of residence) as well as information about your learning and exposure history (e.g. musical experience playing an instrument, years of formal education, languages spoken).") }}
+    </p>
+    <p class="consent-text">
+        {{ pgettext("consent-confidentiality", "If an experiment is collecting data that cannot be fully anonymized, we will inform you and also ask for additional consent.") }}
+        {{ pgettext("consent-confidentiality", "Consenting to these additional requirements is also fully voluntary.") }}
+        {{ pgettext("consent-confidentiality", "These include experiments where we make audio-visual recordings or where we need your contact details to contact you in the future to take another experiment.") }}
+    </p>
+    <p class="consent-text">
+        {{ pgettext("consent-confidentiality", "All of the information we obtain during the research will be kept confidential.") }}
+        {{ pgettext("consent-confidentiality", "We will only save your anonymized alpha numeric code in our system, in order to distinguish participants who have already taken part in this or other experiments.") }}
+        {{ pgettext("consent-confidentiality", "This code will not be used to derive your real identity, will not be shared with anyone outside of the research team and will be deleted after use.") }}
+        {{ pgettext("consent-confidentiality", "Although researchers will not use your alpha numeric code to derive your real identity, this record could be linked in some cases to your public profile page if a data breach takes place.") }}
+        {{ pgettext("consent-confidentiality", "Thus, you may wish to restrict what information you choose to share publicly.") }}
+    </p>
+{% endmacro %}
 
 {% macro collaborations(config, audiovisual=false) %}
     <h4>{{ pgettext("consent-collaborations", "Research collaborations") }}</h4>
@@ -189,7 +207,7 @@
     <h4>{{ pgettext("consent-contact", "Contact information") }}</h4>
     <p class="consent-text">
         {{ pgettext("consent", "If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at:") }}
-        <a href="mailto:{{ contact_email_on_error }}">{{ contact_email_on_error }}</a>.
+        <a target="_blank" href="mailto:{{ config.contact_email_on_error }}">{{ config.contact_email_on_error }}</a>.
     </p>
 {% endmacro %}
 

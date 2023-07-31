@@ -1,10 +1,16 @@
+import hashlib
 import subprocess
+import tempfile
+from pathlib import Path
 
+import click
 import pytest
 from click.testing import CliRunner
 from mock import patch
 
+from psynet.command_line import _check_constraints
 from psynet.pytest_psynet import path_to_demo
+from psynet.utils import working_directory
 
 
 class TestCommandLine(object):
@@ -268,3 +274,38 @@ class TestExport:
     def export_data(self):
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
+
+
+def test_check_constraints():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            with pytest.raises(
+                click.ClickException,
+                match="Experiment directory is missing a requirements.txt file.",
+            ):
+                _check_constraints()
+
+            with open("requirements.txt", "w") as requirements:
+                requirements.write("psynet")
+                requirements.flush()
+
+                with pytest.raises(
+                    click.ClickException,
+                    match="Experiment directory is missing a constraints.txt file.",
+                ):
+                    _check_constraints()
+
+                with open("constraints.txt", "w") as constraints:
+                    with pytest.raises(
+                        click.ClickException,
+                        match="The constraints.txt file is not up-to-date with the requirements.txt file.",
+                    ):
+                        _check_constraints()
+
+                    requirements_hash = hashlib.md5(
+                        Path("requirements.txt").read_bytes()
+                    ).hexdigest()
+                    constraints.write(requirements_hash)
+                    constraints.flush()
+
+                    _check_constraints()

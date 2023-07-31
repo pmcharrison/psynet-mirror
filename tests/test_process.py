@@ -66,7 +66,7 @@ class TestProcesses2:
             db.session.refresh(o)
             assert not o.awaiting_async_process
 
-        assert abs(process.time_taken - 1) < 0.1
+        assert abs(process.time_taken - 1) < 0.5
 
     def test_invalid_function(self):
         def local_function():

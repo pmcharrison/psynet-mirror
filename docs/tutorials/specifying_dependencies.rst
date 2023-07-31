@@ -23,7 +23,7 @@ You can do this by adding `@<tag>` after the repository link, for example:
 
 ::
 
-    psynet@git+https://gitlab.com/PsyNetDev/PsyNet@10.0.0#egg=psynet
+    psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.0.0#egg=psynet
 
 to specify PsyNet 10.0.0. You can also use a Git commit hash instead of a tag
 if you want to link to a particular commit, or indeed a particular Git branch name.

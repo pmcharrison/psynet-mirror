@@ -170,10 +170,10 @@
             var warningMsg = "";
             if (browser.forceGoogleChrome) {
                 if (!browser.isChrome) {
-                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")}} {{ pgettext("browser_compatibility", "You are using")}} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") }}";
+                    warningMsg = "{{ pgettext("browser_compatibility", "You need to use Google Chrome to take part in the experiment.")  | replace('"',"'")|safe }} {{ pgettext("browser_compatibility", "You are using")  | replace('"',"'")|safe }} " + browser.name + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.")  | replace('"',"'") | safe }}";
                 } else {
                     if (browser.isOldVersion) {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.") }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:")}}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") }}";
+                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the latest version of Google Chrome to take part in the experiment.")  | replace('"',"'") | safe  }}  (> " + browser.minVersion + "). {{ pgettext("browser_compatibility", "You are using:") | replace('"',"'") | safe }}: " + browser.version + ". {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.")  | replace('"',"'") | safe }}";
                     }
                 }
             }
@@ -182,7 +182,7 @@
                 if (!browser.isIncognito) {
                     // only show this warning if people are using the right browser
                     if (warningMsg === "") {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment.") }} {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") }}";
+                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment."  | replace('"',"'") | safe ) }} {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") | replace('"',"'") | safe }}";
                     }
                 }
             }
@@ -191,55 +191,55 @@
             var out = '<div class="container">';
             out += getPsyNetLogo();
             out += '<div class="alert alert-warning" role="alert">';
-            out += '<h4 class="alert-heading">{{ pgettext("browser_compatibility", "Warning!") }}</h4>';
+            out += "<h4 class='alert-heading'>{{ pgettext("browser_compatibility", "Warning!")  | replace('"',"'") | safe }}</h4>";
             out += '<p>' + warningMsg + '</p>';
             out += '</div>';
             out += '<table class="table mt-3">';
             out += '<tbody>';
 
             if (browser.forceGoogleChrome && !browser.isChrome) {
-                var chromeLink = '<a href="https://www.google.com/chrome/" target="_blank">{{ pgettext("browser_compatibility", "Click here") }}' + getIcon('link') + '</a>';
+                var chromeLink = "<a href='https://www.google.com/chrome/' target='_blank'>{{ pgettext("browser_compatibility", "Click here")  | replace('"',"'") | safe }}" + getIcon('link') + "</a>";
                 if (browser.isOldVersion) {
-                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install the latest version of Google Chrome") }}: " + chromeLink);
+                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install the latest version of Google Chrome")  | replace('"',"'") | safe }}: " + chromeLink);
                 } else {
-                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install Google Chrome if you haven't") }}" + chromeLink);
+                    out += renderInstruction('download-chrome', "{{ pgettext("browser_compatibility", "Install Google Chrome if you haven't")  | replace('"',"'") | safe }}" + chromeLink);
                 }
             }
-            out += renderInstruction('copy-filled', "{{ pgettext("browser_compatibility", "Copy the link below") }}", renderCopyArea('url', window.location.href));
+            out += renderInstruction('copy-filled', "{{ pgettext("browser_compatibility", "Copy the link below")  | replace('"',"'") | safe }}", renderCopyArea('url', window.location.href));
             if (browser.forceGoogleChrome && !browser.isChrome) {
-                out += renderInstruction('open-chrome', "{{ pgettext("browser_compatibility", "Open Google Chrome") }}");
+                out += renderInstruction('open-chrome', "{{ pgettext("browser_compatibility", "Open Google Chrome")  | replace('"',"'") | safe }}");
             }
 
             if (browser.forceIncognitoMode) {
                 var shortcut = isMacOS() ? '<strong>⌘ + Shift + n</strong> (MacOS)' : '<strong>Ctrl + Shift + N</strong>';
                 var incognitoInstructions = '';
                 if (browser.isChrome) {
-                    incognitoInstructions += '<p>';
-                    incognitoInstructions += '<ol class="mt-3">';
-                    incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "On your computer, open Chrome.") }}</li>';
-                    incognitoInstructions += ' <li>{{ pgettext("browser_compatibility", "At the top right, click More") }}' + chromeMoreIcon();
-                    incognitoInstructions += chromeArrowIcon() + '<strong>{{ pgettext("browser_compatibility", "New Incognito Window") }}</strong>.</li>';
-                    incognitoInstructions += '<li>{{ pgettext("browser_compatibility", "A new window appears. In the top corner, check for the Incognito icon") }} ' + chromeIncognitoIcon() + '</li>';
-                    incognitoInstructions += '</ol>';
-                    incognitoInstructions += '{{ pgettext("browser_compatibility", "You can also use a keyboard shortcut to open an Incognito window") }}: {{ pgettext("browser_compatibility", "Press") }} ' + shortcut;
-                    incognitoInstructions += '</p>';
+                    incognitoInstructions += "<p>";
+                    incognitoInstructions += "<ol class='mt-3'>";
+                    incognitoInstructions += "<li>{{ pgettext("browser_compatibility", "On your computer, open Chrome.") | replace('"',"'") | safe }}</li>";
+                    incognitoInstructions += " <li>{{ pgettext("browser_compatibility", "At the top right, click More")  | replace('"',"'") | safe }}" + chromeMoreIcon();
+                    incognitoInstructions += chromeArrowIcon() + "<strong>{{ pgettext("browser_compatibility", "New Incognito Window")  | replace('"',"'") | safe }}</strong>.</li>";
+                    incognitoInstructions += "<li>{{ pgettext("browser_compatibility", "A new window appears. In the top corner, check for the Incognito icon")  | replace('"',"'") | safe }}" + chromeIncognitoIcon() + "</li>";
+                    incognitoInstructions += "</ol>";
+                    incognitoInstructions += "{{ pgettext("browser_compatibility", "You can also use a keyboard shortcut to open an Incognito window")  | replace('"',"'") | safe }}: {{ pgettext("browser_compatibility", "Press")  | replace('"',"'") | safe }} " + shortcut;
+                    incognitoInstructions += "</p>";
                 }
 
-                out += renderInstruction('incognito', "{{ pgettext("browser_compatibility", "Open a new incognito window") }}", incognitoInstructions);
+                out += renderInstruction('incognito', "{{ pgettext("browser_compatibility", "Open a new incognito window")  | replace('"',"'") | safe }}", incognitoInstructions);
             }
             var continueMsg = ''
             var isTimeline = window.location.href.indexOf('timeline') !== -1
             if (browser.forceIncognitoMode) {
                 if (isTimeline) {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to continue the experiment") }}';
+                    continueMsg = "{{ pgettext("browser_compatibility", "Paste the link into the incognito window to continue the experiment")  | replace('"',"'") | safe }}";
                 } else {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the incognito window to start the experiment") }}';
+                    continueMsg = "{{ pgettext("browser_compatibility", "Paste the link into the incognito window to start the experiment")  | replace('"',"'") | safe }}";
                 }
             } else {
                 if (isTimeline) {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to continue the experiment") }}';
+                    continueMsg = "{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to continue the experiment")  | replace('"',"'") | safe }}";
                 } else {
-                    continueMsg = '{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to start the experiment") }}';
+                    continueMsg = "{{ pgettext("browser_compatibility", "Paste the link into the Chrome browser to start the experiment")  | replace('"',"'") | safe }}";
                 }
             }
             out += renderInstruction('paste-filled', continueMsg);
@@ -263,14 +263,14 @@
         function renderMobileWarning() {
             hideResumeModal();
 
-            var out = '<div class="container">';
+            var out = "<div class='container'>";
             out += getPsyNetLogo();
-            out += '<div class="alert alert-danger" role="alert">';
-            out += '<p>';
-            out += '{{ pgettext("browser_compatibility", "You cannot take part in the experiment from a mobile device.")}} ';
-            out += '{{ pgettext("browser_compatibility", "Please open the survey on your computer.")}}';
-            out += '</p>';
-            out += '</div>';
+            out += "<div class='alert alert-danger' role='alert'>";
+            out += "<p>";
+            out += "{{ pgettext("browser_compatibility", "You cannot take part in the experiment from a mobile device.")  | replace('"',"'") | safe }} ";
+            out += "{{ pgettext("browser_compatibility", "Please open the survey on your computer.") | replace('"',"'") | safe}}";
+            out += "</p>";
+            out += "</div>";
 
             document.getElementById('browser-compatibility-content').innerHTML = out;
             document.getElementById('browser-compatibility-modal').style.display = 'block'

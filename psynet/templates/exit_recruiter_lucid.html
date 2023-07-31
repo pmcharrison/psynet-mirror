@@ -1,0 +1,17 @@
+{% extends "psynet_layout.html" %}
+
+{% block body %}
+  <div id="container">
+    <div class="well">
+      <h1>{{ pgettext("exit_recruiter_lucid", "Lucid Survey Submission") }}</h1>
+      <hr>
+      <p>Completing survey...</p>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    window.location = "{{ external_submit_url | safe }}";
+  </script>
+{% endblock %}

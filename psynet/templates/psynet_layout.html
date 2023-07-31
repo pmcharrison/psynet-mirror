@@ -11,32 +11,16 @@
     {% if participant is defined %}
         <script>
             {
-                // The dallinger.identity functionality is a bit flaky,
-                // so if corresponding information is available from the template,
-                // we inject it to be on the safe side.
-                let injectedParticipantId = parseInt("{{ participant.id }}");
-                if (injectedParticipantId) {
-                    dallinger.identity.participantId = injectedParticipantId;
-                }
 
-                let injectedAssignmentId = "{{ participant.assignment_id }}";
-                if (injectedAssignmentId) {
-                    dallinger.identity.assignmentId = injectedAssignmentId;
-                }
-
-                let injectedHitId = parseInt("{{ participant.hit_id }}");
-                if (injectedHitId) {
-                    dallinger.identity.hitId = injectedHitId;
-                }
-
-                let injectedUniqueId = "{{ participant.unique_id }}";
-                if (injectedUniqueId) {
-                    dallinger.identity.uniqueId = injectedUniqueId;
-                }
-
-                let injectedWorkerId = "{{ participant.worker_id }}";
-                if (injectedWorkerId) {
-                    dallinger.identity.workerId = injectedWorkerId;
+                // The built-in dallinger.identity object shares state between other windows on the same computer,
+                // which is dangerous. We therefore replace it with information that we know to be correct
+                // from the back-end.
+                dallinger.identity = {
+                    participantId: {{ participant.id }},
+                    assignmentId: "{{ participant.assignment_id }}",
+                    hitId: "{{ participant.hit_id }}",
+                    uniqueId: "{{ participant.unique_id }}",
+                    workerId: "{{ participant.worker_id }}"
                 }
             }
         </script>
