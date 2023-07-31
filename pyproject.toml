@@ -54,6 +54,7 @@ dev = [
     "mock",
     "pre-commit",
     "pybabel",
+    "pytest-cov",
     "sphinx-autodoc-typehints",
 ]
 
