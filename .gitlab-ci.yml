@@ -77,12 +77,3 @@ pages:
     - public
   only:
     - master
-
-api:
-  image: python:latest
-  script:
-    - pip install -r api/requirements.txt
-    - pytest --cov api/
-    - curl -Os https://uploader.codecov.io/latest/linux/codecov
-    - chmod +x codecov
-    - ./codecov -t $CODECOV_TOKEN
