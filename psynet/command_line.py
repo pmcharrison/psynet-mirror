@@ -1911,7 +1911,8 @@ def update_psynet_requirement_():
                 )
                 if match is not None:
                     updated_file.write(re.sub(version_tag, f"v{__version__}", line))
-                    break
+                else:
+                    updated_file.write(line)
             updated_file.close()
         orig_file.close()
     shutil.move("updated_requirements.txt", "requirements.txt")
@@ -1995,6 +1996,15 @@ def update_scripts_():
             path,
             "README.md",
         )
+
+
+def post_update_constraints_():
+    import fileinput
+
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        version_tag = "PsyNet@v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        for line in file:
+            print(re.sub(version_tag, f"PsyNet@v{__version__}", line), end="")
 
 
 @psynet.command()
