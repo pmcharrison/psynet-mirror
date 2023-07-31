@@ -47,6 +47,7 @@ def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
         generate_constraints(dir)
+        post_update_constraints(dir)
         update_psynet_requirement(dir)
 
 
@@ -57,6 +58,11 @@ def generate_constraints(dir):
         cwd=dir,
         capture_output=True,
     )
+
+
+def post_update_constraints(dir):
+    with working_directory(dir):
+        psynet.command_line.post_update_constraints_()
 
 
 def update_psynet_requirement(dir):
