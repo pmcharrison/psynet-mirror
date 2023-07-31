@@ -1849,6 +1849,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
 
     def load_stimuli(self, csv_path, question):
         import pandas as pd
+
         assert file_exists(csv_path)
 
         df = pd.read_csv(csv_path)
