@@ -1763,7 +1763,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         participant = Participant.query.first()
         json_data = {
-            "unique_id": participant.id,
+            "id": participant.id,
+            "unique_id": participant.unique_id,
             "assignment_id": participant.assignment_id,
             "page_uuid": participant.page_uuid,
         }
