@@ -24,6 +24,7 @@ COPY *constraints.txt constraints.txt
 ENV SKIP_DEPENDENCY_CHECK=""
 ENV DALLINGER_NO_EGG_BUILD=1
 
+# If you see an error here, you probably need to run `bash docker/generate-constraints` and then try again.
 RUN psynet check-constraints
 
 # Uninstall PsyNet and Dallinger because otherwise we can run into edge cases where pip decides
