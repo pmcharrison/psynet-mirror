@@ -188,7 +188,30 @@ You deploy experiments using the ``psynet deploy command``:
 
     psynet deploy ssh --app your-app-name
 
-Briefly, the command works as follows:
+By default, this will deploy your app to a hostname that looks like this:
+
+https://your-app-name.121.101.152.23.nip.io
+
+where ``121.101.152.23`` is the IP address of your web server.
+If your server is set up with a DNS record, it is possible to use this instead as the URL.
+For example, running this:
+
+.. code:: bash
+
+    psynet deploy ssh --app your-app-name --dns-host my-web-server.com
+
+would make your app available at this link:
+
+https://your-app-name.my-web-server.com
+
+Note that your DNS record must already be set up to resolve the subdomain you want to use (e.g. ``your-app-name``)
+to the IP address of the server.
+This is a one-time job that should be performed when preparing the web server to deploy experiments.
+You can either do this by setting up a subdomain wildcard (e.g. ``*.my-web-server.com``, or by deciding in advance
+what experiment names to support, and then setting up the DNS to support those names
+(e.g. ``psynet-01.my-web-server.com``, ``psynet-02.my-web-server.com``, etc.).
+
+Under the hood, the deployment command works as follows:
 
 - Run any preliminary steps, e.g. uploading assets to the remote server
 - Build the Docker image, packaging up all local code and dependencies
