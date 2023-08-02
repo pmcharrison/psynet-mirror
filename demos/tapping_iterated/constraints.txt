@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 9fad62e0804ecda749d56db39f98ed4d
+# Compiled from a requirement.txt file with md5sum: fdae8fe50812e05785f3e01f37dbc3d3
 #
 alabaster==0.7.13
     # via
@@ -14,6 +14,10 @@ anyio==3.7.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.9.0/dev-requirements.txt
     #   jupyter-server
+appnope==0.1.3
+    # via
+    #   ipykernel
+    #   ipython
 apscheduler==3.10.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.9.0/dev-requirements.txt
@@ -393,7 +397,7 @@ markupsafe==2.1.3
     #   wtforms
 matplotlib==3.7.2
     # via
-    #   -r /tmp/tmpthdo6all/requirements.txt
+    #   -r /var/folders/g_/qyqj7s5d0lj3bp1zy6qzd04m0000gq/T/tmpgrdczrj8/requirements.txt
     #   repp
     #   reppextension
 matplotlib-inline==0.1.6
@@ -575,7 +579,6 @@ pysocks==1.7.1
 python-dateutil==2.8.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.9.0/dev-requirements.txt
-    #   arrow
     #   botocore
     #   faker
     #   heroku3

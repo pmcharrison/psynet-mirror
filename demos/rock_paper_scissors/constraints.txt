@@ -4,12 +4,16 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 43ed995333226fa5dddddca3c6fb9c05
+# Compiled from a requirement.txt file with md5sum: 7070c9a981628cd45ad8b607b196d25e
 #
 alabaster==0.7.13
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.9.0/dev-requirements.txt
     #   sphinx
+appnope==0.1.3
+    # via
+    #   ipykernel
+    #   ipython
 apscheduler==3.10.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.9.0/dev-requirements.txt
