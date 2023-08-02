@@ -211,6 +211,12 @@ You can either do this by setting up a subdomain wildcard (e.g. ``*.my-web-serve
 what experiment names to support, and then setting up the DNS to support those names
 (e.g. ``psynet-01.my-web-server.com``, ``psynet-02.my-web-server.com``, etc.).
 
+.. note::
+
+    If your DNS record only supports particular subdomains then you have to choose your app name to match
+    one of those subdomains. For example, when deploying through the web server of the Centre for Music and Science
+    at Cambridge, only app names of the form ``psynet-01``, ``psynet-02``, ..., ``psynet-20`` are supported.
+
 Under the hood, the deployment command works as follows:
 
 - Run any preliminary steps, e.g. uploading assets to the remote server
