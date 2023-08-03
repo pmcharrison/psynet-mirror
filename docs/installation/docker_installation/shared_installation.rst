@@ -170,7 +170,7 @@ From here you can start a new participant session.
 
 
 Step 6 (Optional, MacOS/Linux only): Install editable PsyNet and Dallinger repositories
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes it is useful to edit PsyNet and Dallinger source code as part of debugging an experiment.
 To do this, you should ``git clone`` the PsyNet and Dallinger repositories from their corresponding hosts:
@@ -180,6 +180,11 @@ To do this, you should ``git clone`` the PsyNet and Dallinger repositories from 
 
 You should place these repositories in your working directory, and leave their names exactly
 as their defaults ('PsyNet' and 'Dallinger').
+If you are using a Windows machine, then you will need to place these repositories in your WSL (Linux)
+working directory. You may be able to find this by going to File Explorer, looking for Linux,
+then Ubuntu. If you are not sure, try running the command below, and it should print an error message
+telling you where exactly to look.
+
 Now, if you run an experiment using the following command:
 
 ::
@@ -187,7 +192,3 @@ Now, if you run an experiment using the following command:
     bash docker/psynet-dev debug local
 
 it will use these local repositories for PsyNet and for Dallinger.
-
-.. warning::
-
-    Running PsyNet from local repositories in this way is not yet supported for Windows installations.
