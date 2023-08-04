@@ -467,13 +467,32 @@ msgstr ""
 "la eroarea dumneavoastră."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Trebuie să bifați cel puțin un răspuns!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Trebuie să furnizați un număr!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Trebuie să selectați un răspuns!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Scrieți numărul din imagine."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -482,14 +501,12 @@ msgid ""
 msgstr ""
 "În fiecare încercare, vi se va prezenta o imagine care conține un număr."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Această imagine va dispărea după {HIDE_AFTER} secunde."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -499,7 +516,6 @@ msgstr ""
 "Vom efectua acum un test rapid pentru a vă verifica capacitatea de a percepe"
 " culorile."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

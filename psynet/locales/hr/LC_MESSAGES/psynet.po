@@ -465,13 +465,32 @@ msgstr ""
 "i opišite što je dovelo do vaše pogreške."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Morate označiti barem jedan odgovor!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Morate navesti broj!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Morate odabrati odgovor!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Zapiši broj sa slike."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -479,14 +498,12 @@ msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr "U svakoj probi prikazat će vam se slika koja sadrži broj."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Ova će slika nestati nakon {HIDE_AFTER} sekundi."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -496,7 +513,6 @@ msgstr ""
 "Sada ćemo izvesti brzi test kako bismo provjerili vašu sposobnost percepcije"
 " boja."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

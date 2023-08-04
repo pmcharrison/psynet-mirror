@@ -465,13 +465,32 @@ msgstr ""
 "Prolific-nettstedet og beskrive hva som førte til feilen din."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Du må krysse av for minst ett svar!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Du må oppgi et tall!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Du må velge et svar!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Skriv ned tallet i bildet."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -480,14 +499,12 @@ msgid ""
 msgstr ""
 "I hvert forsøk vil du bli presentert for et bilde som inneholder et tall."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Dette bildet forsvinner etter {HIDE_AFTER} sekunder."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -496,7 +513,6 @@ msgid ""
 msgstr ""
 "Vi vil nå utføre en rask test for å sjekke din evne til å oppfatte farger."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

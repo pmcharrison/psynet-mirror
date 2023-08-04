@@ -466,13 +466,32 @@ msgstr ""
 "sítio Web Prolific e descreva o que esteve na origem do seu erro."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Tem de verificar pelo menos uma resposta!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Tem de fornecer um número!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Tem de selecionar uma resposta!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Escreva o número na imagem."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -481,14 +500,12 @@ msgid ""
 msgstr ""
 "Em cada tentativa, ser-lhe-á apresentada uma imagem que contém um número."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Esta imagem desaparecerá após {HIDE_AFTER} segundos."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -498,7 +515,6 @@ msgstr ""
 "Vamos agora efetuar um teste rápido para verificar a sua capacidade de "
 "perceção das cores."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

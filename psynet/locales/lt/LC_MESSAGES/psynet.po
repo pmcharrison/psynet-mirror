@@ -466,13 +466,32 @@ msgstr ""
 "\"Prolific\" svetainę ir aprašykite, dėl ko įvyko jūsų klaida."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Turite patikrinti bent vieną atsakymą!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Reikia nurodyti skaičių!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Reikia pasirinkti atsakymą!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Užrašykite paveikslėlyje esantį skaičių."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -482,14 +501,12 @@ msgstr ""
 "Kiekvieno bandymo metu jums bus pateikiamas paveikslėlis, kuriame yra "
 "skaičius."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Po {HIDE_AFTER} sekundžių šis paveikslėlis išnyks."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -499,7 +516,6 @@ msgstr ""
 "Dabar atliksime greitą testą, kad patikrintume jūsų gebėjimą suvokti "
 "spalvas."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

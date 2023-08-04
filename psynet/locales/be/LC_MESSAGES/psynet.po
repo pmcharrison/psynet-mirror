@@ -465,13 +465,32 @@ msgstr ""
 "Prolific і апішыце, што прывяло да вашай памылкі."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Вы павінны адзначыць хаця б адзін адказ!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Вам трэба ўказаць нумар!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Вам трэба выбраць адказ!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Запішыце лічбу на малюнку."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -479,14 +498,12 @@ msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr "У кожным выпрабаванні вам будзе прадстаўлена выява з лічбай."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Гэта выява знікне праз {HIDE_AFTER} секунд."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -496,7 +513,6 @@ msgstr ""
 "Зараз мы выканаем хуткі тэст, каб праверыць вашу здольнасць успрымаць "
 "колеры."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

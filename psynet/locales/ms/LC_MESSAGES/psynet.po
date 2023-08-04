@@ -468,13 +468,32 @@ msgstr ""
 " tapak web Prolific dan terangkan perkara yang membawa kepada ralat anda."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Anda perlu menyemak sekurang-kurangnya satu jawapan!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Anda perlu memberikan nombor!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Anda perlu memilih jawapan!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Tulis nombor dalam imej."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -484,14 +503,12 @@ msgstr ""
 "Dalam setiap percubaan, anda akan dipaparkan dengan imej yang mengandungi "
 "nombor."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Imej ini akan hilang selepas {HIDE_AFTER} saat."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -501,7 +518,6 @@ msgstr ""
 "Kami kini akan melakukan ujian pantas untuk memeriksa keupayaan anda untuk "
 "melihat warna."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

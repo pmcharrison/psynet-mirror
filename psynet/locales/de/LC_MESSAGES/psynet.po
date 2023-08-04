@@ -484,13 +484,32 @@ msgstr ""
 "Fehler kam."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Sie müssen mindestens eine Antwort ankreuzen!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Sie müssen eine Zahl angeben!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Sie müssen eine Antwort auswählen!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Schreiben Sie die Zahl auf dem Bild auf."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -499,14 +518,12 @@ msgid ""
 msgstr ""
 "Bei jedem Versuch wird Ihnen ein Bild präsentiert, das eine Zahl enthält."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Dieses Bild wird nach {HIDE_AFTER} Sekunden verschwinden."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -516,7 +533,6 @@ msgstr ""
 "Wir werden nun einen kurzen Test durchführen, um Ihre Fähigkeit, Farben "
 "wahrzunehmen, zu überprüfen."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"

@@ -473,13 +473,32 @@ msgstr ""
 "humantong sa iyong error."
 
 #. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Kailangan mong suriin ang hindi bababa sa isang sagot!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Kailangan mong magbigay ng numero!"
+
+#. ""
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Kailangan mong pumili ng sagot!"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Isulat ang numero sa larawan."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -488,14 +507,12 @@ msgid ""
 msgstr ""
 "Sa bawat pagsubok, bibigyan ka ng isang imahe na naglalaman ng isang numero."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Mawawala ang larawang ito pagkatapos ng {HIDE_AFTER} (na) segundo."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
@@ -505,7 +522,6 @@ msgstr ""
 "Magsasagawa kami ngayon ng isang mabilis na pagsubok upang suriin ang iyong "
 "kakayahang makita ang mga kulay."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
