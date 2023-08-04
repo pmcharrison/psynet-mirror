@@ -11,7 +11,9 @@
 
 import os
 import pathlib
+import shutil
 import subprocess
+from importlib import resources
 
 from joblib import Parallel, delayed
 
@@ -45,6 +47,7 @@ def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
         generate_constraints(dir)
+        post_update_constraints(dir)
         update_psynet_requirement(dir)
 
 
@@ -57,6 +60,11 @@ def generate_constraints(dir):
     )
 
 
+def post_update_constraints(dir):
+    with working_directory(dir):
+        psynet.command_line.post_update_constraints_()
+
+
 def update_psynet_requirement(dir):
     with working_directory(dir):
         psynet.command_line.update_psynet_requirement_()
@@ -66,11 +74,17 @@ def update_scripts(dir):
     with working_directory(dir):
         psynet.command_line.update_scripts_()
 
+        with resources.as_file(
+            resources.files("psynet") / "resources/experiment_scripts/config.txt"
+        ) as path:
+            shutil.copyfile(
+                path,
+                "config.txt",
+            )
 
-if skip_constraints:
-    n_jobs = 1
-else:
-    n_jobs = 16
+
+n_jobs = 6
+
 
 Parallel(verbose=10, n_jobs=n_jobs)(
     delayed(update_demo)(_dir) for _dir in find_demo_dirs()

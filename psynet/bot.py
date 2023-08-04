@@ -1,5 +1,6 @@
 import time
 import uuid
+from typing import List
 
 import requests
 from cached_property import cached_property
@@ -126,7 +127,7 @@ class Bot(Participant):
             f"Bot {self.id} has finished the experiment (took {self.page_count} page(s))."
         )
 
-    def take_page(self, page=None, time_factor=0):
+    def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
 
         if page is None:
@@ -145,7 +146,7 @@ class Bot(Participant):
         if time_taken > 0:
             time.sleep(time_taken)
 
-        response = page.call__bot_response(experiment, bot)
+        response = page.call__bot_response(experiment, bot, response)
 
         if "time_taken" not in response.metadata:
             response.metadata["time_taken"] = time_taken
@@ -231,3 +232,21 @@ class BotResponse:
         self.metadata = metadata
         self.blobs = blobs
         self.client_ip_address = client_ip_address
+
+
+def advance_past_wait_pages(bots: List[Bot], max_iterations=10):
+    from .page import WaitPage
+
+    iteration = 0
+    while True:
+        iteration += 1
+        any_waiting = False
+        for bot in bots:
+            current_page = bot.get_current_page()
+            if isinstance(current_page, WaitPage):
+                any_waiting = True
+                bot.take_page(current_page)
+        if not any_waiting:
+            break
+        if iteration >= max_iterations:
+            raise RuntimeError("Not all bots finished waiting in time.")

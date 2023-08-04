@@ -183,6 +183,12 @@ class StaticTrialMaker(ChainTrialMaker):
         In this case the experimenter is expected to supply a function that takes participant as an argument
         and returns the chosen participant group for that trial maker.
 
+    sync_group_type
+        Optional SyncGroup type to use for synchronizing participant allocation to nodes.
+        When this is set, then the ordinary node allocation logic will only apply to the 'leader'
+        of each SyncGroup. The other members of this SyncGroup will follow that leader around,
+        so that in every given trial the SyncGroup works on the same node together.
+
     Attributes
     ----------
 
@@ -246,6 +252,7 @@ class StaticTrialMaker(ChainTrialMaker):
         n_repeat_trials: int = 0,
         assets=None,
         choose_participant_group: Optional[callable] = None,
+        sync_group_type: Optional[str] = None,
     ):
         # balance_across_chains = (
         #     active_balancing_across_participants or active_balancing_within_participants
@@ -298,6 +305,7 @@ class StaticTrialMaker(ChainTrialMaker):
             n_repeat_trials=n_repeat_trials,
             assets=assets,
             choose_participant_group=choose_participant_group,
+            sync_group_type=sync_group_type,
         )
 
 

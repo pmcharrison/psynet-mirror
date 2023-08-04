@@ -1170,6 +1170,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         In this case the experimenter is expected to supply a function that takes participant as an argument
         and returns the chosen participant group for that trial maker.
 
+    sync_group_type
+        Optional SyncGroup type to use for synchronizing participant allocation to nodes.
+        When this is set, then the ordinary node allocation logic will only apply to the 'leader'
+        of each SyncGroup. The other members of this SyncGroup will follow that leader around,
+        so that in every given trial the SyncGroup works on the same node together.
+
+
     Attributes
     ----------
 
@@ -1244,6 +1251,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         allow_revisiting_networks_in_across_chains: bool = False,
         assets=None,
         choose_participant_group: Optional[callable] = None,
+        sync_group_type: Optional[str] = None,
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1330,6 +1338,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
             assets=assets,
+            sync_group_type=sync_group_type,
         )
 
         self.check_initialization()

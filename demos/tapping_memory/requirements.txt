@@ -1,4 +1,4 @@
-psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.0#egg=psynet
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.2.0#egg=psynet
 repp@git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@master#egg=repp
 reppextension@git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension
 matplotlib

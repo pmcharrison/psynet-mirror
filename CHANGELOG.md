@@ -1,5 +1,32 @@
 # CHANGELOG
 
+# [10.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.2.0) Release 2023-07-31
+
+#### Fixed
+- Fixed problem where importing individual PsyNet modules before `psynet.experiment` could produce an SQLAlchemy import error (author: Peter Harrison, reviewer: Frank Höger).
+- Made `validate` messages translatable (author: Pol van Rijn, reviewer: Peter Harrison).
+- Allow `.git` in PsyNet version specifiers in `requirements.txt` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug where participants could submit `InfoPages` before the page was ready (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed CI process for Docker builds so that new Docker images are uploaded for each new tag (author: Peter Harrison, reviewer: Frank Höger).
+- Changed imports of joblib, numpy, pandas, statsmodels to local imports to speed up PsyNet package import time (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed slow HTTP route in the dashboard timeline page (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Added
+- Added `jsPsychPage` as a utility for embedding jsPsych content in PsyNet. See `demos/jspsych` (author: Peter Harrison, reviewer: Frank Höger).
+- Added experimental support for synchronous paradigms in PsyNet (see `demos/simple_sync_group` and `demos/rock_paper_scissors`) (author: Peter Harrison, reviewer: Frank Höger).
+- Added a new function `psynet check-constraints` that checks whether the `constraints.txt` file is present and correct (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Changed
+- Simplified config.txt files for all demos (author: Peter Harrison, reviewer: Frank Höger).
+- Under the hood, PsyNet now avoids the `dalligner.createParticipant` helper function, which previously would occasionally fail when running different participation sessions in different browser windows (author: Frank Höger, reviewer: Peter Harrison).
+- Reinstated `constraints.txt` as a compulsory tool for pinning dependencies for Docker deployments (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Updated
+- Updated Unity demo's static file directory to work with PsyNet 10 (author: Frank Höger, reviewer: Peter Harrison).
+- Propagated updated instructions to demos (author: Peter Harrison).
+- Updated documentation (author: Peter Harrison).
+- Updated `Dallinger` to `v9.9.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.9.0.
+
 # [10.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.1.0) Release 2023-07-13
 
 #### Fixed

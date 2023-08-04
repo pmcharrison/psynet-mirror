@@ -10,6 +10,10 @@
             {{ x }}
         </style>
     {% endfor %}
+
+    {% for x in css_links %}
+        <link rel="stylesheet" href={{ x }}>
+    {% endfor %}
 {% endblock %}
 
 {% block body %}
@@ -198,7 +202,9 @@
 
     <script src="/static/scripts/jquery-3.6.0.min.js"></script>
 
-
+    {% for x in js_links %}
+        <script src="{{ x }}"></script>
+    {% endfor %}
 
     <script>
         {{ init_js_vars }}
@@ -214,7 +220,8 @@
                         prompt: {},
                         control: {}
                     },
-                    utils: {}
+                    utils: {},
+                    var: {{ js_vars | tojson }}
                 };
 
                 psynet.utils.shallowCopy = function (x) {
@@ -784,6 +791,7 @@
                         resumeModal.css("display", "block");
                         resumeButton.click(async function () {
                             resumeModal.css("display", "none");
+                            $("#js-psych").trigger("focus");
                             await psynet.media.init();
                             resolve();
                         });
@@ -1626,9 +1634,8 @@
 
 {% block libs %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}" type="text/javascript"></script>
-    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}"
-            type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}"></script>
 {% endblock %}
 
 {% block scripts %}

@@ -5,6 +5,7 @@ from psynet.asset import (  # noqa
     LocalStorage,
     S3Storage,
 )
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -113,3 +114,6 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert len(bot.alive_trials) == len(nodes)

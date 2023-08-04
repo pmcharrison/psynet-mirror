@@ -464,43 +464,6 @@ msgstr ""
 "Ak chcete požiadať o kompenzáciu, pošlite výskumníkovi správu "
 "prostredníctvom webovej stránky Prolific a opíšte, čo viedlo k vašej chybe."
 
-#. ""
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Zapíšte číslo na obrázku."
-
-#. ""
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "color_blindness_test_intro_1"
-msgid ""
-"In each trial, you will be presented with an image that contains a number."
-msgstr "V každom pokuse sa zobrazí obrázok, ktorý obsahuje číslo."
-
-#. ""
-#: psynet/prescreen.py
-#, python-brace-format, fuzzy
-msgctxt "color_blindness_test_intro_1"
-msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Tento obrázok zmizne po {HIDE_AFTER} sekundách."
-
-#. ""
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "color_blindness_test_intro_1"
-msgid ""
-"We will now perform a quick test to check your ability to perceive colors."
-msgstr "Teraz vykonáme rýchly test na overenie vašej schopnosti vnímať farby."
-
-#. ""
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "color_blindness_test_intro_1"
-msgid "You must enter the number that you see into the text box."
-msgstr "Do textového poľa musíte zadať číslo, ktoré vidíte."
-
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -701,6 +664,7 @@ msgctxt "concent"
 msgid "To proceed, click the button below."
 msgstr "Ak chcete pokračovať, kliknite na tlačidlo nižšie."
 
+#. ""
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"

@@ -320,9 +320,9 @@
 {% macro abc_notation(params) %}
     {{ simple(params) }}
 
-    <script src="/static/scripts/abc-js/abcjs-basic.js" type="text/javascript"></script>
+    <script src="/static/scripts/abc-js/abcjs-basic.js"></script>
 
-    <script type="text/javascript">
+    <script>
         let abcScore = "{{ params.content | safe }}";
 
         function renderABCscore() {
