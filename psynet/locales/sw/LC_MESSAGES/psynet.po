@@ -464,21 +464,18 @@ msgstr ""
 "Ili kuuliza kuhusu fidia, tafadhali mtumie mtafiti ujumbe kupitia tovuti ya "
 "Prolific na ueleze kilichosababisha kosa lako."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Unahitaji kuangalia angalau jibu moja!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Unahitaji kutoa nambari!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -488,6 +485,13 @@ msgstr "Unahitaji kuchagua jibu!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Andika nambari kwenye picha."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Andika nambari kwenye picha."
 

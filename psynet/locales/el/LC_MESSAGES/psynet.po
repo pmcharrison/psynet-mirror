@@ -465,21 +465,18 @@ msgstr ""
 "Για να ζητήσετε αποζημίωση, στείλτε μήνυμα στον ερευνητή μέσω της "
 "ιστοσελίδας Prolific και περιγράψτε τι οδήγησε στο λάθος σας."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Πρέπει να ελέγξετε τουλάχιστον μία απάντηση!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Πρέπει να δώσετε έναν αριθμό!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -489,6 +486,13 @@ msgstr "Πρέπει να επιλέξετε μια απάντηση!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Γράψτε τον αριθμό στην εικόνα."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Γράψτε τον αριθμό στην εικόνα."
 

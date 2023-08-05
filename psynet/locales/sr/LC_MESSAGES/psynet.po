@@ -464,21 +464,18 @@ msgstr ""
 "Да бисте се распитали о надокнади, пошаљите истраживачу поруку преко веб "
 "странице Пролифиц и опишите шта је довело до ваше грешке."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Морате да проверите бар један одговор!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Морате да наведете број!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -488,6 +485,13 @@ msgstr "Морате да изаберете одговор!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Запишите број на слици."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Запишите број на слици."
 

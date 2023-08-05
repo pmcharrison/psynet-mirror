@@ -466,21 +466,18 @@ msgstr ""
 "मुआवजे के बारे में पूछताछ करने के लिए, कृपया शोधकर्ता को प्रोलिफिक वेबसाइट "
 "के माध्यम से एक संदेश भेजें और बताएं कि आपकी त्रुटि का कारण क्या है।"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "आपको कम से कम एक उत्तर की जाँच करनी होगी!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "आपको एक नंबर प्रदान करना होगा!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -490,6 +487,13 @@ msgstr "आपको एक उत्तर चुनना होगा!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "छवि में संख्या लिखें."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "छवि में संख्या लिखें."
 

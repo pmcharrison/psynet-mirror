@@ -413,21 +413,18 @@ msgstr ""
 "Om te informeren naar compensatie, stuurt u de onderzoeker een bericht via "
 "de website van Prolific en beschrijft u wat tot uw fout heeft geleid."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "U moet minstens één antwoord controleren!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "U moet een getal geven!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -437,6 +434,13 @@ msgstr "U moet een antwoord selecteren!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Schrijf het nummer in de afbeelding op."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Schrijf het nummer in de afbeelding op."
 

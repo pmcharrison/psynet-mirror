@@ -464,21 +464,18 @@ msgstr ""
 "Ha kártérítésről szeretne érdeklődni, kérjük, küldjön üzenetet a kutatónak a"
 " Prolific weboldalán keresztül, és írja le, mi vezetett az Ön hibájához."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Legalább egy választ ellenőrizni kell!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Meg kell adnia egy számot!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -488,6 +485,13 @@ msgstr "Ki kell választania egy választ!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Írja le a képen látható számot."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Írja le a képen látható számot."
 

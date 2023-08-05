@@ -465,21 +465,18 @@ msgstr ""
 "Jei norite pasiteirauti dėl kompensacijos, nusiųskite tyrėjui žinutę per "
 "\"Prolific\" svetainę ir aprašykite, dėl ko įvyko jūsų klaida."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Turite patikrinti bent vieną atsakymą!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Reikia nurodyti skaičių!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -489,6 +486,13 @@ msgstr "Reikia pasirinkti atsakymą!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Užrašykite paveikslėlyje esantį skaičių."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Užrašykite paveikslėlyje esantį skaičių."
 

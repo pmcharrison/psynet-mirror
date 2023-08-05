@@ -403,7 +403,7 @@ msgid "You need to select an answer!"
 msgstr ""
 
 #: psynet/prescreen.py
-msgctxt "color_blindnes_test"
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr ""
 

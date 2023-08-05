@@ -464,21 +464,18 @@ msgstr ""
 "Hüvitise küsimiseks saatke uurijale sõnum Prolifici veebisaidi kaudu ja "
 "kirjeldage, mis põhjustas teie vea."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Sa pead kontrollima vähemalt ühe vastuse!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Sa pead esitama numbri!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -488,6 +485,13 @@ msgstr "Sa pead valima vastuse!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Kirjutage pildil olev number üles."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Kirjutage pildil olev number üles."
 

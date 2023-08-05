@@ -472,21 +472,18 @@ msgstr ""
 "mananaliksik sa pamamagitan ng Prolific na website at ilarawan kung ano ang "
 "humantong sa iyong error."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Kailangan mong suriin ang hindi bababa sa isang sagot!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Kailangan mong magbigay ng numero!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -496,6 +493,13 @@ msgstr "Kailangan mong pumili ng sagot!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Isulat ang numero sa larawan."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Isulat ang numero sa larawan."
 

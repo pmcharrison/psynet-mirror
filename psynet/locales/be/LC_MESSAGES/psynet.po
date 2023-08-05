@@ -464,21 +464,18 @@ msgstr ""
 "Каб запытаць аб кампенсацыі, адпраўце даследчыку паведамленне праз вэб-сайт "
 "Prolific і апішыце, што прывяло да вашай памылкі."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Вы павінны адзначыць хаця б адзін адказ!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Вам трэба ўказаць нумар!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -488,6 +485,13 @@ msgstr "Вам трэба выбраць адказ!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Запішыце лічбу на малюнку."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Запішыце лічбу на малюнку."
 

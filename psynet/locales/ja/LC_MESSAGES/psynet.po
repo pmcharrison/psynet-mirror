@@ -454,21 +454,18 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "補償についてのお問い合わせは、プロリフィックのウェブサイトから研究者にメッセージを送り、何が原因でエラーになったかを書いてください。"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "少なくとも1つの答えをチェックしてください！"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "数字を入力してください"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -478,6 +475,13 @@ msgstr "答えを選択してください"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "画像の番号を書いてください。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "画像の番号を書いてください。"
 

@@ -1233,7 +1233,7 @@ class ColorBlindnessTrial(StaticTrial):
             "color_blindness_trial",
             ImagePrompt(
                 self.assets["image"].url,
-                _p("color_blindnes_test", "Write down the number in the image."),
+                _p("color_blindness_test", "Write down the number in the image."),
                 width="350px",
                 height="344px",
                 hide_after=self.trial_maker.hide_after,

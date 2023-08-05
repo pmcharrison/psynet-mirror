@@ -469,21 +469,18 @@ msgstr ""
 "pośrednictwem strony internetowej Prolific i opisać, co doprowadziło do "
 "błędu."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Proszę zaznaczyć przynajmniej jedną odpowiedź!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Proszę podać liczbę!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -493,6 +490,13 @@ msgstr "Proszę wybrać odpowiedź!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Proszę zapisać liczbę na obrazku."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Proszę zapisać liczbę na obrazku."
 

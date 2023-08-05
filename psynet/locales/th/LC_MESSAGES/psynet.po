@@ -462,21 +462,18 @@ msgstr ""
 "หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดส่งข้อความถึงผู้วิจัยผ่านเว็บไซต์ "
 "Prolific และอธิบายสิ่งที่นำไปสู่ข้อผิดพลาดของคุณ"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "คุณต้องตรวจสอบอย่างน้อยหนึ่งคำตอบ!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "คุณต้องระบุหมายเลข!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -486,6 +483,13 @@ msgstr "คุณต้องเลือกคำตอบ!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "จดเลขไว้ในภาพ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "จดเลขไว้ในภาพ"
 

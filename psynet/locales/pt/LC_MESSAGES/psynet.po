@@ -465,21 +465,18 @@ msgstr ""
 "Para pedir uma indemnização, envie uma mensagem ao investigador através do "
 "sítio Web Prolific e descreva o que esteve na origem do seu erro."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Tem de verificar pelo menos uma resposta!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Tem de fornecer um número!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -489,6 +486,13 @@ msgstr "Tem de selecionar uma resposta!"
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Escreva o número na imagem."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Escreva o número na imagem."
 
