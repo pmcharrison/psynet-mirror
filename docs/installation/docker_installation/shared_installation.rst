@@ -19,7 +19,8 @@ Step 2: Install PyCharm
 
 We recommend using PyCharm as your integrated development environment (IDE) for working with PsyNet.
 You can learn about PyCharm here: https://www.jetbrains.com/pycharm/
-We recommend using the Professional version in particular. If you are a student or academic,
+For proper integration with PsyNet (especially if you are using the Docker installation route),
+you will need to use the Professional version in particular. If you are a student or academic,
 you can get a free educational license via the PyCharm website.
 
 .. warning::
@@ -145,10 +146,21 @@ run the following command, then try again:
 If you see other error messages at this point, see Troubleshooting.
 
 Now you should configure PyCharm to use your experiment's Docker image.
-To do this, first open the Dockertag file in your experiment's directory, and copy the contents to your clipboard.
-Then look for a box in the bottom-right corner of your screen that says 'No interpreter'.
-Click on this text and click 'Add New interpreter'.
-Click 'Pull or use existing', then under 'Image tag' paste the contents of the Dockertag file you copied earlier.
+
+.. warning::
+
+    If you are not using PyCharm Professional Edition, you will probably not have the option
+    to integrate PyCharm with Docker in this way.
+
+To do this, first open the Dockertag file in your experiment's directory
+(this is simply a file with the filename 'Dockertag'),
+and copy the contents to your clipboard.
+Then look for the 'interpreter' box in the bottom-right corner of your screen;
+this would normally say 'No interpreter', but it could say something like 'Python 3.11'.
+Click on this text and click 'Add New interpreter',
+then click 'On Docker'.
+Select an option that looks like 'Pull, or perhaps 'Pull or use existing',
+then under 'Image tag' paste the contents of the Dockertag file you copied earlier.
 Click Next, and wait a while. The script will initially look for that tag on Dockerhub, which should fail;
 It should then look for that tag on your local computer, and successfully acquire the image you just built locally.
 Click Next, then select 'System Interpreter', then click 'Create'. You should have now successfully set up your
