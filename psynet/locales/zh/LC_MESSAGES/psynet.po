@@ -404,26 +404,62 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "您需要检查至少一个答案！"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "您需要提供一个数字！"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "您需要选择一个答案！"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "写下图片中的数字。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "写下图片中的数字。"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "在每次试验中，您将看到一个包含数字的图像。"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "该图像将在 {HIDE_AFTER} 秒后消失。"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr "现在我们将进行一个快速测试，检查您对颜色的感知能力。"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "您必须在文本框中输入您看到的数字。"
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2317,6 +2353,12 @@ msgstr "您可以使用MTurk广告页面上的<strong>中止试验</strong>按�
 msgctxt "start"
 msgid "Starting experiment..."
 msgstr "开始实验..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "好的"
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"

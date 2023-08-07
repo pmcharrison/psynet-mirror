@@ -432,28 +432,24 @@ msgstr ""
 "Чтобы узнать о компенсации, пожалуйста, отправьте исследователю сообщение "
 "через сайт Prolific и опишите, что привело к Вашей ошибке."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Вам необходимо проверить хотя бы один ответ!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Вам необходимо указать число!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Вам необходимо выбрать ответ!"
 
-#. ""
 #: psynet/prescreen.py
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -461,20 +457,24 @@ msgstr "Запишите число, изображенное на картин�
 
 #. ""
 #: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Запишите число, изображенное на картинке."
+
+#: psynet/prescreen.py
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
 "В каждом испытании Вам будет представлено изображение, содержащее число."
 
-#. ""
 #: psynet/prescreen.py
 #, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Это изображение исчезнет через {HIDE_AFTER} секунд."
 
-#. ""
 #: psynet/prescreen.py
 msgctxt "color_blindness_test_intro_1"
 msgid ""
@@ -483,7 +483,6 @@ msgstr ""
 "Сейчас мы проведем быстрый тест, чтобы проверить Вашу способность "
 "воспринимать цвета."
 
-#. ""
 #: psynet/prescreen.py
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
@@ -2687,6 +2686,12 @@ msgstr ""
 msgctxt "start"
 msgid "Starting experiment..."
 msgstr "Начало эксперимента..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"

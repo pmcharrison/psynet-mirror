@@ -658,6 +658,9 @@ class Page(Elt):
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
+    show_termination_button:
+        If ``True``, a button is displayed allowing the participant to terminate the experiment, Default ``False``.
+
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
         of a queued audio file. Otherwise the trial will wait for the
@@ -707,6 +710,8 @@ class Page(Elt):
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
+        show_termination_button: bool = False,
+        aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
     ):
         if template_arg is None:
@@ -757,6 +762,8 @@ class Page(Elt):
         self.session_id = session_id
         self.save_answer = save_answer
         self.start_trial_automatically = start_trial_automatically
+        self.show_termination_button = show_termination_button
+        self.aggressive_termination_on_no_focus = aggressive_termination_on_no_focus
 
         self.events = {
             **self.prepare_default_events(),
@@ -1115,6 +1122,8 @@ class Page(Elt):
             },
             "current_locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
+            "show_termination_button": self.show_termination_button,
+            "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         return render_string_with_translations(
             template_string=self.template_str, locale=locale, **all_template_args

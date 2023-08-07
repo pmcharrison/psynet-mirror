@@ -36,9 +36,10 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
-from .utils import get_logger
+from .utils import get_logger, get_translator
 
 logger = get_logger()
+DEFAULT_LOCALE = "en"
 
 
 class REPPVolumeCalibration(Module):
@@ -1227,11 +1228,12 @@ class AttentionTest(Module):
 
 class ColorBlindnessTrial(StaticTrial):
     def show_trial(self, experiment, participant):
+        _, _p = get_translator(self.trial_maker.locale)
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
                 self.assets["image"].url,
-                "Write down the number in the image.",
+                _p("color_blindness_test", "Write down the number in the image."),
                 width="350px",
                 height="344px",
                 hide_after=self.trial_maker.hide_after,
@@ -1288,10 +1290,12 @@ class ColorBlindnessTest(StaticTrialMaker):
         performance_threshold: int = 4,
         hide_after: Optional[float] = 3.0,
         trial_class=ColorBlindnessTrial,
+        locale=DEFAULT_LOCALE,
     ):
         self.hide_after = hide_after
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
+        self.locale = locale
 
         nodes = self.get_nodes(media_url)
 
@@ -1308,23 +1312,34 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     @property
     def introduction(self):
-        if self.hide_after is None:
-            hidden_instructions = ""
-        else:
-            hidden_instructions = (
-                f"This image will disappear after {self.hide_after} seconds."
-            )
-        return InfoPage(
-            Markup(
-                f"""
-            <p>We will now perform a quick test to check your ability to perceive colors.</p>
-            <p>
-                In each trial, you will be presented with an image that contains a number.
-                {hidden_instructions}
-                You must enter the number that you see into the text box.
-            </p>
-            """
+        _, _p = get_translator(self.locale)
+
+        instructions = [
+            _p(
+                "color_blindness_test_intro_1",
+                "We will now perform a quick test to check your ability to perceive colors.",
             ),
+            _p(
+                "color_blindness_test_intro_1",
+                "In each trial, you will be presented with an image that contains a number.",
+            ),
+        ]
+
+        if self.hide_after is not None:
+            instructions.append(
+                _p(
+                    "color_blindness_test_intro_1",
+                    "This image will disappear after {HIDE_AFTER} seconds.",
+                ).format(HIDE_AFTER=self.hide_after)
+            )
+        instructions.append(
+            _p(
+                "color_blindness_test_intro_1",
+                "You must enter the number that you see into the text box.",
+            )
+        )
+        return InfoPage(
+            " ".join(instructions),
             time_estimate=10,
         )
 

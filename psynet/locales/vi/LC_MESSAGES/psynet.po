@@ -465,26 +465,64 @@ msgstr ""
 "Để hỏi về bồi thường, vui lòng gửi tin nhắn cho nhà nghiên cứu qua trang web"
 " Prolific và mô tả nguyên nhân dẫn đến lỗi của bạn."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Bạn cần kiểm tra ít nhất một câu trả lời!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Bạn cần cung cấp một số!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Bạn cần chọn một câu trả lời!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Viết ra số trong hình ảnh."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Viết ra số trong hình ảnh."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "Trong mỗi lần dùng thử, bạn sẽ thấy một hình ảnh có chứa một số."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "Hình ảnh này sẽ biến mất sau {HIDE_AFTER} giây."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr ""
+"Bây giờ chúng ta sẽ thực hiện một bài test nhanh để kiểm tra khả năng cảm "
+"nhận màu sắc của bạn."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "Bạn phải nhập số mà bạn nhìn thấy vào hộp văn bản."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2920,6 +2958,12 @@ msgstr ""
 msgctxt "start"
 msgid "Starting experiment..."
 msgstr "Bắt đầu thí nghiệm..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "ĐƯỢC RỒI"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

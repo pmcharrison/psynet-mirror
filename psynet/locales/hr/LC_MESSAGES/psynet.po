@@ -464,26 +464,64 @@ msgstr ""
 "Za upit o naknadi, pošaljite istraživaču poruku putem web stranice Prolific "
 "i opišite što je dovelo do vaše pogreške."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Morate označiti barem jedan odgovor!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Morate navesti broj!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Morate odabrati odgovor!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Zapiši broj sa slike."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Zapiši broj sa slike."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "U svakoj probi prikazat će vam se slika koja sadrži broj."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "Ova će slika nestati nakon {HIDE_AFTER} sekundi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr ""
+"Sada ćemo izvesti brzi test kako bismo provjerili vašu sposobnost percepcije"
+" boja."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "Morate unijeti broj koji vidite u tekstualni okvir."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2893,6 +2931,12 @@ msgstr ""
 msgctxt "start"
 msgid "Starting experiment..."
 msgstr "Pokretanje eksperimenta..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "u redu"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

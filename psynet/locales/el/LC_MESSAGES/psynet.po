@@ -465,26 +465,65 @@ msgstr ""
 "Για να ζητήσετε αποζημίωση, στείλτε μήνυμα στον ερευνητή μέσω της "
 "ιστοσελίδας Prolific και περιγράψτε τι οδήγησε στο λάθος σας."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Πρέπει να ελέγξετε τουλάχιστον μία απάντηση!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Πρέπει να δώσετε έναν αριθμό!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Πρέπει να επιλέξετε μια απάντηση!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Γράψτε τον αριθμό στην εικόνα."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Γράψτε τον αριθμό στην εικόνα."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr ""
+"Σε κάθε δοκιμή, θα σας παρουσιάζεται μια εικόνα που περιέχει έναν αριθμό."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "Αυτή η εικόνα θα εξαφανιστεί μετά από {HIDE_AFTER} δευτερόλεπτα."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr ""
+"Τώρα θα εκτελέσουμε ένα γρήγορο τεστ για να ελέγξουμε την ικανότητά σας να "
+"αντιλαμβάνεστε τα χρώματα."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "Θα πρέπει να εισάγετε τον αριθμό που βλέπετε στο πλαίσιο κειμένου."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2995,6 +3034,12 @@ msgstr ""
 msgctxt "start"
 msgid "Starting experiment..."
 msgstr "Έναρξη πειράματος..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
