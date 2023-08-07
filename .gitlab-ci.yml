@@ -36,7 +36,7 @@ before_script:
   - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_LOCAL_TAG .
 
 tests:
-  parallel: 1
+  parallel: 10
   stage: test
   script:
     - docker run
