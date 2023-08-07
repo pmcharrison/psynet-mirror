@@ -30,7 +30,15 @@
         </div>
     {% endblock %}
 
-    <div id="main-body" class="my-5 container">
+    {% if show_termination_button %}
+        <div class="center_div" style="margin-top: 7px;">
+            <button id="terminate-button" class="btn btn-dark" style="float: left; margin: 0px 0px 30px 7px;">
+                Terminate using this button!
+            </button>
+        </div>
+    {% endif %}
+
+    <div id="main-body" class="my-5 container" style="clear: both;">
         {% block main_body %}
 
             {% block above_progress_display %}
@@ -102,6 +110,17 @@
                             </li>
                         </ul>
                     </div>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block alert_modal %}
+            <div id="alert-modal" class="modal">
+                <div class="modal-content">
+                    <h3 id="alert-message"></h3>
+                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="alert-button">
+                        {{ pgettext("alert_ok", "OK") }}
+                    </button>
                 </div>
             </div>
         {% endblock %}
@@ -1322,6 +1341,20 @@
                     return passedValidation
                 };
 
+                psynet.alert = function (text) {
+                    return new Promise((resolve) => {
+                        let alertModal = $("#alert-modal");
+                        let alertButton = $("#alert-button");
+                        let alertText = $("#alert-message");
+                        alertText.text(text);
+                        alertModal.css("display", "block");
+                        alertButton.click(async function () {
+                            alertModal.css("display", "none");
+                            resolve();
+                        });
+                    });
+                };
+
                 let onSuccessResponse = function (request, onRejection) {
                     let response = JSON.parse(request.response);
                     let passedValidation;
@@ -1340,7 +1373,7 @@
                         passedValidation = true;
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
-                        alert(response.message);
+                        psynet.alert(response.message);
                         psynet.response.enable();
                         psynet.submit.enable();
                         if (onRejection) {
@@ -1656,7 +1689,12 @@
             {
                 // Terminate on 'page reload', 'window/tab close', and 'no focus' with timeouts and
                 // polling frequency given in milliseconds.
-                const NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
+                let NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
+                let NO_FOCUS_TIMEOUT_REASON = "no-focus-timeout-";
+                {% if aggressive_termination_on_no_focus %}
+                    NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.aggressive_no_focus_timeout_in_s }});
+                    NO_FOCUS_TIMEOUT_REASON = "aggressive-" + NO_FOCUS_TIMEOUT_REASON;
+                {% endif %}
                 const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
                 const POLLING_FREQUENCY = 1000;
                 let checkFocusIntervalID = setInterval(checkFocus, POLLING_FREQUENCY);
@@ -1683,6 +1721,10 @@
                 // Proceed to next page
                 $(".btn, .sd-btn").click(function () {
                     psynet.removeBeforeUnloadEventListener();
+                });
+
+                $("#terminate-button").click(function () {
+                    terminateParticipant('terminate-button');
                 });
 
                 function toMilliseconds(seconds) {
@@ -1713,7 +1755,7 @@
                     } else {
                         noFocusSince += POLLING_FREQUENCY;
                         if (noFocusSince > NO_FOCUS_TIMEOUT) {
-                            terminateParticipant("no-focus-timeout-" + NO_FOCUS_TIMEOUT / 1000 + "s");
+                            terminateParticipant(NO_FOCUS_TIMEOUT_REASON + NO_FOCUS_TIMEOUT / 1000 + "s");
                         } else {
                             psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
                         }

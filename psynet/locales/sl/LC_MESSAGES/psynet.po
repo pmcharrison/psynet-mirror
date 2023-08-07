@@ -464,26 +464,64 @@ msgstr ""
 "Če želite vprašati za odškodnino, raziskovalcu pošljite sporočilo prek "
 "spletnega mesta Prolific in opišite, kaj je povzročilo vašo napako."
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Preveriti morate vsaj en odgovor!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Navesti morate številko!"
 
-#. ""
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Izbrati morate odgovor!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Zapišite številko na sliki."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Zapišite številko na sliki."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "V vsakem poskusu bo prikazana slika, ki vsebuje številko."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "Ta slika bo po {HIDE_AFTER} sekundah izginila."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr ""
+"Zdaj bomo izvedli hiter preizkus, s katerim bomo preverili vašo sposobnost "
+"zaznavanja barv."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "Številko, ki jo vidite, morate vnesti v besedilno polje."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2888,6 +2926,12 @@ msgstr ""
 msgctxt "start"
 msgid "Starting experiment..."
 msgstr "Začetek poskusa..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "V REDU"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

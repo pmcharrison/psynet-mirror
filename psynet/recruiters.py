@@ -421,6 +421,14 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         return lucid_recruitment_config.get("no_focus_timeout_in_s")
 
+    @property
+    def aggressive_no_focus_timeout_in_s(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
+        )
+
+        return lucid_recruitment_config.get("aggressive_no_focus_timeout_in_s")
+
 
 class DevLucidRecruiter(BaseLucidRecruiter):
     """
