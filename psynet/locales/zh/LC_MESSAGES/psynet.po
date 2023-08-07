@@ -428,7 +428,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "写下图片中的数字。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -460,6 +459,117 @@ msgstr "现在我们将进行一个快速测试，检查您对颜色的感知能
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "您必须在文本框中输入您看到的数字。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "你能听到你的录音吗？"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "如果我们无法录音，实验将到此结束。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr "如果您听不到录音，请确保您的笔记本电脑麦克风正常工作，并且您没有使用任何耳机或无线设备。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr "在下一页，我们将再次要求您以任何您喜欢的节奏敲击一个稳定的节拍。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "录音...... 开始拍打！"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "敲击稳定的节拍"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr "用食指敲击，只敲击笔记本电脑表面。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "敲击测试"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "这是录音测试！"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "要继续进行，我们需要能够录下您的敲击声。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "热身"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr "现在我们来做一个简短的敲击练习热身。 在下一页，请用你喜欢的任何节奏敲击一个稳定的节拍。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr "我们将测试能否正确录下您的拍击信号"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "请注意"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "小心"
 
 #: psynet/recruiters.py
 #, fuzzy

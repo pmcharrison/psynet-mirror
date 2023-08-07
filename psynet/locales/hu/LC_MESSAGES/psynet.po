@@ -488,7 +488,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Írja le a képen látható számot."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -522,6 +521,124 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "A látott számot kell beírnod a szövegdobozba."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "Hallja a felvételt?"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "Ha nem tudjuk rögzíteni, a kísérlet itt véget ér."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"Ha nem hallja a felvételt, győződjön meg róla, hogy a laptop mikrofonja "
+"működik, és nem használ fejhallgatót vagy vezeték nélküli eszközt."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr ""
+"A következő oldalon ismét arra fogjuk kérni, hogy kopogtasson egy egyenletes"
+" ütemet tetszőleges tempóban."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "Felvétel... Kezdj el kopogni!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "Koppintson egy egyenletes ütemre"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr "Koppints a mutatóujjaddal, és csak a laptop felületére koppints."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "Kopogtatási teszt"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "Ez egy felvételi teszt!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "A folytatáshoz az kell, hogy rögzíteni tudjuk a kopogásodat."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "Bemelegítés"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"Most bemelegítünk egy rövid kopogtatási gyakorlattal. A következő oldalon "
+"kérem, kopogtasson egy egyenletes ütemet tetszőleges tempóban."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr ""
+"Tesztelni fogjuk, hogy megfelelően tudjuk-e rögzíteni a kopogás jelét."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "Figyelem"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "Légy óvatos!"
 
 #: psynet/recruiters.py
 #, fuzzy

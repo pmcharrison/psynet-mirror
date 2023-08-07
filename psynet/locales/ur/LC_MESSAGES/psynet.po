@@ -489,7 +489,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "تصویر میں نمبر لکھیں۔"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -523,6 +522,127 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "آپ کو وہ نمبر درج کرنا ہوگا جو آپ ٹیکسٹ باکس میں دیکھتے ہیں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "کیا آپ اپنی ریکارڈنگ سن سکتے ہیں؟"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "اگر ہم اسے ریکارڈ نہیں کر سکتے تو تجربہ یہاں ختم ہو جائے گا۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"اگر آپ کو اپنی ریکارڈنگ سنائی نہیں دیتی ہے، تو براہ کرم یقینی بنائیں کہ آپ "
+"کا لیپ ٹاپ مائیکروفون کام کر رہا ہے اور آپ کوئی ہیڈ فون یا وائرلیس ڈیوائسز "
+"استعمال نہیں کر رہے ہیں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr ""
+"اگلے صفحہ پر، ہم آپ سے دوبارہ کہیں گے کہ آپ اپنی پسند کے کسی بھی ٹیمپو میں "
+"ایک مستقل بیٹ کو ٹیپ کریں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "ریکارڈنگ... ٹیپ کرنا شروع کریں!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "ایک مستحکم بیٹ کو تھپتھپائیں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr ""
+"اپنی شہادت کی انگلی سے تھپتھپائیں اور صرف اپنے لیپ ٹاپ کی سطح پر ٹیپ کریں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "ٹیپنگ ٹیسٹ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "یہ ایک ریکارڈنگ ٹیسٹ ہے!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "آگے بڑھنے کے لیے، ہمیں آپ کی ٹیپنگ کو ریکارڈ کرنے کے قابل ہونا چاہیے۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "تیار ہونا"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"اب ہم ایک مختصر ٹیپنگ ورزش کے ساتھ گرم کریں گے۔ اگلے صفحہ پر، براہ کرم اپنی "
+"پسند کے کسی بھی ٹیمپو میں ایک مستقل بیٹ کو تھپتھپائیں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr ""
+"ہم جانچ کریں گے کہ آیا ہم آپ کے ٹیپنگ سگنل کو صحیح طریقے سے ریکارڈ کر سکتے "
+"ہیں۔"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "توجہ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "محتاط رہیں"
 
 #: psynet/recruiters.py
 #, fuzzy

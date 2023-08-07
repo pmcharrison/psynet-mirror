@@ -488,7 +488,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Kirjutage pildil olev number üles."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -520,6 +519,123 @@ msgstr "Nüüd teeme kiire testi, et kontrollida teie värvide tajumise võimet.
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Te peate sisestama nähtava numbri tekstikasti."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "Kas te kuulete oma salvestust?"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "Kui me ei saa seda salvestada, lõpeb eksperiment siinkohal."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"Kui te ei kuule oma salvestust, veenduge, et teie sülearvuti mikrofon töötab"
+" ja te ei kasuta kõrvaklappe ega juhtmevabu seadmeid."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr ""
+"Järgmisel leheküljel palume teil uuesti koputada ühtlast rütmi suvalises "
+"tempos, mis teile meeldib."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "Salvestamine... Alustage koputamist!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "Koputage ühtlast rütmi"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr "Koputage oma nimetissõrmega ja koputage ainult sülearvuti pinnale."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "Tapping test"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "See on salvestamise test!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "Jätkamiseks on vaja, et me saaksime teie koputamist salvestada."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "Soojendamine"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"Nüüd soojendame end lühikese koputamisharjutusega. Järgmisel leheküljel "
+"koputage ühtlast taktimõõtu suvalises tempos, mis teile meeldib."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr "Me testime, kas suudame teie koputussignaali korralikult salvestada."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "Tähelepanu"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "Olge ettevaatlik"
 
 #: psynet/recruiters.py
 #, fuzzy

@@ -478,7 +478,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "이미지에 숫자를 적습니다."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -510,6 +509,118 @@ msgstr "이제 색상 인식 능력을 확인하기 위해 간단한 테스트�
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "텍스트 상자에 보이는 숫자를 입력해야 합니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "녹음 소리가 들리나요?"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "녹음할 수 없는 경우 실험은 여기서 종료됩니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"녹음 소리가 들리지 않는다면 노트북 마이크가 제대로 작동하고 있는지, 헤드폰이나 무선 장치를 사용하고 있지 않은지 확인하세요."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr "다음 페이지에서 다시 한 번 원하는 템포로 일정한 박자로 두드리도록 요청할 것입니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "녹음 중... 탭핑을 시작하세요!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "일정한 박자 탭하기"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr "검지 손가락으로 노트북 표면만 두드리세요."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "탭핑 테스트"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "이것은 녹음 테스트입니다!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "계속 진행하려면 탭핑을 녹음할 수 있어야 합니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "워밍업"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr "이제 짧은 탭핑 연습으로 워밍업을 하겠습니다. 다음 페이지에서 원하는 템포로 일정한 박자로 탭핑해 주세요."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr "탭핑 신호를 제대로 녹음할 수 있는지 테스트해 보겠습니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "주의"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "주의"
 
 #: psynet/recruiters.py
 #, fuzzy

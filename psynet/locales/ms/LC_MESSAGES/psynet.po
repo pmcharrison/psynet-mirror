@@ -491,7 +491,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Tulis nombor dalam imej."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -527,6 +526,130 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Anda mesti memasukkan nombor yang anda lihat ke dalam kotak teks."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "Bolehkah anda mendengar rakaman anda?"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr ""
+"Jika kami tidak dapat merekodkannya, percubaan akan ditamatkan di sini."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"Jika anda tidak mendengar rakaman anda, sila pastikan mikrofon komputer riba"
+" anda berfungsi dan anda tidak menggunakan sebarang fon kepala atau peranti "
+"wayarles."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr ""
+"Pada halaman seterusnya, kami akan meminta anda sekali lagi untuk mengetik "
+"rentak yang stabil dalam mana-mana tempo yang anda suka."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "Rakaman... Mula mengetik!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "Ketik rentak yang stabil"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr ""
+"Ketik dengan jari telunjuk anda dan hanya ketik pada permukaan komputer riba"
+" anda."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "Ujian mengetik"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "Ini adalah ujian rakaman!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "Untuk meneruskan, kami perlu merakam pengetik anda."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "Memanaskan badan"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"Sekarang kita akan memanaskan badan dengan latihan mengetuk pendek. Pada "
+"halaman seterusnya, sila ketik rentak yang stabil dalam mana-mana tempo yang"
+" anda suka."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr ""
+"Kami akan menguji sama ada kami boleh merakam isyarat mengetik anda dengan "
+"betul"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "Perhatian"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "Berhati-hati"
 
 #: psynet/recruiters.py
 #, fuzzy

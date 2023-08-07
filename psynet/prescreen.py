@@ -328,13 +328,19 @@ class NumpySerializer(json.JSONEncoder):
 
 class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
     def show_trial(self, experiment, participant):
+        _, _p = get_translator(self.trial_maker.locale)
+        free_tapping_record_1 = _p("free_tapping_record_test", "Tap a steady beat")
+        free_tapping_record_2 = _p(
+            "free_tapping_record_test", "Recording... Start tapping!"
+        )
+
         return ModularPage(
             "free_tapping_record",
             AudioPrompt(
                 self.definition["url_audio"],
                 Markup(
-                    """
-                    <h4>Tap a steady beat</h4>
+                    f"""
+                    <h4>{free_tapping_record_1}</h4>
                     """
                 ),
             ),
@@ -351,7 +357,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 stages=[
                     ProgressStage(
                         self.definition["duration_rec_sec"],
-                        "Recording... Start tapping!",
+                        free_tapping_record_2,
                         "red",
                         persistent=True,
                     ),
@@ -466,11 +472,13 @@ class FreeTappingRecordTest(StaticTrialMaker):
         n_repeat_trials: int = 1,
         time_estimate_per_trial: float = 10.0,
         trial_class=FreeTappingRecordTrial,
+        locale=DEFAULT_LOCALE,
     ):
         self.performance_check_type = "performance"
         self.performance_threshold = performance_threshold
         self.give_end_feedback_passed = False
         self.time_estimate_per_trial = time_estimate_per_trial
+        self.locale = locale
 
         nodes = self.get_nodes(duration_rec_sec, min_num_detected_taps)
 
@@ -487,16 +495,58 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
     @property
     def introduction(self):
+        _, _p = get_translator(self.locale)
+
+        info_page_1_1 = _p("free_tapping_record_test", "Warming up")
+        info_page_1_2 = _p(
+            "free_tapping_record_test",
+            "We will now warm up with a short tapping exercise. On the next page, \
+            please tap a steady beat in any tempo that you like.",
+        )
+        info_page_1_3 = _p("free_tapping_record_test_a", "Attention")
+        info_page_1_4 = _p(
+            "free_tapping_record_test",
+            "Tap with your index finger and only tap on the surface of your laptop.",
+        )
+        free_record_example_1 = _p("free_tapping_record_test", "Tap a steady beat")
+        free_record_example_2 = _p(
+            "free_tapping_record_test", "Recording... Start tapping!"
+        )
+        playback_1 = _p("free_tapping_record_test", "Can you hear your recording?")
+        playback_2 = _p(
+            "free_tapping_record_test",
+            "If you do not hear your recording, please make sure"
+            "your laptop microphone is working and you are not using any headphones or wireless devices.",
+        )
+        playback_3 = _p(
+            "free_tapping_record_test",
+            "To proceed, we need to be able to record your tapping.",
+        )
+        info_page_2_1 = _p("free_tapping_record_test", "Tapping test")
+        info_page_2_2 = _p("free_tapping_record_test_b", "Be careful")
+        info_page_2_3 = _p("free_tapping_record_test", "This is a recording test!")
+        info_page_2_4 = _p(
+            "free_tapping_record_test",
+            "On the next page, we will ask you again to tap a steady beat in any tempo that you like.",
+        )
+        info_page_2_5 = _p(
+            "free_tapping_record_test",
+            "We will test if we can record your tapping signal properly",
+        )
+        info_page_2_6 = _p(
+            "free_tapping_record_test",
+            "If we cannot record it, the experiment will terminate here.",
+        )
+
         return join(
             InfoPage(
                 Markup(
-                    """
-                    <h3>Warming up</h3>
+                    f"""
+                    <h3>{info_page_1_1}</h3>
                     <hr>
-                    We will now warm up with a short tapping exercise. On the next page,
-                    please tap a steady beat in any tempo that you like.
+                    {info_page_1_2}
                     <br><br>
-                    <b><b>Attention:</b></b> Tap with your index finger and only tap on the surface of your laptop.</b></b>
+                    <b>{info_page_1_3}:</b> {info_page_1_4}</b></b>
                     <hr>
                     """
                 ),
@@ -505,8 +555,8 @@ class FreeTappingRecordTest(StaticTrialMaker):
             ModularPage(
                 "free_record_example",
                 Markup(
-                    """
-                    <h4>Tap a steady beat</h4>
+                    f"""
+                    <h4>{free_record_example_1}</h4>
                     """
                 ),
                 AudioRecordControl(
@@ -520,7 +570,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 time_estimate=5,
                 progress_display=ProgressDisplay(
                     stages=[
-                        ProgressStage(7, "Recording.. Start tapping!", "red"),
+                        ProgressStage(7, free_record_example_2, "red"),
                     ],
                 ),
             ),
@@ -537,12 +587,12 @@ class FreeTappingRecordTest(StaticTrialMaker):
                     AudioPrompt(
                         participant.assets["free_record_example"],
                         Markup(
-                            """
-                        <h3>Can you hear your recording?</h3>
+                            f"""
+                        <h3>{playback_1}</h3>
                         <hr>
-                        If you do not hear your recording, please make sure
-                        your laptop microphone is working and you are not using any headphones or wireless devices.<br><br>
-                        <b><b>To proceed, we need to be able to record your tapping.</b></b>
+                        {playback_2}
+                        <br><br>
+                        <b>{playback_3}</b>
                         <hr>
                         """
                         ),
@@ -552,14 +602,14 @@ class FreeTappingRecordTest(StaticTrialMaker):
             ),
             InfoPage(
                 Markup(
-                    """
-                    <h3>Tapping test</h3>
+                    f"""
+                    <h3>{info_page_2_1}</h3>
                     <hr>
-                    <b><b>Be careful:</b></b> This is a recording test!<br><br>
-                    On the next page, we will ask you again to tap a steady beat in any tempo that you like.
+                    <b>{info_page_2_2}:</b> {info_page_2_3}<br><br>
+                    {info_page_2_4}
                     <br><br>
-                    We will test if we can record your tapping signal properly:
-                    <b><b>If we cannot record it, the experiment will terminate here.</b></b>
+                    {info_page_2_5}:
+                    <b>{info_page_2_6}</b>
                     <hr>
                     """
                 ),
@@ -1229,6 +1279,7 @@ class AttentionTest(Module):
 class ColorBlindnessTrial(StaticTrial):
     def show_trial(self, experiment, participant):
         _, _p = get_translator(self.trial_maker.locale)
+
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(

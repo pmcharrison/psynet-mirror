@@ -489,7 +489,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Γράψτε τον αριθμό στην εικόνα."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -524,6 +523,128 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Θα πρέπει να εισάγετε τον αριθμό που βλέπετε στο πλαίσιο κειμένου."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "Μπορείτε να ακούσετε την ηχογράφησή σας;"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "Αν δεν μπορούμε να την καταγράψουμε, το πείραμα θα τερματιστεί εδώ."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"Εάν δεν ακούτε την ηχογράφησή σας, βεβαιωθείτε ότι το μικρόφωνο του φορητού "
+"σας υπολογιστή λειτουργεί και ότι δεν χρησιμοποιείτε ακουστικά ή ασύρματες "
+"συσκευές."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr ""
+"Στην επόμενη σελίδα, θα σας ζητήσουμε ξανά να χτυπήσετε έναν σταθερό ρυθμό "
+"σε όποιο τέμπο θέλετε."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "Ηχογράφηση... Ξεκινήστε να χτυπάτε!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "Χτυπήστε ένα σταθερό ρυθμό"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr ""
+"Χτυπήστε με το δείκτη του χεριού σας και χτυπήστε μόνο στην επιφάνεια του "
+"φορητού σας υπολογιστή."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "Δοκιμασία χτυπήματος"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "Αυτό είναι ένα τεστ ηχογράφησης!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr ""
+"Για να συνεχίσουμε, πρέπει να μπορούμε να καταγράψουμε το χτύπημά σας."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "Προθέρμανση"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"Τώρα θα κάνουμε προθέρμανση με μια σύντομη άσκηση taping. Στην επόμενη "
+"σελίδα, παρακαλώ χτυπήστε έναν σταθερό ρυθμό σε όποιο τέμπο θέλετε."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr ""
+"Θα ελέγξουμε αν μπορούμε να καταγράψουμε σωστά το σήμα του χτυπήματός σας."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "Προσοχή"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "Να είστε προσεκτικοί"
 
 #: psynet/recruiters.py
 #, fuzzy

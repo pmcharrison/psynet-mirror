@@ -489,7 +489,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Viết ra số trong hình ảnh."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -523,6 +522,126 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Bạn phải nhập số mà bạn nhìn thấy vào hộp văn bản."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "Bạn có thể nghe bản ghi âm của mình không?"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "Nếu chúng tôi không ghi lại được, thí nghiệm sẽ kết thúc tại đây."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"Nếu bạn không nghe thấy bản ghi âm của mình, vui lòng đảm bảo rằng micrô của"
+" máy tính xách tay của bạn đang hoạt động và bạn không sử dụng bất kỳ tai "
+"nghe hoặc thiết bị không dây nào."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr ""
+"Trên trang tiếp theo, chúng tôi sẽ yêu cầu bạn nhấn lại nhịp ổn định ở bất "
+"kỳ nhịp độ nào mà bạn thích."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "Ghi âm... Bắt đầu khai thác!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "Nhấn vào một nhịp ổn định"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr "Chạm bằng ngón trỏ và chỉ chạm trên bề mặt máy tính xách tay của bạn."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "kiểm tra khai thác"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "Đây là một bài kiểm tra ghi âm!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "Để tiếp tục, chúng tôi cần có khả năng ghi lại thao tác nhấn của bạn."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "Làm nóng lên"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"Bây giờ chúng ta sẽ khởi động bằng một bài tập gõ ngắn. Trên trang tiếp "
+"theo, vui lòng nhấn vào một nhịp ổn định trong bất kỳ nhịp độ nào bạn thích."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr ""
+"Chúng tôi sẽ kiểm tra xem chúng tôi có thể ghi đúng tín hiệu khai thác của "
+"bạn hay không"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "Chú ý"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "Hãy cẩn thận"
 
 #: psynet/recruiters.py
 #, fuzzy

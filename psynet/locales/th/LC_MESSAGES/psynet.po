@@ -486,7 +486,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "จดเลขไว้ในภาพ"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -519,6 +518,121 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "คุณต้องป้อนตัวเลขที่คุณเห็นลงในกล่องข้อความ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Can you hear your recording?"
+msgstr "คุณได้ยินเสียงบันทึกของคุณไหม"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "If we cannot record it, the experiment will terminate here."
+msgstr "หากเราไม่สามารถบันทึกได้ การทดลองจะสิ้นสุดลงที่นี่"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"If you do not hear your recording, please make sureyour laptop microphone is"
+" working and you are not using any headphones or wireless devices."
+msgstr ""
+"หากคุณไม่ได้ยินเสียงบันทึกของคุณ โปรดตรวจสอบว่าไมโครโฟนของแล็ปท็อปใช้งานได้ "
+"และคุณไม่ได้ใช้หูฟังหรืออุปกรณ์ไร้สายใดๆ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"On the next page, we will ask you again to tap a steady beat in any tempo "
+"that you like."
+msgstr "ในหน้าถัดไป เราจะขอให้คุณแตะจังหวะสม่ำเสมออีกครั้งในจังหวะที่คุณชอบ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Recording... Start tapping!"
+msgstr "กำลังบันทึก... เริ่มเคาะ!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap a steady beat"
+msgstr "แตะจังหวะที่สม่ำเสมอ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tap with your index finger and only tap on the surface of your laptop."
+msgstr "แตะด้วยนิ้วชี้และแตะบนพื้นผิวแล็ปท็อปของคุณเท่านั้น"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Tapping test"
+msgstr "การทดสอบการแตะ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "This is a recording test!"
+msgstr "นี่คือการทดสอบการบันทึก!"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "To proceed, we need to be able to record your tapping."
+msgstr "เพื่อดำเนินการต่อ เราต้องสามารถบันทึกการแตะของคุณได้"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "Warming up"
+msgstr "อุ่นเครื่อง"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid ""
+"We will now warm up with a short tapping exercise. On the next page,"
+"             please tap a steady beat in any tempo that you like."
+msgstr ""
+"ตอนนี้เราจะอุ่นเครื่องด้วยการแตะสั้น ๆ ในหน้าถัดไป "
+"โปรดแตะจังหวะสม่ำเสมอในจังหวะใดก็ได้ที่คุณชอบ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test"
+msgid "We will test if we can record your tapping signal properly"
+msgstr "เราจะทดสอบว่าเราสามารถบันทึกสัญญาณการเคาะของคุณได้อย่างถูกต้องหรือไม่"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_a"
+msgid "Attention"
+msgstr "ความสนใจ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_test_b"
+msgid "Be careful"
+msgstr "ระวัง"
 
 #: psynet/recruiters.py
 #, fuzzy
