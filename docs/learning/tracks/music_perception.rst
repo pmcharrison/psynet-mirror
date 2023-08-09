@@ -8,14 +8,14 @@ Music perception track
 The music perception track is tailored towards people who want to run online behavioral studies
 about how people perceive music.
 
-The first step is to `install PsyNet <../installation/index.html>`_.
+The first step is to `install PsyNet <../../installation/index.html>`_.
 You should make sure you do the optional step 5, namely installing editable PsyNet and Dallinger repositories.
 
 Next you should read the
-`introduction to the demos section <../demos/introduction.html>`_,
+`introduction to the demos section <../../demos/introduction.html>`_,
 and then explore the first two demos,
-`Hello world <../demos/hello_world.html>`_,
-and `Timeline <../demos/timeline.html>`_.
+`Hello world <../../demos/hello_world.html>`_,
+and `Timeline <../../demos/timeline.html>`__.
 These demos introduce you to the basics of PsyNet experiments.
 You should approach each demo in the following way:
 
@@ -29,17 +29,17 @@ You should approach each demo in the following way:
 
 Now take the following tutorials:
 
-- `Classes in PsyNet <../tutorials/classes.html>`_
-- `Timeline <../tutorials/timeline.html>`_
-- `Modular pages <../tutorials/modular_page.html>`_
+- `Classes in PsyNet <../../tutorials/classes.html>`_
+- `Timeline <../../tutorials/timeline.html>`_
+- `Modular pages <../../tutorials/modular_page.html>`_
 
-Take the `timeline exercise <../exercises/timeline.html>`_.
+Take the `timeline exercise <../exercises/timeline.html>`__.
 
-Explore the `audio demo <../demos/audio.html>`_, then take the `JSSynth exercises <../exercises/js_synth.html>`_.
+Explore the `audio demo <../../demos/audio.html>`_, then take the `JSSynth exercises <../exercises/js_synth.html>`_.
 
 Explore the following trial demos:
 
-- `Trial (1) <../demos/trial.html>`_
-- `Trial (2) <../demos/trial_2.html>`_
-- `Trial (3) <../demos/trial_3.html>`_
-- `Audio trial maker <../demos/static_audio.html>`_
+- `Trial (1) <../../demos/trial.html>`_
+- `Trial (2) <../../demos/trial_2.html>`_
+- `Trial (3) <../../demos/trial_3.html>`_
+- `Audio trial maker <../../demos/static_audio.html>`_

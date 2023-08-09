@@ -5,6 +5,10 @@ from .utils import NoArgumentProvided
 
 
 class RedisVarStore:
+    """
+    The RedisVarStore class
+    """
+
     def get(self, name, default=NoArgumentProvided):
         raw = redis_conn.get(name)
         if raw is None:

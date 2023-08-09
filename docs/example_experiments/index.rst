@@ -1,3 +1,5 @@
+.. _example_experiments:
+
 Example experiments
 ===================
 
@@ -9,7 +11,6 @@ a good starting point is the ``experiment.py`` file.
 .. toctree::
    :maxdepth: 1
 
-   introduction
    carillon
    emotions-scales
    pitch-matching
