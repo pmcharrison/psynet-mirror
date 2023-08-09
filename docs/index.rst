@@ -15,7 +15,7 @@ but see the sidebar for a full list.
 
 - :ref:`Demos <demos_introduction>`: See demos of different PsyNet features.
 
-- :ref:`Example experiments <example_experiments_introduction>`: See code repositories for real-world PsyNet experiments.
+- :ref:`Example experiments <example_experiments>`: See code repositories for real-world PsyNet experiments.
 
 - `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
 
@@ -37,8 +37,9 @@ but see the sidebar for a full list.
    :caption: Learning
 
    learning/how_to_learn
-   exercises/index
-   tracks/index
+   learning/prerequisites
+   learning/exercises/index
+   learning/tracks/index
 
 .. toctree::
    :maxdepth: 1
@@ -99,10 +100,13 @@ but see the sidebar for a full list.
    :caption: Contributing to PsyNet
    :glob:
 
-   developer/running_tests
+   developer/workflow
+   developer/contributing_a_feature_or_bugfix
    developer/prescreening_tasks
    developer/updating_documentation
    developer/internationalization
+   developer/running_tests
+   developer/making_a_release
 
 .. toctree::
    :maxdepth: 2

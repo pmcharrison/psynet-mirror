@@ -1,36 +1,13 @@
+.. _developer:
+.. highlight:: shell
+
 .. |br| raw:: html
 
    <br />
 
-PsyNet developer workflow
--------------------------
-
-Git comes into its own in collaborative software development. We use it in PsyNet to enable multiple developers to work independently on different new features, to review each others’ contributions, and to eventually combine these features together to produce new PsyNet releases.
-
-We have a particular standardized workflow for making contributions to PsyNet. This workflow is similar to workflows used by many software projects around the world, so if you get some experience making contributions to PsyNet, your experience should generalize well to other projects in the future.
-
-PsyNet branches
-###############
-
-The branches in the PsyNet repository fall into three main categories:
-
-#. The master branch
-#. The dev branch
-#. The feature branches
-
-The **master branch** is the default branch, like in most Git repositories. Each commit in the master branch typically corresponds to an individual numbered release in PsyNet, for example v2.4.0.
-
-The **dev branch** (short for development branch) is used to stage upcoming PsyNet releases. Over a given time period, the dev branch accumulates various features and bugfixes that are merged in from various feature branches. At various points, the PsyNet developers agree to make a new release. This involves merging the new changes from the dev branch into the master branch, while running test to validates the code correctness.
-
-Each **feature branch** is responsible for implementing a particular new feature. These branches are typically created by branching off the dev branch. The programmer works on the feature branch until they and their code reviewer are satisfied with their implementation; the feature branch is then merged into the dev branch.
-
-Workflows
-#########
-
-We will begin by considering how to contribute a feature or bugfix to PsyNet.
-
+=============================
 Contributing a feature/bugfix
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=============================
 
 .. note::
     There is an out-of-date description of this workflow hosted here:
@@ -41,14 +18,14 @@ Step 1: Creating an issue
 
 The process begins with identifying a particular *issue* that deserves to be fixed in PsyNet. This issue could be a problem with existing functionality (a *bug*) or a lack of desirable functionality (a missing *feature* ). Most version-control platforms (e.g., GitHub, GitLab) provide pages where project developers and user can file issues. For example, the PsyNet issues page can be found `here <https://gitlab.com/computational-audition-lab/PsyNet/-/issues>`__, and looks something like this:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/psynet_issues.png
+.. figure:: ../_static/images/developer/workflow/psynet_issues.png
   :width: 700
   :align: center
 
 |br|
 Let’s suppose that we want to address issue #288, ‘Add Node.participant and Network.participant attributes’. We click on the issue for more detail:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/psynet_issue_details.png
+.. figure:: ../_static/images/developer/workflow/psynet_issue_details.png
   :width: 700
   :align: center
 
@@ -59,7 +36,7 @@ Step 2: Creating an merge request
 
 GitLab provides a useful button on the issue page for us to click: ‘Create merge request’. Don’t click the button straightaway, but click the arrow on its right instead.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_create_merge_request-1.png
+.. figure:: ../_static/images/developer/workflow/gitlab_create_merge_request-1.png
   :width: 340
   :align: center
 
@@ -68,7 +45,7 @@ Here we want to do two things. First, let’s customize the branch name, as the 
 
 This should give us something like the following:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_create_merge_request-2.png
+.. figure:: ../_static/images/developer/workflow/gitlab_create_merge_request-2.png
   :width: 280
   :align: center
 
@@ -83,21 +60,21 @@ Let’s click ‘Create merge request’. This initiates two processes:
 
 We will see some further options on the next page to customize our merge request. Next click edit on the top of the page:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_edit_merge_request-1.png
+.. figure:: ../_static/images/developer/workflow/gitlab_edit_merge_request-1.png
   :width: 700
   :align: center
 
 |br|
 First, in the dropdown box labeled ‘Description’, you should select ‘default’ as the template.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_edit_merge_request-2.png
+.. figure:: ../_static/images/developer/workflow/gitlab_edit_merge_request-2.png
   :width: 400
   :align: center
 
 |br|
 Before filling out the description template, scroll down and ensure that you are listed as the Assignee (the person who will do the implementation) and the Reviewer is left unassigned. The Reviewer will stay unassigned until you have finished your implementation. The ‘delete source branch’ option should be unticked; if we have good naming conventions for our branches there’s no problem in keeping them for posterity. The ‘squash commits’ option should also be ticked; this means that when the branch is ultimately merged its changes will be squashed into one commit, ensuring the readability and interpretability of PsyNet’s version history.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_edit_merge_request-3.png
+.. figure:: ../_static/images/developer/workflow/gitlab_edit_merge_request-3.png
   :width: 600
   :align: center
 
@@ -162,7 +139,7 @@ Tagging the reviewers in this way will send the reviewers an email notification 
 
 We then need to get this branch into our local repository. GitLab provides a handy button for this labeled ‘Check out branch’, which will display the required commands automatically for us to copy and paste.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_edit_merge_request-4.png
+.. figure:: ../_static/images/developer/workflow/gitlab_edit_merge_request-4.png
   :width: 400
   :align: center
 
@@ -195,7 +172,7 @@ Now that we’ve checked out the branch, our task is to implement our proposed f
 
 Our task is to add a ‘participant’ attribute to the ‘Network’ class used in PsyNet. The base ‘Network’ class used in PsyNet is called ‘TrialNetwork’, so we’ll be working on that. This class is defined in main.py:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/psynet_class_trial_network.png
+.. figure:: ../_static/images/developer/workflow/psynet_class_trial_network.png
   :width: 700
   :align: center
 
@@ -271,7 +248,7 @@ Bearing all this in mind, we will write a simple test for this new ``Network.par
 
 We can see the pre-existing tests within PsyNet’s ``tests/`` folder. There are quite a few of them already:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/psynet_tests.png
+.. figure:: ../_static/images/developer/workflow/psynet_tests.png
   :width: 540
   :align: center
 
@@ -292,18 +269,18 @@ Once you’ve downloaded ChromeDriver, verify that it works by running the follo
 
 If running your test on Mac, you may be faced with a security message like the one below:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/macos_security_message.png
+.. figure:: ../_static/images/developer/workflow/macos_security_message.png
   :width: 340
   :align: center
 
 |br|
 To bypass this message, you will need to go to System Preferences, Security & Privacy, and find the dialog below which allows you to enable chromedriver to run:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/macos_security_dialog-1.png
+.. figure:: ../_static/images/developer/workflow/macos_security_dialog-1.png
   :width: 500
   :align: center
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/macos_security_dialog-2.png
+.. figure:: ../_static/images/developer/workflow/macos_security_dialog-2.png
   :width: 340
   :align: center
 
@@ -375,7 +352,7 @@ Step 7: Verify that the automated tests run successfully
 
 Pushing your draft code should trigger the remote server to run the full suite of automated tests. You can tell that the tests have started by seeing a notice like this in the merge request’s ‘Overview’ tab.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_pipeline.png
+.. figure:: ../_static/images/developer/workflow/gitlab_pipeline.png
   :width: 600
   :align: center
 
@@ -384,7 +361,7 @@ We need to wait for these tests to proceed successfully before continuing to the
 
 If the tests ran successfully, congratulations! You can proceed to the next step. If not, you need to work out how to fix the problem. You can see an error log by clicking on the pipeline ID, then on ‘tests’.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_pipeline_tests.gif
+.. figure:: ../_static/images/developer/workflow/gitlab_pipeline_tests.gif
   :width: 700
   :align: center
 
@@ -439,7 +416,7 @@ Step 9: Dealing with merge conflicts
 ++++++++++++++++++++++++++++++++++++
 
 If you spend a long time working on your feature branch, other changes might happen to the PsyNet codebase in the meantime. If you are lucky, these changes happen to parts of the code that don’t interact with your own changes, and you don’t have to think about it. If you’re unlucky, the changes do interact, potentially causing a so-called merge conflict. You will have to resolve this merge conflict before releasing your feature. Resolving merge conflicts is covered elsewhere in this documentation.
-Merge conflicts get increasingly painful the more and more changes accumulate to the branch that you branched off. The best way to protect yourself from painful merge conflict resolution is to regularly update your feature branch with changes that have subsequently happened to the dev branch. The way I normally do this is as follows:
+Merge conflicts get increasingly painful the more and more changes accumulate to the branch that you branched off. The best way to protect yourself from painful merge conflict resolution is to regularly update your feature branch with changes that have subsequently happened to the master branch. The way I normally do this is as follows:
 
 .. code-block:: console
 
@@ -459,13 +436,13 @@ It’s tempting to assume that code review is only useful when the reviewer has 
 
 Nonetheless, it is true that code review plays a critical role in protecting the integrity and quality of the codebase. In this sense it is important to ensure that every PsyNet contribution does at some point get reviewed by one of the core PsyNet developers, which currently number just two: Frank Höger and Peter Harrison. An important goal of the coming months is to try and increase this number of core PsyNet developers, either through the appointment of additional employees, or through the training of advanced PsyNet users such as yourself.
 
-How do we ensure that every contribution passes through the core PsyNet developers without creating adverse load on Frank and Peter? My proposal is that contributions from non-core PsyNet developers should undergo an initial round of code review from another non-core PsyNet developer. The reviewer will provide some suggested revisions, with the idea that these should be enacted directly by the original submitter. Once the reviewer is satisfied with the enacted revisions, the contribution is then allocated to one of the core PsyNet developers for a final review. This review may introduce further required revisions that need to be addressed by the original submitter. Once the final reviewer is satisfied, they give final approval to the contribution, and merge it into PsyNet’s dev branch, so that the contribution will be made available in PsyNet’s next official release.
+How do we ensure that every contribution passes through the core PsyNet developers without creating adverse load on Frank and Peter? My proposal is that contributions from non-core PsyNet developers should undergo an initial round of code review from another non-core PsyNet developer. The reviewer will provide some suggested revisions, with the idea that these should be enacted directly by the original submitter. Once the reviewer is satisfied with the enacted revisions, the contribution is then allocated to one of the core PsyNet developers for a final review. This review may introduce further required revisions that need to be addressed by the original submitter. Once the final reviewer is satisfied, they give final approval to the contribution, and merge it into PsyNet’s master branch, so that the contribution will be made available in PsyNet’s next official release.
 
 Let’s now talk about the specifics of the process. If we navigate to the corresponding merge request in GitLab/GitHub, we should see evidence of our recent activity. In particular, if we navigate to the ‘Changes’ tab, we should see a diff representation of the changes that we have introduced. At this point take a few minutes to read through this diff representation line-by-line to verify the correctness of the changes. It’s surprising how many mistakes this process can catch, even if it feels unnecessary.
 
 The next task is to pass your merge request to the first reviewer listed in your merge request’s Description. If you yourself are a non-core PsyNet developer, then your first reviewer will generally also be a non-core PsyNet developer.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_reviewer.gif
+.. figure:: ../_static/images/developer/workflow/gitlab_reviewer.gif
   :width: 300
   :align: center
 
@@ -474,7 +451,7 @@ This will send an automatic email to the reviewer telling them that the code is 
 
 To review a given merge request, the reviewer will go to the ‘Changes’ panel on the merge request to view a diff representation of the merge request. It will look something like this:
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_merge_request_diff.png
+.. figure:: ../_static/images/developer/workflow/gitlab_merge_request_diff.png
   :width: 700
   :align: center
 
@@ -483,7 +460,7 @@ The reviewer’s task is to go through this diff line-by-line, file-by-file, thi
 
 To query a given change, the reviewer moves the mouse over to the respective line and clicks the ‘Comment’ icon. They then write a text message summarizing their query, which will typically take the form of a question, a suggested change, or both.
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_merge_request_comment.gif
+.. figure:: ../_static/images/developer/workflow/gitlab_merge_request_comment.gif
   :width: 700
   :align: center
 
@@ -500,7 +477,7 @@ Once we’ve finished examining a given file, we click the ‘Viewed’ checkbox
       git fetch  # fetches the current state of all branches, including the feature branch
       git checkout my-feature-branch  # replace my-feature-branch with the branch name
 
-.. figure:: ../../_static/images/version_control_with_git/psynet_developer_workflow/gitlab_merge_request_collapse.gif
+.. figure:: ../_static/images/developer/workflow/gitlab_merge_request_collapse.gif
   :width: 700
   :align: center
 
@@ -530,52 +507,6 @@ Step 11: Merging to dev
 The final reviewer has the job of signing off on the merge request. This is done by clicking the ‘Approve’ button in the GitLab interface (which removes the ‘Draft:’ prefix from the merge request’s title) and then clicking ‘Merge’ (or ‘Merge when pipeline success’ in the case when the automated tests are still running).
 
 Congratulations! Your merge request has been successfully processed. It should become available in PsyNet once the next public release is created by the PsyNet core developers.
-
-Making a release
-~~~~~~~~~~~~~~~~
-
-PsyNet releases are made periodically by the core developers. There is no real rule about how often these releases are made; it comes down to a balance between making new features available early and avoiding spamming PsyNet users with too many updates to keep track of.
-
-After all changes to be released have been merged into the ``master`` branch follow these steps:
-
-
-#. Decide on an upgrade type for the new release following `semantic versioning guidelines <https://semver.org/>`_. The upgrade type can be one of the following:
-
-    a. Major (new version includes breaking changes)
-
-    b. Minor (new version includes only new features and/or bugfixes)
-
-    c. Patch (new version includes only bugfixes)
-
-#. Create a release branch from the ``master`` branch on your local machine: ``git checkout -b release-X.Y.Z``.
-#. Using the GitLab interface identify the merge requests that contributed to the current ``master`` branch since the last release. The last release can easily be identified by its release tag, e.g. ``v10.1.0``.
-#. Check that each merged merge request contains a populated CHANGELOG entry in its description. If any CHANGELOG entries are missing, notify the relevant contributors.
-#. Combine the new CHANGELOG entries into PsyNet’s CHANGELOG.md file, updating any formatting as necessary.
-#. Go through all the merge requests and close their associated issues with a comment linking them to the merge request: ‘Implemented in !XYZ’ where ‘XYZ’ is the merge request ID.
-#. Update PsyNet’s version number in following files:
-
-    * `pyproject.toml`
-
-    * `psynet/version.py`
-
-#. Write the new version number as the title of the new CHANGELOG entry.
-#. Commit the changes to the CHANGELOG with the title ‘Release version X.Y.Z’.
-#. Update the demos' `constraints.txt` files by executing ``python3 demos/update_demos.py`` from inside PsyNet's root directory. This could take a while depending on the processing power of your system.
-#. Commit and push the changes made to the files inside the `demos` directory.
-#. Create a merge request using GitLab's interface to merge the release branch into ``master`` and name it 'Release version X.Y.Z'. You might want to inspect for a last time the code changes for the release using the 'Changes' tab of the merge request.
-#. Merge the release branch to ``master`` via the GitLab interface by choosing a simple merge commit (do not squash merge!).
-#. On your local computer checkout the ``master`` branch and pull the changes.
-#. Create a new tag corresponding to the new version number: ``git tag vX.Y.Z``.
-#. Push the tag with ``git push --tags``.
-#. Create a new PsyNet release using GitLab's interface under 'Deployments > Releases'.
-#. Run following commands to publish the new release on PyPi (you need to have the `twine` package installed; install/upgrade it with ``python3 -m pip install --upgrade twine`` if you haven't yet):
-
-    .. code-block:: console
-
-        python3 -m build
-        python3 -m twine upload --repository pypi dist/psynet-X.Y.Z*
-
-    The new PsyNet release should now be published on PyPi (https://pypi.org/project/psynet/).
 
 .. rubric:: Footnotes
 

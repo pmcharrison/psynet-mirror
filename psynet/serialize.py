@@ -35,6 +35,10 @@ jsonpickle.unpickler.loadclass = loadclass
 
 
 class PsyNetUnpickler(Unpickler):
+    """
+    The PsyNetUnpickler class
+    """
+
     # def _restore(self, obj):
     #     print(obj)
     #     if isinstance(obj, dict) and "py/object" in obj:
@@ -127,6 +131,10 @@ no_json_classes = [Markup]
 
 
 class NoJSONHandler(jsonpickle.handlers.BaseHandler):
+    """
+    The NoJSONHandler class
+    """
+
     def flatten(self, obj, state):
         state["bytes"] = pickle.dumps(obj, 0).decode("latin-1")
         return state
@@ -140,6 +148,10 @@ for _cls in no_json_classes:
 
 
 class SQLHandler(jsonpickle.handlers.BaseHandler):
+    """
+    The SQLHandler class
+    """
+
     def flatten(self, obj, state):
         primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
         primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
@@ -168,6 +180,10 @@ jsonpickle.register(SQLBase, SQLHandler, base=True)
 
 
 class DominateHandler(jsonpickle.handlers.BaseHandler):
+    """
+    The DominateHandler class
+    """
+
     def flatten(self, obj, state):
         return str(obj)
 

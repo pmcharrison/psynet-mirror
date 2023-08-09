@@ -80,10 +80,10 @@ uses GitLab. You will probably want to create an account on that website before 
 
 
 Step 4: Download an experiment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To check that everything is now running properly, you should try running an experiment.
-You can start by downloading one from the :ref:`Example experiments <example_experiments_introduction>` page.
+You can start by downloading one from the :ref:`Example experiments <example_experiments>` page.
 
 The easiest way to download the code is as a zip file. If you are viewing the repository
 online you should see a link to do this on the web page.

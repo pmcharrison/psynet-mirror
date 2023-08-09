@@ -9,8 +9,10 @@
 # In the meantime, if you want to skip generating constraints and only update other demo files,
 # run the following instead: SKIP_CONSTRAINTS=1 python3 demos/update_demos.py
 
+import fileinput
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 from importlib import resources
@@ -18,6 +20,7 @@ from importlib import resources
 from joblib import Parallel, delayed
 
 import psynet.command_line
+from psynet import __version__
 from psynet.utils import working_directory
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
@@ -83,9 +86,16 @@ def update_scripts(dir):
             )
 
 
+# Update PsyNet Docker image version
+with fileinput.FileInput(
+    "psynet/resources/experiment_scripts/Dockerfile", inplace=True
+) as file:
+    version = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+    for line in file:
+        print(re.sub(version, f"psynet:v{__version__}", line), end="")
+
+# Update demos
 n_jobs = 6
-
-
 Parallel(verbose=10, n_jobs=n_jobs)(
     delayed(update_demo)(_dir) for _dir in find_demo_dirs()
 )
