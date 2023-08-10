@@ -958,7 +958,7 @@ class REPPMarkersTest(StaticTrialMaker):
             "record_markers_test",
             "Now we will test the recording quality of your laptop.",
         )
-        text_3 = _(
+        text_3 = _p(
             "record_markers_test",
             "In {N_TRIALS} trials, you will be asked to remain silent while we play and record a sound.",
         ).format(N_TRIALS=self.n_trials)

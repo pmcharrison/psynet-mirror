@@ -411,10 +411,6 @@ msgid "lextale_test"
 msgstr ""
 
 #: psynet/prescreen.py
-msgid "record_markers_test"
-msgstr ""
-
-#: psynet/prescreen.py
 #, python-brace-format
 msgctxt "attention_test"
 msgid ""
@@ -657,6 +653,14 @@ msgstr ""
 #: psynet/prescreen.py
 msgctxt "lextale_trial"
 msgid "yes"
+msgstr ""
+
+#: psynet/prescreen.py
+#, python-brace-format
+msgctxt "record_markers_test"
+msgid ""
+"In {N_TRIALS} trials, you will be asked to remain silent while we play and "
+"record a sound."
 msgstr ""
 
 #: psynet/prescreen.py

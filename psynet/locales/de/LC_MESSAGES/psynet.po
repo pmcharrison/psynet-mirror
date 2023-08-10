@@ -852,6 +852,16 @@ msgid "yes"
 msgstr "ja"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"In {N_TRIALS} trials, you will be asked to remain silent while we play and "
+"record a sound."
+msgstr ""
+"In {N_TRIALS}-Versuchen werden Sie gebeten, zu schweigen, während wir einen "
+"Ton abspielen und aufnehmen."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "record_markers_test"
 msgid "Now we will test the recording quality of your laptop."
