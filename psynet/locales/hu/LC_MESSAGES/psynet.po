@@ -483,6 +483,45 @@ msgid "You need to select an answer!"
 msgstr "Ki kell választania egy választ!"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Emellett figyelmen kívül kell hagynia a következő oldalon feltett kérdést, "
+"és be kell írnia a \"{ATTENTION_TEST_TWO_WORD}\" szöveget a mezőbe."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "attention_test"
+msgstr "attention_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "free_tapping_record_trial"
+msgstr "free_tapping_record_trial"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "lextale_test"
+msgstr "lextale_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "record_markers_test"
+msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Emellett figyelmen kívül kell hagynia a következő oldalon feltett kérdést, "
+"és be kell írnia a \"{ATTENTION_TEST_TWO_WORD}\" szöveget a mezőbe."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -522,21 +561,44 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "A látott számot kell beírnod a szövegdobozba."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "In each trial, you will be presented with a colored box."
+msgstr "Minden egyes próbában egy színes doboz jelenik meg."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "We will now perform a quick test to check your ability to name colors."
+msgstr ""
+"Most egy gyors tesztet fogunk végezni, hogy ellenőrizzük a színek "
+"megnevezésének képességét."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "You must choose which color you see in the box."
+msgstr "Ki kell választanod, hogy melyik színt látod a dobozban."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_trial"
+msgid "Which color is shown in the box?"
+msgstr "Melyik szín látható a dobozban?"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Can you hear your recording?"
 msgstr "Hallja a felvételt?"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "If we cannot record it, the experiment will terminate here."
 msgstr "Ha nem tudjuk rögzíteni, a kísérlet itt véget ér."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -547,7 +609,6 @@ msgstr ""
 "Ha nem hallja a felvételt, győződjön meg róla, hogy a laptop mikrofonja "
 "működik, és nem használ fejhallgatót vagy vezeték nélküli eszközt."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -558,56 +619,48 @@ msgstr ""
 "A következő oldalon ismét arra fogjuk kérni, hogy kopogtasson egy egyenletes"
 " ütemet tetszőleges tempóban."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Recording... Start tapping!"
 msgstr "Felvétel... Kezdj el kopogni!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap a steady beat"
 msgstr "Koppintson egy egyenletes ütemre"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap with your index finger and only tap on the surface of your laptop."
 msgstr "Koppints a mutatóujjaddal, és csak a laptop felületére koppints."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tapping test"
 msgstr "Kopogtatási teszt"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "This is a recording test!"
 msgstr "Ez egy felvételi teszt!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "To proceed, we need to be able to record your tapping."
 msgstr "A folytatáshoz az kell, hogy rögzíteni tudjuk a kopogásodat."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Warming up"
 msgstr "Bemelegítés"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -618,7 +671,6 @@ msgstr ""
 "Most bemelegítünk egy rövid kopogtatási gyakorlattal. A következő oldalon "
 "kérem, kopogtasson egy egyenletes ütemet tetszőleges tempóban."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -626,19 +678,419 @@ msgid "We will test if we can record your tapping signal properly"
 msgstr ""
 "Tesztelni fogjuk, hogy megfelelően tudjuk-e rögzíteni a kopogás jelét."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_a"
 msgid "Attention"
 msgstr "Figyelem"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_b"
 msgid "Be careful"
 msgstr "Légy óvatos!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Good!"
+msgstr "Jól van!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"If we cannot detect your tapping signal in the recording, the experiment "
+"will terminate."
+msgstr ""
+"Ha a felvételen nem észleljük a kopogás jelét, a kísérletet leállítjuk."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Győződjön meg róla, hogy csendes környezetben van (a kísérlet nem fog "
+"működni zajos felvételek esetén)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure your laptop microphone is working and you are not using headphones"
+" or earplugs."
+msgstr ""
+"Győződjön meg róla, hogy a laptop mikrofonja működik, és nem használ "
+"fejhallgatót vagy füldugót."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Recording... Start tapping!"
+msgstr "Felvétel... Kezdjen el kopogtatni!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat"
+msgstr "Koppintson egy egyenletes ütemre"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat, providing at least 5-10 taps."
+msgstr "Kopogtasson egyenletes ütemet, legalább 5-10 kopogást biztosítva."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap on the surface of your laptop using your index finger."
+msgstr "Koppintson a laptop felületére a mutatóujjával."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Your tapping was bad..."
+msgstr "A kopogásod rossz volt..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "In each trial, you will hear one word and see 4 pictures."
+msgstr "Minden egyes próbában egy szót hallasz és 4 képet látsz."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Vocabulary test"
+msgstr "Szókincs teszt"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "You will now perform a quick vocabulary test."
+msgstr "Most egy gyors szókincsvizsgálatot fogsz végezni."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Your task is to match each word with the correct picture."
+msgstr "A feladatod az, hogy minden szót a megfelelő képhez rendelj."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_trial"
+msgid "Select the picture that matches the word that you heard."
+msgstr "Válassza ki azt a képet, amelyik megfelel a hallott szónak."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"In each trial, you will be presented with either an existing word in English"
+" or a fake word that does not exist."
+msgstr ""
+"Minden egyes próbában vagy egy létező angol nyelvű szót, vagy egy nem létező"
+" hamis szót kap."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Lexical decision task"
+msgstr "Lexikai döntési feladat"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Your task is to decide whether the word exists not."
+msgstr "A feladatod az, hogy eldöntsd, hogy a szó nem létezik-e."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "Does this word exist?"
+msgstr "Létezik ez a szó?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "no"
+msgstr "nincs"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "yes"
+msgstr "igen"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Now we will test the recording quality of your laptop."
+msgstr "Most a laptopod felvételi minőségét fogjuk tesztelni."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Recording test"
+msgstr "Felvételi teszt"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"When ready, click <b>next</b> for the recording test and please wait in "
+"silence."
+msgstr ""
+"Ha készen áll, kattintson a <b>következő</b> gombra a felvételi teszthez, és"
+" kérjük, várjon csendben."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Click next when you are ready to continue..."
+msgstr "Kattintson a tovább gombra, ha készen áll a folytatásra..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Do not use headphones, earplugs or wireless devices (unplug them now and use"
+" only the laptop speakers)."
+msgstr ""
+"Ne használjon fejhallgatót, füldugót vagy vezeték nélküli eszközöket (most "
+"húzza ki őket, és csak a laptop hangszóróit használja)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Increase the volumne of your laptop."
+msgstr "Növelje a laptop hangerejét."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Győződjön meg róla, hogy csendes környezetben van (a kísérlet nem fog "
+"működni zajos felvételek esetén)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure your laptop does not use strong noise cancellation or supression "
+"technologies (deactivate them now)."
+msgstr ""
+"Győződjön meg róla, hogy a laptopja nem használ erős zajszűrő vagy "
+"zajelnyomó technológiákat (kapcsolja ki őket most)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Please remain silent while we play a sound and record it"
+msgstr "Kérjük, maradjon csendben, amíg egy hangot lejátszunk és rögzítünk."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording test"
+msgstr "Felvételi teszt"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording..."
+msgstr "Felvétel..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is good"
+msgstr "A laptopod felvételi minősége jó"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is not good"
+msgstr "A laptop felvételi minősége nem jó"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"This may have many reasons. Please try to do one or more of the following:"
+msgstr ""
+"Ennek számos oka lehet. Kérjük, próbálja meg az alábbiak közül egyet vagy "
+"többet:"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"To complete the experiment and get the full bonus, you will need to have a "
+"good recording quality in all trials."
+msgstr ""
+"A kísérlet befejezéséhez és a teljes bónusz megszerzéséhez minden "
+"kísérletben jó felvételi minőségre van szükség."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"We will try more trials, but <b>if the recording quality is not sufficiently"
+" good, the experiment will terminate.</b>"
+msgstr ""
+"Több próbálkozást is megpróbálunk, de <b>ha a felvétel minősége nem elég jó,"
+" a kísérletet leállítjuk.</b>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "We will try some more trials."
+msgstr "Megpróbálunk még néhány próbát."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Do not tap on the keyboard or tracking pad, and do not tap using your nails "
+"or any object."
+msgstr ""
+"Ne koppintson a billentyűzetre vagy a nyomkövetőpadra, és ne koppintson a "
+"körmével vagy bármilyen tárggyal."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"If your tapping is <span class=\"red-bold;\">too quiet!</span>, try tapping "
+"louder or on a different location on your laptop."
+msgstr ""
+"Ha a kopogás <span class=\"red-bold;\">túl halk!</span>, próbáljon meg "
+"hangosabban vagy a laptop egy másik pontján kopogtatni."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Please always tap on the surface of your laptop using your index finger (see"
+" picture)"
+msgstr ""
+"Kérjük, mindig a mutatóujjával koppintson a laptop felületére (lásd a "
+"képet)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Practice tapping and check that the level of your tapping is <span "
+"class=\"green-bold;\">just right</span>."
+msgstr ""
+"Gyakorolja a kopogtatást, és ellenőrizze, hogy a kopogás szintje <span "
+"class=\"green-bold;\">megfelelő</span>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid "You will now practice how to tap on your laptop"
+msgstr "Most gyakorolni fogod, hogyan kell a laptopodon kopogtatni"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"A sound is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Egy hang szólal meg, hogy segítsen megtalálni a megfelelő hangerőt a laptop "
+"hangszóróiban."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Attention"
+msgstr "Figyelem"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"If necessary, turn up the volume on your laptop until the sound meter "
+"consistentlyindicates that the volume is just right."
+msgstr ""
+"Szükség esetén tekerje fel a laptop hangerejét, amíg a hangmérő folyamatosan"
+" jelzi, hogy a hangerő éppen megfelelő."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Please do not use headphones, earphones, external speakers, or wireless "
+"devices (unplug or deactivate them now)"
+msgstr ""
+"Kérjük, ne használjon fejhallgatót, fülhallgatót, külső hangszórókat vagy "
+"vezeték nélküli eszközöket (húzza ki vagy kapcsolja ki őket most)."
+
+#: psynet/prescreen.py
+#, python-format, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Set the volume in your laptop to approximately 90% of the maximum."
+msgstr "Állítsa a laptop hangerejét a maximális hangerő körülbelül 90%-ára."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"The sound meter below indicates whether the audio volume is at the right "
+"level."
+msgstr "Az alábbi hangmérő jelzi, hogy a hangerő a megfelelő szinten van-e."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Throughout the experiment, it is very important to ONLY use the laptop "
+"speakers and be in a silent environment."
+msgstr ""
+"A kísérlet során nagyon fontos, hogy CSAK a laptop hangszóróit használja, és"
+" csendes környezetben tartózkodjon."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Volume test"
+msgstr "Hangerőpróba"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "We will begin by calibrating your audio volume"
+msgstr "A hangerő kalibrálásával kezdünk"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"A music clip is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Egy zenei klip szól, amely segít megtalálni a megfelelő hangerőt a laptop "
+"hangszóróiban."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"We are playing a sound similar to the ones you will hear during the "
+"experiment."
+msgstr ""
+"Olyan hangot játszunk le, amely hasonló ahhoz, amit a kísérlet során hallani"
+" fogsz."
 
 #: psynet/recruiters.py
 #, fuzzy

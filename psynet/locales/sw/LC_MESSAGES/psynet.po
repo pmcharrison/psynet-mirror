@@ -483,6 +483,45 @@ msgid "You need to select an answer!"
 msgstr "Unahitaji kuchagua jibu!"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Pia, lazima upuuze swali lililoulizwa katika ukurasa unaofuata, na uandike "
+"\"{ATTENTION_TEST_TWO_WORD}\" kwenye kisanduku."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "attention_test"
+msgstr "mtihani_wa_makini"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "free_tapping_record_trial"
+msgstr "jaribio_la_rekodi_bila_kugonga"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "lextale_test"
+msgstr "mtihani_wa_lextale"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "record_markers_test"
+msgstr "mtihani_wa_alama"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Pia, lazima upuuze swali lililoulizwa katika ukurasa unaofuata, na uandike "
+"\"{ATTENTION_TEST_TWO_WORD}\" kwenye kisanduku."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -521,21 +560,43 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Lazima uweke nambari unayoona kwenye kisanduku cha maandishi."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "In each trial, you will be presented with a colored box."
+msgstr "Katika kila jaribio, utawasilishwa na sanduku la rangi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "We will now perform a quick test to check your ability to name colors."
+msgstr ""
+"Sasa tutafanya jaribio la haraka ili kuangalia uwezo wako wa kutaja rangi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "You must choose which color you see in the box."
+msgstr "Lazima uchague rangi unayoona kwenye kisanduku."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_trial"
+msgid "Which color is shown in the box?"
+msgstr "Ni rangi gani iliyoonyeshwa kwenye sanduku?"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Can you hear your recording?"
 msgstr "Je, unaweza kusikia rekodi yako?"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "If we cannot record it, the experiment will terminate here."
 msgstr "Ikiwa hatuwezi kuirekodi, jaribio litaisha hapa."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -547,7 +608,6 @@ msgstr ""
 "yako ya mkononi inafanya kazi na hutumii vipokea sauti vya masikioni au "
 "vifaa visivyotumia waya."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -558,21 +618,18 @@ msgstr ""
 "Katika ukurasa unaofuata, tutakuuliza tena ugonge mdundo wa utulivu katika "
 "tempo yoyote unayopenda."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Recording... Start tapping!"
 msgstr "Inarekodi... Anza kugonga!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap a steady beat"
 msgstr "Gusa mdundo thabiti"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -581,35 +638,30 @@ msgstr ""
 "Gusa kwa kidole chako cha shahada na uguse tu juu ya uso wa kompyuta yako "
 "ndogo."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tapping test"
 msgstr "Mtihani wa kugonga"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "This is a recording test!"
 msgstr "Huu ni mtihani wa kurekodi!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "To proceed, we need to be able to record your tapping."
 msgstr "Ili kuendelea, tunahitaji kuweza kurekodi kugonga kwako."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Warming up"
 msgstr "Kuongeza joto"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -620,26 +672,431 @@ msgstr ""
 "Sasa tutapasha moto kwa zoezi fupi la kugonga. Katika ukurasa unaofuata, "
 "tafadhali gusa mdundo wa utulivu katika tempo yoyote unayopenda."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "We will test if we can record your tapping signal properly"
 msgstr "Tutajaribu ikiwa tunaweza kurekodi ishara yako ya kugonga vizuri"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_a"
 msgid "Attention"
 msgstr "Tahadhari"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_b"
 msgid "Be careful"
 msgstr "Kuwa mwangalifu"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Good!"
+msgstr "Nzuri!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"If we cannot detect your tapping signal in the recording, the experiment "
+"will terminate."
+msgstr ""
+"Ikiwa hatuwezi kutambua ishara yako ya kugonga kwenye rekodi, jaribio "
+"litakoma."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Hakikisha uko katika mazingira tulivu (jaribio halitafanya kazi na rekodi "
+"zenye kelele)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure your laptop microphone is working and you are not using headphones"
+" or earplugs."
+msgstr ""
+"Hakikisha maikrofoni ya kompyuta yako ya mkononi inafanya kazi na hutumii "
+"vipokea sauti vya masikioni au viunga vya sauti."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Recording... Start tapping!"
+msgstr "Inarekodi... Anza kugonga!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat"
+msgstr "Gusa mdundo thabiti"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat, providing at least 5-10 taps."
+msgstr "Gusa mdundo wa kudumu, ukitoa angalau miguso 5-10."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap on the surface of your laptop using your index finger."
+msgstr ""
+"Gonga kwenye uso wa kompyuta yako ya mkononi kwa kutumia kidole chako cha "
+"shahada."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Your tapping was bad..."
+msgstr "Kugonga kwako ilikuwa mbaya..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "In each trial, you will hear one word and see 4 pictures."
+msgstr "Katika kila jaribio, utasikia neno moja na kuona picha 4."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Vocabulary test"
+msgstr "Mtihani wa msamiati"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "You will now perform a quick vocabulary test."
+msgstr "Sasa utafanya mtihani wa haraka wa msamiati."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Your task is to match each word with the correct picture."
+msgstr "Kazi yako ni kulinganisha kila neno na picha sahihi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_trial"
+msgid "Select the picture that matches the word that you heard."
+msgstr "Chagua picha inayolingana na neno ulilosikia."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"In each trial, you will be presented with either an existing word in English"
+" or a fake word that does not exist."
+msgstr ""
+"Katika kila jaribio, utawasilishwa na neno lililopo kwa Kiingereza au neno "
+"bandia ambalo halipo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Lexical decision task"
+msgstr "Kazi ya uamuzi wa kimsamiati"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Your task is to decide whether the word exists not."
+msgstr "Kazi yako ni kuamua ikiwa neno halipo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "Does this word exist?"
+msgstr "Je, neno hili lipo?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "no"
+msgstr "Hapana"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "yes"
+msgstr "ndio"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Now we will test the recording quality of your laptop."
+msgstr "Sasa tutajaribu ubora wa kurekodi wa kompyuta yako ndogo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Recording test"
+msgstr "Mtihani wa kurekodi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"When ready, click <b>next</b> for the recording test and please wait in "
+"silence."
+msgstr ""
+"Ukiwa tayari, bofya <b>ijayo</b> kwa jaribio la kurekodi na tafadhali subiri"
+" kimyakimya."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Click next when you are ready to continue..."
+msgstr "Bofya inayofuata ukiwa tayari kuendelea..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Do not use headphones, earplugs or wireless devices (unplug them now and use"
+" only the laptop speakers)."
+msgstr ""
+"Usitumie vipokea sauti vinavyobanwa kichwani, viungio vya masikioni au vifaa"
+" visivyotumia waya (vichomoe sasa na utumie spika za kompyuta ya mkononi "
+"pekee)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Increase the volumne of your laptop."
+msgstr "Ongeza sauti ya kompyuta yako ndogo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Hakikisha uko katika mazingira tulivu (jaribio halitafanya kazi na rekodi "
+"zenye kelele)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure your laptop does not use strong noise cancellation or supression "
+"technologies (deactivate them now)."
+msgstr ""
+"Hakikisha kompyuta yako ndogo haitumii teknolojia za kughairi kelele kali au"
+" ukandamizaji (zizima sasa)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Please remain silent while we play a sound and record it"
+msgstr "Tafadhali nyamaza kimya tunapocheza sauti na kuirekodi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording test"
+msgstr "Mtihani wa kurekodi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording..."
+msgstr "Inarekodi..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is good"
+msgstr "Ubora wa kurekodi wa kompyuta yako ndogo ni nzuri"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is not good"
+msgstr "Ubora wa kurekodi wa kompyuta yako ndogo sio nzuri"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"This may have many reasons. Please try to do one or more of the following:"
+msgstr ""
+"Hii inaweza kuwa na sababu nyingi. Tafadhali jaribu kufanya moja au zaidi ya"
+" yafuatayo:"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"To complete the experiment and get the full bonus, you will need to have a "
+"good recording quality in all trials."
+msgstr ""
+"Ili kukamilisha jaribio na kupata bonasi kamili, utahitaji kuwa na ubora "
+"mzuri wa kurekodi katika majaribio yote."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"We will try more trials, but <b>if the recording quality is not sufficiently"
+" good, the experiment will terminate.</b>"
+msgstr ""
+"Tutajaribu majaribio zaidi, lakini <b>ikiwa ubora wa kurekodi si mzuri vya "
+"kutosha, jaribio litakoma.</b>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "We will try some more trials."
+msgstr "Tutajaribu majaribio zaidi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Do not tap on the keyboard or tracking pad, and do not tap using your nails "
+"or any object."
+msgstr ""
+"Usiguse kibodi au pedi ya kufuatilia, na usiguse kwa kutumia kucha au kitu "
+"chochote."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"If your tapping is <span class=\"red-bold;\">too quiet!</span>, try tapping "
+"louder or on a different location on your laptop."
+msgstr ""
+"Ikiwa kugonga kwako <span class=\"red-bold;\">tulivu mno!</span>, jaribu "
+"kugonga kwa sauti kubwa au kwenye eneo tofauti kwenye kompyuta yako ndogo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Please always tap on the surface of your laptop using your index finger (see"
+" picture)"
+msgstr ""
+"Tafadhali gusa kila wakati kwenye uso wa kompyuta yako ya mkononi kwa "
+"kutumia kidole chako cha shahada (tazama picha)"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Practice tapping and check that the level of your tapping is <span "
+"class=\"green-bold;\">just right</span>."
+msgstr ""
+"Jizoeze kugonga na uangalie kuwa kiwango cha kugonga kwako ni <span "
+"class=\"green-bold;\">sawa</span>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid "You will now practice how to tap on your laptop"
+msgstr "Sasa utafanya mazoezi ya jinsi ya kugonga kwenye kompyuta yako ndogo"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"A sound is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Sauti inacheza ili kukusaidia kupata sauti inayofaa katika spika za kompyuta"
+" yako ya mkononi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Attention"
+msgstr "Tahadhari"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"If necessary, turn up the volume on your laptop until the sound meter "
+"consistentlyindicates that the volume is just right."
+msgstr ""
+"Ikiwa ni lazima, ongeza sauti kwenye kompyuta yako ya mbali hadi mita ya "
+"sauti ionyeshe mara kwa mara kuwa sauti ni sawa."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Please do not use headphones, earphones, external speakers, or wireless "
+"devices (unplug or deactivate them now)"
+msgstr ""
+"Tafadhali usitumie vipokea sauti vinavyobanwa kichwani, vipokea sauti vya "
+"masikioni, spika za nje, au vifaa visivyotumia waya (chomoa au uzime sasa)"
+
+#: psynet/prescreen.py
+#, python-format, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Set the volume in your laptop to approximately 90% of the maximum."
+msgstr ""
+"Weka sauti kwenye kompyuta yako ndogo hadi takriban 90% ya kiwango cha juu "
+"zaidi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"The sound meter below indicates whether the audio volume is at the right "
+"level."
+msgstr ""
+"Kipimo cha sauti kilicho hapa chini kinaonyesha ikiwa sauti ya sauti iko "
+"katika kiwango sahihi."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Throughout the experiment, it is very important to ONLY use the laptop "
+"speakers and be in a silent environment."
+msgstr ""
+"Katika kipindi chote cha jaribio, ni muhimu sana kutumia spika TU na kuwa "
+"katika mazingira yasiyo na sauti."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Volume test"
+msgstr "Mtihani wa kiasi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "We will begin by calibrating your audio volume"
+msgstr "Tutaanza kwa kurekebisha sauti yako"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"A music clip is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Klipu ya muziki inacheza ili kukusaidia kupata sauti inayofaa katika spika "
+"za kompyuta yako ndogo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"We are playing a sound similar to the ones you will hear during the "
+"experiment."
+msgstr "Tunacheza sauti sawa na zile utakazosikia wakati wa jaribio."
 
 #: psynet/recruiters.py
 #, fuzzy

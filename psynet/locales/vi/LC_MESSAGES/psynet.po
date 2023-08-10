@@ -484,6 +484,45 @@ msgid "You need to select an answer!"
 msgstr "Bạn cần chọn một câu trả lời!"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Ngoài ra, bạn phải bỏ qua câu hỏi ở trang tiếp theo và nhập "
+"\"{ATTENTION_TEST_TWO_WORD}\" vào hộp."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "attention_test"
+msgstr "chú ý_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "free_tapping_record_trial"
+msgstr "free_tapping_record_trial"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "lextale_test"
+msgstr "lextale_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "record_markers_test"
+msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Ngoài ra, bạn phải bỏ qua câu hỏi ở trang tiếp theo và nhập "
+"\"{ATTENTION_TEST_TWO_WORD}\" vào hộp."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -523,21 +562,44 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Bạn phải nhập số mà bạn nhìn thấy vào hộp văn bản."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "In each trial, you will be presented with a colored box."
+msgstr "Trong mỗi lần thử, bạn sẽ được tặng một hộp màu."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "We will now perform a quick test to check your ability to name colors."
+msgstr ""
+"Bây giờ chúng tôi sẽ thực hiện một bài kiểm tra nhanh để kiểm tra khả năng "
+"gọi tên màu sắc của bạn."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "You must choose which color you see in the box."
+msgstr "Bạn phải chọn màu mà bạn nhìn thấy trong hộp."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_trial"
+msgid "Which color is shown in the box?"
+msgstr "Màu nào được hiển thị trong hộp?"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Can you hear your recording?"
 msgstr "Bạn có thể nghe bản ghi âm của mình không?"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "If we cannot record it, the experiment will terminate here."
 msgstr "Nếu chúng tôi không ghi lại được, thí nghiệm sẽ kết thúc tại đây."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -549,7 +611,6 @@ msgstr ""
 " máy tính xách tay của bạn đang hoạt động và bạn không sử dụng bất kỳ tai "
 "nghe hoặc thiết bị không dây nào."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -560,56 +621,48 @@ msgstr ""
 "Trên trang tiếp theo, chúng tôi sẽ yêu cầu bạn nhấn lại nhịp ổn định ở bất "
 "kỳ nhịp độ nào mà bạn thích."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Recording... Start tapping!"
 msgstr "Ghi âm... Bắt đầu khai thác!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap a steady beat"
 msgstr "Nhấn vào một nhịp ổn định"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap with your index finger and only tap on the surface of your laptop."
 msgstr "Chạm bằng ngón trỏ và chỉ chạm trên bề mặt máy tính xách tay của bạn."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tapping test"
 msgstr "kiểm tra khai thác"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "This is a recording test!"
 msgstr "Đây là một bài kiểm tra ghi âm!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "To proceed, we need to be able to record your tapping."
 msgstr "Để tiếp tục, chúng tôi cần có khả năng ghi lại thao tác nhấn của bạn."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Warming up"
 msgstr "Làm nóng lên"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -620,7 +673,6 @@ msgstr ""
 "Bây giờ chúng ta sẽ khởi động bằng một bài tập gõ ngắn. Trên trang tiếp "
 "theo, vui lòng nhấn vào một nhịp ổn định trong bất kỳ nhịp độ nào bạn thích."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -629,19 +681,427 @@ msgstr ""
 "Chúng tôi sẽ kiểm tra xem chúng tôi có thể ghi đúng tín hiệu khai thác của "
 "bạn hay không"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_a"
 msgid "Attention"
 msgstr "Chú ý"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_b"
 msgid "Be careful"
 msgstr "Hãy cẩn thận"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Good!"
+msgstr "Tốt!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"If we cannot detect your tapping signal in the recording, the experiment "
+"will terminate."
+msgstr ""
+"Nếu chúng tôi không thể phát hiện tín hiệu khai thác của bạn trong bản ghi, "
+"thì thử nghiệm sẽ chấm dứt."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Đảm bảo rằng bạn đang ở trong một môi trường yên tĩnh (thử nghiệm sẽ không "
+"hoạt động với các bản ghi ồn ào)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure your laptop microphone is working and you are not using headphones"
+" or earplugs."
+msgstr ""
+"Đảm bảo rằng micrô của máy tính xách tay của bạn đang hoạt động và bạn không"
+" sử dụng tai nghe hoặc nút bịt tai."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Recording... Start tapping!"
+msgstr "Ghi âm... Bắt đầu khai thác!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat"
+msgstr "Nhấn vào một nhịp ổn định"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat, providing at least 5-10 taps."
+msgstr "Nhấn theo nhịp ổn định, cung cấp ít nhất 5-10 lần nhấn."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap on the surface of your laptop using your index finger."
+msgstr "Chạm vào bề mặt máy tính xách tay của bạn bằng ngón trỏ."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Your tapping was bad..."
+msgstr "Khai thác của bạn là xấu ..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "In each trial, you will hear one word and see 4 pictures."
+msgstr "Trong mỗi lần thử, bạn sẽ nghe một từ và xem 4 bức tranh."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Vocabulary test"
+msgstr "kiểm tra từ vựng"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "You will now perform a quick vocabulary test."
+msgstr "Bây giờ bạn sẽ thực hiện một bài kiểm tra từ vựng nhanh."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Your task is to match each word with the correct picture."
+msgstr "Nhiệm vụ của bạn là nối từng từ với hình ảnh chính xác."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_trial"
+msgid "Select the picture that matches the word that you heard."
+msgstr "Chọn hình ảnh phù hợp với từ mà bạn đã nghe."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"In each trial, you will be presented with either an existing word in English"
+" or a fake word that does not exist."
+msgstr ""
+"Trong mỗi lần thử, bạn sẽ được cung cấp một từ hiện có bằng tiếng Anh hoặc "
+"một từ giả không tồn tại."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Lexical decision task"
+msgstr "Nhiệm vụ quyết định từ vựng"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Your task is to decide whether the word exists not."
+msgstr "Nhiệm vụ của bạn là quyết định xem từ đó có tồn tại không."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "Does this word exist?"
+msgstr "Từ này có tồn tại không?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "no"
+msgstr "KHÔNG"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "yes"
+msgstr "Đúng"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Now we will test the recording quality of your laptop."
+msgstr ""
+"Bây giờ chúng tôi sẽ kiểm tra chất lượng ghi âm của máy tính xách tay của "
+"bạn."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Recording test"
+msgstr "kiểm tra ghi âm"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"When ready, click <b>next</b> for the recording test and please wait in "
+"silence."
+msgstr ""
+"Khi đã sẵn sàng, hãy nhấp vào <b>tiếp theo</b> để kiểm tra bản ghi âm và vui"
+" lòng chờ trong im lặng."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Click next when you are ready to continue..."
+msgstr "Nhấp vào tiếp theo khi bạn đã sẵn sàng để tiếp tục..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Do not use headphones, earplugs or wireless devices (unplug them now and use"
+" only the laptop speakers)."
+msgstr ""
+"Không sử dụng tai nghe, nút tai hoặc thiết bị không dây (rút phích cắm ngay "
+"bây giờ và chỉ sử dụng loa của máy tính xách tay)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Increase the volumne of your laptop."
+msgstr "Tăng âm lượng của máy tính xách tay của bạn."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Đảm bảo rằng bạn đang ở trong một môi trường yên tĩnh (thử nghiệm sẽ không "
+"hoạt động với các bản ghi ồn ào)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure your laptop does not use strong noise cancellation or supression "
+"technologies (deactivate them now)."
+msgstr ""
+"Đảm bảo rằng máy tính xách tay của bạn không sử dụng các công nghệ triệt "
+"tiêu hoặc khử tiếng ồn mạnh (hãy tắt chúng ngay bây giờ)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Please remain silent while we play a sound and record it"
+msgstr ""
+"Vui lòng giữ im lặng trong khi chúng tôi phát âm thanh và ghi lại âm thanh "
+"đó"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording test"
+msgstr "kiểm tra ghi âm"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording..."
+msgstr "Ghi âm..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is good"
+msgstr "Chất lượng ghi âm của máy tính xách tay của bạn là tốt"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is not good"
+msgstr "Chất lượng ghi âm của máy tính xách tay của bạn không tốt"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"This may have many reasons. Please try to do one or more of the following:"
+msgstr ""
+"Điều này có thể có nhiều lý do. Vui lòng thử thực hiện một hoặc nhiều thao "
+"tác sau:"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"To complete the experiment and get the full bonus, you will need to have a "
+"good recording quality in all trials."
+msgstr ""
+"Để hoàn thành thử nghiệm và nhận được toàn bộ tiền thưởng, bạn cần phải có "
+"chất lượng ghi âm tốt trong tất cả các thử nghiệm."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"We will try more trials, but <b>if the recording quality is not sufficiently"
+" good, the experiment will terminate.</b>"
+msgstr ""
+"Chúng tôi sẽ thử nhiều thử nghiệm hơn, nhưng <b>nếu chất lượng bản ghi không"
+" đủ tốt, thử nghiệm sẽ chấm dứt.</b>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "We will try some more trials."
+msgstr "Chúng tôi sẽ thử thêm một số thử nghiệm."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Do not tap on the keyboard or tracking pad, and do not tap using your nails "
+"or any object."
+msgstr ""
+"Không gõ vào bàn phím hoặc bảng theo dõi và không gõ bằng móng tay hoặc bất "
+"kỳ đồ vật nào."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"If your tapping is <span class=\"red-bold;\">too quiet!</span>, try tapping "
+"louder or on a different location on your laptop."
+msgstr ""
+"Nếu thao tác nhấn của bạn <span class=\"red-bold;\">quá yên tĩnh!</span>, "
+"hãy thử nhấn to hơn hoặc nhấn vào một vị trí khác trên máy tính xách tay của"
+" bạn."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Please always tap on the surface of your laptop using your index finger (see"
+" picture)"
+msgstr ""
+"Vui lòng luôn chạm vào bề mặt máy tính xách tay của bạn bằng ngón trỏ (xem "
+"hình)"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Practice tapping and check that the level of your tapping is <span "
+"class=\"green-bold;\">just right</span>."
+msgstr ""
+"Thực hành gõ và kiểm tra xem mức độ gõ của bạn có <span class=\"green-"
+"bold;\">vừa phải không</span>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid "You will now practice how to tap on your laptop"
+msgstr "Bây giờ bạn sẽ thực hành cách gõ trên máy tính xách tay của mình"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"A sound is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Một âm thanh đang phát để giúp bạn tìm âm lượng phù hợp trong loa máy tính "
+"xách tay của mình."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Attention"
+msgstr "Chú ý"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"If necessary, turn up the volume on your laptop until the sound meter "
+"consistentlyindicates that the volume is just right."
+msgstr ""
+"Nếu cần, hãy tăng âm lượng trên máy tính xách tay của bạn cho đến khi máy đo"
+" âm thanh liên tục chỉ ra rằng âm lượng vừa phải."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Please do not use headphones, earphones, external speakers, or wireless "
+"devices (unplug or deactivate them now)"
+msgstr ""
+"Vui lòng không sử dụng tai nghe, tai nghe, loa ngoài hoặc thiết bị không dây"
+" (rút phích cắm hoặc tắt chúng ngay bây giờ)"
+
+#: psynet/prescreen.py
+#, python-format, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Set the volume in your laptop to approximately 90% of the maximum."
+msgstr "Đặt âm lượng trong máy tính xách tay của bạn ở mức tối đa khoảng 90%."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"The sound meter below indicates whether the audio volume is at the right "
+"level."
+msgstr ""
+"Máy đo âm thanh bên dưới cho biết âm lượng âm thanh có ở mức phù hợp hay "
+"không."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Throughout the experiment, it is very important to ONLY use the laptop "
+"speakers and be in a silent environment."
+msgstr ""
+"Trong suốt quá trình thử nghiệm, điều rất quan trọng là CHỈ sử dụng loa của "
+"máy tính xách tay và ở trong môi trường im lặng."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Volume test"
+msgstr "kiểm tra khối lượng"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "We will begin by calibrating your audio volume"
+msgstr "Chúng tôi sẽ bắt đầu bằng cách hiệu chỉnh âm lượng của bạn"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"A music clip is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Một đoạn nhạc đang phát để giúp bạn tìm âm lượng phù hợp trong loa máy tính "
+"xách tay của mình."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"We are playing a sound similar to the ones you will hear during the "
+"experiment."
+msgstr ""
+"Chúng tôi đang phát âm thanh tương tự như âm thanh bạn sẽ nghe thấy trong "
+"quá trình thử nghiệm."
 
 #: psynet/recruiters.py
 #, fuzzy

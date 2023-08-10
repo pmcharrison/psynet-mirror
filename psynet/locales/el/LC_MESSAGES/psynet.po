@@ -484,6 +484,45 @@ msgid "You need to select an answer!"
 msgstr "Πρέπει να επιλέξετε μια απάντηση!"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Επίσης, πρέπει να αγνοήσετε την ερώτηση που τίθεται στην επόμενη σελίδα και "
+"να πληκτρολογήσετε \"{ATTENTION_TEST_TWO_WORD}\" στο πλαίσιο."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "attention_test"
+msgstr "attention_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "free_tapping_record_trial"
+msgstr "free_tapping_record_trial"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "lextale_test"
+msgstr "lextale_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "record_markers_test"
+msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Επίσης, πρέπει να αγνοήσετε την ερώτηση που τίθεται στην επόμενη σελίδα και "
+"να πληκτρολογήσετε \"{ATTENTION_TEST_TWO_WORD}\" στο πλαίσιο."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -524,21 +563,44 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Θα πρέπει να εισάγετε τον αριθμό που βλέπετε στο πλαίσιο κειμένου."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "In each trial, you will be presented with a colored box."
+msgstr "Σε κάθε δοκιμή, θα σας παρουσιαστεί ένα χρωματιστό κουτί."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "We will now perform a quick test to check your ability to name colors."
+msgstr ""
+"Τώρα θα κάνουμε ένα γρήγορο τεστ για να ελέγξουμε την ικανότητά σας να "
+"ονομάζετε τα χρώματα."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "You must choose which color you see in the box."
+msgstr "Πρέπει να επιλέξετε ποιο χρώμα βλέπετε στο κουτί."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_trial"
+msgid "Which color is shown in the box?"
+msgstr "Ποιο χρώμα εμφανίζεται στο κουτί;"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Can you hear your recording?"
 msgstr "Μπορείτε να ακούσετε την ηχογράφησή σας;"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "If we cannot record it, the experiment will terminate here."
 msgstr "Αν δεν μπορούμε να την καταγράψουμε, το πείραμα θα τερματιστεί εδώ."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -550,7 +612,6 @@ msgstr ""
 "σας υπολογιστή λειτουργεί και ότι δεν χρησιμοποιείτε ακουστικά ή ασύρματες "
 "συσκευές."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -561,21 +622,18 @@ msgstr ""
 "Στην επόμενη σελίδα, θα σας ζητήσουμε ξανά να χτυπήσετε έναν σταθερό ρυθμό "
 "σε όποιο τέμπο θέλετε."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Recording... Start tapping!"
 msgstr "Ηχογράφηση... Ξεκινήστε να χτυπάτε!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap a steady beat"
 msgstr "Χτυπήστε ένα σταθερό ρυθμό"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -584,21 +642,18 @@ msgstr ""
 "Χτυπήστε με το δείκτη του χεριού σας και χτυπήστε μόνο στην επιφάνεια του "
 "φορητού σας υπολογιστή."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tapping test"
 msgstr "Δοκιμασία χτυπήματος"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "This is a recording test!"
 msgstr "Αυτό είναι ένα τεστ ηχογράφησης!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -606,14 +661,12 @@ msgid "To proceed, we need to be able to record your tapping."
 msgstr ""
 "Για να συνεχίσουμε, πρέπει να μπορούμε να καταγράψουμε το χτύπημά σας."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Warming up"
 msgstr "Προθέρμανση"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -624,7 +677,6 @@ msgstr ""
 "Τώρα θα κάνουμε προθέρμανση με μια σύντομη άσκηση taping. Στην επόμενη "
 "σελίδα, παρακαλώ χτυπήστε έναν σταθερό ρυθμό σε όποιο τέμπο θέλετε."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -632,19 +684,429 @@ msgid "We will test if we can record your tapping signal properly"
 msgstr ""
 "Θα ελέγξουμε αν μπορούμε να καταγράψουμε σωστά το σήμα του χτυπήματός σας."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_a"
 msgid "Attention"
 msgstr "Προσοχή"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_b"
 msgid "Be careful"
 msgstr "Να είστε προσεκτικοί"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Good!"
+msgstr "Ωραία!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"If we cannot detect your tapping signal in the recording, the experiment "
+"will terminate."
+msgstr ""
+"Εάν δεν μπορούμε να ανιχνεύσουμε το σήμα σας στην καταγραφή, το πείραμα θα "
+"τερματιστεί."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Βεβαιωθείτε ότι βρίσκεστε σε ήσυχο περιβάλλον (το πείραμα δεν θα "
+"λειτουργήσει με θορυβώδεις ηχογραφήσεις)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure your laptop microphone is working and you are not using headphones"
+" or earplugs."
+msgstr ""
+"Βεβαιωθείτε ότι το μικρόφωνο του φορητού σας υπολογιστή λειτουργεί και ότι "
+"δεν χρησιμοποιείτε ακουστικά ή ωτοασπίδες."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Recording... Start tapping!"
+msgstr "Εγγραφή... Ξεκινήστε να χτυπάτε!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat"
+msgstr "Χτυπήστε έναν σταθερό ρυθμό"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat, providing at least 5-10 taps."
+msgstr "Χτυπήστε έναν σταθερό ρυθμό, παρέχοντας τουλάχιστον 5-10 χτυπήματα."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap on the surface of your laptop using your index finger."
+msgstr ""
+"Χτυπήστε την επιφάνεια του φορητού σας υπολογιστή χρησιμοποιώντας το δείκτη "
+"του χεριού σας."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Your tapping was bad..."
+msgstr "Το χτύπημά σας ήταν κακό..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "In each trial, you will hear one word and see 4 pictures."
+msgstr "Σε κάθε δοκιμασία, θα ακούτε μία λέξη και θα βλέπετε 4 εικόνες."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Vocabulary test"
+msgstr "Δοκιμή λεξιλογίου"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "You will now perform a quick vocabulary test."
+msgstr "Τώρα θα κάνετε ένα γρήγορο τεστ λεξιλογίου."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Your task is to match each word with the correct picture."
+msgstr "Ο στόχος σας είναι να αντιστοιχίσετε κάθε λέξη με τη σωστή εικόνα."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_trial"
+msgid "Select the picture that matches the word that you heard."
+msgstr "Επιλέξτε την εικόνα που ταιριάζει με τη λέξη που ακούσατε."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"In each trial, you will be presented with either an existing word in English"
+" or a fake word that does not exist."
+msgstr ""
+"Σε κάθε δοκιμή, θα σας παρουσιάζεται είτε μια υπάρχουσα λέξη στα αγγλικά "
+"είτε μια ψεύτικη λέξη που δεν υπάρχει."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Lexical decision task"
+msgstr "Εργασία λεξιλογικής απόφασης"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Your task is to decide whether the word exists not."
+msgstr "Ο στόχος σας είναι να αποφασίσετε αν η λέξη δεν υπάρχει."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "Does this word exist?"
+msgstr "Υπάρχει αυτή η λέξη;"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "no"
+msgstr "όχι"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "yes"
+msgstr "ναι"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Now we will test the recording quality of your laptop."
+msgstr "Τώρα θα δοκιμάσουμε την ποιότητα εγγραφής του φορητού σας υπολογιστή."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Recording test"
+msgstr "Δοκιμή εγγραφής"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"When ready, click <b>next</b> for the recording test and please wait in "
+"silence."
+msgstr ""
+"Όταν είστε έτοιμοι, κάντε κλικ στο <b>επόμενο</b> για τη δοκιμή εγγραφής και"
+" περιμένετε σιωπηλά."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Click next when you are ready to continue..."
+msgstr "Κάντε κλικ στο επόμενο όταν είστε έτοιμοι να συνεχίσετε..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Do not use headphones, earplugs or wireless devices (unplug them now and use"
+" only the laptop speakers)."
+msgstr ""
+"Μην χρησιμοποιείτε ακουστικά, ωτοασπίδες ή ασύρματες συσκευές (αποσυνδέστε "
+"τα τώρα και χρησιμοποιήστε μόνο τα ηχεία του φορητού υπολογιστή)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Increase the volumne of your laptop."
+msgstr "Αυξήστε την ένταση του φορητού σας υπολογιστή."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Βεβαιωθείτε ότι βρίσκεστε σε ήσυχο περιβάλλον (το πείραμα δεν θα "
+"λειτουργήσει με θορυβώδεις ηχογραφήσεις)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure your laptop does not use strong noise cancellation or supression "
+"technologies (deactivate them now)."
+msgstr ""
+"Βεβαιωθείτε ότι ο φορητός σας υπολογιστής δεν χρησιμοποιεί ισχυρές "
+"τεχνολογίες ακύρωσης ή καταστολής θορύβου (απενεργοποιήστε τις τώρα)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Please remain silent while we play a sound and record it"
+msgstr ""
+"Παρακαλείσθε να παραμείνετε σιωπηλοί ενώ παίζουμε έναν ήχο και τον "
+"καταγράφουμε"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording test"
+msgstr "Δοκιμή ηχογράφησης"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording..."
+msgstr "Ηχογράφηση..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is good"
+msgstr "Η ποιότητα εγγραφής του φορητού σας υπολογιστή είναι καλή"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is not good"
+msgstr "Η ποιότητα εγγραφής του φορητού σας υπολογιστή δεν είναι καλή"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"This may have many reasons. Please try to do one or more of the following:"
+msgstr ""
+"Αυτό μπορεί να έχει πολλούς λόγους. Παρακαλούμε προσπαθήστε να κάνετε ένα ή "
+"περισσότερα από τα παρακάτω:"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"To complete the experiment and get the full bonus, you will need to have a "
+"good recording quality in all trials."
+msgstr ""
+"Για να ολοκληρώσετε το πείραμα και να λάβετε το πλήρες μπόνους, θα πρέπει να"
+" έχετε καλή ποιότητα εγγραφής σε όλες τις δοκιμές."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"We will try more trials, but <b>if the recording quality is not sufficiently"
+" good, the experiment will terminate.</b>"
+msgstr ""
+"Θα δοκιμάσουμε περισσότερες δοκιμές, αλλά <b>αν η ποιότητα εγγραφής δεν "
+"είναι αρκετά καλή, το πείραμα θα τερματιστεί.</b>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "We will try some more trials."
+msgstr "Θα δοκιμάσουμε μερικές ακόμη δοκιμές."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Do not tap on the keyboard or tracking pad, and do not tap using your nails "
+"or any object."
+msgstr ""
+"Μην χτυπάτε το πληκτρολόγιο ή το μαξιλάρι παρακολούθησης και μην χτυπάτε με "
+"τα νύχια σας ή οποιοδήποτε αντικείμενο."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"If your tapping is <span class=\"red-bold;\">too quiet!</span>, try tapping "
+"louder or on a different location on your laptop."
+msgstr ""
+"Αν το χτύπημά σας είναι <span class=\"red-bold;\">πάρα πολύ ήσυχο!</span>, "
+"δοκιμάστε να χτυπήσετε πιο δυνατά ή σε διαφορετικό σημείο του φορητού "
+"υπολογιστή σας."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Please always tap on the surface of your laptop using your index finger (see"
+" picture)"
+msgstr ""
+"Παρακαλούμε να χτυπάτε πάντα στην επιφάνεια του φορητού σας υπολογιστή "
+"χρησιμοποιώντας το δείκτη του χεριού σας (βλ. εικόνα)"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Practice tapping and check that the level of your tapping is <span "
+"class=\"green-bold;\">just right</span>."
+msgstr ""
+"Εξασκηθείτε στο χτύπημα και ελέγξτε ότι το επίπεδο του χτυπήματός σας είναι "
+"<span class=\"green-bold;\">ακριβώς σωστό</span>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid "You will now practice how to tap on your laptop"
+msgstr "Τώρα θα εξασκηθείτε στο πώς να χτυπάτε στον φορητό σας υπολογιστή"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"A sound is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Ένας ήχος αναπαράγεται για να σας βοηθήσει να βρείτε τη σωστή ένταση στα "
+"ηχεία του φορητού σας υπολογιστή."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Attention"
+msgstr "Προσοχή"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"If necessary, turn up the volume on your laptop until the sound meter "
+"consistentlyindicates that the volume is just right."
+msgstr ""
+"Εάν είναι απαραίτητο, αυξήστε την ένταση του ήχου στο φορητό σας υπολογιστή "
+"μέχρι το ηχόμετρο να υποδεικνύει σταθερά ότι η ένταση είναι ακριβώς η σωστή."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Please do not use headphones, earphones, external speakers, or wireless "
+"devices (unplug or deactivate them now)"
+msgstr ""
+"Μην χρησιμοποιείτε ακουστικά, ακουστικά, εξωτερικά ηχεία ή ασύρματες "
+"συσκευές (αποσυνδέστε ή απενεργοποιήστε τα τώρα)"
+
+#: psynet/prescreen.py
+#, python-format, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Set the volume in your laptop to approximately 90% of the maximum."
+msgstr ""
+"Ρυθμίστε την ένταση του φορητού σας υπολογιστή στο 90% περίπου της μέγιστης "
+"έντασης."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"The sound meter below indicates whether the audio volume is at the right "
+"level."
+msgstr ""
+"Το παρακάτω ηχόμετρο υποδεικνύει αν η ένταση του ήχου είναι στο σωστό "
+"επίπεδο."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Throughout the experiment, it is very important to ONLY use the laptop "
+"speakers and be in a silent environment."
+msgstr ""
+"Καθ' όλη τη διάρκεια του πειράματος, είναι πολύ σημαντικό να χρησιμοποιείτε "
+"ΜΟΝΟ τα ηχεία του φορητού υπολογιστή και να βρίσκεστε σε σιωπηλό περιβάλλον."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Volume test"
+msgstr "Δοκιμή έντασης ήχου"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "We will begin by calibrating your audio volume"
+msgstr "Θα ξεκινήσουμε με τη βαθμονόμηση της έντασης του ήχου σας"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"A music clip is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Ένα μουσικό κλιπ αναπαράγεται για να σας βοηθήσει να βρείτε τη σωστή ένταση "
+"στα ηχεία του φορητού σας υπολογιστή."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"We are playing a sound similar to the ones you will hear during the "
+"experiment."
+msgstr ""
+"Παίζουμε έναν ήχο παρόμοιο με αυτούς που θα ακούσετε κατά τη διάρκεια του "
+"πειράματος."
 
 #: psynet/recruiters.py
 #, fuzzy

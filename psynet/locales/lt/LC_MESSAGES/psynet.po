@@ -484,6 +484,45 @@ msgid "You need to select an answer!"
 msgstr "Reikia pasirinkti atsakymą!"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Be to, turite nekreipti dėmesio į kitame puslapyje pateiktą klausimą ir į "
+"laukelį įrašyti \"{ATTENTION_TEST_TWO_WORD}\"."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "attention_test"
+msgstr "attention_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "free_tapping_record_trial"
+msgstr "free_tapping_record_trial"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "lextale_test"
+msgstr "lextale_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "record_markers_test"
+msgstr "record_marks_test"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Be to, turite nekreipti dėmesio į kitame puslapyje pateiktą klausimą ir į "
+"laukelį įrašyti \"{ATTENTION_TEST_TWO_WORD}\"."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -525,21 +564,44 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Į teksto laukelį turite įrašyti skaičių, kurį matote."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "In each trial, you will be presented with a colored box."
+msgstr "Kiekvieno bandymo metu jums bus pateiktas spalvotas langelis."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "We will now perform a quick test to check your ability to name colors."
+msgstr ""
+"Dabar atliksime greitą testą, kad patikrintume jūsų gebėjimą įvardyti "
+"spalvas."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "You must choose which color you see in the box."
+msgstr "Turite pasirinkti, kokią spalvą matote langelyje."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_trial"
+msgid "Which color is shown in the box?"
+msgstr "Kuri spalva pavaizduota langelyje?"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Can you hear your recording?"
 msgstr "Ar girdite savo įrašą?"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "If we cannot record it, the experiment will terminate here."
 msgstr "Jei negalėsime jo įrašyti, eksperimentas čia bus nutrauktas."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -550,7 +612,6 @@ msgstr ""
 "Jei įrašo negirdite, įsitikinkite, kad jūsų nešiojamojo kompiuterio "
 "mikrofonas veikia ir nenaudojate jokių ausinių ar belaidžių įrenginių."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -561,21 +622,18 @@ msgstr ""
 "Kitame puslapyje dar kartą paprašysime jūsų bakstelėti tolygų ritmą bet "
 "kokiu jums patinkančiu tempu."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Recording... Start tapping!"
 msgstr "Įrašymas... Pradėkite bakstelėti!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap a steady beat"
 msgstr "Bakstelėkite tolygų ritmą"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -584,35 +642,30 @@ msgstr ""
 "Bakstelėkite rodomuoju pirštu ir bakstelėkite tik nešiojamojo kompiuterio "
 "paviršių."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tapping test"
 msgstr "Bakstelėjimo testas"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "This is a recording test!"
 msgstr "Tai yra įrašymo testas!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "To proceed, we need to be able to record your tapping."
 msgstr "Norėdami tęsti, turime turėti galimybę įrašyti jūsų bakstelėjimą."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Warming up"
 msgstr "Apšilimas"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -623,26 +676,427 @@ msgstr ""
 "Dabar apšilsime atlikdami trumpą bakstelėjimo pratimą. Kitame puslapyje "
 "bakstelėkite tolygų ritmą bet kokiu jums patinkančiu tempu."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "We will test if we can record your tapping signal properly"
 msgstr "Patikrinsime, ar galime tinkamai įrašyti jūsų bakstelėjimo signalą."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_a"
 msgid "Attention"
 msgstr "Dėmesio"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_b"
 msgid "Be careful"
 msgstr "Būkite atsargūs"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Good!"
+msgstr "Gerai!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"If we cannot detect your tapping signal in the recording, the experiment "
+"will terminate."
+msgstr ""
+"Jei įraše neaptiksime jūsų bakstelėjimo signalo, eksperimentas bus "
+"nutrauktas."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Įsitikinkite, kad esate ramioje aplinkoje (eksperimentas neveiks, jei įrašai"
+" bus triukšmingi)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure your laptop microphone is working and you are not using headphones"
+" or earplugs."
+msgstr ""
+"Įsitikinkite, kad veikia nešiojamojo kompiuterio mikrofonas ir kad "
+"nenaudojate ausinių ar ausų kištukų."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Recording... Start tapping!"
+msgstr "Įrašymas... Pradėkite bakstelėti!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat"
+msgstr "Bakstelėkite tolygų ritmą"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat, providing at least 5-10 taps."
+msgstr "Bakstelėkite tolygų ritmą, atlikdami bent 5-10 bakstelėjimų."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap on the surface of your laptop using your index finger."
+msgstr "Bakstelėkite nešiojamojo kompiuterio paviršių rodomuoju pirštu."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Your tapping was bad..."
+msgstr "Jūsų bakstelėjimas buvo blogas..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "In each trial, you will hear one word and see 4 pictures."
+msgstr ""
+"Kiekvieno bandymo metu išgirsite vieną žodį ir pamatysite 4 paveikslėlius."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Vocabulary test"
+msgstr "Žodyno testas"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "You will now perform a quick vocabulary test."
+msgstr "Dabar atliksite greitą žodyno testą."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Your task is to match each word with the correct picture."
+msgstr "Jūsų užduotis - suderinti kiekvieną žodį su tinkamu paveikslėliu."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_trial"
+msgid "Select the picture that matches the word that you heard."
+msgstr "Pasirinkite paveikslėlį, atitinkantį išgirstą žodį."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"In each trial, you will be presented with either an existing word in English"
+" or a fake word that does not exist."
+msgstr ""
+"Kiekvieno bandymo metu jums bus pateikiamas arba egzistuojantis žodis anglų "
+"kalba, arba netikras žodis, kuris neegzistuoja."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Lexical decision task"
+msgstr "Leksinio sprendimo užduotis"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Your task is to decide whether the word exists not."
+msgstr "Jūsų užduotis - nuspręsti, ar žodis egzistuoja, ar ne."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "Does this word exist?"
+msgstr "Ar šis žodis egzistuoja?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "no"
+msgstr "ne"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "yes"
+msgstr "taip"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Now we will test the recording quality of your laptop."
+msgstr "Dabar išbandysime nešiojamojo kompiuterio įrašymo kokybę."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Recording test"
+msgstr "Įrašymo testas"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"When ready, click <b>next</b> for the recording test and please wait in "
+"silence."
+msgstr ""
+"Kai būsite pasiruošę, spustelėkite <b>toliau</b>, kad būtų atliktas įrašymo "
+"testas, ir tyliai palaukite."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Click next when you are ready to continue..."
+msgstr "Kai būsite pasiruošę tęsti, spauskite toliau..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Do not use headphones, earplugs or wireless devices (unplug them now and use"
+" only the laptop speakers)."
+msgstr ""
+"Nenaudokite ausinių, ausų kištukų ar belaidžių įrenginių (dabar juos "
+"atjunkite ir naudokite tik nešiojamojo kompiuterio garsiakalbius)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Increase the volumne of your laptop."
+msgstr "Padidinkite nešiojamojo kompiuterio garsą."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Įsitikinkite, kad esate ramioje aplinkoje (eksperimentas neveiks esant "
+"triukšmingiems įrašams)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure your laptop does not use strong noise cancellation or supression "
+"technologies (deactivate them now)."
+msgstr ""
+"Įsitikinkite, kad jūsų nešiojamasis kompiuteris nenaudoja stiprių triukšmo "
+"slopinimo ar slopinimo technologijų (dabar jas išjunkite)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Please remain silent while we play a sound and record it"
+msgstr "Prašome tylėti, kol atkursime garsą ir jį įrašysime"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording test"
+msgstr "Įrašymo bandymas"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording..."
+msgstr "Įrašymas..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is good"
+msgstr "Jūsų nešiojamojo kompiuterio įrašymo kokybė yra gera"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is not good"
+msgstr "Jūsų nešiojamojo kompiuterio įrašymo kokybė nėra gera"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"This may have many reasons. Please try to do one or more of the following:"
+msgstr ""
+"Tam gali būti daug priežasčių. Pabandykite atlikti vieną ar daugiau iš "
+"toliau nurodytų veiksmų:"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"To complete the experiment and get the full bonus, you will need to have a "
+"good recording quality in all trials."
+msgstr ""
+"Norėdami užbaigti eksperimentą ir gauti visą premiją, visų bandymų įrašymo "
+"kokybė turi būti gera."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"We will try more trials, but <b>if the recording quality is not sufficiently"
+" good, the experiment will terminate.</b>"
+msgstr ""
+"Bandysime atlikti daugiau bandymų, bet <b>jei įrašymo kokybė nebus "
+"pakankamai gera, eksperimentas bus nutrauktas.</b>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "We will try some more trials."
+msgstr "Išbandysime dar keletą bandymų."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Do not tap on the keyboard or tracking pad, and do not tap using your nails "
+"or any object."
+msgstr ""
+"Nelieskite klaviatūros ar sekimo kaladėlės, taip pat nelieskite jos nagais "
+"ar kitais daiktais."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"If your tapping is <span class=\"red-bold;\">too quiet!</span>, try tapping "
+"louder or on a different location on your laptop."
+msgstr ""
+"Jei bakstelėjote <span class=\"red-bold;\">per tyliai!</span>, pabandykite "
+"bakstelėti garsiau arba kitoje nešiojamojo kompiuterio vietoje."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Please always tap on the surface of your laptop using your index finger (see"
+" picture)"
+msgstr ""
+"Visada bakstelėkite nešiojamojo kompiuterio paviršių rodomuoju pirštu (žr. "
+"paveikslėlį)"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Practice tapping and check that the level of your tapping is <span "
+"class=\"green-bold;\">just right</span>."
+msgstr ""
+"Pasipraktikuokite bakstelėti ir patikrinkite, ar bakstelėjimo lygis yra "
+"<span class=\"green-bold;\">tinkamas</span>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid "You will now practice how to tap on your laptop"
+msgstr "Dabar praktiškai išbandysite, kaip bakstelėti nešiojamąjį kompiuterį"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"A sound is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Grojamas garsas, kad nešiojamojo kompiuterio garsiakalbiuose galėtumėte "
+"nustatyti tinkamą garsą."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Attention"
+msgstr "Dėmesio"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"If necessary, turn up the volume on your laptop until the sound meter "
+"consistentlyindicates that the volume is just right."
+msgstr ""
+"Jei reikia, didinkite nešiojamojo kompiuterio garsą tol, kol garso matuoklis"
+" nuolat rodys, kad garsumas yra tinkamas."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Please do not use headphones, earphones, external speakers, or wireless "
+"devices (unplug or deactivate them now)"
+msgstr ""
+"Nenaudokite ausinių, ausinukų, išorinių garsiakalbių ar belaidžių įrenginių "
+"(dabar juos atjunkite arba išjunkite)"
+
+#: psynet/prescreen.py
+#, python-format, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Set the volume in your laptop to approximately 90% of the maximum."
+msgstr ""
+"Nešiojamajame kompiuteryje nustatykite maždaug 90 % maksimalaus garsumo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"The sound meter below indicates whether the audio volume is at the right "
+"level."
+msgstr ""
+"Toliau pateiktas garso matuoklis rodo, ar garso garsumas yra tinkamo lygio."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Throughout the experiment, it is very important to ONLY use the laptop "
+"speakers and be in a silent environment."
+msgstr ""
+"Viso eksperimento metu labai svarbu naudoti TIK nešiojamojo kompiuterio "
+"garsiakalbius ir būti tylioje aplinkoje."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Volume test"
+msgstr "Garsumo testas"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "We will begin by calibrating your audio volume"
+msgstr "Pradėsime nuo garso stiprumo kalibravimo"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"A music clip is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Grojamas muzikos klipas, padedantis nustatyti tinkamą nešiojamojo "
+"kompiuterio garsiakalbių garsumą."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"We are playing a sound similar to the ones you will hear during the "
+"experiment."
+msgstr "Grojame garsus, panašius į tuos, kuriuos girdėsite eksperimento metu."
 
 #: psynet/recruiters.py
 #, fuzzy

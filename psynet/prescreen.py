@@ -39,7 +39,7 @@ from .trial.static import StaticTrial, StaticTrialMaker
 from .utils import get_logger, get_translator
 
 logger = get_logger()
-DEFAULT_LOCALE = "en"
+DEFAULT_LOCALE = "es"
 
 
 class REPPVolumeCalibration(Module):
@@ -73,18 +73,29 @@ class REPPVolumeCalibration(Module):
 
     @property
     def introduction(self):
+        _, _p = get_translator(self.locale)
+        introduction_1 = _p("repp_volume_calibration", "Attention")
+        introduction_2 = _p(
+            "repp_volume_calibration",
+            "Throughout the experiment, it is very important to ONLY use the laptop speakers and be in a silent environment.",
+        )
+        introduction_3 = _p(
+            "repp_volume_calibration",
+            "Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)",
+        )
+
         return PageMaker(
             lambda assets: InfoPage(
                 Markup(
                     f"""
-                      <h3>Attention</h3>
-                      <hr>
-                      <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment.
-                      <br><br>
-                      <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
-                      <hr>
-                      <img style="width:70%" src="{assets['rules_image'].url}" alt="rules_image">
-                      """
+                    <h3>{introduction_1}</h3>
+                    <hr>
+                    <b>{introduction_2}
+                    <br><br>
+                    <i>{introduction_3}</i>
+                    <hr>
+                    <img style="width:70%" src="{assets['rules_image'].url}" alt="rules_image">
+                    """
                 ),
             ),
             time_estimate=5,
@@ -113,17 +124,35 @@ class REPPVolumeCalibration(Module):
 
     @property
     def calibration_instructions(self):
+        _, _p = get_translator(self.locale)
+        text_1 = _p("repp_volume_calibration", "Volume test")
+        text_2 = _p(
+            "repp_volume_calibration", "We will begin by calibrating your audio volume"
+        )
+        text_3 = _p(
+            "repp_volume_calibration",
+            "Set the volume in your laptop to approximately 90% of the maximum.",
+        )
+        text_4 = _p(
+            "repp_volume_calibration",
+            "The sound meter below indicates whether the audio volume is at the right level.",
+        )
+        text_5 = _p(
+            "repp_volume_calibration",
+            "If necessary, turn up the volume on your laptop until the sound meter consistently"
+            "indicates that the volume is just right.",
+        )
+
         return Markup(
             f"""
-            <h3>Volume test</h3>
+            <h3>{text_1}</h3>
             <hr>
-            <h4>We will begin by calibrating your audio volume:</h4>
+            <h4>{text_2}:</h4>
             <ol>
                 <li>{self.what_are_we_playing}</li>
-                <li>Set the volume in your laptop to approximately 90% of the maximum.</li>
-                <li><b>The sound meter</b> below indicates whether the audio volume is at the right level.</li>
-                <li>If necessary, turn up the volume on your laptop until the sound meter consistently indicates that
-                the volume is <b style="color:green;">"just right"</b>.
+                <li>{text_3}</li>
+                <li>{text_4}</li>
+                <li>{text_5}</li>
             </ol>
             <hr>
             """
@@ -131,7 +160,12 @@ class REPPVolumeCalibration(Module):
 
     @property
     def what_are_we_playing(self):
-        return "A sound is playing to help you find the right volume in your laptop speakers."
+        _, _p = get_translator(self.locale)
+
+        return _p(
+            "repp_volume_calibration",
+            "A sound is playing to help you find the right volume in your laptop speakers.",
+        )
 
 
 class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
@@ -161,13 +195,16 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
         min_time_on_calibration_page: float = 5.0,
         time_estimate_for_calibration_page: float = 10.0,
+        locale: str = DEFAULT_LOCALE,
     ):
+        self.locale = locale
         super().__init__(
             label,
             materials_url,
             min_time_on_calibration_page,
             time_estimate_for_calibration_page,
         )
+        self.locale = locale
 
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
@@ -183,7 +220,12 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
 
     @property
     def what_are_we_playing(self):
-        return "A music clip is playing to help you find the right volume in your laptop speakers."
+        _, _p = get_translator(self.locale)
+
+        return _p(
+            "repp_volume_calibration_music",
+            "A music clip is playing to help you find the right volume in your laptop speakers.",
+        )
 
 
 class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
@@ -234,7 +276,12 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
 
     @property
     def what_are_we_playing(self):
-        return "We are playing a sound similar to the ones you will hear during the experiment."
+        _, _p = get_translator(self.locale)
+
+        return _p(
+            "repp_volume_calibration_music",
+            "We are playing a sound similar to the ones you will hear during the experiment.",
+        )
 
 
 class REPPTappingCalibration(Module):
@@ -289,14 +336,36 @@ class REPPTappingCalibration(Module):
         )
 
     def instructions_text(self, assets):
+        _, _p = get_translator(self.locale)
+        text_1 = _p(
+            "repp_tapping_calibration",
+            "You will now practice how to tap on your laptop",
+        )
+        text_2 = _p(
+            "repp_tapping_calibration",
+            "Please always tap on the surface of your laptop using your index finger (see picture)",
+        )
+        text_3 = _p(
+            "repp_tapping_calibration",
+            'Practice tapping and check that the level of your tapping is <span class="green-bold;">just right</span>.',
+        )
+        text_4 = _p(
+            "repp_tapping_calibration",
+            "Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object.",
+        )
+        text_5 = _p(
+            "repp_tapping_calibration",
+            'If your tapping is <span class="red-bold;">too quiet!</span>, try tapping louder or on a different location on your laptop.',
+        )
+
         return Markup(
             f"""
-            <h3>You will now practice how to tap on your laptop</h3>
-            <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
+            <h3>{text_1}</h3>
+            <b>{text_2}</b>
             <ul>
-                <li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
-                <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
-                <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
+                <li>{text_3}</li>
+                <li><i style="color:red;">{text_4}</i></li>
+                <li>{text_5}</li>
             </ul>
             <img style="width:70%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
             """
@@ -329,9 +398,9 @@ class NumpySerializer(json.JSONEncoder):
 class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
     def show_trial(self, experiment, participant):
         _, _p = get_translator(self.trial_maker.locale)
-        free_tapping_record_1 = _p("free_tapping_record_test", "Tap a steady beat")
+        free_tapping_record_1 = _p("free_tapping_record_trial", "Tap a steady beat")
         free_tapping_record_2 = _p(
-            "free_tapping_record_test", "Recording... Start tapping!"
+            "free_tapping_record_trial", "Recording... Start tapping!"
         )
 
         return ModularPage(
@@ -369,7 +438,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
         from repp.analysis import REPPAnalysis
         from repp.config import sms_tapping
 
-        plot_title = "Participant {}".format(self.participant_id)
+        plot_title = f"Participant {self.participant_id}"
         repp_analysis = REPPAnalysis(config=sms_tapping)
         _, _, stats = repp_analysis.do_analysis_tapping_only(
             audio_file, plot_title, output_plot
@@ -395,28 +464,61 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
         num_resp_onsets_detected = self.analysis["num_resp_onsets_detected"]
 
         if self.failed:
+            _, _p = get_translator(self.trial_maker.locale)
+            text_1 = _p("free_tapping_record_trial", "Your tapping was bad...")
+            text_2 = _(
+                "free_tapping_record_trial",
+                "We detected {NUM_RESP_ONSETS_DETECTED} taps in the recording. This is not sufficient for this task. Please try to do one or more of the following:",
+            ).format(NUM_RESP_ONSETS_DETECTED=num_resp_onsets_detected)
+            text_3 = _p(
+                "free_tapping_record_trial",
+                "Tap a steady beat, providing at least 5-10 taps.",
+            )
+            text_4 = _p(
+                "free_tapping_record_trial",
+                "Make sure your laptop microphone is working and you are not using headphones or earplugs.",
+            )
+            text_5 = _p(
+                "free_tapping_record_trial",
+                "Tap on the surface of your laptop using your index finger.",
+            )
+            text_6 = _p(
+                "free_tapping_record_trial",
+                "Make sure you are in a quiet environment (the experiment will not work with noisy recordings).",
+            )
+            text_7 = _p(
+                "free_tapping_record_trial",
+                "If we cannot detect your tapping signal in the recording, the experiment will terminate.",
+            )
+
             return InfoPage(
                 Markup(
                     f"""
-                    <h4>Your tapping was bad...</h4>
-                    We detected {num_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
-                    Please try to do one or more of the following:
-                    <ol><li>Tap a steady beat, providing at least 5-10 taps.</li>
-                        <li>Make sure your laptop microphone is working and you are not using headphones or earplugs.</li>
-                        <li>Tap on the surface of your laptop using your index finger.</li>
-                        <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                    <h4>{text_1}</h4>
+                    {text_2}
+                    <ol><li>{text_3}</li>
+                        <li>{text_4}</li>
+                        <li>{text_5}</li>
+                        <li>{text_6}</li>
                     </ol>
-                    <b><b>If we cannot detect your tapping signal in the recording, the experiment will terminate.</b></b>
+                    <b>{text_7}</b>
                     """
                 ),
                 time_estimate=5,
             )
         else:
+            _, _p = get_translator(self.trial_maker.locale)
+            text_1 = _p("free_tapping_record_trial", "Good!")
+            text_2 = _(
+                "free_tapping_record_trial",
+                "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording.",
+            ).format(NUM_RESP_ONSETS_DETECTED=num_resp_onsets_detected)
+
             return InfoPage(
                 Markup(
                     f"""
-                    <h4>Good!</h4>
-                    We could detect {num_resp_onsets_detected} taps in the recording.
+                    <h4>{text_1}</h4>
+                    {text_2}
                     """
                 ),
                 time_estimate=5,
@@ -496,7 +598,6 @@ class FreeTappingRecordTest(StaticTrialMaker):
     @property
     def introduction(self):
         _, _p = get_translator(self.locale)
-
         info_page_1_1 = _p("free_tapping_record_test", "Warming up")
         info_page_1_2 = _p(
             "free_tapping_record_test",
@@ -588,13 +689,13 @@ class FreeTappingRecordTest(StaticTrialMaker):
                         participant.assets["free_record_example"],
                         Markup(
                             f"""
-                        <h3>{playback_1}</h3>
-                        <hr>
-                        {playback_2}
-                        <br><br>
-                        <b>{playback_3}</b>
-                        <hr>
-                        """
+                            <h3>{playback_1}</h3>
+                            <hr>
+                            {playback_2}
+                            <br><br>
+                            <b>{playback_3}</b>
+                            <hr>
+                            """
                         ),
                     ),
                 ),
@@ -637,15 +738,26 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
     def show_trial(self, experiment, participant):
+        _, _p = get_translator(self.locale)
+        text_1 = _p("record_markers_trial", "Recording test")
+        text_2 = _p(
+            "record_markers_trial",
+            "Please remain silent while we play a sound and record it",
+        )
+        text_3 = _p("record_markers_trial", "Recording...")
+        text_4 = _p(
+            "record_markers_trial", "Click next when you are ready to continue..."
+        )
+
         return ModularPage(
             "markers_test_trial",
             AudioPrompt(
                 self.assets["stimulus"],
                 Markup(
-                    """
-                    <h3>Recording test</h3>
+                    f"""
+                    <h3>{text_1}</h3>
                     <hr>
-                    <h4>Please remain silent while we play a sound and record it</h4>
+                    <h4>{text_2}</h4>
                     """
                 ),
             ),
@@ -661,10 +773,10 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             progress_display=ProgressDisplay(
                 # show_bar=False,
                 stages=[
-                    ProgressStage(11.5, "Recording...", "red"),
+                    ProgressStage(11.5, text_3, "red"),
                     ProgressStage(
                         0.5,
-                        "Click next when you are ready to continue...",
+                        text_4,
                         "orange",
                         persistent=True,
                     ),
@@ -673,18 +785,53 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         )
 
     def show_feedback(self, experiment, participant):
+        _, _p = get_translator(self.locale)
+        text_1 = _p(
+            "record_markers_trial", "The recording quality of your laptop is not good"
+        )
+        text_2 = _p(
+            "record_markers_trial",
+            "This may have many reasons. Please try to do one or more of the following:",
+        )
+        text_3 = _p("record_markers_trial", "Increase the volumne of your laptop.")
+        text_4 = _p(
+            "record_markers_trial",
+            "Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).",
+        )
+        text_5 = _p(
+            "record_markers_trial",
+            "Make sure you are in a quiet environment (the experiment will not work with noisy recordings).",
+        )
+        text_6 = _p(
+            "record_markers_trial",
+            "Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).",
+        )
+        text_7 = _p(
+            "record_markers_trial",
+            "We will try more trials, but <b>if the recording quality is not sufficiently good, the experiment will terminate.</b>",
+        )
+        text_8 = _p(
+            "record_markers_trial", "The recording quality of your laptop is good"
+        )
+        text_9 = _p("record_markers_trial", "We will try some more trials.")
+        text_10 = _p(
+            "record_markers_trial",
+            "To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.",
+        )
+
         if self.failed:
             return InfoPage(
                 Markup(
-                    """
-                    <h4>The recording quality of your laptop is not good</h4>
-                    This may have many reasons. Please try to do one or more of the following:
-                    <ol><li>Increase the volumne of your laptop.</li>
-                        <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
-                        <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
-                        <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
+                    f"""
+                    <h4>{text_1}</h4>
+                    {text_2}
+                    <ol>
+                        <li>{text_3}</li>
+                        <li>{text_4}</li>
+                        <li>{text_5}</li>
+                        <li>{text_6}</li>
                     </ol>
-                    We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                    {text_7}
                     """
                 ),
                 time_estimate=5,
@@ -692,10 +839,10 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         else:
             return InfoPage(
                 Markup(
-                    """
-                    <h4>The recording quality of your laptop is good</h4>
-                    We will try some more trials.
-                    To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
+                    f"""
+                    <h4>{text_8}</h4>
+                    {text_9}
+                    {text_10}
                     """
                 ),
                 time_estimate=5,
@@ -714,7 +861,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             "onset_is_played": self.definition["onset_is_played"],
         }
 
-        title_in_graph = "Participant {}".format(self.participant_id)
+        title_in_graph = f"Participant {self.participant_id}"
         analysis = REPPAnalysis(config=sms_tapping)
         output, analysis, is_failed = analysis.do_analysis(
             info, audio_file, title_in_graph, output_plot
@@ -775,6 +922,7 @@ class REPPMarkersTest(StaticTrialMaker):
         n_trials: int = 3,
         time_estimate_per_trial: float = 12.0,
         trial_class=RecordMarkersTrial,
+        locale=DEFAULT_LOCALE,
     ):
         self.n_trials = n_trials
         self.materials_url = materials_url
@@ -783,6 +931,7 @@ class REPPMarkersTest(StaticTrialMaker):
         self.performance_check_type = "performance"
         self.performance_threshold = performance_threshold
         self.time_estimate_per_trial = time_estimate_per_trial
+        self.locale = locale
 
         nodes = self.get_nodes()
 
@@ -803,20 +952,34 @@ class REPPMarkersTest(StaticTrialMaker):
 
     @property
     def introduction(self):
+        _, _p = get_translator(self.locale)
+        text_1 = _p("record_markers_test", "Recording test")
+        text_2 = _p(
+            "record_markers_test",
+            "Now we will test the recording quality of your laptop.",
+        )
+        text_3 = _(
+            "record_markers_test",
+            "In {N_TRIALS} trials, you will be asked to remain silent while we play and record a sound.",
+        ).format(N_TRIALS=self.n_trials)
+        text_4 = _p(
+            "record_markers_test",
+            "When ready, click <b>next</b> for the recording test and please wait in silence.",
+        )
+
         return PageMaker(
             lambda assets: InfoPage(
                 Markup(
                     f"""
-            <h3>Recording test</h3>
-            <hr>
-            Now we will test the recording quality of your laptop. In {self.n_trials} trials, you will be
-            asked to remain silent while we play and record a sound.
-            <br><br>
-            <img style="width:50%" src="{assets['rules_image'].url}"  alt="rules_image">
-            <br><br>
-            When ready, click <b>next</b> for the recording test and please wait in silence.
-            <hr>
-            """
+                    <h3>{text_1}</h3>
+                    <hr>
+                    {text_2} {text_3}
+                    <br><br>
+                    <img style="width:50%" src="{assets['rules_image'].url}"  alt="rules_image">
+                    <br><br>
+                    {text_4}
+                    <hr>
+                    """
                 ),
             ),
             time_estimate=5,
@@ -863,11 +1026,17 @@ class LanguageVocabularyTrial(StaticTrial):
         choices = ["correct", "wrong1", "wrong2", "wrong3"]
         image_urls = [self.assets[f"image_{choice}"].url for choice in choices]
 
+        _, _p = get_translator(self.locale)
+        text = _p(
+            "language_vocabulary_trial",
+            "Select the picture that matches the word that you heard.",
+        )
+
         return ModularPage(
             "language_vocabulary_trial",
             AudioPrompt(
                 self.assets["audio"],
-                "Select the picture that matches the word that you heard.",
+                text,
             ),
             PushButtonControl(
                 choices=[choices[i] for i in order],
@@ -965,15 +1134,29 @@ class LanguageVocabularyTest(StaticTrialMaker):
 
     @property
     def introduction(self):
+        _, _p = get_translator(self.locale)
+        text_1 = _p("language_vocabulary_test", "Vocabulary test")
+        text_2 = _p(
+            "language_vocabulary_test", "You will now perform a quick vocabulary test."
+        )
+        text_3 = _p(
+            "language_vocabulary_test",
+            "In each trial, you will hear one word and see 4 pictures.",
+        )
+        text_4 = _p(
+            "language_vocabulary_test",
+            "Your task is to match each word with the correct picture.",
+        )
+
         return join(
             InfoPage(
                 Markup(
-                    """
-                    <h3>Vocabulary test</h3>
-                    <p>You will now perform a quick vocabulary test.</p>
+                    f"""
+                    <h3>{text_1}</h3>
+                    <p>{text_2}</p>
                     <p>
-                        In each trial, you will hear one word and see 4 pictures.
-                        Your task is to match each word with the correct picture.
+                        {text_3}
+                        {text_4}
                     </p>
                     """
                 ),
@@ -1006,11 +1189,16 @@ class LextaleTrial(StaticTrial):
     hide_after = 1.0
 
     def show_trial(self, experiment, participant):
+        _, _p = get_translator(self.locale)
+        text_1 = _p("lextale_trial", "Does this word exist?")
+        text_2 = _p("lextale_trial", "yes")
+        text_3 = _p("lextale_trial", "no")
+
         return ModularPage(
             "lextale_trial",
             ImagePrompt(
                 self.assets["word"].url,
-                "Does this word exist?",
+                text_1,
                 width="auto",
                 height="100px",
                 hide_after=self.hide_after,
@@ -1019,7 +1207,7 @@ class LextaleTrial(StaticTrial):
             ),
             PushButtonControl(
                 ["yes", "no"],
-                ["yes", "no"],
+                [text_2, text_3],
                 arrange_vertically=False,
                 style="min-width: 150px; margin: 10px",
             ),
@@ -1095,14 +1283,29 @@ class LexTaleTest(StaticTrialMaker):
 
     @property
     def introduction(self):
+        _, _p = get_translator(self.locale)
+        text_1 = _p("lextale_test", "Lexical decision task")
+        text_2 = _p(
+            "lextale_test",
+            "In each trial, you will be presented with either an existing word in English or a fake word that does not exist.",
+        )
+        text_3 = _p(
+            "lextale_test", "Your task is to decide whether the word exists not."
+        )
+        text_4 = _(
+            "lextale_test",
+            "Each word will disappear in {HIDE_AFTER} seconds and you will see a total of {N_TRIALS} words.",
+        ).format(HIDE_AFTER=self.hide_after, N_TRIALS=self.n_trials)
+
         return InfoPage(
             Markup(
                 f"""
-                <h3>Lexical decision task</h3>
-                <p>In each trial, you will be presented with either an existing word in English or a fake word that does not exist.</p>
+                <h3>{text_1}</h3>
+                <p>{text_2}</p>
                 <p>
-                    <b>Your task is to decide whether the word exists not.</b>
-                    <br><br>Each word will disappear in {self.hide_after} seconds and you will see a total of {self.n_trials} words.
+                    <b>{text_3}</b>
+                    <br><br>
+                    {text_4}
                 </p>
                 """
             ),
@@ -1183,6 +1386,7 @@ class AttentionTest(Module):
         prompt_2="What is your favourite color?",
         attention_test_2_word="attention",
         time_estimate_per_trial: float = 5.0,
+        locale=DEFAULT_LOCALE,
     ):
         assert pages in [1, 2]
         assert not (pages == 1 and fail_on in ["attention_test_2", "both"])
@@ -1198,19 +1402,20 @@ class AttentionTest(Module):
         self.pages = pages
         self.fail_on = fail_on
         self.attention_test_2_word = attention_test_2_word
+        self.locale = locale
 
-        prompt_1_next_page = f""" Also, you must ignore
-        the question asked in the next page, and type "{attention_test_2_word}" in the box.
-        <br><br>
-        {prompt_1_main}"""
-        self.prompt_1_text = (
-            f'{prompt_1_explanation}{prompt_1_next_page if self.pages == 2 else ""}'
-        )
-        self.prompt_2 = prompt_2
+        _, _p = get_translator(self.locale)
+        prompt_1_explanation = _p("attention_test", prompt_1_explanation)
+        prompt_1_next_page = _p(
+            "attention_test",
+            'Also, you must ignore the question asked in the next page, and type "{ATTENTION_TEST_TWO_WORD}" in the box.',
+        ).format(ATTENTION_TEST_TWO_WORD=attention_test_2_word)
+        self.prompt_1_text = f'{prompt_1_explanation}{prompt_1_next_page + "<br><br>" + prompt_1_main if self.pages == 2 else ""}'
+        self.prompt_2 = prompt_1_next_page = _p("attention_test", prompt_2)
         self.elts = join(
             ModularPage(
                 label="attention_test_1",
-                prompt=Markup(f"""{self.prompt_1_text}"""),
+                prompt=Markup(self.prompt_1_text),
                 control=RadioButtonControl(
                     [1, 2, 3, 4, 5, 6, 7, 0],
                     [
@@ -1420,11 +1625,14 @@ class ColorBlindnessTest(StaticTrialMaker):
 
 class ColorVocabularyTrial(StaticTrial):
     def show_trial(self, experiment, participant):
+        _, _p = get_translator(self.trial_maker.locale)
+        text = _p("color_vocabulary_trial", "Which color is shown in the box?")
+
         return ModularPage(
             "color_vocabulary_trial",
             ColorPrompt(
                 self.definition["target_hsl"],
-                "Which color is shown in the box?",
+                text,
                 text_align="center",
             ),
             PushButtonControl(
@@ -1478,11 +1686,13 @@ class ColorVocabularyTest(StaticTrialMaker):
         performance_threshold: int = 4,
         colors: Optional[list] = None,
         trial_class=ColorVocabularyTrial,
+        locale=DEFAULT_LOCALE,
     ):
         if colors:
             self.colors = colors
         self.performance_threshold = performance_threshold
         self.time_estimate_per_trial = time_estimate_per_trial
+        self.locale = locale
 
         nodes = self.get_nodes(self.colors)
 
@@ -1508,15 +1718,28 @@ class ColorVocabularyTest(StaticTrialMaker):
 
     @property
     def introduction(self):
+        _, _p = get_translator(self.locale)
+        text_1 = _p(
+            "color_vocabulary_test",
+            "We will now perform a quick test to check your ability to name colors.",
+        )
+        text_2 = _p(
+            "color_vocabulary_test",
+            "In each trial, you will be presented with a colored box.",
+        )
+        text_3 = _p(
+            "color_vocabulary_test", "You must choose which color you see in the box."
+        )
+
         return InfoPage(
             Markup(
+                f"""
+                <p>{text_1}</p>
+                <p>
+                    {text_2}
+                    {text_3}
+                </p>
                 """
-            <p>We will now perform a quick test to check your ability to name colors.</p>
-            <p>
-                In each trial, you will be presented with a colored box.
-                You must choose which color you see in the box.
-            </p>
-            """
             ),
             time_estimate=10,
         )
@@ -1654,12 +1877,12 @@ class HeadphoneTest(StaticTrialMaker):
         return InfoPage(
             Markup(
                 f"""
-            <p>We will now perform a quick test to check that you are wearing headphones.</p>
-            <p>
-                In each trial, you will hear three sounds separated by silences.
-                {self.task_description()}
-            </p>
-            """
+                <p>We will now perform a quick test to check that you are wearing headphones.</p>
+                <p>
+                    In each trial, you will hear three sounds separated by silences.
+                    {self.task_description()}
+                </p>
+                """
             ),
             time_estimate=10,
         )

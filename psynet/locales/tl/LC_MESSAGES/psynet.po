@@ -491,6 +491,45 @@ msgid "You need to select an answer!"
 msgstr "Kailangan mong pumili ng sagot!"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Gayundin, dapat mong balewalain ang tanong na itinanong sa susunod na "
+"pahina, at i-type ang \"{ATTENTION_TEST_TWO_WORD}\" sa kahon."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "attention_test"
+msgstr "pansin_pagsusulit"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "free_tapping_record_trial"
+msgstr "free_tapping_record_trial"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "lextale_test"
+msgstr "lextale_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "record_markers_test"
+msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Also, you must ignore the question asked in the next page, and type "
+"\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+"Gayundin, dapat mong balewalain ang tanong na itinanong sa susunod na "
+"pahina, at i-type ang \"{ATTENTION_TEST_TWO_WORD}\" sa kahon."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
@@ -531,21 +570,44 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Dapat mong ipasok ang numero na nakikita mo sa text box."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "In each trial, you will be presented with a colored box."
+msgstr "Sa bawat pagsubok, bibigyan ka ng isang kulay na kahon."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "We will now perform a quick test to check your ability to name colors."
+msgstr ""
+"Magsasagawa kami ngayon ng isang mabilis na pagsubok upang suriin ang iyong "
+"kakayahang pangalanan ang mga kulay."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_test"
+msgid "You must choose which color you see in the box."
+msgstr "Dapat mong piliin kung aling kulay ang makikita mo sa kahon."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_vocabulary_trial"
+msgid "Which color is shown in the box?"
+msgstr "Aling kulay ang ipinapakita sa kahon?"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Can you hear your recording?"
 msgstr "Naririnig mo ba ang iyong pag-record?"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "If we cannot record it, the experiment will terminate here."
 msgstr "Kung hindi namin ito maitala, magwawakas ang eksperimento dito."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -557,7 +619,6 @@ msgstr ""
 "mikropono ng iyong laptop at hindi ka gumagamit ng anumang headphone o "
 "wireless na aparato."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -568,21 +629,18 @@ msgstr ""
 "Sa susunod na pahina, hihilingin naming muli sa iyo na mag-tap ng steady "
 "beat sa anumang tempo na gusto mo."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Recording... Start tapping!"
 msgstr "Nagre-record... Simulan ang pag-tap!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tap a steady beat"
 msgstr "Mag-tap ng steady beat"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -590,35 +648,30 @@ msgid "Tap with your index finger and only tap on the surface of your laptop."
 msgstr ""
 "I-tap gamit ang iyong hintuturo at i-tap lang ang ibabaw ng iyong laptop."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Tapping test"
 msgstr "Pagsubok sa pag-tap"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "This is a recording test!"
 msgstr "Isa itong recording test!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "To proceed, we need to be able to record your tapping."
 msgstr "Upang magpatuloy, kailangan naming maitala ang iyong pag-tap."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
 msgid "Warming up"
 msgstr "Nagpapainit"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -629,7 +682,6 @@ msgstr ""
 "Magpapainit tayo ngayon sa isang maikling ehersisyo sa pagtapik. Sa susunod "
 "na page, mangyaring mag-tap ng steady beat sa anumang tempo na gusto mo."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test"
@@ -637,19 +689,428 @@ msgid "We will test if we can record your tapping signal properly"
 msgstr ""
 "Susuriin namin kung maire-record namin nang maayos ang iyong tapping signal"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_a"
 msgid "Attention"
 msgstr "Pansin"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_test_b"
 msgid "Be careful"
 msgstr "Mag-ingat ka"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Good!"
+msgstr "Magaling!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"If we cannot detect your tapping signal in the recording, the experiment "
+"will terminate."
+msgstr ""
+"Kung hindi namin matukoy ang iyong signal ng pag-tap sa recording, "
+"magwawakas ang eksperimento."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Tiyaking ikaw ay nasa isang tahimik na kapaligiran (ang eksperimento ay "
+"hindi gagana sa maingay na pag-record)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid ""
+"Make sure your laptop microphone is working and you are not using headphones"
+" or earplugs."
+msgstr ""
+"Tiyaking gumagana ang mikropono ng iyong laptop at hindi ka gumagamit ng mga"
+" headphone o earplug."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Recording... Start tapping!"
+msgstr "Nagre-record... Simulan ang pag-tap!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat"
+msgstr "Mag-tap ng steady beat"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap a steady beat, providing at least 5-10 taps."
+msgstr "Mag-tap ng steady beat, na nagbibigay ng hindi bababa sa 5-10 tap."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Tap on the surface of your laptop using your index finger."
+msgstr "Mag-tap sa ibabaw ng iyong laptop gamit ang iyong hintuturo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "Your tapping was bad..."
+msgstr "Masama ang iyong pag-tap..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "In each trial, you will hear one word and see 4 pictures."
+msgstr ""
+"Sa bawat pagsubok, maririnig mo ang isang salita at makakakita ka ng 4 na "
+"larawan."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Vocabulary test"
+msgstr "Pagsusulit sa bokabularyo"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "You will now perform a quick vocabulary test."
+msgstr "Magsasagawa ka na ngayon ng mabilis na pagsusulit sa bokabularyo."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_test"
+msgid "Your task is to match each word with the correct picture."
+msgstr "Ang iyong gawain ay itugma ang bawat salita sa tamang larawan."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "language_vocabulary_trial"
+msgid "Select the picture that matches the word that you heard."
+msgstr "Piliin ang larawan na tumutugma sa salita na iyong narinig."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"In each trial, you will be presented with either an existing word in English"
+" or a fake word that does not exist."
+msgstr ""
+"Sa bawat pagsubok, ipapakita sa iyo ang alinman sa isang umiiral na salita "
+"sa Ingles o isang pekeng salita na hindi umiiral."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Lexical decision task"
+msgstr "Lexical na gawain ng desisyon"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_test"
+msgid "Your task is to decide whether the word exists not."
+msgstr "Ang iyong gawain ay magpasya kung ang salita ay wala."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "Does this word exist?"
+msgstr "Umiiral ba ang salitang ito?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "no"
+msgstr "hindi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "lextale_trial"
+msgid "yes"
+msgstr "oo"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Now we will test the recording quality of your laptop."
+msgstr "Ngayon ay susubukan namin ang kalidad ng pag-record ng iyong laptop."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid "Recording test"
+msgstr "Pagsusulit sa pagtatala"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_test"
+msgid ""
+"When ready, click <b>next</b> for the recording test and please wait in "
+"silence."
+msgstr ""
+"Kapag handa na, i-click ang <b>susunod</b> para sa pagsubok sa pag-record at"
+" mangyaring maghintay nang tahimik."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Click next when you are ready to continue..."
+msgstr "I-click ang susunod kapag handa ka nang magpatuloy..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Do not use headphones, earplugs or wireless devices (unplug them now and use"
+" only the laptop speakers)."
+msgstr ""
+"Huwag gumamit ng mga headphone, earplug o wireless na device (i-unplug ang "
+"mga ito ngayon at gamitin lamang ang mga laptop speaker)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Increase the volumne of your laptop."
+msgstr "Lakasan ang volume ng iyong laptop."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure you are in a quiet environment (the experiment will not work with "
+"noisy recordings)."
+msgstr ""
+"Tiyaking ikaw ay nasa isang tahimik na kapaligiran (ang eksperimento ay "
+"hindi gagana sa maingay na pag-record)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"Make sure your laptop does not use strong noise cancellation or supression "
+"technologies (deactivate them now)."
+msgstr ""
+"Tiyaking hindi gumagamit ang iyong laptop ng malakas na pagkansela ng ingay "
+"o mga teknolohiya sa pagsugpo (i-deactivate ang mga ito ngayon)."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Please remain silent while we play a sound and record it"
+msgstr ""
+"Mangyaring manatiling tahimik habang nagpe-play kami ng tunog at nire-record"
+" ito"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording test"
+msgstr "Pagsusulit sa pagtatala"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "Recording..."
+msgstr "Nagre-record..."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is good"
+msgstr "Ang kalidad ng pag-record ng iyong laptop ay maganda"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "The recording quality of your laptop is not good"
+msgstr "Ang kalidad ng pag-record ng iyong laptop ay hindi maganda"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"This may have many reasons. Please try to do one or more of the following:"
+msgstr ""
+"Maaaring may maraming dahilan ito. Pakisubukang gawin ang isa o higit pa sa "
+"mga sumusunod:"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"To complete the experiment and get the full bonus, you will need to have a "
+"good recording quality in all trials."
+msgstr ""
+"Upang makumpleto ang eksperimento at makuha ang buong bonus, kakailanganin "
+"mong magkaroon ng magandang kalidad ng pagre-record sa lahat ng pagsubok."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid ""
+"We will try more trials, but <b>if the recording quality is not sufficiently"
+" good, the experiment will terminate.</b>"
+msgstr ""
+"Susubukan namin ang higit pang mga pagsubok, ngunit <b>kung ang kalidad ng "
+"pag-record ay hindi sapat na maganda, ang eksperimento ay magwawakas.</b>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "record_markers_trial"
+msgid "We will try some more trials."
+msgstr "Susubukan namin ang ilang higit pang mga pagsubok."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Do not tap on the keyboard or tracking pad, and do not tap using your nails "
+"or any object."
+msgstr ""
+"Huwag mag-tap sa keyboard o tracking pad, at huwag mag-tap gamit ang iyong "
+"mga kuko o anumang bagay."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"If your tapping is <span class=\"red-bold;\">too quiet!</span>, try tapping "
+"louder or on a different location on your laptop."
+msgstr ""
+"Kung ang iyong pag-tap ay <span class=\"red-bold;\">masyadong "
+"tahimik!</span>, subukang mag-tap ng mas malakas o sa ibang lokasyon sa "
+"iyong laptop."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Please always tap on the surface of your laptop using your index finger (see"
+" picture)"
+msgstr ""
+"Mangyaring palaging mag-tap sa ibabaw ng iyong laptop gamit ang iyong "
+"hintuturo (tingnan ang larawan)"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid ""
+"Practice tapping and check that the level of your tapping is <span "
+"class=\"green-bold;\">just right</span>."
+msgstr ""
+"Magsanay sa pag-tap at tingnan kung ang antas ng iyong pag-tap ay <span "
+"class=\"green-bold;\">tama lang</span>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_tapping_calibration"
+msgid "You will now practice how to tap on your laptop"
+msgstr "Magsasanay ka na ngayon kung paano mag-tap sa iyong laptop"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"A sound is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"May tumutugtog na tunog para tulungan kang mahanap ang tamang volume sa mga "
+"speaker ng iyong laptop."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Attention"
+msgstr "Pansin"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"If necessary, turn up the volume on your laptop until the sound meter "
+"consistentlyindicates that the volume is just right."
+msgstr ""
+"Kung kinakailangan, lakasan ang volume sa iyong laptop hanggang sa tuloy-"
+"tuloy na ipahiwatig ng sound meter na tama lang ang volume."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Please do not use headphones, earphones, external speakers, or wireless "
+"devices (unplug or deactivate them now)"
+msgstr ""
+"Mangyaring huwag gumamit ng mga headphone, earphone, panlabas na speaker, o "
+"wireless na device (i-unplug o i-deactivate ang mga ito ngayon)"
+
+#: psynet/prescreen.py
+#, python-format, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Set the volume in your laptop to approximately 90% of the maximum."
+msgstr "Itakda ang volume sa iyong laptop sa humigit-kumulang 90% ng maximum."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"The sound meter below indicates whether the audio volume is at the right "
+"level."
+msgstr ""
+"Ang sound meter sa ibaba ay nagpapahiwatig kung ang volume ng audio ay nasa "
+"tamang antas."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid ""
+"Throughout the experiment, it is very important to ONLY use the laptop "
+"speakers and be in a silent environment."
+msgstr ""
+"Sa buong eksperimento, napakahalagang gamitin LAMANG ang mga laptop speaker "
+"at nasa tahimik na kapaligiran."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "Volume test"
+msgstr "Pagsubok sa dami"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration"
+msgid "We will begin by calibrating your audio volume"
+msgstr ""
+"Magsisimula kami sa pamamagitan ng pag-calibrate ng volume ng iyong audio"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"A music clip is playing to help you find the right volume in your laptop "
+"speakers."
+msgstr ""
+"Nagpapatugtog ang isang music clip upang matulungan kang mahanap ang tamang "
+"volume sa mga speaker ng iyong laptop."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "repp_volume_calibration_music"
+msgid ""
+"We are playing a sound similar to the ones you will hear during the "
+"experiment."
+msgstr ""
+"Nagpapatugtog kami ng tunog na katulad ng mga maririnig mo sa panahon ng "
+"eksperimento."
 
 #: psynet/recruiters.py
 #, fuzzy
