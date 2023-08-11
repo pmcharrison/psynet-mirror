@@ -1022,6 +1022,7 @@ class REPPMarkersTest(StaticTrialMaker):
 
 class LanguageVocabularyTrial(StaticTrial):
     time_estimate = None
+    locale = DEFAULT_LOCALE
 
     def finalize_definition(self, definition, experiment, participant):
         indices = range(4)
@@ -1033,7 +1034,7 @@ class LanguageVocabularyTrial(StaticTrial):
         choices = ["correct", "wrong1", "wrong2", "wrong3"]
         image_urls = [self.assets[f"image_{choice}"].url for choice in choices]
 
-        _, _p = get_translator(self.locale)
+        _, _p = get_translator(self.trial_maker.locale)
         text = _p(
             "language_vocabulary_trial",
             "Select the picture that matches the word that you heard.",
