@@ -483,6 +483,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Bạn cần chọn một câu trả lời!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Đồng ý"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -491,6 +497,48 @@ msgid ""
 msgstr ""
 "Ngoài ra, bạn phải bỏ qua câu hỏi ở trang tiếp theo và nhập "
 "\"{ATTENTION_TEST_TWO_WORD}\" vào hộp."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Hoàn toàn đồng ý"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Hoàn toàn không đồng ý"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Không đồng ý"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Trung lập"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Khác"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Hoàn toàn đồng ý"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Mạnh mẽ phủ quyết"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -521,6 +569,28 @@ msgid ""
 msgstr ""
 "Ngoài ra, bạn phải bỏ qua câu hỏi ở trang tiếp theo và nhập "
 "\"{ATTENTION_TEST_TWO_WORD}\" vào hộp."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Nghiên cứu về tính cách đã xác định các tập hợp hành vi và mô hình nhận thức"
+" đặc trưng phát triển từ các yếu tố sinh học và môi trường. Để thể hiện rằng"
+" bạn đang chú ý đến thử nghiệm, vui lòng bỏ qua câu hỏi bên dưới và chọn nút"
+" 'Tiếp theo' thay thế."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Màu sắc yêu thích của bạn là gì?"
 
 #: psynet/prescreen.py
 #, fuzzy

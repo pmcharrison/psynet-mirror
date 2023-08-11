@@ -482,6 +482,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Du skal vælge et svar!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Enig"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -490,6 +496,48 @@ msgid ""
 msgstr ""
 "Du skal også ignorere det spørgsmål, der stilles på næste side, og skrive "
 "\"{ATTENTION_TEST_TWO_WORD}\" i feltet."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Fuldstændig enig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Helt uenig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Uenig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Neutral"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Andet"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Helt enig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Helt uenig"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -520,6 +568,28 @@ msgid ""
 msgstr ""
 "Du skal også ignorere det spørgsmål, der stilles på næste side, og skrive "
 "\"{ATTENTION_TEST_TWO_WORD}\" i feltet."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Forskning i personlighed har identificeret karakteristiske sæt af adfærd og "
+"kognitive mønstre, der udvikler sig fra biologiske og miljømæssige faktorer."
+" For at vise, at du er opmærksom på eksperimentet, bedes du ignorere "
+"spørgsmålet nedenfor og vælge knappen 'Næste' i stedet."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Hvad er din yndlingsfarve?"
 
 #: psynet/prescreen.py
 #, fuzzy

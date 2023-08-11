@@ -482,6 +482,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Morate odabrati odgovor!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Slažem se"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -490,6 +496,48 @@ msgid ""
 msgstr ""
 "Također, morate zanemariti pitanje postavljeno na sljedećoj stranici i "
 "upisati \"{ATTENTION_TEST_TWO_WORD}\" u okvir."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Potpuno se slažem"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "U potpunosti se ne slažem"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Ne slažem se"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Neutralan"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "ostalo"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Potpuno se slažem"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Uopće se ne slažem"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -520,6 +568,28 @@ msgid ""
 msgstr ""
 "Također, morate zanemariti pitanje postavljeno na sljedećoj stranici i "
 "upisati \"{ATTENTION_TEST_TWO_WORD}\" u okvir."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Istraživanje osobnosti identificiralo je karakteristične skupove ponašanja i"
+" kognitivne obrasce koji se razvijaju iz bioloških čimbenika i čimbenika "
+"okoline. Kako biste pokazali da obraćate pozornost na eksperiment, "
+"zanemarite donje pitanje i umjesto njega odaberite gumb \"Dalje\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Koja ti je omiljena boja?"
 
 #: psynet/prescreen.py
 #, fuzzy

@@ -482,6 +482,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Du må velge et svar!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Enig"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -490,6 +496,48 @@ msgid ""
 msgstr ""
 "Du må også ignorere spørsmålet som stilles på neste side, og skrive "
 "\"{ATTENTION_TEST_TWO_WORD}\" i boksen."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Helt enig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Helt uenig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Uenig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Nøytral"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Annet"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Helt enig"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Helt uenig"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -520,6 +568,28 @@ msgid ""
 msgstr ""
 "Du må også ignorere spørsmålet som stilles på neste side, og skrive "
 "\"{ATTENTION_TEST_TWO_WORD}\" i boksen."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Forskning på personlighet har identifisert karakteristiske atferdsmønstre og"
+" kognitive mønstre som utvikles på bakgrunn av biologiske og miljømessige "
+"faktorer. For å vise at du følger med på eksperimentet, kan du ignorere "
+"spørsmålet nedenfor og klikke på \"Neste\"-knappen i stedet."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Hva er favorittfargen din?"
 
 #: psynet/prescreen.py
 #, fuzzy

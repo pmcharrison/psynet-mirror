@@ -472,12 +472,60 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "答えを選択してください"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "同意"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
 "Also, you must ignore the question asked in the next page, and type "
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "また、次のページで聞かれる質問は無視して、「{ATTENTION_TEST_TWO_WORD}」と入力してください。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "まったく同感"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "まったく同意できない"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "反対"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "ニュートラル"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "その他"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "強く同意"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "強く反対"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -506,6 +554,26 @@ msgid ""
 "Also, you must ignore the question asked in the next page, and type "
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "また、次のページで聞かれる質問は無視して、「{ATTENTION_TEST_TWO_WORD}」と入力してください。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"パーソナリティに関する研究では、生物学的および環境的要因から進化する、特徴的な一連の行動と認知パターンが特定されています。 "
+"実験に注意を払っていることを示すために、以下の質問は無視して、代わりに「次へ」ボタンを選択してください。"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "あなたの好きな色は何色ですか？"
 
 #: psynet/prescreen.py
 #, fuzzy

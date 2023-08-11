@@ -503,6 +503,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "¡Tiene que seleccionar una respuesta!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "De acuerdo"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -511,6 +517,48 @@ msgid ""
 msgstr ""
 "Además, debe ignorar la pregunta que se formula en la página siguiente y "
 "escribir \"{ATTENTION_TEST_TWO_WORD}\" en la casilla."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Completamente de acuerdo"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Completamente en desacuerdo"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "En desacuerdo"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Neutro"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Otros"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Totalmente de acuerdo"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Totalmente en desacuerdo"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -541,6 +589,29 @@ msgid ""
 msgstr ""
 "Además, debe ignorar la pregunta que se formula en la página siguiente y "
 "escribir \"{ATTENTION_TEST_TWO_WORD}\" en la casilla."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"La investigación sobre la personalidad ha identificado conjuntos "
+"característicos de comportamientos y patrones cognitivos que evolucionan a "
+"partir de factores biológicos y ambientales. Para demostrar que está "
+"prestando atención al experimento, ignore la pregunta siguiente y seleccione"
+" en su lugar el botón \"Siguiente\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "¿Cuál es su color favorito?"
 
 #: psynet/prescreen.py
 #, fuzzy

@@ -403,6 +403,38 @@ msgid "You need to select an answer!"
 msgstr ""
 
 #: psynet/prescreen.py
+msgid "Agree"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Completely agree"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Completely disagree"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Disagree"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Neutral"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Other"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Strongly agree"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "Strongly disagree"
+msgstr ""
+
+#: psynet/prescreen.py
 msgid "free_tapping_record_trial"
 msgstr ""
 
@@ -416,6 +448,20 @@ msgctxt "attention_test"
 msgid ""
 "Also, you must ignore the question asked in the next page, and type "
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
+msgstr ""
+
+#: psynet/prescreen.py
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+
+#: psynet/prescreen.py
+msgctxt "attention_test"
+msgid "What is your favourite color?"
 msgstr ""
 
 #: psynet/prescreen.py

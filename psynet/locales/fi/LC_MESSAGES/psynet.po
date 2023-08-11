@@ -503,6 +503,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Sinun on valittava vastaus!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Samaa mieltä"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -511,6 +517,48 @@ msgid ""
 msgstr ""
 "Sinun on myös jätettävä huomiotta seuraavalla sivulla esitetty kysymys ja "
 "kirjoitettava ruutuun \"{ATTENTION_TEST_TWO_WORD}\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Täysin samaa mieltä"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Täysin eri mieltä"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Eri mieltä"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Neutraali"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Muut"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Täysin samaa mieltä"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Täysin eri mieltä"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -541,6 +589,29 @@ msgid ""
 msgstr ""
 "Sinun on myös jätettävä huomiotta seuraavalla sivulla esitetty kysymys ja "
 "kirjoitettava ruutuun \"{ATTENTION_TEST_TWO_WORD}\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Persoonallisuutta koskevassa tutkimuksessa on tunnistettu "
+"käyttäytymismalleja ja kognitiivisia malleja, jotka kehittyvät biologisten "
+"ja ympäristötekijöiden perusteella. Osoittaaksesi, että kiinnität huomiota "
+"kokeeseen, jätä alla oleva kysymys huomiotta ja valitse sen sijaan Seuraava-"
+"painike."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Mikä on lempivärisi?"
 
 #: psynet/prescreen.py
 #, fuzzy

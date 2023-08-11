@@ -478,6 +478,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "אתה צריך לבחור תשובה!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "לְהַסכִּים"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -486,6 +492,48 @@ msgid ""
 msgstr ""
 "כמו כן, עליך להתעלם מהשאלה שנשאלה בעמוד הבא, ולהקליד "
 "\"{ATTENTION_TEST_TWO_WORD}\" בתיבה."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "מסכים לחלוטין"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "לא מסכים לחלוטין"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "לא מסכים"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "ניטראלי"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "אַחֵר"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "מסכים לחלוטין"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "מאוד לא מסכים"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -516,6 +564,27 @@ msgid ""
 msgstr ""
 "כמו כן, עליך להתעלם מהשאלה שנשאלה בעמוד הבא, ולהקליד "
 "\"{ATTENTION_TEST_TWO_WORD}\" בתיבה."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"מחקר על אישיות זיהה קבוצות אופייניות של התנהגויות ודפוסים קוגניטיביים "
+"המתפתחים מגורמים ביולוגיים וסביבתיים. כדי להראות שאתה שם לב לניסוי, אנא "
+"התעלם מהשאלה למטה ובחר במקום זאת בלחצן 'הבא'."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "מהו הצבע המועדף עליך?"
 
 #: psynet/prescreen.py
 #, fuzzy

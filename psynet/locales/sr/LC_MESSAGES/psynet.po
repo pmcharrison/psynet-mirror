@@ -482,6 +482,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Морате да изаберете одговор!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Договорити се"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -490,6 +496,48 @@ msgid ""
 msgstr ""
 "Такође, морате да занемарите питање постављено на следећој страници и "
 "укуцате „{ATTENTION_TEST_TWO_WORD}“ у оквир."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "У потпуности се слажем"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Потпуно се не слажем"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Не слазем се"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Неутрално"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Остало"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Потпуно се слажем"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Уопште се не слажем"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -520,6 +568,28 @@ msgid ""
 msgstr ""
 "Такође, морате да занемарите питање постављено на следећој страници и "
 "укуцате „{ATTENTION_TEST_TWO_WORD}“ у оквир."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Истраживање личности је идентификовало карактеристичне скупове понашања и "
+"когнитивних образаца који еволуирају из биолошких фактора и фактора околине."
+" Да бисте показали да обраћате пажњу на експеримент, занемарите питање испод"
+" и уместо тога изаберите дугме „Даље“."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Која је твоја омиљена боја?"
 
 #: psynet/prescreen.py
 #, fuzzy

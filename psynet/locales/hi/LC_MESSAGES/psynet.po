@@ -484,6 +484,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "आपको एक उत्तर चुनना होगा!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "सहमत"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -492,6 +498,48 @@ msgid ""
 msgstr ""
 "साथ ही, आपको अगले पृष्ठ में पूछे गए प्रश्न को अनदेखा करना होगा, और बॉक्स में"
 " \"{ATTENTION_TEST_TWO_WORD}\" टाइप करना होगा।"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "पूर्ण रूप से सहमत"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "पूर्णतः असहमत"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "असहमत"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "तटस्थ"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "अन्य"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "दृढ़तापूर्वक सहमत"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "दृढ़तापूर्वक असहमत"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -522,6 +570,28 @@ msgid ""
 msgstr ""
 "साथ ही, आपको अगले पृष्ठ में पूछे गए प्रश्न को अनदेखा करना होगा, और बॉक्स में"
 " \"{ATTENTION_TEST_TWO_WORD}\" टाइप करना होगा।"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"व्यक्तित्व पर शोध ने व्यवहार और संज्ञानात्मक पैटर्न के विशिष्ट सेटों की "
+"पहचान की है जो जैविक और पर्यावरणीय कारकों से विकसित होते हैं। यह दिखाने के "
+"लिए कि आप प्रयोग पर ध्यान दे रहे हैं, कृपया नीचे दिए गए प्रश्न को अनदेखा "
+"करें और इसके बजाय 'अगला' बटन चुनें।"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "अपने पसंदीदा रंग क्या है?"
 
 #: psynet/prescreen.py
 #, fuzzy

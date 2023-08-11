@@ -483,6 +483,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Reikia pasirinkti atsakymą!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Sutinku"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -491,6 +497,48 @@ msgid ""
 msgstr ""
 "Be to, turite nekreipti dėmesio į kitame puslapyje pateiktą klausimą ir į "
 "laukelį įrašyti \"{ATTENTION_TEST_TWO_WORD}\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Visiškai sutinku"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Visiškai nesutinku"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Nesutinku"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Neutralus"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Kita"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Visiškai sutinku"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Visiškai nesutinku"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -521,6 +569,28 @@ msgid ""
 msgstr ""
 "Be to, turite nekreipti dėmesio į kitame puslapyje pateiktą klausimą ir į "
 "laukelį įrašyti \"{ATTENTION_TEST_TWO_WORD}\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Atliekant asmenybės tyrimus nustatyti būdingi elgesio ir kognityvinių "
+"modelių rinkiniai, kurie išsivysto dėl biologinių ir aplinkos veiksnių. "
+"Norėdami parodyti, kad atkreipėte dėmesį į eksperimentą, ignoruokite toliau "
+"pateiktą klausimą ir vietoj jo pasirinkite mygtuką \"Toliau\"."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Kokia yra jūsų mėgstamiausia spalva?"
 
 #: psynet/prescreen.py
 #, fuzzy

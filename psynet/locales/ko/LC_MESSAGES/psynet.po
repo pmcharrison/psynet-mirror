@@ -472,12 +472,60 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "답을 선택해야 합니다!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "동의"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
 "Also, you must ignore the question asked in the next page, and type "
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "또한 다음 페이지에 표시되는 질문은 무시하고 상자에 \"{ATTENTION_TEST_TWO_WORD}\"를 입력해야 합니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "완전히 동의"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "완전히 동의하지 않음"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "동의하지 않음"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "중립"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "기타"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "적극 동의"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "강력히 동의하지 않음"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -506,6 +554,26 @@ msgid ""
 "Also, you must ignore the question asked in the next page, and type "
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "또한 다음 페이지에 표시되는 질문은 무시하고 상자에 \"{ATTENTION_TEST_TWO_WORD}\"를 입력해야 합니다."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"성격에 대한 연구를 통해 생물학적 및 환경적 요인에 따라 진화하는 행동과 인지 패턴의 특징이 밝혀졌습니다. 실험에 주의를 기울이고 있음을"
+" 표시하려면 아래 질문을 무시하고 대신 '다음' 버튼을 선택해 주세요."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "가장 좋아하는 색은 무엇인가요?"
 
 #: psynet/prescreen.py
 #, fuzzy

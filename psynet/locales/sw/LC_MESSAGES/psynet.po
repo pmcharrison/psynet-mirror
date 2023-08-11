@@ -482,6 +482,12 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Unahitaji kuchagua jibu!"
 
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Agree"
+msgstr "Kubali"
+
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgid ""
@@ -490,6 +496,48 @@ msgid ""
 msgstr ""
 "Pia, lazima upuuze swali lililoulizwa katika ukurasa unaofuata, na uandike "
 "\"{ATTENTION_TEST_TWO_WORD}\" kwenye kisanduku."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely agree"
+msgstr "Kubali kabisa"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Completely disagree"
+msgstr "Sikubaliani kabisa"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Disagree"
+msgstr "Usikubali"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Neutral"
+msgstr "Si upande wowote"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Other"
+msgstr "Nyingine"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly agree"
+msgstr "Kubali sana"
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgid "Strongly disagree"
+msgstr "Sikubaliani kabisa"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -520,6 +568,28 @@ msgid ""
 msgstr ""
 "Pia, lazima upuuze swali lililoulizwa katika ukurasa unaofuata, na uandike "
 "\"{ATTENTION_TEST_TWO_WORD}\" kwenye kisanduku."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid ""
+"Research on personality has identified characteristic sets of behaviours and"
+" cognitive patterns that evolve from biological and enviromental factors. To"
+" show that you are paying attention to the experiment, please ignore the "
+"question below and select the 'Next' button instead."
+msgstr ""
+"Utafiti kuhusu utu umebainisha seti bainifu za tabia na mifumo ya utambuzi "
+"ambayo hubadilika kutokana na sababu za kibiolojia na kimazingira. Ili "
+"kuonyesha kuwa unazingatia jaribio, tafadhali puuza swali lililo hapa chini "
+"na uchague kitufe cha 'Inayofuata' badala yake."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "attention_test"
+msgid "What is your favourite color?"
+msgstr "Ni rangi gani unayoipenda zaidi?"
 
 #: psynet/prescreen.py
 #, fuzzy
