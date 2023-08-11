@@ -477,7 +477,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Deve selezionare una risposta!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -492,43 +491,36 @@ msgstr ""
 "Inoltre, deve ignorare la domanda posta nella pagina successiva e digitare "
 "\"{ATTENTION_TEST_TWO_WORD}\" nella casella."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Completamente d'accordo"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Completamente in disaccordo"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Non sono d'accordo"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Neutrale"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Altro"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Fortemente d'accordo"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -564,7 +556,6 @@ msgstr ""
 "Inoltre, deve ignorare la domanda posta nella pagina successiva e digitare "
 "\"{ATTENTION_TEST_TWO_WORD}\" nella casella."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -579,7 +570,6 @@ msgstr ""
 "ambientali. Per dimostrare che sta prestando attenzione all'esperimento, "
 "ignori la domanda sottostante e selezioni invece il pulsante 'Avanti'."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -858,6 +848,16 @@ msgstr ""
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Selezioni l'immagine che corrisponde alla parola che ha sentito."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Ogni parola scomparirà in {HIDE_AFTER} secondi e vedrà un totale di "
+"{N_TRIALS} parole."
 
 #: psynet/prescreen.py
 #, fuzzy

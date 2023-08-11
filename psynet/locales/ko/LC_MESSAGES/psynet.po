@@ -472,7 +472,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "답을 선택해야 합니다!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -485,43 +484,36 @@ msgid ""
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "또한 다음 페이지에 표시되는 질문은 무시하고 상자에 \"{ATTENTION_TEST_TWO_WORD}\"를 입력해야 합니다."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "완전히 동의"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "완전히 동의하지 않음"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "동의하지 않음"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "중립"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "기타"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "적극 동의"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -555,7 +547,6 @@ msgid ""
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "또한 다음 페이지에 표시되는 질문은 무시하고 상자에 \"{ATTENTION_TEST_TWO_WORD}\"를 입력해야 합니다."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -568,7 +559,6 @@ msgstr ""
 "성격에 대한 연구를 통해 생물학적 및 환경적 요인에 따라 진화하는 행동과 인지 패턴의 특징이 밝혀졌습니다. 실험에 주의를 기울이고 있음을"
 " 표시하려면 아래 질문을 무시하고 대신 '다음' 버튼을 선택해 주세요."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -823,6 +813,14 @@ msgstr "여러분의 임무는 각 단어를 올바른 그림과 일치시키는
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "들은 단어와 일치하는 그림을 선택합니다."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr "각 단어는 {HIDE_AFTER}초 후에 사라지고 총 {N_TRIALS}개의 단어가 표시됩니다."
 
 #: psynet/prescreen.py
 #, fuzzy

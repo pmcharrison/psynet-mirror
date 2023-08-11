@@ -478,7 +478,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "אתה צריך לבחור תשובה!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -493,43 +492,36 @@ msgstr ""
 "כמו כן, עליך להתעלם מהשאלה שנשאלה בעמוד הבא, ולהקליד "
 "\"{ATTENTION_TEST_TWO_WORD}\" בתיבה."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "מסכים לחלוטין"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "לא מסכים לחלוטין"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "לא מסכים"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "ניטראלי"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "אַחֵר"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "מסכים לחלוטין"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -565,7 +557,6 @@ msgstr ""
 "כמו כן, עליך להתעלם מהשאלה שנשאלה בעמוד הבא, ולהקליד "
 "\"{ATTENTION_TEST_TWO_WORD}\" בתיבה."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -579,7 +570,6 @@ msgstr ""
 "המתפתחים מגורמים ביולוגיים וסביבתיים. כדי להראות שאתה שם לב לניסוי, אנא "
 "התעלם מהשאלה למטה ובחר במקום זאת בלחצן 'הבא'."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -838,6 +828,14 @@ msgstr "המשימה שלך היא להתאים לכל מילה את התמונ�
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "בחר את התמונה המתאימה למילה ששמעת."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr "כל מילה תיעלם תוך {HIDE_AFTER} שניות ותראה בסך הכל {N_TRIALS} מילים."
 
 #: psynet/prescreen.py
 #, fuzzy

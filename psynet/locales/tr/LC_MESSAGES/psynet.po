@@ -433,7 +433,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Bir cevap seçmeniz gerekiyor!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -448,43 +447,36 @@ msgstr ""
 "Ayrıca, bir sonraki sayfada sorulan soruyu görmezden gelmeli ve kutuya "
 "\"{ATTENTION_TEST_TWO_WORD}\" yazmalısınız."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Tamamen katılıyorum"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Tamamen katılmıyorum"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Katılmıyorum"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Nötr"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Diğer"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Kesinlikle katılıyorum"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -520,7 +512,6 @@ msgstr ""
 "Ayrıca, bir sonraki sayfada sorulan soruyu görmezden gelmeli ve kutuya "
 "\"{ATTENTION_TEST_TWO_WORD}\" yazmalısınız."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -535,7 +526,6 @@ msgstr ""
 "tanımlamıştır. Deneye dikkat ettiğinizi göstermek için lütfen aşağıdaki "
 "soruyu görmezden gelin ve bunun yerine 'İleri' düğmesini seçin."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -808,6 +798,16 @@ msgstr "Göreviniz her kelimeyi doğru resimle eşleştirmek."
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Duyduğunuz sözcükle eşleşen resmi seçin."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Her kelime {HIDE_AFTER} saniye içinde kaybolacak ve toplam {N_TRIALS} kelime"
+" göreceksiniz."
 
 #: psynet/prescreen.py
 #, fuzzy

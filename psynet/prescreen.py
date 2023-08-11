@@ -1189,7 +1189,7 @@ class LextaleTrial(StaticTrial):
     hide_after = 1.0
 
     def show_trial(self, experiment, participant):
-        _, _p = get_translator(self.locale)
+        _, _p = get_translator(self.trial_maker.locale)
         text_1 = _p("lextale_trial", "Does this word exist?")
         text_2 = _p("lextale_trial", "yes")
         text_3 = _p("lextale_trial", "no")
@@ -1264,11 +1264,13 @@ class LexTaleTest(StaticTrialMaker):
         hide_after: float = 1,
         n_trials: int = 12,
         trial_class=LextaleTrial,
+        locale=DEFAULT_LOCALE,
     ):
         self.hide_after = hide_after
         self.n_trials = n_trials
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
+        self.locale = locale
 
         super().__init__(
             id_=label,
@@ -1292,7 +1294,7 @@ class LexTaleTest(StaticTrialMaker):
         text_3 = _p(
             "lextale_test", "Your task is to decide whether the word exists not."
         )
-        text_4 = _(
+        text_4 = _p(
             "lextale_test",
             "Each word will disappear in {HIDE_AFTER} seconds and you will see a total of {N_TRIALS} words.",
         ).format(HIDE_AFTER=self.hide_after, N_TRIALS=self.n_trials)
@@ -1378,12 +1380,9 @@ class AttentionTest(Module):
         label: str = "attention_test",
         pages: int = 2,
         fail_on: str = "attention_test_1",
-        prompt_1_explanation: str = """
-            Research on personality has identified characteristic sets of behaviours and cognitive patterns that
-            evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
-            please ignore the question below and select the 'Next' button instead.""",
-        prompt_1_main: str = "As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient.",
-        prompt_2="What is your favourite color?",
+        prompt_1_explanation: str = "",
+        prompt_1_main: str = "",
+        prompt_2="",
         attention_test_2_word="attention",
         time_estimate_per_trial: float = 5.0,
         locale=DEFAULT_LOCALE,
@@ -1405,13 +1404,16 @@ class AttentionTest(Module):
         self.locale = locale
 
         _, _p = get_translator(self.locale)
-        prompt_1_explanation = _p("attention_test", prompt_1_explanation)
+        prompt_1_explanation = _p(
+            "attention_test",
+            "Research on personality has identified characteristic sets of behaviours and cognitive patterns that evolve from biological and enviromental factors. To show that you are paying attention to the experiment, please ignore the question below and select the 'Next' button instead.",
+        )
         prompt_1_next_page = _p(
             "attention_test",
             'Also, you must ignore the question asked in the next page, and type "{ATTENTION_TEST_TWO_WORD}" in the box.',
         ).format(ATTENTION_TEST_TWO_WORD=attention_test_2_word)
-        self.prompt_1_text = f'{prompt_1_explanation}{prompt_1_next_page + "<br><br>" + prompt_1_main if self.pages == 2 else ""}'
-        self.prompt_2 = prompt_1_next_page = _p("attention_test", prompt_2)
+        self.prompt_1_text = f'{prompt_1_explanation} {prompt_1_next_page + "<br><br>" + prompt_1_main if self.pages == 2 else ""}'
+        self.prompt_2 = _p("attention_test", "What is your favourite color?")
         self.elts = join(
             ModularPage(
                 label="attention_test_1",
@@ -1419,14 +1421,14 @@ class AttentionTest(Module):
                 control=RadioButtonControl(
                     [1, 2, 3, 4, 5, 6, 7, 0],
                     [
-                        Markup("Completely disagree"),
-                        Markup("Strongly disagree"),
-                        Markup("Disagree"),
-                        Markup("Neutral"),
-                        Markup("Agree"),
-                        Markup("Strongly agree"),
-                        Markup("Completely agree"),
-                        Markup("Other"),
+                        Markup(_("Completely disagree")),
+                        Markup(_("Strongly disagree")),
+                        Markup(_("Disagree")),
+                        Markup(_("Neutral")),
+                        Markup(_("Agree")),
+                        Markup(_("Strongly agree")),
+                        Markup(_("Completely agree")),
+                        Markup(_("Other")),
                     ],
                     name=self.label,
                     arrange_vertically=True,

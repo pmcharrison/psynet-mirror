@@ -501,7 +501,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Sie müssen eine Antwort auswählen!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -516,43 +515,36 @@ msgstr ""
 "Außerdem müssen Sie die auf der nächsten Seite gestellte Frage ignorieren "
 "und \"{ATTENTION_TEST_TWO_WORD}\" in das Feld eingeben."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Völlig einverstanden"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Völlig anderer Meinung"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Stimmen Sie nicht zu"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Neutral"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Andere"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Starke Zustimmung"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -588,7 +580,6 @@ msgstr ""
 "Außerdem müssen Sie die auf der nächsten Seite gestellte Frage ignorieren "
 "und \"{ATTENTION_TEST_TWO_WORD}\" in das Feld eingeben."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -604,7 +595,6 @@ msgstr ""
 "Aufmerksamkeit schenken, ignorieren Sie bitte die folgende Frage und klicken"
 " Sie stattdessen auf die Schaltfläche \"Weiter\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -881,6 +871,16 @@ msgstr "Ihre Aufgabe ist es, jedes Wort dem richtigen Bild zuzuordnen."
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Wählen Sie das Bild aus, das zu dem gehörten Wort passt."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Jedes Wort wird in {HIDE_AFTER} Sekunden verschwinden und Sie werden "
+"insgesamt {N_TRIALS} Wörter sehen."
 
 #: psynet/prescreen.py
 #, fuzzy

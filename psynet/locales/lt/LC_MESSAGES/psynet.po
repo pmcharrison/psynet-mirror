@@ -483,7 +483,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Reikia pasirinkti atsakymą!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -498,43 +497,36 @@ msgstr ""
 "Be to, turite nekreipti dėmesio į kitame puslapyje pateiktą klausimą ir į "
 "laukelį įrašyti \"{ATTENTION_TEST_TWO_WORD}\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Visiškai sutinku"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Visiškai nesutinku"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Nesutinku"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Neutralus"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Kita"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Visiškai sutinku"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -570,7 +562,6 @@ msgstr ""
 "Be to, turite nekreipti dėmesio į kitame puslapyje pateiktą klausimą ir į "
 "laukelį įrašyti \"{ATTENTION_TEST_TWO_WORD}\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -585,7 +576,6 @@ msgstr ""
 "Norėdami parodyti, kad atkreipėte dėmesį į eksperimentą, ignoruokite toliau "
 "pateiktą klausimą ir vietoj jo pasirinkite mygtuką \"Toliau\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -860,6 +850,16 @@ msgstr "Jūsų užduotis - suderinti kiekvieną žodį su tinkamu paveikslėliu.
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Pasirinkite paveikslėlį, atitinkantį išgirstą žodį."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Kiekvienas žodis išnyks po {HIDE_AFTER} sekundžių ir iš viso pamatysite "
+"{N_TRIALS} žodžių."
 
 #: psynet/prescreen.py
 #, fuzzy

@@ -472,7 +472,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "答えを選択してください"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -485,43 +484,36 @@ msgid ""
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "また、次のページで聞かれる質問は無視して、「{ATTENTION_TEST_TWO_WORD}」と入力してください。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "まったく同感"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "まったく同意できない"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "反対"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "ニュートラル"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "その他"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "強く同意"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -555,7 +547,6 @@ msgid ""
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "また、次のページで聞かれる質問は無視して、「{ATTENTION_TEST_TWO_WORD}」と入力してください。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -568,7 +559,6 @@ msgstr ""
 "パーソナリティに関する研究では、生物学的および環境的要因から進化する、特徴的な一連の行動と認知パターンが特定されています。 "
 "実験に注意を払っていることを示すために、以下の質問は無視して、代わりに「次へ」ボタンを選択してください。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -822,6 +812,14 @@ msgstr "各単語を正しい絵に一致させることがあなたの課題で
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "聞いた単語と同じ絵を選んでください。"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr "各単語は{HIDE_AFTER}秒で消え、合計{N_TRIALS}個の単語が表示されます。"
 
 #: psynet/prescreen.py
 #, fuzzy

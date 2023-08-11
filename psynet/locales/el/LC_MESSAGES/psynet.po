@@ -483,7 +483,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Πρέπει να επιλέξετε μια απάντηση!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -498,43 +497,36 @@ msgstr ""
 "Επίσης, πρέπει να αγνοήσετε την ερώτηση που τίθεται στην επόμενη σελίδα και "
 "να πληκτρολογήσετε \"{ATTENTION_TEST_TWO_WORD}\" στο πλαίσιο."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Συμφωνώ απόλυτα"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Διαφωνώ απόλυτα"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Διαφωνώ"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Ουδέτερη"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Άλλα"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Συμφωνώ απόλυτα"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -570,7 +562,6 @@ msgstr ""
 "Επίσης, πρέπει να αγνοήσετε την ερώτηση που τίθεται στην επόμενη σελίδα και "
 "να πληκτρολογήσετε \"{ATTENTION_TEST_TWO_WORD}\" στο πλαίσιο."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -585,7 +576,6 @@ msgstr ""
 "περιβαλλοντικούς παράγοντες. Για να δείξετε ότι δίνετε προσοχή στο πείραμα, "
 "αγνοήστε την παρακάτω ερώτηση και επιλέξτε το κουμπί \"Επόμενο\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -863,6 +853,16 @@ msgstr "Ο στόχος σας είναι να αντιστοιχίσετε κά
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Επιλέξτε την εικόνα που ταιριάζει με τη λέξη που ακούσατε."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Κάθε λέξη θα εξαφανιστεί σε {HIDE_AFTER} δευτερόλεπτα και θα δείτε συνολικά "
+"{N_TRIALS} λέξεις."
 
 #: psynet/prescreen.py
 #, fuzzy

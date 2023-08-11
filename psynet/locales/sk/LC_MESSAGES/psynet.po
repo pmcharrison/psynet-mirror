@@ -482,7 +482,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Musíte vybrať odpoveď!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -497,43 +496,36 @@ msgstr ""
 "Taktiež musíte ignorovať otázku položenú na nasledujúcej strane a do poľa "
 "napíšte \"{ATTENTION_TEST_TWO_WORD}\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Úplne súhlasím"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Úplne nesúhlasím"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Nesúhlasím"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Neutrálne"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Iné"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Rozhodne súhlasím"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -569,7 +561,6 @@ msgstr ""
 "Taktiež musíte ignorovať otázku položenú na nasledujúcej strane a do poľa "
 "napíšte \"{ATTENTION_TEST_TWO_WORD}\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -585,7 +576,6 @@ msgstr ""
 "experimentu, ignorujte nasledujúcu otázku a namiesto nej vyberte tlačidlo "
 "\"Ďalej\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -851,6 +841,15 @@ msgstr "Vašou úlohou je priradiť ku každému slovu správny obrázok."
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Vyberte obrázok, ktorý zodpovedá slovu, ktoré ste počuli."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Každé slovo zmizne za {HIDE_AFTER} sekúnd a celkovo uvidíte {N_TRIALS} slov."
 
 #: psynet/prescreen.py
 #, fuzzy

@@ -485,7 +485,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Anda perlu memilih jawapan!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -500,43 +499,36 @@ msgstr ""
 "Selain itu, anda mesti mengabaikan soalan yang ditanya dalam halaman "
 "seterusnya dan taip \"{ATTENTION_TEST_TWO_WORD}\" dalam kotak."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Sangat bersetuju"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Tidak bersetuju sama sekali"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Tidak bersetuju"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Berkecuali"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Lain-lain"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Sangat bersetuju"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -572,7 +564,6 @@ msgstr ""
 "Selain itu, anda mesti mengabaikan soalan yang ditanya dalam halaman "
 "seterusnya dan taip \"{ATTENTION_TEST_TWO_WORD}\" dalam kotak."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -587,7 +578,6 @@ msgstr ""
 " Untuk menunjukkan bahawa anda memberi perhatian kepada percubaan, sila "
 "abaikan soalan di bawah dan pilih butang 'Seterusnya'."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -872,6 +862,16 @@ msgstr ""
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Pilih gambar yang sepadan dengan perkataan yang anda dengar."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Setiap perkataan akan hilang dalam {HIDE_AFTER} saat dan anda akan melihat "
+"sejumlah {N_TRIALS} perkataan."
 
 #: psynet/prescreen.py
 #, fuzzy

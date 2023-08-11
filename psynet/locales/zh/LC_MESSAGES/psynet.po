@@ -422,7 +422,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "您需要选择一个答案！"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -435,43 +434,36 @@ msgid ""
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "此外，您必须忽略下一页提出的问题，并在方框中输入\"{ATTENTION_TEST_TWO_WORD}\"。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "完全同意"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "完全不同意"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "不同意"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "中性"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "其他"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "非常同意"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -505,7 +497,6 @@ msgid ""
 "\"{ATTENTION_TEST_TWO_WORD}\" in the box."
 msgstr "此外，您必须忽略下一页提出的问题，并在方框中输入\"{ATTENTION_TEST_TWO_WORD}\"。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -517,7 +508,6 @@ msgid ""
 msgstr ""
 "有关人格的研究已经确定了由生物和环境因素演变而来的行为和认知模式的特征集。 为了表示您对实验的关注，请忽略下面的问题，并选择 \"下一步 \"按钮。"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -771,6 +761,14 @@ msgstr "您的任务是将每个单词与正确的图片配对。"
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "选择与您听到的单词相匹配的图片。"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr "每个单词将在 {HIDE_AFTER} 秒后消失，您将看到总共 {N_TRIALS} 个单词。"
 
 #: psynet/prescreen.py
 #, fuzzy

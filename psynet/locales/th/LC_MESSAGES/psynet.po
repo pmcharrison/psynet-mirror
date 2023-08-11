@@ -480,7 +480,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "คุณต้องเลือกคำตอบ!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -495,43 +494,36 @@ msgstr ""
 "นอกจากนี้ คุณต้องเพิกเฉยต่อคำถามที่ถามในหน้าถัดไป และพิมพ์ "
 "\"{ATTENTION_TEST_TWO_WORD}\" ในช่อง"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "เห็นด้วยอย่างยิ่ง"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "ไม่เห็นด้วยโดยสิ้นเชิง"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "ไม่เห็นด้วย"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "เป็นกลาง"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "อื่น"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "เห็นด้วยอย่างยิ่ง"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -567,7 +559,6 @@ msgstr ""
 "นอกจากนี้ คุณต้องเพิกเฉยต่อคำถามที่ถามในหน้าถัดไป และพิมพ์ "
 "\"{ATTENTION_TEST_TWO_WORD}\" ในช่อง"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -581,7 +572,6 @@ msgstr ""
 " เพื่อแสดงว่าคุณกำลังให้ความสนใจกับการทดสอบ "
 "โปรดอย่าสนใจคำถามด้านล่างและเลือกปุ่ม 'ถัดไป' แทน"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -844,6 +834,15 @@ msgstr "งานของคุณคือจับคู่แต่ละค
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "เลือกภาพที่ตรงกับคำที่คุณได้ยิน"
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"แต่ละคำจะหายไปใน {HIDE_AFTER} วินาที และคุณจะเห็นทั้งหมด {N_TRIALS} คำ"
 
 #: psynet/prescreen.py
 #, fuzzy

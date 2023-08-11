@@ -439,10 +439,6 @@ msgid "free_tapping_record_trial"
 msgstr ""
 
 #: psynet/prescreen.py
-msgid "lextale_test"
-msgstr ""
-
-#: psynet/prescreen.py
 #, python-brace-format
 msgctxt "attention_test"
 msgid ""
@@ -667,6 +663,14 @@ msgstr ""
 #: psynet/prescreen.py
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
+msgstr ""
+
+#: psynet/prescreen.py
+#, python-brace-format
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
 msgstr ""
 
 #: psynet/prescreen.py

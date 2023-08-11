@@ -483,7 +483,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Bạn cần chọn một câu trả lời!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -498,43 +497,36 @@ msgstr ""
 "Ngoài ra, bạn phải bỏ qua câu hỏi ở trang tiếp theo và nhập "
 "\"{ATTENTION_TEST_TWO_WORD}\" vào hộp."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Hoàn toàn đồng ý"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Hoàn toàn không đồng ý"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Không đồng ý"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Trung lập"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Khác"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Hoàn toàn đồng ý"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -570,7 +562,6 @@ msgstr ""
 "Ngoài ra, bạn phải bỏ qua câu hỏi ở trang tiếp theo và nhập "
 "\"{ATTENTION_TEST_TWO_WORD}\" vào hộp."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -585,7 +576,6 @@ msgstr ""
 " bạn đang chú ý đến thử nghiệm, vui lòng bỏ qua câu hỏi bên dưới và chọn nút"
 " 'Tiếp theo' thay thế."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -858,6 +848,16 @@ msgstr "Nhiệm vụ của bạn là nối từng từ với hình ảnh chính 
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Chọn hình ảnh phù hợp với từ mà bạn đã nghe."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Mỗi từ sẽ biến mất sau {HIDE_AFTER} giây và bạn sẽ thấy tổng cộng {N_TRIALS}"
+" từ."
 
 #: psynet/prescreen.py
 #, fuzzy

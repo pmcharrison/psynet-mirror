@@ -490,7 +490,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Kailangan mong pumili ng sagot!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -505,43 +504,36 @@ msgstr ""
 "Gayundin, dapat mong balewalain ang tanong na itinanong sa susunod na "
 "pahina, at i-type ang \"{ATTENTION_TEST_TWO_WORD}\" sa kahon."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Ganap na sumasang-ayon"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Ganap na hindi sumasang-ayon"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Hindi sumasang-ayon"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Neutral"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Iba pa"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Lubos na sumasang-ayon"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -577,7 +569,6 @@ msgstr ""
 "Gayundin, dapat mong balewalain ang tanong na itinanong sa susunod na "
 "pahina, at i-type ang \"{ATTENTION_TEST_TWO_WORD}\" sa kahon."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -593,7 +584,6 @@ msgstr ""
 "eksperimento, mangyaring huwag pansinin ang tanong sa ibaba at piliin sa "
 "halip ang 'Next' button."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -869,6 +859,16 @@ msgstr "Ang iyong gawain ay itugma ang bawat salita sa tamang larawan."
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Piliin ang larawan na tumutugma sa salita na iyong narinig."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Mawawala ang bawat salita sa loob ng {HIDE_AFTER} segundo at makakakita ka "
+"ng kabuuang {N_TRIALS} na salita."
 
 #: psynet/prescreen.py
 #, fuzzy

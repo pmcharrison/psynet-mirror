@@ -503,7 +503,6 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "Sinun on valittava vastaus!"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Agree"
@@ -518,43 +517,36 @@ msgstr ""
 "Sinun on myös jätettävä huomiotta seuraavalla sivulla esitetty kysymys ja "
 "kirjoitettava ruutuun \"{ATTENTION_TEST_TWO_WORD}\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely agree"
 msgstr "Täysin samaa mieltä"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Completely disagree"
 msgstr "Täysin eri mieltä"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Disagree"
 msgstr "Eri mieltä"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Neutral"
 msgstr "Neutraali"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Other"
 msgstr "Muut"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly agree"
 msgstr "Täysin samaa mieltä"
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgid "Strongly disagree"
@@ -590,7 +582,6 @@ msgstr ""
 "Sinun on myös jätettävä huomiotta seuraavalla sivulla esitetty kysymys ja "
 "kirjoitettava ruutuun \"{ATTENTION_TEST_TWO_WORD}\"."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -606,7 +597,6 @@ msgstr ""
 "kokeeseen, jätä alla oleva kysymys huomiotta ja valitse sen sijaan Seuraava-"
 "painike."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "attention_test"
@@ -870,6 +860,16 @@ msgstr "Tehtävänäsi on yhdistää jokainen sana oikeaan kuvaan."
 msgctxt "language_vocabulary_trial"
 msgid "Select the picture that matches the word that you heard."
 msgstr "Valitse kuva, joka vastaa kuulemaasi sanaa."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "lextale_test"
+msgid ""
+"Each word will disappear in {HIDE_AFTER} seconds and you will see a total of"
+" {N_TRIALS} words."
+msgstr ""
+"Jokainen sana katoaa {HIDE_AFTER} sekunnissa, ja näet yhteensä {N_TRIALS} "
+"sanaa."
 
 #: psynet/prescreen.py
 #, fuzzy
