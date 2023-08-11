@@ -49,7 +49,9 @@ class REPPVolumeCalibration(Module):
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
         min_time_on_calibration_page: float = 5.0,
         time_estimate_for_calibration_page: float = 10.0,
+        locale: str = DEFAULT_LOCALE,
     ):
+        self.locale = locale
         super().__init__(
             label,
             join(
@@ -254,13 +256,16 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
         min_time_on_calibration_page: float = 5.0,
         time_estimate_for_calibration_page: float = 10.0,
+        locale: str = DEFAULT_LOCALE,
     ):
         super().__init__(
             label,
             materials_url,
             min_time_on_calibration_page,
             time_estimate_for_calibration_page,
+            locale,
         )
+        self.locale = locale
 
     def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
@@ -310,7 +315,9 @@ class REPPTappingCalibration(Module):
         time_estimate_per_trial: float = 10.0,
         min_time_before_submitting: float = 5.0,
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
+        locale: str = DEFAULT_LOCALE,
     ):
+        self.locale = locale
         super().__init__(
             label,
             join(
@@ -738,7 +745,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
     def show_trial(self, experiment, participant):
-        _, _p = get_translator(self.locale)
+        _, _p = get_translator(self.trial_maker.locale)
         text_1 = _p("record_markers_trial", "Recording test")
         text_2 = _p(
             "record_markers_trial",
@@ -785,7 +792,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         )
 
     def show_feedback(self, experiment, participant):
-        _, _p = get_translator(self.locale)
+        _, _p = get_translator(self.trial_maker.locale)
         text_1 = _p(
             "record_markers_trial", "The recording quality of your laptop is not good"
         )
