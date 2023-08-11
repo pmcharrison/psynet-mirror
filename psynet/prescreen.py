@@ -1022,7 +1022,6 @@ class REPPMarkersTest(StaticTrialMaker):
 
 class LanguageVocabularyTrial(StaticTrial):
     time_estimate = None
-    locale = DEFAULT_LOCALE
 
     def finalize_definition(self, definition, experiment, participant):
         indices = range(4)
