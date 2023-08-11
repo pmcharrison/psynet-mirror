@@ -70,7 +70,7 @@ If you want to be more verbose, you can also write:
         locale, module="experiment", locales_dir=os.path.abspath("locales")
     )
 
-You should mainly use mainly use ``pgettext`` as it tell you (the programmer) and the translator more precisely in which context the translation occurs. It helps to disambiguate between possible translations.
+You should mainly use ``pgettext`` as it tells you (the programmer) and the translator more precisely in which context the translation occurs. It helps to disambiguate between possible translations.
 
 The only case where you should use ``gettext`` is when you have a string that is used in multiple contexts. For example, if you have a string that is used in multiple pages (e.g., ``_('Press "Next" to continue.')``), you should use ``gettext``.
 
