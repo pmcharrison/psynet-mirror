@@ -764,6 +764,12 @@ msgstr ""
 "İşaret parmağınızı kullanarak dizüstü bilgisayarınızın yüzeyine dokunun."
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording."
+msgstr "Kayıttaki {NUM_RESP_ONSETS_DETECTED} dokunuşlarını tespit edebiliriz."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."

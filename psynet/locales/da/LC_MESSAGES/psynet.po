@@ -813,6 +813,13 @@ msgid "Tap on the surface of your laptop using your index finger."
 msgstr "Bank på overfladen af din laptop med din pegefinger."
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording."
+msgstr ""
+"Vi kunne registrere {NUM_RESP_ONSETS_DETECTED} aflytninger i optagelsen."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."

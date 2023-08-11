@@ -817,6 +817,12 @@ msgid "Tap on the surface of your laptop using your index finger."
 msgstr "अपनी तर्जनी का उपयोग करके अपने लैपटॉप की सतह पर टैप करें।"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording."
+msgstr "हम रिकॉर्डिंग में {NUM_RESP_ONSETS_DETECTED} टैप का पता लगा सके।"
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."

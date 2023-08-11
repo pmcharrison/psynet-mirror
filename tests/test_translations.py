@@ -52,5 +52,8 @@ def test_run():
         "TERMINATION_TIME": 120,
         "AGE": 12,
         "HIDE_AFTER": 2,
+        "N_TRIALS": 2,
+        "NUM_RESP_ONSETS_DETECTED": 2,
+        "ATTENTION_TEST_TWO_WORD": "attention",
     }
     check_translations(variable_placeholders=VARIABLE_PLACEHOLDERS)

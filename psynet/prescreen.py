@@ -516,7 +516,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
         else:
             _, _p = get_translator(self.trial_maker.locale)
             text_1 = _p("free_tapping_record_trial", "Good!")
-            text_2 = _(
+            text_2 = _p(
                 "free_tapping_record_trial",
                 "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording.",
             ).format(NUM_RESP_ONSETS_DETECTED=num_resp_onsets_detected)

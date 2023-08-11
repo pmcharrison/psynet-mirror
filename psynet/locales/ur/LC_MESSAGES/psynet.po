@@ -816,6 +816,12 @@ msgstr ""
 "اپنی شہادت کی انگلی کا استعمال کرتے ہوئے اپنے لیپ ٹاپ کی سطح پر ٹیپ کریں۔"
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording."
+msgstr "ہم ریکارڈنگ میں {NUM_RESP_ONSETS_DETECTED} ٹیپس کا پتہ لگا سکتے ہیں۔"
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."

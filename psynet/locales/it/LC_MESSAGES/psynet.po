@@ -813,6 +813,14 @@ msgstr ""
 "Picchietti sulla superficie del computer portatile usando il dito indice."
 
 #: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "free_tapping_record_trial"
+msgid "We could detect {NUM_RESP_ONSETS_DETECTED} taps in the recording."
+msgstr ""
+"Abbiamo potuto rilevare {NUM_RESP_ONSETS_DETECTED} spunti nella "
+"registrazione."
+
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
