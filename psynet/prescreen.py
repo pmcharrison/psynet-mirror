@@ -1106,10 +1106,12 @@ class LanguageVocabularyTest(StaticTrialMaker):
         performance_threshold: int = 6,
         n_trials: int = 7,
         trial_class=LanguageVocabularyTrial,
+        locale=DEFAULT_LOCALE,
     ):
         self.media_url = media_url
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
+        self.locale = locale
 
         super().__init__(
             id_=label,
