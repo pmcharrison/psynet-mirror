@@ -1320,7 +1320,19 @@
                     }
                 };
 
+                psynet.processingResponse = false;
+
                 psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
+                    if (!psynet.pageLoaded) {
+                        psynet.alert(
+                            "{{ pgettext("timeline_problem", "Please wait for the page to load.") }} {{ pgettext("timeline_problem", "Try again in a couple of seconds.") }}"
+                        )
+                        return false;
+                    }
+                    if (psynet.processingResponse) {
+                        return false;
+                    }
+                    psynet.processingResponse = true;
                     // rawAnswer, metadata, and blobs default to psynet.response.staged if they
                     // are not provided explicitly.
                     //
@@ -1338,6 +1350,7 @@
                         psynet.removeBeforeUnloadEventListener();
                     {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
+                    psynet.processingResponse = false;
                     return passedValidation
                 };
 

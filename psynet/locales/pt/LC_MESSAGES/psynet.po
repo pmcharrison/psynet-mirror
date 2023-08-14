@@ -489,7 +489,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Escreva o número na imagem."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -3025,6 +3024,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Em caso de problema, tente o seguinte:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Aguarde que a página seja carregada."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3036,6 +3042,13 @@ msgstr "Recarregue a página."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "O problema que está a ter."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Tente novamente dentro de alguns segundos."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

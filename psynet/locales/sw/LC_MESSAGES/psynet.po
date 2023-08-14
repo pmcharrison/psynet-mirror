@@ -488,7 +488,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Andika nambari kwenye picha."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -2974,6 +2973,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Katika kesi ya shida, jaribu yafuatayo:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Tafadhali subiri ukurasa upakie."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2985,6 +2991,13 @@ msgstr "Pakia upya ukurasa."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Tatizo unalokumbana nalo."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Jaribu tena baada ya sekunde chache."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
