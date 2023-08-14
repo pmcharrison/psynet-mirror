@@ -509,7 +509,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "Kirjoita kuvassa oleva numero ylös."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -3015,6 +3014,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Jos ongelma ilmenee, kokeile seuraavaa:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Odota, että sivu latautuu."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3026,6 +3032,13 @@ msgstr "Lataa sivu uudelleen."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Ongelmasi."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Yritä uudelleen parin sekunnin kuluttua."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -478,7 +478,6 @@ msgctxt "color_blindnes_test"
 msgid "Write down the number in the image."
 msgstr "이미지에 숫자를 적습니다."
 
-#. ""
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
@@ -2729,6 +2728,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "문제가 있는 경우 다음을 시도해 보세요:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "페이지가 로드될 때까지 기다려주세요."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2740,6 +2746,13 @@ msgstr "페이지를 새로고침합니다."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "발생한 문제."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "몇 초 후에 다시 시도하세요."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
