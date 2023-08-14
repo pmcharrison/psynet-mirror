@@ -548,13 +548,43 @@ msgstr "free_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "granit"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "kość słoniowa"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "magenta"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "bordowy"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "marynarka"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "turkus"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -826,6 +856,13 @@ msgstr "Mogliśmy wykryć {NUM_RESP_ONSETS_DETECTED} kranów w nagraniu."
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Pańskie stukanie było złe..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Który dźwięk zawiera ukryty sygnał dźwiękowy - 1, 2 czy 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3705,7 +3742,6 @@ msgstr ""
 "W przypadku wystąpienia problemu, proszę spróbować wykonać następujące "
 "czynności:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3724,7 +3760,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problem, którego Państwo doświadczają."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

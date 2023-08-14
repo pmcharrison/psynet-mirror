@@ -439,6 +439,30 @@ msgid "free_tapping_record_trial"
 msgstr ""
 
 #: psynet/prescreen.py
+msgid "granite"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "ivory"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "magenta"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "maroon"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "navy"
+msgstr ""
+
+#: psynet/prescreen.py
+msgid "turquoise"
+msgstr ""
+
+#: psynet/prescreen.py
 #, python-brace-format
 msgctxt "attention_test"
 msgid ""
@@ -644,6 +668,11 @@ msgstr ""
 #: psynet/prescreen.py
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
+msgstr ""
+
+#: psynet/prescreen.py
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
 msgstr ""
 
 #: psynet/prescreen.py

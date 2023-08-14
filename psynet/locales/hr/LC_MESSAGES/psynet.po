@@ -543,13 +543,43 @@ msgstr "besplatna_proba_snimanja_prisluškivanja"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "granit"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "slonovača"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "magenta"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "kesten"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "mornarica"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "rekord_markeri_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "tirkiz"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -819,6 +849,13 @@ msgstr "Mogli smo otkriti {NUM_RESP_ONSETS_DETECTED} dodira u snimci."
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Tvoje tapkanje je bilo loše..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Koji šum sadrži skriveni zvučni signal -- 1, 2 ili 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3630,7 +3667,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "U slučaju problema pokušajte sljedeće:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3649,7 +3685,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problem s kojim se suočavate."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

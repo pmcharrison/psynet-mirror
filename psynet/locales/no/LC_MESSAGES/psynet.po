@@ -543,13 +543,43 @@ msgstr "gratis_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "granitt"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "elfenbein"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "magenta"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "rødbrun"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "marinen"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "turkis"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -823,6 +853,13 @@ msgstr "Vi kunne oppdage {NUM_RESP_ONSETS_DETECTED} trykk i opptaket."
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Trykkingen din var dårlig..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Hvilken støy inneholder det skjulte pipet -- 1, 2 eller 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3644,7 +3681,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "I tilfelle et problem, prøv følgende:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3663,7 +3699,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problemet du opplever."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

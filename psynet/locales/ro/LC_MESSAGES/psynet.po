@@ -545,13 +545,43 @@ msgstr "free_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "granit"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "fildeș"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "magenta"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "maroon"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "marina"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "turcoaz"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -824,6 +854,13 @@ msgstr "Am putut detecta {NUM_RESP_ONSETS_DETECTED} atingeri în înregistrare."
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Bătăile tale nu au fost bune..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Care zgomot conține semnalul sonor ascuns - 1, 2 sau 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3722,7 +3759,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "În cazul unei probleme, încercați următoarele:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3741,7 +3777,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problema pe care o întâmpinați."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

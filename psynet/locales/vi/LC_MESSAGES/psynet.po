@@ -544,13 +544,43 @@ msgstr "free_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "đá hoa cương"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "ngà voi"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "đỏ tươi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "Bỏ rơi"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "Hải quân"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "màu ngọc lam"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -826,6 +856,13 @@ msgstr ""
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Khai thác của bạn là xấu ..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Tiếng ồn nào chứa tiếng bíp ẩn -- 1, 2 hoặc 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3671,7 +3708,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Trong trường hợp có vấn đề, hãy thử như sau:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3690,7 +3726,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Vấn đề bạn đang gặp phải."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

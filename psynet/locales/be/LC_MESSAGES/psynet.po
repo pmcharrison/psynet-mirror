@@ -543,13 +543,43 @@ msgstr "free_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "граніт"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "слановая косць"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_тэст"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "пурпурны"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "бардовы"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "ваенна-марскі флот"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "запіс_маркеры_тэст"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "бірузовы"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -822,6 +852,13 @@ msgstr "Мы змаглі выявіць {NUM_RESP_ONSETS_DETECTED} націск
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Ваш націск быў дрэнным..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Які шум змяшчае схаваны гукавы сігнал - 1, 2 ці 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3644,7 +3681,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "У выпадку праблемы паспрабуйце наступнае:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3663,7 +3699,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Праблема, з якой вы сутыкнуліся."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

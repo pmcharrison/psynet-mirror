@@ -481,13 +481,43 @@ msgstr "免费录音试用版"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "花岗岩"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "象牙色"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "测试"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "洋红"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "栗色"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "海军蓝"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "记录标记测试"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "松色"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -737,6 +767,13 @@ msgstr "我们可以在录音中检测到 {NUM_RESP_ONSETS_DETECTED} 窃听。"
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "您的敲击效果不好..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "哪种声音包含隐藏的蜂鸣声--1、2 还是 3？"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -2985,7 +3022,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "如果出现问题，请尝试以下方法："
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3002,7 +3038,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "您所遇到的问题。"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

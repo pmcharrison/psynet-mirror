@@ -544,13 +544,43 @@ msgstr "free_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "гранит"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "слонова кост"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "магента"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "бордо"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "флотски"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "тюркоаз"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -823,6 +853,13 @@ msgstr "Можем да открием {NUM_RESP_ONSETS_DETECTED} подслуш
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Почукването ви е лошо..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "Кой звук съдържа скрития звуков сигнал - 1, 2 или 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3678,7 +3715,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "В случай на проблем, опитайте следното:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3697,7 +3733,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Проблемът, с който се сблъсквате."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

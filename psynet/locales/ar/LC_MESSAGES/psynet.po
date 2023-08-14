@@ -540,13 +540,43 @@ msgstr "free_tapping_record_trial"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "الجرانيت"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "عاج"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "أرجواني"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "كستنائي"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "القوات البحرية"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "record_markers_test"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "الفيروز"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -808,6 +838,13 @@ msgstr "يمكننا اكتشاف {NUM_RESP_ONSETS_DETECTED} نقرة في ال�
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "كان النقر الخاص بك سيئًا ..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "ما هو الضجيج الذي يحتوي على صوت تنبيه مخفي - 1 أو 2 أو 3؟"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3533,7 +3570,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "في حالة وجود مشكلة ، جرب ما يلي:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3552,7 +3588,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "المشكلة التي تواجهها."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

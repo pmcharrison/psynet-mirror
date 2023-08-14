@@ -39,7 +39,7 @@ from .trial.static import StaticTrial, StaticTrialMaker
 from .utils import get_logger, get_translator
 
 logger = get_logger()
-DEFAULT_LOCALE = "es"
+DEFAULT_LOCALE = "en"
 
 
 class REPPVolumeCalibration(Module):
@@ -1705,6 +1705,15 @@ class ColorVocabularyTest(StaticTrialMaker):
         self.time_estimate_per_trial = time_estimate_per_trial
         self.locale = locale
 
+        _, _p = get_translator(self.locale)
+        self.colors = [
+            (_("turquoise"), [174, 72, 56]),
+            (_("magenta"), [300, 100, 50]),
+            (_("granite"), [0, 0, 40]),
+            (_("ivory"), [60, 100, 97]),
+            (_("maroon"), [0, 100, 25]),
+            (_("navy"), [240, 100, 25]),
+        ]
         nodes = self.get_nodes(self.colors)
 
         super().__init__(
@@ -1717,15 +1726,6 @@ class ColorVocabularyTest(StaticTrialMaker):
         )
 
     performance_check_type = "score"
-
-    colors = [
-        ("turquoise", [174, 72, 56]),
-        ("magenta", [300, 100, 50]),
-        ("granite", [0, 0, 40]),
-        ("ivory", [60, 100, 97]),
-        ("maroon", [0, 100, 25]),
-        ("navy", [240, 100, 25]),
-    ]
 
     @property
     def introduction(self):
@@ -1778,7 +1778,14 @@ class HeadphoneTrial(StaticTrial):
     submit_early = False
 
     def get_prompt(self):
+        if isinstance(self, HugginsHeadphoneTrial):
+            _, _p = get_translator(self.trial_maker.locale)
+            self.prompt_text = _p(
+                "huggins_headphone_trial",
+                "Which noise contains the hidden beep -- 1, 2, or 3?",
+            )
         assert self.prompt_text is not None
+
         return AudioPrompt(
             self.assets["stimulus"],
             self.prompt_text,
@@ -1939,7 +1946,6 @@ class HeadphoneTest(StaticTrialMaker):
 
 
 class HugginsHeadphoneTrial(HeadphoneTrial):
-    prompt_text = "Which noise contains the hidden beep -- 1, 2, or 3?"
     test_name = "huggins"
     submit_early = True
 
@@ -1957,7 +1963,9 @@ class HugginsHeadphoneTest(HeadphoneTest):
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
+        locale=DEFAULT_LOCALE,
     ):
+        self.locale = locale
         self.setup(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )

@@ -544,13 +544,43 @@ msgstr "مفت_ٹیپنگ_ریکارڈ_ٹرائل"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "گرینائٹ"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "ہاتھی دانت"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "lextale_test"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "قرمزی"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "مرون"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "بحریہ"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "ریکارڈ_مارکر_ٹیسٹ"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "فیروزی"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -826,6 +856,13 @@ msgstr "ہم ریکارڈنگ میں {NUM_RESP_ONSETS_DETECTED} ٹیپس کا پ
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "آپ کی ٹیپنگ خراب تھی..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "کون سا شور چھپی ہوئی بیپ پر مشتمل ہے -- 1، 2، یا 3؟"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3641,7 +3678,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "کسی مسئلہ کی صورت میں، درج ذیل کو آزمائیں:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3660,7 +3696,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "وہ مسئلہ جس کا آپ سامنا کر رہے ہیں۔"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

@@ -531,13 +531,43 @@ msgstr "무료_태핑_기록_평가판"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "granite"
+msgstr "화강암"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "ivory"
+msgstr "아이보리"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "lextale_test"
 msgstr "렉스테일_테스트"
 
 #: psynet/prescreen.py
 #, fuzzy
+msgid "magenta"
+msgstr "마젠타"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "maroon"
+msgstr "maroon"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "navy"
+msgstr "해군"
+
+#: psynet/prescreen.py
+#, fuzzy
 msgid "record_markers_test"
 msgstr "기록_마커_테스트"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid "turquoise"
+msgstr "청록색"
 
 #: psynet/prescreen.py
 #, python-brace-format, fuzzy
@@ -789,6 +819,13 @@ msgstr "녹취록에서 {NUM_RESP_ONSETS_DETECTED} 탭을 감지할 수 있었�
 msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "두드리는 소리가 나쁩니다..."
+
+#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_trial"
+msgid "Which noise contains the hidden beep -- 1, 2, or 3?"
+msgstr "숨겨진 신호음이 포함된 소음은 1, 2, 3 중 어느 것일까요?"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -3327,7 +3364,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "문제가 있는 경우 다음을 시도해 보세요:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3346,7 +3382,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "발생한 문제."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
