@@ -3591,6 +3591,12 @@ msgstr "Почињемо експеримент..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "У реду"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "Бонус"
@@ -3628,6 +3634,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "У случају проблема, покушајте следеће:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Сачекајте да се страница учита."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3639,6 +3652,13 @@ msgstr "Поново учитај страницу."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Проблем са којим се суочавате."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Покушајте поново за неколико секунди."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -3628,6 +3628,12 @@ msgstr "Bắt đầu thí nghiệm..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "ĐƯỢC RỒI"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "Thưởng"
@@ -3665,6 +3671,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Trong trường hợp có vấn đề, hãy thử như sau:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Vui lòng đợi trang tải."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3676,6 +3689,13 @@ msgstr "Tải lại trang."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Vấn đề bạn đang gặp phải."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Hãy thử lại sau vài giây."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

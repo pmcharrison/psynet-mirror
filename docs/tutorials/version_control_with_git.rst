@@ -47,4 +47,3 @@ In the rest of this tutorial we’ll try to develop an understanding of the esse
 
    version_control_with_git/essential_concepts
    version_control_with_git/experiment_implementation_workflow
-   version_control_with_git/psynet_developer_workflow

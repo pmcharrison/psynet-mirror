@@ -3352,6 +3352,12 @@ msgid "Starting experiment..."
 msgstr "Начало эксперимента..."
 
 #: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "OK"
+
+#: psynet/templates/timeline-page.html
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "Бонус"
@@ -3384,6 +3390,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "В случае возникновения проблемы попробуйте следующее:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Пожалуйста, подождите, пока страница загрузится."
+
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
 msgid "Reload the page."
@@ -3393,6 +3406,13 @@ msgstr "Перезагрузите страницу."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Проблема, с которой Вы столкнулись."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Повторите попытку через пару секунд."
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"

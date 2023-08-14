@@ -48,6 +48,7 @@ The error log path is contained underneath it, between the ``<string>`` identifi
 View the last few lines of that file in your terminal using ``tail``, for example:
 
 .. code:: bash
+
     tail /usr/local/var/log/postgresql@14.log
 
 Have a look at the error message.

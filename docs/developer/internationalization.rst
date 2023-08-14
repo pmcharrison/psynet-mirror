@@ -1,12 +1,15 @@
-=======================================
-Developer notes on internationalization
-=======================================
+.. _developer:
+.. highlight:: shell
+
+====================
+Internationalization
+====================
 
 The internationalization pipeline can be difficult to understand at first. This document aims to explain the process behind the scenes and which steps are necessary to translate an experiment.
 
 
 Internationalization process
-============================
+++++++++++++++++++++++++++++
 
 All PsyNet internationalization relies on ``gettext`` which is a common tool for internationalization.
 There are basically four steps to translate an experiment:
@@ -41,6 +44,7 @@ will look for ``gettext`` and its alias ``_``. Let’s try it for this Python sn
 ::
 
    from gettext import gettext
+
    _ = gettext
    my_info_page = InfoPage(
         Markup(
@@ -69,6 +73,7 @@ In PsyNet we use a wrapper for this:
     _, _p = get_translator(
         locale, module="experiment", locales_dir=os.path.abspath("locales")
     )
+
     my_info_page = InfoPage(
         Markup(
             f"""
@@ -141,7 +146,9 @@ While this probably works for most experiments (it scans all .py files in the ex
         @classmethod
         def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
             super(Exp, cls).extract_pot_from_experiment_folder(input_directory, pot_path)
+
             from psynet.internationalization import create_pot
+
             create_pot(input_directory, "my_module/.", pot_path)
 
 We also provide a command line interface to extract the strings: ``psynet prepare-translation <iso_code>``.
@@ -197,7 +204,8 @@ is mandatory) which in turn contains the ``.po`` and the compiled translations (
 
 
 Translating the strings into a ``.po`` file
----------------------------------------
+-------------------------------------------
+
 Let’s translate into Greek. We first have to set up a
 folder for the Greek translation file (``el`` is the ISO code for Greek,
 see
@@ -230,6 +238,7 @@ You can also use the package `internat <https://gitlab.com/computational-auditio
 ::
 
     from internat.translate import translate_pot
+
     translate_pot(
         pot_path,
         input_language="en",
@@ -338,7 +347,8 @@ To see the translation in action, have a look at the ``translation`` demo.
 
 
 Design choices
-==============
+++++++++++++++
+
 There are a few design choices that we made when implementing the translation system in PsyNet. We will explain these choices and the reasoning behind them.
 
 - Language is set on the level of the experiment. The participant inherits this language setting. The translation shown to the participant depends on the participants' language setting. The idea behind is that you can have multilingual experiments, where individual participants do the experiment in different languages. This also allows participants to potentially switch between languages during the experiment.

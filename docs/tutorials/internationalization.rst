@@ -12,10 +12,11 @@ Mark which strings need to be translated
 Let's say you have the following info page in your experiment:
 
 
-::
+.. code-block:: python
 
     from flask import Markup
     from psynet.page import InfoPage
+
     my_info_page = InfoPage(
         Markup(
             f"""
@@ -32,7 +33,7 @@ Let's say you have the following info page in your experiment:
 You can easily translate it by marking the strings that need to be translated with the ``_`` function from ``gettext``.
 
 
-::
+.. code-block:: python
 
     import os
 
@@ -44,6 +45,7 @@ You can easily translate it by marking the strings that need to be translated wi
     _, _p = get_translator(
         locale, module="experiment", locales_dir=os.path.abspath("locales")
     )
+
     my_info_page = InfoPage(
         Markup(
             f"""
@@ -65,7 +67,8 @@ In a nutshell, you need two functions ``gettext`` (aka ``_``) and ``pgettext`` (
 
 If you want to be more verbose, you can also write:
 
-::
+.. code-block:: python
+
     gettext, pgettext = get_translator(
         locale, module="experiment", locales_dir=os.path.abspath("locales")
     )
@@ -76,19 +79,19 @@ The only case where you should use ``gettext`` is when you have a string that is
 
 If you want to use a variable in the translation specify it as follows:
 
-::
+.. code-block:: python
 
     next_button_name = _("Next")
     next_button_text = _('press "{NEXT_BUTTON_NAME}" to continue.').format(NEXT_BUTTON_NAME=next_button_name)
 
-Note that variables in the translation may only consist of capital letters and underscores, are surrounded by curly brackets and must be replaced with the ``.format`` method (f-strings are not allowed). You can read more about translation in the section `Internationalization in general`_.
+Note that variables in the translation may only consist of capital letters and underscores, are surrounded by curly brackets and must be replaced with the ``.format`` method (f-strings are not allowed). You can read more about translation in the section `Internationalization <../developer/internationalization.html>`_.
 
 
 Extract the translations
 ========================
 Open a terminal in your experiment folder and run the following command:
 
-::
+.. code-block:: console
 
     psynet prepare-translation <iso_code>
 
@@ -100,7 +103,7 @@ Set the correct language
 Finally, you need to tell PsyNet which language to use. You can do this by setting
 
 
-::
+.. code-block:: text
 
    language = <your_language_iso_code>
 

@@ -13,17 +13,17 @@ PsyNet as a dependency
 Because PsyNet is currently released via GitLab, its requirements string looks somewhat
 different to other Python packages. It looks like this:
 
-::
+.. code-block:: text
 
-    psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet
+  psynet@git+https://gitlab.com/PsyNetDev/PsyNet#egg=psynet
 
 It is usually a good idea to specify a particular version of PsyNet here so that
 your experiment doesn't break when later versions of PsyNet are released.
 You can do this by adding `@<tag>` after the repository link, for example:
 
-::
+.. code-block:: text
 
-    psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.0.0#egg=psynet
+  psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.0.0#egg=psynet
 
 to specify PsyNet 10.0.0. You can also use a Git commit hash instead of a tag
 if you want to link to a particular commit, or indeed a particular Git branch name.
@@ -38,19 +38,19 @@ Custom package dependencies
 
 When using a custom package in a Dallinger/PsyNet experiment, you also need to include it in your experiment’s ``requirements.txt``. You can use a package by including the following in your requirements:
 
-.. code-block:: console
+.. code-block:: text
 
   <package_name>@git+<link_to_repository>@<commit_hash_or_branch_name>#egg=<package_name>
 
 For example,
 
-.. code-block:: console
+.. code-block:: text
 
   <package_name>@git+https://gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
 
 If the repository is a private repository, you will need to generate a custom deploy token. Follow the process described in :ref:`Deploy tokens` and based on the above example replace ``username`` and ``deploy_token`` in the line below accordingly.
 
-.. code-block:: console
+.. code-block:: text
 
   <package_name>@git+https://<username>:<deploy_token>@gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
 

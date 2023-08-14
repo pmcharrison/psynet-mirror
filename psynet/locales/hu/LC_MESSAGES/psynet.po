@@ -3626,6 +3626,12 @@ msgstr "Kezdő kísérlet..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "OK"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "Bónusz"
@@ -3663,6 +3669,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Probléma esetén próbálja meg a következőket:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Kérjük, várjon, amíg az oldal betöltődik."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3674,6 +3687,13 @@ msgstr "Töltse újra az oldalt."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Az Ön által tapasztalt probléma."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Próbálja meg újra néhány másodperc múlva."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

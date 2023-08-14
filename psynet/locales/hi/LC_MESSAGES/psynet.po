@@ -3609,6 +3609,12 @@ msgstr "प्रयोग शुरू हो रहा है..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "ठीक"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "बक्शीश"
@@ -3646,6 +3652,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "किसी समस्या के मामले में, निम्न का प्रयास करें:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "कृपया पृष्ठ लोड होने तक प्रतीक्षा करें."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3657,6 +3670,13 @@ msgstr "पृष्ठ को पुन: लोड करें।"
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "आप जिस समस्या का सामना कर रहे हैं।"
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "कुछ सेकंड में पुनः प्रयास करें."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

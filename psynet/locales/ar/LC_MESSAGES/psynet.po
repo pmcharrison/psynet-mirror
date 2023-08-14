@@ -3490,6 +3490,12 @@ msgstr "بدء التجربة ..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "نعم"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "علاوة"
@@ -3527,6 +3533,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "في حالة وجود مشكلة ، جرب ما يلي:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "يرجى الانتظار حتى يتم تحميل الصفحة."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3538,6 +3551,13 @@ msgstr "خذ المخاطر. لا شيء يمكن أن يحل محل التجر�
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "المشكلة التي تواجهها."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "حاول مرة أخرى في بضع ثوان."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

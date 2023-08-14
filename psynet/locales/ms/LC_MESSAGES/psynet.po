@@ -3670,6 +3670,12 @@ msgstr "Memulakan percubaan..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "okey"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "Bonus"
@@ -3707,6 +3713,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Sekiranya berlaku masalah, cuba yang berikut:"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Sila tunggu sehingga halaman dimuatkan."
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3718,6 +3731,13 @@ msgstr "Muat semula halaman."
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Masalah yang anda alami."
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Cuba lagi dalam beberapa saat."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -3249,6 +3249,12 @@ msgstr "実験開始..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "OK"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline"
 msgid "Bonus"
 msgstr "ボーナス"
@@ -3284,6 +3290,13 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "問題が発生した場合、以下をお試しください："
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "ページが読み込まれるまでお待ちください。"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3295,6 +3308,13 @@ msgstr "ページを再読み込みしてください。"
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "あなたが経験している問題。"
+
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "数秒後にもう一度お試しください。"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
