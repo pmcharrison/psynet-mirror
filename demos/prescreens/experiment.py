@@ -4,6 +4,7 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.prescreen import (
+    AntiphaseHeadphoneTest,
     AttentionTest,
     ColorBlindnessTest,
     ColorVocabularyTest,
@@ -24,6 +25,7 @@ class Exp(psynet.experiment.Experiment):
         AttentionTest(),
         ColorBlindnessTest(),
         ColorVocabularyTest(),
+        AntiphaseHeadphoneTest(),
         HugginsHeadphoneTest(),
         LanguageVocabularyTest(),
         LexTaleTest(),

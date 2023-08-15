@@ -583,6 +583,22 @@ msgid "turquoise"
 msgstr "فیروزی"
 
 #: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_test"
+msgid ""
+"Your task will be to judge <strong> which sound was the softest "
+"(quietest).</strong>"
+msgstr ""
+"آپ کا کام یہ فیصلہ کرنا ہوگا کہ <strong>کونسی آواز سب سے زیادہ نرم (سب سے "
+"پرسکون) تھی۔</strong>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_trial"
+msgid "Which sound was softest (quietest) -- 1, 2, or 3?"
+msgstr "کون سی آواز سب سے نرم تھی (سب سے پرسکون) -- 1، 2، یا 3؟"
+
+#: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "attention_test"
 msgid ""
@@ -857,7 +873,16 @@ msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "آپ کی ٹیپنگ خراب تھی..."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_test"
+msgid ""
+"One of the noises has a faint beep hidden within. Your task will be to judge"
+" <strong> which sound had the beep.</strong>"
+msgstr ""
+"شور میں سے ایک کے اندر ایک ہلکی سی بیپ چھپی ہوئی ہے۔ آپ کا کام یہ فیصلہ کرنا"
+" ہوگا کہ <strong> کس آواز میں بیپ تھی۔</strong>"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "huggins_headphone_trial"

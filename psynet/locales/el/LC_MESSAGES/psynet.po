@@ -583,6 +583,22 @@ msgid "turquoise"
 msgstr "τυρκουάζ"
 
 #: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_test"
+msgid ""
+"Your task will be to judge <strong> which sound was the softest "
+"(quietest).</strong>"
+msgstr ""
+"Ο στόχος σας θα είναι να κρίνετε <strong> ποιος ήχος ήταν ο πιο απαλός (πιο "
+"ήσυχος).</strong>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_trial"
+msgid "Which sound was softest (quietest) -- 1, 2, or 3?"
+msgstr "Ποιος ήχος ήταν ο πιο απαλός (πιο ήσυχος) - 1, 2 ή 3;"
+
+#: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "attention_test"
 msgid ""
@@ -861,7 +877,16 @@ msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Το χτύπημά σας ήταν κακό..."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_test"
+msgid ""
+"One of the noises has a faint beep hidden within. Your task will be to judge"
+" <strong> which sound had the beep.</strong>"
+msgstr ""
+"Ένας από τους θορύβους έχει κρυμμένο ένα αμυδρό ηχητικό σήμα.Ο στόχος σας θα"
+" είναι να κρίνετε <strong> ποιος ήχος είχε το ηχητικό σήμα.</strong>"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "huggins_headphone_trial"

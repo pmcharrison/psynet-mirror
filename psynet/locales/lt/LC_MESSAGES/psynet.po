@@ -583,6 +583,22 @@ msgid "turquoise"
 msgstr "turkio spalvos"
 
 #: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_test"
+msgid ""
+"Your task will be to judge <strong> which sound was the softest "
+"(quietest).</strong>"
+msgstr ""
+"Jūsų užduotis bus įvertinti, <strong> kuris garsas buvo švelniausias "
+"(tyliausias).</strong>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_trial"
+msgid "Which sound was softest (quietest) -- 1, 2, or 3?"
+msgstr "Kuris garsas buvo švelniausias (tyliausias) - 1, 2 ar 3?"
+
+#: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "attention_test"
 msgid ""
@@ -856,7 +872,16 @@ msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "Jūsų bakstelėjimas buvo blogas..."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_test"
+msgid ""
+"One of the noises has a faint beep hidden within. Your task will be to judge"
+" <strong> which sound had the beep.</strong>"
+msgstr ""
+"Viename iš garsų paslėptas silpnas pyptelėjimas. Jūsų užduotis bus "
+"nuspręsti, <strong>kuris garsas buvo pyptelėjimas.</strong>"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "huggins_headphone_trial"

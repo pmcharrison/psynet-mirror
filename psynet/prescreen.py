@@ -1778,11 +1778,16 @@ class HeadphoneTrial(StaticTrial):
     submit_early = False
 
     def get_prompt(self):
+        _, _p = get_translator(self.trial_maker.locale)
         if isinstance(self, HugginsHeadphoneTrial):
-            _, _p = get_translator(self.trial_maker.locale)
             self.prompt_text = _p(
                 "huggins_headphone_trial",
                 "Which noise contains the hidden beep -- 1, 2, or 3?",
+            )
+        elif isinstance(self, AntiphaseHeadphoneTrial):
+            self.prompt_text = _p(
+                "antiphase_headphone_trial",
+                "Which sound was softest (quietest) -- 1, 2, or 3?",
             )
         assert self.prompt_text is not None
 
@@ -1984,9 +1989,10 @@ class HugginsHeadphoneTest(HeadphoneTest):
 
     @property
     def task_description(self):
-        return (
-            "One of the noises has a faint beep hidden within. "
-            "Your task will be to judge <strong> which sound had the beep.</strong>"
+        _, _p = get_translator(self.trial_maker.locale)
+        return _p(
+            "huggins_headphone_test",
+            "One of the noises has a faint beep hidden within. Your task will be to judge <strong> which sound had the beep.</strong>",
         )
 
     def get_trial_class(self, node=None, participant=None, experiment=None):
@@ -1994,7 +2000,6 @@ class HugginsHeadphoneTest(HeadphoneTest):
 
 
 class AntiphaseHeadphoneTrial(HeadphoneTrial):
-    prompt_text = "Which sound was softest (quietest) -- 1, 2, or 3?"
     test_name = "antiphase"
 
 
@@ -2014,7 +2019,9 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
+        locale=DEFAULT_LOCALE,
     ):
+        self.locale = locale
         self.setup(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
@@ -2036,7 +2043,11 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
 
     @property
     def task_description(self):
-        return "Your task will be to judge <strong> which sound was the softest (quietest).</strong>"
+        _, _p = get_translator(self.trial_maker.locale)
+        return _p(
+            "antiphase_headphone_test",
+            "Your task will be to judge <strong> which sound was the softest (quietest).</strong>",
+        )
 
     def get_trial_class(self, node=None, participant=None, experiment=None):
         return AntiphaseHeadphoneTrial

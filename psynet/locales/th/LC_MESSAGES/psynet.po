@@ -580,6 +580,20 @@ msgid "turquoise"
 msgstr "สีฟ้าคราม"
 
 #: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_test"
+msgid ""
+"Your task will be to judge <strong> which sound was the softest "
+"(quietest).</strong>"
+msgstr "งานของคุณคือตัดสินว่า<strong>เสียงใดเบาที่สุด (เงียบที่สุด)</strong>"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_trial"
+msgid "Which sound was softest (quietest) -- 1, 2, or 3?"
+msgstr "เสียงใดที่เบาที่สุด (เงียบที่สุด) -- 1, 2 หรือ 3"
+
+#: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "attention_test"
 msgid ""
@@ -841,7 +855,16 @@ msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "การแตะของคุณไม่ดี ..."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_test"
+msgid ""
+"One of the noises has a faint beep hidden within. Your task will be to judge"
+" <strong> which sound had the beep.</strong>"
+msgstr ""
+"เสียงหนึ่งมีเสียงบี๊บเบา ๆ ซ่อนอยู่ภายใน "
+"งานของคุณคือตัดสินว่า<strong>เสียงใดดังขึ้น</strong>"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "huggins_headphone_trial"

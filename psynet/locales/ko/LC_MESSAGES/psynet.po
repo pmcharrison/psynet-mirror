@@ -570,6 +570,20 @@ msgid "turquoise"
 msgstr "청록색"
 
 #: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_test"
+msgid ""
+"Your task will be to judge <strong> which sound was the softest "
+"(quietest).</strong>"
+msgstr "당신의 임무는 어떤 소리가 가장 <strong> 부드러웠는지(가장 조용했는지)를 판단하는 것입니다</strong>."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "antiphase_headphone_trial"
+msgid "Which sound was softest (quietest) -- 1, 2, or 3?"
+msgstr "1, 2, 3 중 어떤 소리가 가장 부드러웠나요(가장 조용했나요)?"
+
+#: psynet/prescreen.py
 #, python-brace-format, fuzzy
 msgctxt "attention_test"
 msgid ""
@@ -820,7 +834,16 @@ msgctxt "free_tapping_record_trial"
 msgid "Your tapping was bad..."
 msgstr "두드리는 소리가 나쁩니다..."
 
-#. ""
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "huggins_headphone_test"
+msgid ""
+"One of the noises has a faint beep hidden within. Your task will be to judge"
+" <strong> which sound had the beep.</strong>"
+msgstr ""
+"소음 중 하나에는 희미한 삐 소리가 숨겨져 있습니다. 여러분의 임무는 어떤 소리가 삐 소리가 났는지 <strong> 판단하는 "
+"것입니다.</strong>"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "huggins_headphone_trial"
