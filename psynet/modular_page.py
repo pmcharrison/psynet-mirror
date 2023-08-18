@@ -2627,7 +2627,7 @@ class VideoSliderControl(Control):
 
     @property
     def media(self):
-        return MediaSpec(video={"slider_video": self.url})
+        return MediaSpec(video={"slider-video": self.url})
 
     def visualize_response(self, answer, response, trial):
         html = (
