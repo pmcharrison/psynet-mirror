@@ -1425,7 +1425,8 @@
             {% if params.hide_slider == true %} display: none; {% endif %}
         }
         #slider {
-            {%if params.reverse_scale %} direction: rtl {% endif %}
+            {%if params.reverse_scale %} direction: rtl {% endif %};
+            width: 100%;
         }
         .slider-range {
             cursor: pointer;
