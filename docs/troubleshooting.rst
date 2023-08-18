@@ -60,5 +60,21 @@ One possible message is something like this:
     2023-04-25 16:53:51.224 BST [28527] HINT:  Is another postmaster (PID 716) running in data directory "/usr/local/var/postgresql@14"?
 
 If you see this error message, try restarting your computer and trying again.
+
+Another possible error message is this:
+
+.. code:: bash
+
+    Reason: tried: '/usr/local/opt/icu4c/lib/libicui18n.72.dylib' (no such file)
+
+It has proved possible in the past to fix this problem by running the following:
+
+.. code:: bash
+
+    brew reinstall postgresql@14
+    brew services restart postgresql@14
+
+where ``postgresql@14`` should be replaced with the exact name for the Postgres service that you saw in ``brew services`.
+
 If that doesn't work, try searching Google for help. If you find another solution,
 please share your experience here.
