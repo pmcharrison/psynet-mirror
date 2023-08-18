@@ -1455,7 +1455,7 @@
     </style>
 
     <div id="slider-video-container">
-        <video id="slider-video" class="loader" width="{{ params.width }}" height="{{ params.height }}">
+        <video id="slider-video" class="loader" width="{{ params.width }}" height="{{ params.height }}" style="visibility: hidden">
             <source src="" type="video/{{ params.file_type }}"
         </video>
     </div>
@@ -1476,15 +1476,18 @@
     {{ null(params) }}
 
     <script>
-        psynet.media.updateVideoFromSlider = function() {
-            var slider_value = document.getElementById("slider").value;
-            var video = document.getElementById("slider-video");
-            if (psynet.response.ready_done && !isNaN(video.duration)) {
-                video.currentTime = slider_value * video.duration;
-            };
-            window.requestAnimationFrame(psynet.media.updateVideoFromSlider);
-        }
-        psynet.media.updateVideoFromSlider();
+        function updateVideoFromSlider() {
+            let slider_value = document.getElementById("slider").value;
+            let video = document.getElementById("slider-video");
+
+            video.currentTime = slider_value * video.duration;
+            window.requestAnimationFrame(updateVideoFromSlider);
+        };
+
+        psynet.trial.onEvent("responseEnable", function() {
+            $("#slider-video").css("visibility", "visible");
+            updateVideoFromSlider()
+        });
 
         retrieveResponse = function() {
             return {
