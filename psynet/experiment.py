@@ -1464,9 +1464,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def extra_parameters(cls):
         config = get_config()
-        config.register("cap_recruiter_auth_token", unicode)
-        config.register("lucid_api_key", unicode)
-        config.register("lucid_sha1_hashing_key", unicode)
+        config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("lucid_api_key", unicode, sensitive=True)
+        config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
         config.register("debug_storage_root", unicode)
         config.register("default_export_root", unicode)

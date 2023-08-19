@@ -1,7 +1,9 @@
 import os
 
 import pytest
+from dallinger.config import get_config
 
+from psynet.experiment import get_experiment
 from psynet.pytest_psynet import path_to_demo
 from psynet.utils import get_from_config
 
@@ -16,3 +18,17 @@ def test_config(in_experiment_directory):
     _debug_storage_root = get_from_config("debug_storage_root")
     print(f"Loading example value from config: {_debug_storage_root}")
     assert len(_debug_storage_root) > 3
+
+
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+def test_config(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    assert config.get("auto_recruit") is not None
+    assert "auto_recruit" in config.as_dict()
+
+    for secret in ["cap_recruiter_auth_token", "lucid_api_key", "lucid_sha1_hashing_key"]:
+        config.set(secret, "my-secret")
+        assert config.get(secret) is not None
+        assert secret not in config.as_dict()
