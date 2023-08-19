@@ -16,6 +16,9 @@ class TestExp:
             "/node/1/neighbors",
         ]
         for route in test_routes:
-            url = host + route
-            result = requests.get(url)
-            assert result.status_code == 500  # Access forbidden
+            with pytest.raises(requests.exceptions.ConnectionError) as excinfo:
+                requests.get(host + route)
+            assert (
+                str(excinfo.value)
+                == "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+            )
