@@ -8,9 +8,7 @@ to streamline the development of highly complex experiment paradigms, ranging fr
 perceptual prior estimation to adaptive psychophysical experiments. Once an experiment is implemented, it can be
 deployed with a single terminal command, which looks after server provisioning, participant recruitment, data-quality
 monitoring, and participant payment. Researchers using PsyNet can enjoy a paradigm shift in productivity, running many
-high-powered variants of the same experiment in the time it would ordinarily take to run an experiment once. 
-
-PsyNet is still heavily under development and we have not officially launched it yet. We plan to do so in early 2023.
+high-powered variants of the same experiment in the time it would ordinarily take to run an experiment once.
 
 To try some real-world PsyNet experiments for yourself, visit the following repositories:
 
