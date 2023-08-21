@@ -2484,6 +2484,15 @@ class TrialNetwork(SQLMixinDallinger, Network):
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes, but excluding repeat trials).
 
+    all_trials : list
+        A list of all trials owned by that network.
+
+    alive_trials : list
+        A list of all non-failed trials owned by that network.
+
+    failed_trials : list
+        A list of all failed trials owned by that network.
+
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
@@ -2528,6 +2537,12 @@ class TrialNetwork(SQLMixinDallinger, Network):
     @property
     def failed_trials(self):
         return [t for t in self.all_trials if t.failed]
+
+    @property
+    def trials(self):
+        raise RuntimeError(
+            "The .trials attribute has been removed, please use .all_trials, .alive_trials, or .failed_trials instead."
+        )
 
     async_processes = relationship("AsyncProcess")
 
@@ -2682,6 +2697,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     @property
     def failed_trials(self):
         return [t for t in self.all_trials if t.failed]
+
+    @property
+    def trials(self):
+        raise RuntimeError(
+            "The .trials attribute has been removed, please use .all_trials, .alive_trials, or .failed_trials instead."
+        )
 
     # assets = Column(PythonDict)
 

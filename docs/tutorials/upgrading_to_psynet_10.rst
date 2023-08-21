@@ -316,3 +316,22 @@ Such code should be updated to this:
             logger.info("Ending game")
             return None, "exit"
         return super().prepare_trial(experiment, participant)
+
+
+Accessing trials
+================
+
+Previously it was possible to access an object's trials by writing
+``network.trials``, ``node.trials``, or ``participant.trials``.
+We have moved on from this nomenclature because (partly for historic reasons)
+it was not always clear whether the returned list included failed trials or not.
+These attributes have now been replaced with the following:
+
+- ``.all_trials`` - returns all trials owned by the object;
+- ``.alive_trials`` - returns all non-failed trials owned by the object;
+- ``.failed_trials`` - returns all failed trials owned by the object.
+
+Action needed
+_____________
+
+Replace all occurrences of ``.trials`` with one of the three attributes listed above.

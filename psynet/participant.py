@@ -138,6 +138,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     browser_platform : str
         Information about the participant's browser version and OS platform.
+
+    all_trials : list
+        A list of all trials for that participant.
+
+    alive_trials : list
+        A list of all non-failed trials for that participant.
+
+    failed_trials : list
+        A list of all failed trials for that participant.
     """
 
     # We set the polymorphic_identity manually to differentiate the class
@@ -200,6 +209,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def failed_trials(self):
         return [t for t in self.all_trials if t.failed]
+
+    @property
+    def trials(self):
+        raise RuntimeError(
+            "The .trials attribute has been removed, please use .all_trials, .alive_trials, or .failed_trials instead."
+        )
 
     # This would be better, but we end up with a circular import problem
     # if we try and read csv files using this foreign key...

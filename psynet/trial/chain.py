@@ -494,6 +494,15 @@ class ChainNode(TrialNode):
         Counts the number of completed trials associated with the node.
         Excludes failed nodes and repeat_trials.
 
+    all_trials : list
+        A list of all trials owned by that node.
+
+    alive_trials : list
+        A list of all non-failed trials owned by that node.
+
+    failed_trials : list
+        A list of all failed trials owned by that node.
+
     viable_trials
         Returns all viable trials associated with the node,
         i.e. all trials that have not failed.

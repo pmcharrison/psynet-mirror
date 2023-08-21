@@ -1,4 +1,5 @@
 import pytest
+from dallinger import db
 
 from psynet.pytest_psynet import path_to_demo
 from psynet.trial.main import TrialNetwork
@@ -70,6 +71,32 @@ def test_trial_to_dict(experiment_module, experiment_object, participant):
     )
     trial_dict_2 = trial_2.to_dict()
     assert trial_dict_2["answer"] == {"answer": "123"}
+
+
+@pytest.mark.usefixtures("in_experiment_directory")
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+def test_trial_accessors(experiment_module, experiment_object, participant):
+    node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
+    trial_class = experiment_module.CustomTrial
+    trial = make_mcmcp_trial(
+        trial_class,
+        experiment_object,
+        node,
+        participant=participant,
+        answer=[{"role": "proposal"}],
+    )
+    db.session.commit()
+
+    assert node.network.all_trials[0].id == trial.id
+    assert node.network.alive_trials[0].id == trial.id
+    assert len(node.network.failed_trials) == 0
+
+    trial.fail()
+    db.session.commit()
+
+    assert node.network.all_trials[0].id == trial.id
+    assert len(node.network.alive_trials) == 0
+    assert len(node.network.failed_trials) == 1
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
