@@ -1,5 +1,32 @@
 # CHANGELOG
 
+# [10.3.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.0) Release 2023-08-12
+
+## Fixed
+- Prevent double submission and submission of an experiment before page load (author: Pol van Rijn, reviewer: Peter Harrison)
+- Fixed color-slider in `within_gibbs` demo (author: Eline van Geert, reviewer: Peter Harrison)
+- Fixed bugs in video slider control, which was previously not working (author: Peter Harrison, reviewer: Eline van Geert).
+- Fix protected routes test due to update to Dallinger 9.10.0 (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed bug in `get_participant_info_for_debug_mode` route used in Unity experiments development (author: Frank Höger).
+- Fixed Docker check for local package installations in demos (author: Peter Harrison).
+- Fixed missing documentation and tests for trial accessors like `network.all_trials`, `node.all_trials`, etc. (author: Peter Harrison, reviewer: Frank Höger).
+
+### Added
+- Added translations for `ColorBlindnessTest` prescreener (author: Pol van Rijn).
+- Added `sensitive=True` to sensitive 'lucid' and 'cap-recruiter' config variables (authors, reviewers: Frank Höger, Peter Harrison).
+- Added versioned PsyNet dependency in demo Dockerfiles (author: Peter Harrison).
+
+### Added (Lucid recruitment specific)
+- Added new boolean `Page` parameter `show_termination_button` for displaying a button which allows participants to terminate an experiment by setting `show_termination_button=True`, default: `False` (author: Frank Höger, reviewers: Pol van Rijn, Peter Harrison).
+- Added `aggressive_no_focus_timeout_in_s` setting (author: Frank Höger, reviewers: Pol van Rijn, Peter Harrison).
+- Added [Lucid] section to experiment demos' config template (author: Frank Höger, reviewers: Pol van Rijn, Peter Harrison).
+
+#### Updated
+- Restructured developer documentation (author: Frank Höger, reviewer: Peter Harrison).
+- Updated `update_demos.py` script to automatically set the PsyNet Docker image version in Dockerfiles (author: Frank Höger, reviewer: Peter Harrison).
+- Documentation updates (author: Peter Harrison).
+- Updated `Dallinger` to `v9.10.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.10.0.
+
 # [10.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.2.0) Release 2023-07-31
 
 #### Fixed
