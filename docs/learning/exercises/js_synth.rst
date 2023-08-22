@@ -5,9 +5,9 @@ JSSynth exercises
 Prerequisites
 ^^^^^^^^^^^^^
 
-- `Timeline tutorial <../tutorials/timeline.html>`_
-- `Modular page tutorial <../tutorials/modular_page.html>`_
-- `Audio demo <../demos/audio.html>`_
+- `Timeline tutorial <../../tutorials/timeline.html>`_
+- `Modular page tutorial <../../tutorials/modular_page.html>`_
+- `Audio demo <../../demos/audio.html>`_
 
 Exercise 1
 ^^^^^^^^^^

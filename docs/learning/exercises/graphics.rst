@@ -5,7 +5,7 @@ Graphics exercise
 Prerequisites
 ^^^^^^^^^^^^^
 
-- `Graphics tutorial <../tutorials/graphics.html>`_
+- `Graphics tutorial <../../tutorials/graphics.html>`_
 
 
 Exercise
