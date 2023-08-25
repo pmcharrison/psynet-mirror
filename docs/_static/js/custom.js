@@ -1,3 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelector('.sidebar-scroll').querySelector('.current-page').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    let parent_rect = document.getElementsByClassName("sidebar-scroll")[0].getBoundingClientRect();
+    let child_rect = document.getElementsByClassName("current-page")[0].getBoundingClientRect();
+    document.getElementsByClassName("sidebar-scroll")[0].scrollTo({top: child_rect.y - parent_rect.y, behavior: "instant"});
 });
