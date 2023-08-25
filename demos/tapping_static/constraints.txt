@@ -388,7 +388,7 @@ markupsafe==2.1.3
     #   wtforms
 matplotlib==3.7.2
     # via
-    #   -r /tmp/tmph2ypd_nb/requirements.txt
+    #   -r /tmp/tmptjbs_o1_/requirements.txt
     #   repp
 matplotlib-inline==0.1.6
     # via
@@ -524,7 +524,7 @@ psycopg2==2.9.7
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.10.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.0
+psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via

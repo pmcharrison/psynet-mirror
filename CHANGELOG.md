@@ -5,12 +5,25 @@
 #### Fixed
 #### Added
 #### Changed
+#### Updated
 #### Deprecated
 #### Removed
 
-# [10.3.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.0) Release 2023-08-12
+# [10.3.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.1) Release 2023-08-25
 
-## Fixed
+#### Fixed
+- Fixed Dallinger dependency in demos' constraints.txt files (author: Frank Höger).
+- Fixed broken links in learning/exercices documentation (author: Frank Höger).
+
+#### Changed
+- Improved menu navigation of documentation (author: Frank Höger).
+
+#### Updated
+- Updated 'Making a release' documentation (author: Frank Höger).
+
+# [10.3.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.0) Release 2023-08-22
+
+#### Fixed
 - Prevent double submission and submission of an experiment before page load (author: Pol van Rijn, reviewer: Peter Harrison)
 - Fixed color-slider in `within_gibbs` demo (author: Eline van Geert, reviewer: Peter Harrison)
 - Fixed bugs in video slider control, which was previously not working (author: Peter Harrison, reviewer: Eline van Geert).
@@ -19,12 +32,12 @@
 - Fixed Docker check for local package installations in demos (author: Peter Harrison).
 - Fixed missing documentation and tests for trial accessors like `network.all_trials`, `node.all_trials`, etc. (author: Peter Harrison, reviewer: Frank Höger).
 
-### Added
+#### Added
 - Added translations for `ColorBlindnessTest` prescreener (author: Pol van Rijn).
 - Added `sensitive=True` to sensitive 'lucid' and 'cap-recruiter' config variables (authors, reviewers: Frank Höger, Peter Harrison).
 - Added versioned PsyNet dependency in demo Dockerfiles (author: Peter Harrison).
 
-### Added (Lucid recruitment specific)
+#### Added (Lucid recruitment specific)
 - Added new boolean `Page` parameter `show_termination_button` for displaying a button which allows participants to terminate an experiment by setting `show_termination_button=True`, default: `False` (author: Frank Höger, reviewers: Pol van Rijn, Peter Harrison).
 - Added `aggressive_no_focus_timeout_in_s` setting (author: Frank Höger, reviewers: Pol van Rijn, Peter Harrison).
 - Added [Lucid] section to experiment demos' config template (author: Frank Höger, reviewers: Pol van Rijn, Peter Harrison).
