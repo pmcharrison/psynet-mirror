@@ -1,2 +1,2 @@
-psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.0#egg=psynet
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.1#egg=psynet
 repp@git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@master#egg=repp

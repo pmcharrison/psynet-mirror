@@ -522,7 +522,7 @@ psycopg2==2.9.7
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.10.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.0
+psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
