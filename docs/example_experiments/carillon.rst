@@ -20,8 +20,3 @@ generate the stimuli takes advantage of the powerful Python package
 `librosa <https://librosa.org/>`_,
 which contains a sophisticated pitch shift algorithm that is used to generate the
 stimuli.
-
-
-.. warning::
-    As of December 2022 this implementation is still work-in-progress, but it should
-    be ready for public consumption by spring 2023.
