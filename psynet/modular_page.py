@@ -573,7 +573,7 @@ class Control:
             bot_response=NoArgumentProvided,
             locale=DEFAULT_LOCALE,
             buttons: Optional[List] = None,
-            include_next_button: Optional[bool] = True,
+            show_next_button: Optional[bool] = True,
     ):
         self.page = None
         self._bot_response = bot_response
@@ -583,7 +583,7 @@ class Control:
             buttons = []
 
         self.buttons = buttons
-        self.include_next_button = include_next_button
+        self.show_next_button = show_next_button
 
     @property
     def macro(self):
@@ -987,10 +987,10 @@ class PushButtonControl(OptionControl):
         labels: Optional[List[str]] = None,
         style: str = "min-width: 100px; margin: 10px",
         arrange_vertically: bool = True,
-        include_next_button: bool = False,
+        show_next_button: bool = False,
         **kwargs,
     ):
-        super().__init__(choices, labels, style, include_next_button=include_next_button, **kwargs)
+        super().__init__(choices, labels, style, show_next_button=show_next_button, **kwargs)
         self.arrange_vertically = arrange_vertically
 
         self.push_buttons = [
@@ -1072,7 +1072,7 @@ class TimedPushButtonControl(PushButtonControl):
         button_highlight_duration: float = 0.75,
         **kwargs,
     ):
-        super().__init__(choices=choices, labels=labels, include_next_button=True, **kwargs)
+        super().__init__(choices=choices, labels=labels, show_next_button=True, **kwargs)
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
@@ -1443,7 +1443,7 @@ class ModularPage(Page):
         js_vars: Optional[dict] = None,
         start_trial_automatically: bool = True,
         buttons: Optional[List] = None,
-        include_next_button: Optional[bool] = None,
+        show_next_button: Optional[bool] = None,
         **kwargs,
     ):
         if control is None:
@@ -1464,13 +1464,13 @@ class ModularPage(Page):
         self.prompt = prompt
         self.control = control
 
-        if include_next_button is None:
-            self.include_next_button = control.include_next_button
+        if show_next_button is None:
+            self.show_next_button = control.show_next_button
         else:
-            self.include_next_button = include_next_button
+            self.show_next_button = show_next_button
 
         self.buttons = prompt.buttons + control.buttons
-        if self.include_next_button:
+        if self.show_next_button:
             self.buttons.append(NextButton())
 
         if self.control.page is not None:
@@ -1645,14 +1645,14 @@ class AudioMeterControl(Control):
     def __init__(
         self,
         calibrate: bool = False,
-        include_next_button: bool = True,
+        show_next_button: bool = True,
         min_time: float = 0.0,
         bot_response=NoArgumentProvided,
         **kwargs,
     ):
         if "submit_button" in kwargs:
-            "The 'submit_button' argument in AudioMeterControl has been renamed to 'include_next_button'."
-        super().__init__(bot_response, include_next_button=include_next_button, **kwargs)
+            "The 'submit_button' argument in AudioMeterControl has been renamed to 'show_next_button'."
+        super().__init__(bot_response, show_next_button=show_next_button, **kwargs)
         self.calibrate = calibrate
         self.min_time = min_time
         if calibrate:
@@ -2335,7 +2335,7 @@ class RecordControl(Control):
         self.auto_advance = auto_advance
 
         if show_meter:
-            self.meter = AudioMeterControl(include_next_button=False)
+            self.meter = AudioMeterControl(show_next_button=False)
         else:
             self.meter = None
 
