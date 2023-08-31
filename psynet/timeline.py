@@ -813,7 +813,7 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
-            "trialManualStart": Event(
+            "trialManualRequest": Event(
                 is_triggered_by=["trialConstruct", "buttonStart"],
                 once=True,
                 js="$('#buttonStart').attr('disabled', true)",
@@ -821,7 +821,7 @@ class Page(Elt):
             "trialPrepare": Event(
                 is_triggered_by="trialConstruct"
                 if self.start_trial_automatically
-                else "trialManualStart",
+                else "trialManualRequest",
                 once=True,
             ),
             "trialStart": Event(is_triggered_by="trialPrepare", once=True),
