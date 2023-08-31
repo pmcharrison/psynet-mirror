@@ -2393,9 +2393,6 @@ class RecordControl(Control):
     show_meter
         Whether an audio meter should be displayed, so as to help the participant
         to calibrate their volume.
-
-    submit_automatically
-        Whether to submit the trial automatically (default is False).
     """
 
     file_extension = None
