@@ -1645,13 +1645,15 @@ class AudioMeterControl(Control):
     def __init__(
         self,
         calibrate: bool = False,
-        submit_button: bool = True,
+        include_next_button: bool = True,
         min_time: float = 0.0,
         bot_response=NoArgumentProvided,
+        **kwargs,
     ):
-        super().__init__(bot_response)
+        if "submit_button" in kwargs:
+            "The 'submit_button' argument in AudioMeterControl has been renamed to 'include_next_button'."
+        super().__init__(bot_response, include_next_button=include_next_button, **kwargs)
         self.calibrate = calibrate
-        self.submit_button = submit_button
         self.min_time = min_time
         if calibrate:
             self.sliders = MultiSliderControl(
@@ -2333,7 +2335,7 @@ class RecordControl(Control):
         self.auto_advance = auto_advance
 
         if show_meter:
-            self.meter = AudioMeterControl(submit_button=False)
+            self.meter = AudioMeterControl(include_next_button=False)
         else:
             self.meter = None
 
