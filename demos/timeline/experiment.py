@@ -7,7 +7,6 @@ from dominate import tags
 import psynet.experiment
 from psynet.consent import MainConsent
 from psynet.modular_page import (
-    Button,
     ModularPage,
     NumberControl,
     Prompt,
@@ -76,7 +75,6 @@ class Exp(psynet.experiment.Experiment):
                 control=TextControl(one_line=False),
                 time_estimate=5,
                 save_answer=True,
-                buttons=[Button("button_test", "Test")],
             ),
             PageMaker(
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
