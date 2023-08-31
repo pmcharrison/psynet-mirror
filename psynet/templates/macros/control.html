@@ -27,8 +27,10 @@
         }
 
         onNextButton = function() {
-            let width = $("#next-button").width()
+            let width = $("#next-button").width();
+            let height = $("#next-button").height();
             $("#next-button").width(width); // Locks the button width to the current width
+            $("#next-button").height(height);
 
             disableButton();
 
@@ -36,17 +38,7 @@
                 enableButton();
             }
 
-            if (typeof retrieveResponse == "undefined") {
-                psynet.nextPage();
-            } else {
-                let response = retrieveResponse();
-                psynet.nextPage(
-                    response.rawAnswer,
-                    response.metadata,
-                    response.blobs,
-                    onRejection,
-                );
-            }
+            psynet.submitResponse(onRejection);
         }
     </script>
 
@@ -1065,13 +1057,17 @@
 
         psynet.trial.onEvent("autoSubmit", () => {
             let submitButton = $("#next-button");
-            let enableButton = () => submitButton.prop("disabled", false);
-            let disableButton = () => submitButton.prop("disabled", true);
+            if (submitButton.length > 0) {
+                let enableButton = () => submitButton.prop("disabled", false);
+                let disableButton = () => submitButton.prop("disabled", true);
 
-            psynet.trial.onEvent("submitFail", enableButton);
-            enableButton();
-            submitButton.click();
-            disableButton();
+                psynet.trial.onEvent("submitFail", enableButton);
+                enableButton();
+                submitButton.click();
+                disableButton();
+            } else {
+                psynet.submitResponse();
+            }
         });
 
     </script>

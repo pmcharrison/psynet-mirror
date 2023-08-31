@@ -1359,15 +1359,20 @@ class Button(BaseButton):
             style: str = "",
             is_response_button=False,
             start_disabled=False,
+            disable_on_click=False,
     ):
-        if not id_.startswith("button_"):
+        if not id_.startswith("button"):
             raise ValueError("Button IDs must start with the text 'button_'.")
+
+        if "_" in id_ or "-" in id_:
+            raise ValueError("Button IDs must be written in camelCase.")
 
         self.id = id_
         self.text = text
         self.style = style
         self.is_response_button = is_response_button
         self.start_disabled = start_disabled
+        self.disable_on_click = disable_on_click
 
     def render(self):
         return "{{ psynet_controls.generic_button(button_params) }}"
@@ -1379,6 +1384,10 @@ class Button(BaseButton):
             classes.append("response")
         return " ".join(classes)
 
+
+class StartButton(Button):
+    def __init__(self):
+        super().__init__(id_="buttonStart", text="Start", start_disabled=True, disable_on_click=True)
 
 
 class ModularPage(Page):
@@ -1443,6 +1452,7 @@ class ModularPage(Page):
         js_vars: Optional[dict] = None,
         start_trial_automatically: bool = True,
         buttons: Optional[List] = None,
+        show_start_button: Optional[bool] = None,
         show_next_button: Optional[bool] = None,
         **kwargs,
     ):
@@ -1464,14 +1474,16 @@ class ModularPage(Page):
         self.prompt = prompt
         self.control = control
 
-        if show_next_button is None:
-            self.show_next_button = control.show_next_button
-        else:
-            self.show_next_button = show_next_button
+        if show_start_button:
+            buttons.append(StartButton())
 
-        self.buttons = prompt.buttons + control.buttons
-        if self.show_next_button:
-            self.buttons.append(NextButton())
+        buttons += prompt.buttons
+        buttons += control.buttons
+
+        if show_next_button or (show_next_button is None and control.show_next_button):
+            buttons.append(NextButton())
+
+        self.buttons = buttons
 
         if self.control.page is not None:
             raise ValueError(
@@ -2308,6 +2320,9 @@ class RecordControl(Control):
     show_meter
         Whether an audio meter should be displayed, so as to help the participant
         to calibrate their volume.
+
+    submit_automatically
+        Whether to submit the trial automatically (default is False).
     """
 
     file_extension = None
