@@ -62,6 +62,11 @@ class Prompt:
     text_align
         CSS alignment of the text.
 
+    buttons
+        An optional list of additional buttons to include on the page.
+        Normally these will be created by calls to :class:`psynet.modular_page.Button`.
+
+
     Attributes
     ----------
 
@@ -549,6 +554,17 @@ class Control:
 
         client_ip_address :
             The client's IP address.
+
+    buttons :
+        An optional list of additional buttons to include on the page.
+        Normally these will be created by calls to :class:`psynet.modular_page.Button`.
+
+
+    show_next_button :
+        Determines whether a 'next' button is shown on the page.
+        This button is used to submit the response to the present page.
+        If this is not set to ``True``, then the response must be submitted another way,
+        for example by triggering the event ``manualSubmit``.
 
     Attributes
     ----------
@@ -1364,6 +1380,34 @@ class ResetButton(BaseButton):
 
 
 class Button(BaseButton):
+    """
+    Buttons can be included into modular pages via the page's ``buttons`` argument.
+    These buttons can be used to trigger custom events.
+
+    Parameters
+    ----------
+
+    id_ :
+        The button's ID. This must be written in camelCase.
+        When the button is pressed, an event is triggered with this exact ID.
+
+    text :
+        Text to display on the button.
+
+    style :
+        Optional CSS styling for the button.
+
+    is_response_button :
+        If set to ``True``, then the button is treated as a 'response' button and is only enabled once
+        the Psynet responseEnable event is triggered.
+
+    start_disabled :
+        If set to ``True``, then the button starts disabled.
+
+    disable_on_click :
+        If set to ``True``, then the button is disabled when it is clicked, typically to avoid redundant clicks.
+    """
+
     def __init__(
         self,
         id_: str,
@@ -1377,7 +1421,9 @@ class Button(BaseButton):
             raise ValueError("Button IDs must start with the text 'button_'.")
 
         if "_" in id_ or "-" in id_:
-            raise ValueError("Button IDs must be written in camelCase.")
+            raise ValueError(
+                f"Invalid button ID '{id_}': button IDs must be written in camelCase."
+            )
 
         self.id = id_
         self.text = text
@@ -1451,6 +1497,20 @@ class ModularPage(Page):
         trialPrepare event to be triggered (e.g. by clicking a 'Play' button,
         or by calling `psynet.trial.registerEvent("trialPrepare")` in JS).
 
+    buttons
+        An optional list of additional buttons to include on the page.
+        Normally these will be created by calls to :class:`psynet.modular_page.Button`.
+
+    show_start_button
+        Determines whether a 'start' button is shown on the page.
+        The default is ``False``, but one might consider setting this to ``True`` if ``start_trial_automatically``
+        is set to ``False``.
+
+    show_next_button
+        Determines whether a 'next' button is shown on the page.
+        The default is ``None``, which means that the decision is deferred to the selected Control.
+        If set to ``True`` or ``False``, the default from the Control is overridden.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1466,7 +1526,7 @@ class ModularPage(Page):
         js_vars: Optional[dict] = None,
         start_trial_automatically: bool = True,
         buttons: Optional[List] = None,
-        show_start_button: Optional[bool] = None,
+        show_start_button: Optional[bool] = False,
         show_next_button: Optional[bool] = None,
         **kwargs,
     ):
