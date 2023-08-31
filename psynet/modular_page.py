@@ -762,6 +762,10 @@ class OptionControl(Control):
             raise ValueError("name must be a valid HTML5 id")
 
     @property
+    def input_type(self):
+        raise NotImplementedError
+
+    @property
     def metadata(self):
         return {
             "name": self.name,
@@ -806,6 +810,7 @@ class CheckboxControl(OptionControl):
     show_reset_button
         Whether to display a 'Reset' button to allow for unsetting ticked checkboxes. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when at least one checkbox is ticked. Default: ``never``.
     """
+    input_type = "checkbox"
 
     def __init__(
         self,
@@ -818,7 +823,11 @@ class CheckboxControl(OptionControl):
         show_reset_button: str = "never",
         locale=DEFAULT_LOCALE,
     ):
-        super().__init__(choices, labels, style)
+        if show_reset_button != "never":
+            buttons = [ResetButton()]
+        else:
+            buttons = []
+        super().__init__(choices, labels, style, buttons=buttons)
         self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
@@ -1141,6 +1150,7 @@ class RadioButtonControl(OptionControl):
     show_free_text_option
         Appends a free text option to the radiobuttons. Default: ``False``.
     """
+    input_type = "radio"
 
     def __init__(
         self,
@@ -1155,7 +1165,11 @@ class RadioButtonControl(OptionControl):
         placeholder_text_free_text: str = None,
         locale=DEFAULT_LOCALE,
     ):
-        super().__init__(choices, labels, style)
+        if show_reset_button != "never":
+            buttons = [ResetButton()]
+        else:
+            buttons = []
+        super().__init__(choices, labels, style, buttons=buttons)
         self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
@@ -1330,6 +1344,11 @@ class BaseButton:
 class NextButton(BaseButton):
     def render(self):
         return "{{ psynet_controls.next_button(button_params) }}"
+
+
+class ResetButton(BaseButton):
+    def render(self):
+        return "{{ psynet_controls.reset_button(control_config) }}"
 
 
 class Button(BaseButton):

@@ -56,24 +56,24 @@
     </button>
 {% endmacro %}
 
-{% macro reset_button(params, input_type) %}
+{% macro reset_button(params) %}
     <script>
         {% if params.show_reset_button == "on_selection" %}
         $("#reset-button").css({"display": "block"});
         {% endif %}
         onResetButton = function() {
-            $('input[type={{ input_type }}]').attr('checked', false);
+            $('input[type={{ params.input_type }}]').prop('checked', false);
             {% if params.show_reset_button == "on_selection" %}
             $("#reset-button").css({"display": "none"});
             {% endif %}
             $("#reset-button").prop('disabled', true);
         }
 
-        $('input[type={{ input_type }}]').click(function() {
+        $('input[type={{ params.input_type }}]').click(function() {
             {% if params.show_reset_button == "on_selection" %}
             $("#reset-button").css({"display": "block"});
             {% endif %}
-            if (!$('input[type={{ input_type }}]').is(':checked'))
+            if (!$('input[type={{ params.input_type }}]').is(':checked'))
             {
                 $("#reset-button").prop('disabled', true);
             } else {
