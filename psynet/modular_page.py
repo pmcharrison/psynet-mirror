@@ -1313,6 +1313,46 @@ class TextControl(Control):
         return "Hello, I am a bot!"
 
 
+class BaseButton:
+    def render(self):
+        raise NotImplementedError
+
+
+class NextButton(BaseButton):
+    def render(self):
+        return "next_button(button_params)"
+
+
+class Button(BaseButton):
+    def __init__(
+            self,
+            id_: str,
+            text: Union[str, dom_tag],
+            style: str = "",
+            is_response_button=False,
+            start_disabled=False,
+    ):
+        if not id_.startswith("button_"):
+            raise ValueError("Button IDs must start with the text 'button_'.")
+
+        self.id = id_
+        self.text = text
+        self.style = style
+        self.is_response_button = is_response_button
+        self.start_disabled = start_disabled
+
+    def render(self):
+        return "generic_button(button_params)"
+
+    @property
+    def classes(self):
+        classes = ["btn", "btn-primary", "btn-lg"]
+        if self.is_response_button:
+            classes.append("response")
+        return " ".join(classes)
+
+
+
 class ModularPage(Page):
     """
     The :class:`~psynet.modular_page.ModularPage`
@@ -1419,6 +1459,7 @@ class ModularPage(Page):
 
         {{% block below_progress_display %}}
         {{{{ {self.control_macro}(control_config) }}}}
+        {self.render_buttons()}
         {{% endblock %}}
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
@@ -1469,6 +1510,12 @@ class ModularPage(Page):
     @property
     def import_templates(self):
         return self.import_internal_templates + self.import_external_templates
+
+    def render_buttons(self):
+        return "\n".join([
+            button.render() for button in self.buttons
+        ])
+
 
     @property
     def import_internal_templates(self):

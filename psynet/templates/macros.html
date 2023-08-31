@@ -3,3 +3,9 @@
 {% import "macros/prompt.html" as psynet_prompts %}
 {% import "macros/control.html" as psynet_controls %}
 {% import "macros/consent.html" as consent %}
+
+{% macro generic_button(params) %}
+    <button type="button" id="{{ params.id }}" style="{{ params.style }}" class="{{ params.classes }}" {% if params.start_disabled %} disabled="true" {% endif %} onclick="psynet.trial.registerEvent('{{ params.id }}')">
+        <span class="button-text">{{ params.text }}</span>
+    </button>
+{% endmacro %}
