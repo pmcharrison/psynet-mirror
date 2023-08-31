@@ -1464,7 +1464,10 @@ class ModularPage(Page):
         self.prompt = prompt
         self.control = control
 
-        self.include_next_button = include_next_button or control.include_next_button
+        if include_next_button is None:
+            self.include_next_button = control.include_next_button
+        else:
+            self.include_next_button = include_next_button
 
         self.buttons = prompt.buttons + control.buttons
         if self.include_next_button:
