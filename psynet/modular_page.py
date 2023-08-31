@@ -1320,7 +1320,7 @@ class BaseButton:
 
 class NextButton(BaseButton):
     def render(self):
-        return "next_button(button_params)"
+        return "{{ next_button(button_params) }}"
 
 
 class Button(BaseButton):
@@ -1342,7 +1342,7 @@ class Button(BaseButton):
         self.start_disabled = start_disabled
 
     def render(self):
-        return "generic_button(button_params)"
+        return "{{ generic_button(button_params) }}"
 
     @property
     def classes(self):
@@ -1471,6 +1471,7 @@ class ModularPage(Page):
             template_arg={
                 "prompt_config": prompt,
                 "control_config": control,
+                "buttons": buttons,
             },
             media=all_media,
             events=events,
@@ -1512,9 +1513,12 @@ class ModularPage(Page):
         return self.import_internal_templates + self.import_external_templates
 
     def render_buttons(self):
-        return "\n".join([
-            button.render() for button in self.buttons
-        ])
+        logic = []
+        for i, button in enumerate(self.buttons):
+            logic.append(f"{{% set button_params = buttons[{i}] %}}")
+            logic.append(button.render())
+
+        return "\n".join(logic)
 
 
     @property

@@ -12,7 +12,7 @@ from psynet.modular_page import (
     Prompt,
     PushButtonControl,
     TextControl,
-    TimedPushButtonControl,
+    TimedPushButtonControl, Button
 )
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
@@ -75,6 +75,9 @@ class Exp(psynet.experiment.Experiment):
                 control=TextControl(one_line=False),
                 time_estimate=5,
                 save_answer=True,
+                buttons=[
+                    Button("button_test", "Test")
+                ]
             ),
             PageMaker(
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
