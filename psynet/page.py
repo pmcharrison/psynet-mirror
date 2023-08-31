@@ -340,15 +340,6 @@ class RejectedConsentPage(UnsuccessfulEndPage):
         )
 
 
-class Button:
-    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
-        self.id = button_id
-        self.label = label
-        self.min_width = min_width
-        self.own_line = own_line
-        self.start_disabled = start_disabled
-
-
 class DebugResponsePage(PageMaker):
     """
     Implements a debugging page for responses.
