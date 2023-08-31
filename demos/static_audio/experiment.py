@@ -14,7 +14,7 @@ from psynet.modular_page import (
     ModularPage,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.timeline import Timeline, ProgressDisplay, ProgressStage
+from psynet.timeline import ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 from .custom_synth import synth_prosody
@@ -64,7 +64,11 @@ class CustomTrial(StaticTrial):
                 self.assets["stimulus"],
                 "Please imitate the spoken word as closely as possible.",
             ),
-            AudioRecordControl(duration=record_duration, bot_response_media="example-bier.wav", auto_advance=True),
+            AudioRecordControl(
+                duration=record_duration,
+                bot_response_media="example-bier.wav",
+                auto_advance=True,
+            ),
             time_estimate=self._time_trial,
             start_trial_automatically=False,
             show_start_button=True,
@@ -75,10 +79,13 @@ class CustomTrial(StaticTrial):
                     ProgressStage(
                         [stimulus_duration, stimulus_duration + record_duration],
                         caption="Recording...",
-                        color="red"
+                        color="red",
                     ),
                     ProgressStage(
-                        [stimulus_duration + record_duration, stimulus_duration + record_duration + stimulus_duration],
+                        [
+                            stimulus_duration + record_duration,
+                            stimulus_duration + record_duration + stimulus_duration,
+                        ],
                         caption="Uploading, please wait...",
                         color="grey",
                     ),

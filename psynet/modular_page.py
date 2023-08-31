@@ -83,7 +83,12 @@ class Prompt:
         in PsyNet's built-in ``prompt.html`` file.
     """
 
-    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left", buttons: Optional[List] = None):
+    def __init__(
+        self,
+        text: Union[None, str, Markup] = None,
+        text_align: str = "left",
+        buttons: Optional[List] = None,
+    ):
         self.text = text
         self.text_align = text_align
 
@@ -569,11 +574,11 @@ class Control:
     external_template = None
 
     def __init__(
-            self,
-            bot_response=NoArgumentProvided,
-            locale=DEFAULT_LOCALE,
-            buttons: Optional[List] = None,
-            show_next_button: Optional[bool] = True,
+        self,
+        bot_response=NoArgumentProvided,
+        locale=DEFAULT_LOCALE,
+        buttons: Optional[List] = None,
+        show_next_button: Optional[bool] = True,
     ):
         self.page = None
         self._bot_response = bot_response
@@ -725,6 +730,7 @@ class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
     """
+
     # The macro is named blank, not null, for back-compatibility reasons
     macro = "blank"
     metadata = {}
@@ -810,6 +816,7 @@ class CheckboxControl(OptionControl):
     show_reset_button
         Whether to display a 'Reset' button to allow for unsetting ticked checkboxes. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when at least one checkbox is ticked. Default: ``never``.
     """
+
     input_type = "checkbox"
 
     def __init__(
@@ -990,7 +997,9 @@ class PushButtonControl(OptionControl):
         show_next_button: bool = False,
         **kwargs,
     ):
-        super().__init__(choices, labels, style, show_next_button=show_next_button, **kwargs)
+        super().__init__(
+            choices, labels, style, show_next_button=show_next_button, **kwargs
+        )
         self.arrange_vertically = arrange_vertically
 
         self.push_buttons = [
@@ -1072,7 +1081,9 @@ class TimedPushButtonControl(PushButtonControl):
         button_highlight_duration: float = 0.75,
         **kwargs,
     ):
-        super().__init__(choices=choices, labels=labels, show_next_button=True, **kwargs)
+        super().__init__(
+            choices=choices, labels=labels, show_next_button=True, **kwargs
+        )
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
@@ -1150,6 +1161,7 @@ class RadioButtonControl(OptionControl):
     show_free_text_option
         Appends a free text option to the radiobuttons. Default: ``False``.
     """
+
     input_type = "radio"
 
     def __init__(
@@ -1353,13 +1365,13 @@ class ResetButton(BaseButton):
 
 class Button(BaseButton):
     def __init__(
-            self,
-            id_: str,
-            text: Union[str, dom_tag],
-            style: str = "",
-            is_response_button=False,
-            start_disabled=False,
-            disable_on_click=False,
+        self,
+        id_: str,
+        text: Union[str, dom_tag],
+        style: str = "",
+        is_response_button=False,
+        start_disabled=False,
+        disable_on_click=False,
     ):
         if not id_.startswith("button"):
             raise ValueError("Button IDs must start with the text 'button_'.")
@@ -1387,7 +1399,9 @@ class Button(BaseButton):
 
 class StartButton(Button):
     def __init__(self):
-        super().__init__(id_="buttonStart", text="Start", start_disabled=True, disable_on_click=True)
+        super().__init__(
+            id_="buttonStart", text="Start", start_disabled=True, disable_on_click=True
+        )
 
 
 class ModularPage(Page):
@@ -1567,7 +1581,6 @@ class ModularPage(Page):
             logic.append(button.render())
 
         return "\n".join(logic)
-
 
     @property
     def import_internal_templates(self):

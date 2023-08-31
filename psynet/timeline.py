@@ -816,7 +816,7 @@ class Page(Elt):
             "trialManualStart": Event(
                 is_triggered_by=["trialConstruct", "buttonStart"],
                 once=True,
-                js="$('#buttonStart').attr('disabled', true)"
+                js="$('#buttonStart').attr('disabled', true)",
             ),
             "trialPrepare": Event(
                 is_triggered_by="trialConstruct"

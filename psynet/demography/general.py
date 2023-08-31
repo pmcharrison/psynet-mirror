@@ -4,7 +4,7 @@ from psynet.modular_page import (
     NumberControl,
     PushButtonControl,
     RadioButtonControl,
-    TextControl, CheckboxControl,
+    TextControl,
 )
 from psynet.timeline import FailedValidation, Module, conditional, join
 from psynet.utils import get_country_dict, get_language_dict, get_logger, get_translator
