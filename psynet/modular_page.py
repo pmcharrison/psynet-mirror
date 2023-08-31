@@ -83,9 +83,14 @@ class Prompt:
         in PsyNet's built-in ``prompt.html`` file.
     """
 
-    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left"):
+    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left", buttons: Optional[List] = None):
         self.text = text
         self.text_align = text_align
+
+        if buttons is None:
+            buttons = []
+
+        self.buttons = buttons
 
     macro = "simple"
     external_template = None
@@ -563,10 +568,15 @@ class Control:
 
     external_template = None
 
-    def __init__(self, bot_response=NoArgumentProvided, locale=DEFAULT_LOCALE):
+    def __init__(self, bot_response=NoArgumentProvided, locale=DEFAULT_LOCALE, buttons: Optional[List] = None):
         self.page = None
         self._bot_response = bot_response
         self.locale = locale
+
+        if buttons is None:
+            buttons = []
+
+        self.buttons = buttons
 
     @property
     def macro(self):
@@ -1364,6 +1374,7 @@ class ModularPage(Page):
         events: Optional[dict] = None,
         js_vars: Optional[dict] = None,
         start_trial_automatically: bool = True,
+        buttons: Optional[List] = None,
         **kwargs,
     ):
         if control is None:
@@ -1375,11 +1386,16 @@ class ModularPage(Page):
         if js_vars is None:
             js_vars = {}
 
+        if buttons is None:
+            buttons = []
+
         if not isinstance(prompt, Prompt):
             prompt = Prompt(prompt)
 
         self.prompt = prompt
         self.control = control
+
+        self.buttons = prompt.buttons + control.buttons + buttons
 
         if self.control.page is not None:
             raise ValueError(

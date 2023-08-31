@@ -1,4 +1,4 @@
-{% macro null(params) %}
+{% macro next_button(params) %}
     <script>
         disableButton = function() {
             $("#next-button").attr("disabled", true)
@@ -40,6 +40,11 @@
         <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
         <span id="next-button-text">{{ gettext("Next") }}</span>
     </button>
+{% endmacro %}
+
+{% macro null(params) %}
+    {#    This macro is here for back-compatibility     #}
+    {{ next_button(params) }}
 {% endmacro %}
 
 {% macro reset_button(params, input_type) %}
@@ -107,7 +112,7 @@
 
     {% if params.timed == true %}
         <p class="vspace"></p>
-        {{ null(params) }}
+        {{ next_button(params) }}
     {% endif %}
 
     <script>
@@ -175,7 +180,7 @@
         {% if params.show_reset_button != "never" %}
         {{ reset_button(params, "checkbox") }}
         {% endif %}
-        {{ null(params) }}
+        {{ next_button(params) }}
     </div>
     <script>
         clickedButton = function(id) {
@@ -231,7 +236,7 @@
         {% if params.show_reset_button != "never" %}
         {{ reset_button(params, "radio") }}
         {% endif %}
-        {{ null(params) }}
+        {{ next_button(params) }}
     </div>
     <script>
         clickedButton = function(id) {
@@ -287,7 +292,7 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
-        {{ null(params) }}
+        {{ next_button(params) }}
     </div>
     <script>
         clickedButton = function(id) {
@@ -575,7 +580,7 @@
 
     <p class="vspace"></p>
 
-    {{ null(params) }}
+    {{ next_button(params) }}
 
     <script>
         {% autoescape off %}
@@ -855,7 +860,7 @@
     </div>
 
     {% if params.submit_button %}
-        {{ null(params) }}
+        {{ next_button(params) }}
 
     {% endif %}
 
@@ -1086,7 +1091,7 @@
 
 {% macro audio_record(params) %}
     {{ generic_record(params) }}
-    {{ null(params) }}
+    {{ next_button(params) }}
 
     <script>
         {% include "macros/control/recorder.js" %}
@@ -1179,7 +1184,7 @@
         <video id="video-control"></video>
     </div>
 
-    {{ null(params) }}
+    {{ next_button(params) }}
 
     <script>
         {% include "macros/control/RecordRTC.js" %}
@@ -1377,7 +1382,7 @@
         }
     </script>
 
-    {{ null(params) }}
+    {{ next_button(params) }}
 {% endmacro %}
 
 {% macro number(params) %}
@@ -1407,7 +1412,7 @@
         }
     </script>
 
-    {{ null(params) }}
+    {{ next_button(params) }}
 {% endmacro %}
 
 {% macro video_slider(params) %}
@@ -1474,7 +1479,7 @@
             value="{{ params.starting_value }}">
     </div>
 
-    {{ null(params) }}
+    {{ next_button(params) }}
 
     <script>
         function updateVideoFromSlider() {
