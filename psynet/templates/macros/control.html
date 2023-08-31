@@ -1,3 +1,17 @@
+{% macro blank(params) %}
+{% endmacro %}
+
+{% macro null(params) %}
+    {#    This macro is here for back-compatibility     #}
+    {{ next_button(params) }}
+{% endmacro %}
+
+{% macro generic_button(params) %}
+    <button type="button" id="{{ params.id }}" style="{{ params.style }}" class="{{ params.classes }}" {% if params.start_disabled %} disabled="true" {% endif %} onclick="psynet.trial.registerEvent('{{ params.id }}')">
+        <span class="button-text">{{ params.text }}</span>
+    </button>
+{% endmacro %}
+
 {% macro next_button(params) %}
     <script>
         disableButton = function() {
@@ -40,11 +54,6 @@
         <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
         <span id="next-button-text">{{ gettext("Next") }}</span>
     </button>
-{% endmacro %}
-
-{% macro null(params) %}
-    {#    This macro is here for back-compatibility     #}
-    {{ next_button(params) }}
 {% endmacro %}
 
 {% macro reset_button(params, input_type) %}
@@ -111,8 +120,8 @@
     </div>
 
     {% if params.timed == true %}
+        {#        This is for back-compatibility     #}
         <p class="vspace"></p>
-        {{ next_button(params) }}
     {% endif %}
 
     <script>
@@ -176,12 +185,7 @@
         {% endfor %}
     </div>
     <p class="vspace"></p>
-    <div style="justify-content: center; display: flex; margin-top">
-        {% if params.show_reset_button != "never" %}
-        {{ reset_button(params, "checkbox") }}
-        {% endif %}
-        {{ next_button(params) }}
-    </div>
+
     <script>
         clickedButton = function(id) {
             psynet.response.disable();
@@ -232,12 +236,6 @@
         {% endfor %}
     </div>
     <p class="vspace"></p>
-    <div style="justify-content: center; display: flex; margin-top">
-        {% if params.show_reset_button != "never" %}
-        {{ reset_button(params, "radio") }}
-        {% endif %}
-        {{ next_button(params) }}
-    </div>
     <script>
         clickedButton = function(id) {
             psynet.response.disable();
@@ -291,9 +289,7 @@
         </select>
     </div>
     <p class="vspace"></p>
-    <div style="justify-content: center; display: flex; margin-top">
-        {{ next_button(params) }}
-    </div>
+
     <script>
         clickedButton = function(id) {
             psynet.response.disable();
@@ -580,8 +576,6 @@
 
     <p class="vspace"></p>
 
-    {{ next_button(params) }}
-
     <script>
         {% autoescape off %}
         var snapValues = {% if params.js_vars.snap_values is none %}null{% else %}{{ params.js_vars.snap_values }}{% endif %};
@@ -859,11 +853,6 @@
         {% endif %}
     </div>
 
-    {% if params.submit_button %}
-        {{ next_button(params) }}
-
-    {% endif %}
-
     <script>
         {% include "macros/control/audio_meter.js" %}
         audioMeterControl.init('{{ params.to_json() }}');
@@ -1091,7 +1080,6 @@
 
 {% macro audio_record(params) %}
     {{ generic_record(params) }}
-    {{ next_button(params) }}
 
     <script>
         {% include "macros/control/recorder.js" %}
@@ -1183,8 +1171,6 @@
     <div id="video-control-container">
         <video id="video-control"></video>
     </div>
-
-    {{ next_button(params) }}
 
     <script>
         {% include "macros/control/RecordRTC.js" %}
@@ -1382,7 +1368,6 @@
         }
     </script>
 
-    {{ next_button(params) }}
 {% endmacro %}
 
 {% macro number(params) %}
@@ -1411,8 +1396,6 @@
             }
         }
     </script>
-
-    {{ next_button(params) }}
 {% endmacro %}
 
 {% macro video_slider(params) %}
@@ -1478,8 +1461,6 @@
             step="0.001"
             value="{{ params.starting_value }}">
     </div>
-
-    {{ next_button(params) }}
 
     <script>
         function updateVideoFromSlider() {

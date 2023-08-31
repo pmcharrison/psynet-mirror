@@ -568,7 +568,13 @@ class Control:
 
     external_template = None
 
-    def __init__(self, bot_response=NoArgumentProvided, locale=DEFAULT_LOCALE, buttons: Optional[List] = None):
+    def __init__(
+            self,
+            bot_response=NoArgumentProvided,
+            locale=DEFAULT_LOCALE,
+            buttons: Optional[List] = None,
+            include_next_button: Optional[bool] = True,
+    ):
         self.page = None
         self._bot_response = bot_response
         self.locale = locale
@@ -577,6 +583,7 @@ class Control:
             buttons = []
 
         self.buttons = buttons
+        self.include_next_button = include_next_button
 
     @property
     def macro(self):
@@ -718,8 +725,8 @@ class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
     """
-
-    macro = "null"
+    # The macro is named blank, not null, for back-compatibility reasons
+    macro = "blank"
     metadata = {}
 
     def get_bot_response(self, experiment, bot, page, prompt):
@@ -738,8 +745,9 @@ class OptionControl(Control):
         labels: Optional[List[str]] = None,
         style: str = "",
         bot_response=NoArgumentProvided,
+        **kwargs,
     ):
-        super().__init__(bot_response)
+        super().__init__(bot_response=bot_response, **kwargs)
         self.choices = choices
         self.labels = choices if labels is None else labels
         self.style = style
@@ -970,9 +978,10 @@ class PushButtonControl(OptionControl):
         labels: Optional[List[str]] = None,
         style: str = "min-width: 100px; margin: 10px",
         arrange_vertically: bool = True,
+        include_next_button: bool = False,
         **kwargs,
     ):
-        super().__init__(choices, labels, style, **kwargs)
+        super().__init__(choices, labels, style, include_next_button=include_next_button, **kwargs)
         self.arrange_vertically = arrange_vertically
 
         self.push_buttons = [
@@ -1054,7 +1063,7 @@ class TimedPushButtonControl(PushButtonControl):
         button_highlight_duration: float = 0.75,
         **kwargs,
     ):
-        super().__init__(choices=choices, labels=labels, **kwargs)
+        super().__init__(choices=choices, labels=labels, include_next_button=True, **kwargs)
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
@@ -1320,7 +1329,7 @@ class BaseButton:
 
 class NextButton(BaseButton):
     def render(self):
-        return "{{ next_button(button_params) }}"
+        return "{{ psynet_controls.next_button(button_params) }}"
 
 
 class Button(BaseButton):
@@ -1342,7 +1351,7 @@ class Button(BaseButton):
         self.start_disabled = start_disabled
 
     def render(self):
-        return "{{ generic_button(button_params) }}"
+        return "{{ psynet_controls.generic_button(button_params) }}"
 
     @property
     def classes(self):
@@ -1415,6 +1424,7 @@ class ModularPage(Page):
         js_vars: Optional[dict] = None,
         start_trial_automatically: bool = True,
         buttons: Optional[List] = None,
+        include_next_button: Optional[bool] = None,
         **kwargs,
     ):
         if control is None:
@@ -1435,7 +1445,11 @@ class ModularPage(Page):
         self.prompt = prompt
         self.control = control
 
-        self.buttons = prompt.buttons + control.buttons + buttons
+        self.include_next_button = include_next_button or control.include_next_button
+
+        self.buttons = prompt.buttons + control.buttons
+        if self.include_next_button:
+            self.buttons.append(NextButton())
 
         if self.control.page is not None:
             raise ValueError(
@@ -1525,6 +1539,7 @@ class ModularPage(Page):
     def import_internal_templates(self):
         # We explicitly import these internal templates here to ensure
         # they're imported by the time we try to call them.
+
         return """
         {% import "macros/prompt.html" as psynet_prompts %}
         {% import "macros/control.html" as psynet_controls %}
