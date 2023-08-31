@@ -919,7 +919,7 @@
                     }
 
                     // Make sure all batches are processed as arraybuffers
-                    if (args["batchId"] !== null) {
+                    if (args["batchId"]) {
                         request.responseType = "arraybuffer";
                     }
 
@@ -1134,7 +1134,6 @@
                     let fileId = args["fileId"];
                     let url = URL.createObjectURL(data);
                     let metadata = await getImageMetadataFromURL(url);
-
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.url = url;
                     out.width = metadata.width;
