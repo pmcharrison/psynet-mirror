@@ -181,7 +181,7 @@ Open the provided URL in Google Chrome, and it'll take you to the experiment das
 From here you can start a new participant session.
 
 
-Step 6 (Optional, MacOS/Linux only): Install editable PsyNet and Dallinger repositories
+Step 7 (Optional): Install editable PsyNet and Dallinger repositories
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes it is useful to edit PsyNet and Dallinger source code as part of debugging an experiment.
