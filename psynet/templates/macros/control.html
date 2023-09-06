@@ -7,7 +7,7 @@
 {% endmacro %}
 
 {% macro generic_button(params) %}
-    <button type="button" id="{{ params.id }}" style="{{ params.style }}" class="{{ params.classes }}" {% if params.start_disabled %} disabled="true" {% endif %} onclick="psynet.trial.registerEvent('{{ params.id }}')">
+    <button type="button" id="{{ params.id }}" style="{{ params.style }}" class="{{ params.classes }}" {% if params.start_disabled %} disabled {% endif %} onclick="psynet.trial.registerEvent('{{ params.id }}')">
         <span class="button-text">{{ params.text }}</span>
     </button>
 {% endmacro %}
