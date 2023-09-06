@@ -443,9 +443,9 @@ class Exp(psynet.experiment.Experiment):
         AudiovisualConsent(),
         Module(
             "audio_demo",
-            # example_js_synth_1,
-            # example_js_synth_2,
-            # example_js_synth_3,
+            example_js_synth_1,
+            example_js_synth_2,
+            example_js_synth_3,
             example_js_synth_4,
             example_js_synth_5,
             example_audio_page,

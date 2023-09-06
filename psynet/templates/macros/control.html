@@ -1,4 +1,18 @@
+{% macro blank(params) %}
+{% endmacro %}
+
 {% macro null(params) %}
+    {#    This macro is here for back-compatibility     #}
+    {{ next_button(params) }}
+{% endmacro %}
+
+{% macro generic_button(params) %}
+    <button type="button" id="{{ params.id }}" style="{{ params.style }}" class="{{ params.classes }}" {% if params.start_disabled %} disabled {% endif %} onclick="psynet.trial.registerEvent('{{ params.id }}')">
+        <span class="button-text">{{ params.text }}</span>
+    </button>
+{% endmacro %}
+
+{% macro next_button(params) %}
     <script>
         disableButton = function() {
             $("#next-button").attr("disabled", true)
@@ -13,8 +27,10 @@
         }
 
         onNextButton = function() {
-            let width = $("#next-button").width()
+            let width = $("#next-button").width();
+            let height = $("#next-button").height();
             $("#next-button").width(width); // Locks the button width to the current width
+            $("#next-button").height(height);
 
             disableButton();
 
@@ -22,17 +38,7 @@
                 enableButton();
             }
 
-            if (typeof retrieveResponse == "undefined") {
-                psynet.nextPage();
-            } else {
-                let response = retrieveResponse();
-                psynet.nextPage(
-                    response.rawAnswer,
-                    response.metadata,
-                    response.blobs,
-                    onRejection,
-                );
-            }
+            psynet.submitResponse(onRejection);
         }
     </script>
 
@@ -42,24 +48,24 @@
     </button>
 {% endmacro %}
 
-{% macro reset_button(params, input_type) %}
+{% macro reset_button(params) %}
     <script>
         {% if params.show_reset_button == "on_selection" %}
         $("#reset-button").css({"display": "block"});
         {% endif %}
         onResetButton = function() {
-            $('input[type={{ input_type }}]').attr('checked', false);
+            $('input[type={{ params.input_type }}]').prop('checked', false);
             {% if params.show_reset_button == "on_selection" %}
             $("#reset-button").css({"display": "none"});
             {% endif %}
             $("#reset-button").prop('disabled', true);
         }
 
-        $('input[type={{ input_type }}]').click(function() {
+        $('input[type={{ params.input_type }}]').click(function() {
             {% if params.show_reset_button == "on_selection" %}
             $("#reset-button").css({"display": "block"});
             {% endif %}
-            if (!$('input[type={{ input_type }}]').is(':checked'))
+            if (!$('input[type={{ params.input_type }}]').is(':checked'))
             {
                 $("#reset-button").prop('disabled', true);
             } else {
@@ -106,8 +112,8 @@
     </div>
 
     {% if params.timed == true %}
+        {#        This is for back-compatibility     #}
         <p class="vspace"></p>
-        {{ null(params) }}
     {% endif %}
 
     <script>
@@ -171,12 +177,7 @@
         {% endfor %}
     </div>
     <p class="vspace"></p>
-    <div style="justify-content: center; display: flex; margin-top">
-        {% if params.show_reset_button != "never" %}
-        {{ reset_button(params, "checkbox") }}
-        {% endif %}
-        {{ null(params) }}
-    </div>
+
     <script>
         clickedButton = function(id) {
             psynet.response.disable();
@@ -227,12 +228,6 @@
         {% endfor %}
     </div>
     <p class="vspace"></p>
-    <div style="justify-content: center; display: flex; margin-top">
-        {% if params.show_reset_button != "never" %}
-        {{ reset_button(params, "radio") }}
-        {% endif %}
-        {{ null(params) }}
-    </div>
     <script>
         clickedButton = function(id) {
             psynet.response.disable();
@@ -286,9 +281,7 @@
         </select>
     </div>
     <p class="vspace"></p>
-    <div style="justify-content: center; display: flex; margin-top">
-        {{ null(params) }}
-    </div>
+
     <script>
         clickedButton = function(id) {
             psynet.response.disable();
@@ -575,8 +568,6 @@
 
     <p class="vspace"></p>
 
-    {{ null(params) }}
-
     <script>
         {% autoescape off %}
         var snapValues = {% if params.js_vars.snap_values is none %}null{% else %}{{ params.js_vars.snap_values }}{% endif %};
@@ -854,11 +845,6 @@
         {% endif %}
     </div>
 
-    {% if params.submit_button %}
-        {{ null(params) }}
-
-    {% endif %}
-
     <script>
         {% include "macros/control/audio_meter.js" %}
         audioMeterControl.init('{{ params.to_json() }}');
@@ -1071,13 +1057,17 @@
 
         psynet.trial.onEvent("autoSubmit", () => {
             let submitButton = $("#next-button");
-            let enableButton = () => submitButton.prop("disabled", false);
-            let disableButton = () => submitButton.prop("disabled", true);
+            if (submitButton.length > 0) {
+                let enableButton = () => submitButton.prop("disabled", false);
+                let disableButton = () => submitButton.prop("disabled", true);
 
-            psynet.trial.onEvent("submitFail", enableButton);
-            enableButton();
-            submitButton.click();
-            disableButton();
+                psynet.trial.onEvent("submitFail", enableButton);
+                enableButton();
+                submitButton.click();
+                disableButton();
+            } else {
+                psynet.submitResponse();
+            }
         });
 
     </script>
@@ -1086,7 +1076,6 @@
 
 {% macro audio_record(params) %}
     {{ generic_record(params) }}
-    {{ null(params) }}
 
     <script>
         {% include "macros/control/recorder.js" %}
@@ -1178,8 +1167,6 @@
     <div id="video-control-container">
         <video id="video-control"></video>
     </div>
-
-    {{ null(params) }}
 
     <script>
         {% include "macros/control/RecordRTC.js" %}
@@ -1377,7 +1364,6 @@
         }
     </script>
 
-    {{ null(params) }}
 {% endmacro %}
 
 {% macro number(params) %}
@@ -1406,8 +1392,6 @@
             }
         }
     </script>
-
-    {{ null(params) }}
 {% endmacro %}
 
 {% macro video_slider(params) %}
@@ -1472,8 +1456,6 @@
             step="0.001"
             value="{{ params.starting_value }}">
     </div>
-
-    {{ null(params) }}
 
     <script>
         function updateVideoFromSlider() {

@@ -681,7 +681,7 @@ class GraphicControl(GraphicMixin, Control):
     macro = "graphic"
 
     def __init__(self, auto_advance_after: Optional[float] = None, **kwargs):
-        super().__init__(id_="control", **kwargs)
+        super().__init__(id_="control", show_next_button=False, **kwargs)
         self.auto_advance_after = auto_advance_after
 
     @property

@@ -21,14 +21,18 @@ def test_config(in_experiment_directory):
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
-def test_config(in_experiment_directory):
+def test_secrets(in_experiment_directory):
     get_experiment()
     config = get_config()
 
     assert config.get("auto_recruit") is not None
     assert "auto_recruit" in config.as_dict()
 
-    for secret in ["cap_recruiter_auth_token", "lucid_api_key", "lucid_sha1_hashing_key"]:
+    for secret in [
+        "cap_recruiter_auth_token",
+        "lucid_api_key",
+        "lucid_sha1_hashing_key",
+    ]:
         config.set(secret, "my-secret")
         assert config.get(secret) is not None
         assert secret not in config.as_dict()
