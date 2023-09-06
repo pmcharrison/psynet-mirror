@@ -1399,7 +1399,7 @@ class Button(BaseButton):
 
     is_response_button :
         If set to ``True``, then the button is treated as a 'response' button and is only enabled once
-        the Psynet responseEnable event is triggered.
+        the PsyNet responseEnable event is triggered.
 
     start_disabled :
         If set to ``True``, then the button starts disabled.
