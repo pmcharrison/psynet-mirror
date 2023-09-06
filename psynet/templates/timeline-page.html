@@ -614,6 +614,7 @@
                     trial.init = async function () {
                         // Should only be called once, on page load
                         await trial.registerEvent("trialConstruct");
+                        $("#buttonStart").attr("disabled", false);
                     };
 
                     trial.stop = async function () {
@@ -1320,6 +1321,20 @@
                 };
 
                 psynet.processingResponse = false;
+
+                psynet.submitResponse = async function (onRejection) {
+                    if (typeof retrieveResponse == "undefined") {
+                        await psynet.nextPage();
+                    } else {
+                        let response = retrieveResponse();
+                        await psynet.nextPage(
+                            response.rawAnswer,
+                            response.metadata,
+                            response.blobs,
+                            onRejection,
+                        );
+                    }
+                }
 
                 psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
                     if (!psynet.pageLoaded) {

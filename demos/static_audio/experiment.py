@@ -14,7 +14,7 @@ from psynet.modular_page import (
     ModularPage,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.timeline import Timeline
+from psynet.timeline import ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 from .custom_synth import synth_prosody
@@ -55,14 +55,42 @@ class CustomTrial(StaticTrial):
     wait_for_feedback = True
 
     def show_trial(self, experiment, participant):
+        stimulus_duration = 0.393
+        record_duration = 2.0
+
         return ModularPage(
             "imitation",
             AudioPrompt(
                 self.assets["stimulus"],
                 "Please imitate the spoken word as closely as possible.",
             ),
-            AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav"),
+            AudioRecordControl(
+                duration=record_duration,
+                bot_response_media="example-bier.wav",
+                auto_advance=True,
+            ),
             time_estimate=self._time_trial,
+            start_trial_automatically=False,
+            show_start_button=True,
+            show_next_button=False,
+            progress_display=ProgressDisplay(
+                stages=[
+                    ProgressStage([0.0, stimulus_duration], color="grey"),
+                    ProgressStage(
+                        [stimulus_duration, stimulus_duration + record_duration],
+                        caption="Recording...",
+                        color="red",
+                    ),
+                    ProgressStage(
+                        [
+                            stimulus_duration + record_duration,
+                            stimulus_duration + record_duration + stimulus_duration,
+                        ],
+                        caption="Uploading, please wait...",
+                        color="grey",
+                    ),
+                ],
+            ),
         )
 
     def show_feedback(self, experiment, participant):
