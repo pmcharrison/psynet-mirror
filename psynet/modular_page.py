@@ -1738,7 +1738,9 @@ class AudioMeterControl(Control):
         **kwargs,
     ):
         if "submit_button" in kwargs:
-            "The 'submit_button' argument in AudioMeterControl has been renamed to 'show_next_button'."
+            raise ValueError(
+                "The 'submit_button' argument in AudioMeterControl has been renamed to 'show_next_button'."
+            )
         super().__init__(bot_response, show_next_button=show_next_button, **kwargs)
         self.calibrate = calibrate
         self.min_time = min_time
