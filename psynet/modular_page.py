@@ -1418,7 +1418,9 @@ class Button(BaseButton):
         disable_on_click=False,
     ):
         if not id_.startswith("button"):
-            raise ValueError("Button IDs must start with the text 'button_'.")
+            raise ValueError(
+                "Button IDs must be in camelCase and start with the text 'button'."
+            )
 
         if "_" in id_ or "-" in id_:
             raise ValueError(
