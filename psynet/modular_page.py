@@ -2890,7 +2890,7 @@ class SurveyJSControl(Control):
         design,
         bot_response=NoArgumentProvided,
     ):
-        super().__init__(bot_response)
+        super().__init__(bot_response, show_next_button=False)
 
         self.design = design
 
