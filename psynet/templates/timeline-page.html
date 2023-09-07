@@ -141,65 +141,64 @@
     {% endblock %}
 
     {% block footer %}
-        {% if config.show_footer %}
-            <style>
-                #footer {
-                    background-color: rgb(49, 124, 246);
-                    color: white;
-                    margin: 0px;
-                    padding: 0px;
-                    line-height: 33px;
-                    border-style: none;
-                }
+        <style>
+            #footer {
+                background-color: rgb(49, 124, 246);
+                color: white;
+                margin: 0px;
+                padding: 0px;
+                line-height: 33px;
+                border-style: none;
+                {% if config.show_footer == false %} display: none; {% endif %}
+            }
 
-                #media-download-progress-bar {
-                    width: {{ initial_download_progress }}%;
-                    height: 6px;
-                    background-color: black;
-                }
+            #media-download-progress-bar {
+                width: {{ initial_download_progress }}%;
+                height: 6px;
+                background-color: black;
+            }
 
-                .footer-text {
-                    margin: 0px;
-                }
+            .footer-text {
+                margin: 0px;
+            }
 
-            </style>
+        </style>
 
-            <nav id="footer" class="navbar fixed-bottom">
-                <div id="media-download-progress-bar"></div>
-                    <div class="container py-2">
-                        {% if config.show_bonus %}
-                            <div class="footer-text">
-                                {{ pgettext("timeline", "Bonus") }}:
-                                <strong>
-                                    <span id="bonus-details" style="display: none">
-                                        {{ config.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
-                                        {{ config.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
-                                    </span>
-                                    <span class="fw-bold">
-                                        {{ config.currency }}<span id="total-bonus">{{ total_bonus }}</span>
-                                    </span>
-                                </strong>
-                            </div>
-                        {% endif %}
+        <nav id="footer" class="navbar fixed-bottom">
+            <div id="media-download-progress-bar"></div>
+                <div class="container py-2">
+                    {% if config.show_bonus %}
+                        <div class="footer-text">
+                            {{ pgettext("timeline", "Bonus") }}:
+                            <strong>
+                                <span id="bonus-details" style="display: none">
+                                    {{ config.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
+                                    {{ config.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
+                                </span>
+                                <span class="fw-bold">
+                                    {{ config.currency }}<span id="total-bonus">{{ total_bonus }}</span>
+                                </span>
+                            </strong>
+                        </div>
+                    {% endif %}
 
-                        {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
-                            <div>
-                                <select id="iso-language" class="form-control">
-                                    {% for iso, language in supported_language_dict.items() %}
-                                        {% if iso == current_locale %}
-                                            <option value="{{ iso }}" selected>{{ language }}️</option>
-                                        {% else %}
-                                            <option value="{{ iso }}">{{ language }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        {% endif %}
-                        <button type="button" class="btn btn-light"
-                                id="help-button">{{ pgettext("timeline", "Help!") }}</button>
-                    </div>
-            </nav>
-        {% endif %}
+                    {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
+                        <div>
+                            <select id="iso-language" class="form-control">
+                                {% for iso, language in supported_language_dict.items() %}
+                                    {% if iso == current_locale %}
+                                        <option value="{{ iso }}" selected>{{ language }}️</option>
+                                    {% else %}
+                                        <option value="{{ iso }}">{{ language }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                    <button type="button" class="btn btn-light"
+                            id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+                </div>
+        </nav>
         <script>
             // Allows the user to switch the language of the experiment if this setting is enabled.
             $('#iso-language').on('change', function (x) {
