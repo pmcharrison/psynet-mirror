@@ -2315,7 +2315,7 @@ class AssetStorage:
         f(asset, host_path, delete_input)
 
     def _receive_deposit(self, asset: Asset, host_path: str):
-        raise NotImplementedError
+        self.raise_not_implemented_error()
 
     def _call_receive_deposit(
         self,
@@ -2354,13 +2354,23 @@ class AssetStorage:
         )
 
     def export(self, asset, path, **kwargs):
-        raise NotImplementedError
+        self.raise_not_implemented_error()
 
     def prepare_for_deployment(self):
         pass
 
     def get_url(self, host_path: str):
-        raise NotImplementedError
+        self.raise_not_implemented_error()
+
+    @staticmethod
+    def raise_not_implemented_error():
+        raise NotImplementedError(
+            "If your experiment uses assets you must specify a storage back-end in your experiment class, "
+            "typically by writing something like\n\n"
+            "    asset_storage = LocalStorage()\n\n"
+            "in your experiment class. You will probably need to add the following to your imports too:\n\n"
+            "    from psynet.asset import LocalStorage"
+        )
 
     def check_cache(self, host_path: str, is_folder: bool):
         """
