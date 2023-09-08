@@ -2529,20 +2529,6 @@ class LocalStorage(AssetStorage):
             else:
                 return os.path.expanduser("~/psynet-data/assets")
 
-            # if os.getenv("PSYNET_IN_DOCKER"):
-            #     return "~/psynet-data/assets"
-            # else:
-            #     try:
-            #         from .utils import get_from_config
-            #
-            #         return os.path.expanduser(get_from_config("debug_storage_root"))
-            #     except KeyError:
-            #         raise KeyError(
-            #             "No root location was provided to DebugStorage and no value for debug_storage_root "
-            #             "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
-            #             "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-local-storage"
-            #         )
-
     def _ensure_root_dir_exists(self):
         from pathlib import Path
 

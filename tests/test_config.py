@@ -15,9 +15,9 @@ def test_config(in_experiment_directory):
         lines = file.read()
     print("Printing from config:")
     print(lines)
-    _debug_storage_root = get_from_config("debug_storage_root")
-    print(f"Loading example value from config: {_debug_storage_root}")
-    assert len(_debug_storage_root) > 3
+    _recruiter = get_from_config("recruiter")
+    print(f"Loading example value from config: {_recruiter}")
+    assert _recruiter == "prolific"
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)

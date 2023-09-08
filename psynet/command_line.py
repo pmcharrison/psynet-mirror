@@ -1863,7 +1863,7 @@ def load(path):
     populate_db_from_zip_file(path)
 
 
-# Example usage: psynet generate-config --debug_storage_root ~/debug_storage
+# Example usage: psynet generate-config --recruiter mturk
 @psynet.command(
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )
