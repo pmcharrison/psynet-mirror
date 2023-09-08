@@ -1519,10 +1519,16 @@
         async function asyncPostResults(sender, options) {
             survey.onCompleting.remove(handleSurveyCompletion);
             const results = JSON.stringify(sender.data);
+
+            // SurveyJS automatically hides the survey when the user presses the complete button.
+            // To keep the UI consistent we also hide the rest of the PsyNet page.
+            $("#main-body").hide()
+
             const success = await psynet.nextPage(results);
             if (success) {
                 sender.doComplete();
             } else {
+                $("#main-body").show()
                 survey.onCompleting.add(handleSurveyCompletion);
             }
         }
