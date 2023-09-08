@@ -1617,7 +1617,6 @@ def export_(
         config.load()
 
     if path is None:
-        # export_root = get_from_config("default_export_root")
         export_root = "~/psynet-data/export"
 
         path = os.path.join(

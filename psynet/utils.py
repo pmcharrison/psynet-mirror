@@ -129,7 +129,6 @@ def call_function_with_context(function, *args, **kwargs):
 
 config_defaults = {
     "keep_old_chrome_windows_in_debug_mode": False,
-    "default_export_root": "~/psynet-data/export",  # TODO - revisit whether this is ignored
 }
 
 
