@@ -1617,7 +1617,6 @@ def export_(
         config.load()
 
     if path is None:
-        # export_root = get_from_config("default_export_root")
         export_root = "~/psynet-data/export"
 
         path = os.path.join(
@@ -1863,7 +1862,7 @@ def load(path):
     populate_db_from_zip_file(path)
 
 
-# Example usage: psynet generate-config --debug_storage_root ~/debug_storage
+# Example usage: psynet generate-config --recruiter mturk
 @psynet.command(
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )

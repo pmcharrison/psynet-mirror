@@ -1468,8 +1468,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
-        config.register("debug_storage_root", unicode)
-        config.register("default_export_root", unicode)
         config.register("enable_google_search_console", bool)
         config.register("initial_recruitment_size", int)
         config.register("label", unicode)
