@@ -128,12 +128,11 @@ class PsyNetUnpickler(Unpickler):
         return import_local_experiment()
 
 
-def serialize(x, **kwargs):
-    pickler = PsyNetPickler()
-    return jsonpickle.encode(x, **kwargs, context=pickler)
-
-
 pickler = PsyNetPickler()
+
+
+def serialize(x, **kwargs):
+    return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
