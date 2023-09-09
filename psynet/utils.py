@@ -1495,11 +1495,9 @@ def get_experiment():
     )
 
 
-def clear_all_caches():
+def clear_function_caches():
     import functools
     import gc
-
-    reset_config_cache()
 
     for obj in gc.get_objects():
         try:
@@ -1509,8 +1507,14 @@ def clear_all_caches():
             pass
 
 
-def reset_config_cache():
+def clear_config_cache():
     dallinger.config.config = None
+
+
+def clear_sqlalchemy_cache():
+    from psynet.command_line import forget_tables_defined_in_experiment_directory
+
+    forget_tables_defined_in_experiment_directory()
 
 
 @contextlib.contextmanager

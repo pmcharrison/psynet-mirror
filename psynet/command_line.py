@@ -655,10 +655,10 @@ def _pre_launch(
     else:
         ctx.invoke(prepare)
 
-    _forget_tables_defined_in_experiment_directory()
+    forget_tables_defined_in_experiment_directory()
 
 
-def _forget_tables_defined_in_experiment_directory():
+def forget_tables_defined_in_experiment_directory():
     # We need to instruct SQLAlchemy to forget tables defined in the experiment directory,
     # because otherwise SQLAlchemy will get confused and throw errors when we run subsequent commands
     # that import the same experiment from other locations (e.g. /tmp/dallinger_develop).

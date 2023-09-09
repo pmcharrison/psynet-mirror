@@ -33,7 +33,12 @@ from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .redis import redis_vars
 from .trial.main import TrialNetwork
-from .utils import clear_all_caches, wait_until
+from .utils import (
+    clear_config_cache,
+    clear_function_caches,
+    clear_sqlalchemy_cache,
+    wait_until,
+)
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -220,7 +225,9 @@ def in_experiment_directory(experiment_directory):
     with working_directory(experiment_directory):
         yield experiment_directory
     clean_sys_modules()
-    clear_all_caches()
+    clear_function_caches()
+    clear_config_cache()
+    clear_sqlalchemy_cache()
 
 
 @pytest.fixture(scope="class")
@@ -335,7 +342,7 @@ def debug_experiment(
             pass
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
-        clear_all_caches()
+        clear_function_caches()
 
 
 dallinger.pytest_dallinger.debug_experiment = debug_experiment
