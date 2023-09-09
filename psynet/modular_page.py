@@ -1600,8 +1600,7 @@ class ModularPage(Page):
             )
         self.control.page = self
 
-        if validate is None:
-            validate = self.control.validate
+        self._validate_function = validate
 
         template_str = f"""
         {{% extends "timeline-page.html" %}}
@@ -1641,6 +1640,12 @@ class ModularPage(Page):
             validate=validate,
             **kwargs,
         )
+
+    def validate(self, response, **kwargs):
+        if self._validate_function is None:
+            return self.control.validate(response, **kwargs)
+        else:
+            return super().validate(response, **kwargs)
 
     def prepare_default_events(self):
         events = super().prepare_default_events()
