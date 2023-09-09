@@ -37,9 +37,13 @@ logger = get_logger()
 jsonpickle.unpickler.loadclass = loadclass
 
 
+def is_lambda_function(x):
+    return callable(x) and hasattr(x, "__name__") and x.__name__ == "<lambda>"
+
+
 class PsyNetPickler(Pickler):
     def flatten(self, obj, reset=True):
-        if callable(obj) and obj.__name__ == "<lambda>":
+        if is_lambda_function(obj):
             try:
                 source_file, source_line = (
                     obj.__code__.co_filename,
