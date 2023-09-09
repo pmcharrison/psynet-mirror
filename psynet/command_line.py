@@ -673,7 +673,8 @@ def forget_tables_defined_in_experiment_directory():
     ]
 
     for table in tables_defined_in_experiment_directory:
-        Base.metadata.remove(Base.metadata.tables[table])
+        if table in Base.metadata.tables:
+            Base.metadata.remove(Base.metadata.tables[table])
 
 
 @psynet.group("deploy")
