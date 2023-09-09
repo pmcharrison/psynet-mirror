@@ -9,6 +9,9 @@ from jsonpickle.unpickler import Unpickler, loadclass
 from markupsafe import Markup
 
 from .data import SQLBase
+from .utils import get_logger
+
+logger = get_logger()
 
 # old_loadclass = jsonpickle.unpickler.loadclass
 #
@@ -32,6 +35,29 @@ from .data import SQLBase
 
 
 jsonpickle.unpickler.loadclass = loadclass
+
+
+class PsyNetPickler(Pickler):
+    def flatten(self, obj, reset=True):
+        if callable(obj) and obj.__name__ == "<lambda>":
+            try:
+                source_file, source_line = (
+                    obj.__code__.co_filename,
+                    obj.__code__.co_firstlineno,
+                )
+            except Exception as e:
+                source_file, source_line = "UNKNOWN", "UNKNOWN"
+                logger.error(
+                    msg="Failed to find source code for lambda function.", exc_info=e
+                )
+            raise TypeError(
+                "Cannot pickle lambda functions. "
+                "Can you replace this function with a named function defined by `def`?\n"
+                f"The problematic function was defined in {source_file} "
+                f"on line {source_line}."
+            )
+        else:
+            return super().flatten(obj, reset=reset)
 
 
 class PsyNetUnpickler(Unpickler):
@@ -103,10 +129,11 @@ class PsyNetUnpickler(Unpickler):
 
 
 def serialize(x, **kwargs):
-    return jsonpickle.encode(x, **kwargs)
+    pickler = PsyNetPickler()
+    return jsonpickle.encode(x, **kwargs, context=pickler)
 
 
-pickler = Pickler()
+pickler = PsyNetPickler()
 
 
 def to_dict(x):
