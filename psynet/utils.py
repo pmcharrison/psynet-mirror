@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 
+import dallinger.config
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
@@ -1498,12 +1499,18 @@ def clear_all_caches():
     import functools
     import gc
 
+    reset_config_cache()
+
     for obj in gc.get_objects():
         try:
             if isinstance(obj, functools._lru_cache_wrapper):
                 obj.cache_clear()
         except ReferenceError:
             pass
+
+
+def reset_config_cache():
+    dallinger.config.config = None
 
 
 @contextlib.contextmanager
