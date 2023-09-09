@@ -33,12 +33,7 @@ from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .redis import redis_vars
 from .trial.main import TrialNetwork
-from .utils import (
-    clear_config_cache,
-    clear_function_caches,
-    clear_sqlalchemy_cache,
-    wait_until,
-)
+from .utils import clear_function_caches, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -226,8 +221,8 @@ def in_experiment_directory(experiment_directory):
         yield experiment_directory
     clean_sys_modules()
     clear_function_caches()
-    clear_config_cache()
-    clear_sqlalchemy_cache()
+    # clear_config_cache()
+    # clear_sqlalchemy_cache()
 
 
 @pytest.fixture(scope="class")
