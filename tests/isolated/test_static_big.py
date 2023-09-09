@@ -6,7 +6,7 @@ import pytest
 from click import Context
 
 from psynet.bot import Bot
-from psynet.command_line import export__local, prepare
+from psynet.command_line import export__local, run_prepare_in_subprocess
 from psynet.pytest_psynet import bot_class, path_to_demo
 
 logger = logging.getLogger(__file__)
@@ -28,20 +28,20 @@ class TestPrepare:
     def test_prepare(self, deployment_info):
         time_started = time.monotonic()
 
-        ctx = Context(prepare)
-        ctx.invoke(prepare)
+        # We don't want to import the same experiment twice in the same session,
+        # that will cause SQLAlchemy problems
+        run_prepare_in_subprocess()
 
         time_finished = time.monotonic()
         time_taken = time_finished - time_started
 
-        assert time_taken < 10
+        assert time_taken < 15
 
 
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo("static_big")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
-@pytest.mark.dependency()
 class TestExpWithExport:
     def test_exp_with_export(
         self,
