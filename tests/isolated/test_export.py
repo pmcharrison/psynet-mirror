@@ -190,11 +190,13 @@ class TestExport:
         with tempfile.TemporaryDirectory() as tempdir:
             with zipfile.ZipFile(database_zip_file, "r") as zip_ref:
                 zip_ref.extractall(tempdir)
-                dallinger_csv_files = sorted(os.listdir(os.path.join(tempdir, "data")))
-                db_tables = sorted(list(dallinger.db.Base.metadata.tables.keys()))
+                dallinger_csv_files = set(os.listdir(os.path.join(tempdir, "data")))
+                db_tables = set(
+                    list(dallinger.db.Base.metadata.tables.keys()) + ["coin"]
+                )
 
                 # Dallinger CSV files should map one-to-one to database tables
-                assert dallinger_csv_files == [t + ".csv" for t in db_tables]
+                assert dallinger_csv_files == set([t + ".csv" for t in db_tables])
 
     # test_dallinger_exports(database_zip_file)
 
