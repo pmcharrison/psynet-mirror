@@ -2436,7 +2436,7 @@ def import_local_experiment():
     return {
         "package": dallinger_experiment,
         "module": module,
-        "class": dallinger.experiment.load(),
+        "class": dallinger.experiment.load(),  # TODO - use the class as loaded above instead?
     }
 
 
