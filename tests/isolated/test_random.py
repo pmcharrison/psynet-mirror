@@ -56,3 +56,8 @@
 #         RuntimeError, match="It looks like you used Python's random number generator"
 #     ):
 #         page_maker.resolve(launched_experiment, participant, position=0)
+
+
+def test_null():
+    "We need to include at least one test in the test file, otherwise pytest will throw an error"
+    assert True
