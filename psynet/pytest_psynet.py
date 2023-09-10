@@ -234,8 +234,25 @@ def experiment_directory(request):
     return request.param
 
 
+loaded_experiment_directory = None
+
+
 @pytest.fixture(scope="class")
 def in_experiment_directory(experiment_directory):
+    global loaded_experiment_directory
+    if (
+        loaded_experiment_directory is not None
+        and loaded_experiment_directory != experiment_directory
+    ):
+        raise RuntimeError(
+            "Tried to run tests in two different experiment directories in the same testing session "
+            f"('{loaded_experiment_directory}' and '{experiment_directory}'. "
+            "This is not supported, because it is hard to unload an experiment fully without contaminating "
+            "the next one. If you are seeing this error in the PsyNet test suite, you should make sure your test "
+            "is located in the tests/isolated directory, and make sure that each test file only accesses a single "
+            "experiment directory."
+        )
+    loaded_experiment_directory = experiment_directory
     redis_vars.clear()
     with working_directory(experiment_directory):
         yield experiment_directory
