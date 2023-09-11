@@ -59,10 +59,11 @@ but see the sidebar for a full list.
    :hidden:
    :caption: EXPERIMENT DEVELOPMENT
 
-   experiment_directory
-   development_workflow
-   dependencies
-   troubleshooting
+   experiment_development/experiment_directory
+   experiment_development/development_workflow
+   experiment_development/configuration
+   experiment_development/dependencies
+   experiment_development/troubleshooting
    demos/index
 
 .. toctree::
