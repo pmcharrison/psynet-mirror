@@ -10,6 +10,7 @@ from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
 from os.path import exists
+from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -133,11 +134,44 @@ class ExperimentMeta(type):
     def __init__(cls, name, bases, dct):
         cls.assets = AssetRegistry(storage=cls.asset_storage)
 
+        # This allows users to perform in-place alterations to ``css`` and ``css_links`` without
+        # inadvertently altering the base class.
+        cls.css = cls.css.copy()
+        cls.css_links = cls.css_links.copy()
+
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # pylint: disable=abstract-method
     """
     The main experiment class from which to inherit when building experiments.
+
+    Several experiment options can be set through the experiment class.
+    For example, the storage back-end can be selected by setting the ``asset_storage`` attribute:
+
+    ::
+
+        class Exp(psynet.experiment.Experiment):
+            asset_storage = LocalStorage()
+
+    Config variables can be set here, amongst other places (see online documentation for details):
+
+    ::
+
+        class Exp(psynet.experiment.Experiment):
+            config = {
+                "min_accumulated_bonus_for_abort": 0.15,
+                "show_abort_button": True,
+            }
+
+    Custom CSS stylesheets can be included here, to style the appearance of the experiment:
+
+    ::
+
+        class Exp(psynet.experiment.Experiment):
+            css_links = ["static/theme.css"]
+
+    CSS can also be included directly as part of the experiment class via the ``css`` attribute,
+    see ``custom_theme`` demo for details.
 
     There are a number of variables tied to an experiment all of which are documented below.
     They have been assigned reasonable default values which can be overridden when defining an experiment
@@ -300,6 +334,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     )
 
     asset_storage = NoStorage()
+    css = []
+    css_links = []
 
     __extra_vars__ = {}
 
@@ -307,6 +343,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
+
+        assert isinstance(self.css, list)
+        assert isinstance(self.css_links, list)
+
+        for css_link in self.css_links:
+            if not css_link.startswith("static/"):
+                raise ValueError(
+                    "All css_links must point to files in the experiment's static directory "
+                    f" (problematic link: '{css_link}')."
+                )
+            if not Path(css_link).is_file():
+                raise ValueError(
+                    f"Couldn't find the following CSS file: {css_link}. Check ``Experiment.css_links``."
+                )
 
         config_initial_recruitment_size = self.get_initial_recruitment_size()
         initial_recruitment_size_config_changed = (

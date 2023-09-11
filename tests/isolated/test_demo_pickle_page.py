@@ -11,7 +11,7 @@ PYTEST_BOT_CLASS = bot_class()
     "experiment_directory", [path_to_demo("pickle_page")], indirect=True
 )
 class TestExp(object):
-    def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
+    def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)

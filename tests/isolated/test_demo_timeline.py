@@ -28,7 +28,7 @@ class TestExp(object):
         assert config.get("min_accumulated_bonus_for_abort") == 0.15
         assert config.get("show_abort_button") is True
 
-    def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
+    def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 
