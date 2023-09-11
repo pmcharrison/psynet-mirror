@@ -657,6 +657,11 @@ def _pre_launch(
 
     _forget_tables_defined_in_experiment_directory()
 
+    if heroku:
+        # Unimports the PsyNet experiment, because Dallinger will want to start from scratch when using Heroku.
+        # We don't unimport it in other cases because reloading the experiment produces an unnecessary time overhead.
+        clean_sys_modules()
+
 
 def _forget_tables_defined_in_experiment_directory():
     # We need to instruct SQLAlchemy to forget tables defined in the experiment directory,
