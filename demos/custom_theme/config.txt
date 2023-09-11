@@ -1,0 +1,30 @@
+[Config]
+title = Demo experiment (Chrome browser, XXX minutes to complete)
+description = This experiment requires you to XXX. Please use a Chrome browser in incognito mode. We use a dynamic payment scheme which means you get paid in proportion to how far you make it through the experiment. This payment will take the form of a small base payment supplemented by a time-dependent bonus payment. If you time out, don't worry, we will approve your experiment manually.
+contact_email_on_error = XXX@gmail.com
+organization_name = XXX
+
+# If you don't want to use a crowdsourcing platform, set recruiter = generic.
+recruiter = prolific
+currency = $
+wage_per_hour = 12.0
+
+[Prolific]
+# Setting `auto_recruit = false` means that PsyNet won't recruit participants itself,
+# you'll instead control recruitment via the Prolific interface.
+auto_recruit = false
+
+# When recruiting with Prolific we typically set a small base payment which we then supplement
+# with bonus for time spent on the task.
+prolific_estimated_completion_minutes = 2
+# 10 dollars an hour -> 16.666666667 cents per minutes
+prolific_reward_cents = 34
+
+[Lucid]
+# When recruiting with Lucid below settings need to be applied,
+# except for `debug_recruiter` which only needs to be set for debug mode.
+
+# recruiter = lucid
+# debug_recruiter = DevLucidRecruiter
+# lucid_recruitment_config = file:./lucid_recruitment_config.json
+# show_bonus = false
