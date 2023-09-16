@@ -182,7 +182,7 @@ From here you can start a new participant session.
 
 
 Step 7 (Optional): Install editable PsyNet and Dallinger repositories
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes it is useful to edit PsyNet and Dallinger source code as part of debugging an experiment.
 To do this, you should ``git clone`` the PsyNet and Dallinger repositories from their corresponding hosts:
