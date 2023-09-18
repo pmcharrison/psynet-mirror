@@ -30,10 +30,10 @@ from .command_line import (
     working_directory,
 )
 from .data import init_db
-from .experiment import Experiment, get_experiment, import_local_experiment
+from .experiment import get_experiment, import_local_experiment
 from .redis import redis_vars
 from .trial.main import TrialNetwork
-from .utils import clear_all_caches, disable_logger, wait_until
+from .utils import clear_all_caches, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -191,26 +191,6 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             max_wait=max_wait,
             error_message="Failed to load new page.",
         )
-
-
-@pytest.fixture()
-def config():
-    try:
-        Experiment.extra_parameters()
-    except KeyError as err:
-        if "is already registered" in str(err):
-            pass
-        else:
-            raise
-
-    c = get_config()
-    with disable_logger():
-        # We disable the logger because Dallinger prints an error message to the log
-        # when importing the config file outside a real experiment
-        if not c.ready:
-            c.load()
-
-    return c
 
 
 @pytest.fixture
