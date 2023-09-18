@@ -2335,3 +2335,23 @@ def verify_id(ctx, param, app):
 # The original Dallinger verify_id function forces app names to begin with dlgr-,
 # which is not appropriate for us
 dallinger.command_line.utils.verify_id = verify_id
+
+
+@psynet.command()
+@click.pass_context
+def test(ctx):
+    """
+    Runs the experiment's regression test.
+    """
+    run_subprocess_with_live_output("pytest test.py")
+
+
+@psynet.command()
+@click.pass_context
+def simulate(ctx):
+    """
+    Generates simulated data for an experiment by running the experiment's regression test
+    and exporting the resulting data.
+    """
+    ctx.invoke(test)
+    ctx.invoke(export__local)
