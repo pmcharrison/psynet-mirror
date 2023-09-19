@@ -1307,6 +1307,15 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             raise ValueError(f"Unrecognized chain type: {chain_type}")
 
+        if isinstance(start_nodes, list):
+            for node in start_nodes:
+                if node.trial_maker_id is not None and node.trial_maker_id != id_:
+                    raise RuntimeError(
+                        "Nodes cannot belong to multiple modules/trial makers. "
+                        "Please make a separate node list for each one."
+                    )
+                node.trial_maker_id = id_
+
         self.start_nodes = start_nodes
 
         # assert len(balance_strategy) <= 2
