@@ -1327,9 +1327,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 answer=answer,
             )
             validation = event.validate(
-                response, experiment=self, participant=participant
+                response=response,
+                answer=response.answer,
+                raw_answer=raw_answer,
+                participant=participant,
+                experiment=self,
+                page=event,
             )
-            if isinstance(validation, FailedValidation):
+            if isinstance(validation, str):
+                validation = FailedValidation(message=validation)
+            response.successful_validation = not isinstance(
+                validation, FailedValidation
+            )
+            if not response.successful_validation:
+                db.session.commit()
                 return self.response_rejected(message=validation.message)
             participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
