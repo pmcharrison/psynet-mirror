@@ -9,6 +9,9 @@ PsyNet provides easy-to-use tools for writing tests for your own
 experiment implementations; we recommend you use them whenever
 designing your own experiment.
 
+Built-in tests
+--------------
+
 All the demos in the PsyNet package are set up already with simple
 automated tests. For this tutorial, we recommend you open up the
 ``static_audio`` demo to see how this is done.
@@ -74,6 +77,10 @@ file as the bot's response in all cases.
 .. code-block:: python
 
     AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav")
+
+
+Custom tests
+------------
 
 By default all the test does is check that the bot can get to the
 end of the experiment without errors. However it's often sensible
@@ -167,6 +174,10 @@ together.
             pages = [bot.get_current_page() for bot in bots]
             for page in pages:
                 assert isinstance(page, SuccessfulEndPage)
+
+
+Front-end tests
+---------------
 
 The tests described above focus on testing the back-end logic of your
 PsyNet experiment. They catch errors to do with the instantiation of pages,
