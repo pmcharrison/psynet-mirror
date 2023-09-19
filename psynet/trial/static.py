@@ -281,7 +281,7 @@ class StaticTrialMaker(ChainTrialMaker):
 
         super().__init__(
             id_=id_,
-            start_nodes=lambda: nodes,
+            start_nodes=nodes,
             trial_class=trial_class,
             network_class=StaticNetwork,
             node_class=StaticNode,

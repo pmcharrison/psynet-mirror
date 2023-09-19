@@ -2273,6 +2273,14 @@ class Module:
         for asset in self._staged_assets:
             asset.module_id = self.id
 
+        for node in self.nodes:
+            if node.module_id is not None and node.module_id != self.id:
+                raise RuntimeError(
+                    "Nodes cannot belong to multiple modules/trial makers. "
+                    "Please make a separate node list for each one."
+                )
+            node.module_id = self.id
+
     @property
     def assets(self):
         return ModuleAssets(self.id)
@@ -2310,7 +2318,7 @@ class Module:
     def nodes_register_in_db(self):
         for node in self.nodes:
             db.session.add(node)
-            node.module_id = self.id
+            assert node.module_id == self.id
             if node.network is None:
                 node.add_default_network()
         db.session.commit()
