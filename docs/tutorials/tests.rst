@@ -182,7 +182,8 @@ The front-end testing patterns mentioned above (e.g. ``test_demo_timeline.py`` a
 have certain restrictions, most notably that they do not test concurrency.
 To bypass these restrictions, some PsyNet users have found it useful to write custom Selenium tests.
 Here is a minimal example of a custom Selenium test (provided without warranty) that could be extended
-to test multiple concurrent users:
+to test multiple concurrent users, which you would run by executing ``python3 bot.py --app test-app``.
+Thanks Pol van Rijn for this example!
 
 .. code-block:: python
 
