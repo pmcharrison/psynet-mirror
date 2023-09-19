@@ -34,6 +34,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.version import check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -581,6 +582,7 @@ def is_chromedriver_process(process):
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk):
     verify_psynet_requirement()
+    check_versions()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -979,7 +981,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
-        elif mode == "deploy":
+        elif mode == "live":
             run_pre_checks_deploy(exp, config, is_mturk)
 
 
@@ -1407,7 +1409,7 @@ def verify_psynet_requirement():
         return
 
     with yaspin(
-        text="Verifying PsyNet version in 'requirements.txt'...",
+        text="Verifying PsyNet version in requirements.txt...",
         color="green",
     ) as spinner:
         valid = False
