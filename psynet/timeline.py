@@ -24,6 +24,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
+    call_function,
     call_function_with_context,
     check_function_args,
     dict_to_js_vars,
@@ -672,6 +673,25 @@ class Page(Elt):
         This will override any ``bot_response`` function specified in the class's
         ``bot_response`` method.
 
+    validate
+        Optional validation function to use for the participant's response.
+        Alternatively, the validation function can be set by overriding this class's ``validate`` method.
+        If no validation function is found, no validation is performed.
+        See :meth:`~psynet.timeline.Page.validate` for information about how to write this function.
+
+        Validation functions provided via the present route may contain various optional arguments.
+        Most typically the function will be of the form ``lambda answer: ...` or ``lambda answer, participant: ...``,
+        but it is also possible to include the arguments ``raw_answer``, ``response``, ``page``, and ``experiment``.
+        Note that ``raw_answer`` is the answer before applying ``format_answer``, and ``answer`` is the answer
+        after applying ``format_answer``.
+
+        Validation functions should return ``None`` if the validation passes,
+        or if it fails a string corresponding to a message to pass to the participant.
+
+        For example, a validation function testing that the answer contains exactly 3 characters might look like this:
+        ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
+
+
     Attributes
     ----------
 
@@ -713,6 +733,7 @@ class Page(Elt):
         show_termination_button: bool = False,
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
+        validate: Optional[callable] = None,
     ):
         if template_arg is None:
             template_arg = {}
@@ -775,6 +796,7 @@ class Page(Elt):
         self.progress_display = progress_display
 
         self._bot_response = bot_response
+        self._validate_function = validate
 
     def call__bot_response(self, experiment, bot, response=NoArgumentProvided):
         from .bot import BotResponse
@@ -1065,6 +1087,15 @@ class Page(Elt):
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
 
+            3. ``answer``:
+               The formatted answer returned by the participant.
+
+            4. ``raw_answer``:
+               The unformatted answer returned by the participant.
+
+            5. ``page``:
+               The page to which the participant is responding.
+
         Returns
         -------
 
@@ -1073,7 +1104,8 @@ class Page(Elt):
             :class:`psynet.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
-        return None
+        if self._validate_function is not None:
+            return call_function(self._validate_function, response=response, **kwargs)
 
     def pre_render(self):
         """
@@ -1651,8 +1683,6 @@ class Response(_Response):
     successful_validation: bool
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
-        Stored in ``property2`` in the database.
-        (Not yet implemented)
 
     client_ip_address : str
         The participant's IP address as reported by Flask.

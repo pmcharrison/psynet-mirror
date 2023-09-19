@@ -687,6 +687,15 @@ class Control:
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
 
+            3. ``answer``:
+               The formatted answer returned by the participant.
+
+            4. ``raw_answer``:
+               The unformatted answer returned by the participant.
+
+            5. ``page``:
+               The page to which the participant is responding.
+
         Returns
         -------
 
@@ -1513,6 +1522,24 @@ class ModularPage(Page):
         The default is ``None``, which means that the decision is deferred to the selected Control.
         If set to ``True`` or ``False``, the default from the Control is overridden.
 
+    validate
+        Optional validation function to use for the participant's response.
+        If left blank, then the validation function will instead be read from the provided Control.
+        Alternatively, the validation function can be set by overriding this class's ``validate`` method.
+        If no validation function is found, no validation is performed.
+
+        Validation functions provided via the present route may contain various optional arguments.
+        Most typically the function will be of the form ``lambda answer: ...` or ``lambda answer, participant: ...``,
+        but it is also possible to include the arguments ``raw_answer``, ``response``, ``page``, and ``experiment``.
+        Note that ``raw_answer`` is the answer before applying ``format_answer``, and ``answer`` is the answer
+        after applying ``format_answer``.
+
+        Validation functions should return ``None`` if the validation passes,
+        or if it fails a string corresponding to a message to pass to the participant.
+
+        For example, a validation function testing that the answer contains exactly 3 characters might look like this:
+        ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1530,6 +1557,7 @@ class ModularPage(Page):
         buttons: Optional[List] = None,
         show_start_button: Optional[bool] = False,
         show_next_button: Optional[bool] = None,
+        validate: Optional[callable] = None,
         **kwargs,
     ):
         if control is None:
@@ -1572,6 +1600,8 @@ class ModularPage(Page):
             )
         self.control.page = self
 
+        self._validate_function = validate
+
         template_str = f"""
         {{% extends "timeline-page.html" %}}
 
@@ -1607,8 +1637,15 @@ class ModularPage(Page):
                 },
             },
             start_trial_automatically=start_trial_automatically,
+            validate=validate,
             **kwargs,
         )
+
+    def validate(self, response, **kwargs):
+        if self._validate_function is None:
+            return self.control.validate(response, **kwargs)
+        else:
+            return super().validate(response, **kwargs)
 
     def prepare_default_events(self):
         events = super().prepare_default_events()
@@ -1695,13 +1732,6 @@ class ModularPage(Page):
         page's :class:`~psynet.page.Control` member.
         """
         return self.control.format_answer(raw_answer=raw_answer, **kwargs)
-
-    def validate(self, response, **kwargs):
-        """
-        By default, the ``validate`` method is extracted from the
-        page's :class:`~psynet.page.Control` member.
-        """
-        return self.control.validate(response=response, **kwargs)
 
     def metadata(self, **kwargs):
         """

@@ -159,3 +159,8 @@ def test_serialize_dominate_tag():
     text = tags.p("Hello!")
 
     assert serialize(text) == '"<p>Hello!</p>"'
+
+
+def test_serialize_lambda():
+    with pytest.raises(TypeError, match="Cannot pickle lambda functions."):
+        serialize(lambda x: x)
