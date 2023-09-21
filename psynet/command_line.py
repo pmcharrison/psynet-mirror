@@ -986,6 +986,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
+    verify_psynet_requirement()
+    check_versions()
+
     us_only = config.get("us_only")
 
     if (
