@@ -1421,9 +1421,17 @@ def verify_psynet_requirement():
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
                 match = re.search(
-                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
+                    r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
                     + regex
-                    + "#egg=psynet$",
+                    + "(#egg=psynet)?$",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+                match = re.search(
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+",
                     file_content,
                     re.MULTILINE,
                 )
@@ -1440,6 +1448,7 @@ def verify_psynet_requirement():
         assert valid, (
             "Incorrect specification for PsyNet in 'requirements.txt'.\n"
             "\nExamples:\n"
+            "* psynet == 10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"

@@ -85,12 +85,9 @@ def get_all_version_infos(file_content):
         if specified == package_name.lower():
             continue
 
-        if specified.startswith("v"):
-            # Get installed version via the Dallinger/PsyNet API
-            installed = installed_version_for(package_name)
-            specified = specified[1:]
-
-        if re.search("^([0-9]+)\\.([0-9]+)\\.([0-9]+)$", specified) is not None:
+        if specified_using_version(specified):
+            if specified.startswith("v"):
+                specified = specified[1:]
             # Get installed version via the Dallinger/PsyNet API
             installed = installed_version_for(package_name)
         else:
@@ -106,6 +103,13 @@ def get_all_version_infos(file_content):
         }
 
     return versions
+
+
+def specified_using_version(specified):
+    return (
+        specified.startswith("v")
+        or re.search(r"^\d+\.\d+\.\d+$", specified) is not None
+    )
 
 
 def installed_version_for(package_name):
