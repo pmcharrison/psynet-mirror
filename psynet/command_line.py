@@ -908,6 +908,30 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             "and returning a psutil version error. Are you sure you want to continue?"
         ):
             raise click.Abort
+        if not os.getenv("PSYNET_IN_DOCKER"):
+            if not Path(f"{Path.home()}/.netrc").exists():
+                raise click.ClickException(
+                    "Heroku credentials not found.\n\n"
+                    "Please create a `~/.netrc` file on your host machine, and populate it with your Heroku API key.\n"
+                    "You can create an API key by going to the Heroku website and navigating to 'Account settings' "
+                    "(assuming your account is not SSO enabled).\nThen populate your `~/.netrc` file as follows:\n\n"
+                    "machine api.heroku.com\n"
+                    "login your-heroku-email\n"
+                    "password your-heroku-key\n"
+                    "machine git.heroku.com\n"
+                    "login your-heroku-email\n"
+                    "password your-heroku-key\n\n"
+                    "Alternatively, if you have Heroku installed on your host machine you should be able to generate "
+                    "this file interactively by writing `heroku login`."
+                )
+            if not Path(f"{Path.home()}/.gitconfig").exists():
+                raise click.ClickException(
+                    "Git configuration file not found.\n\n"
+                    "Please create a text file on your local computer at `~/.gitconfig` and populate it with the following:\n\n"
+                    "[user]\n"
+                    "  name = Your Name\n"
+                    "  email = your-email-address@gmail.com\n"
+                )
 
         try:
             with open(".gitignore", "r") as f:
@@ -1039,7 +1063,13 @@ def debug__docker_heroku(ctx, app, archive):
                 "This shouldn't be hard to fix..."
             )
         _pre_launch(
-            ctx, mode="sandbox", archive=archive, local_=False, docker=True, app=app
+            ctx,
+            mode="sandbox",
+            archive=archive,
+            local_=False,
+            docker=True,
+            heroku=True,
+            app=app,
         )
         result = ctx.invoke(dallinger_sandbox, verbose=True, app=app)
         _post_deploy(result)
