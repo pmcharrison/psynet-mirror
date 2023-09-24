@@ -908,7 +908,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             "and returning a psutil version error. Are you sure you want to continue?"
         ):
             raise click.Abort
-        if not os.getenv("PSYNET_IN_DOCKER"):
+        if os.getenv("PSYNET_IN_DOCKER"):
             if not Path(f"{Path.home()}/.netrc").exists():
                 raise click.ClickException(
                     "Heroku credentials not found.\n\n"
