@@ -49,9 +49,9 @@ def find_demo_dirs():
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
+        update_psynet_requirement(dir)
         generate_constraints(dir)
         post_update_constraints(dir)
-        update_psynet_requirement(dir)
 
 
 def generate_constraints(dir):
