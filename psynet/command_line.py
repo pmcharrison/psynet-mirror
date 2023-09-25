@@ -909,7 +909,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         ):
             raise click.Abort
         if os.getenv("PSYNET_IN_DOCKER"):
-            if not Path(f"{Path.home()}/.netrc").exists():
+            if not (Path.home() / ".netrc").exists():
                 raise click.ClickException(
                     "Heroku credentials not found.\n\n"
                     "Please create a `~/.netrc` file on your host machine, and populate it with your Heroku API key.\n"
@@ -924,7 +924,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                     "Alternatively, if you have Heroku installed on your host machine you should be able to generate "
                     "this file interactively by writing `heroku login`."
                 )
-            if not Path(f"{Path.home()}/.gitconfig").exists():
+            if not (Path.home() / ".gitconfig").exists():
                 raise click.ClickException(
                     "Git configuration file not found.\n\n"
                     "Please create a text file on your local computer at `~/.gitconfig` and populate it with the following:\n\n"
