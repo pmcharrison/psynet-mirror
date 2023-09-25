@@ -1699,7 +1699,9 @@ class TrialMaker(Module):
 
     def any_pending_async_trials(self, participant):
         trials = self.get_participant_trials(participant)
-        return any([t.awaiting_async_process for t in trials])
+        return any(
+            [t.awaiting_async_process or t.awaiting_asset_deposit for t in trials]
+        )
 
     def get_participant_trials(self, participant):
         """
