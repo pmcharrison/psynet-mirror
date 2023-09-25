@@ -1,13 +1,50 @@
 # CHANGELOG
 
-# [UNRELEASED]
+# [10.4.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.0) Release 2023-09-24
 
 #### Fixed
+- Fixed bug where preloading images was failing (author: Peter Harrison, reviewer: Frank Höger).
+- Removed debug info in macro for `VideoSliderControl` (author: Eline Van Geert, reviewer: Peter Harrison).
+- Fixed `show_footer=False`, which wasn't previously working (author: Peter Harrison, reviewer: Eline van Geert).
+- Fixed bug for duplicate next button in `SurveyJSControl` (author: Peter Harrison).
+- Fixed issues with `jsPsych` page formatting (author: Peter Harrison, reviewer: Eline van Geert).
+- Fixed Heroku deployment from archive, which was previously failing early with a 'Checking the wrong experiment' error. (author: Peter Harrison, reviewer: Frank Höger).
+- Added a check to prevent cases where PsyNet tests import multiple different experiments in the same session, as this could cause difficult state contamination errors (author: Peter Harrison, reviewer: Frank Höger).
+- Migrated most PsyNet tests into the `isolated` directory to further protect against contamination issues (author: Peter Harrison, reviewer: Frank Höger).
+- Minor fix for dashboard's `GenericTrialNode` display (author: Peter Harrison).
+- Allow name-based PsyNet requirements like `psynet==10.0.0` in `requirements.txt` (author: Frank Höger, reviewer: Peter Harrison).
+- Added `verify_psynet_requirement`and `check_versions` checks to `run_pre_checks_sandbox` (author: Frank Höger, reviewer: Peter Harrison).
+
 #### Added
+- It is now possible to add custom buttons to modular pages via the ``buttons`` argument (author: Peter Harrison, reviewer: Frank Höger).
+- Added new modular page argument: `show_start_button` (author: Peter Harrison, reviewer: Frank Höger).
+- Added new modular page argument: `show_next_button` (author: Peter Harrison, reviewer: Frank Höger).
+- Better error message when `asset_storage` is not set (author: Peter Harrison).
+- Added support for custom CSS themes (see `custom_themes` demo) (author: Peter Harrison, reviewer: Frank Höger).
+- Added `psynet test` for running an experiment's regression tests (author: Peter Harrison, reviewer: Frank Höger).
+- Added `psynet simulate` for generating simulated data from an experiment (author: Peter Harrison, reviewer: Frank Höger).
+- Added function `check_versions` which throws an error when deploying or debugging remotely if the version of PsyNet specified in `requirements.txt` differs from the version installed locally (author: Frank Höger, reviewer: Peter Harrison).
+- Added `validate` argument to `Page` constructor, which streamlines the experience of setting custom validation functions (author: Peter Harrison, reviewer: Frank Höger).
+- Added better checks in `serialize` for objects that can't be serialized (e.g. lambda functions) (author: Peter Harrison, reviewer: Frank Höger).
+
 #### Changed
-#### Updated
-#### Deprecated
+- The implementation of submit buttons has been refactored under the hood. Please let us know if you experience any unexpected behaviour (author: Peter Harrison, reviewer: Frank Höger).
+- Disabled `autocomplete` in `TextControl` (author: Eline Van Geert, reviewer: Peter Harrison).
+- Refactored S3 tests and removed unnecessary `config` fixture (author: Peter Harrison, reviewer: Frank Höger).
+- PsyNet now throws an error message if you try to use the same nodes in two modules or trial makers (author: Peter Harrison, reviewer: Frank Höger).
+
 #### Removed
+- Removed old config variables `debug_storage_root` and `default_export_root` which were no longer being used. (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Documentation changes
+- Added `Configuration` subsection to section `Experiment development` (author: Frank Höger, reviewer: Peter Harrison).
+- Added instructions for installing Docker to `Linux installation` subsection (author: Frank Höger).
+- Added new testing example to `Tutorials/Tests` subsection (author: Peter Harrison).
+- Added warning to `Synchronization` subsection (author: Peter Harrison).
+- Updated `Example experiments` subsection (author: Peter Harrison).
+- Updated `Docker installation` and `Developer installation` subsections (author: Eline Van Geert, reviewer: Peter Harrison).
+
+
 
 # [10.3.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.1) Release 2023-08-25
 
@@ -84,7 +121,7 @@
 
 #### Added
 - Added support for the Lucid(Cint) recruiting platform (author: Frank Höger, reviewers: Peter Harrison, Pol van Rijn).
-- Users are now required to specify the version of PsyNet in requirements.txt explicitly. Additionally, demos' requirements.txt files are updated to the current version of PsyNet when running the `demos/update_demos.py` script (author: Frank Höger, reviewer: Peter Harrison).
+- Users are now required to specify the version of PsyNet in `requirements.txt` explicitly. Additionally, demos' `requirements.txt` files are updated to the current version of PsyNet when running the `demos/update_demos.py` script (author: Frank Höger, reviewer: Peter Harrison).
 - Added `--server parameter` to `psynet destroy` (author: Pol van Rijn, reviewer: Frank Höger).
 
 #### Changed

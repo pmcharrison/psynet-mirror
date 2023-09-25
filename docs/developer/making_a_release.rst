@@ -57,15 +57,16 @@ and commit the changes with
     python3 demos/update_demos.py
 
 from inside PsyNet's root directory. This could take a while depending on the processing power of your system.
+
+.. attention::
+
+    Before running the update script make sure to have checked out the version tag of Dallinger's latest release inside your Dallinger directory as otherwise the generated constraints.txt files will be incorrect!
+
 Commit the changes with
 
 .. code-block:: console
 
     git commit -m "Update demos for version X.Y.Z"
-
-.. attention::
-
-    Before running the update script make sure to have checked out the version tag of Dallinger's latest release inside your Dallinger directory as otherwise the generated constraints.txt files will be incorrect!
 
 6. Push the changes to the release branch.
 7. Create a merge request using GitLab's interface to merge the release branch into ``master`` and name it 'Release version X.Y.Z'. You might want to inspect for a last time the code changes for the release using the 'Changes' tab of the merge request.
