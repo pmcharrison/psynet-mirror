@@ -727,8 +727,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Để tiếp tục, hãy nhấp vào nút bên dưới."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Kế tiếp"
@@ -2976,6 +2975,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Giúp đỡ!"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "Sự chi trả"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3003,7 +3009,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Trong trường hợp có vấn đề, hãy thử như sau:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3022,7 +3027,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Vấn đề bạn đang gặp phải."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

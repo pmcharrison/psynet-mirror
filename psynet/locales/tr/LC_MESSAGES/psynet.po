@@ -664,8 +664,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Devam etmek için aşağıdaki düğmeyi tıklayın."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 msgid "Next"
 msgstr "Sonraki"
 
@@ -2720,6 +2719,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Yardım!"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "Ödeme"
+
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
@@ -2743,7 +2749,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Bir sorun olması durumunda aşağıdakileri deneyin:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2760,7 +2765,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Yaşadığınız sorun."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

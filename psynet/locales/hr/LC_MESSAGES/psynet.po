@@ -722,8 +722,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Za nastavak kliknite gumb ispod."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Sljedeći"
@@ -2949,6 +2948,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Pomozite!"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "Plaćanje"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2976,7 +2982,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "U slučaju problema pokušajte sljedeće:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2995,7 +3000,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problem s kojim se suočavate."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

@@ -700,8 +700,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "下のボタンをクリックしてください。"
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "次のページ"
@@ -2667,6 +2666,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "ヘルプ"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "支払方法"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2692,7 +2698,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "問題が発生した場合、以下をお試しください："
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2711,7 +2716,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "あなたが経験している問題。"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

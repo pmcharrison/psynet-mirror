@@ -568,8 +568,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr ""
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 msgid "Next"
 msgstr ""
 
@@ -2190,12 +2189,12 @@ msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Bonus"
+msgid "Help!"
 msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Help!"
+msgid "Payment"
 msgstr ""
 
 #: psynet/templates/timeline-page.html
