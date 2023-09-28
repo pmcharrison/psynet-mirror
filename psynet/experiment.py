@@ -1249,7 +1249,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :returns:
             The bonus payment as a ``float``.
         """
-        bonus = participant.calculate_bonus()
+        bonus = max(0, participant.calculate_bonus() - self.recruiter.base_payment)
         return self.check_bonus(bonus, participant)
 
     def check_bonus(self, bonus, participant):
