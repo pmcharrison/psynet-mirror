@@ -1319,6 +1319,10 @@
                     }
                 };
 
+                psynet.submitAssignment = function() {
+                    dallinger.submitAssignment()
+                }
+
                 psynet.processingResponse = false;
 
                 psynet.submitResponse = async function (onRejection) {
