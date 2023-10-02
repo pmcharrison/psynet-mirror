@@ -32,7 +32,7 @@
       setAborted = function(assignmentId) {
         fetch("/set_participant_as_aborted/" + assignmentId)
           .then(function () {
-            psynet.submitAssignment();
+            submitAssignment();
           });
       }
     </script>

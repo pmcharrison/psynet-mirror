@@ -188,7 +188,7 @@ looks like:
         </p>
         <p class="vspace"></p>
 
-        <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="psynet.submitAssignment();">Finish</button>
+        <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="submitAssignment();">Finish</button>
     {% endblock %}
 
 Most PsyNet users don't work with these Jinja templates directly. Instead, they use PsyNet helper classes
