@@ -44,7 +44,7 @@ def test_translation_verification():
 def test_run():
     VARIABLE_PLACEHOLDERS = {
         "BASE_PAYMENT": 0.1,
-        "BONUS": 0.1,
+        "TIME_REWARD": 0.1,
         "CURRENCY": "$",
         "EMAIL": "dummy@email.com",
         "MIN_ACCUMULATED_BONUS_FOR_ABORT": 2,
