@@ -1983,10 +1983,10 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, python-format
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr ""
-"Ekstra <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> bonus kazandınız!"
+"Ekstra <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> bonus kazandınız!"
 
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"

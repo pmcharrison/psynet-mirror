@@ -1717,9 +1717,9 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, python-format, fuzzy
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr "你还获得了<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>的业绩奖金!"
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr "你还获得了<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>的业绩奖金!"
 
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"

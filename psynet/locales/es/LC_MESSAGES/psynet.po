@@ -2257,11 +2257,11 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, fuzzy, python-format
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr ""
 "¡También se te ha concedido una bonificación por rendimiento de "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

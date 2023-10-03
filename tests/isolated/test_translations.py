@@ -48,7 +48,7 @@ def test_run():
         "CURRENCY": "$",
         "EMAIL": "dummy@email.com",
         "MIN_ACCUMULATED_BONUS_FOR_ABORT": 2,
-        "PERFORMANCE_BONUS": 1.2,
+        "PERFORMANCE_REWARD": 1.2,
         "TERMINATION_TIME": 120,
         "AGE": 12,
         "HIDE_AFTER": 2,

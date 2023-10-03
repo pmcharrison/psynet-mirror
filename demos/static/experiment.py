@@ -93,7 +93,7 @@ class AnimalTrialMaker(StaticTrialMaker):
 
     def compute_bonus(self, score, passed):
         # At the end of the trial maker, we give the participant 1 dollar for each point.
-        # This is combined with their trial-level performance bonus to give their overall performance bonus.
+        # This is combined with their trial-level performance reward to give their overall performance reward.
         return 1.0 * score
 
     give_end_feedback_passed = True

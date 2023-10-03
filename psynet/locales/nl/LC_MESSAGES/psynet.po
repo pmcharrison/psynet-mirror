@@ -1996,10 +1996,10 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, python-format
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr ""
-"U heeft bonus van <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> "
+"U heeft bonus van <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> "
 "verzameld!"
 
 #: psynet/templates/final-page-rejected-consent.html

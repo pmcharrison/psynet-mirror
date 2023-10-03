@@ -2200,10 +2200,10 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, python-format, fuzzy
 msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr ""
-"आपको <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> का प्रदर्शन बोनस भी "
+"आपको <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> का प्रदर्शन बोनस भी "
 "दिया गया है!"
 
 #: psynet/templates/final-page-rejected-consent.html

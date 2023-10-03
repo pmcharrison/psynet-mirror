@@ -170,7 +170,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     last_response_id = Column(Integer)
 
     base_payment = Column(Float)
-    performance_bonus = Column(Float)
+    performance_reward = Column(Float)
     unpaid_reward = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
@@ -419,7 +419,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.answer_accumulators = []
         self.complete = False
         self.time_credit.initialize(experiment)
-        self.performance_bonus = 0.0
+        self.performance_reward = 0.0
         self.unpaid_reward = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
@@ -444,12 +444,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             The bonus as a ``float``.
         """
         return round(
-            self.time_credit.get_time_reward() + self.performance_bonus,
+            self.time_credit.get_time_reward() + self.performance_reward,
             ndigits=2,
         )
 
     def inc_performance_bonus(self, value):
-        self.performance_bonus = self.performance_bonus + value
+        self.performance_reward += value
 
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (

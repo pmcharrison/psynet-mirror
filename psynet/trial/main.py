@@ -480,7 +480,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def _log_bonus(self, bonus):
         logger.info(
-            "Allocating a performance bonus of $%.2f to participant %i for trial %i.",
+            "Allocating a performance reward of $%.2f to participant %i for trial %i.",
             bonus,
             self.participant.id,
             self.id,
@@ -1010,7 +1010,7 @@ class TrialMaker(Module):
       with a view to rejecting poor-performing participants.
 
     * :meth:`~psynet.trial.main.TrialMaker.compute_bonus`;
-      computes the final performance bonus to assign to the participant.
+      computes the final performance reward to assign to the participant.
 
     * :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`
       (optional), which is used to estimate how many more participants are
@@ -1660,7 +1660,7 @@ class TrialMaker(Module):
 
             if type == "end":
                 bonus = self.compute_bonus(**results)
-                participant.module_state.performance_bonus = bonus
+                participant.module_state.performance_reward = bonus
                 participant.inc_performance_bonus(bonus)
 
             return results["passed"]
