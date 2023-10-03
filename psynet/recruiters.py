@@ -217,7 +217,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             "name": self.config.get("title"),
             "quota": n,
             "quota_cpi": round(
-                experiment.estimated_max_bonus(wage_per_hour),
+                experiment.estimated_max_reward(wage_per_hour),
                 2,
             ),
         }

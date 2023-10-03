@@ -1573,7 +1573,7 @@ class Timeline:
                 if isinstance(new_elt, Page):
                     finished = True
 
-    def estimated_max_bonus(self, wage_per_hour):
+    def estimated_max_reward(self, wage_per_hour):
         return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
 
     def estimated_completion_time(self, wage_per_hour):

@@ -769,8 +769,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def estimated_max_bonus(cls, wage_per_hour):
-        return cls.timeline.estimated_max_bonus(wage_per_hour)
+    def estimated_max_reward(cls, wage_per_hour):
+        return cls.timeline.estimated_max_reward(wage_per_hour)
 
     @classmethod
     def estimated_completion_time(cls, wage_per_hour):

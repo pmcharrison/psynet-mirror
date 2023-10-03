@@ -1282,9 +1282,9 @@ def _estimate(mode):
         config.load()
 
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
+        max_reward = experiment_class.estimated_max_reward(wage_per_hour)
         log(
-            f"Estimated maximum bonus for participant: {config.currency}{round(maximum_bonus, 2)}."
+            f"Estimated maximum bonus for participant: {config.currency}{round(max_reward, 2)}."
         )
     if mode in ["time", "both"]:
         completion_time = experiment_class.estimated_completion_time(wage_per_hour)
