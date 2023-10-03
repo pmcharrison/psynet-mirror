@@ -444,7 +444,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             The bonus as a ``float``.
         """
         return round(
-            self.time_credit.get_bonus() + self.performance_bonus,
+            self.time_credit.get_time_reward() + self.performance_bonus,
             ndigits=2,
         )
 
@@ -682,7 +682,7 @@ class TimeCreditStore:
         self.max_pending_credit = 0.0
         self.confirmed_credit += time_estimate
 
-    def get_bonus(self):
+    def get_time_reward(self):
         return self.wage_per_hour * self.confirmed_credit / (60 * 60)
 
     def estimate_time_credit(self):

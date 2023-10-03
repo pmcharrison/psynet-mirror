@@ -1,9 +1,9 @@
 {% if not experiment.with_lucid_recruitment() %}
 {% set BASE_PAYMENT =  "%.2f"|format(participant.base_payment) %}
-{% set BONUS =  "%.2f"|format(participant.time_credit.get_bonus()) %}
+{% set TIME_REWARD =  "%.2f"|format(participant.time_credit.get_time_reward()) %}
 {% set PERFORMANCE_BONUS =  "%.2f"|format(participant.performance_bonus) %}
 {% set CURRENCY = config.currency %}
-{% trans name="final-page-bonuses" %}In addition to your base payment of <strong>{{ CURRENCY }}{{ BASE_PAYMENT }}</strong>, you will receive a bonus of <strong>{{ CURRENCY }}{{ BONUS }}</strong> for the time you spent on the experiment.{% endtrans %}
+{% trans name="final-page-bonuses" %}In addition to your base payment of <strong>{{ CURRENCY }}{{ BASE_PAYMENT }}</strong>, you will receive a bonus of <strong>{{ CURRENCY }}{{ TIME_REWARD }}</strong> for the time you spent on the experiment.{% endtrans %}
 
 {% if participant.performance_bonus > 0.0 %}
     {% trans name="final-page-bonuses" %}You have also been awarded a performance bonus of <strong>{{ CURRENCY }}{{PERFORMANCE_BONUS}}</strong>!{% endtrans %}
