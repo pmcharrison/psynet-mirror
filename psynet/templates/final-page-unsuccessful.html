@@ -5,7 +5,7 @@
 
     {% if not experiment.with_lucid_recruitment() %}
         {{ pgettext("final_page_unsuccessful", "However, you will still be paid for the time you spent already.") }}
-        {% if config.show_bonus %}
+        {% if config.show_reward %}
             {% include "final-page-bonuses.html" %}
         {% endif %}
         <p class="vspace"></p>

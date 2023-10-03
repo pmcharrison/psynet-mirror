@@ -55,4 +55,4 @@ class TestExp:
         assert config.get("wage_per_hour") == 12.0
         assert config.get("min_accumulated_bonus_for_abort") == 0.2
         assert not config.get("show_abort_button")
-        assert config.get("show_bonus") is True
+        assert config.get("show_reward") is True

@@ -252,13 +252,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
         Default ``False``.
 
-    show_bonus : `bool`
-        If ``True`` (default), then the participant's current estimated bonus is displayed
+    show_reward : `bool`
+        If ``True`` (default), then the participant's current estimated reward is displayed
         at the bottom of the page.
 
     show_footer : `bool`
         If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
-        and bonus information if `show_bonus` is set to `True`.
+        and reward information if `show_reward` is set to `True`.
 
     show_progress_bar : `bool`
         If ``True`` (default), then a progress bar is displayed at the top of the page.
@@ -822,7 +822,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "currency": "$",
             "min_accumulated_bonus_for_abort": 0.20,
             "show_abort_button": False,
-            "show_bonus": True,
+            "show_reward": True,
             "show_footer": True,
             "show_progress_bar": True,
             "check_participant_opened_devtools": False,
@@ -1537,7 +1537,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("currency", unicode)
         config.register("min_accumulated_bonus_for_abort", float)
         config.register("show_abort_button", bool)
-        config.register("show_bonus", bool)
+        config.register("show_reward", bool)
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
         config.register("check_participant_opened_devtools", bool)
@@ -2335,7 +2335,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if get_and_load_config().get("show_bonus"):
+        if get_and_load_config().get("show_reward"):
             performance_bonus = participant.performance_bonus
             basic_bonus = participant.time_credit.get_bonus()
             total_bonus = participant.calculate_bonus()

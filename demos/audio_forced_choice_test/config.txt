@@ -27,4 +27,4 @@ prolific_reward_cents = 34
 # recruiter = lucid
 # debug_recruiter = DevLucidRecruiter
 # lucid_recruitment_config = file:./lucid_recruitment_config.json
-# show_bonus = false
+# show_reward = false
