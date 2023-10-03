@@ -2320,9 +2320,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return True
 
-    @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
+    @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
-    def get_progress_and_bonus(cls):
+    def get_progress_and_reward(cls):
         participant = get_participant(request.args.get("participantId"))
         progress_percentage = round(participant.progress * 100)
         min_pct = 5

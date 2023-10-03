@@ -701,14 +701,14 @@ class Page(Elt):
     session_id : str
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
 
-    dynamically_update_progress_bar_and_bonus : bool
+    dynamically_update_progress_bar_and_reward : bool
         If ``True``, then the page will regularly poll for updates to the progress bar and the bonus.
         If ``False`` (default), the progress bar and bonus are updated only on page refresh or on transition to
         the next page.
     """
 
     returns_time_credit = True
-    dynamically_update_progress_bar_and_bonus = False
+    dynamically_update_progress_bar_and_reward = False
 
     def __init__(
         self,
@@ -1121,7 +1121,7 @@ class Page(Elt):
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
-            "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
+            "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)

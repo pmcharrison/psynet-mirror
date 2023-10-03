@@ -1304,7 +1304,7 @@
                     psynet.participantId = {{ participant.id }};
                     psynet.uniqueId = "{{ participant.unique_id }}";
 
-                    updateProgressAndBonus();
+                    updateProgressAndReward();
 
                     if (correctBrowser) {
                         setTimeout(() => psynet.trial.init(), 25);
@@ -1620,9 +1620,9 @@
             }()
         )
 
-        let updateProgressAndBonus = function () {
+        let updateProgressAndReward = function () {
             if (psynet.participantId !== undefined) {
-                $.get('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
+                $.get('/timeline/progress_and_reward', {'participantId': psynet.participantId})
                     .done(function (data) {
                         let progressPercentage = data['progressPercentage'];
                         let progressPercentageStr = progressPercentage + '%';
@@ -1642,8 +1642,8 @@
             }
         }
 
-        if (dynamicallyUpdateProgressBarAndBonus) {
-            setInterval(updateProgressAndBonus, 1000);
+        if (dynamicallyUpdateProgressBarAndReward) {
+            setInterval(updateProgressAndReward, 1000);
         }
 
         function alertParticipantOpenedDevtools() {
