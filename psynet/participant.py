@@ -448,7 +448,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             ndigits=2,
         )
 
-    def inc_performance_bonus(self, value):
+    def inc_performance_reward(self, value):
         self.performance_reward += value
 
     def amount_paid(self):

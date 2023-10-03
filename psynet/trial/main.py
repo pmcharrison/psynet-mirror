@@ -476,7 +476,7 @@ class Trial(SQLMixinDallinger, Info):
         assert isinstance(bonus, (float, int))
         self._log_bonus(bonus)
         self.bonus = bonus
-        self.participant.inc_performance_bonus(bonus)
+        self.participant.inc_performance_reward(bonus)
 
     def _log_bonus(self, bonus):
         logger.info(
@@ -1661,7 +1661,7 @@ class TrialMaker(Module):
             if type == "end":
                 bonus = self.compute_bonus(**results)
                 participant.module_state.performance_reward = bonus
-                participant.inc_performance_bonus(bonus)
+                participant.inc_performance_reward(bonus)
 
             return results["passed"]
 

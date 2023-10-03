@@ -91,7 +91,7 @@ class GameTrialMaker(StaticTrialMaker):
     def finalize_trial(self, answer, trial, experiment, participant: Participant):
         # pay bonus
         bonus_in_trial = answer["reward"]
-        participant.inc_performance_bonus(bonus_in_trial / 100)
+        participant.inc_performance_reward(bonus_in_trial / 100)
         # check if time to finish experiment
         if answer["expire"]:
             participant.var.expire = True  # finish the game
