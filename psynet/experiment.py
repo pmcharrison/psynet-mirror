@@ -2339,9 +2339,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             time_reward = participant.time_credit.get_time_reward()
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
-            data["bonus"] = {
-                "basic": time_reward,
-                "extra": performance_reward,
+            data["reward"] = {
+                "time": time_reward,
+                "performance": performance_reward,
                 "total": total_reward,
             }
         return data

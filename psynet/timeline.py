@@ -1134,9 +1134,9 @@ class Page(Elt):
             "js_vars": js_vars,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "basic_bonus": "%.2f" % participant.time_credit.get_time_reward(),
-            "extra_bonus": "%.2f" % participant.performance_reward,
-            "total_bonus": "%.2f"
+            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "performance_reward": "%.2f" % participant.performance_reward,
+            "total_reward": "%.2f"
             % (
                 participant.performance_reward
                 + participant.time_credit.get_time_reward()
