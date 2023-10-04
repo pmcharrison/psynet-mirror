@@ -159,7 +159,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         class Exp(psynet.experiment.Experiment):
             config = {
-                "min_accumulated_bonus_for_abort": 0.15,
+                "min_accumulated_reward_for_abort": 0.15,
                 "show_abort_button": True,
             }
 
@@ -242,7 +242,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     currency : `str`
         The currency in which the participant gets paid. Default: `$`.
 
-    min_accumulated_bonus_for_abort : `float`
+    min_accumulated_reward_for_abort : `float`
         The threshold of bonus accumulated in US dollars for the participant to be able to receive
         compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
 
@@ -820,7 +820,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",
-            "min_accumulated_bonus_for_abort": 0.20,
+            "min_accumulated_reward_for_abort": 0.20,
             "show_abort_button": False,
             "show_reward": True,
             "show_footer": True,
@@ -1535,7 +1535,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("min_browser_version", unicode)
         config.register("wage_per_hour", float)
         config.register("currency", unicode)
-        config.register("min_accumulated_bonus_for_abort", float)
+        config.register("min_accumulated_reward_for_abort", float)
         config.register("show_abort_button", bool)
         config.register("show_reward", bool)
         config.register("show_footer", bool)
@@ -2105,7 +2105,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
                 if participant.calculate_bonus() >= get_and_load_config().get(
-                    "min_accumulated_bonus_for_abort"
+                    "min_accumulated_reward_for_abort"
                 ):
                     template_name = "abort_possible.html"
                     participant_abort_info = participant.abort_info()

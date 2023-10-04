@@ -470,10 +470,10 @@ msgstr "重定向到Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
-"你必须积累<strong>至少%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>的奖金，才能得到补偿。"
+"你必须积累<strong>至少%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>的奖金，才能得到补偿。"
 
 #: psynet/templates/abort_not_possible.html
 msgctxt "abort_possible"

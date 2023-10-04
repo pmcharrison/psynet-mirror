@@ -531,12 +531,12 @@ msgstr "Inaelekezwa kwenye Soko la Lucid..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Lazima ukusanye <strong>angalau "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ya bonasi ili uweze"
-" kulipwa."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ya bonasi ili "
+"uweze kulipwa."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy

@@ -25,7 +25,7 @@ class TestExp(object):
 
         config = get_and_load_config()
         assert config.get("wage_per_hour") == 12.0
-        assert config.get("min_accumulated_bonus_for_abort") == 0.15
+        assert config.get("min_accumulated_reward_for_abort") == 0.15
         assert config.get("show_abort_button") is True
 
     def test_exp(self, bot_recruits, db_session):

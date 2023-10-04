@@ -528,12 +528,12 @@ msgstr "Reindirizzamento a Lucid Marketplace..."
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Deve accumulare <strong>almeno "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> di bonus per poter "
-"esser compensato."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> di bonus per poter"
+" esser compensato."
 
 #: psynet/templates/abort_not_possible.html
 msgctxt "abort_possible"

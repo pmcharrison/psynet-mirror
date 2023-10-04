@@ -551,12 +551,12 @@ msgstr "Uudelleenohjaus Lucid Marketplace..."
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Sinun on kerättävä <strong>vähintään "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusta, jotta voit"
-" jotta voit saada korvauksen."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> bonusta, jotta "
+"voit jotta voit saada korvauksen."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy

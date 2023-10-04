@@ -533,11 +533,11 @@ msgstr "Mengalihkan ke Pasar Lucid..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Anda harus mengumpulkan "
-"<strong>setidaknya%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> "
+"<strong>setidaknya%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> "
 "bonus untuk mendapatkan kompensasi."
 
 #: psynet/templates/abort_not_possible.html
