@@ -664,8 +664,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Devam etmek için aşağıdaki düğmeyi tıklayın."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 msgid "Next"
 msgstr "Sonraki"
 
@@ -1981,6 +1980,19 @@ msgstr ""
 "<strong>%(CURRENCY)s%(BONUS)s</strong> tutarında bir bonus alacaksınız."
 
 #: psynet/templates/final-page-bonuses.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> tutarındaki temel ödemenize ek"
+" olarak, deneyde harcadığınız zaman için "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> tutarında bir bonus "
+"alacaksınız."
+
+#: psynet/templates/final-page-bonuses.html
 #, python-format
 msgid ""
 "You have also been awarded a performance reward of "
@@ -2743,7 +2755,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Bir sorun olması durumunda aşağıdakileri deneyin:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2760,7 +2771,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Yaşadığınız sorun."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

@@ -700,8 +700,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "下のボタンをクリックしてください。"
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "次のページ"
@@ -1972,6 +1971,16 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, python-format, fuzzy
 msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"基本報酬の<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>に加え、実験に費やした時間に応じて<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>のボーナスを受け取ります。"
+
+#: psynet/templates/final-page-bonuses.html
+#, python-format, fuzzy
+msgid ""
 "You have also been awarded a performance reward of "
 "<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr "また、<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>の業績賞与が付与されています！"
@@ -2692,7 +2701,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "問題が発生した場合、以下をお試しください："
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2711,7 +2719,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "あなたが経験している問題。"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

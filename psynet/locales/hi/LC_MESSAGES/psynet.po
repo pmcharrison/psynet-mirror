@@ -728,8 +728,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "आगे बढ़ने के लिए, नीचे दिए गए बटन पर क्लिक करें।"
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "अगला"
@@ -2200,11 +2199,23 @@ msgstr ""
 #: psynet/templates/final-page-bonuses.html
 #, python-format, fuzzy
 msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"आपके <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> के मूल भुगतान के अलावा, "
+"आपको इसके लिए <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> का बोनस प्राप्त "
+"होगा आपने प्रयोग पर जो समय बिताया।"
+
+#: psynet/templates/final-page-bonuses.html
+#, python-format, fuzzy
+msgid ""
 "You have also been awarded a performance reward of "
 "<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr ""
-"आपको <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> का प्रदर्शन बोनस भी "
-"दिया गया है!"
+"आपको <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> का प्रदर्शन बोनस भी"
+" दिया गया है!"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2994,7 +3005,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "किसी समस्या के मामले में, निम्न का प्रयास करें:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3013,7 +3023,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "आप जिस समस्या का सामना कर रहे हैं।"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
