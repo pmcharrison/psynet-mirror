@@ -436,7 +436,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def initialize(self, experiment):
         pass
 
-    def calculate_bonus(self):
+    def calculate_reward(self):
         """
         Calculates and returns the currently accumulated bonus for the given participant.
 
@@ -590,7 +590,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return {
             "assignment_id": self.assignment_id,
             "hit_id": self.hit_id,
-            "accumulated_bonus": "$" + "{:.2f}".format(self.calculate_bonus()),
+            "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
 

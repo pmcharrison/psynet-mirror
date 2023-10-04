@@ -1249,8 +1249,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :returns:
             The bonus payment as a ``float``.
         """
-        bonus = participant.calculate_bonus()
-        return self.check_bonus(bonus, participant)
+        reward = participant.calculate_reward()
+        return self.check_bonus(reward, participant)
 
     def check_bonus(self, bonus, participant):
         """
@@ -2104,7 +2104,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant_abort_info = None
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                if participant.calculate_bonus() >= get_and_load_config().get(
+                if participant.calculate_reward() >= get_and_load_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
                     template_name = "abort_possible.html"
@@ -2338,11 +2338,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if get_and_load_config().get("show_reward"):
             time_reward = participant.time_credit.get_time_reward()
             performance_reward = participant.performance_reward
-            total_bonus = participant.calculate_bonus()
+            total_reward = participant.calculate_reward()
             data["bonus"] = {
                 "basic": time_reward,
                 "extra": performance_reward,
-                "total": total_bonus,
+                "total": total_reward,
             }
         return data
 
