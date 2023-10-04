@@ -472,16 +472,16 @@ class Trial(SQLMixinDallinger, Info):
         self.answer = x
 
     def _allocate_reward(self):
-        bonus = self.compute_performance_reward(score=self.score)
-        assert isinstance(bonus, (float, int))
-        self._log_bonus(bonus)
-        self.bonus = bonus
-        self.participant.inc_performance_reward(bonus)
+        reward = self.compute_performance_reward(score=self.score)
+        assert isinstance(reward, (float, int))
+        self._log_performance_reward(reward)
+        self.bonus = reward
+        self.participant.inc_performance_reward(reward)
 
-    def _log_bonus(self, bonus):
+    def _log_performance_reward(self, reward):
         logger.info(
             "Allocating a performance reward of $%.2f to participant %i for trial %i.",
-            bonus,
+            reward,
             self.participant.id,
             self.id,
         )
