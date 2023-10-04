@@ -2198,18 +2198,6 @@ msgstr "Để hoàn thành Khảo sát Lucid của bạn, hãy nhấp vào nút 
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
-" bạn sẽ nhận được tiền thưởng <strong>%(CURRENCY)s%(BONUS)s</strong> cho "
-"thời gian bạn dành cho thử nghiệm."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

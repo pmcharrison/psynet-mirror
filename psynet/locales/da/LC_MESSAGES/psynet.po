@@ -2206,18 +2206,6 @@ msgstr "Klik på knappen nedenfor for at udfylde din Lucid-undersøgelse."
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ud over din grundbetaling på <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
-"vil du modtage en bonus på <strong>%(CURRENCY)s%(BONUS)s</strong> for den "
-"tid, du har brugt på eksperimentet."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

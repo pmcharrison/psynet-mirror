@@ -2192,17 +2192,6 @@ msgstr ""
 "Um Ihre Lucid-Umfrage abzuschließen, klicken Sie auf die Schaltfläche unten."
 
 #: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Zur Basisbezahlung <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, bekommen "
-"Sie einen Bonus von: <strong>%(CURRENCY)s%(BONUS)s</strong>."
-
-#: psynet/templates/final-page-bonuses.html
 #, python-format, fuzzy
 msgid ""
 "In addition to your base payment of "

@@ -1991,17 +1991,6 @@ msgstr "루시드 설문조사를 완료하려면 아래 버튼을 클릭하세�
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"기본 지급액인 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>에 더해, 실험에 소요한 시간에 대해 "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> 보너스를 받게 됩니다."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

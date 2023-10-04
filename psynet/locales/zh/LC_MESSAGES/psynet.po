@@ -1708,16 +1708,6 @@ msgstr "要完成您的Lucid调查，请点击下面的按钮。"
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"除了你的基本报酬<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>之外，你还会收到<strong>%(CURRENCY)s%(BONUS)s</strong>的奖金，以奖励你在实验中花费的时间。"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

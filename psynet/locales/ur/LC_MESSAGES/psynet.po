@@ -2178,18 +2178,6 @@ msgstr "اپنا لوسیڈ سروے مکمل کرنے کے لیے، نیچے د
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"آپ کی <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> کی بنیادی ادائیگی کے "
-"علاوہ، آپ کو <strong>%(CURRENCY)s%(BONUS)s</strong> کا بونس ملے گا۔ جو وقت "
-"آپ نے تجربے پر گزارا ہے۔"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

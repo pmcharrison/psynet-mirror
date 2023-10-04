@@ -2183,18 +2183,6 @@ msgstr "Каб завяршыць апытанне Lucid, націсніце к�
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"У дадатак да вашага базавага плацяжу ў памеры "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> вы атрымаеце бонус у памеры "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> за"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

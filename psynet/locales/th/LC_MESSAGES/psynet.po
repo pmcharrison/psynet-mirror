@@ -2114,18 +2114,6 @@ msgstr "หากต้องการกรอกแบบสำรวจ Lucid
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"นอกจากการชำระเงินพื้นฐานของคุณที่ "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> แล้ว คุณจะได้รับโบนัส "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> สำหรับ เวลาที่คุณใช้ในการทดลอง"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

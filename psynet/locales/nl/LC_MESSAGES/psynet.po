@@ -1981,18 +1981,6 @@ msgid "To complete your Lucid Survey, click the button below."
 msgstr "Klik op onderstaande knop om uw Lucid-enquête in te vullen."
 
 #: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Naast uw basisbetaling van <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
-"ontvangt u een bonus van <strong>%(CURRENCY)s%(BONUS)s</strong> voor de tijd"
-" die u aan het experiment heeft besteed."
-
-#: psynet/templates/final-page-bonuses.html
 #, python-format, fuzzy
 msgid ""
 "In addition to your base payment of "

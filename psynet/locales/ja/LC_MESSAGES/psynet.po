@@ -1963,16 +1963,6 @@ msgstr "ルシードサーベイの提出は、以下のボタンをクリック
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"基本報酬の<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>に加え、実験に費やした時間に応じて<strong>%(CURRENCY)s%(BONUS)s</strong>のボーナスが支払われます。"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""

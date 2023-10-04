@@ -2169,18 +2169,6 @@ msgstr "Lucid-küsitluse täitmiseks klõpsake alloleval nupul."
 msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Lisaks baasmaksele <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> saate "
-"eksperimendile kulutatud aja eest boonust "
-"<strong>%(CURRENCY)s%(BONUS)s</strong>."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
 "experiment."
 msgstr ""
