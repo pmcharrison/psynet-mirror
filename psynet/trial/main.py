@@ -471,7 +471,7 @@ class Trial(SQLMixinDallinger, Info):
     def contents(self, x):
         self.answer = x
 
-    def _allocate_bonus(self):
+    def _allocate_reward(self):
         bonus = self.compute_bonus(score=self.score)
         assert isinstance(bonus, (float, int))
         self._log_bonus(bonus)
@@ -740,7 +740,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def on_finalized(self):
         self.score = self.score_answer(answer=self.answer, definition=self.definition)
-        self._allocate_bonus()
+        self._allocate_reward()
 
         db.session.commit()
 
