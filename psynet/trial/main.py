@@ -472,7 +472,7 @@ class Trial(SQLMixinDallinger, Info):
         self.answer = x
 
     def _allocate_reward(self):
-        bonus = self.compute_bonus(score=self.score)
+        bonus = self.compute_performance_reward(score=self.score)
         assert isinstance(bonus, (float, int))
         self._log_bonus(bonus)
         self.bonus = bonus
@@ -533,14 +533,14 @@ class Trial(SQLMixinDallinger, Info):
         """
         return None
 
-    def compute_bonus(self, score):
+    def compute_performance_reward(self, score):
         """
         Computes a bonus to allocate to the participant as a reward for the current trial.
         By default, no bonus is given.
         Note: this trial-level bonus system is complementary to the trial-maker-level bonus system,
         which computes an overall bonus for the participant at the end of a trial maker.
         It is possible to use these two bonus systems independently or simultaneously.
-        See :meth:`~psynet.trial.main.TrialMaker.compute_bonus` for more details.
+        See :meth:`~psynet.trial.main.TrialMaker.compute_performance_reward` for more details.
 
         Parameters
         ----------
@@ -1009,7 +1009,7 @@ class TrialMaker(Module):
       (optional), which checks the performance of the participant
       with a view to rejecting poor-performing participants.
 
-    * :meth:`~psynet.trial.main.TrialMaker.compute_bonus`;
+    * :meth:`~psynet.trial.main.TrialMaker.compute_performance_reward`;
       computes the final performance reward to assign to the participant.
 
     * :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`
@@ -1659,7 +1659,7 @@ class TrialMaker(Module):
             participant.module_state.performance_check = results
 
             if type == "end":
-                bonus = self.compute_bonus(**results)
+                bonus = self.compute_performance_reward(**results)
                 participant.module_state.performance_reward = bonus
                 participant.inc_performance_reward(bonus)
 
@@ -2333,7 +2333,7 @@ class NetworkTrialMaker(TrialMaker):
     performance_check_type = None
     consistency_check_type = "spearman_correlation"
 
-    def compute_bonus(self, score, passed):
+    def compute_performance_reward(self, score, passed):
         """
         Computes the bonus to allocate to the participant at the end of a trial maker
         on the basis of the results of the final performance check.

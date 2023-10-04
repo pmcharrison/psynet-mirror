@@ -55,7 +55,7 @@ class DenseTrialMaker(StaticTrialMaker):
       checks the performance of the participant
       with a view to rejecting poor-performing participants.
 
-    * :meth:`~psynet.trial.main.TrialMaker.compute_bonus`;
+    * :meth:`~psynet.trial.main.TrialMaker.compute_performance_reward`;
       computes the final performance reward to assign to the participant.
 
     Further customisable options are available in the constructor's parameter list,

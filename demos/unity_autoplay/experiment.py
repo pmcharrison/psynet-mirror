@@ -99,8 +99,8 @@ class GameTrialMaker(StaticTrialMaker):
             return
         super().finalize_trial(answer, trial, experiment, participant)
 
-    def compute_bonus(self, score, passed):
-        logger.info(f"SCORE in compute_bonus: {score}")
+    def compute_performance_reward(self, score, passed):
+        logger.info(f"SCORE in compute_performance_reward: {score}")
         return score / 100
 
     def performance_check(self, experiment, participant, participant_trials):
