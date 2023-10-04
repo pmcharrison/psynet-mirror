@@ -2190,28 +2190,6 @@ msgid "To complete your Lucid Survey, click the button below."
 msgstr ""
 "Ili kukamilisha Utafiti wako wa Lucid, bofya kitufe kilicho hapa chini."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Pamoja na malipo yako ya awali ya "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea bonasi ya "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
-"jaribio."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"Pia umetunukiwa bonasi ya utendakazi ya "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2237,6 +2215,41 @@ msgstr "Maliza"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Tafadhali bofya \"Maliza\" ili kukamilisha HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Pamoja na malipo yako ya awali ya "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea bonasi ya "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
+"jaribio."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Pamoja na malipo yako ya awali ya "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea zawadi ya "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
+"jaribio."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Pia umetunukiwa bonasi ya utendakazi ya "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy

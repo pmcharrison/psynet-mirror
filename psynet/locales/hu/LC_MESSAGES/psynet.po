@@ -2218,28 +2218,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "A Lucid felmérés kitöltéséhez kattintson az alábbi gombra."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"A <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> alapfizetésed mellett "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> bónuszt kapsz a kísérletre "
-"fordított idődért."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"Ön egy "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s%(PERFORMANCE_REWARD)s</strong> "
-"teljesítménybónuszt is kapott!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2265,6 +2243,40 @@ msgstr "Befejezés"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "A HIT befejezéséhez kattintson a \"Befejezés\" gombra."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"A <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> alapfizetésed mellett "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> bónuszt kapsz a kísérletre "
+"fordított idődért."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"A <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> alapfizetésed mellett "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> jutalmat kapsz a kísérletre "
+"fordított idődért."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Ön egy "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s%(PERFORMANCE_REWARD)s</strong> "
+"teljesítménybónuszt is kapott!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy

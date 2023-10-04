@@ -2188,27 +2188,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Chcete-li vyplnit dotazník Lucid, klikněte na tlačítko níže."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Kromě základní platby <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> obdržíte"
-" bonus <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas strávený na "
-"experimentu."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"Byl vám také udělen výkonnostní bonus ve výši "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2234,6 +2213,39 @@ msgstr "Dokončení"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Kliknutím na tlačítko \"Finish\" dokončete HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Kromě základní platby <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> obdržíte"
+" bonus <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas strávený na "
+"experimentu."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Kromě základní platby <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> obdržíte"
+" odměnu <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas strávený na "
+"experimentu."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Byl vám také udělen výkonnostní bonus ve výši "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy

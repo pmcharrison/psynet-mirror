@@ -2003,27 +2003,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Klik op onderstaande knop om uw Lucid-enquête in te vullen."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Naast uw basisbetaling van <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
-"ontvangt u een bonus van <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> voor "
-"de tijd die u aan het experiment hebt besteed."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"U heeft bonus van <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> "
-"verzameld!"
-
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
@@ -2045,6 +2024,39 @@ msgstr "Voltooien"
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klik op \"Voltooien\" om de HIT te voltooien."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Naast uw basisbetaling van <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
+"ontvangt u een bonus van <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> voor "
+"de tijd die u aan het experiment hebt besteed."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Naast uw basisbetaling van <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
+"ontvangt u een beloning van <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"voor de tijd die u aan het experiment hebt besteed."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"U heeft bonus van <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> "
+"verzameld!"
 
 #: psynet/templates/final-page-successful.html
 msgctxt "final_page_successful"

@@ -2216,27 +2216,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Để hoàn thành Khảo sát Lucid của bạn, hãy nhấp vào nút bên dưới."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
-" bạn sẽ nhận được tiền thưởng <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
-"cho thời gian bạn dành cho thí nghiệm."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"Bạn cũng đã được thưởng phần thưởng hiệu suất "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2262,6 +2241,40 @@ msgstr "Hoàn thành"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Vui lòng bấm \"Finish\" để hoàn thành HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
+" bạn sẽ nhận được tiền thưởng <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"cho thời gian bạn dành cho thí nghiệm."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
+" bạn sẽ nhận được phần thưởng là "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> cho thời gian bạn dành cho thí "
+"nghiệm."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Bạn cũng đã được thưởng phần thưởng hiệu suất "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy

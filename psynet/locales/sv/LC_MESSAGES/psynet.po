@@ -2221,27 +2221,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Klicka på knappen nedan för att fylla i din Lucid-enkät."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Utöver din grundbetalning på <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
-"får du en bonus på <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> för den tid "
-"du lagt ner på experimentet."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"Du har också tilldelats en prestationsbonus på "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2267,6 +2246,39 @@ msgstr "Slutförande"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klicka på \"Slutför\" för att slutföra HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Utöver din grundbetalning på <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
+"får du en bonus på <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> för den tid "
+"du lagt ner på experimentet."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Utöver din grundbetalning på <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
+"får du en belöning på <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> för den "
+"tid du har lagt på experimentet."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Du har också tilldelats en prestationsbonus på "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy

@@ -2207,27 +2207,6 @@ msgid "To complete your Lucid Survey, click the button below."
 msgstr ""
 "अपना स्पष्ट सर्वेक्षण पूरा करने के लिए, नीचे दिए गए बटन पर क्लिक करें।"
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"आपके <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> के मूल भुगतान के अलावा, "
-"आपको इसके लिए <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> का बोनस प्राप्त "
-"होगा आपने प्रयोग पर जो समय बिताया।"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"आपको <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> का प्रदर्शन बोनस भी"
-" दिया गया है!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2253,6 +2232,39 @@ msgstr "खत्म करना"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "हिट को पूरा करने के लिए कृपया \"समाप्त करें\" पर क्लिक करें।"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"आपके <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> के मूल भुगतान के अलावा, "
+"आपको इसके लिए <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> का बोनस प्राप्त "
+"होगा आपने प्रयोग पर जो समय बिताया।"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"आपके <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> के मूल भुगतान के अलावा, "
+"आपको इसके लिए <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> का इनाम मिलेगा "
+"आपने प्रयोग पर जो समय बिताया।"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"आपको <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> का प्रदर्शन बोनस भी"
+" दिया गया है!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
