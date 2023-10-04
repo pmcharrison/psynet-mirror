@@ -538,6 +538,17 @@ msgstr ""
 "hüvitist."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Sa pead koguma <strong> vähemalt "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> tasu, et saada "
+"hüvitist."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -560,10 +571,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Vt allpool teavet teie hetkel kogutud boonuse kohta."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Vt allpool teavet teie hetkel kogutud preemia kohta."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Akumuleeritud boonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Akumuleeritud tasu"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

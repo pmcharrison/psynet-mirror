@@ -541,6 +541,17 @@ msgstr ""
 "ہوگا۔"
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"معاوضہ حاصل کرنے کے لیے آپ کو <strong>کم از کم "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> کا انعام جمع کرنا "
+"ہوگا۔"
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -562,10 +573,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "اپنے موجودہ جمع شدہ بونس کے بارے میں ذیل میں معلومات دیکھیں۔"
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "اپنے فی الحال جمع شدہ انعام کے بارے میں ذیل میں معلومات دیکھیں۔"
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "جمع شدہ بونس"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "جمع شدہ ثواب"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

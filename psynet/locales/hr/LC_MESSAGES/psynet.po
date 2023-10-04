@@ -540,6 +540,17 @@ msgstr ""
 "mogli dobiti naknadu."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Morate akumulirati <strong>najmanje "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> nagrade da biste "
+"mogli dobiti naknadu."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -561,10 +572,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "U nastavku pogledajte informacije o trenutno akumuliranom bonusu."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "U nastavku pogledajte informacije o trenutno prikupljenoj nagradi."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Akumulirani bonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Akumulirana nagrada"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

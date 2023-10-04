@@ -534,6 +534,17 @@ msgstr ""
 " לקבל פיצוי."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"עליך לצבור תגמול <strong>לפחות "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> כדי שתוכל לקבל "
+"פיצוי."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -554,10 +565,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "ראה מידע למטה על הבונוס שנצבר כעת."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "ראה מידע למטה על התגמול שנצבר כעת."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "בונוס מצטבר"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "פרס מצטבר"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

@@ -500,6 +500,17 @@ msgstr ""
 "pouvoir être récompensé."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Vous devez accumuler au moins "
+"<strong>%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> de "
+"récompense pour pouvoir être indemnisé."
+
+#: psynet/templates/abort_not_possible.html
 msgctxt "abort_possible"
 msgid "Aborting not possible."
 msgstr "Abandon impossible."
@@ -520,9 +531,23 @@ msgstr ""
 "Voir ci-dessous les informations sur votre bonus actuellement accumulé."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr ""
+"Vous trouverez ci-dessous des informations sur la récompense que vous avez "
+"accumulée."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 msgid "Accumulated bonus"
 msgstr "Bonus accumulé"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Récompense cumulée"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

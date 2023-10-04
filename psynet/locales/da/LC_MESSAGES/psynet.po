@@ -542,6 +542,17 @@ msgstr ""
 "kunne blive kompenseret."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Du skal akkumulere <strong>mindst "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> af belønning for "
+"at kunne blive kompenseret."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -564,10 +575,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Se nedenstående oplysninger om din aktuelle akkumulerede bonus."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Se nedenstående oplysninger om din aktuelt akkumulerede belønning."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Akkumuleret bonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Akkumuleret belønning"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

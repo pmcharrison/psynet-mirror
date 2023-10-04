@@ -526,6 +526,15 @@ msgstr ""
 "補償を受けるためには、<strong>少なくとも%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>のボーナスを蓄積しておく必要があります。"
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"補償を受けるには、<strong>少なくとも%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>の報酬を蓄積する必要があります。"
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -546,10 +555,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "現在貯まっているボーナスについては、以下の情報をご覧ください。"
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "現在蓄積されている報酬については、以下をご覧ください。"
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "賞与引当金繰入額"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "累積報酬"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

@@ -549,6 +549,17 @@ msgstr ""
 "mabayaran."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Kailangan mong makaipon ng <strong>hindi bababa sa "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ng reward upang "
+"mabayaran."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -572,10 +583,23 @@ msgstr ""
 "Tingnan sa ibaba ang impormasyon sa iyong kasalukuyang naipon na bonus."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr ""
+"Tingnan sa ibaba ang impormasyon sa iyong kasalukuyang naipon na reward."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Naipon na bonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Naipong gantimpala"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

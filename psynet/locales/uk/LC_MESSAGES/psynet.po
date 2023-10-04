@@ -539,6 +539,17 @@ msgstr ""
 "можливість отримати компенсацію."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Ви повинні накопичити <strong>принаймні "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> винагороди, щоб "
+"мати можливість отримати компенсацію."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -561,10 +572,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Нижче дивіться інформацію про ваш поточний накопичений бонус."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Нижче ви знайдете інформацію про накопичену вами винагороду."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Накопичений бонус"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Накопичена винагорода"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html

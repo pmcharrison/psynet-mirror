@@ -538,6 +538,17 @@ msgstr ""
 "mohli byť odškodnení."
 
 #: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Musíte nazbierať <strong>najmä "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> odmeny, aby ste "
+"mohli byť odškodnení."
+
+#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
@@ -561,10 +572,22 @@ msgstr ""
 "Pozrite si nižšie uvedené informácie o vašom aktuálne nazbieranom bonuse."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Nižšie nájdete informácie o vašej aktuálne nazbieranej odmene."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Kumulovaný bonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Kumulovaná odmena"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
