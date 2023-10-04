@@ -173,7 +173,7 @@
                             <strong>
                                 <span id="reward-details" style="display: none">
                                     {{ config.currency }}<span id="time-reward">{{ time_reward }}</span> (basic) +
-                                    {{ config.currency }}<span id="performance-reward">{{ performance_reward }}</span> (extra) =
+                                    {{ config.currency }}<span id="performance-reward">{{ performance_reward }}</span> (performance) =
                                 </span>
                                 <span class="fw-bold">
                                     {{ config.currency }}<span id="total-reward">{{ total_reward }}</span>
@@ -1631,7 +1631,7 @@
                         $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage);
 
                         if (data['reward'] !== undefined) {
-                            if (data['reward']['extra'].toFixed(2) > 0) {
+                            if (data['reward']['performance'].toFixed(2) > 0) {
                                 $('#time-reward').text(data['reward']['time'].toFixed(2));
                                 $('#performance-reward').text(data['reward']['performance'].toFixed(2));
                                 $("#reward-details").show();
