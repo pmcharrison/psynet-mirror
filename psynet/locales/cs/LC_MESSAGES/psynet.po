@@ -2078,7 +2078,7 @@ msgid ""
 "possible to link your personal information based on audio-visual recordings"
 msgstr ""
 "Ačkoli vaše údaje nebudou spojeny s osobními identifikátory, je možné "
-"propojit vaše osobní údaje na základě audiovizuálních záznamů."
+"propojit vaše osobní údaje na základě audiovizuálních záznamů"
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
