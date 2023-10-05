@@ -203,7 +203,7 @@ Payment
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
     The recruiting process stops if the amount of accumulated payments
-    (incl. bonuses), in the currency set via the ``currency`` config variable, exceedes this value. Default: ``1000.0``.
+    (incl. time and performance rewards), in the currency set via the ``currency`` config variable, exceedes this value. Default: ``1000.0``.
 
 ``wage_per_hour`` *float* |psynet-icon|
     The payment in currency the participant gets per hour. Default: ``9.0``.

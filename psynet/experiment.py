@@ -201,7 +201,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     soft_max_experiment_payment : `float`
         The recruiting process stops if the amount of accumulated payments
-        (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
+        (incl. time and performance rewards) in US dollars exceedes this value. Default: `1000.0`.
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.

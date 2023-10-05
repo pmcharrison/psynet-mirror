@@ -81,7 +81,7 @@ This query returns a list of all the ``CustomTrial`` objects in the database. We
         if t.participant.var.name == "James"
     ]
 
-We could then sum the bonuses from each of these trials:
+We could then sum the performance rewards from each of these trials:
 
 .. code-block:: python
 
