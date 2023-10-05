@@ -838,7 +838,7 @@ class ChainTrial(Trial):
 
     The user must also override the ``time_estimate`` class attribute,
     providing the estimated duration of the trial in seconds.
-    This is used for predicting the participant's bonus payment
+    This is used for predicting the participant's reward payment
     and for constructing the progress bar.
 
     The user may also wish to override the

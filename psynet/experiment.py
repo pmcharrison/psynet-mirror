@@ -904,8 +904,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return f"""
                 We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
                 <br>
-                you should receive a bonus of approximately
-                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_bonus_in_dollars)}</span> depending on the
+                you should receive an extra reward of approximately
+                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_reward_in_dollars)}</span> depending on the
                 amount of work done.
                 <br>
                 In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
@@ -929,7 +929,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return self.timeline.estimated_time_credit.get_max(mode="time") / 60
 
     @property
-    def estimated_bonus_in_dollars(self):
+    def estimated_reward_in_dollars(self):
         wage_per_hour = get_and_load_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(

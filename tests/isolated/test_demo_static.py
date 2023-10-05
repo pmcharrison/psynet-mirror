@@ -98,8 +98,8 @@ class TestExp:
 
             next_page(driver, "next-button")
 
-            # 9 * 1 cent bonus for individual trials
-            # + 9 dollars bonus at the end
+            # 9 * 1 cent reward for individual trials
+            # + 9 dollars reward at the end
             # = 9.09
             assert_text(
                 driver,
