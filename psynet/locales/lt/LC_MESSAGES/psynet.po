@@ -2999,6 +2999,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Pagalba!"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Apdovanojimas"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

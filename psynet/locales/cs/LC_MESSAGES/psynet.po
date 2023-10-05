@@ -2986,6 +2986,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Nápověda!"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Odměna"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

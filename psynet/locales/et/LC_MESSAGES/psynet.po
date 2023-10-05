@@ -2975,6 +2975,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Abi!"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Preemia"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

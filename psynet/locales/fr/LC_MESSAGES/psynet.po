@@ -2846,6 +2846,13 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Aide !"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Récompense"
+
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"

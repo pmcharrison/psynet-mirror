@@ -2189,12 +2189,12 @@ msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Bonus"
+msgid "Help!"
 msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Help!"
+msgid "Reward"
 msgstr ""
 
 #: psynet/templates/timeline-page.html
