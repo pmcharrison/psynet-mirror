@@ -243,13 +243,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The currency in which the participant gets paid. Default: `$`.
 
     min_accumulated_reward_for_abort : `float`
-        The threshold of bonus accumulated in US dollars for the participant to be able to receive
+        The threshold of reward accumulated in US dollars for the participant to be able to receive
         compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
 
     show_abort_button : `bool`
         If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
         e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+        assures the participant is compensated on the basis of the amount of reward that has been accumulated.
         Default ``False``.
 
     show_reward : `bool`
@@ -904,7 +904,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return f"""
                 We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
                 <br>
-                you should receive an extra reward of approximately
+                you should receive a reward of approximately
                 <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_reward_in_dollars)}</span> depending on the
                 amount of work done.
                 <br>
@@ -1239,54 +1239,54 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def bonus(self, participant):
         """
-        Calculates and returns the bonus payment the given participant gets when
-        completing the experiment. Override :func:`~psynet.experiment.Experiment.calculate_bonus()` if you require another than the default bonus calculation.
+        Calculates and returns the reward payment the given participant gets when
+        completing the experiment. Override :func:`~psynet.experiment.Experiment.calculate_bonus()` if you require another than the default reward calculation.
 
         :param participant:
             The participant.
         :type participant:
             :attr:`~psynet.participant.Participant`
         :returns:
-            The bonus payment as a ``float``.
+            The reward payment as a ``float``.
         """
         reward = participant.calculate_reward()
-        return self.check_bonus(reward, participant)
+        return self.check_reward(reward, participant)
 
-    def check_bonus(self, bonus, participant):
+    def check_reward(self, reward, participant):
         """
-        Ensures that a participant receives no more than a bonus of max_participant_payment.
+        Ensures that a participant receives no more than a reward of max_participant_payment.
         Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
         been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
 
-        :param bonus: float
-            The bonus calculated in :func:`~psynet.experiment.Experiment.calculate_bonus()`.
+        :param reward: float
+            The reward calculated in :func:`~psynet.experiment.Experiment.calculate_bonus()`.
         :type participant:
             :attr: `~psynet.participant.Participant`
         :returns:
-            The possibly reduced bonus as a ``float``.
+            The possibly reduced reward as a ``float``.
         """
 
         # check hard_max_experiment_payment
         if (
             self.var.hard_max_experiment_payment_email_sent
-            or self.amount_spent() + self.outstanding_base_payments() + bonus
+            or self.amount_spent() + self.outstanding_base_payments() + reward
             > self.var.hard_max_experiment_payment
         ):
-            participant.var.set("unpaid_reward", bonus)
+            participant.var.set("unpaid_reward", reward)
             self.ensure_hard_max_experiment_payment_email_sent()
 
         # check soft_max_experiment_payment
-        if self.amount_spent() + bonus >= self.var.soft_max_experiment_payment:
+        if self.amount_spent() + reward >= self.var.soft_max_experiment_payment:
             self.ensure_soft_max_experiment_payment_email_sent()
 
         # check max_participant_payment
-        if participant.amount_paid() + bonus > self.var.max_participant_payment:
-            reduced_bonus = round(
+        if participant.amount_paid() + reward > self.var.max_participant_payment:
+            reduced_reward = round(
                 self.var.max_participant_payment - participant.amount_paid(), 2
             )
-            participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
-            return reduced_bonus
-        return bonus
+            participant.send_email_max_payment_reached(self, reward, reduced_reward)
+            return reduced_reward
+        return reward
 
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
