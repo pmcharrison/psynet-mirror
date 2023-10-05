@@ -687,9 +687,6 @@ class TimeCreditStore:
     def estimate_time_credit(self):
         return self.confirmed_credit + self.pending_credit
 
-    def estimate_bonus(self):
-        return self.wage_per_hour * self.estimate_time_credit() / (60 * 60)
-
     @property
     def progress(self):
         return self.estimate_time_credit() / self.experiment_max_time_credit
