@@ -442,10 +442,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def calculate_reward(self):
         """
-        Calculates and returns the currently accumulated bonus for the given participant.
+        Calculates and returns the currently accumulated reward for the given participant.
 
         :returns:
-            The bonus as a ``float``.
+            The reward as a ``float``.
         """
         return round(
             self.time_credit.get_time_reward() + self.performance_reward,
@@ -457,19 +457,19 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (
-            0.0 if self.bonus is None else self.bonus
+            0.0 if self.reward is None else self.reward
         )
 
     def send_email_max_payment_reached(
-        self, experiment_class, requested_bonus, reduced_bonus
+        self, experiment_class, requested_reward, reduced_reward
     ):
         config = get_config()
         template = """Dear experimenter,
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount paid to the participant with assignment_id '{assignment_id}'
-            has reached the maximum of {max_participant_payment}$. The bonus paid was {reduced_bonus}$
-            instead of a requested bonus of {requested_bonus}$.
+            has reached the maximum of {max_participant_payment}$. The reward paid was {reduced_reward}$
+            instead of a requested reward of {requested_reward}$.
 
             The application id is: {app_id}
 
@@ -484,8 +484,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "body": template.format(
                 assignment_id=self.assignment_id,
                 max_participant_payment=experiment_class.var.max_participant_payment,
-                requested_bonus=requested_bonus,
-                reduced_bonus=reduced_bonus,
+                requested_reward=requested_reward,
+                reduced_reward=reduced_reward,
                 app_id=config.get("id"),
             ),
         }
