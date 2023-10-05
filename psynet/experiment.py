@@ -926,14 +926,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def estimated_duration_in_minutes(self):
-        return self.timeline.estimated_time_credit.get_max(mode="time") / 60
+        return self.timeline.estimated_time_credit.get_max("time") / 60
 
     @property
     def estimated_reward_in_dollars(self):
         wage_per_hour = get_and_load_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(
-                mode="bonus",
+                "reward",
                 wage_per_hour=wage_per_hour,
             ),
             2,

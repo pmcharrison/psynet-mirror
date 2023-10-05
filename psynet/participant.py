@@ -620,7 +620,7 @@ class TimeCreditStore:
         "max_pending_credit",
         "wage_per_hour",
         "experiment_max_time_credit",
-        "experiment_max_bonus",
+        "experiment_max_reward",
     ]
 
     def __init__(self, participant):
@@ -654,10 +654,10 @@ class TimeCreditStore:
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
-            mode="time"
+            "time"
         )
-        self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=self.wage_per_hour
+        self.experiment_max_reward = experiment_estimated_time_credit.get_max(
+            "reward", wage_per_hour=self.wage_per_hour
         )
 
     def increment(self, value: float):

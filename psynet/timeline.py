@@ -1577,7 +1577,7 @@ class Timeline:
                     finished = True
 
     def estimated_max_reward(self, wage_per_hour):
-        return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
+        return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
 
     def estimated_completion_time(self, wage_per_hour):
         return self.estimated_time_credit.get_max("time", wage_per_hour=wage_per_hour)
@@ -1591,7 +1591,7 @@ class CreditEstimate:
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
             return self._max_time
-        elif mode == "bonus":
+        elif mode == "reward":
             assert wage_per_hour is not None
             return self._max_time * wage_per_hour / (60 * 60)
         elif mode == "all":
@@ -1599,7 +1599,7 @@ class CreditEstimate:
                 "time_seconds": self._max_time,
                 "time_minutes": self._max_time / 60,
                 "time_hours": self._max_time / (60 * 60),
-                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour),
+                "reward": self.get_max("reward", wage_per_hour=wage_per_hour),
             }
 
     def _estimate_max_time(self, elts):
