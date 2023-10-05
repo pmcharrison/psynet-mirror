@@ -520,11 +520,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return 1.0 if self.complete else self.time_credit.progress
 
     @property
-    @extra_var(__extra_vars__)
-    def estimated_bonus(self):
-        return self.time_credit.estimate_bonus()
-
-    @property
     def time_credit(self):
         return TimeCreditStore(self)
 
