@@ -1,6 +1,6 @@
 [Config]
 title = Demo experiment (Chrome browser, XXX minutes to complete)
-description = This experiment requires you to XXX. Please use a Chrome browser in incognito mode. We use a dynamic payment scheme which means you get paid in proportion to how far you make it through the experiment. This payment will take the form of a small base payment supplemented by a time-dependent bonus payment. If you time out, don't worry, we will approve your experiment manually.
+description = This experiment requires you to XXX. Please use a Chrome browser in incognito mode. We use a dynamic payment scheme which means you get paid in proportion to how far you make it through the experiment. This payment will take the form of a small base payment supplemented by a time-dependent reward payment. If you time out, don't worry, we will approve your experiment manually.
 contact_email_on_error = XXX@gmail.com
 organization_name = XXX
 
