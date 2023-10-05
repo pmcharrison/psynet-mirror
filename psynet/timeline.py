@@ -702,8 +702,8 @@ class Page(Elt):
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
 
     dynamically_update_progress_bar_and_reward : bool
-        If ``True``, then the page will regularly poll for updates to the progress bar and the bonus.
-        If ``False`` (default), the progress bar and bonus are updated only on page refresh or on transition to
+        If ``True``, then the page will regularly poll for updates to the progress bar and the reward.
+        If ``False`` (default), the progress bar and reward are updated only on page refresh or on transition to
         the next page.
     """
 
