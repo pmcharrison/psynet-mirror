@@ -2978,7 +2978,6 @@ msgctxt "timeline"
 msgid "Help!"
 msgstr "Pomoč!"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
