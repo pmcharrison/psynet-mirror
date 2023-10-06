@@ -14,8 +14,8 @@ logger = logging.getLogger()
 
 # Stimuli
 Debug = False
-rules = ["2", "3", "4"]  # the score (gain) for collecting an object in each group
-Goal = 3  # once score reach this goal the game is finished
+rules = ["2", "3", "4"]  # The score (gain) for collecting an object in each group
+Goal = 3  # Once score reaches this goal the game is finished
 game = [1]
 
 SAME_SESSION_ID = "0"
@@ -57,7 +57,7 @@ class UnityGamePage(UnityPage):
 
 
 class GameTrial(StaticTrial):
-    accumulate_answers = False  # we create pages one by one, saves only one page
+    accumulate_answers = False  # We create pages one by one, saves only one page
     time_estimate = 1
 
     def show_trial(self, experiment, participant):
@@ -83,24 +83,24 @@ class GameTrialMaker(StaticTrialMaker):
     response_timeout_sec = 1000
 
     def prepare_trial(self, experiment, participant):
-        if participant.var.has("expire"):  # finish the game
+        if participant.var.has("expire"):  # Finish the game
             logger.info("Ending game")
             return None, "exit"
         return super().prepare_trial(experiment, participant)
 
     def finalize_trial(self, answer, trial, experiment, participant: Participant):
-        # pay bonus
-        bonus_in_trial = answer["reward"]
-        participant.inc_performance_bonus(bonus_in_trial / 100)
-        # check if time to finish experiment
+        # Pay reward
+        participant.inc_performance_reward(answer["reward"] / 100)
+
+        # Check time to finish experiment
         if answer["expire"]:
-            participant.var.expire = True  # finish the game
+            participant.var.expire = True  # Finish the game
             super().finalize_trial(answer, trial, experiment, participant)
             return
         super().finalize_trial(answer, trial, experiment, participant)
 
-    def compute_bonus(self, score, passed):
-        logger.info(f"SCORE in compute_bonus: {score}")
+    def compute_performance_reward(self, score, passed):
+        logger.info(f"SCORE in compute_performance_reward: {score}")
         return score / 100
 
     def performance_check(self, experiment, participant, participant_trials):

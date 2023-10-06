@@ -25,7 +25,7 @@ class TestExp(object):
 
         config = get_and_load_config()
         assert config.get("wage_per_hour") == 12.0
-        assert config.get("min_accumulated_bonus_for_abort") == 0.15
+        assert config.get("min_accumulated_reward_for_abort") == 0.15
         assert config.get("show_abort_button") is True
 
     def test_exp(self, bot_recruits, db_session):
@@ -228,7 +228,7 @@ class TestExp(object):
                 "main-body",
                 (
                     "That's the end of the experiment! In addition to your base payment of $0.10, "
-                    "you will receive a bonus of $0.36 for the time you spent on the experiment. "
+                    "you will receive a reward of $0.36 for the time you spent on the experiment. "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
             )
@@ -239,4 +239,4 @@ class TestExp(object):
 
             db.session.commit()
             assert participant.base_payment == 0.10
-            assert participant.bonus == 0.36
+            assert participant.reward == 0.36

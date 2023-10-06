@@ -69,7 +69,7 @@ experiment deployment. To do this you add ``--archive path/to/database.zip`` whe
 
 .. _estimate:
 
-Estimate maximum bonus and completion time (``estimate``)
+Estimate maximum reward and completion time (``estimate``)
 ---------------------------------------------------------
 
 This command examines the timeline, estimates how long the participant will take to complete the experiment,

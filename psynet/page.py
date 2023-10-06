@@ -124,7 +124,7 @@ class UnityPage(Page):
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
-    dynamically_update_progress_bar_and_bonus = True
+    dynamically_update_progress_bar_and_reward = True
 
     def __init__(
         self,
@@ -295,9 +295,9 @@ class SuccessfulEndPage(EndPage):
     Indicates a successful end to the experiment.
     """
 
-    def __init__(self, show_bonus: bool = True):
+    def __init__(self, show_reward: bool = True):
         super().__init__("final-page-successful.html", label="SuccessfulEndPage")
-        self.show_bonus = show_bonus
+        self.show_reward = show_reward
 
     def finalize_participant(self, experiment, participant):
         participant.complete = True
@@ -310,7 +310,7 @@ class UnsuccessfulEndPage(EndPage):
 
     def __init__(
         self,
-        show_bonus: bool = True,
+        show_reward: bool = True,
         failure_tags: Optional[List] = None,
         template_filename: str = "final-page-unsuccessful.html",
     ):
@@ -319,7 +319,7 @@ class UnsuccessfulEndPage(EndPage):
         failure_tags = [*failure_tags, "UnsuccessfulEndPage"]
         super().__init__(template_filename, label="UnsuccessfulEndPage")
         self.failure_tags = failure_tags
-        self.show_bonus = show_bonus
+        self.show_reward = show_reward
 
     def finalize_participant(self, experiment, participant):
         if self.failure_tags:

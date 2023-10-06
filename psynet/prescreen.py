@@ -645,7 +645,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                     """
                     <h4>The recording quality of your laptop is good</h4>
                     We will try some more trials.
-                    To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
+                    To complete the experiment and get the full reward, you will need to have a good recording quality in all trials.
                     """
                 ),
                 time_estimate=5,

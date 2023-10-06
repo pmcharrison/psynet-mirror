@@ -35,7 +35,7 @@ class Exp(psynet.experiment.Experiment):
     }
 
     config = {
-        "min_accumulated_bonus_for_abort": 0.15,
+        "min_accumulated_reward_for_abort": 0.15,
         "show_abort_button": True,
     }
 
