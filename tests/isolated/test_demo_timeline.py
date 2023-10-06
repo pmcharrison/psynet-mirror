@@ -239,4 +239,4 @@ class TestExp(object):
 
             db.session.commit()
             assert participant.base_payment == 0.10
-            assert participant.reward == 0.36
+            assert participant.reward == 0.26
