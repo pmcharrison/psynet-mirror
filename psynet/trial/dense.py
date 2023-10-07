@@ -45,8 +45,9 @@ class DenseTrialMaker(StaticTrialMaker):
       By default the blocks are ordered randomly.
 
     * :meth:`~psynet.trial.dense.DenseTrialMaker.choose_participant_group`;
-      assigns the participant to a group. By default the participant is assigned
-      to a random group.
+        only relevant if the trial maker uses nodes with non-default participant groups.
+        In this case the experimenter is expected to supply a function that takes participant as an argument
+        and returns the chosen participant group for that trial maker.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the sequence of trials is complete.
