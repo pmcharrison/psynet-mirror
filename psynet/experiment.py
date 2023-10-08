@@ -1239,7 +1239,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def bonus(self, participant):
         """
-        Calculates and returns the reward payment the given participant gets when
+        Calculates and returns the reward the given participant gets when
         completing the experiment. Override :func:`~psynet.experiment.Experiment.calculate_bonus()` if you require another than the default reward calculation.
 
         :param participant:
@@ -1247,7 +1247,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :type participant:
             :attr:`~psynet.participant.Participant`
         :returns:
-            The reward payment as a ``float``.
+            The reward as a ``float``.
         """
         reward = participant.calculate_reward()
         return self.check_reward(reward, participant)
