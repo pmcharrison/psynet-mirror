@@ -196,7 +196,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def reward(self):
-        return self.bonus
+        return self.bonus + self.base_payment
 
     @property
     def last_response(self):
