@@ -2263,6 +2263,17 @@ msgstr ""
 "Jums taip pat buvo paskirta "
 "<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> veiklos premija!"
 
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Už eksperimentui sugaištą laiką gausite "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> atlygį. Taip pat gavote "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> atlygį už rezultatus!"
+
 #: psynet/templates/final-page-successful.html
 #, fuzzy
 msgctxt "final_page_successful"

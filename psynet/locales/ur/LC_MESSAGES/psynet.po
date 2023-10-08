@@ -2256,6 +2256,18 @@ msgstr ""
 "آپ کو <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> کا پرفارمنس بونس "
 "بھی دیا گیا ہے!"
 
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"آپ کو تجربہ میں گزارے گئے وقت کے لیے "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> کا انعام ملے گا۔ آپ کو کارکردگی"
+" کا انعام بھی دیا گیا ہے "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
 #: psynet/templates/final-page-successful.html
 #, fuzzy
 msgctxt "final_page_successful"
