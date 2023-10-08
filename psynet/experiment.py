@@ -763,7 +763,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return sum(
             [
                 (0.0 if p.base_payment is None else p.base_payment)
-                + (0.0 if p.reward is None else p.reward)
+                + (0.0 if p.bonus is None else p.bonus)
                 for p in Participant.query.all()
             ]
         )

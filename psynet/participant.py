@@ -457,7 +457,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (
-            0.0 if self.reward is None else self.reward
+            0.0 if self.bonus is None else self.bonus
         )
 
     def send_email_max_payment_reached(
