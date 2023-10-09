@@ -419,6 +419,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         )
 
+        self.pre_deploy_routines.append(
+            PreDeployRoutine(
+                "check_min_accumulated_reward_for_abort",
+                self.check_min_accumulated_reward_for_abort,
+            )
+        )
+
         self.process_timeline()
 
     def translation_checks_needed(self, locales_dir):
@@ -443,6 +450,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not exists(pot_path):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
+
+    def check_min_accumulated_reward_for_abort(self):
+        assert (
+            self.recruiter.nickname != "prolific"
+        ), "Consider setting 'min_accumulated_reward_for_abort' to 'base_payment'."
 
     def compile_translations_if_necessary(self, locales_dir, module):
         """Compiles translations if necessary."""
