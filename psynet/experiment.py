@@ -1250,9 +1250,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             The reward as a ``float``.
         """
         reward = participant.calculate_reward()
-        return self.check_reward(reward, participant)
+        return self.check_bonus(reward, participant)
 
-    def check_reward(self, reward, participant):
+    def check_bonus(self, reward, participant):
         """
         Ensures that a participant receives no more than a reward of max_participant_payment.
         Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
