@@ -2071,6 +2071,18 @@ msgstr ""
 "Вы также получили бонус за эффективность работы в размере "
 "<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Вы получите вознаграждение в размере "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за время, потраченное на "
+"эксперимент. Вы также получили вознаграждение за производительность в "
+"размере <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
 #: psynet/templates/final-page-successful.html
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"

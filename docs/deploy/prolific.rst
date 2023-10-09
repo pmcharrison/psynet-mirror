@@ -58,14 +58,14 @@ If you want to pay in a different currency, you need to contact Prolific support
 Then you need to specify ``wage_per_hour``, i.e. how much you will aim to pay your participants per hour,
 as expressed in your fundamental currency unit.
 
-In practice PsyNet pays participants through a combination of base payment and reward.
+In practice PsyNet pays participants through a combination of base payment and bonus.
 The base payment is fixed, and is ideally small.
 It is set via the config parameter ``prolific_reward_cents``.
-The reward is dynamic, and increases
+The bonus is dynamic, and increases
 depending on how far the participant makes it through the experiment.
-The value of this progress-related reward is determined by multiplying the ``time_estimate``
+The value of this progress-related bonus is determined by multiplying the ``time_estimate``
 for the part for the experiment they completed by the ``wage_per_hour`` (converting from seconds to hours as required).
-The reward may also include a portion corresponding to the participant's performance.
+The bonus may also include a portion corresponding to performance rewards.
 
 .. warning::
 
@@ -73,7 +73,7 @@ The reward may also include a portion corresponding to the participant's perform
     not the ``base_payment`` parameter! The latter currently only applies to the
     Mechanical Turk Recruiter, due to an oversight in Dallinger. We hope to fix this soon.
 
-PsyNet therefore pays people primarily through the reward mechanism. This is at odds to how
+PsyNet therefore pays people primarily through the bonus mechanism. This is at odds to how
 Prolific is currently designed, in that Prolific assumes that the primary payment will come from the
 base payment. This has implications in the way that Prolific treats the duration of experiments.
 When you deploy an experiment to Prolific, you have to specify a duration of the experiment.
@@ -107,7 +107,7 @@ For example, you might write
 
 Next you set the experiment's ``description`` parameter. This provides more information about the experiment.
 You should explain the payment strategy in more detail, in particular how they will be paid for the time they
-take on the experiment via Prolific's reward functionality. You should explain briefly what your payment
+take on the experiment via Prolific's bonus functionality. You should explain briefly what your payment
 policy will be if the participant doesn't finish the experiment due to a technical error.
 
 .. warning::
@@ -189,9 +189,9 @@ efficiency of your own code.
 
 Participants may encounter technical errors. Respond to them promptly via the Prolific website,
 and tell them that you can pay them if they return their submission. You can look up a particular participant
-via their Prolific ID in the experiment dashboard to see how much reward they had accumulated so far
+via their Prolific ID in the experiment dashboard to see how much bonus they had accumulated so far
 (look via the Participant tab). Normally you would pay the participant this amount of money via the Prolific website,
-as a reward; you may also wish to pay them the base payment, or part of the base payment.
+as a bonus; you may also wish to pay them the base payment, or part of the base payment.
 
 Before you terminate your experiment, you want to make sure you deal with all the participants in the
 'Awaiting review' category. Some of these participants may be people who had technical errors;

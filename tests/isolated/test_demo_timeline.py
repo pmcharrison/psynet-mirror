@@ -227,8 +227,8 @@ class TestExp(object):
                 driver,
                 "main-body",
                 (
-                    "That's the end of the experiment! In addition to your base payment of $0.10, "
-                    "you will receive a reward of $0.36 for the time you spent on the experiment. "
+                    "That's the end of the experiment! You will receive a reward of $0.36 "
+                    "for the time you spent on the experiment. You have also been awarded a performance reward of $0.00! "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
             )
@@ -239,4 +239,4 @@ class TestExp(object):
 
             db.session.commit()
             assert participant.base_payment == 0.10
-            assert participant.reward == 0.26
+            assert participant.bonus == 0.36

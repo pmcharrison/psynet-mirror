@@ -2064,6 +2064,16 @@ msgid ""
 msgstr ""
 "또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>를 지급받았습니다!"
 
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"실험에 소비한 시간에 대해 <strong>%(CURRENCY)s%(TIME_REWARD)s</strong>의 보상을 받게 됩니다. 또한 "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>의 성과 보상을 받았습니다!"
+
 #: psynet/templates/final-page-successful.html
 #, fuzzy
 msgctxt "final_page_successful"

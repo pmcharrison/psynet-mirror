@@ -171,7 +171,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
-    unpaid_reward = Column(Float)
+    unpaid_bonus = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
@@ -193,10 +193,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # @current_trial.setter
     # def current_trial(self, value):
     #     self.module_state.current_trial = value
-
-    @property
-    def reward(self):
-        return self.bonus
 
     @property
     def last_response(self):
@@ -424,7 +420,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.complete = False
         self.time_credit.initialize(experiment)
         self.performance_reward = 0.0
-        self.unpaid_reward = 0.0
+        self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
         self.branch_log = []
@@ -457,7 +453,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (
-            0.0 if self.reward is None else self.reward
+            0.0 if self.bonus is None else self.bonus
         )
 
     def send_email_max_payment_reached(

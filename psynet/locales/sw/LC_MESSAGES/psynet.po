@@ -2251,6 +2251,17 @@ msgstr ""
 "Pia umetunukiwa bonasi ya utendakazi ya "
 "<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Utapokea zawadi ya <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda "
+"uliotumia kwenye jaribio. Pia umetunukiwa zawadi ya utendakazi ya "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
 #: psynet/templates/final-page-successful.html
 #, fuzzy
 msgctxt "final_page_successful"
