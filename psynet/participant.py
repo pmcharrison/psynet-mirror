@@ -171,7 +171,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
-    unpaid_reward = Column(Float)
+    unpaid_bonus = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
@@ -424,7 +424,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.complete = False
         self.time_credit.initialize(experiment)
         self.performance_reward = 0.0
-        self.unpaid_reward = 0.0
+        self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
         self.branch_log = []

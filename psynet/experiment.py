@@ -206,7 +206,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
         Rewards are not paid from the point this value is reached and a record of the amount
-        of unpaid reward is kept in the participant's `unpaid_reward` variable. Default: `1100.0`.
+        of unpaid reward is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
@@ -1147,7 +1147,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
             Working participants' rewards will not be paid out. Instead, the amount of unpaid
-            reward is saved in the participant's `unpaid_reward` variable.
+            reward is saved in the participant's `unpaid_bonus` variable.
 
             The application id is: {app_id}
 
@@ -1272,7 +1272,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             or self.amount_spent() + self.outstanding_base_payments() + reward
             > self.var.hard_max_experiment_payment
         ):
-            participant.var.set("unpaid_reward", reward)
+            participant.var.set("unpaid_bonus", reward)
             self.ensure_hard_max_experiment_payment_email_sent()
 
         # check soft_max_experiment_payment

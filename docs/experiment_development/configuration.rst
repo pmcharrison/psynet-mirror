@@ -193,7 +193,7 @@ Payment
 ``hard_max_experiment_payment`` *float* |psynet-icon|
     Guarantees that in an experiment no more is spent than the value assigned.
     Rewards are not paid from the point this value is reached and a record of the amount
-    of unpaid reward is kept in the participant's ``unpaid_reward`` variable. Default: ``1100.0``.
+    of unpaid reward is kept in the participant's ``unpaid_bonus`` variable. Default: ``1100.0``.
 
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
