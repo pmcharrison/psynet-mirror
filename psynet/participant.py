@@ -195,10 +195,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     #     self.module_state.current_trial = value
 
     @property
-    def reward(self):
-        return self.bonus + self.base_payment
-
-    @property
     def last_response(self):
         from psynet.timeline import Response
 
