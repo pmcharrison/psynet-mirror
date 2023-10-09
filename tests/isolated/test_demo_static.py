@@ -105,8 +105,8 @@ class TestExp:
                 driver,
                 "main-body",
                 """
-                That\'s the end of the experiment! In addition to your base payment of $0.10,
-                you will receive a reward of $0.13 for the time you spent on the experiment.
+                That\'s the end of the experiment! You will receive a reward of $0.13
+                for the time you spent on the experiment. You have also been awarded a performance reward of $9.09!
                 You have also been awarded a performance reward of $9.09! Thank you for taking part.
                 Please click "Finish" to complete the HIT. Finish
                 """,
