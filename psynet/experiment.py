@@ -2102,6 +2102,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             template_name = "abort_not_possible.html"
             participant = None
             participant_abort_info = None
+
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
                 if participant.calculate_reward() >= get_and_load_config().get(
@@ -2109,6 +2110,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ):
                     template_name = "abort_possible.html"
                     participant_abort_info = participant.abort_info()
+                    recruiter = get_experiment().recruiter
+
+                    if recruiter.nickname == "prolific":
+                        reward = participant.calculate_reward()
+                        if reward < participant.base_payment:
+                            if not participant.status == "aborted":
+                                recruiter.reward_bonus(
+                                    participant,
+                                    reward,
+                                    "Thank for participating! Here is your reward.",
+                                )
+                                participant.status = "aborted"
+                                db.session.commit()
+                            else:
+                                template_name = "already_aborted.html"
         except ValueError:
             logger.error("Invalid assignment ID.")
         except sqlalchemy.orm.exc.NoResultFound:
