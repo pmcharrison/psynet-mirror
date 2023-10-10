@@ -602,7 +602,7 @@ msgid "Accumulated reward"
 msgstr "Naipong gantimpala"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
 #, fuzzy
 msgid "Close window"
 msgstr "Isara ang bintana"
@@ -654,6 +654,28 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr ""
 "Tingnan ang impormasyon sa ibaba para sa mga detalye ng iyong kabayaran."
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "aborted_already"
+msgid ""
+"Unfortunately our automatic checks indicate that your technical setup is not"
+" compatible with this experiment's requirements. As a result, I'm afraid you"
+" won't be able to continue with the experiment. Please return your "
+"submission."
+msgstr ""
+"Sa kasamaang palad, ang aming mga awtomatikong pagsusuri ay nagpapahiwatig "
+"na ang iyong teknikal na setup ay hindi tugma sa mga kinakailangan ng "
+"eksperimentong ito. Bilang resulta, natatakot ako na hindi mo maipatuloy ang"
+" eksperimento. Pakibalik ang iyong isinumite."
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Salamat sa iyong interes sa pag-aaral na ito"
 
 #: psynet/templates/ad.html
 #, fuzzy
