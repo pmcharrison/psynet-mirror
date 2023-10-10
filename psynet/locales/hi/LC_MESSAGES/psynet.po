@@ -593,7 +593,7 @@ msgid "Accumulated reward"
 msgstr "संचित इनाम"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
 #, fuzzy
 msgid "Close window"
 msgstr "विंडो बंद"
@@ -644,6 +644,27 @@ msgstr ""
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "अपने मुआवजे के विवरण के लिए नीचे दी गई जानकारी देखें।"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "aborted_already"
+msgid ""
+"Unfortunately our automatic checks indicate that your technical setup is not"
+" compatible with this experiment's requirements. As a result, I'm afraid you"
+" won't be able to continue with the experiment. Please return your "
+"submission."
+msgstr ""
+"दुर्भाग्य से हमारी स्वचालित जाँच से संकेत मिलता है कि आपका तकनीकी सेटअप इस "
+"प्रयोग की आवश्यकताओं के अनुकूल नहीं है। परिणामस्वरूप, मुझे डर है कि आप "
+"प्रयोग जारी नहीं रख पाएंगे। कृपया अपना सबमिशन वापस कर दें."
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "इस अध्ययन में आपकी रुचि के लिए धन्यवाद"
 
 #: psynet/templates/ad.html
 #, fuzzy

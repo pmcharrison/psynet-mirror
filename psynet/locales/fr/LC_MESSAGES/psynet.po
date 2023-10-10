@@ -550,7 +550,7 @@ msgid "Accumulated reward"
 msgstr "Récompense cumulée"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
 msgid "Close window"
 msgstr "Fermer la fenêtre"
 
@@ -597,6 +597,28 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Consultez les informations ci-dessous pour connaître les détails de votre "
 "compensation."
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "aborted_already"
+msgid ""
+"Unfortunately our automatic checks indicate that your technical setup is not"
+" compatible with this experiment's requirements. As a result, I'm afraid you"
+" won't be able to continue with the experiment. Please return your "
+"submission."
+msgstr ""
+"Malheureusement, nos contrôles automatiques indiquent que votre "
+"configuration technique n'est pas compatible avec les exigences de cette "
+"expérience. Par conséquent, je crains que vous ne puissiez pas poursuivre "
+"l'expérience. Veuillez nous renvoyer votre soumission."
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Nous vous remercions de l'intérêt que vous portez à cette étude"
 
 #: psynet/templates/ad.html
 #, fuzzy
