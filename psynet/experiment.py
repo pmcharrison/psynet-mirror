@@ -1146,8 +1146,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
-            Working participants' rewards will not be paid out. Instead, the amount of unpaid
-            reward is saved in the participant's `unpaid_bonus` variable.
+            Working participants' bonuses will not be paid out. Instead, the amount of unpaid
+            bonus is saved in the participant's `unpaid_bonus` variable.
 
             The application id is: {app_id}
 
