@@ -464,6 +464,13 @@ msgstr ""
 "Hüvitise küsimiseks saatke uurijale sõnum Prolifici veebisaidi kaudu ja "
 "kirjeldage, mis põhjustas teie vea."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Täname teid osalemise eest! Siin on teie tasu."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -641,7 +648,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Vaadake allpool olevat teavet oma hüvitise kohta."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -655,7 +661,6 @@ msgstr ""
 " vasta selle eksperimendi nõuetele. Selle tulemusena kardan, et te ei saa "
 "eksperimenti jätkata. Palun saatke oma taotlus tagasi."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

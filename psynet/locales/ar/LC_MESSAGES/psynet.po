@@ -461,6 +461,13 @@ msgstr ""
 "للاستعلام عن التعويض ، يرجى إرسال رسالة للباحث عبر موقع Prolific ووصف سبب "
 "الخطأ."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "شكرا لمشاركتك! ها هي مكافأتك."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -634,7 +641,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "انظر المعلومات أدناه للحصول على تفاصيل التعويض الخاص بك."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -648,7 +654,6 @@ msgstr ""
 "غير متوافق مع متطلبات هذه التجربة. ونتيجة لذلك، أخشى أنك لن تتمكن من مواصلة "
 "التجربة. يرجى إعادة التقديم الخاص بك."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

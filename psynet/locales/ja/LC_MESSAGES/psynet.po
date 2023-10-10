@@ -454,6 +454,13 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "補償についてのお問い合わせは、プロリフィックのウェブサイトから研究者にメッセージを送り、何が原因でエラーになったかを書いてください。"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "ご参加ありがとうございました！ ご褒美です。"
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -621,7 +628,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "報酬の詳細については、以下の情報をご覧ください。"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -634,7 +640,6 @@ msgstr ""
 "残念ながら、自動チェックの結果、あなたの技術設定はこの実験の要件に適合していません。 その結果、残念ながら実験を続けることができません。 "
 "提出物を返却してください。"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

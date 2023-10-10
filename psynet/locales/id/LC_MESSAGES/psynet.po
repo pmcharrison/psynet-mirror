@@ -464,6 +464,13 @@ msgstr ""
 "Untuk menanyakan tentang kompensasi, silakan kirim pesan kepada peneliti "
 "melalui situs web Prolific dan jelaskan apa yang menyebabkan kesalahan Anda."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Terima kasih atas partisipasi Anda, inilah hadiah Anda."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -647,7 +654,6 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Lihat informasi di bawah ini untuk mengetahui rincian kompensasi Anda."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -662,7 +668,6 @@ msgstr ""
 "khawatir Anda tidak dapat melanjutkan eksperimen ini. Silakan kembalikan "
 "kiriman Anda."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

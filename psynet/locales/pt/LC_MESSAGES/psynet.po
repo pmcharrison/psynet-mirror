@@ -465,6 +465,13 @@ msgstr ""
 "Para pedir uma indemnização, envie uma mensagem ao investigador através do "
 "sítio Web Prolific e descreva o que esteve na origem do seu erro."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Obrigado por participar! Aqui está a sua recompensa."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -645,7 +652,6 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Consulte as informações abaixo para obter detalhes sobre a sua compensação."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -659,7 +665,6 @@ msgstr ""
 "configuração técnica não é compatível com os requisitos desta experiência, "
 "pelo que não poderá continuar com a experiência."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

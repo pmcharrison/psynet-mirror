@@ -460,6 +460,13 @@ msgstr ""
 "כדי לברר לגבי פיצוי, אנא שלח לחוקר הודעה דרך אתר האינטרנט של פרוליפיק ותאר "
 "מה הוביל לטעות שלך."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "תודה על ההשתתפות! הנה הפרס שלך."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -633,7 +640,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "עיין במידע שלהלן לפרטי הפיצויים שלך."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -647,7 +653,6 @@ msgstr ""
 "תואמת לדרישות הניסוי הזה. כתוצאה מכך, אני חושש שלא תוכל להמשיך בניסוי. נא "
 "להחזיר את הגשתך."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

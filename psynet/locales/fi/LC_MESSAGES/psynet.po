@@ -485,6 +485,13 @@ msgstr ""
 "Jos haluat tiedustella korvausta, lähetä tutkijalle viesti Prolificin "
 "verkkosivuston kautta ja kerro, mikä johti virheeseesi."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Kiitos osallistumisesta! Tässä on palkintosi."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -660,7 +667,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Katso lisätietoja korvauksistasi alla olevista tiedoista."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -674,7 +680,6 @@ msgstr ""
 "laitteistosi ei ole yhteensopiva tämän kokeen vaatimusten kanssa. Tämän "
 "vuoksi et valitettavasti voi jatkaa koetta. Palauta lähetys."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

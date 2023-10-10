@@ -466,6 +466,13 @@ msgstr ""
 "मुआवजे के बारे में पूछताछ करने के लिए, कृपया शोधकर्ता को प्रोलिफिक वेबसाइट "
 "के माध्यम से एक संदेश भेजें और बताएं कि आपकी त्रुटि का कारण क्या है।"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "भागीदारी के लिए धन्यवाद! यहाँ आपका इनाम है."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -645,7 +652,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "अपने मुआवजे के विवरण के लिए नीचे दी गई जानकारी देखें।"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -659,7 +665,6 @@ msgstr ""
 "प्रयोग की आवश्यकताओं के अनुकूल नहीं है। परिणामस्वरूप, मुझे डर है कि आप "
 "प्रयोग जारी नहीं रख पाएंगे। कृपया अपना सबमिशन वापस कर दें."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

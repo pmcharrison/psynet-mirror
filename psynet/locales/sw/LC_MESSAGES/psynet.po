@@ -464,6 +464,13 @@ msgstr ""
 "Ili kuuliza kuhusu fidia, tafadhali mtumie mtafiti ujumbe kupitia tovuti ya "
 "Prolific na ueleze kilichosababisha kosa lako."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Asante kwa kushiriki! Hapa kuna malipo yako."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -639,7 +646,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Tazama maelezo hapa chini kwa maelezo ya fidia yako."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -653,7 +659,6 @@ msgstr ""
 "wa kiufundi hauambatani na mahitaji ya jaribio hili. Kwa hivyo, ninaogopa "
 "hutaweza kuendelea na jaribio. Tafadhali rudisha uwasilishaji wako."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

@@ -464,6 +464,13 @@ msgstr ""
 "Chcete-li se zeptat na kompenzaci, pošlete výzkumnému pracovníkovi zprávu "
 "prostřednictvím webových stránek Prolific a popište, co vedlo k vaší chybě."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Děkujeme vám za účast! Zde je vaše odměna."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -638,7 +645,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Podrobnosti o vaší kompenzaci naleznete v níže uvedených informacích."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -652,7 +658,6 @@ msgstr ""
 "kompatibilní s požadavky tohoto experimentu. V důsledku toho se obávám, že v"
 " experimentu nebudete moci pokračovat. Vraťte prosím své podání."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

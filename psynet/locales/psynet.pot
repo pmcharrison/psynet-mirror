@@ -387,6 +387,11 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr ""
 
+#: psynet/experiment.py
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr ""
+
 #: psynet/modular_page.py
 msgctxt "validation"
 msgid "You need to check at least one answer!"

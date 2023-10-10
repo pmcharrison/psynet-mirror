@@ -465,6 +465,13 @@ msgstr ""
 "Để hỏi về bồi thường, vui lòng gửi tin nhắn cho nhà nghiên cứu qua trang web"
 " Prolific và mô tả nguyên nhân dẫn đến lỗi của bạn."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Cảm ơn vì đã tham gia! Đây là phần thưởng của bạn."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -643,7 +650,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Xem thông tin bên dưới để biết chi tiết về khoản bồi thường của bạn."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -658,7 +664,6 @@ msgstr ""
 "tôi e rằng bạn sẽ không thể tiếp tục thử nghiệm. Vui lòng gửi lại bài nộp "
 "của bạn."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

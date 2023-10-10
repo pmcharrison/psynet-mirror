@@ -2117,6 +2117,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
+                _, _p = get_translator(participant.var.locale)
+
                 if participant.calculate_reward() >= get_and_load_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
@@ -2131,7 +2133,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                                 recruiter.reward_bonus(
                                     participant,
                                     reward,
-                                    "Thank for participating! Here is your reward.",
+                                    _p(
+                                        "route_abort_thank_you",
+                                        "Thank you for participating! Here is your reward.",
+                                    ),
                                 )
                                 participant.status = "aborted"
                                 db.session.commit()

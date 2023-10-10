@@ -464,6 +464,13 @@ msgstr ""
 "Ha kártérítésről szeretne érdeklődni, kérjük, küldjön üzenetet a kutatónak a"
 " Prolific weboldalán keresztül, és írja le, mi vezetett az Ön hibájához."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Köszönjük a részvételt! Itt a jutalmad."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -644,7 +651,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "A kártérítéssel kapcsolatos részleteket lásd az alábbiakban."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -659,7 +665,6 @@ msgstr ""
 "következtében attól tartok, hogy nem tudja folytatni a kísérletet. Kérem, "
 "küldje vissza a beadványát."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

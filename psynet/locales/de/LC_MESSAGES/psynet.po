@@ -483,6 +483,13 @@ msgstr ""
 "Nachricht über die Prolific-Website und beschreiben Sie, wie es zu Ihrem "
 "Fehler kam."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Vielen Dank für Ihre Teilnahme! Hier ist Ihre Belohnung."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -665,7 +672,6 @@ msgstr ""
 "Einzelheiten zu Ihrer Vergütung finden Sie in den unten stehenden "
 "Informationen."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -680,7 +686,6 @@ msgstr ""
 "Daher können Sie das Experiment leider nicht fortsetzen. Bitte senden Sie "
 "Ihre Anmeldung zurück."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

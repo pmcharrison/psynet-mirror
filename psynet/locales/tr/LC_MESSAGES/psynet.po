@@ -415,6 +415,13 @@ msgstr ""
 "Tazminat hakkında bilgi almak için lütfen araştırmacıya Prolific web sitesi "
 "üzerinden bir mesaj gönderin ve hatanıza neyin yol açtığını açıklayın."
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "Katıldığınız için teşekkürler! İşte ödülünüz."
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -582,7 +589,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Tazminatınızın ayrıntıları için aşağıdaki bilgilere bakın."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -596,7 +602,6 @@ msgstr ""
 "gereklilikleriyle uyumlu olmadığını gösteriyor. Sonuç olarak, korkarım ki "
 "deneye devam edemeyeceksiniz. Lütfen gönderinizi iade edin."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"

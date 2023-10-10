@@ -462,6 +462,13 @@ msgstr ""
 "หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดส่งข้อความถึงผู้วิจัยผ่านเว็บไซต์ "
 "Prolific และอธิบายสิ่งที่นำไปสู่ข้อผิดพลาดของคุณ"
 
+#. ""
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "route_abort_thank_you"
+msgid "Thank you for participating! Here is your reward."
+msgstr "ขอขอบคุณสำหรับการมีส่วนร่วม! นี่คือรางวัลของคุณ"
+
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
@@ -636,7 +643,6 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "ดูข้อมูลด้านล่างสำหรับรายละเอียดค่าตอบแทนของคุณ"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already"
@@ -651,7 +657,6 @@ msgstr ""
 " ด้วยเหตุนี้ เราเกรงว่าคุณจะไม่สามารถดำเนินการทดสอบต่อได้ "
 "กรุณาส่งกลับการส่งของคุณ"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
