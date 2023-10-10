@@ -29,7 +29,7 @@
                         {% endblock sandbox_or_debug %}
                     {% endif %}
 
-                    {% if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE" %}
+                    {% if assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE" %}
                         {% block no_assignment %}
                             <h1>{{ pgettext("ad", "Call for participants") }}</h1>
                             <p>
@@ -83,7 +83,7 @@
                                 <script>
                                     function abortExperiment(event) {
                                         var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
-                                        let windowObjectReference = window.open("/abort/" + "{{ assignment_id }}", "Abort window", windowFeatures);
+                                        let windowObjectReference = window.open("/abort/" + "{{ assignmentid }}", "Abort window", windowFeatures);
                                     }
 
                                     function enableAbortButton(event) {
