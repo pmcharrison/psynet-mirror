@@ -454,7 +454,6 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "補償についてのお問い合わせは、プロリフィックのウェブサイトから研究者にメッセージを送り、何が原因でエラーになったかを書いてください。"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -643,6 +642,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "この研究にご関心をお寄せいただき、ありがとうございます。"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "この研究にご関心をお寄せいただき、ありがとうございます。"
 

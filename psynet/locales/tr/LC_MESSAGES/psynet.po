@@ -415,7 +415,6 @@ msgstr ""
 "Tazminat hakkında bilgi almak için lütfen araştırmacıya Prolific web sitesi "
 "üzerinden bir mesaj gönderin ve hatanıza neyin yol açtığını açıklayın."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -605,6 +604,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Bu çalışmaya gösterdiğiniz ilgi için teşekkür ederiz"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Bu çalışmaya gösterdiğiniz ilgi için teşekkür ederiz"
 

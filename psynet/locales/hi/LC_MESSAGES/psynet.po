@@ -466,7 +466,6 @@ msgstr ""
 "मुआवजे के बारे में पूछताछ करने के लिए, कृपया शोधकर्ता को प्रोलिफिक वेबसाइट "
 "के माध्यम से एक संदेश भेजें और बताएं कि आपकी त्रुटि का कारण क्या है।"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -668,6 +667,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "इस अध्ययन में आपकी रुचि के लिए धन्यवाद"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "इस अध्ययन में आपकी रुचि के लिए धन्यवाद"
 

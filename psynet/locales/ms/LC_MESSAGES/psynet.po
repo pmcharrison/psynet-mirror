@@ -467,7 +467,6 @@ msgstr ""
 "Untuk bertanya tentang pampasan, sila hantar mesej kepada penyelidik melalui"
 " tapak web Prolific dan terangkan perkara yang membawa kepada ralat anda."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -672,6 +671,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Terima kasih kerana berminat dalam kajian ini"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Terima kasih kerana berminat dalam kajian ini"
 

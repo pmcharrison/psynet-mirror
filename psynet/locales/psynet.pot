@@ -521,7 +521,7 @@ msgid ""
 msgstr ""
 
 #: psynet/templates/aborted_already.html
-msgctxt "aborted_already_header"
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr ""
 

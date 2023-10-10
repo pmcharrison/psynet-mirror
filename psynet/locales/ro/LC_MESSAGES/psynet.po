@@ -466,7 +466,6 @@ msgstr ""
 "cercetătorului prin intermediul site-ului Prolific și să descrieți ce a dus "
 "la eroarea dumneavoastră."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -674,6 +673,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Vă mulțumim pentru interesul dumneavoastră în acest studiu"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Vă mulțumim pentru interesul dumneavoastră în acest studiu"
 

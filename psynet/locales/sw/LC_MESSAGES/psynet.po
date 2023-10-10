@@ -464,7 +464,6 @@ msgstr ""
 "Ili kuuliza kuhusu fidia, tafadhali mtumie mtafiti ujumbe kupitia tovuti ya "
 "Prolific na ueleze kilichosababisha kosa lako."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -662,6 +661,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Asante kwa hamu yako katika utafiti huu"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Asante kwa hamu yako katika utafiti huu"
 

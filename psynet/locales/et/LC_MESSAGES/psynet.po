@@ -464,7 +464,6 @@ msgstr ""
 "Hüvitise küsimiseks saatke uurijale sõnum Prolifici veebisaidi kaudu ja "
 "kirjeldage, mis põhjustas teie vea."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -664,6 +663,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Täname teid huvi eest selle uuringu vastu"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Täname teid huvi eest selle uuringu vastu"
 

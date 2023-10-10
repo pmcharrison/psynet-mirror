@@ -472,7 +472,6 @@ msgstr ""
 "mananaliksik sa pamamagitan ng Prolific na website at ilarawan kung ano ang "
 "humantong sa iyong error."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -679,6 +678,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Salamat sa iyong interes sa pag-aaral na ito"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Salamat sa iyong interes sa pag-aaral na ito"
 

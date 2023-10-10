@@ -464,7 +464,6 @@ msgstr ""
 "For å spørre om kompensasjon, vennligst send forskeren en melding via "
 "nettstedet til Prolific og beskriv hva som førte til feilen din."
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -667,6 +666,13 @@ msgstr ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "Takk for din interesse for denne studien"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "Takk for din interesse for denne studien"
 

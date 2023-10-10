@@ -404,7 +404,6 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
 
-#. ""
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "route_abort_thank_you"
@@ -580,6 +579,13 @@ msgstr "不幸的是，我们的自动检查显示，您的技术设置不符合
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "aborted_already_header"
+msgid "Thank you for your interest in this study"
+msgstr "感谢您对本研究的关注"
+
+#. ""
+#: psynet/templates/aborted_already.html
+#, fuzzy
+msgctxt "header"
 msgid "Thank you for your interest in this study"
 msgstr "感谢您对本研究的关注"
 
