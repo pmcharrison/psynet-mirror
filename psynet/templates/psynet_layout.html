@@ -29,6 +29,7 @@
                     if ({{ participant.calculate_reward() }} < {{ participant.base_payment }}) {
                         window.location = "/abort/{{ participant.assignment_id }}";
                     }
+                }
                 dallinger.submitAssignment();
             }
         </script>
