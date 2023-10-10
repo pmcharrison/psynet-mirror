@@ -453,7 +453,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def check_min_accumulated_reward_for_abort(self):
         assert (
-            self.recruiter.nickname != "prolific"
+            get_config().get("recruiter") == "prolific"
         ), "Consider setting 'min_accumulated_reward_for_abort' to 'base_payment'."
 
     def compile_translations_if_necessary(self, locales_dir, module):
