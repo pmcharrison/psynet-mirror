@@ -520,11 +520,21 @@ msgstr "루시드 마켓플레이스로 리디렉션..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
-"보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_BONUS_FOR_ABORT)s 만큼"
-" </strong> 적립해야 합니다."
+"보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_REWARD_FOR_ABORT)s "
+"만큼 </strong> 적립해야 합니다."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"보상을 받으려면 <strong>최소 "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>의 보상을 축적해야 합니다."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -547,10 +557,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "현재 누적된 보너스는 아래 정보를 참조하세요."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "현재 누적된 보상에 대한 정보는 아래를 참조하세요."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "누적 보너스"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "누적 보상"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -702,8 +724,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "계속하려면 아래 버튼을 클릭하세요."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "다음"
@@ -1987,25 +2008,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "루시드 설문조사를 완료하려면 아래 버튼을 클릭하세요."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"기본 지급액인 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>에 더해, 실험에 소요한 시간에 대해 "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> 보너스를 받게 됩니다."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>를 지급받았습니다!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2031,6 +2033,46 @@ msgstr "완료"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "\"마침\"을 클릭하여 HIT를 완료하세요."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"기본 지급액인 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>에 더해, 실험에 소요한 시간에 대한 "
+"보너스로 <strong>%(CURRENCY)s%(TIME_REWARD)s</strong>을 받게 됩니다."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"기본 지불금인 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>에 더해, 실험에 소요한 시간에 대한 "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>의 보상을 받게 됩니다."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"또한 성과 보너스로 <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>를 지급받았습니다!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"실험에 소비한 시간에 대해 <strong>%(CURRENCY)s%(TIME_REWARD)s</strong>의 보상을 받게 됩니다. 또한 "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>의 성과 보상을 받았습니다!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2705,6 +2747,12 @@ msgstr "도와주세요!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "보상"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "현재 웹 페이지로 연결되는 링크입니다;"
@@ -2728,7 +2776,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "문제가 있는 경우 다음을 시도해 보세요:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2747,7 +2794,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "발생한 문제."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

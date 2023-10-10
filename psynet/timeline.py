@@ -701,14 +701,14 @@ class Page(Elt):
     session_id : str
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
 
-    dynamically_update_progress_bar_and_bonus : bool
-        If ``True``, then the page will regularly poll for updates to the progress bar and the bonus.
-        If ``False`` (default), the progress bar and bonus are updated only on page refresh or on transition to
+    dynamically_update_progress_bar_and_reward : bool
+        If ``True``, then the page will regularly poll for updates to the progress bar and the reward.
+        If ``False`` (default), the progress bar and reward are updated only on page refresh or on transition to
         the next page.
     """
 
     returns_time_credit = True
-    dynamically_update_progress_bar_and_bonus = False
+    dynamically_update_progress_bar_and_reward = False
 
     def __init__(
         self,
@@ -1121,7 +1121,7 @@ class Page(Elt):
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
-            "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
+            "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
@@ -1134,10 +1134,13 @@ class Page(Elt):
             "js_vars": js_vars,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
-            "extra_bonus": "%.2f" % participant.performance_bonus,
-            "total_bonus": "%.2f"
-            % (participant.performance_bonus + participant.time_credit.get_bonus()),
+            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "performance_reward": "%.2f" % participant.performance_reward,
+            "total_reward": "%.2f"
+            % (
+                participant.performance_reward
+                + participant.time_credit.get_time_reward()
+            ),
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
@@ -1573,8 +1576,8 @@ class Timeline:
                 if isinstance(new_elt, Page):
                     finished = True
 
-    def estimated_max_bonus(self, wage_per_hour):
-        return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
+    def estimated_max_reward(self, wage_per_hour):
+        return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
 
     def estimated_completion_time(self, wage_per_hour):
         return self.estimated_time_credit.get_max("time", wage_per_hour=wage_per_hour)
@@ -1588,7 +1591,7 @@ class CreditEstimate:
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
             return self._max_time
-        elif mode == "bonus":
+        elif mode == "reward":
             assert wage_per_hour is not None
             return self._max_time * wage_per_hour / (60 * 60)
         elif mode == "all":
@@ -1596,7 +1599,7 @@ class CreditEstimate:
                 "time_seconds": self._max_time,
                 "time_minutes": self._max_time / 60,
                 "time_hours": self._max_time / (60 * 60),
-                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour),
+                "reward": self.get_max("reward", wage_per_hour=wage_per_hour),
             }
 
     def _estimate_max_time(self, elts):

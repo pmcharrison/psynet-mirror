@@ -78,7 +78,7 @@ but can be customized by editing methods of the ``Experiment`` class, as detaile
         <span style="font-style: italic;">
             We estimate that the task should take approximately <span style="font-weight: bold;">n minutes</span>. Upon completion of the full task,
             <br>
-            you should receive a bonus of approximately
+            you should receive a reward of approximately
             <span style="font-weight: bold;">$x.yz</span> depending on the
             amount of work done.
             <br>

@@ -56,8 +56,8 @@ class DenseTrialMaker(StaticTrialMaker):
       checks the performance of the participant
       with a view to rejecting poor-performing participants.
 
-    * :meth:`~psynet.trial.main.TrialMaker.compute_bonus`;
-      computes the final performance bonus to assign to the participant.
+    * :meth:`~psynet.trial.main.TrialMaker.compute_performance_reward`;
+      computes the final performance reward to assign to the participant.
 
     Further customisable options are available in the constructor's parameter list,
     documented below.
@@ -411,7 +411,7 @@ class SliderCopyTrial(SingleStimulusTrial):
     The class contains a built-in ``:meth:`~psynet.trial.main.SliderCopyTrial.score_answer`` method
     which returns the absolute distance between the true stimulus location and the stimulus location
     chosen by the participant. The resulting score is stored in the trial's ``score`` attribute,
-    and can be used for performance bonuses.
+    and can be used for performance rewards.
     """
 
     def finalize_definition(self, definition, experiment, participant):

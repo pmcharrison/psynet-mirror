@@ -25,7 +25,7 @@ class TestExp(object):
 
         config = get_and_load_config()
         assert config.get("wage_per_hour") == 12.0
-        assert config.get("min_accumulated_bonus_for_abort") == 0.15
+        assert config.get("min_accumulated_reward_for_abort") == 0.15
         assert config.get("show_abort_button") is True
 
     def test_exp(self, bot_recruits, db_session):
@@ -227,8 +227,8 @@ class TestExp(object):
                 driver,
                 "main-body",
                 (
-                    "That's the end of the experiment! In addition to your base payment of $0.10, "
-                    "you will receive a bonus of $0.36 for the time you spent on the experiment. "
+                    "That's the end of the experiment! You will receive a reward of $0.36 "
+                    "for the time you spent on the experiment. You have also been awarded a performance reward of $0.00! "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
             )

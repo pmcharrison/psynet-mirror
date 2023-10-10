@@ -2,8 +2,8 @@
 
 {% block main_body %}
     {{ pgettext("final_page_successful", "That's the end of the experiment!") }}
-    {% if config.show_bonus and not experiment.with_lucid_recruitment() %}
-        {% include "final-page-bonuses.html" %}
+    {% if config.show_reward and not experiment.with_lucid_recruitment() %}
+        {% include "final-page-rewards.html" %}
     {% endif %}
     {{ gettext("Thank you for taking part.") }}
     {% if not experiment.with_lucid_recruitment() %}

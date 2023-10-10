@@ -1281,12 +1281,12 @@ def _estimate(mode):
     if not config.ready:
         config.load()
 
-    if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
+    if mode in ["reward", "both"]:
+        max_reward = experiment_class.estimated_max_reward(wage_per_hour)
         log(
-            f"Estimated maximum bonus for participant: {config.currency}{round(maximum_bonus, 2)}."
+            f"Estimated maximum reward for participant: {config.currency}{round(max_reward, 2)}."
         )
-    if mode in ["time", "both"]:
+    if mode in ["duration", "both"]:
         completion_time = experiment_class.estimated_completion_time(wage_per_hour)
         log(
             f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
@@ -1297,12 +1297,12 @@ def _estimate(mode):
 @click.option(
     "--mode",
     default="both",
-    type=click.Choice(["bonus", "time", "both"]),
-    help="Type of result. Can be either 'bonus', 'time', or 'both'.",
+    type=click.Choice(["reward", "duration", "both"]),
+    help="Type of result. Can be either 'reward', 'duration', or 'both'.",
 )
 def estimate(mode):
     """
-    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    Estimate the maximum reward for a participant and the time for the experiment to complete, respectively.
     """
     try:
         _estimate(mode)

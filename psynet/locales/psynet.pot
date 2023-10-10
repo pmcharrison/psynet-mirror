@@ -439,8 +439,8 @@ msgstr ""
 #, python-format
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
 msgstr ""
 
 #: psynet/templates/abort_not_possible.html
@@ -457,12 +457,12 @@ msgstr ""
 
 #: psynet/templates/abort_not_possible.html
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
+msgid "See below information on your currently accumulated reward."
 msgstr ""
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
-msgid "Accumulated bonus"
+msgid "Accumulated reward"
 msgstr ""
 
 #: psynet/templates/abort_not_possible.html
@@ -568,8 +568,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr ""
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 msgid "Next"
 msgstr ""
 
@@ -1611,22 +1610,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr ""
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
@@ -1647,6 +1630,21 @@ msgstr ""
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
+msgstr ""
+
+#: psynet/templates/final-page-rewards.html
+#, python-format
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+
+#: psynet/templates/final-page-rewards.html
+#, python-format
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 msgstr ""
 
 #: psynet/templates/final-page-successful.html
@@ -2190,12 +2188,12 @@ msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Bonus"
+msgid "Help!"
 msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Help!"
+msgid "Reward"
 msgstr ""
 
 #: psynet/templates/timeline-page.html

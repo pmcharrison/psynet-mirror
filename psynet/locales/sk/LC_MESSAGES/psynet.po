@@ -40,7 +40,7 @@ msgstr "Musíte zadať svoj vek ako celé číslo od 0 do 120!"
 #, python-brace-format, fuzzy
 msgctxt "age"
 msgid "Your answer was: '{AGE}'"
-msgstr "Vaša odpoveď bola: \"{AGE}"
+msgstr "Vaša odpoveď bola: '{AGE}'"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -530,11 +530,22 @@ msgstr "Presmerovanie na trhovisko Lucid..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Musíte nazbierať <strong>najmä "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusu, aby ste "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> bonusu, aby ste "
+"mohli byť odškodnení."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Musíte nazbierať <strong>najmä "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> odmeny, aby ste "
 "mohli byť odškodnení."
 
 #: psynet/templates/abort_not_possible.html
@@ -561,10 +572,22 @@ msgstr ""
 "Pozrite si nižšie uvedené informácie o vašom aktuálne nazbieranom bonuse."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Nižšie nájdete informácie o vašej aktuálne nazbieranej odmene."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Kumulovaný bonus"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Kumulovaná odmena"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -726,8 +749,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Ak chcete pokračovať, kliknite na tlačidlo nižšie."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Ďalšie"
@@ -1793,7 +1815,7 @@ msgstr ""
 "je zvuk alebo obraz zvukom auta alebo kravy), alebo aby ste posúdili iné "
 "základné vlastnosti zvukov alebo obrazov (napr. ako často sa stretávate s "
 "týmto typom zvuku alebo obrazu? ako esteticky príjemný považujete určitý "
-"zvuk alebo obraz?)"
+"zvuk alebo obraz?)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2079,7 +2101,7 @@ msgid ""
 "possible to link your personal information based on audio-visual recordings"
 msgstr ""
 "Hoci vaše údaje nebudú spojené s osobnými identifikátormi, je možné prepojiť"
-" vaše osobné údaje na základe audiovizuálnych záznamov."
+" vaše osobné údaje na základe audiovizuálnych záznamov"
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2166,27 +2188,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Ak chcete vyplniť prieskum Lucid, kliknite na tlačidlo nižšie."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Okrem základnej platby <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
-"dostanete bonus <strong>%(CURRENCY)s%(BONUS)s</strong> za čas strávený na "
-"experimente."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Zároveň vám bol udelený výkonnostný bonus vo výške "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2212,6 +2213,50 @@ msgstr "Dokončenie"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Kliknutím na tlačidlo \"Dokončiť\" dokončite HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Okrem základnej platby <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
+"dostanete bonus <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas strávený"
+" na experimente."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Okrem základnej platby <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
+"dostanete odmenu <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas, ktorý "
+"ste strávili na experimente."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Zároveň vám bol udelený výkonnostný bonus vo výške "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Za čas, ktorý ste strávili na experimente, dostanete odmenu "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>. Získali ste aj výkonnostnú "
+"odmenu <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2952,6 +2997,12 @@ msgstr "Pomoc!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Odmena"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Odkaz na aktuálnu webovú stránku;"
@@ -2976,7 +3027,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "V prípade problému skúste nasledovné:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2995,7 +3045,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problém, ktorý sa u vás vyskytol."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

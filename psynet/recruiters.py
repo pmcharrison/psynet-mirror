@@ -152,9 +152,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
-        if self.config.get("show_bonus"):
+        if self.config.get("show_reward"):
             raise RuntimeError(
-                "Lucid recruitment requires `show_bonus` to be set to `False`."
+                "Lucid recruitment requires `show_reward` to be set to `False`."
             )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
@@ -217,7 +217,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             "name": self.config.get("title"),
             "quota": n,
             "quota_cpi": round(
-                experiment.estimated_max_bonus(wage_per_hour),
+                experiment.estimated_max_reward(wage_per_hour),
                 2,
             ),
         }

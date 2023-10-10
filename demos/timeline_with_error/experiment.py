@@ -16,7 +16,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Timeline with error demo"
 
     config = {
-        "min_accumulated_bonus_for_abort": 0.10,
+        "min_accumulated_reward_for_abort": 0.10,
         "show_abort_button": True,
     }
 
