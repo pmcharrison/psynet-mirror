@@ -520,7 +520,7 @@ msgid "Accumulated reward"
 msgstr "累计奖励"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
+#: psynet/templates/abort_possible.html
 msgid "Close window"
 msgstr "关闭窗口"
 
@@ -559,24 +559,6 @@ msgstr "请只有当您在领取报酬时遇到困难时，与我们联系。"
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "关于您的奖金的细节，请看下面的信息。"
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already"
-msgid ""
-"Unfortunately our automatic checks indicate that your technical setup is not"
-" compatible with this experiment's requirements. As a result, I'm afraid you"
-" won't be able to continue with the experiment. Please return your "
-"submission."
-msgstr "不幸的是，我们的自动检查显示，您的技术设置不符合本实验的要求。 因此，恐怕您无法继续进行实验。 请退回您提交的材料。"
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already_header"
-msgid "Thank you for your interest in this study"
-msgstr "感谢您对本研究的关注"
 
 #: psynet/templates/ad.html
 msgctxt "ad"
@@ -2429,13 +2411,6 @@ msgstr "奖金"
 msgctxt "timeline"
 msgid "Help!"
 msgstr "帮助!"
-
-#. ""
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Payment"
-msgstr "付款方式"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

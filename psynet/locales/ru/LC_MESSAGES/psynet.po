@@ -551,7 +551,7 @@ msgid "Accumulated reward"
 msgstr "Накопленное вознаграждение"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
+#: psynet/templates/abort_possible.html
 msgid "Close window"
 msgstr "Закрыть окно"
 
@@ -595,28 +595,6 @@ msgstr ""
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Смотрите ниже информацию о Вашей компенсации."
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already"
-msgid ""
-"Unfortunately our automatic checks indicate that your technical setup is not"
-" compatible with this experiment's requirements. As a result, I'm afraid you"
-" won't be able to continue with the experiment. Please return your "
-"submission."
-msgstr ""
-"К сожалению, наша автоматическая проверка показала, что Ваша техническая "
-"установка не соответствует требованиям данного эксперимента. В результате, "
-"боюсь, что Вы не сможете продолжить эксперимент. Пожалуйста, верните Вашу "
-"заявку."
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already_header"
-msgid "Thank you for your interest in this study"
-msgstr "Благодарим Вас за интерес к данному исследованию"
 
 #: psynet/templates/ad.html
 msgctxt "ad"
@@ -2770,13 +2748,6 @@ msgstr "Бонус"
 msgctxt "timeline"
 msgid "Help!"
 msgstr "Помогите!"
-
-#. ""
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Payment"
-msgstr "Оплата"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

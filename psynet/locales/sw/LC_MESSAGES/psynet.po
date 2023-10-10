@@ -589,7 +589,7 @@ msgid "Accumulated reward"
 msgstr "Zawadi iliyokusanywa"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
+#: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Close window"
 msgstr "Funga dirisha"
@@ -638,27 +638,6 @@ msgstr "Tafadhali wasiliana nasi ikiwa unatatizika kupokea malipo yako."
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Tazama maelezo hapa chini kwa maelezo ya fidia yako."
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already"
-msgid ""
-"Unfortunately our automatic checks indicate that your technical setup is not"
-" compatible with this experiment's requirements. As a result, I'm afraid you"
-" won't be able to continue with the experiment. Please return your "
-"submission."
-msgstr ""
-"Kwa bahati mbaya, ukaguzi wetu wa kiotomatiki unaonyesha kuwa usanidi wako "
-"wa kiufundi hauambatani na mahitaji ya jaribio hili. Kwa hivyo, ninaogopa "
-"hutaweza kuendelea na jaribio. Tafadhali rudisha uwasilishaji wako."
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already_header"
-msgid "Thank you for your interest in this study"
-msgstr "Asante kwa hamu yako katika utafiti huu"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3013,13 +2992,6 @@ msgstr "Ziada"
 msgctxt "timeline"
 msgid "Help!"
 msgstr "Msaada!"
-
-#. ""
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Payment"
-msgstr "Malipo"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -592,7 +592,7 @@ msgid "Accumulated reward"
 msgstr "Sukauptas atlygis"
 
 #: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/aborted_already.html
+#: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Close window"
 msgstr "Uždaryti langą"
@@ -644,27 +644,6 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Išsamesnės informacijos apie jūsų kompensaciją rasite toliau pateiktoje "
 "informacijoje."
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already"
-msgid ""
-"Unfortunately our automatic checks indicate that your technical setup is not"
-" compatible with this experiment's requirements. As a result, I'm afraid you"
-" won't be able to continue with the experiment. Please return your "
-"submission."
-msgstr ""
-"Deja, mūsų automatinės patikros rodo, kad jūsų techninė sąranka neatitinka "
-"šio eksperimento reikalavimų. Bijau, kad dėl to negalėsite tęsti "
-"eksperimento. Prašau grąžinti pateiktą paraišką."
-
-#. ""
-#: psynet/templates/aborted_already.html
-#, fuzzy
-msgctxt "aborted_already_header"
-msgid "Thank you for your interest in this study"
-msgstr "Dėkojame už susidomėjimą šiuo tyrimu"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3030,13 +3009,6 @@ msgstr "Premija"
 msgctxt "timeline"
 msgid "Help!"
 msgstr "Pagalba!"
-
-#. ""
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Payment"
-msgstr "Mokėjimas"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
