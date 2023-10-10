@@ -420,7 +420,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         self.pre_deploy_routines.append(
-            "check_min_accumulated_reward_for_abort",
             PreDeployRoutine(
                 "check_min_accumulated_reward_for_abort",
                 self.check_min_accumulated_reward_for_abort,
