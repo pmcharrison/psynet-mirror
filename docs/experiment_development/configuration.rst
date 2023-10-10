@@ -149,16 +149,16 @@ General
 ``show_abort_button`` *bool* |psynet-icon|
     If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
     e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-    assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+    assures the participant is compensated on the basis of the amount of reward that has been accumulated.
     Default ``False``.
 
-``show_bonus`` *bool* |psynet-icon|
-    If ``True`` (default), then the participant's current estimated bonus is displayed
+``show_reward`` *bool* |psynet-icon|
+    If ``True`` (default), then the participant's current estimated reward is displayed
     at the bottom of the page.
 
 ``show_footer`` *bool* |psynet-icon|
     If ``True`` (default), then a footer is displayed at the bottom of the page containing a `Help` button
-    and bonus information if ``show_bonus`` is set to ``True``.
+    and reward information if ``show_reward`` is set to ``True``.
 
 ``show_progress_bar`` *bool* |psynet-icon|
     If ``True`` (default), then a progress bar is displayed at the top of the page.
@@ -198,12 +198,12 @@ Payment
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
 
-``min_accumulated_bonus_for_abort`` *float* |psynet-icon|
-    The threshold of bonus accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
+``min_accumulated_reward_for_abort`` *float* |psynet-icon|
+    The threshold of reward accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
     The recruiting process stops if the amount of accumulated payments
-    (incl. bonuses), in the currency set via the ``currency`` config variable, exceedes this value. Default: ``1000.0``.
+    (incl. time and performance rewards), in the currency set via the ``currency`` config variable, exceedes this value. Default: ``1000.0``.
 
 ``wage_per_hour`` *float* |psynet-icon|
     The payment in currency the participant gets per hour. Default: ``9.0``.

@@ -534,11 +534,22 @@ msgstr "Пренасочване към Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "За да получите компенсация, трябва да натрупате <strong>поне "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> от бонуса."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> от бонуса."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Трябва да натрупате <strong>най-малко "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> от наградата, за "
+"да можете да получите компенсация."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -563,10 +574,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Вижте по-долу информация за Вашия текущо натрупан бонус."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Вижте по-долу информация за натрупаната в момента награда."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Натрупан бонус"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Натрупано възнаграждение"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -730,8 +753,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "За да продължите, кликнете върху бутона по-долу."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Следваща"
@@ -2202,28 +2224,6 @@ msgid "To complete your Lucid Survey, click the button below."
 msgstr ""
 "За да завършите проучването си за Lucid, кликнете върху бутона по-долу."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"В допълнение към основното заплащане от "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> ще получите бонус от "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> за времето, което сте прекарали в "
-"експеримента."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Освен това Ви е присъден бонус за постигнати резултати в размер на "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2249,6 +2249,52 @@ msgstr "Завършете"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Щракнете върху \"Finish\", за да завършите HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"В допълнение към основното заплащане от "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> ще получите бонус от "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за времето, което сте прекарали"
+" в експеримента."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"В допълнение към основното заплащане от "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> ще получите възнаграждение от "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за времето, което сте прекарали"
+" в експеримента."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Освен това Ви е присъден бонус за постигнати резултати в размер на "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"За времето, прекарано в експеримента, ще получите награда от "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>. Получихте и награда за "
+"постижения от <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2997,6 +3043,12 @@ msgstr "Помощ!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Награда"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Връзка към текущата уеб страница;"
@@ -3020,7 +3072,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "В случай на проблем, опитайте следното:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3039,7 +3090,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Проблемът, с който се сблъсквате."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

@@ -534,11 +534,22 @@ msgstr "Ανακατεύθυνση σε Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Πρέπει να συγκεντρώσετε <strong>τουλάχιστον "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> μπόνους για να "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> μπόνους για να "
+"μπορέσετε να αποζημιωθείτε."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Πρέπει να συγκεντρώσετε <strong>τουλάχιστον "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ανταμοιβή για να "
 "μπορέσετε να αποζημιωθείτε."
 
 #: psynet/templates/abort_not_possible.html
@@ -566,10 +577,24 @@ msgstr ""
 "μπόνους σας."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr ""
+"Δείτε παρακάτω πληροφορίες σχετικά με την τρέχουσα συσσωρευμένη ανταμοιβή "
+"σας."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Συσσωρευμένο μπόνους"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Συσσωρευμένη αμοιβή"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -738,8 +763,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Για να προχωρήσετε, κάντε κλικ στο παρακάτω κουμπί."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Επόμενο"
@@ -2241,28 +2265,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Για να ολοκληρώσετε την έρευνα Lucid, κάντε κλικ στο παρακάτω κουμπί."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Εκτός από τη βασική πληρωμή των "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, θα λάβετε ένα μπόνους των "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> για το χρόνο που αφιερώσατε στο "
-"πείραμα."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Σας έχει επίσης απονεμηθεί μπόνους απόδοσης "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2288,6 +2290,52 @@ msgstr "Φινίρισμα"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Κάντε κλικ στο \"Finish\" (Τέλος) για να ολοκληρώσετε το HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Εκτός από τη βασική σας πληρωμή των "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, θα λάβετε ένα μπόνους των "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> για το χρόνο που αφιερώσατε στο"
+" πείραμα."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Εκτός από τη βασική σας αμοιβή των "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, θα λάβετε μια ανταμοιβή των "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> για το χρόνο που αφιερώσατε στο"
+" πείραμα."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Σας έχει επίσης απονεμηθεί μπόνους απόδοσης "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Θα λάβετε ανταμοιβή <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> για το "
+"χρόνο που αφιερώσατε στο πείραμα. Σας έχει επίσης απονεμηθεί ανταμοιβή "
+"απόδοσης <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -3054,6 +3102,12 @@ msgstr "Βοήθεια!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Επιβράβευση"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Ένας σύνδεσμος προς την τρέχουσα ιστοσελίδα,"
@@ -3079,7 +3133,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Σε περίπτωση προβλήματος, δοκιμάστε τα εξής:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3098,7 +3151,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Το πρόβλημα που αντιμετωπίζετε."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

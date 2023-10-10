@@ -533,11 +533,22 @@ msgstr "Đang chuyển hướng đến Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Bạn phải tích lũy <strong>ít nhất "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> tiền thưởng để có "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> tiền thưởng để có "
+"thể được bồi thường."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Bạn phải tích lũy <strong>ít nhất "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> phần thưởng để có "
 "thể được bồi thường."
 
 #: psynet/templates/abort_not_possible.html
@@ -562,10 +573,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Xem thông tin bên dưới về tiền thưởng tích lũy hiện tại của bạn."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Xem thông tin bên dưới về phần thưởng hiện đang tích lũy của bạn."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "tiền thưởng tích lũy"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Phần thưởng tích lũy"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -727,8 +750,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Để tiếp tục, hãy nhấp vào nút bên dưới."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Kế tiếp"
@@ -2194,27 +2216,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Để hoàn thành Khảo sát Lucid của bạn, hãy nhấp vào nút bên dưới."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
-" bạn sẽ nhận được tiền thưởng <strong>%(CURRENCY)s%(BONUS)s</strong> cho "
-"thời gian bạn dành cho thử nghiệm."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Bạn cũng đã được thưởng phần thưởng hiệu suất "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2240,6 +2241,51 @@ msgstr "Hoàn thành"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Vui lòng bấm \"Finish\" để hoàn thành HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
+" bạn sẽ nhận được tiền thưởng <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"cho thời gian bạn dành cho thí nghiệm."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
+" bạn sẽ nhận được phần thưởng là "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> cho thời gian bạn dành cho thí "
+"nghiệm."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Bạn cũng đã được thưởng phần thưởng hiệu suất "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Bạn sẽ nhận được phần thưởng <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"cho thời gian bạn dành cho thử nghiệm. Bạn cũng đã được trao phần thưởng "
+"hiệu suất <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2978,6 +3024,12 @@ msgstr "Giúp đỡ!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Phần thưởng"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Một liên kết đến trang web hiện tại;"
@@ -3003,7 +3055,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Trong trường hợp có vấn đề, hãy thử như sau:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3022,7 +3073,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Vấn đề bạn đang gặp phải."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

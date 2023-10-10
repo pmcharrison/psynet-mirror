@@ -535,11 +535,21 @@ msgstr "Peradresavimas į \"Lucid Marketplace\"..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Kad gautumėte kompensaciją, turite sukaupti bent "
-"<strong>%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> premiją."
+"<strong>%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> premiją."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Kad gautumėte kompensaciją, turite surinkti <strong>ne mažiau kaip "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> atlygio."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -564,10 +574,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Žr. toliau pateiktą informaciją apie šiuo metu sukauptą premiją."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Žr. toliau pateiktą informaciją apie šiuo metu sukauptą atlygį."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Sukaupta premija"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Sukauptas atlygis"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -730,8 +752,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Norėdami tęsti, spustelėkite toliau esantį mygtuką."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Kitas"
@@ -2183,27 +2204,6 @@ msgid "To complete your Lucid Survey, click the button below."
 msgstr ""
 "Norėdami užpildyti \"Lucid\" apklausą, spustelėkite toliau esantį mygtuką."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Be pagrindinio <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> atlyginimo, "
-"gausite <strong>%(CURRENCY)s%(BONUS)s</strong> premiją už eksperimentui "
-"skirtą laiką."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Jums taip pat buvo paskirta "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong> veiklos premija!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2229,6 +2229,50 @@ msgstr "Apdaila"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Spustelėkite \"Finish\", kad užbaigtumėte HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Be pagrindinio <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> atlyginimo, "
+"gausite <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> premiją už "
+"eksperimentui skirtą laiką."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Be pagrindinio <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> atlygio gausite"
+" <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> atlygį už eksperimentui skirtą"
+" laiką."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Jums taip pat buvo paskirta "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> veiklos premija!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Už eksperimentui sugaištą laiką gausite "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> atlygį. Taip pat gavote "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> atlygį už rezultatus!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2968,6 +3012,12 @@ msgstr "Pagalba!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Apdovanojimas"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Nuoroda į dabartinį tinklalapį;"
@@ -2991,7 +3041,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Ištikus problemai, pabandykite toliau nurodytus veiksmus:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3010,7 +3059,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Problema, su kuria susiduriate."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

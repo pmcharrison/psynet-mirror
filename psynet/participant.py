@@ -170,7 +170,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     last_response_id = Column(Integer)
 
     base_payment = Column(Float)
-    performance_bonus = Column(Float)
+    performance_reward = Column(Float)
     unpaid_bonus = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
@@ -419,7 +419,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.answer_accumulators = []
         self.complete = False
         self.time_credit.initialize(experiment)
-        self.performance_bonus = 0.0
+        self.performance_reward = 0.0
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
@@ -436,20 +436,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def initialize(self, experiment):
         pass
 
-    def calculate_bonus(self):
+    def calculate_reward(self):
         """
-        Calculates and returns the currently accumulated bonus for the given participant.
+        Calculates and returns the currently accumulated reward for the given participant.
 
         :returns:
-            The bonus as a ``float``.
+            The reward as a ``float``.
         """
         return round(
-            self.time_credit.get_bonus() + self.performance_bonus,
+            self.time_credit.get_time_reward() + self.performance_reward,
             ndigits=2,
         )
 
-    def inc_performance_bonus(self, value):
-        self.performance_bonus = self.performance_bonus + value
+    def inc_performance_reward(self, value):
+        self.performance_reward += value
 
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (
@@ -457,15 +457,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
 
     def send_email_max_payment_reached(
-        self, experiment_class, requested_bonus, reduced_bonus
+        self, experiment_class, requested_reward, reduced_reward
     ):
         config = get_config()
         template = """Dear experimenter,
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount paid to the participant with assignment_id '{assignment_id}'
-            has reached the maximum of {max_participant_payment}$. The bonus paid was {reduced_bonus}$
-            instead of a requested bonus of {requested_bonus}$.
+            has reached the maximum of {max_participant_payment}$. The reward paid was {reduced_reward}$
+            instead of a requested reward of {requested_reward}$.
 
             The application id is: {app_id}
 
@@ -480,8 +480,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "body": template.format(
                 assignment_id=self.assignment_id,
                 max_participant_payment=experiment_class.var.max_participant_payment,
-                requested_bonus=requested_bonus,
-                reduced_bonus=reduced_bonus,
+                requested_reward=requested_reward,
+                reduced_reward=reduced_reward,
                 app_id=config.get("id"),
             ),
         }
@@ -514,11 +514,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @extra_var(__extra_vars__)
     def progress(self):
         return 1.0 if self.complete else self.time_credit.progress
-
-    @property
-    @extra_var(__extra_vars__)
-    def estimated_bonus(self):
-        return self.time_credit.estimate_bonus()
 
     @property
     def time_credit(self):
@@ -590,7 +585,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return {
             "assignment_id": self.assignment_id,
             "hit_id": self.hit_id,
-            "accumulated_bonus": "$" + "{:.2f}".format(self.calculate_bonus()),
+            "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
 
@@ -621,7 +616,7 @@ class TimeCreditStore:
         "max_pending_credit",
         "wage_per_hour",
         "experiment_max_time_credit",
-        "experiment_max_bonus",
+        "experiment_max_reward",
     ]
 
     def __init__(self, participant):
@@ -655,10 +650,10 @@ class TimeCreditStore:
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
-            mode="time"
+            "time"
         )
-        self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=self.wage_per_hour
+        self.experiment_max_reward = experiment_estimated_time_credit.get_max(
+            "reward", wage_per_hour=self.wage_per_hour
         )
 
     def increment(self, value: float):
@@ -682,14 +677,11 @@ class TimeCreditStore:
         self.max_pending_credit = 0.0
         self.confirmed_credit += time_estimate
 
-    def get_bonus(self):
+    def get_time_reward(self):
         return self.wage_per_hour * self.confirmed_credit / (60 * 60)
 
     def estimate_time_credit(self):
         return self.confirmed_credit + self.pending_credit
-
-    def estimate_bonus(self):
-        return self.wage_per_hour * self.estimate_time_credit() / (60 * 60)
 
     @property
     def progress(self):

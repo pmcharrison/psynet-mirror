@@ -159,7 +159,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         class Exp(psynet.experiment.Experiment):
             config = {
-                "min_accumulated_bonus_for_abort": 0.15,
+                "min_accumulated_reward_for_abort": 0.15,
                 "show_abort_button": True,
             }
 
@@ -201,7 +201,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     soft_max_experiment_payment : `float`
         The recruiting process stops if the amount of accumulated payments
-        (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
+        (incl. time and performance rewards) in US dollars exceedes this value. Default: `1000.0`.
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
@@ -242,23 +242,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     currency : `str`
         The currency in which the participant gets paid. Default: `$`.
 
-    min_accumulated_bonus_for_abort : `float`
-        The threshold of bonus accumulated in US dollars for the participant to be able to receive
+    min_accumulated_reward_for_abort : `float`
+        The threshold of reward accumulated in US dollars for the participant to be able to receive
         compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
 
     show_abort_button : `bool`
         If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
         e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+        assures the participant is compensated on the basis of the amount of reward that has been accumulated.
         Default ``False``.
 
-    show_bonus : `bool`
-        If ``True`` (default), then the participant's current estimated bonus is displayed
+    show_reward : `bool`
+        If ``True`` (default), then the participant's current estimated reward is displayed
         at the bottom of the page.
 
     show_footer : `bool`
         If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
-        and bonus information if `show_bonus` is set to `True`.
+        and reward information if `show_reward` is set to `True`.
 
     show_progress_bar : `bool`
         If ``True`` (default), then a progress bar is displayed at the top of the page.
@@ -769,8 +769,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def estimated_max_bonus(cls, wage_per_hour):
-        return cls.timeline.estimated_max_bonus(wage_per_hour)
+    def estimated_max_reward(cls, wage_per_hour):
+        return cls.timeline.estimated_max_reward(wage_per_hour)
 
     @classmethod
     def estimated_completion_time(cls, wage_per_hour):
@@ -820,9 +820,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
             "currency": "$",
-            "min_accumulated_bonus_for_abort": 0.20,
+            "min_accumulated_reward_for_abort": 0.20,
             "show_abort_button": False,
-            "show_bonus": True,
+            "show_reward": True,
             "show_footer": True,
             "show_progress_bar": True,
             "check_participant_opened_devtools": False,
@@ -904,8 +904,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return f"""
                 We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
                 <br>
-                you should receive a bonus of approximately
-                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_bonus_in_dollars)}</span> depending on the
+                you should receive a reward of approximately
+                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_reward_in_dollars)}</span> depending on the
                 amount of work done.
                 <br>
                 In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
@@ -926,14 +926,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def estimated_duration_in_minutes(self):
-        return self.timeline.estimated_time_credit.get_max(mode="time") / 60
+        return self.timeline.estimated_time_credit.get_max("time") / 60
 
     @property
-    def estimated_bonus_in_dollars(self):
+    def estimated_reward_in_dollars(self):
         wage_per_hour = get_and_load_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(
-                mode="bonus",
+                "reward",
                 wage_per_hour=wage_per_hour,
             ),
             2,
@@ -1239,54 +1239,54 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def bonus(self, participant):
         """
-        Calculates and returns the bonus payment the given participant gets when
-        completing the experiment. Override :func:`~psynet.experiment.Experiment.calculate_bonus()` if you require another than the default bonus calculation.
+        Calculates and returns the reward the given participant gets when
+        completing the experiment.
 
         :param participant:
             The participant.
         :type participant:
             :attr:`~psynet.participant.Participant`
         :returns:
-            The bonus payment as a ``float``.
+            The reward as a ``float``.
         """
-        bonus = participant.calculate_bonus()
-        return self.check_bonus(bonus, participant)
+        reward = participant.calculate_reward()
+        return self.check_bonus(reward, participant)
 
-    def check_bonus(self, bonus, participant):
+    def check_bonus(self, reward, participant):
         """
-        Ensures that a participant receives no more than a bonus of max_participant_payment.
+        Ensures that a participant receives no more than a reward of max_participant_payment.
         Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
         been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
 
-        :param bonus: float
-            The bonus calculated in :func:`~psynet.experiment.Experiment.calculate_bonus()`.
+        :param reward: float
+            The reward calculated in :func:`~psynet.experiment.Experiment.bonus()`.
         :type participant:
             :attr: `~psynet.participant.Participant`
         :returns:
-            The possibly reduced bonus as a ``float``.
+            The possibly reduced reward as a ``float``.
         """
 
         # check hard_max_experiment_payment
         if (
             self.var.hard_max_experiment_payment_email_sent
-            or self.amount_spent() + self.outstanding_base_payments() + bonus
+            or self.amount_spent() + self.outstanding_base_payments() + reward
             > self.var.hard_max_experiment_payment
         ):
-            participant.var.set("unpaid_bonus", bonus)
+            participant.var.set("unpaid_bonus", reward)
             self.ensure_hard_max_experiment_payment_email_sent()
 
         # check soft_max_experiment_payment
-        if self.amount_spent() + bonus >= self.var.soft_max_experiment_payment:
+        if self.amount_spent() + reward >= self.var.soft_max_experiment_payment:
             self.ensure_soft_max_experiment_payment_email_sent()
 
         # check max_participant_payment
-        if participant.amount_paid() + bonus > self.var.max_participant_payment:
-            reduced_bonus = round(
+        if participant.amount_paid() + reward > self.var.max_participant_payment:
+            reduced_reward = round(
                 self.var.max_participant_payment - participant.amount_paid(), 2
             )
-            participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
-            return reduced_bonus
-        return bonus
+            participant.send_email_max_payment_reached(self, reward, reduced_reward)
+            return reduced_reward
+        return reward
 
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
@@ -1535,9 +1535,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("min_browser_version", unicode)
         config.register("wage_per_hour", float)
         config.register("currency", unicode)
-        config.register("min_accumulated_bonus_for_abort", float)
+        config.register("min_accumulated_reward_for_abort", float)
         config.register("show_abort_button", bool)
-        config.register("show_bonus", bool)
+        config.register("show_reward", bool)
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
         config.register("check_participant_opened_devtools", bool)
@@ -2104,8 +2104,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant_abort_info = None
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                if participant.calculate_bonus() >= get_and_load_config().get(
-                    "min_accumulated_bonus_for_abort"
+                if participant.calculate_reward() >= get_and_load_config().get(
+                    "min_accumulated_reward_for_abort"
                 ):
                     template_name = "abort_possible.html"
                     participant_abort_info = participant.abort_info()
@@ -2320,9 +2320,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return True
 
-    @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
+    @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
-    def get_progress_and_bonus(cls):
+    def get_progress_and_reward(cls):
         participant = get_participant(request.args.get("participantId"))
         progress_percentage = round(participant.progress * 100)
         min_pct = 5
@@ -2335,14 +2335,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if get_and_load_config().get("show_bonus"):
-            performance_bonus = participant.performance_bonus
-            basic_bonus = participant.time_credit.get_bonus()
-            total_bonus = participant.calculate_bonus()
-            data["bonus"] = {
-                "basic": basic_bonus,
-                "extra": performance_bonus,
-                "total": total_bonus,
+        if get_and_load_config().get("show_reward"):
+            time_reward = participant.time_credit.get_time_reward()
+            performance_reward = participant.performance_reward
+            total_reward = participant.calculate_reward()
+            data["reward"] = {
+                "time": time_reward,
+                "performance": performance_reward,
+                "total": total_reward,
             }
         return data
 

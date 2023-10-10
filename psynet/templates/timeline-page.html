@@ -167,16 +167,16 @@
         <nav id="footer" class="navbar fixed-bottom">
             <div id="media-download-progress-bar"></div>
                 <div class="container py-2">
-                    {% if config.show_bonus %}
+                    {% if config.show_reward %}
                         <div class="footer-text">
-                            {{ pgettext("timeline", "Bonus") }}:
+                            {{ pgettext("timeline", "Reward") }}:
                             <strong>
-                                <span id="bonus-details" style="display: none">
-                                    {{ config.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
-                                    {{ config.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
+                                <span id="reward-details" style="display: none">
+                                    {{ config.currency }}<span id="time-reward">{{ time_reward }}</span> (time) +
+                                    {{ config.currency }}<span id="performance-reward">{{ performance_reward }}</span> (performance) =
                                 </span>
                                 <span class="fw-bold">
-                                    {{ config.currency }}<span id="total-bonus">{{ total_bonus }}</span>
+                                    {{ config.currency }}<span id="total-reward">{{ total_reward }}</span>
                                 </span>
                             </strong>
                         </div>
@@ -1304,7 +1304,7 @@
                     psynet.participantId = {{ participant.id }};
                     psynet.uniqueId = "{{ participant.unique_id }}";
 
-                    updateProgressAndBonus();
+                    updateProgressAndReward();
 
                     if (correctBrowser) {
                         setTimeout(() => psynet.trial.init(), 25);
@@ -1620,9 +1620,9 @@
             }()
         )
 
-        let updateProgressAndBonus = function () {
+        let updateProgressAndReward = function () {
             if (psynet.participantId !== undefined) {
-                $.get('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
+                $.get('/timeline/progress_and_reward', {'participantId': psynet.participantId})
                     .done(function (data) {
                         let progressPercentage = data['progressPercentage'];
                         let progressPercentageStr = progressPercentage + '%';
@@ -1630,20 +1630,20 @@
                         $('#timeline-progress-bar').css("width", progressPercentageStr);
                         $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage);
 
-                        if (data['bonus'] !== undefined) {
-                            if (data['bonus']['extra'].toFixed(2) > 0) {
-                                $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
-                                $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                                $("#bonus-details").show();
+                        if (data['reward'] !== undefined) {
+                            if (data['reward']['performance'].toFixed(2) > 0) {
+                                $('#time-reward').text(data['reward']['time'].toFixed(2));
+                                $('#performance-reward').text(data['reward']['performance'].toFixed(2));
+                                $("#reward-details").show();
                             }
-                            $('#total-bonus').text(data['bonus']['total'].toFixed(2));
+                            $('#total-reward').text(data['reward']['total'].toFixed(2));
                         }
                     });
             }
         }
 
-        if (dynamicallyUpdateProgressBarAndBonus) {
-            setInterval(updateProgressAndBonus, 1000);
+        if (dynamicallyUpdateProgressBarAndReward) {
+            setInterval(updateProgressAndReward, 1000);
         }
 
         function alertParticipantOpenedDevtools() {

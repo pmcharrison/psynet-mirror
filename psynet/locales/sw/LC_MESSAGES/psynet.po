@@ -531,12 +531,23 @@ msgstr "Inaelekezwa kwenye Soko la Lucid..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Lazima ukusanye <strong>angalau "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> ya bonasi ili uweze"
-" kulipwa."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ya bonasi ili "
+"uweze kulipwa."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Lazima ukusanye <strong>angalau "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ya zawadi ili "
+"uweze kulipwa."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -560,10 +571,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "Tazama hapa chini maelezo kuhusu bonasi uliyokusanya kwa sasa."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Tazama hapa chini maelezo kuhusu zawadi yako uliyokusanya kwa sasa."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Bonasi iliyokusanywa"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Zawadi iliyokusanywa"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -721,8 +744,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Ili kuendelea, bofya kitufe kilicho hapa chini."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Inayofuata"
@@ -2168,27 +2190,6 @@ msgid "To complete your Lucid Survey, click the button below."
 msgstr ""
 "Ili kukamilisha Utafiti wako wa Lucid, bofya kitufe kilicho hapa chini."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Pamoja na malipo yako ya msingi ya "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea bonasi ya "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> kwa muda uliotumia kwenye jaribio."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Pia umetunukiwa bonasi ya utendakazi ya "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2214,6 +2215,52 @@ msgstr "Maliza"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Tafadhali bofya \"Maliza\" ili kukamilisha HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Pamoja na malipo yako ya awali ya "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea bonasi ya "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
+"jaribio."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Pamoja na malipo yako ya awali ya "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea zawadi ya "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
+"jaribio."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Pia umetunukiwa bonasi ya utendakazi ya "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Utapokea zawadi ya <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda "
+"uliotumia kwenye jaribio. Pia umetunukiwa zawadi ya utendakazi ya "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2948,6 +2995,12 @@ msgstr "Msaada!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Zawadi"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Kiungo cha ukurasa wa sasa wa wavuti;"
@@ -2973,7 +3026,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Katika kesi ya shida, jaribu yafuatayo:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2992,7 +3044,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Tatizo unalokumbana nalo."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
