@@ -1,4 +1,3 @@
-# Note: this implementation assumes ffmpeg is installed
 
 import numpy as np
 from PIL import Image
