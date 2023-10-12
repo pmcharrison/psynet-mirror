@@ -292,8 +292,14 @@ class MediaGibbsNode(GibbsNode):
 
     def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality):
         logger.info(modality)
-        assert modality in ["audio", "video"]
-        ext = ".wav" if modality == "audio" else ".mp4"
+        assert modality in ["audio", "image", "video"]
+        match modality:
+            case "audio":
+                ext = ".wav"
+            case "image":
+                ext = ".jpg"
+            case "video":
+                ext = ".mp4"
         values = linspace(range_to_sample[0], range_to_sample[1], granularity)
         ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
         files = [f"{_id}{ext}" for _id in ids]
@@ -383,6 +389,25 @@ class MediaGibbsNode(GibbsNode):
 
 class MediaGibbsTrialMaker(GibbsTrialMaker):
     pass
+
+
+class ImageGibbsNetwork(MediaGibbsNetwork):
+    modality = "image"
+    pass
+
+
+class ImageGibbsTrial(MediaGibbsTrial):
+    pass
+
+
+class ImageGibbsNode(MediaGibbsNode):
+    pass
+
+
+class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return ImageGibbsNetwork
 
 
 class VideoGibbsNetwork(MediaGibbsNetwork):

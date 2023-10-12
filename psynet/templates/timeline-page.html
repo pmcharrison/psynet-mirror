@@ -1132,9 +1132,20 @@
                     let stimulusId = args["stimulusId"];
                     let mediaType = args["mediaType"];
                     let fileId = args["fileId"];
-                    let url = URL.createObjectURL(data);
-                    let metadata = await getImageMetadataFromURL(url);
+
+                    let player = document.getElementById(stimulusId);
+                    if (player != null) {
+                        psynet.log.debug(
+                            "Associating " + mediaType + " '" + stimulusId
+                            + "' with the player of the same name.'"
+                        );
+                        data = new Blob([data])  // convert to blob
+                        player.src = URL.createObjectURL(data);
+                     }
                     let out = psynet.media.data[mediaType][stimulusId];
+                    out.player = player;
+                    let url = player.src;
+                    let metadata = await getImageMetadataFromURL(url);
                     out.url = url;
                     out.width = metadata.width;
                     out.height = metadata.height;
@@ -1153,7 +1164,7 @@
                     let player = document.getElementById(stimulusId);
                     if (player != null) {
                         psynet.log.debug(
-                            "Associating video '" + stimulusId
+                            "Associating " + mediaType + " '" + stimulusId
                             + "' with the player of the same name.'"
                         );
                         data = new Blob([data])  // convert to blob
@@ -1161,7 +1172,7 @@
                         player.classList.remove("loader");
                         player.load();
                         await psynet.waitForEventListener(player, "canplaythrough");
-                    }
+                     }
 
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.player = player;
@@ -1214,9 +1225,13 @@
                             fileId: fileId
                         };
 
-                        // In contrast to audio, video is not loaded into the DOM, so we need to create a player
-                        if (mediaType === 'video') {
-                            $('#main-body').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
+                        // In contrast to audio, video and image are not loaded into the DOM, so we need to create a player
+                        if (mediaType === 'image') {
+                            $('#media-slider').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
+                        }
+
+                        else if (mediaType === 'video') {
+                            $('#media-slider').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
                         }
 
                         promises.push(createMediaFromBuffer[mediaType](media.buffer, args));
@@ -1232,6 +1247,10 @@
                 };
 
                 processMediaBatch.audio = function (data, args) { //, ids,) {
+                    return processMediaBatch.extract_stimuli(data, args);
+                };
+
+                processMediaBatch.image = function (data, args) { //, ids,) {
                     return processMediaBatch.extract_stimuli(data, args);
                 };
 

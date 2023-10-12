@@ -2099,7 +2099,7 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["mp3", "wav"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {"audio": ["mp3", "wav"], "image": ["jpg", "png", "svg"], "video": ["mp4", "ogg"]}
 
 
 class MediaSliderControl(SliderControl):
@@ -2120,7 +2120,7 @@ class MediaSliderControl(SliderControl):
         Maximum value of the slider.
 
     slider_media:
-        A dictionary of media assets (video or sound).
+        A dictionary of media assets (image, video, or sound).
         Each item can either be a string,
         corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
         or a dictionary, corresponding to metadata for a batch of media assets.
@@ -2140,7 +2140,7 @@ class MediaSliderControl(SliderControl):
             }
 
     modality:
-        Either ``"audio"`` or ``"video"``; `"image"`` is not implemented yet.
+        Either ``"audio"``,  ``"image"`` or ``"video"``.
 
     media_locations:
         Dictionary with IDs as keys and locations on the slider as values.
@@ -2219,7 +2219,7 @@ class MediaSliderControl(SliderControl):
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
     ):
-        if modality not in ["audio", "video"]:
+        if modality not in ["audio", "image", "video"]:
             raise NotImplementedError(f"Modality not implemented: {modality}")
 
         if isinstance(n_steps, str):

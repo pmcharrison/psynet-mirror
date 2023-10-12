@@ -300,7 +300,10 @@
 
 
 {% macro media_slider(params) %}
-    {{ slider(params) }}
+    <div id = 'media-slider'>
+        <p class="vspace"></p>
+        {{ slider(params) }}
+    </div>
 
     <script>
         {% autoescape off %}
@@ -340,6 +343,21 @@
                     disableSlider();
                     sound.play().source.addEventListener("ended", enableSlider);
                 }
+            };
+        {% elif params.js_vars.modality == "image" %}
+
+
+            playMedia = function () {
+                var id = slider.media;
+                var image = psynet.image[id];
+
+                $('img').each(function (idx, elem){
+                    elem.style.display='none'
+                    elem.style.margin='auto'
+                })
+                psynet.log.debug('Showing image with ID = ' + id);
+                disableSlider();
+                image.player.style.display = 'block';
             };
         {% elif params.js_vars.modality == "video" %}
 

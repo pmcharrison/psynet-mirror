@@ -1,0 +1,8 @@
+#next-button {
+        margin: auto;
+        display: flex;
+}
+.vspace {
+        height: 35px;
+        margin: 0px
+}
