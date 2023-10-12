@@ -139,12 +139,10 @@ def get_pip_freeze_requirement(name):
 def commit_hash_or_version_from_pip_freeze(package_name):
     line = get_pip_freeze_requirement(package_name)
     match = re.search(
-        f"{package_name}(\\.git)?@(.*)#egg={package_name}", line, re.IGNORECASE
+        f".*{package_name}(?:\\.git)?@(.*)(?:#egg={package_name})", line, re.IGNORECASE
     )
-    if match is None:
-        match = re.search(f"{package_name}@(.*)", line, re.IGNORECASE)
     if match is not None:
-        return match.group(2)
+        return match.group(1)
     return line.split("==")[-1]
 
 
