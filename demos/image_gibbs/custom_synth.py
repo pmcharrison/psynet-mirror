@@ -1,7 +1,5 @@
 # Note: this implementation assumes ffmpeg is installed
 
-import tempfile
-
 import numpy as np
 from PIL import Image
 
@@ -40,5 +38,4 @@ def synth_stimulus(vector, output_path, chain_definition):
 
     r, g, b = vector
 
-    with tempfile.TemporaryDirectory() as out_dir:
-        fill_img(r, g, b).save(f"{output_path}")
+    fill_img(r, g, b).save(f"{output_path}")
