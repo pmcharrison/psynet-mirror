@@ -50,7 +50,7 @@ class CustomTrial(ImageGibbsTrial):
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "<center></br>Adjust the slider so that the video is as "
+            "<center></br>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
             "as possible.</center>"
         )
