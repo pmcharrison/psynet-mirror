@@ -1128,6 +1128,37 @@
                     });
                 };
 
+                function getMimeTypeFromArrayBuffer(arrayBuffer) {
+                    const uint8arr = new Uint8Array(arrayBuffer)
+
+                    const len = 4
+                    if (uint8arr.length >= len) {
+                        let signatureArr = new Array(len)
+                        for (let i = 0; i < len; i++)
+                          signatureArr[i] = (new Uint8Array(arrayBuffer))[i].toString(16)
+                        //(new Uint8Array(arrayBuffer))[i].toString(16).padStart(2, "0")
+                        const signature = signatureArr.join('').toUpperCase()
+
+                        switch (signature) {
+                          case '89504E47':
+                            return 'image/png'
+                          case '47494638':
+                            return 'image/gif'
+                          case '25504446':
+                            return 'application/pdf'
+                          case 'FFD8FFDB':
+                          case 'FFD8FFE0':
+                            return 'image/jpeg'
+                          case '504B0304':
+                            return 'application/zip'
+                          default:
+                            return null
+                        }
+                    }
+                    return null
+                }
+
+
                 createMediaFromBuffer.image = async function (data, args) {
                     let stimulusId = args["stimulusId"];
                     let mediaType = args["mediaType"];
@@ -1139,7 +1170,15 @@
                             "Associating " + mediaType + " '" + stimulusId
                             + "' with the player of the same name.'"
                         );
-                        data = new Blob([data])  // convert to blob
+                        mimeType = getMimeTypeFromArrayBuffer(data);
+                        console.log([data]);
+                        // data = new Blob([data]); // convert to blob
+                        if (mimeType != null) {
+                            data = new Blob([data], { type: mimeType }) // convert to blob
+                        }
+                        else {
+                            data = new Blob([data], { type: "image/svg+xml" })
+                        } // convert to blob
                         player.src = URL.createObjectURL(data);
                      }
                     let out = psynet.media.data[mediaType][stimulusId];
@@ -1225,7 +1264,7 @@
                             fileId: fileId
                         };
 
-                        // In contrast to audio, video and image are not loaded into the DOM, so we need to create a player
+                        // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
                         if (mediaType === 'image') {
                             $('#media-slider').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
                         }

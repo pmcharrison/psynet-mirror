@@ -10,6 +10,7 @@ from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
+    ImageGibbsNetwork,
     ImageGibbsNode,
     ImageGibbsTrial,
     ImageGibbsTrialMaker,
@@ -60,38 +61,25 @@ class CustomNode(ImageGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
-
-    # If you want to change the image extension to e.g. .png, add this changed prepare_stimuli function:
-    # def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality):
-    #     logger.info(modality)
-    #     assert modality in ["audio", "image", "video"]
-    #     match modality:
-    #         case "audio":
-    #             ext = ".wav"
-    #         case "image":
-    #             ext = ".png"
-    #         case "video":
-    #             ext = ".mp4"
-    #     values = linspace(range_to_sample[0], range_to_sample[1], granularity)
-    #     ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-    #     files = [f"{_id}{ext}" for _id in ids]
-    #     paths = [os.path.join(output_dir, _file) for _file in files]
-    #     stimuli = [
-    #         {"id": _id, "value": _value, "path": _path}
-    #         for _id, _value, _path in zip(ids, values, paths)
-    #     ]
-    #     return values, ids, files, paths, stimuli
+    n_jobs = 8  # <--- Parallelize stimulus synthesis into 8 parallel processes at each worker node
 
     def synth_function(self, vector, output_path, chain_definition):
         custom_synth.synth_stimulus(vector, output_path, {})
 
 
-class CustomTrialMaker(ImageGibbsTrialMaker):
+class CustomGibbsNetwork(ImageGibbsNetwork):
+    modality = "image"
+    extension = "png"
     pass
 
 
-trial_maker = CustomTrialMaker(
+class CustomGibbsTrialMaker(ImageGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return CustomGibbsNetwork
+
+
+trial_maker = CustomGibbsTrialMaker(
     id_="image_gibbs_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
@@ -106,7 +94,7 @@ trial_maker = CustomTrialMaker(
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_trials",
+    recruit_mode="n_trials",
     target_n_participants=None,
     wait_for_networks=True,
 )

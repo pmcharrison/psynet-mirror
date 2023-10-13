@@ -245,6 +245,7 @@ class MediaGibbsTrial(GibbsTrial):
     def vector_ranges(self):
         return self.node.vector_ranges
 
+EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "png", "svg"], "video": ["mp4", "ogg"]}
 
 class MediaGibbsNode(GibbsNode):
     """
@@ -290,19 +291,15 @@ class MediaGibbsNode(GibbsNode):
     def async_on_deploy(self):
         self.make_stimuli()
 
-    def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality):
+    def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality, extension):
         logger.info(modality)
         assert modality in ["audio", "image", "video"]
-        match modality:
-            case "audio":
-                ext = ".wav"
-            case "image":
-                ext = ".jpg"
-            case "video":
-                ext = ".mp4"
+        if extension == "":
+            extension = EXTENSIONS[modality][0]
+        assert extension in EXTENSIONS[modality]
         values = linspace(range_to_sample[0], range_to_sample[1], granularity)
         ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-        files = [f"{_id}{ext}" for _id in ids]
+        files = [f"{_id}.{extension}" for _id in ids]
         paths = [os.path.join(output_dir, _file) for _file in files]
         stimuli = [
             {"id": _id, "value": _value, "path": _path}
@@ -326,6 +323,7 @@ class MediaGibbsNode(GibbsNode):
                 granularity,
                 individual_stimuli_dir,
                 self.network.modality,
+                self.network.extension
             )
 
             if self.batch_synthesis:
@@ -393,6 +391,7 @@ class MediaGibbsTrialMaker(GibbsTrialMaker):
 
 class ImageGibbsNetwork(MediaGibbsNetwork):
     modality = "image"
+    extension = ""
     pass
 
 
@@ -412,6 +411,7 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
 
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
+    extension = ""
     pass
 
 

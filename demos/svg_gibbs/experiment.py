@@ -1,17 +1,19 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
+import os
 
 from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
-from psynet.consent import CAPRecruiterStandardConsent
+from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
-    VideoGibbsNode,
-    VideoGibbsTrial,
-    VideoGibbsTrialMaker,
+    ImageGibbsNetwork,
+    ImageGibbsNode,
+    ImageGibbsTrial,
+    ImageGibbsTrialMaker,
 )
 from psynet.utils import get_logger
 
@@ -21,17 +23,11 @@ logger = get_logger()
 
 # Custom parameters, change these as you like!
 TARGETS = ["positive", "energetic"]
-DURATION_RANGE = [0.1, 1.5]
 RGB_RANGE = [0, 255]
 VECTOR_RANGES = [
     RGB_RANGE,
     RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    DURATION_RANGE,
-    DURATION_RANGE,
+    RGB_RANGE
 ]
 DIMENSIONS = len(VECTOR_RANGES)
 GRANULARITY = 25  # 25 different slider positions
@@ -46,7 +42,7 @@ NUM_CHAINS_PER_PARTICIPANT = 2
 NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(VideoGibbsTrial):
+class CustomTrial(ImageGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -55,28 +51,34 @@ class CustomTrial(VideoGibbsTrial):
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "Adjust the slider so that the video is as "
+            "<center></br>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible."
+            "as possible.</center>"
         )
 
 
-class CustomNode(VideoGibbsNode):
+class CustomNode(ImageGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
+    n_jobs = 8  # <--- Parallelize stimulus synthesis into 8 parallel processes at each worker node
 
     def synth_function(self, vector, output_path, chain_definition):
         custom_synth.synth_stimulus(vector, output_path, {})
 
 
-class CustomTrialMaker(VideoGibbsTrialMaker):
-    pass
+class SVGGibbsNetwork(ImageGibbsNetwork):
+    extension = "svg"
+
+
+class CustomTrialMaker(ImageGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return SVGGibbsNetwork
 
 
 trial_maker = CustomTrialMaker(
-    id_="video_gibbs_demo",
+    id_="svg_gibbs_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"
@@ -97,12 +99,14 @@ trial_maker = CustomTrialMaker(
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Video Gibbs sampling demo"
+    label = "SVG Gibbs sampling demo"
     asset_storage = DebugStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        CAPRecruiterStandardConsent(),
+        NoConsent(),
         trial_maker,
         SuccessfulEndPage(),
     )
+
+Exp.css_links.append("static/theme.css")

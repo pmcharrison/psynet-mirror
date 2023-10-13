@@ -2099,7 +2099,7 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["mp3", "wav"], "image": ["jpg", "png", "svg"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "png", "svg"], "video": ["mp4", "ogg"]}
 
 
 class MediaSliderControl(SliderControl):
@@ -2219,7 +2219,7 @@ class MediaSliderControl(SliderControl):
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
     ):
-        if modality not in ["audio", "image", "video"]:
+        if modality not in ["audio", "image", "svg", "video"]:
             raise NotImplementedError(f"Modality not implemented: {modality}")
 
         if isinstance(n_steps, str):
