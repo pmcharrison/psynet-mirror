@@ -1136,7 +1136,6 @@
                         let signatureArr = new Array(len)
                         for (let i = 0; i < len; i++)
                           signatureArr[i] = (new Uint8Array(arrayBuffer))[i].toString(16)
-                        //(new Uint8Array(arrayBuffer))[i].toString(16).padStart(2, "0")
                         const signature = signatureArr.join('').toUpperCase()
 
                         switch (signature) {
@@ -1171,8 +1170,6 @@
                             + "' with the player of the same name.'"
                         );
                         mimeType = getMimeTypeFromArrayBuffer(data);
-                        console.log([data]);
-                        // data = new Blob([data]); // convert to blob
                         if (mimeType != null) {
                             data = new Blob([data], { type: mimeType }) // convert to blob
                         }

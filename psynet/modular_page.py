@@ -2219,7 +2219,7 @@ class MediaSliderControl(SliderControl):
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
     ):
-        if modality not in ["audio", "image", "svg", "video"]:
+        if modality not in ["audio", "image", "video"]:
             raise NotImplementedError(f"Modality not implemented: {modality}")
 
         if isinstance(n_steps, str):
