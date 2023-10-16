@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from hashlib import md5
 from importlib import resources
+from os.path import basename
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -1808,6 +1809,37 @@ def export_assets(
         n_parallel,
         server,
     )
+
+
+@psynet.group("logs")
+def logs():
+    pass
+
+
+@logs.command("ssh")
+@app_option(required=True)
+@server_option
+@click.option(
+    "--log_path",
+    default=None,
+    help="Path of the log file",
+)
+@click.pass_context
+def logs__docker_ssh(ctx, app, server, log_path):
+    if log_path is None:
+        log_name = f"{app}.log"
+        log_path = os.path.join(os.getcwd(), log_name)
+    else:
+        log_name = basename(log_path)
+    assert log_path.endswith(".log"), "Log path must have a valid extension (.log)."
+    folder = os.path.dirname(log_path)
+    assert os.path.exists(folder), f"Folder {folder} does not exist."
+
+    subprocess.run(
+        f"ssh -o StrictHostKeyChecking=no {server} docker compose -f '~/dallinger/{app}/docker-compose.yml' logs >> {log_name}",
+        shell=True,
+    )
+    log(f"Log file saved to: {log_path}")
 
 
 @psynet.command()
