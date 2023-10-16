@@ -11,7 +11,6 @@ from contextlib import contextmanager
 from datetime import datetime
 from hashlib import md5
 from importlib import resources
-from os.path import basename
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -40,6 +39,7 @@ from psynet.version import check_versions
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
+from .log import export_docker_ssh_logs
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -1580,7 +1580,8 @@ def export_(
     assert len(deployment_id) > 0
 
     remote_exp_label = exp_variables["label"]
-    local_exp_label = import_local_experiment()["class"].label
+    experiment_cls = import_local_experiment()["class"]
+    local_exp_label = experiment_cls.label
 
     if not remote_exp_label == local_exp_label:
         if not user_confirms(
@@ -1643,6 +1644,14 @@ def export_(
             server,
             dns_host,
         )
+
+        if docker_ssh:
+            subfolder = "anonymous" if _anonymize else "regular"
+            log_path = os.path.join(path, subfolder, app + ".log")
+            log(log_path)
+            export_docker_ssh_logs(app, server, log_path)
+
+    experiment_cls.analyze_logs(log_path)
 
 
 def _export_(
@@ -1829,16 +1838,7 @@ def logs__docker_ssh(ctx, app, server, log_path):
     if log_path is None:
         log_name = f"{app}.log"
         log_path = os.path.join(os.getcwd(), log_name)
-    else:
-        log_name = basename(log_path)
-    assert log_path.endswith(".log"), "Log path must have a valid extension (.log)."
-    folder = os.path.dirname(log_path)
-    assert os.path.exists(folder), f"Folder {folder} does not exist."
-
-    subprocess.run(
-        f"ssh -o StrictHostKeyChecking=no {server} docker compose -f '~/dallinger/{app}/docker-compose.yml' logs >> {log_name}",
-        shell=True,
-    )
+    export_docker_ssh_logs(app, server, log_path)
     log(f"Log file saved to: {log_path}")
 
 
