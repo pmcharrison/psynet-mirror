@@ -11,7 +11,7 @@ from markupsafe import Markup, escape
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
-from ..modular_page import MediaSliderControl, ModularPage
+from ..modular_page import MediaSliderControl, ModularPage, EXTENSIONS
 from ..timeline import MediaSpec
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -122,6 +122,12 @@ class MediaGibbsTrial(GibbsTrial):
     disable_while_playing : bool
         If `True`, the slider is disabled while the media is playing. Default: `False`.
 
+    prompt_above_media : bool
+        If `True`, the prompt is displayed above the media. Default: `False`.
+
+    use_inline_svg : bool
+        If `True`, the svg media will be inserted inline instead of via an image element. Default: `False`.
+
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
 
@@ -147,6 +153,8 @@ class MediaGibbsTrial(GibbsTrial):
     snap_slider_before_release = False
     autoplay = False
     disable_while_playing = False
+    prompt_above_media = False
+    use_inline_svg = False
     minimal_interactions = 3
     minimal_time = 3.0
     debug = False
@@ -171,6 +179,8 @@ class MediaGibbsTrial(GibbsTrial):
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,
+                prompt_above_media=self.prompt_above_media,
+                use_inline_svg=self.use_inline_svg,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
                 random_wrap=self.random_wrap,
@@ -245,8 +255,6 @@ class MediaGibbsTrial(GibbsTrial):
     def vector_ranges(self):
         return self.node.vector_ranges
 
-EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "png", "svg"], "video": ["mp4", "ogg"]}
-
 class MediaGibbsNode(GibbsNode):
     """
     A Node class for Media Gibbs sampler chains.
@@ -291,12 +299,10 @@ class MediaGibbsNode(GibbsNode):
     def async_on_deploy(self):
         self.make_stimuli()
 
-    def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality, extension):
+    def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality):
         logger.info(modality)
-        assert modality in ["audio", "image", "video"]
-        if extension == "":
-            extension = EXTENSIONS[modality][0]
-        assert extension in EXTENSIONS[modality]
+        assert modality in EXTENSIONS.keys()
+        extension = EXTENSIONS[modality][0]
         values = linspace(range_to_sample[0], range_to_sample[1], granularity)
         ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
         files = [f"{_id}.{extension}" for _id in ids]
@@ -323,7 +329,6 @@ class MediaGibbsNode(GibbsNode):
                 granularity,
                 individual_stimuli_dir,
                 self.network.modality,
-                self.network.extension
             )
 
             if self.batch_synthesis:
@@ -391,7 +396,6 @@ class MediaGibbsTrialMaker(GibbsTrialMaker):
 
 class ImageGibbsNetwork(MediaGibbsNetwork):
     modality = "image"
-    extension = ""
     pass
 
 
@@ -411,7 +415,6 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
 
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
-    extension = ""
     pass
 
 

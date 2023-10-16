@@ -1135,7 +1135,7 @@
                     if (uint8arr.length >= len) {
                         let signatureArr = new Array(len)
                         for (let i = 0; i < len; i++)
-                          signatureArr[i] = (new Uint8Array(arrayBuffer))[i].toString(16)
+                            signatureArr[i] = (new Uint8Array(arrayBuffer))[i].toString(16).padStart(2, "0")
                         const signature = signatureArr.join('').toUpperCase()
 
                         switch (signature) {
@@ -1143,13 +1143,14 @@
                             return 'image/png'
                           case '47494638':
                             return 'image/gif'
-                          case '25504446':
-                            return 'application/pdf'
-                          case 'FFD8FFDB':
                           case 'FFD8FFE0':
+                          case 'FFD8FFDB':
+                          case 'FFD8FFEE':
+                          case 'FFD8FFE1':
                             return 'image/jpeg'
-                          case '504B0304':
-                            return 'application/zip'
+                          case '3C737667':
+                          case '3C3F786D':
+                            return 'image/svg+xml'
                           default:
                             return null
                         }
@@ -1173,9 +1174,6 @@
                         if (mimeType != null) {
                             data = new Blob([data], { type: mimeType }) // convert to blob
                         }
-                        else {
-                            data = new Blob([data], { type: "image/svg+xml" })
-                        } // convert to blob
                         player.src = URL.createObjectURL(data);
                      }
                     let out = psynet.media.data[mediaType][stimulusId];
@@ -1208,7 +1206,7 @@
                         player.classList.remove("loader");
                         player.load();
                         await psynet.waitForEventListener(player, "canplaythrough");
-                     }
+                    }
 
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.player = player;
@@ -1263,11 +1261,11 @@
 
                         // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
                         if (mediaType === 'image') {
-                            $('#media-slider').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
+                            $('#slider-media').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
                         }
 
                         else if (mediaType === 'video') {
-                            $('#media-slider').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
+                            $('#slider-media').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
                         }
 
                         promises.push(createMediaFromBuffer[mediaType](media.buffer, args));
@@ -1282,17 +1280,12 @@
                     return Promise.all(promises);
                 };
 
-                processMediaBatch.audio = function (data, args) { //, ids,) {
-                    return processMediaBatch.extract_stimuli(data, args);
-                };
-
-                processMediaBatch.image = function (data, args) { //, ids,) {
-                    return processMediaBatch.extract_stimuli(data, args);
-                };
-
-                processMediaBatch.video = function (data, args) { //, ids,) {
-                    return processMediaBatch.extract_stimuli(data, args);
-                };
+                const SUPPORTED_MODALITIES = ['audio','image', 'video'];
+                SUPPORTED_MODALITIES.forEach(function (modality){
+                    processMediaBatch[modality] = function (data, args) { //, ids,) {
+                        return processMediaBatch.extract_stimuli(data, args);
+                    };
+                })
 
                 let initModal = function () {
                     let modal = document.getElementById("help-modal");

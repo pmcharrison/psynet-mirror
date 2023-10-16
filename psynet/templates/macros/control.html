@@ -300,16 +300,18 @@
 
 
 {% macro media_slider(params) %}
-    <div id = 'media-slider'>
+    <div id = 'slider-media'>
         <p class="vspace"></p>
-        {{ slider(params) }}
     </div>
+
+    {{ slider(params) }}
 
     <script>
         {% autoescape off %}
         var mediaLocations = {{ params.js_vars.media_locations }};
         var autoplay = {{ params.js_vars.autoplay | lower }};
         var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
+        var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
         {% endautoescape %}
 
         // Overwrites corresponding method in slider-page.html
@@ -320,6 +322,18 @@
                 'media': slider.media
             })
         }
+
+        const mediaDiv = document.getElementById('slider-media');
+        {% if params.js_vars.prompt_above_media == false %}
+            $('#main-body').prepend(mediaDiv);
+        {% endif %}
+
+        {% if params.js_vars.use_inline_svg == true %}
+            const inline = document.createElement("div");
+            inline.id = 'inlineSvg';
+            mediaDiv.prepend(inline);
+            inline.style.textAlign='center'
+        {% endif %}
 
         findClosestMedia = function (slider) {
             var locations = Object.values(mediaLocations);
@@ -345,8 +359,6 @@
                 }
             };
         {% elif params.js_vars.modality == "image" %}
-
-
             playMedia = function () {
                 var id = slider.media;
                 var image = psynet.image[id];
@@ -357,15 +369,23 @@
                 })
                 psynet.log.debug('Showing image with ID = ' + id);
                 disableSlider();
-                image.player.style.display = 'block';
+                {% if params.js_vars.use_inline_svg == false %}
+                    image.player.style.display = 'block';
+                {% elif params.js_vars.use_inline_svg == true %}
+                    var inline = document.getElementById('inlineSvg');
+                    const loadSvg = async () => {
+                      // get image, parse source text, and insert text into html
+                      inline.innerHTML = await (await fetch(image.player.src)).text();
+                      inline.style.margin='auto'
+                      inline.style.display='block'
+                    };
+                    loadSvg();
+                {% endif %}
             };
         {% elif params.js_vars.modality == "video" %}
-
-
             playMedia = function () {
                 var id = slider.media;
                 var video = psynet.video[id];
-
 
                 $('video').each(function (idx, elem){
                     elem.pause()

@@ -2099,7 +2099,7 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "png", "svg"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "jpeg", "png", "gif", "svg"], "video": ["mp4", "ogg"]}
 
 
 class MediaSliderControl(SliderControl):
@@ -2150,6 +2150,12 @@ class MediaSliderControl(SliderControl):
 
     disable_while_playing:
         If `True`, the slider is disabled while the audio is playing. Default: `False`.
+
+    prompt_above_media:
+        If `True`, the prompt is displayed above the media (e.g., image or video). Default: `False`.
+
+    use_inline_svg : bool
+        If `True`, the svg media will be inserted inline instead of via an image element. Default: `False`.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
@@ -2209,6 +2215,8 @@ class MediaSliderControl(SliderControl):
         media_locations: dict,
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
+        prompt_above_media: Optional[bool] = False,
+        use_inline_svg: Optional[bool] = False,
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2276,12 +2284,16 @@ class MediaSliderControl(SliderControl):
         self.modality = modality
         self.autoplay = autoplay
         self.disable_while_playing = disable_while_playing
+        self.prompt_above_media = prompt_above_media
+        self.use_inline_svg = use_inline_svg
         self.snap_values = snap_values
         self.slider_media = slider_media
         self.js_vars["modality"] = modality
         self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
         self.js_vars["disable_while_playing"] = disable_while_playing
+        self.js_vars["prompt_above_media"] = prompt_above_media
+        self.js_vars["use_inline_svg"] = use_inline_svg
 
     macro = "media_slider"
 
@@ -2293,6 +2305,8 @@ class MediaSliderControl(SliderControl):
             "modality": self.modality,
             "autoplay": self.autoplay,
             "disable_while_playing": self.disable_while_playing,
+            "prompt_above_media": self.prompt_above_media,
+            "use_inline_svg": self.use_inline_svg,
         }
 
 
@@ -2353,7 +2367,7 @@ class AudioSliderControl(MediaSliderControl):
             **super().metadata,
             "sound_locations": self.media_locations,
             "autoplay": self.autoplay,
-            "disable_while_playing": self.disable_while_playing,
+            "disable_while_playing": self.disable_while_playing
         }
 
 

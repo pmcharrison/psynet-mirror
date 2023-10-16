@@ -10,7 +10,6 @@ from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
-    ImageGibbsNetwork,
     ImageGibbsNode,
     ImageGibbsTrial,
     ImageGibbsTrialMaker,
@@ -48,10 +47,12 @@ class CustomTrial(ImageGibbsTrial):
     debug = DEBUG
     minimal_time = 3.0
     time_estimate = 5.0
+    prompt_above_media = False
+    use_inline_svg = True
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "<center></br>Adjust the slider so that the image is as "
+            "<center>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
             "as possible.</center>"
         )
@@ -67,17 +68,7 @@ class CustomNode(ImageGibbsNode):
         custom_synth.synth_stimulus(vector, output_path, {})
 
 
-class SVGGibbsNetwork(ImageGibbsNetwork):
-    extension = "svg"
-
-
-class CustomTrialMaker(ImageGibbsTrialMaker):
-    @property
-    def default_network_class(self):
-        return SVGGibbsNetwork
-
-
-trial_maker = CustomTrialMaker(
+trial_maker = ImageGibbsTrialMaker(
     id_="svg_gibbs_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
@@ -108,5 +99,3 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
         SuccessfulEndPage(),
     )
-
-Exp.css_links.append("static/theme.css")

@@ -10,7 +10,6 @@ from psynet.trial.media_gibbs import (
 
 class AudioGibbsNetwork(MediaGibbsNetwork):
     modality = "audio"
-    extension = ""
     pass
 
 

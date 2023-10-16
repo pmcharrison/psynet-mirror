@@ -51,7 +51,7 @@ class CustomTrial(ImageGibbsTrial):
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "<center></br>Adjust the slider so that the image is as "
+            "<center>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
             "as possible.</center>"
         )
@@ -69,8 +69,6 @@ class CustomNode(ImageGibbsNode):
 
 class CustomGibbsNetwork(ImageGibbsNetwork):
     modality = "image"
-    extension = "png"
-    pass
 
 
 class CustomGibbsTrialMaker(ImageGibbsTrialMaker):
@@ -110,5 +108,3 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
         SuccessfulEndPage(),
     )
-
-Exp.css_links.append("static/theme.css")

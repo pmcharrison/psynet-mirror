@@ -4,4 +4,4 @@
 
 from custom_synth import synth_stimulus
 
-synth_stimulus([0, 0, 112], "test.jpg", {})
+synth_stimulus([0, 0, 112], "test.svg", {})
