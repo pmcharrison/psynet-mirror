@@ -157,6 +157,7 @@ class MediaGibbsTrial(GibbsTrial):
     use_inline_svg = False
     minimal_interactions = 3
     minimal_time = 3.0
+    continuous_updates = False
     debug = False
     random_wrap = False
     input_type = "HTML5_range_slider"
@@ -189,6 +190,7 @@ class MediaGibbsTrial(GibbsTrial):
                 snap_values="media_locations" if self.snap_slider else None,
                 minimal_time=self.minimal_time,
                 minimal_interactions=self.minimal_interactions,
+                continuous_updates=self.continuous_updates
             ),
             media=self.media,
             time_estimate=self.time_estimate,

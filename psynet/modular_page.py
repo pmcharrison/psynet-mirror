@@ -2203,6 +2203,10 @@ class MediaSliderControl(SliderControl):
 
     minimal_time:
         Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
     """
 
     def __init__(
@@ -2226,8 +2230,9 @@ class MediaSliderControl(SliderControl):
         snap_values: Optional[Union[int, list]] = "media_locations",
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
+        continuous_updates: Optional[bool] = False,
     ):
-        if modality not in ["audio", "image", "video"]:
+        if modality not in EXTENSIONS.keys():
             raise NotImplementedError(f"Modality not implemented: {modality}")
 
         if isinstance(n_steps, str):
@@ -2278,6 +2283,7 @@ class MediaSliderControl(SliderControl):
             snap_values=snap_values,
             minimal_interactions=minimal_interactions,
             minimal_time=minimal_time,
+            continuous_updates=continuous_updates
         )
 
         self.media_locations = media_locations

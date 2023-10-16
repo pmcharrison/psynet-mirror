@@ -316,11 +316,13 @@
 
         // Overwrites corresponding method in slider-page.html
         slider.updateLog = function() {
-            slider.log.push({
-                'time': new Date(),
-                'value': slider.value,
-                'media': slider.media
-            })
+            if (!continuousUpdates) {
+                slider.log.push({
+                    'time': new Date(),
+                    'value': slider.value,
+                    'media': slider.media
+                });
+            }
         }
 
         const mediaDiv = document.getElementById('slider-media');
