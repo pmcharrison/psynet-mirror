@@ -291,8 +291,6 @@ def sandbox(*args, **kwargs):
 
 
 @debug.command("local")
-# @click.option("--app", default=None, help="Name of the experiment app (required for non-local deployments)")
-# @click.option("--server", default=None, help="Name of the remote server (only relevant for ssh deployments)")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
@@ -1467,15 +1465,6 @@ def verify_psynet_requirement():
 ##########
 
 
-def app_argument(func):
-    return click.option(
-        "--app",
-        default=None,
-        required=False,
-        help="App id",
-    )(func)
-
-
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -1498,30 +1487,6 @@ def export_arguments(func):
     for arg in args:
         func = arg(func)
     return func
-
-
-# @psynet.command()
-# @click.option(
-#     "--app",
-#     default=None,
-#     required=False,
-#     help="App id",
-# )
-# @click.option("--local", is_flag=True, help="Export local data")
-# @click.option("--path", default=None, help="Path to export directory")
-# @click.option(
-#     "--assets",
-#     default="experiment",
-#     help="Which assets to export; valid values are none, experiment, and all",
-# )
-# @click.option(
-#     "--anonymize",
-#     default="both",
-#     help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
-# )
-# @click.option(
-#     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
-# )
 
 
 @psynet.group("export")
