@@ -1153,9 +1153,7 @@
                             + "' with the player of the same name.'"
                         );
                         mimeType = getMimeTypeFromArrayBuffer(data);
-                        if (mimeType != null) {
-                            data = new Blob([data], { type: mimeType }) // convert to blob
-                        }
+                        data = new Blob([data], { type: mimeType }) // convert to blob
                         player.src = URL.createObjectURL(data);
                      }
                     let out = psynet.media.data[mediaType][stimulusId];
