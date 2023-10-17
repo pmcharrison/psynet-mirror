@@ -304,10 +304,9 @@ class MediaGibbsNode(GibbsNode):
     def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality):
         logger.info(modality)
         assert modality in EXTENSIONS.keys()
-        extension = EXTENSIONS[modality][0]
         values = linspace(range_to_sample[0], range_to_sample[1], granularity)
         ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-        files = [f"{_id}.{extension}" for _id in ids]
+        files = [f"{_id}" for _id in ids]
         paths = [os.path.join(output_dir, _file) for _file in files]
         stimuli = [
             {"id": _id, "value": _value, "path": _path}
