@@ -48,6 +48,7 @@ class CustomTrial(ImageGibbsTrial):
     debug = DEBUG
     minimal_time = 3.0
     time_estimate = 5.0
+    continuous_updates = True
 
     def get_prompt(self, experiment, participant):
         return Markup(
