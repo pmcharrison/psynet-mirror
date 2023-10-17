@@ -47,6 +47,7 @@ class CustomTrial(ImageGibbsTrial):
     autoplay = AUTOPLAY
     debug = DEBUG
     minimal_time = 3.0
+    minimal_interactions = 0
     time_estimate = 5.0
     continuous_updates = True
 
