@@ -414,6 +414,58 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
         return ImageGibbsNetwork
 
 
+class SvgGibbsNetwork(MediaGibbsNetwork):
+    modality = "image"
+    pass
+
+
+class SvgGibbsTrial(MediaGibbsTrial):
+    prompt_above_media = False
+    use_inline_svg = True
+    continuous_updates = False
+
+    def show_trial(self, experiment, participant):
+        self._validate()
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            f"gibbs_{self.network.modality}_trial",
+            self._get_prompt(experiment, participant),
+            control=SvgSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                slider_media=self.media.data[self.network.modality],
+                media_locations=self.media_locations,
+                autoplay=self.autoplay,
+                prompt_above_media=self.prompt_above_media,
+                use_inline_svg=self.use_inline_svg,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+                continuous_updates=self.continuous_updates
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+        )
+
+
+class SvgGibbsNode(MediaGibbsNode):
+    pass
+
+
+class SvgGibbsTrialMaker(MediaGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return SvgGibbsNetwork
+
+
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
     pass

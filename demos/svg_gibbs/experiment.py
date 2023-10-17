@@ -10,9 +10,9 @@ from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
-    ImageGibbsNode,
-    ImageGibbsTrial,
-    ImageGibbsTrialMaker,
+    SvgGibbsNode,
+    SvgGibbsTrial,
+    SvgGibbsTrialMaker,
 )
 from psynet.utils import get_logger
 
@@ -41,7 +41,7 @@ NUM_CHAINS_PER_PARTICIPANT = 2
 NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(ImageGibbsTrial):
+class CustomTrial(SvgGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -49,6 +49,7 @@ class CustomTrial(ImageGibbsTrial):
     time_estimate = 5.0
     prompt_above_media = False
     use_inline_svg = True
+    continuous_updates = False
 
     def get_prompt(self, experiment, participant):
         return Markup(
@@ -58,7 +59,7 @@ class CustomTrial(ImageGibbsTrial):
         )
 
 
-class CustomNode(ImageGibbsNode):
+class CustomNode(SvgGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
@@ -68,7 +69,7 @@ class CustomNode(ImageGibbsNode):
         custom_synth.synth_stimulus(vector, output_path, {})
 
 
-trial_maker = ImageGibbsTrialMaker(
+trial_maker = SvgGibbsTrialMaker(
     id_="svg_gibbs_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
