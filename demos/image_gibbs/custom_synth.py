@@ -37,4 +37,4 @@ def synth_stimulus(vector, output_path, chain_definition):
 
     r, g, b = vector
 
-    fill_img(r, g, b).save(f"{output_path}")
+    fill_img(r, g, b).save(f"{output_path}", format="PNG")
