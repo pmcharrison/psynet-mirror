@@ -396,6 +396,29 @@ class MediaGibbsNode(GibbsNode):
 
 
 class MediaGibbsTrialMaker(GibbsTrialMaker):
+    def check_initialization(self):
+        super().check_initialization()
+        if self.trial_class.continuous_updates and self.default_network_class.modality != 'image':
+            raise NotImplementedError(
+                f"continuous_updates are not supported for {self.default_network_class.modality}"
+            )
+        if self.trial_class.use_inline_svg and self.default_network_class.modality != 'image':
+            raise NotImplementedError(
+                f"use_inline_svg is not supported for {self.default_network_class.modality}"
+            )
+        if self.trial_class.prompt_above_media and self.default_network_class.modality == 'audio':
+            raise NotImplementedError(
+                f"prompt_above_media is not supported for {self.default_network_class.modality}"
+            )
+        if self.trial_class.disable_while_playing and self.default_network_class.modality == 'image':
+            raise NotImplementedError(
+                f"disable_while_playing is not supported for {self.default_network_class.modality}"
+            )
+
+
+
+class AudioGibbsNetwork(MediaGibbsNetwork):
+    modality = "audio"
     pass
 
 
