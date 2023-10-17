@@ -371,9 +371,9 @@
                 })
                 psynet.log.debug('Showing image with ID = ' + id);
                 disableSlider();
-                {% if params.js_vars.use_inline_svg == false %}
+                {% if not params.js_vars.use_inline_svg %}
                     image.player.style.display = 'block';
-                {% elif params.js_vars.use_inline_svg == true %}
+                {% else %}
                     var inline = document.getElementById('inlineSvg');
                     const loadSvg = async () => {
                       // get image, parse source text, and insert text into html
