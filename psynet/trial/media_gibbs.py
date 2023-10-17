@@ -11,7 +11,7 @@ from markupsafe import Markup, escape
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
-from ..modular_page import MediaSliderControl, ModularPage, EXTENSIONS
+from ..modular_page import MediaSliderControl, AudioSliderControl, ImageSliderControl, SvgSliderControl, VideoSliderControl, ModularPage, EXTENSIONS
 from ..timeline import MediaSpec
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -401,7 +401,35 @@ class ImageGibbsNetwork(MediaGibbsNetwork):
 
 
 class ImageGibbsTrial(MediaGibbsTrial):
-    pass
+    def show_trial(self, experiment, participant):
+        self._validate()
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            f"gibbs_{self.network.modality}_trial",
+            self._get_prompt(experiment, participant),
+            control=ImageSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                slider_media=self.media.data[self.network.modality],
+                media_locations=self.media_locations,
+                autoplay=self.autoplay,
+                prompt_above_media=self.prompt_above_media,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+                continuous_updates=self.continuous_updates
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+        )
 
 
 class ImageGibbsNode(MediaGibbsNode):
@@ -472,7 +500,38 @@ class VideoGibbsNetwork(MediaGibbsNetwork):
 
 
 class VideoGibbsTrial(MediaGibbsTrial):
-    pass
+    prompt_above_media = False
+    disable_while_playing = False
+
+    def show_trial(self, experiment, participant):
+        self._validate()
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            f"gibbs_{self.network.modality}_trial",
+            self._get_prompt(experiment, participant),
+            control=VideoSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                slider_media=self.media.data[self.network.modality],
+                media_locations=self.media_locations,
+                autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
+                prompt_above_media=self.prompt_above_media,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+        )
 
 
 class VideoGibbsNode(MediaGibbsNode):

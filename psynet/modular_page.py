@@ -2377,6 +2377,440 @@ class AudioSliderControl(MediaSliderControl):
         }
 
 
+class ImageSliderControl(MediaSliderControl):
+    """
+    This control solicits a slider response from the user that results in showing an image.
+    The slider can either be horizontal or circular.
+
+    Parameters
+    ----------
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    slider_media:
+        A dictionary of media assets (image).
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/image/test.png"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid image argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.png',
+                'my_batch': {
+                    'url': '/static/file_concatenated.batch',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    media_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
+
+    prompt_above_media:
+        If `True`, the prompt is displayed above the image. Default: `False`.
+
+    n_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"media_locations"``: slider snaps to nearest image location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"media_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_media: dict,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        prompt_above_media: Optional[bool] = False,
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+        continuous_updates: Optional[bool] = False,
+    ):
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=slider_media,
+            modality='image',
+            media_locations=media_locations,
+            autoplay=autoplay,
+            prompt_above_media=prompt_above_media,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_time=minimal_time,
+            minimal_interactions=minimal_interactions,
+            continuous_updates=continuous_updates,
+        )
+
+    macro = "media_slider"
+
+
+class SvgSliderControl(MediaSliderControl):
+    """
+    This control solicits a slider response from the user that results in showing an svg vector image.
+    The slider can either be horizontal or circular.
+
+    Parameters
+    ----------
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    slider_media:
+        A dictionary of media assets (image).
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/image/test.svg"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid image argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.svg',
+                'my_batch': {
+                    'url': '/static/file_concatenated.batch',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    media_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
+
+    prompt_above_media:
+        If `True`, the prompt is displayed above the image. Default: `False`.
+
+    use_inline_svg : bool
+        If `True`, the svg image will be inserted inline instead of via an image element.
+        This allows for restarting any animations part of the svg when revisiting the slider value.
+        Default: `False`.
+
+    n_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"media_locations"``: slider snaps to nearest image location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"media_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_media: dict,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        prompt_above_media: Optional[bool] = False,
+        use_inline_svg: Optional[bool] = False,
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+        continuous_updates: Optional[bool] = False,
+    ):
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=slider_media,
+            modality='image',
+            media_locations=media_locations,
+            autoplay=autoplay,
+            prompt_above_media=prompt_above_media,
+            use_inline_svg=use_inline_svg,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_time=minimal_time,
+            minimal_interactions=minimal_interactions,
+            continuous_updates=continuous_updates,
+        )
+
+    macro = "media_slider"
+
+
+
+class VideoSliderControl(MediaSliderControl):
+    """
+    This control solicits a slider response from the user that results in showing a video.
+    The slider can either be horizontal or circular.
+
+    Parameters
+    ----------
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    slider_media:
+        A dictionary of media assets (video).
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/image/test.mp4"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid image argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.mp4',
+                'my_batch': {
+                    'url': '/static/file_concatenated.mp4',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    media_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
+
+    disable_while_playing:
+        If `True`, the slider is disabled while the audio is playing. Default: `False`.
+
+    prompt_above_media:
+        If `True`, the prompt is displayed above the image. Default: `False`.
+
+    n_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"media_locations"``: slider snaps to nearest video location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"media_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_media: dict,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
+        prompt_above_media: Optional[bool] = False,
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+    ):
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=slider_media,
+            modality='video',
+            media_locations=media_locations,
+            autoplay=autoplay,
+            disable_while_playing=disable_while_playing,
+            prompt_above_media=prompt_above_media,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_time=minimal_time,
+            minimal_interactions=minimal_interactions,
+        )
+
+    macro = "media_slider"
+
+
 # WIP
 class ColorSliderControl(SliderControl):
     def __init__(
