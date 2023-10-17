@@ -135,6 +135,10 @@ class MediaGibbsTrial(GibbsTrial):
         Minimal amount of time that the user must spend on the page before
         they can proceed to the next trial.
 
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+
     debug : bool
         If ``True``, then the page displays debugging information about the
         current trial. If ``False`` (default), no information is displayed.
