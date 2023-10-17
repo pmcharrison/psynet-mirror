@@ -1130,32 +1130,14 @@
 
                 function getMimeTypeFromArrayBuffer(arrayBuffer) {
                     const uint8arr = new Uint8Array(arrayBuffer)
+                    var dec = new TextDecoder()
+                    var text = dec.decode(uint8arr).toLowerCase().replace(' ', '')
 
-                    const len = 4
-                    if (uint8arr.length >= len) {
-                        let signatureArr = new Array(len)
-                        for (let i = 0; i < len; i++)
-                            signatureArr[i] = (new Uint8Array(arrayBuffer))[i].toString(16).padStart(2, "0")
-                        const signature = signatureArr.join('').toUpperCase()
-
-                        switch (signature) {
-                          case '89504E47':
-                            return 'image/png'
-                          case '47494638':
-                            return 'image/gif'
-                          case 'FFD8FFE0':
-                          case 'FFD8FFDB':
-                          case 'FFD8FFEE':
-                          case 'FFD8FFE1':
-                            return 'image/jpeg'
-                          case '3C737667':
-                          case '3C3F786D':
-                            return 'image/svg+xml'
-                          default:
-                            return null
-                        }
+                    if (text.includes('<svg')) {
+                        return 'image/svg+xml'
+                    } else {
+                        return null;
                     }
-                    return null
                 }
 
 
