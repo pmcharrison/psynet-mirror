@@ -1645,13 +1645,10 @@ def export_(
             dns_host,
         )
 
-        if docker_ssh:
-            subfolder = "anonymous" if _anonymize else "regular"
-            log_path = os.path.join(path, subfolder, app + ".log")
-            log(log_path)
-            export_docker_ssh_logs(app, server, log_path)
-
-    experiment_cls.analyze_logs(log_path)
+    if docker_ssh:
+        log_path = os.path.join(path, app + ".log")
+        export_docker_ssh_logs(app, server, log_path)
+        experiment_cls.analyze_logs(log_path)
 
 
 def _export_(
