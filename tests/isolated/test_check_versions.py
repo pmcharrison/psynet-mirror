@@ -31,8 +31,8 @@ def test_check_versions_psynet_editable_version_tag_with_egg():
 
                 with pytest.raises(
                     AssertionError,
-                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: 10.0.0\n"
+                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: 10.0.0[\\n\\r\\s]+"
                     "Version specified in requirements.txt: 9.9.9",
                 ):
                     check_versions()
@@ -49,8 +49,8 @@ def test_check_versions_psynet_editable_version_tag_without_egg():
 
                 with pytest.raises(
                     AssertionError,
-                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: 10.0.0\n"
+                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: 10.0.0[\\n\\r\\s]+"
                     "Version specified in requirements.txt: 9.9.9",
                 ):
                     check_versions()
@@ -72,8 +72,8 @@ def test_check_versions_psynet_editable_commit_hash(mock_get_pip_freeze_requirem
 
                 with pytest.raises(
                     AssertionError,
-                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: COMMIT_HASH_FROM_PIP_FREEEZE\n"
+                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: COMMIT_HASH_FROM_PIP_FREEEZE[\\n\\r\\s]+"
                     "Version specified in requirements.txt: COMMIT_HASH_FROM_REQUIREMENTS",
                 ):
                     check_versions()
@@ -93,8 +93,8 @@ def test_check_versions_psynet_pip_install_requirement(mock_get_pip_freeze_requi
 
                 with pytest.raises(
                     AssertionError,
-                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: 10.0.0\n"
+                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: 10.0.0[\\n\\r\\s]+"
                     "Version specified in requirements.txt: 9.9.9",
                 ):
                     check_versions()
@@ -116,8 +116,8 @@ def test_check_versions_psynet_pip_install_commit_hash(mock_get_pip_freeze_requi
 
                 with pytest.raises(
                     AssertionError,
-                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: 10.0.0\n"
+                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: 10.0.0[\\n\\r\\s]+"
                     "Version specified in requirements.txt: a4d0d6153150deaae1b456f7dd5c081c5ef04b1d",
                 ):
                     check_versions()
@@ -139,8 +139,8 @@ def test_check_versions_dallinger_editable_requirement():
 
                 with pytest.raises(
                     AssertionError,
-                    match="The Dallinger versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: 9.0.0\n"
+                    match="The Dallinger versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: 9.0.0[\\n\\r\\s]+"
                     "Version specified in requirements.txt: 8.8.8",
                 ):
                     check_versions()
@@ -200,8 +200,8 @@ def test_check_versions_dallinger_editable_commit_hash_with_egg(
 
                 with pytest.raises(
                     AssertionError,
-                    match="The Dallinger versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: COMMIT_HASH_FROM_PIP_FREEEZE\n"
+                    match="The Dallinger versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: COMMIT_HASH_FROM_PIP_FREEEZE[\\n\\r\\s]+"
                     "Version specified in requirements.txt: COMMIT_HASH_FROM_REQUIREMENTS",
                 ):
                     check_versions()
@@ -228,8 +228,8 @@ def test_check_versions_dallinger_editable_commit_hash_without_egg(
 
                 with pytest.raises(
                     AssertionError,
-                    match="The Dallinger versions installed on your local computer and specified in requirements.txt do not match.\n\n"
-                    "Version installed locally: COMMIT_HASH_FROM_PIP_FREEEZE\n"
+                    match="The Dallinger versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                    "Version installed locally: COMMIT_HASH_FROM_PIP_FREEEZE[\\n\\r\\s]+"
                     "Version specified in requirements.txt: COMMIT_HASH_FROM_REQUIREMENTS",
                 ):
                     check_versions()
