@@ -300,9 +300,6 @@
 
 
 {% macro media_slider(params) %}
-    <div id = 'slider-media'>
-        <p class="vspace"></p>
-    </div>
 
     {{ slider(params) }}
 
@@ -310,8 +307,6 @@
         {% autoescape off %}
         var mediaLocations = {{ params.js_vars.media_locations }};
         var autoplay = {{ params.js_vars.autoplay | lower }};
-        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
-        var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
         {% endautoescape %}
 
         // Overwrites corresponding method in slider-page.html
@@ -325,18 +320,6 @@
             }
         }
 
-        const mediaDiv = document.getElementById('slider-media');
-        {% if params.js_vars.prompt_above_media == false %}
-            $('#main-body').prepend(mediaDiv);
-        {% endif %}
-
-        {% if params.js_vars.use_inline_svg == true %}
-            const inline = document.createElement("div");
-            inline.id = 'inlineSvg';
-            mediaDiv.prepend(inline);
-            inline.style.textAlign='center'
-        {% endif %}
-
         findClosestMedia = function (slider) {
             var locations = Object.values(mediaLocations);
             if (!randomWrap) {
@@ -348,60 +331,199 @@
             return Object.keys(mediaLocations)[nearest.index];
         };
 
-        {% if params.js_vars.modality == "audio" %}
-            playMedia = function () {
-                var id = slider.media;
-                var sound = psynet.audio[id];
+    </script>
+{% endmacro %}
 
-                if (!sound.playing) {
-                    psynet.media.stopAllAudio();
-                    psynet.log.debug('Playing sound with ID = ' + id);
-                    disableSlider();
-                    sound.play().source.addEventListener("ended", enableSlider);
+
+{% macro audio_slider(params) %}
+
+    {{ media_slider(params) }}
+
+    <script>
+        {% autoescape off %}
+        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
+        {% endautoescape %}
+
+        playMedia = function () {
+            var id = slider.media;
+            var sound = psynet.audio[id];
+
+            if (!sound.playing) {
+                psynet.media.stopAllAudio();
+                psynet.log.debug('Playing sound with ID = ' + id);
+                disableSlider();
+                sound.play().source.addEventListener("ended", enableSlider);
+            }
+        };
+
+        onSliderEvent = function (eventType) {
+            slider.media = findClosestMedia(slider);
+            if (eventType == "initialise") {
+                if (autoplay) {
+                    playMedia();
                 }
-            };
-        {% elif params.js_vars.modality == "image" %}
-            playMedia = function () {
-                var id = slider.media;
-                var image = psynet.image[id];
+            } else if (eventType == "sliderChanged") {
+                playMedia();
+            }
+        };
+    </script>
 
-                $('img').each(function (idx, elem){
-                    elem.style.display='none'
-                    elem.style.margin='auto'
-                })
-                psynet.log.debug('Showing image with ID = ' + id);
-                disableSlider();
-                {% if not params.js_vars.use_inline_svg %}
-                    image.player.style.display = 'block';
-                {% else %}
-                    var inline = document.getElementById('inlineSvg');
-                    const loadSvg = async () => {
-                      // get image, parse source text, and insert text into html
-                      inline.innerHTML = await (await fetch(image.player.src)).text();
-                      inline.style.margin='auto'
-                      inline.style.display='block'
-                    };
-                    loadSvg();
-                {% endif %}
-            };
-        {% elif params.js_vars.modality == "video" %}
-            playMedia = function () {
-                var id = slider.media;
-                var video = psynet.video[id];
+{% endmacro %}
 
-                $('video').each(function (idx, elem){
-                    elem.pause()
-                    elem.style.display='none'
-                })
-                psynet.log.debug('Playing video with ID = ' + id);
-                disableSlider();
-                video.player.style.display = 'block'
-                video.player.pause();
-                video.player.currentTime = 0;
-                video.player.play();
-                setTimeout(enableSlider, video.player.duration)
-            };
+
+{% macro image_slider(params) %}
+    <p class="vspace"></p>
+
+    <div id = 'slider-media'>
+        <p class="vspace"></p>
+    </div>
+
+    <p class="vspace"></p>
+
+    {{ media_slider(params) }}
+
+    <script>
+        {% autoescape off %}
+        var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
+        {% endautoescape %}
+
+        if (psynet.trialProgress.stages.length === 0) {
+            $('#trial-progress-caption').hide();
+        }
+        const mediaDiv = document.getElementById('slider-media');
+        {% if params.js_vars.prompt_above_media == false %}
+            $('#main-body').prepend(mediaDiv);
         {% endif %}
+
+        playMedia = function () {
+            var id = slider.media;
+            var image = psynet.image[id];
+
+            $('img').each(function (idx, elem){
+                elem.style.display='none'
+                elem.style.margin='auto'
+            })
+            psynet.log.debug('Showing image with ID = ' + id);
+            {% if not params.js_vars.use_inline_svg %}
+                image.player.style.display = 'block';
+            {% else %}
+                var inline = document.getElementById('inlineSvg');
+                const loadSvg = async () => {
+                  // get image, parse source text, and insert text into html
+                  inline.innerHTML = await (await fetch(image.player.src)).text();
+                  inline.style.margin='auto'
+                  inline.style.display='block'
+                };
+                loadSvg();
+            {% endif %}
+        };
+
+        onSliderEvent = function (eventType) {
+            slider.media = findClosestMedia(slider);
+            if (eventType == "initialise") {
+                if (autoplay) {
+                    playMedia();
+                }
+            } else if (eventType == "sliderChanged") {
+                playMedia();
+            }
+        };
+    </script>
+{% endmacro %}
+
+
+{% macro svg_slider(params) %}
+
+    {{ image_slider(params) }}
+
+    <script>
+        {% if params.js_vars.use_inline_svg == true %}
+            const inline = document.createElement("div");
+            inline.id = 'inlineSvg';
+            mediaDiv.prepend(inline);
+            inline.style.textAlign='center'
+        {% endif %}
+
+        playMedia = function () {
+            var id = slider.media;
+            var image = psynet.image[id];
+
+            $('img').each(function (idx, elem){
+                elem.style.display='none'
+                elem.style.margin='auto'
+            })
+            psynet.log.debug('Showing image with ID = ' + id);
+            {% if not params.js_vars.use_inline_svg %}
+                image.player.style.display = 'block';
+            {% else %}
+                var inline = document.getElementById('inlineSvg');
+                const loadSvg = async () => {
+                  // get image, parse source text, and insert text into html
+                  inline.innerHTML = await (await fetch(image.player.src)).text();
+                  inline.style.margin='auto'
+                  inline.style.display='block'
+                };
+                loadSvg();
+            {% endif %}
+        };
+
+        onSliderEvent = function (eventType) {
+            slider.media = findClosestMedia(slider);
+            if (eventType == "initialise") {
+                if (autoplay) {
+                    playMedia();
+                }
+            } else if (eventType == "sliderChanged") {
+                playMedia();
+            }
+        };
+    </script>
+{% endmacro %}
+
+
+{% macro video_slider(params) %}
+    <p class="vspace"></p>
+
+    <div id = 'slider-media'>
+        <p class="vspace"></p>
+    </div>
+
+    <p class="vspace"></p>
+
+    {{ media_slider(params) }}
+
+    <script>
+        {% autoescape off %}
+        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
+        var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
+        {% endautoescape %}
+
+        if (psynet.trialProgress.stages.length === 0) {
+            $('#trial-progress-caption').hide();
+        }
+        const mediaDiv = document.getElementById('slider-media');
+        {% if params.js_vars.prompt_above_media == false %}
+            $('#main-body').prepend(mediaDiv);
+        {% endif %}
+
+        {#var slider = document.getElementById(sliderId);#}
+        playMedia = function () {
+            var id = slider.media;
+            var video = psynet.video[id];
+
+            $('video').each(function (idx, elem){
+                elem.pause()
+                elem.style.display='none'
+                elem.style.margin='auto'
+            })
+            psynet.log.debug('Playing video with ID = ' + id);
+            disableSlider();
+            video.player.style.display = 'block'
+            video.player.pause();
+            video.player.currentTime = 0;
+            video.player.play();
+            setTimeout(enableSlider, video.player.duration*1000)
+        };
 
         onSliderEvent = function (eventType) {
             slider.media = findClosestMedia(slider);

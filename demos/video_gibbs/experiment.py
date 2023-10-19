@@ -6,6 +6,7 @@ import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
 from psynet.consent import CAPRecruiterStandardConsent
+from psynet.modular_page import Prompt
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
@@ -52,12 +53,14 @@ class CustomTrial(VideoGibbsTrial):
     debug = DEBUG
     minimal_time = 3.0
     time_estimate = 5.0
+    disable_while_playing = True
 
     def get_prompt(self, experiment, participant):
-        return Markup(
+        return Prompt(
             "Adjust the slider so that the video is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible."
+            "as possible.",
+            text_align = 'center'
         )
 
 

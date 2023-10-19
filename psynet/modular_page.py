@@ -2146,16 +2146,7 @@ class MediaSliderControl(SliderControl):
         Dictionary with IDs as keys and locations on the slider as values.
 
     autoplay:
-        The media closest to the current slider position is played once the page is loaded. Default: `False`.
-
-    disable_while_playing:
-        If `True`, the slider is disabled while the audio is playing. Default: `False`.
-
-    prompt_above_media:
-        If `True`, the prompt is displayed above the media (e.g., image or video). Default: `False`.
-
-    use_inline_svg : bool
-        If `True`, the svg media will be inserted inline instead of via an image element. Default: `False`.
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
@@ -2188,7 +2179,7 @@ class MediaSliderControl(SliderControl):
         Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
 
     snap_values:
-        - ``"media_locations"``: slider snaps to nearest sound location.
+        - ``"media_locations"``: slider snaps to nearest media location.
 
         - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
 
@@ -2207,6 +2198,7 @@ class MediaSliderControl(SliderControl):
     continuous_updates:
         If `True`, then the slider continuously calls slider-update events when it is dragged,
         rather than just when it is released. In this case the log is disabled. Default: `False`.
+
     """
 
     def __init__(
@@ -2218,9 +2210,6 @@ class MediaSliderControl(SliderControl):
         modality: str,
         media_locations: dict,
         autoplay: Optional[bool] = False,
-        disable_while_playing: Optional[bool] = False,
-        prompt_above_media: Optional[bool] = False,
-        use_inline_svg: Optional[bool] = False,
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2230,7 +2219,6 @@ class MediaSliderControl(SliderControl):
         snap_values: Optional[Union[int, list]] = "media_locations",
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
-        continuous_updates: Optional[bool] = False,
     ):
         if modality not in EXTENSIONS.keys():
             raise NotImplementedError(f"Modality not implemented: {modality}")
@@ -2283,23 +2271,16 @@ class MediaSliderControl(SliderControl):
             snap_values=snap_values,
             minimal_interactions=minimal_interactions,
             minimal_time=minimal_time,
-            continuous_updates=continuous_updates
         )
 
         self.media_locations = media_locations
         self.modality = modality
         self.autoplay = autoplay
-        self.disable_while_playing = disable_while_playing
-        self.prompt_above_media = prompt_above_media
-        self.use_inline_svg = use_inline_svg
         self.snap_values = snap_values
         self.slider_media = slider_media
         self.js_vars["modality"] = modality
         self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
-        self.js_vars["disable_while_playing"] = disable_while_playing
-        self.js_vars["prompt_above_media"] = prompt_above_media
-        self.js_vars["use_inline_svg"] = use_inline_svg
 
     macro = "media_slider"
 
@@ -2310,9 +2291,6 @@ class MediaSliderControl(SliderControl):
             "media_locations": self.media_locations,
             "modality": self.modality,
             "autoplay": self.autoplay,
-            "disable_while_playing": self.disable_while_playing,
-            "prompt_above_media": self.prompt_above_media,
-            "use_inline_svg": self.use_inline_svg,
         }
 
 
@@ -2353,7 +2331,6 @@ class AudioSliderControl(MediaSliderControl):
             modality="audio",
             media_locations=sound_locations,
             autoplay=autoplay,
-            disable_while_playing=disable_while_playing,
             n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
@@ -2364,8 +2341,10 @@ class AudioSliderControl(MediaSliderControl):
             minimal_interactions=minimal_interactions,
             minimal_time=minimal_time,
         )
+        self.disable_while_playing = disable_while_playing
+        self.js_vars["disable_while_playing"] = disable_while_playing
 
-    macro = "media_slider"
+    macro = "audio_slider"
 
     @property
     def metadata(self):
@@ -2503,7 +2482,6 @@ class ImageSliderControl(MediaSliderControl):
             modality='image',
             media_locations=media_locations,
             autoplay=autoplay,
-            prompt_above_media=prompt_above_media,
             n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
@@ -2513,11 +2491,21 @@ class ImageSliderControl(MediaSliderControl):
             snap_values=snap_values,
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
-            continuous_updates=continuous_updates,
         )
+        self.continuous_updates = continuous_updates
+        self.prompt_above_media = prompt_above_media
+        self.js_vars["continuous_updates"] = continuous_updates
+        self.js_vars["prompt_above_media"] = prompt_above_media
 
-    macro = "media_slider"
+    macro = "image_slider"
 
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "continuous_updates": self.continuous_updates,
+            "prompt_above_media": self.prompt_above_media,
+        }
 
 class SvgSliderControl(MediaSliderControl):
     """
@@ -2651,8 +2639,6 @@ class SvgSliderControl(MediaSliderControl):
             modality='image',
             media_locations=media_locations,
             autoplay=autoplay,
-            prompt_above_media=prompt_above_media,
-            use_inline_svg=use_inline_svg,
             n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
@@ -2662,12 +2648,24 @@ class SvgSliderControl(MediaSliderControl):
             snap_values=snap_values,
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
-            continuous_updates=continuous_updates,
         )
+        self.continuous_updates = continuous_updates
+        self.prompt_above_media = prompt_above_media
+        self.use_inline_svg = use_inline_svg
+        self.js_vars["continuous_updates"] = continuous_updates
+        self.js_vars["prompt_above_media"] = prompt_above_media
+        self.js_vars["use_inline_svg"] = use_inline_svg
 
-    macro = "media_slider"
+    macro = "svg_slider"
 
-
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "continuous_updates": self.continuous_updates,
+            "prompt_above_media": self.prompt_above_media,
+            "use_inline_svg": self.use_inline_svg,
+        }
 
 class VideoSliderControl(MediaSliderControl):
     """
@@ -2795,8 +2793,6 @@ class VideoSliderControl(MediaSliderControl):
             modality='video',
             media_locations=media_locations,
             autoplay=autoplay,
-            disable_while_playing=disable_while_playing,
-            prompt_above_media=prompt_above_media,
             n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
@@ -2807,8 +2803,23 @@ class VideoSliderControl(MediaSliderControl):
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
         )
+        self.disable_while_playing = disable_while_playing
+        self.prompt_above_media = prompt_above_media
+        self.js_vars["disable_while_playing"] = disable_while_playing
+        self.js_vars["prompt_above_media"] = prompt_above_media
 
-    macro = "media_slider"
+    macro = "video_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "media_locations": self.media_locations,
+            "modality": self.modality,
+            "autoplay": self.autoplay,
+            "disable_while_playing": self.disable_while_playing,
+            "prompt_above_media": self.prompt_above_media,
+        }
 
 
 # WIP
@@ -3262,8 +3273,8 @@ class VideoRecordControl(RecordControl):
         )
 
 
-class VideoSliderControl(Control):
-    macro = "video_slider"
+class FrameSliderControl(Control):
+    macro = "frame_slider"
 
     def __init__(
         self,
