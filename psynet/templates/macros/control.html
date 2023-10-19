@@ -306,11 +306,11 @@
 
     {{ slider(params) }}
 
-    <style>
-        #trial-progress-caption {
-            display: {% if trial_progress_display_config["show_bar"] %} flex {% else %} none {% endif %};
-        }
-    </style>
+{#    <style>#}
+{#        #trial-progress-caption {#}
+{#            display: {% if trial_progress_display_config["show_bar"] %} flex {% else %} none {% endif %};#}
+{#        }#}
+{#    </style>#}
     <script>
         {% autoescape off %}
         var mediaLocations = {{ params.js_vars.media_locations }};
