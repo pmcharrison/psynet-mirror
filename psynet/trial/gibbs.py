@@ -360,19 +360,9 @@ class GibbsNode(ChainNode):
                 "active_index": initial_index,
             }
         else:
-            degree = (
-                max(
-                    [
-                        node.degree
-                        for node in self.network.nodes()
-                        if node.degree is not None
-                    ]
-                )
-                + 1
-            )
             dimension_order = self.network.dimension_order
             dimension_index = dimension_order.index(initial_index)
-            dimension_index = (dimension_index + degree) % len(vector)
+            dimension_index = (dimension_index + self.degree) % len(vector)
             active_index = dimension_order[dimension_index]
             return {
                 "vector": vector,

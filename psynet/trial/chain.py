@@ -575,6 +575,8 @@ class ChainNode(TrialNode):
             else:
                 degree = 0
 
+        self.degree = degree
+
         if module_id is None:
             if parent:
                 module_id = parent.module_id
@@ -595,7 +597,6 @@ class ChainNode(TrialNode):
         self.assets = assets
         self.block = block
         self.participant_group = participant_group
-        self.degree = degree
         self.module_id = module_id
         self.seed = seed
         self.definition = definition
