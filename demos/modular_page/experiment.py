@@ -13,7 +13,7 @@ from psynet.modular_page import (
     Prompt,
     PushButtonControl,
     TimedPushButtonControl,
-    VideoSliderControl,
+    FrameSliderControl, VideoSliderControl,
 )
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -84,6 +84,20 @@ class Exp(psynet.experiment.Experiment):
             """,
             ),
             TimedPushButtonControl(choices=["A", "B", "C"], arrange_vertically=False),
+            time_estimate=5,
+        ),
+        DebugResponsePage(),
+        ModularPage(
+            "frame_slider",
+            prompt="This is an example of a frame slider that cycles through the frames of one single video.",
+            control=FrameSliderControl(
+                url="https://psynet.s3.amazonaws.com/video-slider.mp4",
+                file_type="mp4",
+                width="400px",
+                height="400px",
+                reverse_scale=True,
+                directional=False,
+            ),
             time_estimate=5,
         ),
         DebugResponsePage(),
