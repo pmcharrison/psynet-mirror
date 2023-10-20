@@ -187,10 +187,16 @@ def parse_gunicorn_logs(path):
 
 
 LOADING_TIMES_STATUS_LIST = [
-    {"min": 0, "max": 0.3, "color": green, "label": "normal"},
-    {"min": 0.3, "max": 0.8, "color": orange, "label": "slightly slow"},
-    {"min": 0.8, "max": 1.5, "color": red, "label": "slow"},
-    {"min": 1.5, "label": "critically slow", "color": none},
+    {"min": 0, "max": 0.3, "color": "green", "style": green, "label": "normal"},
+    {
+        "min": 0.3,
+        "max": 0.8,
+        "color": "orange",
+        "style": orange,
+        "label": "slightly slow",
+    },
+    {"min": 0.8, "max": 1.5, "color": "red", "style": red, "label": "slow"},
+    {"min": 1.5, "label": "critically slow", "color": "black", "style": none},
 ]
 
 
@@ -281,7 +287,21 @@ def parse_warnings(logs):
     return pd.DataFrame(parsed_warnings)
 
 
-def get_loading_time_df(logs):
+def parse_resources(logs):
+    resources = logs.query("message.str.contains('CPU usage')", engine="python")
+    resources["cpu_usage"] = resources.message.apply(
+        lambda x: float(re.findall(r"CPU usage: (.*?)%", x)[0])
+    )
+    resources["memory_usage"] = resources.message.apply(
+        lambda x: float(re.findall(r"memory usage: (.*?)%", x)[0])
+    )
+    resources["timestamp"] = resources.message.apply(
+        lambda x: datetime.strptime(re.findall(r"\[(.*?)\]", x)[0], "%Y-%m-%d %H:%M:%S")
+    )
+    return resources[["cpu_usage", "memory_usage"]]
+
+
+def parse_loading_times(logs):
     timeline = logs.query("message.str.contains('/timeline/')", engine="python")
 
     timestamps = [
@@ -301,7 +321,7 @@ def _write_heading():
     report_md += "1. [Summary](#summary)\n"
     report_md += "2. [Errors](#errors)\n"
     report_md += "3. [Warnings](#warnings)\n"
-    report_md += "4. [Loading times](#loading-times)\n"
+    report_md += "4. [Application metrics](#application-metrics)\n"
     return report_md
 
 
@@ -372,7 +392,7 @@ def _get_loading_time_status(loading_time_df):
             idx = loading_time_df.loading_time >= status["min"]
         n_requests = len(loading_time_df[idx])
         percent_requests = n_requests / len(loading_time_df) * 100
-        style = status["color"]
+        style = status["style"]
         request_report = f"{n_requests} requests ({percent_requests:.2f}%)"
         markdown_label = (
             f"{bold(style(status['label'], syntax='markdown'), syntax='markdown')}"
@@ -385,40 +405,149 @@ def _get_loading_time_status(loading_time_df):
     return console_messages, markdown_messages
 
 
-def _write_loading_times(loading_time_summary, messages):
-    report_md = "## Loading times\n"
+def _plot_resource_usage_over_time(
+    timestamps,
+    resource_usage,
+    title,
+    y_label,
+    output_path,
+    latest=120,
+    visual_guides=None,
+):
+    import matplotlib.pyplot as plt
+    from matplotlib.dates import DateFormatter, MinuteLocator
+
+    resource_df = pd.DataFrame(
+        {"timestamp": timestamps, "resource_usage": resource_usage}
+    )
+    resource_df = resource_df.set_index("timestamp")
+    resource_df = resource_df.resample("1min").mean()
+    resource_df = resource_df.reset_index()
+
+    if len(resource_df) > latest:
+        time_stamp = resource_df.iloc[-latest].timestamp
+
+        # Round to nearest 30 minutes
+        time_stamp = time_stamp - pd.Timedelta(minutes=time_stamp.minute % 30)
+
+        resource_df = resource_df.query("timestamp >= @time_stamp")
+
+    fig = plt.figure(figsize=(10, 5))
+    if visual_guides is not None:
+        for guide in visual_guides:
+            if guide.get("x", None) is not None:
+                plt.axhline(guide["x"], color=guide.get("color", "gray"))
+            if guide.get("y", None) is not None:
+                plt.axvline(guide["y"], color=guide.get("color", "gray"))
+    plt.plot(resource_df.timestamp, resource_df.resource_usage)
+    plt.suptitle(title)
+    plt.title(resource_df.timestamp.min().strftime("%Y-%m-%d"), x=0, ha="left")
+    plt.gca().xaxis.set_major_locator(MinuteLocator(30))
+    # reformat the times on the x axis to HH:MM
+    plt.gca().xaxis.set_major_formatter(DateFormatter("%H:%M"))
+    plt.xlabel("Time")
+    plt.ylabel(y_label)
+    fig.savefig(output_path)
+    plt.close(fig)
+
+
+def write_resource_usage(loading_time_df, resource_df, messages, output_path, log_path):
+    report_md = "## Application metrics\n"
+    report_md += "### Loading times\n"
 
     if len(messages) == 0:
         report_md += "No loading times found.\n"
-        return report_md
+    else:
+        loading_time_summary = loading_time_df.loading_time.describe()
 
-    report_md += (
-        f"**Average loading time**: {loading_time_summary['mean']:.2f} seconds\n\n"
-    )
-    report_md += (
-        f"**Median loading time**: {loading_time_summary['50%']:.2f} seconds\n\n"
-    )
-    report_md += f"**Max loading time**: {loading_time_summary['max']:.2f} seconds\n\n"
-    report_md += f"**Min loading time**: {loading_time_summary['min']:.2f} seconds\n\n"
+        report_md += (
+            f"**Average loading time**: {loading_time_summary['mean']:.2f} seconds\n\n"
+        )
+        report_md += (
+            f"**Median loading time**: {loading_time_summary['50%']:.2f} seconds\n\n"
+        )
+        report_md += (
+            f"**Max loading time**: {loading_time_summary['max']:.2f} seconds\n\n"
+        )
+        report_md += (
+            f"**Min loading time**: {loading_time_summary['min']:.2f} seconds\n\n"
+        )
 
-    for message in messages:
-        report_md += f"- {message}\n\n"
+        for message in messages:
+            report_md += f"- {message}\n\n"
+
+        abs_plot_path = plot_name(output_path, log_path, "loading-times")
+        visual_guides = [
+            {**status, "x": status["max"]}
+            for status in LOADING_TIMES_STATUS_LIST
+            if status.get("max", None) is not None
+        ]
+        _plot_resource_usage_over_time(
+            loading_time_df.timestamp,
+            loading_time_df.loading_time,
+            "Mean loading times per minute",
+            "Seconds",
+            abs_plot_path,
+            visual_guides=visual_guides,
+        )
+        plot_path = basename(abs_plot_path)
+        report_md += f"![Loading times]({plot_path})\n\n"
+
+    report_md += "### Resource usage\n"
+    if len(resource_df) == 0:
+        report_md += "No resource usage found in log.\n"
+    else:
+        report_md += f"**Average CPU usage**: {resource_df.cpu_usage.mean():.2f}%\n\n"
+
+        abs_plot_path = plot_name(output_path, log_path, "cpu-usage")
+        _plot_resource_usage_over_time(
+            resource_df.timestamp,
+            resource_df.cpu_usage,
+            "Mean CPU usage per minute",
+            "Percentage",
+            abs_plot_path,
+        )
+        plot_path = basename(abs_plot_path)
+        report_md += f"![CPU usage]({plot_path})\n\n"
+
+        report_md += (
+            f"**Average Memory usage**: {resource_df.memory_usage.mean():.2f}%\n\n"
+        )
+
+        abs_plot_path = plot_name(output_path, log_path, "memory-usage")
+        _plot_resource_usage_over_time(
+            resource_df.timestamp,
+            resource_df.memory_usage,
+            "Mean Memory usage per minute",
+            "Percentage",
+            abs_plot_path,
+        )
+        plot_path = basename(abs_plot_path)
+        report_md += f"![Memory usage]({plot_path})\n\n"
 
     return report_md
+
+
+def plot_name(output_path, log_path, suffix, ext="png"):
+    return os.path.join(
+        dirname(output_path), basename(log_path).replace(".log", f"-{suffix}.{ext}")
+    )
 
 
 def create_report(log_path, output_path=None):
     logs = parse_gunicorn_logs(log_path)
     error_df = parse_errors(logs)
     warning_df = parse_warnings(logs)
-    loading_time_df = get_loading_time_df(logs)
+    loading_time_df = parse_loading_times(logs)
+    resource_df = parse_resources(logs)
     report_md = _write_heading()
     report_md += _write_summary(log_path, logs, error_df, warning_df)
     report_md += _write_errors(error_df)
     report_md += _write_warnings(warning_df)
     console_messages, markdown_messages = _get_loading_time_status(loading_time_df)
-    report_md += _write_loading_times(
-        loading_time_df.loading_time.describe(), markdown_messages
+
+    report_md += write_resource_usage(
+        loading_time_df, resource_df, markdown_messages, output_path, log_path
     )
 
     if output_path is None:
@@ -434,6 +563,14 @@ def create_report(log_path, output_path=None):
         f"{bold('Number of warnings')}: {len(warning_df)}",
         f"{bold('Loading times')}:",
         *console_messages,
+    ]
+
+    if len(resource_df) > 0:
+        messages_to_print += [
+            f"{bold('Mean CPU usage')}: {resource_df.cpu_usage.mean():.2f}%",
+            f"{bold('Mean Memory usage')}: {resource_df.memory_usage.mean():.2f}%",
+        ]
+    messages_to_print += [
         f"Detailed report written to file://{abs_output_path} ."
         "If you run this in PyCharm on MacOS, it will open automatically.",
     ]
