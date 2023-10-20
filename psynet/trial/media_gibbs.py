@@ -431,13 +431,12 @@ class AudioGibbsTrial(MediaGibbsTrial):
         return ModularPage(
             "gibbs_audio_trial",
             self._get_prompt(experiment, participant),
-            control=MediaSliderControl(
+            control=AudioSliderControl(
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
-                slider_media=self.media.audio,
-                modality="audio",
-                media_locations=self.media_locations,
+                audio=self.media.audio,
+                sound_locations=self.media_locations,
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
