@@ -117,7 +117,7 @@ class Exp(psynet.experiment.Experiment):
             prompt=Prompt("This is an example of a video slider page where every slider position is linked to a separate video.",
                           text_align='center'),
             control=VideoSliderControl(
-                start_value=random.sample(range(256), 1),
+                start_value=random.sample(range(256), 1)[0],
                 min_value=0,
                 max_value=255,
                 slider_media={
