@@ -506,7 +506,7 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
 
 
 class SvgGibbsNetwork(MediaGibbsNetwork):
-    modality = "image"
+    modality = "object"
     pass
 
 

@@ -433,10 +433,40 @@
 
 
 {% macro svg_slider(params) %}
+    <style>
+        #slider-media {
+            min-width:  {{ params.media_width }};
+            min-height: {{ params.media_height }};
+        }
+        .object {
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
+        }
+    </style>
 
-    {{ image_slider(params) }}
+    <p class="vspace"></p>
+
+    <div id = 'slider-media'>
+        <p class="vspace"></p>
+    </div>
+
+    <p class="vspace"></p>
+
+    {{ media_slider(params) }}
 
     <script>
+        {% autoescape off %}
+        var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
+        {% endautoescape %}
+
+        if (psynet.trialProgress.stages.length === 0) {
+            $('#trial-progress-caption').hide();
+        }
+        const mediaDiv = document.getElementById('slider-media');
+        {% if params.js_vars.prompt_above_media == false %}
+            $('#main-body').prepend(mediaDiv);
+        {% endif %}
+
         {% if params.js_vars.use_inline_svg == true %}
             const inline = document.createElement("div");
             inline.id = 'inlineSvg';
@@ -446,20 +476,20 @@
 
         playMedia = function () {
             var id = slider.media;
-            var image = psynet.image[id];
+            var object = psynet.object[id];
 
-            $('img').each(function (idx, elem){
+            $('object').each(function (idx, elem){
                 elem.style.display='none'
                 elem.style.margin='auto'
             })
             psynet.log.debug('Showing image with ID = ' + id);
             {% if not params.js_vars.use_inline_svg %}
-                image.player.style.display = 'block';
+                object.player.style.display = 'block';
             {% else %}
                 var inline = document.getElementById('inlineSvg');
                 const loadSvg = async () => {
                   // get image, parse source text, and insert text into html
-                  inline.innerHTML = await (await fetch(image.player.src)).text();
+                  inline.innerHTML = await (await fetch(object.player.data)).text();
                   inline.style.margin='auto'
                   inline.style.display='block'
                 };

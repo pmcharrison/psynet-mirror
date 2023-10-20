@@ -2099,7 +2099,7 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "jpeg", "png", "gif", "svg"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "jpeg", "png", "gif", "svg"], "object": ["svg"], "video": ["mp4", "ogg"]}
 
 
 class MediaSliderControl(SliderControl):

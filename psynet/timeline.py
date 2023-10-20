@@ -334,6 +334,9 @@ class MediaSpec:
                 }
             }
 
+    object: dict
+        An analogously structured dictionary of object stimuli (e.g., svg stimuli).
+
     image: dict
         An analogously structured dictionary of image stimuli.
 
@@ -341,12 +344,13 @@ class MediaSpec:
         An analogously structured dictionary of video stimuli.
     """
 
-    modalities = ["audio", "image", "video"]
+    modalities = ["audio", "image", "object", "video"]
 
     def __init__(
         self,
         audio: Optional[dict] = None,
         image: Optional[dict] = None,
+        object: Optional[dict] = None,
         video: Optional[dict] = None,
     ):
         from .asset import Asset
@@ -357,10 +361,13 @@ class MediaSpec:
         if image is None:
             image = {}
 
+        if object is None:
+            object = {}
+
         if video is None:
             video = {}
 
-        self.data = {"audio": audio, "image": image, "video": video}
+        self.data = {"audio": audio, "image": image, "object": object,  "video": video}
 
         for modality in self.data.values():
             for key, value in modality.items():
@@ -380,6 +387,10 @@ class MediaSpec:
     @property
     def image(self):
         return self.data["image"]
+
+    @property
+    def object(self):
+        return self.data["object"]
 
     @property
     def video(self):
