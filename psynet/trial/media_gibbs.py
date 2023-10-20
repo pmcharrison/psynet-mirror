@@ -156,12 +156,8 @@ class MediaGibbsTrial(GibbsTrial):
     snap_slider = False
     snap_slider_before_release = False
     autoplay = False
-    disable_while_playing = False
-    prompt_above_media = False
-    use_inline_svg = False
     minimal_interactions = 3
     minimal_time = 3.0
-    continuous_updates = False
     debug = False
     random_wrap = False
     input_type = "HTML5_range_slider"
@@ -183,9 +179,6 @@ class MediaGibbsTrial(GibbsTrial):
                 modality=self.network.modality,
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
-                disable_while_playing=self.disable_while_playing,
-                prompt_above_media=self.prompt_above_media,
-                use_inline_svg=self.use_inline_svg,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
                 random_wrap=self.random_wrap,
@@ -194,7 +187,6 @@ class MediaGibbsTrial(GibbsTrial):
                 snap_values="media_locations" if self.snap_slider else None,
                 minimal_time=self.minimal_time,
                 minimal_interactions=self.minimal_interactions,
-                continuous_updates=self.continuous_updates
             ),
             media=self.media,
             time_estimate=self.time_estimate,
@@ -396,26 +388,7 @@ class MediaGibbsNode(GibbsNode):
 
 
 class MediaGibbsTrialMaker(GibbsTrialMaker):
-    def check_initialization(self):
-        super().check_initialization()
-        if self.trial_class.continuous_updates and self.default_network_class.modality != 'image':
-            raise NotImplementedError(
-                f"continuous_updates are not supported for {self.default_network_class.modality}"
-            )
-        if self.trial_class.use_inline_svg and self.default_network_class.modality != 'image':
-            raise NotImplementedError(
-                f"use_inline_svg is not supported for {self.default_network_class.modality}"
-            )
-        if self.trial_class.prompt_above_media and self.default_network_class.modality == 'audio':
-            raise NotImplementedError(
-                f"prompt_above_media is not supported for {self.default_network_class.modality}"
-            )
-        if self.trial_class.disable_while_playing and self.default_network_class.modality == 'image':
-            raise NotImplementedError(
-                f"disable_while_playing is not supported for {self.default_network_class.modality}"
-            )
-
-
+    pass
 
 class AudioGibbsNetwork(MediaGibbsNetwork):
     modality = "audio"
@@ -423,6 +396,8 @@ class AudioGibbsNetwork(MediaGibbsNetwork):
 
 
 class AudioGibbsTrial(MediaGibbsTrial):
+    disable_while_playing = False
+
     def show_trial(self, experiment, participant):
         self._validate()
 
