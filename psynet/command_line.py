@@ -39,7 +39,7 @@ from psynet.version import check_versions
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
-from .log import export_docker_ssh_logs
+from .log import create_report, export_docker_ssh_logs
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -1648,7 +1648,7 @@ def export_(
     if docker_ssh:
         log_path = os.path.join(path, app + ".log")
         export_docker_ssh_logs(app, server, log_path)
-        experiment_cls.analyze_logs(log_path)
+        create_report(log_path)
 
 
 def _export_(

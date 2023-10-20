@@ -46,7 +46,6 @@ from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
-from .log import analyze_errors, analyze_loading_times, parse_gunicorn_logs
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .process import WorkerAsyncProcess
@@ -719,13 +718,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         recruiter = exp.recruiter
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
-
-    @staticmethod
-    def analyze_logs(log_path):
-        logs = parse_gunicorn_logs(log_path)
-        analyze_loading_times(logs)
-        analyze_errors(logs)
-        return logs
 
     @property
     def base_payment(self):
