@@ -372,6 +372,17 @@
 
 
 {% macro image_slider(params) %}
+    <style>
+        #slider-media {
+            min-width: {{ params.media_width }};
+            min-height: {{ params.media_height }};
+        }
+        .image {
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
+        }
+    </style>
+
     <p class="vspace"></p>
 
     <div id = 'slider-media'>
@@ -404,18 +415,7 @@
                 elem.style.margin='auto'
             })
             psynet.log.debug('Showing image with ID = ' + id);
-            {% if not params.js_vars.use_inline_svg %}
-                image.player.style.display = 'block';
-            {% else %}
-                var inline = document.getElementById('inlineSvg');
-                const loadSvg = async () => {
-                  // get image, parse source text, and insert text into html
-                  inline.innerHTML = await (await fetch(image.player.src)).text();
-                  inline.style.margin='auto'
-                  inline.style.display='block'
-                };
-                loadSvg();
-            {% endif %}
+            image.player.style.display = 'block';
         };
 
         onSliderEvent = function (eventType) {
@@ -482,6 +482,16 @@
 
 
 {% macro video_slider(params) %}
+    <style>
+        #slider-media {
+            min-width: {{ params.media_width }};
+            min-height: {{ params.media_height }};
+        }
+        .video {
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
+        }
+    </style>
     <p class="vspace"></p>
 
     <div id = 'slider-media'>

@@ -2402,6 +2402,12 @@ class ImageSliderControl(MediaSliderControl):
     prompt_above_media:
         If `True`, the prompt is displayed above the image. Default: `False`.
 
+    media_width:
+        CSS width specification for the image.
+
+    media_height:
+        CSS height specification for the image.
+
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
@@ -2463,6 +2469,8 @@ class ImageSliderControl(MediaSliderControl):
         media_locations: dict,
         autoplay: Optional[bool] = False,
         prompt_above_media: Optional[bool] = False,
+        media_width: Optional[str] = "",
+        media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2492,6 +2500,8 @@ class ImageSliderControl(MediaSliderControl):
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
         )
+        self.media_width = media_width
+        self.media_height = media_height
         self.continuous_updates = continuous_updates
         self.prompt_above_media = prompt_above_media
         self.js_vars["continuous_updates"] = continuous_updates
@@ -2558,6 +2568,12 @@ class SvgSliderControl(MediaSliderControl):
         This allows for restarting any animations part of the svg when revisiting the slider value.
         Default: `False`.
 
+    media_width:
+        CSS width specification for the svg when inserted via an image element.
+
+    media_height:
+        CSS height specification for the svg when inserted via an image element.
+
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
@@ -2620,6 +2636,8 @@ class SvgSliderControl(MediaSliderControl):
         autoplay: Optional[bool] = False,
         prompt_above_media: Optional[bool] = False,
         use_inline_svg: Optional[bool] = False,
+        media_width: Optional[str] = "",
+        media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2649,6 +2667,16 @@ class SvgSliderControl(MediaSliderControl):
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
         )
+        if use_inline_svg and media_width != '':
+            raise NotImplementedError(
+                f"media_width is not supported when use_inline_svg is True"
+            )
+        if use_inline_svg and media_height != '':
+            raise NotImplementedError(
+                f"media_height is not supported when use_inline_svg is True"
+            )
+        self.media_width = media_width
+        self.media_height = media_height
         self.continuous_updates = continuous_updates
         self.prompt_above_media = prompt_above_media
         self.use_inline_svg = use_inline_svg
@@ -2716,6 +2744,12 @@ class VideoSliderControl(MediaSliderControl):
     prompt_above_media:
         If `True`, the prompt is displayed above the image. Default: `False`.
 
+    media_width:
+        CSS width specification for the video.
+
+    media_height:
+        CSS height specification for the video.
+
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
@@ -2775,6 +2809,8 @@ class VideoSliderControl(MediaSliderControl):
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
         prompt_above_media: Optional[bool] = False,
+        media_width: Optional[str] = "",
+        media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2803,6 +2839,8 @@ class VideoSliderControl(MediaSliderControl):
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
         )
+        self.media_width = media_width
+        self.media_height = media_height
         self.disable_while_playing = disable_while_playing
         self.prompt_above_media = prompt_above_media
         self.js_vars["disable_while_playing"] = disable_while_playing
