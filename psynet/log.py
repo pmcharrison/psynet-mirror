@@ -546,6 +546,8 @@ def plot_name(output_path, log_path, suffix, ext="png"):
 
 
 def create_report(log_path, output_path=None):
+    if output_path is None:
+        output_path = _log_path_to_report_path(log_path)
     logs = parse_gunicorn_logs(log_path)
     error_df = parse_errors(logs)
     warning_df = parse_warnings(logs)
@@ -560,9 +562,6 @@ def create_report(log_path, output_path=None):
     report_md += write_resource_usage(
         loading_time_df, resource_df, markdown_messages, output_path, log_path
     )
-
-    if output_path is None:
-        output_path = _log_path_to_report_path(log_path)
 
     with open(output_path, "w") as f:
         f.write(report_md)
