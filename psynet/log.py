@@ -288,7 +288,7 @@ def parse_warnings(logs):
 
 
 def parse_resources(logs):
-    resources = logs.query("message.str.contains('CPU usage')", engine="python")
+    resources = logs.query("message.str.contains('CPU usage')", engine="python").copy()
     resources["cpu_usage"] = resources.message.apply(
         lambda x: float(re.findall(r"CPU usage: (.*?)%", x)[0])
     )
@@ -296,9 +296,12 @@ def parse_resources(logs):
         lambda x: float(re.findall(r"memory usage: (.*?)%", x)[0])
     )
     resources["timestamp"] = resources.message.apply(
-        lambda x: datetime.strptime(re.findall(r"\[(.*?)\]", x)[0], "%Y-%m-%d %H:%M:%S")
+        lambda x: datetime.strptime(
+            re.findall(r"\[(.*?)\]", x)[0], "%Y-%m-%d %H:%M:%S.%f"
+        )
     )
-    return resources[["cpu_usage", "memory_usage"]]
+    resources = resources.reset_index()
+    return resources[["cpu_usage", "memory_usage", "timestamp"]]
 
 
 def parse_loading_times(logs):
@@ -499,6 +502,12 @@ def write_resource_usage(loading_time_df, resource_df, messages, output_path, lo
     else:
         report_md += f"**Average CPU usage**: {resource_df.cpu_usage.mean():.2f}%\n\n"
 
+        visual_guides = [
+            {"x": 25, "color": "green"},
+            {"x": 50, "color": "yellow"},
+            {"x": 75, "color": "orange"},
+            {"x": 100, "color": "red"},
+        ]
         abs_plot_path = plot_name(output_path, log_path, "cpu-usage")
         _plot_resource_usage_over_time(
             resource_df.timestamp,
@@ -506,21 +515,23 @@ def write_resource_usage(loading_time_df, resource_df, messages, output_path, lo
             "Mean CPU usage per minute",
             "Percentage",
             abs_plot_path,
+            visual_guides=visual_guides,
         )
         plot_path = basename(abs_plot_path)
         report_md += f"![CPU usage]({plot_path})\n\n"
 
         report_md += (
-            f"**Average Memory usage**: {resource_df.memory_usage.mean():.2f}%\n\n"
+            f"**Average Memory usage**: {resource_df['memory_usage'].mean():.2f}%\n\n"
         )
 
         abs_plot_path = plot_name(output_path, log_path, "memory-usage")
         _plot_resource_usage_over_time(
             resource_df.timestamp,
-            resource_df.memory_usage,
+            resource_df["memory_usage"],
             "Mean Memory usage per minute",
             "Percentage",
             abs_plot_path,
+            visual_guides=visual_guides,
         )
         plot_path = basename(abs_plot_path)
         report_md += f"![Memory usage]({plot_path})\n\n"
@@ -568,7 +579,7 @@ def create_report(log_path, output_path=None):
     if len(resource_df) > 0:
         messages_to_print += [
             f"{bold('Mean CPU usage')}: {resource_df.cpu_usage.mean():.2f}%",
-            f"{bold('Mean Memory usage')}: {resource_df.memory_usage.mean():.2f}%",
+            f"{bold('Mean Memory usage')}: {resource_df['memory_usage'].mean():.2f}%",
         ]
     messages_to_print += [
         f"Detailed report written to file://{abs_output_path} ."
