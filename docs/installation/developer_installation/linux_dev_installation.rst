@@ -17,6 +17,18 @@ Update and install required system packages
    sudo apt upgrade
    sudo apt install vim python3.10-dev python3.10-venv python3-pip redis-server git libenchant1c2a postgresql postgresql-contrib libpq-dev unzip
 
+Install Python
+~~~~~~~~~~~~~~
+
+PsyNet requires a recent version of Python 3. To check the minimum version of Python required,
+look at PsyNet's
+`pyproject.toml<https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
+specifically at the line beginning with ``requires-python``, and see which version of Python is required.
+To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
+If this version is lower than the minimum version specified in pyproject.toml, you should update your Python.
+The easiest way to do this is via the ``apt install`` command above, for example
+``sudo apt install python3.10-dev`` for Python 3.10.
+
 Install Docker and Docker plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
