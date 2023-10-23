@@ -48,7 +48,7 @@ class CustomTrial(SvgGibbsTrial):
     minimal_time = 3.0
     time_estimate = 5.0
     prompt_above_media = False
-    use_inline_svg = True
+    use_inline_svg =False
     continuous_updates = False
 
     def get_prompt(self, experiment, participant):

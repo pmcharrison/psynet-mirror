@@ -1151,19 +1151,19 @@
                             "Associating " + mediaType + " '" + stimulusId
                             + "' with the player of the same name.'"
                         );
-                        mimeType = getMimeTypeFromArrayBuffer(data);
-                        data = new Blob([data], { type: mimeType }) // convert to blob
-                        player.data = URL.createObjectURL(data);
+                        const uint8arr = new Uint8Array(data)
+                        var dec = new TextDecoder()
+                        player.innerHTML = dec.decode(uint8arr).toLowerCase().replace(' ', '');
                      }
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.player = player;
-                    out.data = player.data;
-                    let url = player.data;
-                    let metadata = await getImageMetadataFromURL(url);
-                    out.url = url;
-                    out.width = metadata.width;
-                    out.height = metadata.height;
-                    out.aspectRatio = out.width / out.height;
+                    out.innerHTML = player.innerHTML;
+                    {#let url = player.data;#}
+                    {#let metadata = await getImageMetadataFromURL(url);#}
+                    {#out.url = url;#}
+                    {#out.width = metadata.width;#}
+                    {#out.height = metadata.height;#}
+                    {#out.aspectRatio = out.width / out.height;#}
                     out.loaded = true;
 
                     psynet.media.downloadProgress.set(mediaType, fileId, 100);
@@ -1270,7 +1270,7 @@
 
                         // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
                         if (mediaType === 'object') {
-                            $('#slider-media').prepend('<object style="display: none" class="object" id="' + stimulusId + '"></object>')
+                            $('#slider-media').prepend('<div style="display: none" class="object" id="' + stimulusId + '"></div>')
                         }
 
                         if (mediaType === 'image') {

@@ -467,34 +467,25 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
-        {% if params.js_vars.use_inline_svg == true %}
-            const inline = document.createElement("div");
-            inline.id = 'inlineSvg';
-            mediaDiv.prepend(inline);
-            inline.style.textAlign='center'
-        {% endif %}
+        const showing = document.createElement("div");
+        showing.id = 'slider_stimulus_shown';
+        mediaDiv.prepend(showing);
+        showing.style.textAlign='center'
 
         playMedia = function () {
             var id = slider.media;
             var object = psynet.object[id];
 
-            $('object').each(function (idx, elem){
-                elem.style.display='none'
-                elem.style.margin='auto'
-            })
             psynet.log.debug('Showing image with ID = ' + id);
-            {% if not params.js_vars.use_inline_svg %}
-                object.player.style.display = 'block';
-            {% else %}
-                var inline = document.getElementById('inlineSvg');
-                const loadSvg = async () => {
-                  // get image, parse source text, and insert text into html
-                  inline.innerHTML = await (await fetch(object.player.data)).text();
-                  inline.style.margin='auto'
-                  inline.style.display='block'
-                };
-                loadSvg();
-            {% endif %}
+            var showing = document.getElementById('slider_stimulus_shown');
+            const loadSvg = async () => {
+              // get image, parse source text, and insert text into html
+              showing.innerHTML = await (object.player.innerHTML);
+              showing.style.margin='auto'
+              showing.style.display='block'
+            };
+            loadSvg();
+{#            {% endif %}#}
         };
 
         onSliderEvent = function (eventType) {
