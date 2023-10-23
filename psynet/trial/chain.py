@@ -1072,10 +1072,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         The class object for the networks used by this maker.
         This should subclass :class:`~psynet.trial.chain.ChainNode`.
 
-    source_class
-        The class object for sources
-        (should subclass :class:`~psynet.trial.chain.ChainSource`).
-
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.chain.ChainTrial`).
@@ -1115,6 +1111,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         Whether trial selection should be actively balanced across chains,
         such that trials are preferentially sourced from chains with
         fewer valid trials.
+
+    start_nodes
+        A list of nodes that are used to initialize the chains.
+        In an across-participant trial maker, this should be a simple list of instances of the class ``node_class``.
+        In a within-participant trial maker, a fresh set of nodes should be created for each new participant.
+        To achieve this, ``start_nodes`` should be a lambda function that returns a list of newly created nodes.
+        This lambda function may accept ``participant`` as one of its arguments.
 
     # balance_strategy
         #   A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
