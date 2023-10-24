@@ -11,7 +11,7 @@ from markupsafe import Markup, escape
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
-from ..modular_page import MediaSliderControl, AudioSliderControl, ImageSliderControl, SvgSliderControl, VideoSliderControl, ModularPage, EXTENSIONS
+from ..modular_page import MediaSliderControl, AudioSliderControl, ImageSliderControl, HtmlSliderControl, VideoSliderControl, ModularPage, EXTENSIONS
 from ..timeline import MediaSpec
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -505,12 +505,13 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
         return ImageGibbsNetwork
 
 
-class SvgGibbsNetwork(MediaGibbsNetwork):
-    modality = "object"
+
+class HtmlGibbsNetwork(MediaGibbsNetwork):
+    modality = "html"
     pass
 
 
-class SvgGibbsTrial(MediaGibbsTrial):
+class HtmlGibbsTrial(MediaGibbsTrial):
     prompt_above_media = False
     media_width = ""
     media_height = ""
@@ -525,7 +526,7 @@ class SvgGibbsTrial(MediaGibbsTrial):
         return ModularPage(
             f"gibbs_{self.network.modality}_trial",
             self._get_prompt(experiment, participant),
-            control=SvgSliderControl(
+            control=HtmlSliderControl(
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
@@ -551,14 +552,21 @@ class SvgGibbsTrial(MediaGibbsTrial):
         )
 
 
-class SvgGibbsNode(MediaGibbsNode):
+class HtmlGibbsNode(MediaGibbsNode):
     pass
 
 
-class SvgGibbsTrialMaker(MediaGibbsTrialMaker):
+class HtmlGibbsTrialMaker(MediaGibbsTrialMaker):
     @property
     def default_network_class(self):
-        return SvgGibbsNetwork
+        return HtmlGibbsNetwork
+
+    # def check_initialization(self):
+    #     super().check_initialization()
+    #     if self.trial_class.continuous_updates and self.trial_class.disable_slider_on_change != 0:
+    #         raise NotImplementedError(
+    #             f"continuous_updates cannot be True when disable_slider_on_change is different from 0."
+    #         )
 
 
 class VideoGibbsNetwork(MediaGibbsNetwork):

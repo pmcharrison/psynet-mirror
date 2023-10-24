@@ -687,7 +687,7 @@
                 psynet.trial.onEvent("responseEnable", psynet.response.enable);
                 psynet.trial.onEvent("submitEnable", psynet.submit.enable);
 
-                psynet.media.types = ["audio", "image", "object", "video"];
+                psynet.media.types = ["audio", "image", "html", "video"];
                 psynet.media.data = {};
 
                 psynet.media.sounds = [];
@@ -910,7 +910,7 @@
                     let request = new XMLHttpRequest();
                     request.open("GET", url, true);
 
-                    if (mediaType == "audio" || mediaType == "object") {
+                    if (mediaType == "audio" || mediaType == "html") {
                         request.responseType = "arraybuffer";
                     } else if (mediaType == "image" || mediaType == "video") {
                         request.responseType = "blob";
@@ -1140,7 +1140,7 @@
                     }
                 }
 
-                createMediaFromBuffer.object = async function (data, args) {
+                createMediaFromBuffer.html = async function (data, args) {
                     let stimulusId = args["stimulusId"];
                     let mediaType = args["mediaType"];
                     let fileId = args["fileId"];
@@ -1158,12 +1158,11 @@
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.player = player;
                     out.innerHTML = player.innerHTML;
-                    {#let url = player.data;#}
-                    {#let metadata = await getImageMetadataFromURL(url);#}
-                    {#out.url = url;#}
-                    {#out.width = metadata.width;#}
-                    {#out.height = metadata.height;#}
-                    {#out.aspectRatio = out.width / out.height;#}
+                    // let metadata = await getSvgMetadataFromData(player.innerHTML);
+                    // {#out.url = url;#}
+                    // {#out.width = metadata.width;#}
+                    // {#out.height = metadata.height;#}
+                    // {#out.aspectRatio = out.width / out.height;#}
                     out.loaded = true;
 
                     psynet.media.downloadProgress.set(mediaType, fileId, 100);
@@ -1269,8 +1268,8 @@
                         };
 
                         // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
-                        if (mediaType === 'object') {
-                            $('#slider-media').prepend('<div style="display: none" class="object" id="' + stimulusId + '"></div>')
+                        if (mediaType === 'html') {
+                            $('#slider-media').prepend('<div style="display: none" class="html" id="' + stimulusId + '"></div>')
                         }
 
                         if (mediaType === 'image') {
@@ -1293,7 +1292,7 @@
                     return Promise.all(promises);
                 };
 
-                const SUPPORTED_MODALITIES = ['audio', 'image', 'object', 'video'];
+                const SUPPORTED_MODALITIES = ['audio', 'image', 'html', 'video'];
                 SUPPORTED_MODALITIES.forEach(function (modality){
                     processMediaBatch[modality] = function (data, args) { //, ids,) {
                         return processMediaBatch.extract_stimuli(data, args);
@@ -1676,7 +1675,7 @@
 
                 psynet.audio = psynet.media.data.audio;
                 psynet.image = psynet.media.data.image;
-                psynet.object = psynet.media.data.object;
+                psynet.html = psynet.media.data.html;
                 psynet.video = psynet.media.data.video;
 
                 return psynet

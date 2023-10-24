@@ -16,6 +16,6 @@ def test_ids():
     assert media.ids == {
         "audio": {"bier", "funk_game_loop", "honey_bee", "there_it_is"},
         "image": set(),
-        "object": set(),
+        "html": set(),
         "video": {"vid1"},
     }

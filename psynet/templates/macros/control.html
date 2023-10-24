@@ -335,7 +335,7 @@
 {% endmacro %}
 
 
-{% macro audio_slider(params) %}
+{% macro audio_media_slider(params) %}
 
     {{ media_slider(params) }}
 
@@ -371,7 +371,7 @@
 {% endmacro %}
 
 
-{% macro image_slider(params) %}
+{% macro image_media_slider(params) %}
     <style>
         #slider-media {
             min-width: {{ params.media_width }};
@@ -432,17 +432,7 @@
 {% endmacro %}
 
 
-{% macro svg_slider(params) %}
-    <style>
-        #slider-media {
-            min-width:  {{ params.media_width }};
-            min-height: {{ params.media_height }};
-        }
-        .object {
-            width: {{ params.media_width }};
-            height: {{ params.media_height }};
-        }
-    </style>
+{% macro html_media_slider(params) %}
 
     <p class="vspace"></p>
 
@@ -467,25 +457,20 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
-        const showing = document.createElement("div");
-        showing.id = 'slider_stimulus_shown';
-        mediaDiv.prepend(showing);
-        showing.style.textAlign='center'
+        const show = document.createElement("div");
+        show.id = 'slider-stimulus-show';
+        mediaDiv.prepend(show);
 
         playMedia = function () {
             var id = slider.media;
-            var object = psynet.object[id];
+            var html = psynet.html[id];
 
-            psynet.log.debug('Showing image with ID = ' + id);
-            var showing = document.getElementById('slider_stimulus_shown');
-            const loadSvg = async () => {
-              // get image, parse source text, and insert text into html
-              showing.innerHTML = await (object.player.innerHTML);
-              showing.style.margin='auto'
-              showing.style.display='block'
-            };
-            loadSvg();
-{#            {% endif %}#}
+            psynet.log.debug('Showing html with ID = ' + id);
+            var show = document.getElementById('slider-stimulus-show');
+            // get image, parse source text, and insert text into html
+            show.innerHTML = html.player.innerHTML;
+            show.style.margin='auto'
+            show.style.textAlign='center'
         };
 
         onSliderEvent = function (eventType) {
@@ -502,7 +487,7 @@
 {% endmacro %}
 
 
-{% macro video_slider(params) %}
+{% macro video_media_slider(params) %}
     <style>
         #slider-media {
             min-width: {{ params.media_width }};
@@ -537,7 +522,11 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
-        {#var slider = document.getElementById(sliderId);#}
+        const show = document.createElement("video");
+        show.id = 'slider-stimulus-show';
+        show.classList.add('video');
+        mediaDiv.prepend(show);
+
         playMedia = function () {
             var id = slider.media;
             var video = psynet.video[id];

@@ -2099,7 +2099,7 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "jpeg", "png", "gif", "svg"], "object": ["svg"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "jpeg", "png", "gif", "svg"], "html": ["svg", "txt"], "video": ["mp4", "ogg"]}
 
 
 class MediaSliderControl(SliderControl):
@@ -2344,7 +2344,7 @@ class AudioSliderControl(MediaSliderControl):
         self.disable_while_playing = disable_while_playing
         self.js_vars["disable_while_playing"] = disable_while_playing
 
-    macro = "audio_slider"
+    macro = "audio_media_slider"
 
     @property
     def metadata(self):
@@ -2507,7 +2507,7 @@ class ImageSliderControl(MediaSliderControl):
         self.js_vars["continuous_updates"] = continuous_updates
         self.js_vars["prompt_above_media"] = prompt_above_media
 
-    macro = "image_slider"
+    macro = "image_media_slider"
 
     @property
     def metadata(self):
@@ -2517,9 +2517,9 @@ class ImageSliderControl(MediaSliderControl):
             "prompt_above_media": self.prompt_above_media,
         }
 
-class SvgSliderControl(MediaSliderControl):
+class HtmlSliderControl(MediaSliderControl):
     """
-    This control solicits a slider response from the user that results in showing an svg vector image.
+    This control solicits a slider response from the user that results in showing an HTML element.
     The slider can either be horizontal or circular.
 
     Parameters
@@ -2563,16 +2563,11 @@ class SvgSliderControl(MediaSliderControl):
     prompt_above_media:
         If `True`, the prompt is displayed above the image. Default: `False`.
 
-    use_inline_svg : bool
-        If `True`, the svg image will be inserted inline instead of via an image element.
-        This allows for restarting any animations part of the svg when revisiting the slider value.
-        Default: `False`.
-
     media_width:
-        CSS width specification for the svg when inserted via an image element.
+        CSS width specification for the html container.
 
     media_height:
-        CSS height specification for the svg when inserted via an image element.
+        CSS height specification for the html container.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
@@ -2635,7 +2630,6 @@ class SvgSliderControl(MediaSliderControl):
         media_locations: dict,
         autoplay: Optional[bool] = False,
         prompt_above_media: Optional[bool] = False,
-        use_inline_svg: Optional[bool] = False,
         media_width: Optional[str] = "",
         media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
@@ -2682,9 +2676,8 @@ class SvgSliderControl(MediaSliderControl):
         self.use_inline_svg = use_inline_svg
         self.js_vars["continuous_updates"] = continuous_updates
         self.js_vars["prompt_above_media"] = prompt_above_media
-        self.js_vars["use_inline_svg"] = use_inline_svg
 
-    macro = "svg_slider"
+    macro = "html_media_slider"
 
     @property
     def metadata(self):
@@ -2692,7 +2685,6 @@ class SvgSliderControl(MediaSliderControl):
             **super().metadata,
             "continuous_updates": self.continuous_updates,
             "prompt_above_media": self.prompt_above_media,
-            "use_inline_svg": self.use_inline_svg,
         }
 
 class VideoSliderControl(MediaSliderControl):
@@ -2846,7 +2838,7 @@ class VideoSliderControl(MediaSliderControl):
         self.js_vars["disable_while_playing"] = disable_while_playing
         self.js_vars["prompt_above_media"] = prompt_above_media
 
-    macro = "video_slider"
+    macro = "video_media_slider"
 
     @property
     def metadata(self):
