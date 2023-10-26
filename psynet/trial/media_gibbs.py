@@ -515,7 +515,6 @@ class HtmlGibbsTrial(MediaGibbsTrial):
     prompt_above_media = False
     media_width = ""
     media_height = ""
-    use_inline_svg = True
     continuous_updates = False
 
     def show_trial(self, experiment, participant):
@@ -534,7 +533,6 @@ class HtmlGibbsTrial(MediaGibbsTrial):
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
                 prompt_above_media=self.prompt_above_media,
-                use_inline_svg=self.use_inline_svg,
                 media_width=self.media_width,
                 media_height=self.media_height,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,

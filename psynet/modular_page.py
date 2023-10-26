@@ -2661,19 +2661,10 @@ class HtmlSliderControl(MediaSliderControl):
             minimal_time=minimal_time,
             minimal_interactions=minimal_interactions,
         )
-        if use_inline_svg and media_width != '':
-            raise NotImplementedError(
-                f"media_width is not supported when use_inline_svg is True"
-            )
-        if use_inline_svg and media_height != '':
-            raise NotImplementedError(
-                f"media_height is not supported when use_inline_svg is True"
-            )
         self.media_width = media_width
         self.media_height = media_height
         self.continuous_updates = continuous_updates
         self.prompt_above_media = prompt_above_media
-        self.use_inline_svg = use_inline_svg
         self.js_vars["continuous_updates"] = continuous_updates
         self.js_vars["prompt_above_media"] = prompt_above_media
 

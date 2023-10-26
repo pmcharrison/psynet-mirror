@@ -373,13 +373,9 @@
 
 {% macro image_media_slider(params) %}
     <style>
-        #slider-media {
+        #slider-stimulus-show {
             min-width: {{ params.media_width }};
             min-height: {{ params.media_height }};
-        }
-        .image {
-            width: {{ params.media_width }};
-            height: {{ params.media_height }};
         }
     </style>
 
@@ -406,16 +402,21 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
+        const show = document.createElement("img");
+        show.id = 'slider-stimulus-show';
+        show.style.display = 'none'
+        mediaDiv.prepend(show);
+
         playMedia = function () {
             var id = slider.media;
             var image = psynet.image[id];
 
-            $('img').each(function (idx, elem){
-                elem.style.display='none'
-                elem.style.margin='auto'
-            })
             psynet.log.debug('Showing image with ID = ' + id);
-            image.player.style.display = 'block';
+            show.setAttribute("src", image.player.src);
+            show.setAttribute("height", `{{ params.media_height }}`);
+            show.setAttribute("width", `{{ params.media_width }}`);
+            show.style.margin='auto'
+            show.style.display='block'
         };
 
         onSliderEvent = function (eventType) {
@@ -433,6 +434,12 @@
 
 
 {% macro html_media_slider(params) %}
+    <style>
+        #slider-stimulus-show {
+            min-width: {{ params.media_width }};
+            min-height: {{ params.media_height }};
+        }
+    </style>
 
     <p class="vspace"></p>
 
@@ -494,8 +501,8 @@
             min-height: {{ params.media_height }};
         }
         .video {
-            width: {{ params.media_width }};
-            height: {{ params.media_height }};
+            min-width: {{ params.media_width }};
+            min-height: {{ params.media_height }};
         }
     </style>
     <p class="vspace"></p>
@@ -522,11 +529,6 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
-        const show = document.createElement("video");
-        show.id = 'slider-stimulus-show';
-        show.classList.add('video');
-        mediaDiv.prepend(show);
-
         playMedia = function () {
             var id = slider.media;
             var video = psynet.video[id];
@@ -534,10 +536,10 @@
             $('video').each(function (idx, elem){
                 elem.pause()
                 elem.style.display='none'
-                elem.style.margin='auto'
             })
-            psynet.log.debug('Playing video with ID = ' + id);
             disableSlider();
+            psynet.log.debug('Playing video with ID = ' + id);
+            video.player.style.margin = 'auto'
             video.player.style.display = 'block'
             video.player.pause();
             video.player.currentTime = 0;
