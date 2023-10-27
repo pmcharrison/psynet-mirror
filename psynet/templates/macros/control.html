@@ -630,7 +630,7 @@
     <input
         type="range"
         id="{{ params.slider_id }}"
-        class="wait-for-media-load slider-range form-control-range{% if not params.directional %} slider-non-directional{% endif %}"
+        class="wait-for-media-load slider-range form-range form-control-range{% if not params.directional %} slider-non-directional{% endif %}"
         min="{{ params.min_value }}"
         max="{{ params.max_value + 0.0001 * params.step_size }}"
         step="{{ params.step_size }}"
