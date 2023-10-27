@@ -156,7 +156,7 @@ class Exp(psynet.experiment.Experiment):
                 # width="400px",
                 # height="400px",
                 autoplay=True,
-                disable_while_playing=True,
+                disable_slider_on_change="while_playing",
                 prompt_above_media=False,
                 n_steps="n_media",
                 input_type="HTML5_range_slider",
