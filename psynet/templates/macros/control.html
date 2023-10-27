@@ -606,10 +606,9 @@
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             border: 1px solid #000000;
-            height: 36px;
-            background-color: #efefef;
-            border: 11px solid #b2b2b2;
-            border-radius: 5px;
+            background-color: #0d6efd;
+            border: 11px solid #0d6efd;
+            border-radius: 1rem;
             {% if params.directional == false %}
             margin-top: -8px;
             {% endif %}
@@ -620,11 +619,18 @@
               background: #000000;
               border: 1px solid #b2b2b2;
               background-color: #efefef;
-              border-radius: 5px;
+              border-radius: 1rem;
               width: 100%;
               height: 8px;
             }
         {% endif %}
+        input[type=range]:focus::-webkit-slider-thumb {
+            box-shadow: none;
+        }
+        input[type=range]:disabled::-webkit-slider-thumb {
+            background-color: #86b6fe;
+            border: 11px solid #86b6fe;
+        }
     </style>
 
     <input
