@@ -53,7 +53,7 @@ class CustomTrial(VideoGibbsTrial):
     debug = DEBUG
     minimal_time = 3.0
     time_estimate = 5.0
-    disable_while_playing = True
+    disable_slider_on_change = "while_playing"
 
     def get_prompt(self, experiment, participant):
         return Prompt(

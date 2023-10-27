@@ -119,14 +119,17 @@ class MediaGibbsTrial(GibbsTrial):
         If ``False`` (default), the sound only plays once the participant
         first moves the slider.
 
-    disable_while_playing : bool
-        If `True`, the slider is disabled while the media is playing. Default: `False`.
+    disable_slider_on_change:
+        - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
+
+        - ``"while_playing"``: The slider will be disabled after a value change, as long as the related media is playing.
+
+        - ``"never"``: The slider will not be disabled after a value change.
+
+        Default: `never`.
 
     prompt_above_media : bool
         If `True`, the prompt is displayed above the media. Default: `False`.
-
-    use_inline_svg : bool
-        If `True`, the svg media will be inserted inline instead of via an image element. Default: `False`.
 
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
@@ -156,6 +159,7 @@ class MediaGibbsTrial(GibbsTrial):
     snap_slider = False
     snap_slider_before_release = False
     autoplay = False
+    disable_slider_on_change = "never"
     minimal_interactions = 3
     minimal_time = 3.0
     debug = False
@@ -179,6 +183,7 @@ class MediaGibbsTrial(GibbsTrial):
                 modality=self.network.modality,
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
+                disable_slider_on_change=self.disable_slider_on_change,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
                 random_wrap=self.random_wrap,
@@ -210,6 +215,10 @@ class MediaGibbsTrial(GibbsTrial):
         ):
             raise ValueError(
                 "<snap_slider_before_release> can only equal <True> if <granularity> is an integer."
+            )
+        if self.network.modality in ["image", "html"] and self.disable_slider_on_change == "while_playing":
+            raise ValueError(
+                f"<disable_slider_on_change> cannot equal <'while_playing'> if the modality is {self.network.modality}."
             )
 
     @property
@@ -396,7 +405,7 @@ class AudioGibbsNetwork(MediaGibbsNetwork):
 
 
 class AudioGibbsTrial(MediaGibbsTrial):
-    disable_while_playing = False
+    disable_slider_on_change = "never"
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -413,7 +422,7 @@ class AudioGibbsTrial(MediaGibbsTrial):
                 audio=self.media.audio,
                 sound_locations=self.media_locations,
                 autoplay=self.autoplay,
-                disable_while_playing=self.disable_while_playing,
+                disable_slider_on_change=self.disable_slider_on_change,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
                 random_wrap=self.random_wrap,
@@ -457,6 +466,7 @@ class ImageGibbsNetwork(MediaGibbsNetwork):
 
 
 class ImageGibbsTrial(MediaGibbsTrial):
+    disable_slider_on_change = "never"
     prompt_above_media = False
     media_width = ""
     media_height = ""
@@ -464,6 +474,10 @@ class ImageGibbsTrial(MediaGibbsTrial):
 
     def show_trial(self, experiment, participant):
         self._validate()
+        if self.continuous_updates and self.disable_slider_on_change != "never":
+            raise ValueError(
+                "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
+            )
 
         start_value = self.initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
@@ -477,6 +491,7 @@ class ImageGibbsTrial(MediaGibbsTrial):
                 slider_media=self.media.data[self.network.modality],
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
+                disable_slider_on_change=self.disable_slider_on_change,
                 prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,
                 media_height=self.media_height,
@@ -512,6 +527,7 @@ class HtmlGibbsNetwork(MediaGibbsNetwork):
 
 
 class HtmlGibbsTrial(MediaGibbsTrial):
+    disable_slider_on_change = "never"
     prompt_above_media = False
     media_width = ""
     media_height = ""
@@ -519,6 +535,10 @@ class HtmlGibbsTrial(MediaGibbsTrial):
 
     def show_trial(self, experiment, participant):
         self._validate()
+        if self.continuous_updates and self.disable_slider_on_change != "never":
+            raise ValueError(
+                "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
+            )
 
         start_value = self.initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
@@ -532,6 +552,7 @@ class HtmlGibbsTrial(MediaGibbsTrial):
                 slider_media=self.media.data[self.network.modality],
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
+                disable_slider_on_change=self.disable_slider_on_change,
                 prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,
                 media_height=self.media_height,
@@ -559,14 +580,6 @@ class HtmlGibbsTrialMaker(MediaGibbsTrialMaker):
     def default_network_class(self):
         return HtmlGibbsNetwork
 
-    # def check_initialization(self):
-    #     super().check_initialization()
-    #     if self.trial_class.continuous_updates and self.trial_class.disable_slider_on_change != 0:
-    #         raise NotImplementedError(
-    #             f"continuous_updates cannot be True when disable_slider_on_change is different from 0."
-    #         )
-
-
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
     pass
@@ -576,7 +589,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
     prompt_above_media = False
     media_width = ""
     media_height = ""
-    disable_while_playing = False
+    disable_slider_on_change = "never"
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -593,7 +606,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
                 slider_media=self.media.data[self.network.modality],
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
-                disable_while_playing=self.disable_while_playing,
+                disable_slider_on_change=self.disable_slider_on_change,
                 prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,
                 media_height=self.media_height,

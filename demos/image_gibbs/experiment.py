@@ -50,6 +50,7 @@ class CustomTrial(ImageGibbsTrial):
     minimal_interactions = 0
     time_estimate = 5.0
     continuous_updates = True
+    disable_slider_on_change = "never"
     media_width = "250px"
     media_height = "250px"
 

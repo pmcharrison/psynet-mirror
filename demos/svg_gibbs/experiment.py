@@ -45,10 +45,12 @@ class CustomTrial(HtmlGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
-    minimal_time = 3.0
+    minimal_interactions = 1
+    minimal_time = 12.0
     time_estimate = 5.0
     prompt_above_media = False
     continuous_updates = False
+    disable_slider_on_change = 6.0
 
     def get_prompt(self, experiment, participant):
         return Markup(

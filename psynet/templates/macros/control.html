@@ -307,6 +307,7 @@
         {% autoescape off %}
         var mediaLocations = {{ params.js_vars.media_locations }};
         var autoplay = {{ params.js_vars.autoplay | lower }};
+        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
         {% endautoescape %}
 
         // Overwrites corresponding method in slider-page.html
@@ -340,10 +341,6 @@
     {{ media_slider(params) }}
 
     <script>
-        {% autoescape off %}
-        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
-        {% endautoescape %}
-
         playMedia = function () {
             var id = slider.media;
             var sound = psynet.audio[id];
@@ -391,6 +388,7 @@
 
     <script>
         {% autoescape off %}
+        var disableDuration = {{ params.js_vars.disable_duration | float }};
         var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
         {% endautoescape %}
 
@@ -411,12 +409,14 @@
             var id = slider.media;
             var image = psynet.image[id];
 
+            disableSlider();
             psynet.log.debug('Showing image with ID = ' + id);
             show.setAttribute("src", image.player.src);
             show.setAttribute("height", `{{ params.media_height }}`);
             show.setAttribute("width", `{{ params.media_width }}`);
             show.style.margin='auto'
             show.style.display='block'
+            setTimeout(enableSlider, disableDuration * 1000);
         };
 
         onSliderEvent = function (eventType) {
@@ -453,6 +453,7 @@
 
     <script>
         {% autoescape off %}
+        var disableDuration = {{ params.js_vars.disable_duration | float }};
         var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
         {% endautoescape %}
 
@@ -472,12 +473,14 @@
             var id = slider.media;
             var html = psynet.html[id];
 
+            disableSlider();
             psynet.log.debug('Showing html with ID = ' + id);
             var show = document.getElementById('slider-stimulus-show');
             // get image, parse source text, and insert text into html
             show.innerHTML = html.player.innerHTML;
             show.style.margin='auto'
             show.style.textAlign='center'
+            setTimeout(enableSlider, disableDuration * 1000);
         };
 
         onSliderEvent = function (eventType) {
@@ -517,7 +520,7 @@
 
     <script>
         {% autoescape off %}
-        var disableWhilePlaying = {{ params.js_vars.disable_while_playing | lower }};
+        var disableDuration = {{ params.js_vars.disable_duration | float }};
         var promptAboveMedia = {{ params.js_vars.prompt_above_media| lower }};
         {% endautoescape %}
 
@@ -544,7 +547,11 @@
             video.player.pause();
             video.player.currentTime = 0;
             video.player.play();
-            setTimeout(enableSlider, video.player.duration*1000)
+            if (disableDuration == 0) {
+                setTimeout(enableSlider, video.player.duration*1000)
+            } else {
+                setTimeout(enableSlider, disableDuration * 1000);
+            }
         };
 
         onSliderEvent = function (eventType) {
