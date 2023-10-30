@@ -18,6 +18,7 @@ from typing import List
 import dallinger.experiment
 import dallinger.models
 import flask
+import psutil
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
@@ -710,6 +711,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         for c in exp.database_checks:
             c.run()
+
+    @scheduled_task("interval", minutes=1, max_instances=1)
+    @staticmethod
+    def check_resources():
+        current_timestamp = datetime.now()
+        logger.info(
+            f"CPU usage: {psutil.cpu_percent()}%; memory usage: {psutil.virtual_memory().percent}% [{current_timestamp}]"
+        )
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod

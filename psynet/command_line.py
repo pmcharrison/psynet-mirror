@@ -39,6 +39,7 @@ from psynet.version import check_versions
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
+from .log import create_report, export_docker_ssh_logs
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -51,6 +52,16 @@ from .utils import (
 )
 
 dallinger.command_line.utils.header = ""
+
+
+def app_option(required=False, help="App ID", callback=None):
+    return click.option(
+        "--app",
+        required=required,
+        default=None,
+        help=help,
+        callback=callback,
+    )
 
 
 def log(msg, chevrons=True, verbose=True, **kw):
@@ -190,11 +201,7 @@ def _validate_location(ctx, param, value):
 
 @psynet.command("experiment-variables")
 @click.argument("location", default="local")  # , callback=_validate_location)
-@click.option(
-    "--app",
-    default=None,
-    help="Name of the experiment app (required for non-local deployments)",
-)
+@app_option(help="Name of the experiment app (required for non-local deployments)")
 @server_option
 def experiment_variables(location, app, server):
     with db_connection(location, app, server) as connection:
@@ -254,11 +261,7 @@ def get_db_uri(location, app=None, server=None):
 
 @psynet.command("db")
 @click.argument("location", default="local", callback=_validate_location)
-@click.option(
-    "--app",
-    default=None,
-    help="Name of the experiment app (required for non-local deployments)",
-)
+@app_option(help="Name of the experiment app (required for non-local deployments)")
 @click.option(
     "--server",
     default=None,
@@ -289,8 +292,6 @@ def sandbox(*args, **kwargs):
 
 
 @debug.command("local")
-# @click.option("--app", default=None, help="Name of the experiment app (required for non-local deployments)")
-# @click.option("--server", default=None, help="Name of the remote server (only relevant for ssh deployments)")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
@@ -689,7 +690,7 @@ def deploy():
 
 
 @deploy.command("heroku")
-@click.option("--app", required=True, help="Experiment id")
+@app_option(required=True)
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
@@ -738,7 +739,7 @@ def _deploy__docker_heroku(ctx, app, archive):
 
 
 @deploy.command("ssh")
-@click.option("--app", required=True, help="Experiment id")
+@app_option(required=True)
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
 @click.option(
@@ -1004,7 +1005,7 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
 
 
 @debug.command("heroku")
-@click.option("--app", default=None, help="Name of the experiment app.")
+@app_option()
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.pass_context
@@ -1049,7 +1050,7 @@ def debug__docker_heroku(ctx, app, archive):
 
 
 @debug.command("ssh")
-@click.option("--app", required=True, help="Name of the experiment app.")
+@app_option(required=True)
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
 @click.option(
@@ -1465,15 +1466,6 @@ def verify_psynet_requirement():
 ##########
 
 
-def app_argument(func):
-    return click.option(
-        "--app",
-        default=None,
-        required=False,
-        help="App id",
-    )(func)
-
-
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -1498,30 +1490,6 @@ def export_arguments(func):
     return func
 
 
-# @psynet.command()
-# @click.option(
-#     "--app",
-#     default=None,
-#     required=False,
-#     help="App id",
-# )
-# @click.option("--local", is_flag=True, help="Export local data")
-# @click.option("--path", default=None, help="Path to export directory")
-# @click.option(
-#     "--assets",
-#     default="experiment",
-#     help="Which assets to export; valid values are none, experiment, and all",
-# )
-# @click.option(
-#     "--anonymize",
-#     default="both",
-#     help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
-# )
-# @click.option(
-#     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
-# )
-
-
 @psynet.group("export")
 def export():
     pass
@@ -1537,11 +1505,7 @@ def export__local(ctx=None, **kwargs):
 
 @export.command("heroku")
 @export_arguments
-@click.option(
-    "--app",
-    required=True,
-    help="Name of the app to export",
-)
+@app_option(required=True, help="Name of the app to export")
 @click.pass_context
 def export__heroku(ctx, app, **kwargs):
     exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
@@ -1549,11 +1513,7 @@ def export__heroku(ctx, app, **kwargs):
 
 
 @export.command("ssh")
-@click.option(
-    "--app",
-    required=True,
-    help="Name of the app to export",
-)
+@app_option(required=True, help="Name of the app to export")
 @server_option
 @export_arguments
 @click.pass_context
@@ -1620,7 +1580,8 @@ def export_(
     assert len(deployment_id) > 0
 
     remote_exp_label = exp_variables["label"]
-    local_exp_label = import_local_experiment()["class"].label
+    experiment_cls = import_local_experiment()["class"]
+    local_exp_label = experiment_cls.label
 
     if not remote_exp_label == local_exp_label:
         if not user_confirms(
@@ -1683,6 +1644,11 @@ def export_(
             server,
             dns_host,
         )
+
+    if docker_ssh:
+        log_path = os.path.join(path, app + ".log")
+        export_docker_ssh_logs(app, server, log_path)
+        create_report(log_path)
 
 
 def _export_(
@@ -1849,6 +1815,28 @@ def export_assets(
         n_parallel,
         server,
     )
+
+
+@psynet.group("logs")
+def logs():
+    pass
+
+
+@logs.command("ssh")
+@app_option(required=True)
+@server_option
+@click.option(
+    "--log_path",
+    default=None,
+    help="Path of the log file",
+)
+@click.pass_context
+def logs__docker_ssh(ctx, app, server, log_path):
+    if log_path is None:
+        log_name = f"{app}.log"
+        log_path = os.path.join(os.getcwd(), log_name)
+    export_docker_ssh_logs(app, server, log_path)
+    log(f"Log file saved to: {log_path}")
 
 
 @psynet.command()
@@ -2143,7 +2131,7 @@ def destroy():
 
 
 @destroy.command("heroku")
-@click.option("--app", default=None, callback=verify_id, help="Experiment id")
+@app_option(callback=verify_id)
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -2221,7 +2209,7 @@ def _destroy(
 
 
 @destroy.command("ssh")
-@click.option("--app", default=None, help="Experiment id")
+@app_option()
 @server_option
 @click.option(
     "--expire-hit/--no-expire-hit",
