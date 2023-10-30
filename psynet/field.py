@@ -374,6 +374,7 @@ class VarStore(BaseVarStore):
             self.__dict__["_owner"].vars[name] = value
             # self[name] = value
             # self.set_var(name, value)
+        self.__dict__["_owner"].var_updated_time = datetime.now()
 
 
 # class DotDict(dict, BaseVarStore):

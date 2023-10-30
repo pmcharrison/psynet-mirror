@@ -302,6 +302,10 @@ class SQLMixinDallinger(SharedMixin):
     )
     __extra_vars__ = {}
 
+    var_updated_time = Column(
+        sqlalchemy.DateTime, nullable=False, default=timenow, index=True
+    )
+
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)
         cls.check_validity()
