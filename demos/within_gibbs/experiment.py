@@ -139,7 +139,7 @@ class CustomTrialMaker(GibbsTrialMaker):
             time_estimate=5,
         )
 
-    def compute_bonus(self, score, passed):
+    def compute_performance_reward(self, score, passed):
         if score is None:
             return 0.0
         else:

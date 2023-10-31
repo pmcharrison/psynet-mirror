@@ -73,6 +73,22 @@ Now you can right click on a particular test file or test function within PyChar
 and run the test by clicking 'Run pytest in ...', or alternatively
 'Debug pytest in ...'. The latter mode is slower but supports breakpoints.
 
+In rare cases, tests only fail when several tests are run in a particular sequence.
+This is usually due to some kind of caching issue.
+To reproduce such errors locally, look at the Jobs list in GitLab and work out 
+(a) how many parallel test groups there are (at the time of writing there are 10)
+and (b) what's the number of the test group  you want to reproduce locally 
+(e.g. Job 4/10 is number 4).
+Install the ``pytest-test-groups`` in your local Python environment if you don't have it already
+(``pip install pytest-test-groups``), then run a command like the following:
+
+::
+
+    pytest --test-group-count 10 --test-group=4 --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests
+
+setting the values of ``--test-group-count`` and ``--test-group`` as appropriate.
+
+
 Debugging tests via Docker
 --------------------------
 

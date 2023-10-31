@@ -137,7 +137,7 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
             "automaticallyContinue": Event(
                 is_triggered_by="recordEnd",
                 delay=MAX_RECORDING_DURATION + 0.2,
-                js="onNextButton();",
+                js="psynet.submitResponse();",
             ),
         }
 

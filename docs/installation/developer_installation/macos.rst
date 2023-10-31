@@ -10,7 +10,24 @@ The following installation instructions apply to **macOS Monterey (12.1), Big Su
 Prerequisites
 -------------
 
-Before starting installation make sure you have the latest macOS updates installed. Thereafter follow the step-by-step instructions below.
+Before starting installation make sure you have the latest macOS updates installed.
+Thereafter follow the step-by-step instructions below.
+
+Install Python
+~~~~~~~~~~~~~~
+
+PsyNet requires a recent version of Python 3. To check the minimum version of Python required,
+look at PsyNet's
+`pyproject.toml<https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
+specifically at the line beginning with ``requires-python``, and see which version of Python is required.
+To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
+If this version is lower than the minimum version specified in pyproject.toml, you should update your Python.
+The easiest way to do this is to visit the Python website and download an appropriate version.
+Downloading a version that is too new can be risky, so the easiest solution is to download the precise version
+specified in pyproject.toml. Run the installer to install Python, then try ``python3 --version`` to ensure
+that the correct version is found. To install old versions you might need to run ``brew uninstall python3``,
+or go to the Applications folder and delete the appropriate version of Python.
+
 
 Install Homebrew
 ~~~~~~~~~~~~~~~~

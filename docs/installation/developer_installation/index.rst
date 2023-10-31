@@ -12,4 +12,5 @@ develop and debug PsyNet code a bit faster.
 
     linux
     macos
+    windows
     virtualenv

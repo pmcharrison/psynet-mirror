@@ -470,10 +470,20 @@ msgstr "重定向到Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
-"你必须积累<strong>至少%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>的奖金，才能得到补偿。"
+"你必须积累<strong>至少%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>的奖金，才能得到补偿。"
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"您必须积累 <strong>至少 "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>的奖励才能获得补偿。"
 
 #: psynet/templates/abort_not_possible.html
 msgctxt "abort_possible"
@@ -493,9 +503,21 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "请看下面关于您目前积累的奖金的信息。"
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "请参阅以下有关您当前累积奖励的信息。"
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 msgid "Accumulated bonus"
 msgstr "积累的奖金"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "累计奖励"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -625,8 +647,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "要继续进行，请点击下面的按钮。"
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 msgid "Next"
 msgstr "下一页"
 
@@ -1704,23 +1725,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "要完成您的Lucid调查，请点击下面的按钮。"
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"除了你的基本报酬<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>之外，你还会收到<strong>%(CURRENCY)s%(BONUS)s</strong>的奖金，以奖励你在实验中花费的时间。"
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr "你还获得了<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>的业绩奖金!"
-
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
@@ -1742,6 +1746,45 @@ msgstr "完成"
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "请点击 \"完成 \"来完成HIT。"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"除了 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>（基本报酬）之外，您还将获得 "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>（您在实验中花费的时间）奖金。"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"除了 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>（基本报酬）之外，您还将获得 "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>（时间报酬）</strong>（您在实验中花费的时间）。"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr "你还获得了<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>的业绩奖金!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"您在实验中花费的时间将获得 <strong>%(CURRENCY)s%(TIME_REWARD)s</strong>的奖励。 您还获得了 "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>的绩效奖励！"
 
 #: psynet/templates/final-page-successful.html
 msgctxt "final_page_successful"
@@ -2370,6 +2413,12 @@ msgid "Help!"
 msgstr "帮助!"
 
 #: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "奖励"
+
+#: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "当前网页的链接；"
@@ -2390,7 +2439,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "如果出现问题，请尝试以下方法："
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2407,7 +2455,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "您所遇到的问题。"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

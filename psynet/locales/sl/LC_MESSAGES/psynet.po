@@ -532,11 +532,22 @@ msgstr "Preusmeritev na Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Zbrati morate <strong>vsaj "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> bonusa, da lahko "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> bonusa, da lahko "
+"dobite nadomestilo."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Zbrati morate <strong>vsaj "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> nagrade, da lahko "
 "dobite nadomestilo."
 
 #: psynet/templates/abort_not_possible.html
@@ -562,10 +573,22 @@ msgid "See below information on your currently accumulated bonus."
 msgstr "V nadaljevanju si oglejte informacije o trenutno zbranem bonusu."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Spodaj si oglejte informacije o trenutno zbrani nagradi."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Akumulirana premija"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Akumulirana nagrada"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -723,8 +746,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Če želite nadaljevati, kliknite spodnji gumb."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Naslednji"
@@ -2165,27 +2187,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "Če želite izpolniti anketo Lucid, kliknite spodnji gumb."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Poleg osnovnega plačila <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> boste "
-"prejeli bonus <strong>%(CURRENCY)s%(BONUS)s</strong> za čas, ki ste ga "
-"porabili za eksperiment."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Dodeljen vam je bil tudi bonus za uspešnost v višini "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2211,6 +2212,50 @@ msgstr "Zaključek"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Za dokončanje HIT-a kliknite \"Končaj\"."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Poleg osnovnega plačila <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> boste "
+"prejeli bonus <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas, ki ste ga"
+" porabili za eksperiment."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"Poleg osnovnega plačila <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> boste "
+"prejeli nagrado <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas, ki ste "
+"ga porabili za eksperiment."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Dodeljen vam je bil tudi bonus za uspešnost v višini "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Za čas, ki ste ga porabili za eksperiment, boste prejeli nagrado "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>. Prav tako ste prejeli nagrado "
+"za uspešnost <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2946,6 +2991,12 @@ msgstr "Pomoč!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Nagrada"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Povezava do trenutne spletne strani;"
@@ -2971,7 +3022,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "V primeru težav poskusite naslednje:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2990,7 +3040,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Težava, s katero se soočate."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

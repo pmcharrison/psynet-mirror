@@ -49,9 +49,9 @@ def find_demo_dirs():
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
+        update_psynet_requirement(dir)
         generate_constraints(dir)
         post_update_constraints(dir)
-        update_psynet_requirement(dir)
 
 
 def generate_constraints(dir):
@@ -95,7 +95,7 @@ with fileinput.FileInput(
         print(re.sub(version, f"psynet:v{__version__}", line), end="")
 
 # Update demos
-n_jobs = 6
+n_jobs = 8
 Parallel(verbose=10, n_jobs=n_jobs)(
     delayed(update_demo)(_dir) for _dir in find_demo_dirs()
 )

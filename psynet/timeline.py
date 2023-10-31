@@ -24,6 +24,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
+    call_function,
     call_function_with_context,
     check_function_args,
     dict_to_js_vars,
@@ -672,6 +673,25 @@ class Page(Elt):
         This will override any ``bot_response`` function specified in the class's
         ``bot_response`` method.
 
+    validate
+        Optional validation function to use for the participant's response.
+        Alternatively, the validation function can be set by overriding this class's ``validate`` method.
+        If no validation function is found, no validation is performed.
+        See :meth:`~psynet.timeline.Page.validate` for information about how to write this function.
+
+        Validation functions provided via the present route may contain various optional arguments.
+        Most typically the function will be of the form ``lambda answer: ...` or ``lambda answer, participant: ...``,
+        but it is also possible to include the arguments ``raw_answer``, ``response``, ``page``, and ``experiment``.
+        Note that ``raw_answer`` is the answer before applying ``format_answer``, and ``answer`` is the answer
+        after applying ``format_answer``.
+
+        Validation functions should return ``None`` if the validation passes,
+        or if it fails a string corresponding to a message to pass to the participant.
+
+        For example, a validation function testing that the answer contains exactly 3 characters might look like this:
+        ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
+
+
     Attributes
     ----------
 
@@ -681,14 +701,14 @@ class Page(Elt):
     session_id : str
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
 
-    dynamically_update_progress_bar_and_bonus : bool
-        If ``True``, then the page will regularly poll for updates to the progress bar and the bonus.
-        If ``False`` (default), the progress bar and bonus are updated only on page refresh or on transition to
+    dynamically_update_progress_bar_and_reward : bool
+        If ``True``, then the page will regularly poll for updates to the progress bar and the reward.
+        If ``False`` (default), the progress bar and reward are updated only on page refresh or on transition to
         the next page.
     """
 
     returns_time_credit = True
-    dynamically_update_progress_bar_and_bonus = False
+    dynamically_update_progress_bar_and_reward = False
 
     def __init__(
         self,
@@ -713,6 +733,7 @@ class Page(Elt):
         show_termination_button: bool = False,
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
+        validate: Optional[callable] = None,
     ):
         if template_arg is None:
             template_arg = {}
@@ -775,6 +796,7 @@ class Page(Elt):
         self.progress_display = progress_display
 
         self._bot_response = bot_response
+        self._validate_function = validate
 
     def call__bot_response(self, experiment, bot, response=NoArgumentProvided):
         from .bot import BotResponse
@@ -813,10 +835,15 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
+            "trialManualRequest": Event(
+                is_triggered_by=["trialConstruct", "buttonStart"],
+                once=True,
+                js="$('#buttonStart').attr('disabled', true)",
+            ),
             "trialPrepare": Event(
                 is_triggered_by="trialConstruct"
                 if self.start_trial_automatically
-                else None,
+                else "trialManualRequest",
                 once=True,
             ),
             "trialStart": Event(is_triggered_by="trialPrepare", once=True),
@@ -1060,6 +1087,15 @@ class Page(Elt):
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
 
+            3. ``answer``:
+               The formatted answer returned by the participant.
+
+            4. ``raw_answer``:
+               The unformatted answer returned by the participant.
+
+            5. ``page``:
+               The page to which the participant is responding.
+
         Returns
         -------
 
@@ -1068,7 +1104,8 @@ class Page(Elt):
             :class:`psynet.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
-        return None
+        if self._validate_function is not None:
+            return call_function(self._validate_function, response=response, **kwargs)
 
     def pre_render(self):
         """
@@ -1084,7 +1121,7 @@ class Page(Elt):
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
-            "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
+            "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
@@ -1097,10 +1134,13 @@ class Page(Elt):
             "js_vars": js_vars,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
-            "extra_bonus": "%.2f" % participant.performance_bonus,
-            "total_bonus": "%.2f"
-            % (participant.performance_bonus + participant.time_credit.get_bonus()),
+            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "performance_reward": "%.2f" % participant.performance_reward,
+            "total_reward": "%.2f"
+            % (
+                participant.performance_reward
+                + participant.time_credit.get_time_reward()
+            ),
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
@@ -1110,8 +1150,8 @@ class Page(Elt):
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
             "js_links": self.js_links,
-            "css": self.css,
-            "css_links": self.css_links,
+            "css": self.css + experiment.css,
+            "css_links": self.css_links + experiment.css_links,
             "events": self.events,
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
@@ -1536,8 +1576,8 @@ class Timeline:
                 if isinstance(new_elt, Page):
                     finished = True
 
-    def estimated_max_bonus(self, wage_per_hour):
-        return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
+    def estimated_max_reward(self, wage_per_hour):
+        return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
 
     def estimated_completion_time(self, wage_per_hour):
         return self.estimated_time_credit.get_max("time", wage_per_hour=wage_per_hour)
@@ -1551,7 +1591,7 @@ class CreditEstimate:
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
             return self._max_time
-        elif mode == "bonus":
+        elif mode == "reward":
             assert wage_per_hour is not None
             return self._max_time * wage_per_hour / (60 * 60)
         elif mode == "all":
@@ -1559,7 +1599,7 @@ class CreditEstimate:
                 "time_seconds": self._max_time,
                 "time_minutes": self._max_time / 60,
                 "time_hours": self._max_time / (60 * 60),
-                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour),
+                "reward": self.get_max("reward", wage_per_hour=wage_per_hour),
             }
 
     def _estimate_max_time(self, elts):
@@ -1646,8 +1686,6 @@ class Response(_Response):
     successful_validation: bool
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
-        Stored in ``property2`` in the database.
-        (Not yet implemented)
 
     client_ip_address : str
         The participant's IP address as reported by Flask.
@@ -2268,6 +2306,14 @@ class Module:
         for asset in self._staged_assets:
             asset.module_id = self.id
 
+        for node in self.nodes:
+            if node.module_id is not None and node.module_id != self.id:
+                raise RuntimeError(
+                    "Nodes cannot belong to multiple modules/trial makers. "
+                    "Please make a separate node list for each one."
+                )
+            node.module_id = self.id
+
     @property
     def assets(self):
         return ModuleAssets(self.id)
@@ -2305,7 +2351,7 @@ class Module:
     def nodes_register_in_db(self):
         for node in self.nodes:
             db.session.add(node)
-            node.module_id = self.id
+            assert node.module_id == self.id
             if node.network is None:
                 node.add_default_network()
         db.session.commit()

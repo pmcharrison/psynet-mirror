@@ -78,3 +78,14 @@ where ``postgresql@14`` should be replaced with the exact name for the Postgres 
 
 If that doesn't work, try searching Google for help. If you find another solution,
 please share your experience here.
+
+
+MISCONF Redis is configured to save RDB snapshots
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you you see an error beginning 'MISCONF Redis is configured to save RDB snapshots',
+and you are using MacOS, then you may be able to fix your problem by running the following command:
+
+.. code:: bash
+
+    brew services restart redis

@@ -532,12 +532,22 @@ msgstr "Átirányítás a Lucid Marketplace-re..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong> of bonus to be able"
-" to be compensated."
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
 msgstr ""
 "Legalább "
-"<strong>%(CURRENCY)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s%(MIN_ACCUMULATED_BONUS_FOR_ABORT)s</strong>"
+"<strong>%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>"
 " bónuszt kell összegyűjtened ahhoz, hogy kompenzálhass."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Legalább <strong>%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> "
+"jutalmat kell összegyűjtened ahhoz, hogy kompenzálhass."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -563,10 +573,23 @@ msgstr ""
 "Lásd alább a jelenleg felhalmozott bónuszodra vonatkozó információkat."
 
 #: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr ""
+"A jelenleg felhalmozott jutalmaddal kapcsolatos információkat lásd alább."
+
+#: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Accumulated bonus"
 msgstr "Felhalmozott bónusz"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Felhalmozott jutalom"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -728,8 +751,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "A folytatáshoz kattintson az alábbi gombra."
 
-#: psynet/templates/consent.html psynet/templates/macros.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Következő"
@@ -2196,28 +2218,6 @@ msgctxt "exit_recruiter_lucid"
 msgid "To complete your Lucid Survey, click the button below."
 msgstr "A Lucid felmérés kitöltéséhez kattintson az alábbi gombra."
 
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(BONUS)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"A <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> alapfizetésen felül, a "
-"kísérletre fordított időért <strong>%(CURRENCY)s%(BONUS)s</strong> bónuszt "
-"kapsz."
-
-#: psynet/templates/final-page-bonuses.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance bonus of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s</strong>!"
-msgstr ""
-"Ön egy "
-"<strong>%(CURRENCY)s%(PERFORMANCE_BONUS)s%(PERFORMANCE_BONUS)s</strong> "
-"teljesítménybónuszt is kapott!"
-
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgctxt "final_page_rejected_consent"
@@ -2243,6 +2243,52 @@ msgstr "Befejezés"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "A HIT befejezéséhez kattintson a \"Befejezés\" gombra."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"A <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> alapfizetésed mellett "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> bónuszt kapsz a kísérletre "
+"fordított idődért."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"A <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> alapfizetésed mellett "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> jutalmat kapsz a kísérletre "
+"fordított idődért."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Ön egy "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s%(PERFORMANCE_REWARD)s</strong> "
+"teljesítménybónuszt is kapott!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"A kísérletre fordított idődért <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"jutalomban részesülsz. Emellett "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong> teljesítményjutalomban "
+"is részesültél!"
 
 #: psynet/templates/final-page-successful.html
 #, fuzzy
@@ -2988,6 +3034,12 @@ msgstr "Segítség!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Jutalom"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Az aktuális weboldalra mutató link;"
@@ -3013,7 +3065,6 @@ msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Probléma esetén próbálja meg a következőket:"
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -3032,7 +3083,6 @@ msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Az Ön által tapasztalt probléma."
 
-#. ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"

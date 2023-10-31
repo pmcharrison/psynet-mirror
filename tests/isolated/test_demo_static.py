@@ -98,16 +98,16 @@ class TestExp:
 
             next_page(driver, "next-button")
 
-            # 9 * 1 cent bonus for individual trials
-            # + 9 dollars bonus at the end
+            # 9 * 1 cent reward for individual trials
+            # + 9 dollars reward at the end
             # = 9.09
             assert_text(
                 driver,
                 "main-body",
                 """
-                That\'s the end of the experiment! In addition to your base payment of $0.10,
-                you will receive a bonus of $0.13 for the time you spent on the experiment.
-                You have also been awarded a performance bonus of $9.09! Thank you for taking part.
+                That\'s the end of the experiment! You will receive a reward of $0.13
+                for the time you spent on the experiment. You have also been awarded a performance reward of $9.09!
+                You have also been awarded a performance reward of $9.09! Thank you for taking part.
                 Please click "Finish" to complete the HIT. Finish
                 """,
             )

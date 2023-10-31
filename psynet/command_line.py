@@ -34,6 +34,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.version import check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -581,6 +582,7 @@ def is_chromedriver_process(process):
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk):
     verify_psynet_requirement()
+    check_versions()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -656,6 +658,11 @@ def _pre_launch(
         ctx.invoke(prepare)
 
     _forget_tables_defined_in_experiment_directory()
+
+    if heroku:
+        # Unimports the PsyNet experiment, because Dallinger will want to start from scratch when using Heroku.
+        # We don't unimport it in other cases because reloading the experiment produces an unnecessary time overhead.
+        clean_sys_modules()
 
 
 def _forget_tables_defined_in_experiment_directory():
@@ -974,11 +981,14 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
-        elif mode == "deploy":
+        elif mode == "live":
             run_pre_checks_deploy(exp, config, is_mturk)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
+    verify_psynet_requirement()
+    check_versions()
+
     us_only = config.get("us_only")
 
     if (
@@ -1271,12 +1281,12 @@ def _estimate(mode):
     if not config.ready:
         config.load()
 
-    if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
+    if mode in ["reward", "both"]:
+        max_reward = experiment_class.estimated_max_reward(wage_per_hour)
         log(
-            f"Estimated maximum bonus for participant: {config.currency}{round(maximum_bonus, 2)}."
+            f"Estimated maximum reward for participant: {config.currency}{round(max_reward, 2)}."
         )
-    if mode in ["time", "both"]:
+    if mode in ["duration", "both"]:
         completion_time = experiment_class.estimated_completion_time(wage_per_hour)
         log(
             f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
@@ -1287,12 +1297,12 @@ def _estimate(mode):
 @click.option(
     "--mode",
     default="both",
-    type=click.Choice(["bonus", "time", "both"]),
-    help="Type of result. Can be either 'bonus', 'time', or 'both'.",
+    type=click.Choice(["reward", "duration", "both"]),
+    help="Type of result. Can be either 'reward', 'duration', or 'both'.",
 )
 def estimate(mode):
     """
-    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    Estimate the maximum reward for a participant and the time for the experiment to complete, respectively.
     """
     try:
         _estimate(mode)
@@ -1402,7 +1412,7 @@ def verify_psynet_requirement():
         return
 
     with yaspin(
-        text="Verifying PsyNet version in 'requirements.txt'...",
+        text="Verifying PsyNet version in requirements.txt...",
         color="green",
     ) as spinner:
         valid = False
@@ -1414,9 +1424,17 @@ def verify_psynet_requirement():
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
                 match = re.search(
-                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
+                    r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
                     + regex
-                    + "#egg=psynet$",
+                    + "(#egg=psynet)?$",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+                match = re.search(
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+",
                     file_content,
                     re.MULTILINE,
                 )
@@ -1433,6 +1451,7 @@ def verify_psynet_requirement():
         assert valid, (
             "Incorrect specification for PsyNet in 'requirements.txt'.\n"
             "\nExamples:\n"
+            "* psynet == 10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
@@ -1617,7 +1636,6 @@ def export_(
         config.load()
 
     if path is None:
-        # export_root = get_from_config("default_export_root")
         export_root = "~/psynet-data/export"
 
         path = os.path.join(
@@ -1863,7 +1881,7 @@ def load(path):
     populate_db_from_zip_file(path)
 
 
-# Example usage: psynet generate-config --debug_storage_root ~/debug_storage
+# Example usage: psynet generate-config --recruiter mturk
 @psynet.command(
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )
@@ -2331,3 +2349,23 @@ def verify_id(ctx, param, app):
 # The original Dallinger verify_id function forces app names to begin with dlgr-,
 # which is not appropriate for us
 dallinger.command_line.utils.verify_id = verify_id
+
+
+@psynet.command()
+@click.pass_context
+def test(ctx):
+    """
+    Runs the experiment's regression test.
+    """
+    run_subprocess_with_live_output("pytest test.py")
+
+
+@psynet.command()
+@click.pass_context
+def simulate(ctx):
+    """
+    Generates simulated data for an experiment by running the experiment's regression test
+    and exporting the resulting data.
+    """
+    ctx.invoke(test)
+    ctx.invoke(export__local)

@@ -82,3 +82,8 @@ def make_gibbs_node(cls, experiment):
 #
 #     assert n5a.summarize_trial_dimension([0, 0, 0, 1]) == 0.0
 #     assert n5a.summarize_trial_dimension([0, 0, 0, 1, 3]) == 0.0
+
+
+def test_null():
+    "We need to include at least one test in the test file, otherwise pytest will throw an error"
+    assert True

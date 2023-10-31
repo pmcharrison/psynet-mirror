@@ -26,6 +26,7 @@ with code like the following:
 
 .. code:: bash
 
+    chmod 600 path/to/your/key.pem
     ssh-add path/to/your/key.pem
 
 If you normally need a password to access the instance, you'll need to

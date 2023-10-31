@@ -10,6 +10,7 @@ from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_demo
 from psynet.timeline import Module, Timeline
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 
 def test_repeated_modules():
@@ -87,3 +88,68 @@ def test_progress_info(in_experiment_directory, db_session):
 
     assert progress_info["audiovisual_consent"]["started_n_participants"] == 50
     assert progress_info["audiovisual_consent"]["finished_n_participants"] == 25
+
+
+def dummy_page():
+    return InfoPage("Dummy content", time_estimate=5)
+
+
+def dummy_node():
+    return StaticNode(definition={"x": 0})
+
+
+def test_nodes_in_multiple_modules():
+    nodes = [dummy_node()]
+
+    err = "Nodes cannot belong to multiple modules/trial makers. Please make a separate node list for each one."
+
+    with pytest.raises(RuntimeError, match=err):
+        module_1 = Module("module_1", dummy_page(), nodes=nodes)  # noqa
+        module_2 = Module("module_2", dummy_page(), nodes=nodes)  # noqa
+
+
+class CustomTrial(StaticTrial):
+    time_estimate = 5
+
+
+def test_nodes_in_multiple_trial_makers():
+    nodes = [
+        StaticNode(
+            definition={"animal": "cat"},
+        )
+    ]
+
+    err = "Nodes cannot belong to multiple modules/trial makers. Please make a separate node list for each one."
+
+    with pytest.raises(RuntimeError, match=err):
+        StaticTrialMaker(
+            id_="animals",
+            trial_class=CustomTrial,
+            nodes=nodes,
+            expected_trials_per_participant=6,
+            max_trials_per_block=2,
+            allow_repeated_nodes=True,
+            balance_across_nodes=True,
+            check_performance_at_end=False,
+            check_performance_every_trial=False,
+            target_n_participants=1,
+            target_trials_per_node=None,
+            recruit_mode="n_participants",
+            n_repeat_trials=3,
+        )
+
+        StaticTrialMaker(
+            id_="colors",
+            trial_class=CustomTrial,
+            nodes=nodes,
+            expected_trials_per_participant=6,
+            max_trials_per_block=2,
+            allow_repeated_nodes=True,
+            balance_across_nodes=True,
+            check_performance_at_end=False,
+            check_performance_every_trial=False,
+            target_n_participants=1,
+            target_trials_per_node=None,
+            recruit_mode="n_participants",
+            n_repeat_trials=3,
+        )

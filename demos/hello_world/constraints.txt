@@ -287,7 +287,7 @@ psycopg2==2.9.7
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.10.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.3.1
+psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@v10.4.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -513,7 +513,7 @@ wtforms==3.0.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.10.0/dev-requirements.txt
     #   flask-wtf
-yaspin==3.0.0
+yaspin==3.0.1
     # via psynet
 zope-event==5.0
     # via
