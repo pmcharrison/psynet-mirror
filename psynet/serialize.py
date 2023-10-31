@@ -124,7 +124,7 @@ def unserialize(x):
 
 # These classes cannot be reliably pickled by the `jsonpickle` library.
 # Instead we fall back to Python's built-in pickle library.
-no_json_classes = [markupsafe.Markup]
+no_json_classes = [flask.Markup]
 
 
 class NoJSONHandler(jsonpickle.handlers.BaseHandler):
