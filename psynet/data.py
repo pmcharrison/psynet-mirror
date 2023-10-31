@@ -302,7 +302,7 @@ class SQLMixinDallinger(SharedMixin):
     )
     __extra_vars__ = {}
 
-    var_updated_time = Column(
+    last_var_change = Column(
         sqlalchemy.DateTime, nullable=False, default=timenow, index=True
     )
 
