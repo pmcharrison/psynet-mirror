@@ -1982,6 +1982,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
         return success_response()
 
+    @experiment_route("/<obj_type>/<int:obj_id>/var_changed", methods=["GET", "POST"])
+    @staticmethod
+    def var_changed(obj_type, obj_id):
+        if obj_type == "participant":
+            obj_type = Participant
+        elif obj_type == "network":
+            from .trial.main import TrialNetwork
+
+            obj_type = TrialNetwork
+        elif obj_type == "node":
+            from .trial.main import TrialNode
+
+            obj_type = TrialNode
+        elif obj_type == "trial":
+            from .trial.main import Trial
+
+            obj_type = Trial
+        else:
+            return error_response()
+        try:
+            obj = obj_type.query.filter_by(id=obj_id).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            return error_response()
+
+        return success_response(last_var_change=obj.last_var_change)
+
     @experiment_route("/info/<int:info_id>/fail", methods=["GET", "POST"])
     @staticmethod
     def fail_info(info_id):
