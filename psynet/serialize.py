@@ -5,7 +5,6 @@ from functools import cached_property
 import dominate.tags
 import flask
 import jsonpickle
-import markupsafe
 from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
 
