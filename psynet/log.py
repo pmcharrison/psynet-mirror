@@ -307,6 +307,8 @@ def parse_resources(logs):
 def parse_loading_times(logs):
     timeline = logs.query("message.str.contains('/timeline/')", engine="python")
 
+    # TODO update this to work with latest Dallinger PR: https://github.com/Dallinger/Dallinger/pull/5749
+
     timestamps = [
         datetime.strptime(re.findall(r"\[(.*?)\]", message)[0], "%Y-%m-%d %H:%M:%S")
         for message in timeline.message
