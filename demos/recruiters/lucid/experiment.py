@@ -1,8 +1,8 @@
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import MainConsent
+from psynet.consent import LucidConsent
 from psynet.demography.general import BasicDemography
 from psynet.demography.gmsi import GMSI
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -23,7 +23,7 @@ class Exp(psynet.experiment.Experiment):
     label = "LUCID demo"
 
     timeline = Timeline(
-        MainConsent(),
+        LucidConsent(),
         InfoPage(
             Markup(
                 """
@@ -31,6 +31,7 @@ class Exp(psynet.experiment.Experiment):
                 In this experiment you will participate in various tests.
                 """
             ),
+            show_termination_button=True,
             time_estimate=2,
         ),
         AttentionTest(fail_on=None),

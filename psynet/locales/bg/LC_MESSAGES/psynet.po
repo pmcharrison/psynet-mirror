@@ -1,0 +1,5765 @@
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Last-Translator: DeepL API\n"
+"Language-Team: DeepL\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "I don’t know"
+msgstr "Не знам"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "No"
+msgstr "Не"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "Yes"
+msgstr "Да"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "What is your age?"
+msgstr "На каква възраст сте?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr "Трябва да посочите възрастта си като цяло число между 0 и 120!"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "Вашият отговор е: '{AGE}'"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "Other country"
+msgstr "Друга държава"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "Select a country"
+msgstr "Изберете държава"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "What country are you from?"
+msgstr "От коя държава сте?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "What is your current country of residence?"
+msgstr "В коя държава живеете понастоящем?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "You need to select a country!"
+msgstr "Трябва да изберете държава!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Do you dance socially or professionally?"
+msgstr "Танцувате ли в обществото или професионално?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never dance"
+msgstr "Никога не танцувам"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never danced"
+msgstr "Никога не съм танцувал"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Many years ago"
+msgstr "Преди много години"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Professionally"
+msgstr "Професионално"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Socially"
+msgstr "Социално"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Some years ago"
+msgstr "Преди няколко години"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This month"
+msgstr "Този месец"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This week"
+msgstr "Тази седмица"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This year"
+msgstr "Тази година"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "When was the last time you danced? (choose the most accurate answer):"
+msgstr "Кога за последен път сте танцували? (изберете най-точния отговор):"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "Срещнахте ли някакви технически проблеми по време на експеримента?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you find the experiment difficult?"
+msgstr "Смятате ли, че експериментът е труден?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you like the experiment?"
+msgstr "Хареса ли ви експериментът?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr "Ако е така, моля, опишете проблема с няколко думи."
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "College"
+msgstr "Колеж"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "Graduate School"
+msgstr "Висше училище"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "High school"
+msgstr "Средно училище"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "None"
+msgstr "Няма"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "Postgraduate degree or higher"
+msgstr "Следдипломна или по-висока степен"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "What is your highest level of formal education?"
+msgstr "Каква е най-високата степен на формалното ви образование?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Female"
+msgstr "Жена"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "How do you identify yourself?"
+msgstr "Как се идентифицирате?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "I prefer not to answer"
+msgstr "Предпочитам да не отговарям"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Male"
+msgstr "Мъж"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Non-binary"
+msgstr "Небинарен"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Not specified"
+msgstr "Не е уточнено"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Specify yourself"
+msgstr "Посочете себе си"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "10,000 до 19,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "100,000 до 149,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "150,000 {CURRENCY} or more"
+msgstr "150,000 {CURRENCY} или повече"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "от 20 000 до 29 999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "от 30,000 до 39,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "от 40,000 до 49,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "от 50 000 до 59 999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "от 60,000 до 69,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "70,000 до 79,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "80,000 до 89,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "от 90,000 до 99,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, python-brace-format, fuzzy
+msgctxt "income"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "По-малко от 10,000 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "income"
+msgid "What is your total household income per year?"
+msgstr "Какъв е общият годишен доход на вашето домакинство?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Do you speak more than one language?"
+msgstr "Говорите ли повече от един език?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Моля, посочете поне един език!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"Моля, избройте езиците, които говорите, по реда на тяхното владеене (първи "
+"език на първо място, втори език на второ място, ...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Select a language"
+msgstr "Изберете език"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"What is your mother tongue - i.e., the language which you have grown up "
+"speaking from early childhood?"
+msgstr ""
+"Кой е Вашият майчин език - т.е. езикът, на който сте израснали от ранна "
+"детска възраст?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "You need to select a language!"
+msgstr "Трябва да изберете език!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you have hearing loss or any other hearing issues?"
+msgstr "Имате ли загуба на слуха или други проблеми със слуха?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you make money from playing music?"
+msgstr "Печелите ли пари от музика?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Frequently"
+msgstr "Често"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid ""
+"How many years of formal training on a musical instrument (including voice) "
+"have you had during your lifetime?"
+msgstr ""
+"Колко години формално обучение по музикален инструмент (включително глас) "
+"сте имали през живота си?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Never"
+msgstr "Никога"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "On average, how many hours do you listen to music daily?"
+msgstr "Средно по колко часа дневно слушате музика?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Sometimes"
+msgstr "Понякога"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Did you get speech-language therapy as a child?"
+msgstr "Получавали ли сте логопедична терапия като дете?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Have you ever been diagnosed with dyslexia?"
+msgstr "Диагностициран ли сте някога с дислексия?"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Възникна грешка и не можете да продължите, съжаляваме!"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting..."
+msgstr "Пренасочване..."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Моля, посочете и следната информация:"
+
+#: psynet/experiment.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"За да попитате за компенсация, моля, свържете се с изследователя на {EMAIL} "
+"и опишете какво е довело до тази грешка."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Не се притеснявайте, напредъкът ви е записан."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"За да отправите запитване за компенсация, моля, изпратете съобщение на "
+"изследователя чрез уебсайта Prolific и опишете какво е довело до вашата "
+"грешка."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "Трябва да проверите поне един отговор!"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "Трябва да посочите номер!"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "Трябва да изберете отговор!"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindnes_test"
+msgid "Write down the number in the image."
+msgstr "Запишете числото в изображението."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Запишете числото в изображението."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr ""
+"При всеки опит ще ви бъде представено изображение, което съдържа число."
+
+#: psynet/prescreen.py
+#, python-brace-format, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "Това изображение ще изчезне след {HIDE_AFTER} секунди."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr ""
+"Сега ще извършим бърз тест, за да проверим способността ви да възприемате "
+"цветове."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "Трябва да въведете числото, което виждате, в текстовото поле."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Пренасочване към Lucid Marketplace..."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
+"able to be compensated."
+msgstr ""
+"За да получите компенсация, трябва да натрупате <strong>поне "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> от бонуса."
+
+#: psynet/templates/abort_not_possible.html
+#, python-format, fuzzy
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"Трябва да натрупате <strong>най-малко "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> от наградата, за "
+"да можете да получите компенсация."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "Прекъсването не е възможно."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Прекъсването на експеримента не е възможно, тъй като експериментаторът не го"
+" позволява в този момент!"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated bonus."
+msgstr "Вижте по-долу информация за Вашия текущо натрупан бонус."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "Вижте по-долу информация за натрупаната в момента награда."
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated bonus"
+msgstr "Натрупан бонус"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Натрупано възнаграждение"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Close window"
+msgstr "Затваряне на прозореца"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Assignment ID"
+msgstr "ID на заданието"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "HIT ID"
+msgstr "HIT ID"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Прекъсване на експеримента"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Сигурни ли сте, че искате да прекъснете експеримента?"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Ако натиснете бутона Прекъсване, експериментът ще приключи предсрочно и "
+"автоматично ще Ви бъде изплатено обезщетението, което сте спечелили до "
+"момента."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Моля, свържете се с нас само ако имате проблеми с получаването на плащането "
+"си."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "Вижте информацията по-долу за подробности относно вашата компенсация."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "Започнете експеримента"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"Като кликнете върху следния URL линк, ще бъдете отведени до експеримента, "
+"включително пълни инструкции и споразумение за информирано съгласие."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "Покана за участие"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"Моля, кликнете върху бутона \"Accept HIT\" (Приемам HIT) на сайта на Amazon "
+"по-горе, за да започнете изпълнението на задачата."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr ""
+"Моля, деактивирайте блокиращите изскачащи прозорци, преди да продължите."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "Благодарим ви, че приехте този HIT."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "Благодаря за интереса ви към този експеримент."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "Изискванията за участие са, както следва"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "Предупреждение"
+
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Прекъсване на експеримента"
+
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Click the above button to be compensated in case of an error."
+msgstr ""
+"Кликнете върху горния бутон, за да бъдете компенсирани в случай на грешка."
+
+#: psynet/templates/consent.html
+#, python-format, fuzzy
+msgid ""
+"You will also see one or more consent pages and have up to\n"
+"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
+msgstr ""
+"Ще видите и една или повече страници за съгласие и ще имате на разположение "
+"до <strong>%(TERMINATION_TIME)s</strong>, за да ги прочетете и "
+"приемете/отхвърлите."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "If your browser is not compatible we have to reject the survey."
+msgstr "Ако браузърът ви не е съвместим, ще трябва да отхвърлим проучването."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "We are now going to test your browser for compatibility."
+msgstr "Сега ще тестваме браузъра ви за съвместимост."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "concent"
+msgid "To proceed, click the button below."
+msgstr "За да продължите, кликнете върху бутона по-долу."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "To proceed, click the button below."
+msgstr "За да продължите, кликнете върху бутона по-долу."
+
+#: psynet/templates/consent.html psynet/templates/macros/control.html
+#, fuzzy
+msgid "Next"
+msgstr "Следваща"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"For example, you may be asked to record your finger-tapping in response to a"
+" sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Например може да ви помолят да запишете почукването с пръсти в отговор на "
+"звук или видеоклип или да запишете как говорите или пеете."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"In this experiment, you may be asked to make a voice or video recording."
+msgstr ""
+"В този експеримент може да ви помолят да направите гласов или видеозапис."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "(Please tick where applicable)"
+msgstr "(Моля, отбележете, когато е приложимо)"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Addendum for demonstrations"
+msgstr "Допълнение за демонстрации"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I agree that my <i>audiovisual</i> recordings can be used for demonstration "
+"purposes in presentations with a limited number of participants (e.g., "
+"teaching courses or scientific presentations)."
+msgstr ""
+"Съгласен/съгласна съм моите <i>аудиовизуални</i> записи да бъдат използвани "
+"за демонстрационни цели при презентации с ограничен брой участници (напр. "
+"учебни курсове или научни презентации)."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "NO"
+msgstr "НЕ"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "YES"
+msgstr "ДА"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"By making recording people while moving, singing, tapping to rhythms, or "
+"speaking, we can infer the mechanisms of the auditory and visual systems."
+msgstr ""
+"Като записваме хора, които се движат, пеят, почукват в ритъм или говорят, "
+"можем да направим извод за механизмите на слуховата и зрителната система."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"For example, we would like to understand how predictive mechanisms in "
+"perception rely on experience, learning, and memory."
+msgstr ""
+"Например бихме искали да разберем как предсказващите механизми във "
+"възприятието зависят от опита, ученето и паметта."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I agree to the handling of the recordings as described above."
+msgstr "Съгласен съм с обработката на записите, както е описано по-горе."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I had sufficient time for this decision."
+msgstr "Разполагах с достатъчно време за вземане на това решение."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have been informed that the storage and processing of the "
+"<i>audiovisual</i> recording will be carried out in pseudonymized form, "
+"i.e., using a number and without containing my name, and that there is a "
+"coding list that links my name to the number."
+msgstr ""
+"Информиран/а съм, че съхраняването и обработката на <i>аудиовизуалния</i> "
+"запис ще се извършва в псевдонимизирана форма, т.е. с помощта на номер и без"
+" да съдържа името ми, както и че има списък с кодове, който свързва името ми"
+" с номера."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have read and understood everything and hereby agree that "
+"<i>audiovisual</i> recordings of me may be taken."
+msgstr ""
+"Прочетох и разбрах всичко и с настоящото се съгласявам, че могат да бъдат "
+"направени <i>аудиовизуални</i> записи на мен."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I have received a copy of this consent form."
+msgstr "Получих копие от този формуляр за съгласие."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have received oral and written information about the fact that "
+"<i>audiovisual</i> recordings will be made in this study."
+msgstr ""
+"Получих устна и писмена информация за това, че в рамките на това проучване "
+"ще бъдат направени <i>аудиовизуални</i> записи."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I may withdraw my consent at any time."
+msgstr "Мога да оттегля съгласието си по всяко време."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"In case of refusal or withdrawal, no costs will be incurred nor will there "
+"be other negative consequences; however, in this case, participation in the "
+"study will not be possible."
+msgstr ""
+"В случай на отказ или оттегляне на съгласието няма да бъдат направени "
+"разходи, нито ще има други негативни последици; в този случай обаче "
+"участието в проучването няма да бъде възможно."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"Researchers associated with this project will have access to my "
+"<i>audiovisual</i> data during the recording and the analysis of the "
+"material."
+msgstr ""
+"Изследователите, свързани с този проект, ще имат достъп до моите "
+"<i>аудиовизуални</i> данни по време на записването и анализа на материала."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The declaration of consent for <i>audiovisual</i> recordings is voluntary."
+msgstr ""
+"Декларирането на съгласие за <i>аудиовизуални</i> записи е доброволно."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The investigators are the only persons who have access to this coding list, "
+"which will be destroyed after completion of the research project."
+msgstr ""
+"Изследователите са единствените лица, които имат достъп до този списък за "
+"кодиране, който ще бъде унищожен след приключване на изследователския "
+"проект."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The recording serves the purpose of understanding how humans perceive and "
+"process information from sound and visual."
+msgstr ""
+"Записът служи за разбиране на начина, по който хората възприемат и "
+"обработват звукова и визуална информация."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "Research Participant Consent Form for Image/Sound Recordings"
+msgstr ""
+"Формуляр за съгласие на участника в изследването за записи на "
+"изображения/звуци"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I understand that I am free to withdraw my consent to the collection and "
+"storage of my personal data without negative consequences."
+msgstr ""
+"Разбирам, че съм свободен да оттегля съгласието си за събиране и съхраняване"
+" на личните ми данни без негативни последици."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Investigator"
+msgstr "Изследовател"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Title of study:"
+msgstr "Заглавие на изследването:"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"After completion of the research project, the coding list will be destroyed."
+msgstr ""
+"След приключване на изследователския проект списъкът с кодове ще бъде "
+"унищожен."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"From this point on, my data are anonymous, which means that they cannot be "
+"linked to my person any longer."
+msgstr ""
+"От този момент нататък данните ми са анонимни, което означава, че вече не "
+"могат да бъдат свързани с моята личност."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"However, if the coding list has already been destroyed, it will no longer be"
+" possible to identify and thus to delete my data set."
+msgstr ""
+"Ако обаче списъкът с кодове вече е бил унищожен, вече няма да е възможно да "
+"се идентифицира и по този начин да се изтрие моят набор от данни."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I agree to the described collecting and processing of my age, gender, and "
+"country of birth."
+msgstr ""
+"Съгласен съм с описаното събиране и обработване на данните за моята възраст,"
+" пол и държава на раждане."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have been informed that I may request deletion of all my data at any time."
+msgstr ""
+"Информиран/а съм, че мога да поискам изтриване на всички мои данни по всяко "
+"време."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "I have read and understood all of the information completely."
+msgstr "Прочетох и разбрах напълно цялата информация."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received a copy of the participant information sheet and of the "
+"consent form."
+msgstr ""
+"Получих копие от информационния лист за участника и от формуляра за "
+"съгласие."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received written information about the study and the procedure of the"
+" study."
+msgstr ""
+"Получих писмена информация за изследването и процедурата на изследването."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"If I had questions concerning the upcoming study, they were answered "
+"completely and to my satisfaction."
+msgstr ""
+"Ако съм имал/а въпроси относно предстоящото проучване, на тях ми беше "
+"отговорено изчерпателно и по удовлетворителен за мен начин."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The investigators are the only persons who have access to this coding list "
+"and who are thus able to link the collected data to my name."
+msgstr ""
+"Изследователите са единствените лица, които имат достъп до този списък с "
+"кодове и които по този начин могат да свържат събраните данни с моето име."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The participant information sheet about the examination is part of this "
+"consent form."
+msgstr ""
+"Информационният лист за участниците в изследването е част от този формуляр "
+"за съгласие."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The recording and processing of these data are carried out in pseudonymized "
+"form by means of a code and do not contain my name."
+msgstr ""
+"Записването и обработката на тези данни се извършват в псевдонимизирана "
+"форма чрез код и не съдържат моето име."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "There is a coding list on paper that links my name to this number."
+msgstr "На хартия има списък с кодове, който свързва името ми с този номер."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "Research Participant Consent Form"
+msgstr "Формуляр за съгласие на участника в изследването"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have further questions regarding the General Data Protection "
+"Regulation in the context of personal data being processed in our studies, "
+"please contact the Data Protection Officer of the Max Planck Society:"
+msgstr ""
+"Ако имате допълнителни въпроси относно Общия регламент за защита на данните "
+"в контекста на личните данни, обработвани в нашите проучвания, моля, "
+"свържете се с длъжностното лице по защита на данните на Дружество \"Макс "
+"Планк\":"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If we invite you to participate in a study, we will store the date and time "
+"of this communication."
+msgstr ""
+"Ако ви поканим да участвате в проучване, ще запазим датата и часа на това "
+"съобщение."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If you agree to participate, we also will store the date and time of your "
+"communication of this choice, and whether you completed the experiment "
+"successfully or not."
+msgstr ""
+"Ако се съгласите да участвате, ще съхраняваме и датата и часа на съобщението"
+" ви за този избор, както и дали сте завършили експеримента успешно или не."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition to your contact details (i.e., name and email) and the "
+"demographic data requested in the log in (i.e., age, gender, and "
+"nationality), we also store the date and time when you made the entry."
+msgstr ""
+"В допълнение към вашите данни за контакт (т.е. име и имейл) и демографските "
+"данни, поискани при влизането (т.е. възраст, пол и националност), "
+"съхраняваме и датата и часа, когато сте направили вписването."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition, we save the date and time when you verified your email address."
+msgstr ""
+"Освен това запазваме датата и часа, когато сте потвърдили имейл адреса си."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Of course, before you participate in a study, you will be informed in detail"
+" about the procedure of the study and the collection of data during the "
+"study."
+msgstr ""
+"Разбира се, преди да участвате в дадено проучване, ще бъдете подробно "
+"информирани за процедурата на проучването и за събирането на данни по време "
+"на проучването."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid "Which Data are stored"
+msgstr "Кои данни се съхраняват"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Your consent to participate in a study will be obtained separately for each "
+"study you participate in."
+msgstr ""
+"Вашето съгласие за участие в проучване ще бъде получено поотделно за всяко "
+"проучване, в което участвате."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"In addition, we would like to inform you about your rights with regard to "
+"the processing of personal data."
+msgstr ""
+"Освен това бихме искали да ви информираме за вашите права във връзка с "
+"обработката на лични данни."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"With this privacy policy, we would like to inform you about the personal "
+"data we collect when you register for our participant pool and for what "
+"purposes we process this data."
+msgstr ""
+"С тази политика за поверителност бихме искали да ви информираме за личните "
+"данни, които събираме, когато се регистрирате за нашия пул от участници, и "
+"за какви цели обработваме тези данни."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "Duration of Data Storage"
+msgstr "Продължителност на съхранение на данните"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"Note that all information, including the experiment and payment history will"
+" be removed from our database."
+msgstr ""
+"Имайте предвид, че цялата информация, включително историята на "
+"експериментите и плащанията, ще бъде премахната от нашата база данни."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "To do so, send an e-mail with the subject “Delete” to:"
+msgstr "За да направите това, изпратете имейл с тема \"Изтриване\" на адрес:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"You can also delete your data from the database by deleting your account "
+"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
+msgstr ""
+"Можете също така да изтриете данните си от базата данни, като изтриете "
+"профила си (т.е. натиснете \"Delete account\" (Изтриване на профила) в "
+"страницата за вход в cap-recruiter)."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "You may request the deletion of your data at any time."
+msgstr "Можете да поискате изтриване на данните си по всяко време."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"Your data will be stored in the contact database for as long as the purpose "
+"of such storage, i.e., to contact you about participating in a study, "
+"remains in effect."
+msgstr ""
+"Вашите данни ще се съхраняват в базата данни за контакти, докато трае целта "
+"на това съхранение, т.е. да се свържем с вас за участие в проучване."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "Your personal data will then be deleted immediately."
+msgstr "След това Вашите лични данни ще бъдат изтрити незабавно."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"Based on this information we allow you to receive payment via an external "
+"system such as PayPAL/WISE."
+msgstr ""
+"Въз основа на тази информация ви позволяваме да получите плащане чрез външна"
+" система, като например PayPAL/WISE."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"However we do store completion records and payment details of every task you"
+" completed."
+msgstr ""
+"Въпреки това съхраняваме записи за завършване и данни за плащане на всяка "
+"изпълнена от вас задача."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"If you cannot or would not like to receive payment via this system, we would"
+" not be able to pay you, however you can still participate in our "
+"experiments voluntarily, without payment."
+msgstr ""
+"Ако не можете или не желаете да получите плащане чрез тази система, няма да "
+"можем да ви платим, но все пак можете да участвате в нашите експерименти "
+"доброволно, без плащане."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "In this case you will not receive any compensation for your time."
+msgstr "В този случай няма да получите никакво възнаграждение за времето си."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"It is your responsibility to make sure you can receive payment through this "
+"system and that you would want to consent to use it."
+msgstr ""
+"Ваша отговорност е да се уверите, че можете да получавате плащане чрез тази "
+"система и че бихте искали да се съгласите да я използвате."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "Payment and Compensation"
+msgstr "Плащане и компенсация"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This information will be available for you to review it when you login to "
+"the database."
+msgstr ""
+"Тази информация ще бъде достъпна за вас, за да я прегледате, когато влезете "
+"в базата данни."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This system supports transferring money to most banks around the world, "
+"please search your bank in their website to ensure that you will be able to "
+"receive payment prior to taking part in our experiments."
+msgstr ""
+"Тази система поддържа прехвърляне на пари в повечето банки по света, моля, "
+"потърсете вашата банка в нейния уебсайт, за да се уверите, че ще можете да "
+"получите плащане, преди да участвате в нашите експерименти."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We also recommend checking the term of service and it’s privacy statement "
+"and see if you consent to use their system for payment."
+msgstr ""
+"Препоръчваме също така да проверите срока на услугата и нейната декларация "
+"за поверителност и да видите дали сте съгласни да използвате тяхната система"
+" за плащане."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We will not store any banking information or payment information in our "
+"system."
+msgstr ""
+"Ние няма да съхраняваме никаква банкова информация или информация за плащане"
+" в нашата система."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Access (GDPR art. 15)"
+msgstr "Достъп (GDPR чл. 15)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"As a data subject whose personal data are processed with regard to your "
+"participation in our studies, you have the following rights in principle and"
+" insofar as no legal exceptions apply in individual cases:"
+msgstr ""
+"Като субект на данни, чиито лични данни се обработват във връзка с участието"
+" ви в нашите проучвания, имате следните права по принцип и доколкото в "
+"отделните случаи не се прилагат законови изключения:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data Protection: Rights of Data Subjects"
+msgstr "Защита на данните: права на субектите на данни"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data portability (GDPR art. 20)"
+msgstr "Преносимост на данните (член 20 от ОРЗД)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Erasure (GDPR art. 17, para. 1)"
+msgstr "Изтриване (ОРЗД, чл. 17, ал. 1)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"For the Max Planck Society, this is the Data Protection Authority of "
+"Bavaria, Postfach 1349, 91504 Ansbach, Germany."
+msgstr ""
+"За Дружеството \"Макс Планк\" това е Органът за защита на данните на "
+"Бавария, Postfach 1349, 91504 Ansbach, Германия."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"If you have any questions about this research, your rights, or treatment as "
+"a participant, please do not hesitate to contact the Computational Auditory "
+"Perception Group at the Max Planck Institute for Empirical Aesthetics:"
+msgstr ""
+"Ако имате някакви въпроси относно това изследване, вашите права или "
+"третирането ви като участник, моля, не се колебайте да се свържете с Групата"
+" за компютърно слухово възприятие към Института за емпирична естетика \"Макс"
+" Планк\":"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"In order to ensure transparency with regard to the processing of personal "
+"data, the General Data Protection Regulation (GDPR) of the European Union "
+"provides information about the rights of data subjects."
+msgstr ""
+"За да се осигури прозрачност по отношение на обработката на лични данни, "
+"Общият регламент за защита на данните (ОРЗД) на Европейския съюз предоставя "
+"информация за правата на субектите на данни."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Rectification (GDPR art. 16)"
+msgstr "Коригиране (член 16 от ОРЗД)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Restriction of processing (GDPR art. 18)"
+msgstr "Ограничаване на обработването (член 18 от ОРЗД)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
+msgstr "Право на подаване на жалба до надзорен орган (GDPR, чл. 77)."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
+msgstr "Оттегляне на съгласието (ОРЗД, чл. 7, ал. 3)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"You may also address your inquiries directly to the Max Planck Institute for"
+" Empirical Aesthetics:"
+msgstr ""
+"Можете също така да отправяте своите запитвания директно към Института за "
+"емпирична естетика \"Макс Планк\":"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purposes of Processing"
+msgstr "Цели на обработката"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "This data will never be shared with third parties."
+msgstr "Тези данни никога няма да бъдат предоставяни на трети страни."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We store and process your data only for the purpose of initiating "
+"communication with you and for planning studies at the Max Planck Institute "
+"for Empirical Aesthetics (MPIEA)."
+msgstr ""
+"Съхраняваме и обработваме вашите данни само за целите на започване на "
+"комуникация с вас и за планиране на проучванията в Института за емпирична "
+"естетика \"Макс Планк\" (MPIEA)."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"All connections between your computer and the web server are encrypted."
+msgstr "Всички връзки между вашия компютър и уеб сървъра са криптирани."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data entered in the form you fill out are transferred in encrypted form "
+"to an internal server."
+msgstr ""
+"Данните, въведени във формуляра, който попълвате, се предават в криптиран "
+"вид на вътрешен сървър."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"We take all necessary technical and organizational security measures to "
+"protect your personal data from loss and abuse."
+msgstr ""
+"Предприемаме всички необходими технически и организационни мерки за "
+"сигурност, за да защитим личните ви данни от загуба и злоупотреба."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"We will then send you an e-mail with a confirmation link to verify your "
+"e-mail address."
+msgstr ""
+"След това ще ви изпратим имейл с линк за потвърждение, за да потвърдите "
+"вашия имейл адрес."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Your data are stored in a secure operating environment that is not "
+"accessible to the public."
+msgstr ""
+"Вашите данни се съхраняват в защитена оперативна среда, която не е достъпна "
+"за обществеността."
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "We need your consent to proceed"
+msgstr "Необходимо ни е вашето съгласие, за да продължим"
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "Security"
+msgstr "Сигурност"
+
+#: psynet/templates/consents/lucid_consent.html
+#, fuzzy
+msgctxt "consent-javascript"
+msgid "Please enable Javascript then refresh this page."
+msgstr "Моля, разрешете Javascript, след което опреснете тази страница."
+
+#: psynet/templates/consents/lucid_consent.html
+#, fuzzy
+msgctxt "consent-javascript"
+msgid "The study will not work unless Javascript is enabled on your browser."
+msgstr ""
+"Проучването няма да работи, ако в браузъра ви не е активиран Javascript."
+
+#: psynet/templates/consents/lucid_consent.html
+#, fuzzy
+msgctxt "consent-javascript"
+msgid "Warning: Javascript is not working on your browser"
+msgstr "Предупреждение: Javascript не работи във Вашия браузър"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgid "per hour"
+msgstr "на час"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"If you satisfactorily complete the study, we compensate you for your "
+"participation:"
+msgstr ""
+"Ако завършите проучването по задоволителен начин, ние ще ви компенсираме за "
+"участието ви:"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "We appreciate your contribution to science!"
+msgstr "Ние оценяваме вашия принос към науката!"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"You may also receive an additional payment based on your performance in the "
+"task."
+msgstr ""
+"Възможно е да получите и допълнително заплащане в зависимост от изпълнението"
+" на задачата."
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"Целта на този проект е да се проучи как хората от различни места по света "
+"възприемат звуци (напр. реч, музика) и образи (напр. лица, цветове)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Конфиденциалност"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr "Компенсация"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Въпреки че може да не е от пряка полза за вас, това проучване може да бъде "
+"от полза за обществото, като ни помогне да разберем как хората извличат "
+"информация от звука и зрението и евентуално да подпомогне конструирането на "
+"машини, които могат да възпроизвеждат нашите способности (напр. при "
+"разпознаване на звук и компютърно зрение), както и да помогне за подобряване"
+" на възприемателните способности на хора с увреден слух или зрение."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Ползи"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"С цел подпомагане на научния прогрес и възпроизвеждане, понякога можем да "
+"споделяме данните с изследователски сътрудници."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"В тези случаи ще споделяме само напълно анонимизирани данни, като например "
+"демографски, обобщени или извлечени данни без никакви лични идентификатори."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Сътрудничество в областта на научните изследвания"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr ""
+"Цялата информация, която ще получим по време на проучването, ще бъде "
+"поверителна."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"Въпреки че изследователите няма да използват вашия буквено-цифров код, за да"
+" установят истинската ви самоличност, в някои случаи този запис може да бъде"
+" свързан със страницата на публичния ви профил, ако се стигне до нарушаване "
+"на сигурността на данните."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "Съгласието за тези допълнителни изисквания също е напълно доброволно."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Ако при даден експеримент се събират данни, които не могат да бъдат напълно "
+"анонимизирани, ние ще ви информираме за това и ще поискаме допълнително "
+"съгласие."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"На нито един етап от експеримента няма да бъдат събирани или използвани "
+"лични идентификатори (напр. вашето име или данни за контакт)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Това включва експерименти, при които правим аудио-визуални записи или при "
+"които се нуждаем от вашите данни за контакт, за да се свържем с вас в "
+"бъдеще, за да проведем друг експеримент."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"Този код няма да бъде използван за установяване на истинската ви "
+"самоличност, няма да бъде споделян с никого извън изследователския екип и ще"
+" бъде изтрит след използването му."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "По този начин експерименталните данни са анонимни."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"По този начин може да пожелаете да ограничите информацията, която решите да "
+"споделите публично."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Възможно е да събираме някои демографски данни (напр. възраст, пол, държава "
+"на пребиваване), както и информация за историята на вашето обучение и изява "
+"(напр. музикален опит в свиренето на инструмент, години на формално "
+"образование, говорени езици)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"В нашата система ще запазим само вашия анонимизиран буквено-цифров код, за "
+"да разграничим участниците, които вече са участвали в този или други "
+"експерименти."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"И накрая, при някои експерименти може да бъдете помолени да направите гласов"
+" или видеозапис, например може да бъдете помолени да запишете натискането на"
+" пръстите си в отговор на звук или видео, или да запишете как говорите или "
+"пеете."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Например може да бъдете помолени да прецените колко приятен е даден звук или"
+" изображение, или да категоризирате звуци или изображения (например дали "
+"даден звук или изображение е на кола или на крава), или да прецените други "
+"основни характеристики на звуците или изображенията (например колко често "
+"срещате този вид звук или изображение, колко естетически приятен ви се "
+"струва даден звук или изображение)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr ""
+"Ако експериментът ще съдържа тези елементи, ще поискаме допълнително "
+"съгласие."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Ако доброволно се съгласите да участвате в това проучване, ще бъдете "
+"помолени да изпълнявате прости задачи с помощта на клавиатурата или мишката,"
+" докато слушате звуци или докато наблюдавате изображения или видеоклипове."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"В някои експерименти може да използваме лека измама, т.е. може да не обясним"
+" пълната истина относно експерименталната задача (например няма да ви кажем,"
+" че изображението е генерирано от изкуствена компютърна система, а не от "
+"човек)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Лека измама ще се използва само при някои експерименти, при които трябва да "
+"предотвратим предубеждаването на участниците преди провеждането на "
+"експеримента."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Процедура"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"Конкретните използвани звуци, изображения и видеоклипове ще варират, но "
+"могат да включват: записи на звуци от околната среда, шумове, говор, музика,"
+" прости тонове, натуралистични изображения, анимирани изображения, комикси, "
+"лица, предмети, геометрични фигури, фрактални изображения или видеоклипове "
+"на естествена среда."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Цел"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "За Дружеството \"Макс Планк\" това е:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Имайте предвид, че при някои проучвания изтриването на данни не е възможно, "
+"като в този случай ще ви помолим изрично да дадете съгласието си за тази "
+"процедура в отделен формуляр за съгласие."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "Също така имате право да подадете възражение до надзорния орган."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"Имате право на информация относно свързаните с Вас данни, които се "
+"съхраняват в Института \"Макс Планк\", право на коригиране на неточни данни,"
+" както и право да поискате заличаване на данни в случаите на недопустимо "
+"съхранение на данни и право на преносимост на данните."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Вашите права"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Рискове/неудобства"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"Участието в това проучване не крие други рискове освен тези, свързани с "
+"нормалната употреба на компютър."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Данните ще се съхраняват временно на външни сървъри и настолни "
+"компютри/лаптопи, които са защитени с парола."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Никакви данни няма да се съхраняват за постоянно на външни сървъри."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"След това данните ще се съхраняват постоянно в сървърите на института, като "
+"твърдите дискове ще бъдат криптирани с помощта на стандартен за индустрията "
+"софтуер за криптиране."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"Изследователят може да ви оттегли от това изследване, ако възникнат "
+"обстоятелства, които налагат това."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Доброволно участие"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"Можете свободно да прекратите участието си в това проучване по всяко време "
+"без санкции."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"Свободни сте да откажете да участвате и можете да прекратите участието си по"
+" всяко време."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Участието ви в това изследване е доброволно."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"Following open science practices to improve science reusability and "
+"replicability, we may want to publish the dataset collected in this "
+"experiment as soon as the study is finished."
+msgstr ""
+"Следвайки практиките на отворената наука за подобряване на многократната "
+"използваемост и повторяемост на науката, може да пожелаем да публикуваме "
+"набора от данни, събрани в този експеримент, веднага след приключване на "
+"изследването."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"This includes audio-visual recordings, such as a recording of your finger-"
+"tapping in response to a sound or video, or to record yourself speaking or "
+"singing."
+msgstr ""
+"Това включва аудио-визуални записи, като например запис на вашето почукване "
+"с пръст в отговор на звук или видео, или да запишете как говорите или пеете."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"We may also want to publish certain materials as part of the scientific "
+"publication, such as a demo video of the task or part of an interview."
+msgstr ""
+"Възможно е също така да пожелаем да публикуваме определени материали като "
+"част от научната публикация, например демонстрационно видео на задачата или "
+"част от интервю."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, your data will not be directly associated with your name or other "
+"identifiers in any way (we will not specify your name when presenting "
+"audio/video materials of yours)."
+msgstr ""
+"Данните Ви обаче няма да бъдат пряко свързани с Вашето име или други "
+"идентификатори по какъвто и да е начин (няма да посочваме Вашето име, когато"
+" представяме Ваши аудио/видео материали)."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Since the audio-visual recordings collected in this experiment may be made "
+"public, we cannot guarantee anonymity of your data if you participate in "
+"this experiment."
+msgstr ""
+"Тъй като аудио-визуалните записи, събрани в рамките на този експеримент, "
+"могат да бъдат публикувани, не можем да гарантираме анонимността на вашите "
+"данни, ако участвате в този експеримент."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Although your data will not be associated with personal identifiers, it is "
+"possible to link your personal information based on audio-visual recordings"
+msgstr ""
+"Въпреки че данните ви няма да бъдат свързани с лични идентификатори, "
+"възможно е да се свърже вашата лична информация въз основа на аудио-визуални"
+" записи."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"By consenting to this experiment you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"Със съгласието си за този експеримент вие се задължавате да не използвате "
+"ругатни, докато записвате аудио, или голота, докато записвате видео."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid "Disclaimer"
+msgstr "Отказ от отговорност"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Since some materials will be published as part of the scientific "
+"publication, you will not be able to delete such materials, as they will "
+"become public (either immediately or soon after data collection)."
+msgstr ""
+"Тъй като някои материали ще бъдат публикувани като част от научната "
+"публикация, няма да можете да изтриете тези материали, тъй като те ще станат"
+" публично достояние (веднага или скоро след събирането на данните)."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Thus, you may wish to make sure you do not record any materials you do not "
+"want to make public."
+msgstr ""
+"Затова може да пожелаете да се уверите, че не записвате материали, които не "
+"искате да станат публични."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be published on open science frameworks/websites such as OSF "
+"(https://osf.io/) and will be available to everybody with internet access."
+msgstr ""
+"Данните ще бъдат публикувани в отворени научни рамки/уебсайтове като OSF "
+"(https://osf.io/) и ще бъдат достъпни за всеки, който има достъп до "
+"интернет."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr "С изпълнението на задачата вие помагате на науката, благодарим ви!"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"This study is completely voluntary; you will not receive any monetary "
+"compensation for participation."
+msgstr ""
+"Това проучване е напълно доброволно; няма да получите никаква парична "
+"компенсация за участието си."
+
+#: psynet/templates/error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Error!"
+msgstr "Грешка!"
+
+#: psynet/templates/exit_recruiter_lucid.html
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Представяне на проучване Lucid"
+
+#: psynet/templates/exit_recruiter_lucid.html
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "To complete your Lucid Survey, click the button below."
+msgstr ""
+"За да завършите проучването си за Lucid, кликнете върху бутона по-долу."
+
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Съгласието беше отхвърлено."
+
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Край на експеримента."
+
+#: psynet/templates/final-page-rejected-consent.html
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Finish"
+msgstr "Завършете"
+
+#: psynet/templates/final-page-rejected-consent.html
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Щракнете върху \"Finish\", за да завършите HIT."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"В допълнение към основното заплащане от "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> ще получите бонус от "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за времето, което сте прекарали"
+" в експеримента."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"In addition to your base payment of "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
+"experiment."
+msgstr ""
+"В допълнение към основното заплащане от "
+"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> ще получите възнаграждение от "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за времето, което сте прекарали"
+" в експеримента."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"Освен това Ви е присъден бонус за постигнати резултати в размер на "
+"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
+"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
+"for the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+msgstr ""
+"За времето, прекарано в експеримента, ще получите награда от "
+"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>. Получихте и награда за "
+"постижения от <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+
+#: psynet/templates/final-page-successful.html
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Това е краят на експеримента!"
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Благодарим ви, че участвате."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "You will be redirected."
+msgstr "Ще бъдете пренасочени."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Въпреки това ще получите заплащане за времето, което вече сте прекарали."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "За съжаление експериментът трябва да приключи по-рано."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr ""
+"Появява се нов прозорец. В горния ъгъл проверете за иконата \"Инкогнито\"."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "В горния десен ъгъл щракнете върху Още"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "Кликнете тук"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "Копирайте текущия URL адрес в клипборда:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "Копирайте връзката по-долу"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr ""
+"Следвайте стъпките по-долу, за да се уверите, че експериментът работи."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "Инсталирайте Google Chrome, ако не сте го направили"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "Инсталирайте най-новата версия на Google Chrome"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "Инсталирайте последната версия на Google Chrome на компютъра си"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "Нов инкогнито прозорец"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "На Mac: Натиснете"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "На Windows, Linux или Chrome OS: Натиснете"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "На компютъра си отворете Chrome."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "Отворете Google Chrome"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "Отворете нов прозорец инкогнито"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr "Отворете нов инкогнито прозорец със следните клавишни комбинации:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "Поставете връзката в браузъра Chrome, за да продължите експеримента."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "Поставете връзката в браузъра Chrome, за да започнете експеримента"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr ""
+"Поставете връзката в прозореца инкогнито, за да продължите експеримента"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "Вмъкнете връзката в прозореца инкогнито, за да започнете експеримента"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "Моля, разрешете JavaScript в браузъра си."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "Моля, следвайте инструкциите по-долу, за да продължите."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "Моля, отворете проучването на Вашия компютър."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "Натиснете"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "Този сайт изисква JavaScript, за да функционира правилно."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "Предупреждение!"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr "Вие използвате"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "Вие използвате:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr ""
+"Можете също така да използвате клавишна комбинация, за да отворите прозорец "
+"Инкогнито"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "Не можете да участвате в експеримента от мобилно устройство."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "За да участвате в експеримента, трябва да използвате Google Chrome."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Трябва да използвате режим инкогнито, за да участвате в експеримента."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+"За да участвате в експеримента, трябва да използвате най-новата версия на "
+"Google Chrome."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "Разбирате ли тези условия и съгласявате ли се с тях?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "Превъртете нагоре/надолу, за да видите целия текст"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "Съгласен съм"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Ако имате някакви въпроси относно това изследване, не се колебайте да се "
+"свържете с главния изследовател в този проект, Нори Якоби, на адрес: гр:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Не, благодаря (върнете задачата)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr "Главен изследовател"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr ""
+"Аудио-визуални материали ще бъдат споделяни само ако дадете съгласието си за"
+" попълване на допълнителен формуляр за съгласие, както е обяснено по-горе."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr ""
+"В тези случаи можем да споделим Вашия аудио-визуален материал заедно с "
+"напълно анонимизирани данни, като например демографски, обобщени или "
+"извлечени данни."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr ""
+"Никога няма да свързваме истинското Ви име или каквато и да е Ваша лична "
+"информация директно с Вашето изображение или звуков запис, въпреки че, "
+"разбира се, е възможно да се разпознават лица въз основа на аудио-визуален "
+"материал."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
+msgstr ""
+"Всички записи, които ще получим по време на това изследване, ще бъдат "
+"поверителни и никой извън групата на изследователите няма да може да ги "
+"споделя или съхранява."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr ""
+"Въпреки че изследователите няма да използват записите ви, за да извлекат "
+"истинската ви самоличност, лична информация може да изтече, ако не се "
+"намирате в изолирана среда."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"Със съгласието си да участвате в този експеримент вие се задължавате да не "
+"използвате ругатни, докато записвате аудио, или голота, докато записвате "
+"видео."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr ""
+"Например, може да искате да седнете в стая, която е изолирана от останалата "
+"част на къщата."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, in some experiments, your recordings may be seen or heard by other "
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
+msgstr ""
+"При някои експерименти обаче вашите записи могат да бъдат видени или чути от"
+" други участници, за да ги оценят по различни признаци или да създадат нови "
+"материали (например да възпроизведат ритъм, който сте създали, или да "
+"продължат мелодия, която сте изпели)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr ""
+"Ако решите да участвате в експеримент, е важно и ваша отговорност да се "
+"уверите, че докато записвате аудио и видео, не се записва нищо, което не "
+"възнамерявате да бъде записано."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Raw audio/video will not be shared with collaborators (we will only share "
+"extracted data from recordings without personal identifiers)."
+msgstr ""
+"Необработеното аудио/видео няма да бъде споделяно със сътрудниците (ще "
+"споделяме само извлечени данни от записите без лични идентификатори)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
+msgstr ""
+"Може да пожелаете да се уверите, че нито един звук/визуален материал в "
+"заобикалящата ви среда не може да бъде свързан с вашата лична информация. "
+"Освен това, докато извършвате запис, микрофонът или камерата могат да "
+"заснемат непреднамерено аудио или видео, например камерата може да заснеме "
+"друг член на семейството или микрофонът може да заснеме нещо, което казвате "
+"на друг човек."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr ""
+"Вашите записи няма да бъдат свързани по никакъв начин с вашето име или други"
+" идентификационни данни."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr ""
+"Вашите записи няма да бъдат използвани за установяване на истинската ви "
+"самоличност и няма да бъдат публикувани."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"Със съгласието си за участие потвърждавате, че сте навършили 18 години, че "
+"сте прочели този формуляр за съгласие, съгласни сте с неговото съдържание и "
+"сте съгласни да участвате в това изследване."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Съгласие"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr ""
+"Ако не желаете да дадете съгласието си, моля, затворете тази страница."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "Информация за контакт"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Преглед"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Целта на този онлайн формуляр е да ви предостави информация, която да ви "
+"помогне да решите дали искате да участвате в научно изследване."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Това изследване се провежда от изследователи в Института за емпирична "
+"естетика \"Макс Планк\"."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+"По-конкретно, ние се стремим да комбинираме широк спектър от поведенчески "
+"методологии, за да характеризираме начините, по които хора от различни среди"
+" интернализират и обработват външните условия, както в слуховата (напр. "
+"говор, музика), така и във визуалната (напр. лица, цвят) област."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr ""
+"Целта на този проект е да се проучи ролята на опита и излагането на "
+"въздействието при създаването и повлияването на нашето възприятие, решения и"
+" действия."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr ""
+"Интересуваме се и от начина, по който тези вътрешни представи влияят върху "
+"вземането на решения и поведението на човека."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr ""
+"Аудио-визуалните материали няма да бъдат индексирани по лична информация, а "
+"ще бъдат свързани с лична информация чрез ключ (например "
+"\"afasd12314asdasd\")."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
+msgstr ""
+"По време на събирането на данни аудио-визуалният материал ще се записва на "
+"отделен сървър."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Personal information will be stored separately from audio-visual materials "
+"and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+"Личната информация ще се съхранява отделно от аудио-визуалните материали и "
+"ще се криптира с помощта на силен протокол за криптиране (например Advanced "
+"Encryption Standard)."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play all"
+msgstr "Възпроизвеждане на всички"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play prompt"
+msgstr "Покана за игра"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play recording"
+msgstr "Възпроизвеждане на запис"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Record from start"
+msgstr "Запис от началото"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Reset"
+msgstr "Нулиране на"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+"Висок параметър на затихване означава, че сигналът затихва за дълго време "
+"(т.е. силно изглаждане)."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "Документация"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "Плъзгачи"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+"Параметрите <strong>разпад</strong> определят количеството на изглаждане, "
+"което се случва със сигнала, и имат единици за секунди."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+"Параметрите <strong>grace</strong> определят колко време обемът трябва да е "
+"извън съответния праг, за да се задейства предупредително съобщение."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+"Параметрите <strong>продължителност на съобщението</strong> определят колко "
+"време ще се показват предупредителните съобщения."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+"Параметрите <strong>праг</strong> определят момента, в който обемът се "
+"определя като \"твърде висок\" или \"твърде нисък\"."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+"Съществуват три параметъра на затихване: един за показания аудиометър, един "
+"за детектора за \"твърде високо\" и един за детектора за \"твърде ниско\"."
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Loop"
+msgstr "Цикъл"
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Stop"
+msgstr "Спрете"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Image not found"
+msgstr "Изображението не е намерено"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Play from start"
+msgstr "Играйте от самото начало"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Video not found"
+msgstr "Видеото не е намерено"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Вид грешка"
+
+#: psynet/templates/psynet_error.html
+#, python-format, fuzzy
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Ако случаят не е такъв, моля, свържете се с нас на %(EMAIL)s, като посочите "
+"следната информация:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Идентификатор на работника"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Грешка!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"След като бъде прекъсната, не е необходимо да се свързвате с нас, за да "
+"получите компенсацията; тя трябва да ви бъде присъдена автоматично чрез "
+"MTurk няколко минути след това."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"Може да успеете да прекъснете експеримента, като използвате бутона "
+"<strong>Прекрати експеримента</strong> <strong>на страницата на обявата в "
+"MTurk</strong>."
+
+#: psynet/templates/start.html
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Започваме експеримент..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "OK"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Бонус"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Помощ!"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Награда"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Връзка към текущата уеб страница;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Проверете дали интернет връзката ви работи."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "Ако горното не помогне, изпратете ни имейл със следната информация:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "В случай на проблем, опитайте следното:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Моля, изчакайте страницата да се зареди."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Презаредете страницата."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Проблемът, с който се сблъсквате."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Опитайте отново след няколко секунди."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "Вашият идентификационен номер на работника;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Готови ли сте?"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Щракнете върху бутона, когато сте готови да продължите експеримента."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Възобновяване"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid "Unfortunately this behaviour is not currently supported."
+msgstr "За съжаление това поведение не се поддържа в момента."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_switched_browsers"
+msgid ""
+"Your participant ID is undefined, perhaps because you switched browsers "
+"during the test."
+msgstr ""
+"Идентификаторът на участника ви е неопределен, може би защото сте сменили "
+"браузъра по време на теста."
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Afghanistan"
+msgstr "Афганистан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Albania"
+msgstr "Албания"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Algeria"
+msgstr "Алжир"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "American Samoa"
+msgstr "Американска Самоа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Andorra"
+msgstr "Андора"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Angola"
+msgstr "Ангола"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Anguilla"
+msgstr "Ангила"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Antarctica"
+msgstr "Антарктида"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Antigua and Barbuda"
+msgstr "Антигуа и Барбуда"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Argentina"
+msgstr "Аржентина"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Armenia"
+msgstr "Армения"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Aruba"
+msgstr "Аруба"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Australia"
+msgstr "Австралия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Austria"
+msgstr "Австрия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Azerbaijan"
+msgstr "Азербайджан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahamas"
+msgstr "Бахамски острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahrain"
+msgstr "Бахрейн"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bangladesh"
+msgstr "Бангладеш"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Barbados"
+msgstr "Барбадос"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belarus"
+msgstr "Беларус"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belgium"
+msgstr "Белгия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belize"
+msgstr "Белиз"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Benin"
+msgstr "Бенин"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bermuda"
+msgstr "Бермудски острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bhutan"
+msgstr "Бутан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bolivia"
+msgstr "Боливия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "Бонер, Синт Еустациус и Саба"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bosnia and Herzegovina"
+msgstr "Босна и Херцеговина"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Botswana"
+msgstr "Ботсвана"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bouvet Island"
+msgstr "Остров Буве"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Brazil"
+msgstr "Бразилия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "British Indian Ocean Territory"
+msgstr "Британска територия в Индийския океан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Brunei Darussalam"
+msgstr "Бруней Даруссалам"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bulgaria"
+msgstr "България"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Burkina Faso"
+msgstr "Буркина Фасо"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Burundi"
+msgstr "Бурунди"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cabo Verde"
+msgstr "Кабо Верде"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cambodia"
+msgstr "Камбоджа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cameroon"
+msgstr "Камерун"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Canada"
+msgstr "Канада"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cayman Islands"
+msgstr "Кайманови острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Central African Republic"
+msgstr "Централноафриканска република"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Chad"
+msgstr "Чад"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Chile"
+msgstr "Чили"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "China"
+msgstr "Китай"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Christmas Island"
+msgstr "Остров Коледа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cocos  Islands"
+msgstr "Кокосови острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Colombia"
+msgstr "Колумбия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Comoros"
+msgstr "Коморски острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo"
+msgstr "Конго"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo (Democratic Republic)"
+msgstr "Конго (Демократична република)"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cook Islands"
+msgstr "Острови Кук"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Costa Rica"
+msgstr "Коста Рика"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Croatia"
+msgstr "Хърватия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cuba"
+msgstr "Куба"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Curaçao"
+msgstr "Кюрасао"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cyprus"
+msgstr "Кипър"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Czechia"
+msgstr "Чехия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Côte d'Ivoire"
+msgstr "Кот д'Ивоар"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Denmark"
+msgstr "Дания"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Djibouti"
+msgstr "Джибути"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominica"
+msgstr "Доминика"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominican Republic"
+msgstr "Доминиканска република"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ecuador"
+msgstr "Еквадор"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Egypt"
+msgstr "Египет"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "El Salvador"
+msgstr "Ел Салвадор"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Equatorial Guinea"
+msgstr "Екваториална Гвинея"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Eritrea"
+msgstr "Еритрея"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Estonia"
+msgstr "Естония"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Eswatini"
+msgstr "Есватини"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ethiopia"
+msgstr "Етиопия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Falkland Islands (Malvinas)"
+msgstr "Фолклендски острови (Малвини)"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Faroe Islands"
+msgstr "Фарьорски острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Fiji"
+msgstr "Фиджи"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Finland"
+msgstr "Финландия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "France"
+msgstr "Франция"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Guiana"
+msgstr "Френска Гвиана"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Polynesia"
+msgstr "Френска Полинезия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Southern Territories"
+msgstr "Френски южни територии"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gabon"
+msgstr "Габон"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gambia"
+msgstr "Гамбия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Georgia"
+msgstr "Грузия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Germany"
+msgstr "Германия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ghana"
+msgstr "Гана"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gibraltar"
+msgstr "Гибралтар"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Greece"
+msgstr "Гърция"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Greenland"
+msgstr "Гренландия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Grenada"
+msgstr "Гренада"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guadeloupe"
+msgstr "Гваделупа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guam"
+msgstr "Гуам"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guatemala"
+msgstr "Гватемала"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guernsey"
+msgstr "Гърнси"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea"
+msgstr "Гвинея"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea-Bissau"
+msgstr "Гвинея-Бисау"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guyana"
+msgstr "Гвиана"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Haiti"
+msgstr "Хаити"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Heard Island and McDonald Islands"
+msgstr "Остров Хърд и островите Макдоналд"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Honduras"
+msgstr "Хондурас"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hong Kong"
+msgstr "Хонконг"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hungary"
+msgstr "Унгария"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iceland"
+msgstr "Исландия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "India"
+msgstr "Индия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Indonesia"
+msgstr "Индонезия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iran"
+msgstr "Иран"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iraq"
+msgstr "Ирак"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ireland"
+msgstr "Ирландия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Isle of Man"
+msgstr "Остров Ман"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Israel"
+msgstr "Израел"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Italy"
+msgstr "Италия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jamaica"
+msgstr "Ямайка"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Japan"
+msgstr "Япония"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jersey"
+msgstr "Джърси"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jordan"
+msgstr "Йордания"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kazakhstan"
+msgstr "Казахстан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kenya"
+msgstr "Кения"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kiribati"
+msgstr "Кирибати"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kuwait"
+msgstr "Кувейт"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kyrgyzstan"
+msgstr "Киргизстан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Лаос"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Latvia"
+msgstr "Латвия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lebanon"
+msgstr "Ливан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lesotho"
+msgstr "Лесото"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liberia"
+msgstr "Либерия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Libya"
+msgstr "Либия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liechtenstein"
+msgstr "Лихтенщайн"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lithuania"
+msgstr "Литва"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Luxembourg"
+msgstr "Люксембург"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Macao"
+msgstr "Макао"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Madagascar"
+msgstr "Мадагаскар"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malawi"
+msgstr "Малави"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malaysia"
+msgstr "Малайзия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Maldives"
+msgstr "Малдиви"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mali"
+msgstr "Мали"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malta"
+msgstr "Малта"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Marshall Islands"
+msgstr "Маршалови острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Martinique"
+msgstr "Мартиника"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritania"
+msgstr "Мавритания"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritius"
+msgstr "Мавриций"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mayotte"
+msgstr "Майот"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mexico"
+msgstr "Мексико"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Micronesia"
+msgstr "Микронезия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Moldova"
+msgstr "Молдова"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Monaco"
+msgstr "Монако"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mongolia"
+msgstr "Монголия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montenegro"
+msgstr "Черна гора"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montserrat"
+msgstr "Монсерат"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Morocco"
+msgstr "Мароко"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mozambique"
+msgstr "Мозамбик"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Myanmar"
+msgstr "Мианмар"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Namibia"
+msgstr "Намибия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "Науру"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nepal"
+msgstr "Непал"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Netherlands"
+msgstr "Нидерландия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Caledonia"
+msgstr "Нова Каледония"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Zealand"
+msgstr "Нова Зеландия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nicaragua"
+msgstr "Никарагуа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niger"
+msgstr "Нигер"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nigeria"
+msgstr "Нигерия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niue"
+msgstr "Ниуе"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norfolk Island"
+msgstr "Остров Норфолк"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Korea"
+msgstr "Северна Корея"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Macedonia"
+msgstr "Северна Македония"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Northern Mariana Islands"
+msgstr "Северни Мариански острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norway"
+msgstr "Норвегия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Oman"
+msgstr "Оман"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pakistan"
+msgstr "Пакистан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palau"
+msgstr "Палау"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palestine"
+msgstr "Палестина"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Panama"
+msgstr "Панама"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Papua New Guinea"
+msgstr "Папуа Нова Гвинея"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Paraguay"
+msgstr "Парагвай"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Peru"
+msgstr "Перу"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Philippines"
+msgstr "Филипини"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pitcairn"
+msgstr "Питкерн"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Poland"
+msgstr "Полша"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Portugal"
+msgstr "Португалия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Puerto Rico"
+msgstr "Пуерто Рико"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Qatar"
+msgstr "Катар"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Romania"
+msgstr "Румъния"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Russian Federation"
+msgstr "Руска федерация"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Rwanda"
+msgstr "Руанда"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Réunion"
+msgstr "Реюнион"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Barthélemy"
+msgstr "Сен Бартелеми"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "Света Елена, Възнесение Господне и Тристан да Куня"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Kitts and Nevis"
+msgstr "Сейнт Китс и Невис"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Lucia"
+msgstr "Сейнт Лусия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Pierre and Miquelon"
+msgstr "Сен Пиер и Микелон"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Vincent and the Grenadines"
+msgstr "Сейнт Винсент и Гренадини"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Samoa"
+msgstr "Самоа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "San Marino"
+msgstr "Сан Марино"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sao Tome and Principe"
+msgstr "Сао Томе и Принсипи"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saudi Arabia"
+msgstr "Саудитска Арабия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Senegal"
+msgstr "Сенегал"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Serbia"
+msgstr "Сърбия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Seychelles"
+msgstr "Сейшели"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sierra Leone"
+msgstr "Сиера Леоне"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Singapore"
+msgstr "Сингапур"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sint Maarten"
+msgstr "Синт Маартен"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovakia"
+msgstr "Словакия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovenia"
+msgstr "Словения"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Solomon Islands"
+msgstr "Соломонови острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Somalia"
+msgstr "Сомалия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Africa"
+msgstr "Южна Африка"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "Южна Джорджия и Южните Сандвичеви острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Korea"
+msgstr "Южна Корея"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Sudan"
+msgstr "Южен Судан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Spain"
+msgstr "Испания"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sri Lanka"
+msgstr "Шри Ланка"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sudan"
+msgstr "Судан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Suriname"
+msgstr "Суринам"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Svalbard and Jan Mayen"
+msgstr "Шпицберген и Ян Майен"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sweden"
+msgstr "Швеция"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Switzerland"
+msgstr "Швейцария"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Syria"
+msgstr "Сирия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Taiwan"
+msgstr "Тайван"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tajikistan"
+msgstr "Таджикистан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tanzania"
+msgstr "Танзания"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Thailand"
+msgstr "Тайланд"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Timor-Leste"
+msgstr "Тимор-Лесте"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Togo"
+msgstr "Того"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tokelau"
+msgstr "Токелау"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Тонга"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Trinidad and Tobago"
+msgstr "Тринидад и Тобаго"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tunisia"
+msgstr "Тунис"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkey"
+msgstr "Турция"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkmenistan"
+msgstr "Туркменистан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turks and Caicos Islands"
+msgstr "Острови Търкс и Кайкос"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tuvalu"
+msgstr "Тувалу"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uganda"
+msgstr "Уганда"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ukraine"
+msgstr "Украйна"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Arab Emirates"
+msgstr "Обединени арабски емирства"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Kingdom"
+msgstr "Обединено кралство"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States"
+msgstr "Съединени щати"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States Minor Outlying Islands"
+msgstr "Съединени щати Малки отдалечени острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uruguay"
+msgstr "Уругвай"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uzbekistan"
+msgstr "Узбекистан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vanuatu"
+msgstr "Вануату"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vatican City State"
+msgstr "Градска държава Ватикана"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Venezuela"
+msgstr "Венецуела"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vietnam"
+msgstr "Виетнам"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands (British)"
+msgstr "Вирджински острови (британски)"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands (U.S.)"
+msgstr "Вирджински острови (САЩ)"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Wallis and Futuna"
+msgstr "Уолис и Футуна"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Western Sahara"
+msgstr "Западна Сахара"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Yemen"
+msgstr "Йемен"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Zambia"
+msgstr "Замбия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Zimbabwe"
+msgstr "Зимбабве"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Åland Islands"
+msgstr "Аландски острови"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Abkhazian"
+msgstr "Абхазия"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Afar"
+msgstr "Афар"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Afrikaans"
+msgstr "Африкански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Akan"
+msgstr "Акан"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Albanian"
+msgstr "Албански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Amharic"
+msgstr "Амхарски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Arabic"
+msgstr "Арабски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Aragonese"
+msgstr "Арагонски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Armenian"
+msgstr "Арменски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Assamese"
+msgstr "Асамски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Avaric"
+msgstr "Аварски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Avestan"
+msgstr "авестийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Aymara"
+msgstr "аймарски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Azerbaijani"
+msgstr "азербайджански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bambara"
+msgstr "бамбара"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bashkir"
+msgstr "Башкирски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Basque"
+msgstr "Баски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Belarusian"
+msgstr "Белоруски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bengali"
+msgstr "Бенгалски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bislama"
+msgstr "Бислама"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bosnian"
+msgstr "босненски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Breton"
+msgstr "Бретонски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bulgarian"
+msgstr "Български"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Burmese"
+msgstr "Бирмански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Catalan"
+msgstr "Каталонски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cebuano"
+msgstr "Себуано"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Central Khmer"
+msgstr "Централен кхмер"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chamorro"
+msgstr "Чаморо"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chechen"
+msgstr "Чеченски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chinese"
+msgstr "Китайски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Church Slavic"
+msgstr "Църковнославянски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chuvash"
+msgstr "Чувашки"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cornish"
+msgstr "Корниш"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Corsican"
+msgstr "Корсикански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cree"
+msgstr "Кри"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Croatian"
+msgstr "Хърватски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Czech"
+msgstr "Чешки"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Danish"
+msgstr "Датски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dhivehi"
+msgstr "Дивехи"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dutch"
+msgstr "Нидерландски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dzongkha"
+msgstr "Дзонгкха"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "English"
+msgstr "Английски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Esperanto"
+msgstr "Есперанто"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Estonian"
+msgstr "Естонски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ewe"
+msgstr "Ewe"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Faroese"
+msgstr "Фарьорски език"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Fijian"
+msgstr "Фиджийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Finnish"
+msgstr "Финландски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "French"
+msgstr "Френски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Fulah"
+msgstr "Фулах"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Galician"
+msgstr "Галисийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ganda"
+msgstr "Ганда"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Georgian"
+msgstr "Грузински"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "German"
+msgstr "Немски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Gothic"
+msgstr "Готически"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Greek"
+msgstr "Гръцки"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Guarani"
+msgstr "Гуарани"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Gujarati"
+msgstr "Гуджарати"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Haitian"
+msgstr "Хаитянски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hausa"
+msgstr "Хауса"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hawaiian"
+msgstr "Хавайски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hebrew"
+msgstr "Иврит"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Herero"
+msgstr "Хереро"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hindi"
+msgstr "Хинди"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hiri Motu"
+msgstr "Хири Моту"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hmong"
+msgstr "Хмонг"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hungarian"
+msgstr "Унгарски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Icelandic"
+msgstr "Исландски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ido"
+msgstr "Идо"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Igbo"
+msgstr "Игбо"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Indonesian"
+msgstr "Индонезийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingua"
+msgstr "Интерлингва"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingue"
+msgstr "Окцидентал"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Inuktitut"
+msgstr "Инуктитут"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Inupiaq"
+msgstr "Инупиак"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Irish"
+msgstr "Ирландски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Italian"
+msgstr "Италиански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Japanese"
+msgstr "Японски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Javanese"
+msgstr "Явански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kalaallisut"
+msgstr "Kalaallisut"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kannada"
+msgstr "Каннада"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kanuri"
+msgstr "Канури"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kashmiri"
+msgstr "Кашмирски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kazakh"
+msgstr "Казахски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kikuyu"
+msgstr "Кикуйу"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kinyarwanda"
+msgstr "Киняруанда"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kirghiz"
+msgstr "Киргизки"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Komi"
+msgstr "Коми"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kongo"
+msgstr "Конго"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Korean"
+msgstr "Корейски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kuanyama"
+msgstr "Куаняма"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kurdish"
+msgstr "Кюрдски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lao"
+msgstr "Лао"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Latin"
+msgstr "Латински"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Latvian"
+msgstr "Латвийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Limburgan"
+msgstr "Limburgan"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lingala"
+msgstr "Лингала"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lithuanian"
+msgstr "Литовски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Luba-Katanga"
+msgstr "Luba-Katanga"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Luxembourgish"
+msgstr "Люксембургски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Macedonian"
+msgstr "Македонски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malagasy"
+msgstr "Мадагаскарски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malay"
+msgstr "Малайски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malayalam"
+msgstr "Малаялам"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maltese"
+msgstr "Малтийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manx"
+msgstr "Манкс"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maori"
+msgstr "Маори"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Marathi"
+msgstr "Маратхи"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Marshallese"
+msgstr "Маршалски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Mongolian"
+msgstr "монголски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "Науру"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Navajo"
+msgstr "Навахо"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ndonga"
+msgstr "Ндонга"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nepali"
+msgstr "Непалски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "North Ndebele"
+msgstr "Северен Ндебеле"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Northern Sami"
+msgstr "Северен саами"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian"
+msgstr "Норвежки"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Bokmål"
+msgstr "Норвежки бокмол"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Nynorsk"
+msgstr "Норвежки Nynorsk"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nyanja"
+msgstr "Nyanja"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Occitan"
+msgstr "Окситански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ojibwa"
+msgstr "Ojibwa"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Oriya"
+msgstr "Oriya"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Oromo"
+msgstr "Оромо"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ossetian"
+msgstr "Осетински"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Pali"
+msgstr "Пали"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Panjabi"
+msgstr "Панджаби"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Persian"
+msgstr "Персийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Polish"
+msgstr "Полски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Portuguese"
+msgstr "Португалски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Pushto"
+msgstr "Пущу"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Quechua"
+msgstr "Кечуа"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Romanian"
+msgstr "Румънски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Romansh"
+msgstr "Романшки език"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Rundi"
+msgstr "Рунди"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Russian"
+msgstr "Руски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Samoan"
+msgstr "Самоански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sango"
+msgstr "Санго"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sanskrit"
+msgstr "Санскрит"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sardinian"
+msgstr "Сардински"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Scottish Gaelic"
+msgstr "шотландски галски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbian"
+msgstr "Сръбски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbo-Croatian"
+msgstr "Сърбохърватски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Shona"
+msgstr "Шона"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sichuan Yi"
+msgstr "Съчуански и"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sindhi"
+msgstr "Синди"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sinhala"
+msgstr "Синхала"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovak"
+msgstr "Словашки"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovenian"
+msgstr "Словенски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Somali"
+msgstr "Сомалийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "South Ndebele"
+msgstr "Южен Ндебеле"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Southern Sotho"
+msgstr "Южен Сото"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Spanish"
+msgstr "Испански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sundanese"
+msgstr "Сундански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swahili"
+msgstr "Суахили"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swati"
+msgstr "Свати"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swedish"
+msgstr "Шведски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tagalog"
+msgstr "Тагалог"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tahitian"
+msgstr "Таитянски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Taiwanese"
+msgstr "Тайвански"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tajik"
+msgstr "Таджикски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tamil"
+msgstr "Тамилски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tatar"
+msgstr "Татарски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Telugu"
+msgstr "Телугу"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Thai"
+msgstr "Тайландски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tibetan"
+msgstr "Тибетски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tigrinya"
+msgstr "Тигриня"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tonga"
+msgstr "Тонга"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tsonga"
+msgstr "Tsonga"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tswana"
+msgstr "Тсвана"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkish"
+msgstr "Турски език"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkmen"
+msgstr "Туркменски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Twi"
+msgstr "Тви"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Uighur"
+msgstr "Уйгурски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ukrainian"
+msgstr "Украински"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Urdu"
+msgstr "Урду"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Uzbek"
+msgstr "узбекски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Venda"
+msgstr "Венда"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Vietnamese"
+msgstr "Виетнамски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Volapük"
+msgstr "Volapük"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Walloon"
+msgstr "Валонски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Welsh"
+msgstr "Уелски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Armenian"
+msgstr "Западноарменски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Frisian"
+msgstr "Западнофризийски"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Wolof"
+msgstr "Уолоф"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Xhosa"
+msgstr "Кхоса"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Yiddish"
+msgstr "Идиш"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Yoruba"
+msgstr "Йоруба"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Zhuang"
+msgstr "Чжуанг"
+
+#: psynet/utils.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Zulu"
+msgstr "Зулу"

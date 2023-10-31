@@ -18,7 +18,3 @@ and could in theory be used to screen out poorly performing participants.
 The experiment also includes a simple music notation viewer, which is used to give
 feedback to the participants. Here it simply shows the original chord that the participant heard
 alongside the notes that the participant actually sung.
-
-.. warning::
-    As of December 2022 this implementation is still work-in-progress, but it should
-    be ready for public consumption by spring 2023.

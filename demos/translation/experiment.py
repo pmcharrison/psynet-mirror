@@ -1,6 +1,6 @@
 from os.path import abspath
 
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
@@ -16,8 +16,8 @@ reference_language = "en"
 
 
 def get_timeline_in_locale(locale):
-    _, _p, _np = get_translator(
-        locale=locale, module="experiment", localedir=abspath("locales")
+    _, _p = get_translator(
+        locale=locale, module="experiment", locales_dir=abspath("locales")
     )
     return join(
         InfoPage(

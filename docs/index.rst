@@ -1,12 +1,6 @@
 Overview
 ========
 
-.. warning::
-    At the time of writing (December 2022) PsyNet is under heavy development as we prepare
-    for an official release in 2023. Most of its features are ready, but some important
-    details are still undocumented or unfinished. We recommend contacting the PsyNet developers
-    for advice before starting to adopt PsyNet for your own research projects.
-
 PsyNet is a new platform for running advanced behavioral experiments
 ranging from adaptive psychophysics to simulated cultural evolution.
 It builds on the virtual lab framework `Dallinger <https://dallinger.readthedocs.io/en/latest/>`_.
@@ -21,7 +15,7 @@ but see the sidebar for a full list.
 
 - :ref:`Demos <demos_introduction>`: See demos of different PsyNet features.
 
-- :ref:`Example experiments <example_experiments_introduction>`: See code repositories for real-world PsyNet experiments.
+- :ref:`Example experiments <example_experiments>`: See code repositories for real-world PsyNet experiments.
 
 - `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
 
@@ -35,8 +29,17 @@ but see the sidebar for a full list.
    introduction/applications
    introduction/history
    introduction/team
-   introduction/how_to_learn
    introduction/command_line
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Learning
+
+   learning/how_to_learn
+   learning/prerequisites
+   learning/exercises/index
+   learning/tracks/index
 
 .. toctree::
    :maxdepth: 1
@@ -53,17 +56,14 @@ but see the sidebar for a full list.
    installation/index
 
 .. toctree::
-   :maxdepth: 2
-   :hidden:
-
-   developer_installation/index
-
-.. toctree::
    :hidden:
    :caption: EXPERIMENT DEVELOPMENT
 
-   experiment_directory
-   development_workflow
+   experiment_development/experiment_directory
+   experiment_development/development_workflow
+   experiment_development/configuration
+   experiment_development/dependencies
+   experiment_development/troubleshooting
    demos/index
 
 .. toctree::
@@ -91,6 +91,7 @@ but see the sidebar for a full list.
    deploy/ssh_server
    deploy/heroku_server
    deploy/prolific
+   deploy/deploy_from_archive
    deploy/export
    deploy/troubleshooting
 
@@ -100,9 +101,13 @@ but see the sidebar for a full list.
    :caption: Contributing to PsyNet
    :glob:
 
-   developer/running_tests
+   developer/workflow
+   developer/contributing_a_feature_or_bugfix
    developer/prescreening_tasks
    developer/updating_documentation
+   developer/internationalization
+   developer/running_tests
+   developer/making_a_release
 
 .. toctree::
    :maxdepth: 2
@@ -111,3 +116,5 @@ but see the sidebar for a full list.
    :glob:
 
    dashboards/translation
+
+   

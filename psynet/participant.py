@@ -7,20 +7,32 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    desc,
+    select,
+)
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
+from .field import PythonList, PythonObject, VarStore, extra_var
 from .process import AsyncProcess
 from .utils import get_logger, organize_by_key
 
 logger = get_logger()
 
 # pylint: disable=unused-import
+
+UniqueConstraint(dallinger.models.Participant.worker_id)
 
 
 class Participant(SQLMixinDallinger, dallinger.models.Participant):
@@ -117,9 +129,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     progress : float [0 <= x <= 1]
         The participant's estimated progress through the experiment.
 
-    auth_token : str
-        The participant's randomly generated authentication token.
-
     client_ip_address : str
         The participant's IP address as reported by Flask.
 
@@ -129,6 +138,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     browser_platform : str
         Information about the participant's browser version and OS platform.
+
+    all_trials : list
+        A list of all trials for that participant.
+
+    alive_trials : list
+        A list of all non-failed trials for that participant.
+
+    failed_trials : list
+        A list of all failed trials for that participant.
     """
 
     # We set the polymorphic_identity manually to differentiate the class
@@ -152,15 +170,14 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     last_response_id = Column(Integer)
 
     base_payment = Column(Float)
-    performance_bonus = Column(Float)
+    performance_reward = Column(Float)
     unpaid_bonus = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
-    auth_token = Column(String)
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
     module_state_id = Column(Integer, ForeignKey("module_state.id"))
     module_state = relationship(
-        "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="joined"
+        "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
     current_trial_id = Column(Integer, ForeignKey("info.id"))
     current_trial = relationship(
@@ -192,6 +209,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def failed_trials(self):
         return [t for t in self.all_trials if t.failed]
+
+    @property
+    def trials(self):
+        raise RuntimeError(
+            "The .trials attribute has been removed, please use .all_trials, .alive_trials, or .failed_trials instead."
+        )
 
     # This would be better, but we end up with a circular import problem
     # if we try and read csv files using this foreign key...
@@ -242,7 +265,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
         .exists()
     )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     asset_links = relationship(
         "AssetParticipant",
@@ -255,6 +277,37 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "asset",
         creator=lambda k, v: AssetParticipant(local_key=k, asset=v),
     )
+
+    # sync_group_links and sync_groups are defined in sync.py
+    # because of import-order necessities
+
+    # sync_groups is a relationship that gives a list of all SyncGroups for that participnat
+
+    @property
+    def active_sync_groups(self):
+        return {group.group_type: group for group in self.sync_groups if group.active}
+
+    @property
+    def sync_group(self):
+        candidates = self.active_sync_groups
+        if len(candidates) == 1:
+            return list(candidates.values())[0]
+        elif len(candidates) == 0:
+            return None
+        elif len(candidates) > 1:
+            raise RuntimeError(
+                f"Participant {self.id} is in more than one SyncGroup: "
+                f"{list(self.active_sync_groups)}. "
+                "Use participant.active_sync_groups[group_type] to access the SyncGroup you need."
+            )
+
+    @property
+    def active_barriers(self):
+        return {
+            barrier_link.barrier_id: barrier_link
+            for barrier_link in self.barrier_links
+            if not barrier_link.released
+        }
 
     errors = relationship("ErrorRecord")
     # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")
@@ -366,11 +419,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.answer_accumulators = []
         self.complete = False
         self.time_credit.initialize(experiment)
-        self.performance_bonus = 0.0
+        self.performance_reward = 0.0
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
-        self.auth_token = None
         self.branch_log = []
 
         db.session.add(self)
@@ -384,20 +436,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def initialize(self, experiment):
         pass
 
-    def calculate_bonus(self):
+    def calculate_reward(self):
         """
-        Calculates and returns the currently accumulated bonus for the given participant.
+        Calculates and returns the currently accumulated reward for the given participant.
 
         :returns:
-            The bonus as a ``float``.
+            The reward as a ``float``.
         """
         return round(
-            self.time_credit.get_bonus() + self.performance_bonus,
+            self.time_credit.get_time_reward() + self.performance_reward,
             ndigits=2,
         )
 
-    def inc_performance_bonus(self, value):
-        self.performance_bonus = self.performance_bonus + value
+    def inc_performance_reward(self, value):
+        self.performance_reward += value
 
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (
@@ -405,15 +457,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
 
     def send_email_max_payment_reached(
-        self, experiment_class, requested_bonus, reduced_bonus
+        self, experiment_class, requested_reward, reduced_reward
     ):
         config = get_config()
         template = """Dear experimenter,
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount paid to the participant with assignment_id '{assignment_id}'
-            has reached the maximum of {max_participant_payment}$. The bonus paid was {reduced_bonus}$
-            instead of a requested bonus of {requested_bonus}$.
+            has reached the maximum of {max_participant_payment}$. The reward paid was {reduced_reward}$
+            instead of a requested reward of {requested_reward}$.
 
             The application id is: {app_id}
 
@@ -428,8 +480,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "body": template.format(
                 assignment_id=self.assignment_id,
                 max_participant_payment=experiment_class.var.max_participant_payment,
-                requested_bonus=requested_bonus,
-                reduced_bonus=reduced_bonus,
+                requested_reward=requested_reward,
+                reduced_reward=reduced_reward,
                 app_id=config.get("id"),
             ),
         }
@@ -462,11 +514,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @extra_var(__extra_vars__)
     def progress(self):
         return 1.0 if self.complete else self.time_credit.progress
-
-    @property
-    @extra_var(__extra_vars__)
-    def estimated_bonus(self):
-        return self.time_credit.estimate_bonus()
 
     @property
     def time_credit(self):
@@ -538,7 +585,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return {
             "assignment_id": self.assignment_id,
             "hit_id": self.hit_id,
-            "accumulated_bonus": "$" + "{:.2f}".format(self.calculate_bonus()),
+            "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
 
@@ -569,7 +616,7 @@ class TimeCreditStore:
         "max_pending_credit",
         "wage_per_hour",
         "experiment_max_time_credit",
-        "experiment_max_bonus",
+        "experiment_max_reward",
     ]
 
     def __init__(self, participant):
@@ -603,10 +650,10 @@ class TimeCreditStore:
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
-            mode="time"
+            "time"
         )
-        self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=self.wage_per_hour
+        self.experiment_max_reward = experiment_estimated_time_credit.get_max(
+            "reward", wage_per_hour=self.wage_per_hour
         )
 
     def increment(self, value: float):
@@ -630,14 +677,11 @@ class TimeCreditStore:
         self.max_pending_credit = 0.0
         self.confirmed_credit += time_estimate
 
-    def get_bonus(self):
+    def get_time_reward(self):
         return self.wage_per_hour * self.confirmed_credit / (60 * 60)
 
     def estimate_time_credit(self):
         return self.confirmed_credit + self.pending_credit
-
-    def estimate_bonus(self):
-        return self.wage_per_hour * self.estimate_time_credit() / (60 * 60)
 
     @property
     def progress(self):

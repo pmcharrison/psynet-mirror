@@ -13,12 +13,15 @@ from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
-from sqlalchemy import Column, DateTime, String
+from dominate import tags
+from dominate.util import raw
+from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
+from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
-from .utils import get_logger, pretty_format_seconds
+from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
 
@@ -46,6 +49,7 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
         return []
 
 
+# CAP Recruiter
 class BaseCapRecruiter(PsyNetRecruiter):
     """
     The CapRecruiter base class
@@ -114,9 +118,7 @@ class DevCapRecruiter(BaseCapRecruiter):
     external_submission_url = "http://localhost:8000/tasks"
 
 
-# Lucid
-
-
+# Lucid Recruiter
 @register_table
 class LucidRID(SQLBase, SQLMixin):
     __tablename__ = "lucid_rid"
@@ -126,9 +128,10 @@ class LucidRID(SQLBase, SQLMixin):
     failed_reason = None
     time_of_death = None
 
-    rid = Column(String, index=True)
-    terminated_at = Column(DateTime, index=True)
-    termination_requested_at = Column(DateTime)
+    rid = Column(String, ForeignKey("participant.worker_id"), index=True)
+    completed_at = Column(DateTime)
+    terminated_at = Column(DateTime)
+    termination_reason = Column(String)
 
 
 class LucidRecruiterException(Exception):
@@ -138,28 +141,30 @@ class LucidRecruiterException(Exception):
 class BaseLucidRecruiter(PsyNetRecruiter):
     """
     The LucidRecruiter base class
-
-
-    Attributes
-    ----------
-    start_experiment_in_popup_window : bool
-        Whether to start the experiment in a popup-window or not, Default: True
     """
 
-    start_experiment_in_popup_window = True
+    required_consent_page = LucidConsent.LucidConsentPage
+    optional_consent_pages = (
+        AudiovisualConsent.AudiovisualConsentPage,
+        OpenScienceConsent.OpenScienceConsentPage,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
+        if self.config.get("show_reward"):
+            raise RuntimeError(
+                "Lucid recruitment requires `show_reward` to be set to `False`."
+            )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
             api_key=self.config.get("lucid_api_key"),
             sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            sandbox=self.config.get("mode") != "live",
+            exp_config=self.config,
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
-        self.store = kwargs.get("store") or RedisStore()
+        self.store = kwargs.get("store", RedisStore())
 
     @property
     def survey_number_storage_key(self):
@@ -171,6 +176,20 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         """Does a Lucid survey for the current experiment ID already exist?"""
         return self.current_survey_number() is not None
 
+    def verify_consents(self, consents):
+        error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)."
+        if isinstance(consents[0], self.required_consent_page):
+            if len(consents) == 1:
+                pass
+            elif len(consents) == 2 and isinstance(
+                consents[1], self.optional_consent_pages
+            ):
+                pass
+            else:
+                raise RuntimeError(error_msg)
+        else:
+            raise RuntimeError(error_msg)
+
     def current_survey_number(self):
         """
         Return the survey number associated with the active experiment ID
@@ -180,7 +199,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .experiment import get_and_load_config
+        from .experiment import get_and_load_config, get_experiment
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
@@ -188,7 +207,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
-        experiment = dallinger.experiment.load().new(db.session)
+        experiment = get_experiment()
         wage_per_hour = get_and_load_config().get("wage_per_hour")
         create_survey_request_params = {
             "bid_length_of_interview": ceil(
@@ -198,7 +217,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             "name": self.config.get("title"),
             "quota": n,
             "quota_cpi": round(
-                experiment.estimated_max_bonus(wage_per_hour),
+                experiment.estimated_max_reward(wage_per_hour),
                 2,
             ),
         }
@@ -218,19 +237,19 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         self.lucidservice.add_qualifications_to_survey(self.current_survey_number())
 
         url = survey_info["ClientSurveyLiveURL"]
-        self.lucidservice.log("Done creating project and survey.")
+        self.lucidservice.log("Done creating Lucid project and survey.")
         self.lucidservice.log("----------")
-        self.lucidservice.log("---------> " + url.replace("https", "http"))
+        self.lucidservice.log("---------> " + url)
         self.lucidservice.log("----------")
 
         survey_id = self.current_survey_number()
         if survey_id is None:
-            self.lucidservice.log("No survey in progress: recruitment aborted.")
+            self.lucidservice.log("No survey in progress: Recruitment aborted.")
             return
 
         return {
             "items": [url],
-            "message": "Lucid survey created successfully.",
+            "message": f"Lucid survey {self.current_survey_number()} created successfully.",
         }
 
     def close_recruitment(self):
@@ -256,6 +275,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         rid = entry_information.get("RID")
         hit_id = entry_information.get("hit_id")
+        if hit_id is None:
+            hit_id = entry_information.get("hitId")
 
         if rid is None and hit_id is None:
             raise LucidRecruiterException(
@@ -291,44 +312,122 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def exit_response(self, experiment, participant):
         """
         Delegate to the experiment for possible values to show to the
-        participant and complete the survey if no more participants are needed.
+        participant and complete the survey.
         """
-        if participant.failed:
-            redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
-        else:
-            redirect_url = (
-                "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
-            )
+        external_submit_url = self.external_submit_url(participant=participant)
+        self.lucidservice.log(f"Exit redirect: {external_submit_url}")
 
-        redirect_url += participant.assignment_id + "&"
-        hash = self.lucidservice.sha1_hash(redirect_url)
-        redirect_url += f"hash={hash}"
-        self.lucidservice.log(f"Exit redirect: {redirect_url}")
-
-        return flask.render_template(
+        return render_template_with_translations(
             "exit_recruiter_lucid.html",
-            external_submit_url=redirect_url,
+            external_submit_url=external_submit_url,
         )
+
+    def reward_bonus(self, participant, amount, reason):
+        """
+        Set `completed_at` timestamp on participant's LucidRID entry
+        """
+        if participant is not None and participant.progress == 1:
+            self.complete_participant(participant.assignment_id)
+        else:
+            self.terminate_participant(
+                participant.assignment_id,
+                "Termination in 'reward_bonus' as 'participant.progress' was < 1",
+            )
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def run_checks(self):
-        LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            sandbox=self.config.get("mode") != "live",
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        ).terminate_invalid_respondents()
+    def external_submit_url(self, participant=None, assignment_id=None):
+        if participant is None and assignment_id is None:
+            raise RuntimeError(
+                "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided."
+            )
+        data = self.data_for_submit_url(participant, assignment_id)
+        return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
+
+    def data_for_submit_url(self, participant, assignment_id):
+        # Standard terminate
+        ris = 20
+        if participant is not None:
+            assignment_id = participant.assignment_id
+            if "performance_check" in participant.failure_tags:
+                # Security terminate
+                ris = 30
+            elif participant.progress == 1:
+                # Complete
+                ris = 10
+        if assignment_id is None:
+            assignment_id = assignment_id
+        return {"ris": ris, "rid": assignment_id}
+
+    def error_page_content(self, _, _p, assignment_id, external_submit_url):
+        if external_submit_url is None:
+            external_submit_url = self.external_submit_url(assignment_id=assignment_id)
+
+        html = tags.div()
+        with html:
+            tags.p(
+                " ".join(
+                    [
+                        _p(
+                            "lucid_error",
+                            "Redirecting to Lucid Marketplace...",
+                        ),
+                    ]
+                )
+            )
+            tags.script(
+                raw(
+                    'setTimeout(() => { window.location = "'
+                    + external_submit_url
+                    + '"; }, 2000)'
+                )
+            )
+        return html
+
+    def time_until_termination_in_s(self, rid):
+        return self.lucidservice.time_until_termination_in_s(rid)
+
+    def complete_participant(self, rid):
+        return self.lucidservice.complete_respondent(rid)
+
+    def terminate_participant(self, rid, reason):
+        return self.lucidservice.terminate_respondent(rid, reason)
+
+    def set_termination_details(self, rid, reason):
+        self.lucidservice.set_termination_details(rid, reason)
 
     @property
-    def termination_time_in_min(self):
+    def termination_time_in_s(self):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
         )
-        return pretty_format_seconds(
-            lucid_recruitment_config.get("termination_time_in_s")
+
+        return lucid_recruitment_config.get("termination_time_in_s")
+
+    @property
+    def inactivity_timeout_in_s(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
         )
+
+        return lucid_recruitment_config.get("inactivity_timeout_in_s")
+
+    @property
+    def no_focus_timeout_in_s(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
+        )
+
+        return lucid_recruitment_config.get("no_focus_timeout_in_s")
+
+    @property
+    def aggressive_no_focus_timeout_in_s(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
+        )
+
+        return lucid_recruitment_config.get("aggressive_no_focus_timeout_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

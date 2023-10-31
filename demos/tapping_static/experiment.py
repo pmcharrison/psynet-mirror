@@ -3,7 +3,7 @@ import json
 import os
 import tempfile
 
-from flask import Markup
+from markupsafe import Markup
 from repp.analysis import REPPAnalysis
 from repp.config import sms_tapping
 from repp.stimulus import REPPStimulus

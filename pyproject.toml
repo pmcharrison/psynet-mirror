@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "10.0.0rc4"
+version = "10.4.0"
 authors = [
   { name="Peter Harrison", email="pmch2@cam.ac.uk" },
   { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
@@ -30,13 +30,13 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger>=9.6.0",
+    "dallinger>=9.10.0",
     "dominate",
-    "importlib_resources",
     "ipywidgets",
     "joblib",
     "jsonpickle",
     "paramiko",
+    "polib",
     "praat-parselmouth",
     "progress",
     "python-gettext",
@@ -52,8 +52,8 @@ dev = [
     "furo",
     "isort",
     "mock",
-    "polib",
     "pre-commit",
+    "pybabel",
     "sphinx-autodoc-typehints",
 ]
 

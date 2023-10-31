@@ -9,13 +9,18 @@
 # In the meantime, if you want to skip generating constraints and only update other demo files,
 # run the following instead: SKIP_CONSTRAINTS=1 python3 demos/update_demos.py
 
+import fileinput
 import os
 import pathlib
+import re
+import shutil
 import subprocess
+from importlib import resources
 
 from joblib import Parallel, delayed
 
 import psynet.command_line
+from psynet import __version__
 from psynet.utils import working_directory
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
@@ -44,28 +49,53 @@ def find_demo_dirs():
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
+        update_psynet_requirement(dir)
         generate_constraints(dir)
+        post_update_constraints(dir)
 
 
 def generate_constraints(dir):
     subprocess.run(
-        "dallinger generate-constraints",
+        "psynet generate-constraints",
         shell=True,
         cwd=dir,
         capture_output=True,
     )
 
 
+def post_update_constraints(dir):
+    with working_directory(dir):
+        psynet.command_line.post_update_constraints_()
+
+
+def update_psynet_requirement(dir):
+    with working_directory(dir):
+        psynet.command_line.update_psynet_requirement_()
+
+
 def update_scripts(dir):
     with working_directory(dir):
         psynet.command_line.update_scripts_()
 
+        with resources.as_file(
+            resources.files("psynet") / "resources/experiment_scripts/config.txt"
+        ) as path:
+            shutil.copyfile(
+                path,
+                "config.txt",
+            )
 
-if skip_constraints:
-    n_jobs = 1
-else:
-    n_jobs = 16
 
+# Update PsyNet Docker image version
+with fileinput.FileInput(
+    "psynet/resources/experiment_scripts/Dockerfile", inplace=True
+) as file:
+    version = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+    for line in file:
+        print(re.sub(version, f"psynet:v{__version__}", line), end="")
+
+# Update demos
+n_jobs = 8
 Parallel(verbose=10, n_jobs=n_jobs)(
     delayed(update_demo)(_dir) for _dir in find_demo_dirs()
 )

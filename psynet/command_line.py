@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import pathlib
 import re
@@ -8,6 +9,8 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
+from hashlib import md5
+from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -26,18 +29,20 @@ from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
-from pkg_resources import resource_filename
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.version import check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
+from .internationalization import clean_po, load_po, po_to_dict
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    ISO_639_1_CODES,
     get_args,
     make_parents,
     pretty_format_seconds,
@@ -316,15 +321,16 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
     _cleanup_before_debug()
 
     try:
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
         if legacy:
             # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
             # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
             # This problem manifests specifically when the experiment contains custom tables.
-            _debug_legacy(ctx, archive=archive, no_browsers=no_browsers)
+            _debug_legacy(ctx, archive=None, no_browsers=no_browsers)
         elif docker:
-            _debug_docker(ctx, archive=archive, no_browsers=no_browsers)
+            _debug_docker(ctx, archive=None, no_browsers=no_browsers)
         else:
-            _debug_auto_reload(ctx, archive=archive, no_browsers=no_browsers)
+            _debug_auto_reload(ctx, archive=None, no_browsers=no_browsers)
     finally:
         kill_psynet_worker_processes()
 
@@ -575,6 +581,8 @@ def is_chromedriver_process(process):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk):
+    verify_psynet_requirement()
+    check_versions()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -609,6 +617,8 @@ def _pre_launch(
 ):
     log("Preparing for launch...")
 
+    from .experiment import get_experiment
+
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
@@ -637,10 +647,22 @@ def _pre_launch(
             # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
-    if not archive:
+    experiment = get_experiment()
+    experiment.update_deployment_id()
+
+    if archive:
+        from psynet.experiment import database_template_path
+
+        shutil.copyfile(archive, database_template_path)
+    else:
         ctx.invoke(prepare)
 
     _forget_tables_defined_in_experiment_directory()
+
+    if heroku:
+        # Unimports the PsyNet experiment, because Dallinger will want to start from scratch when using Heroku.
+        # We don't unimport it in other cases because reloading the experiment produces an unnecessary time overhead.
+        clean_sys_modules()
 
 
 def _forget_tables_defined_in_experiment_directory():
@@ -681,7 +703,8 @@ def deploy__heroku(ctx, app, archive, docker):
         _pre_launch(
             ctx, mode="live", archive=archive, local_=False, heroku=True, app=app
         )
-        result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=archive)
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
+        result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=None)
         _post_deploy(result)
     finally:
         _cleanup_exp_directory()
@@ -744,13 +767,14 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
             deploy as dallinger_docker_ssh_deploy,
         )
 
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             dallinger_docker_ssh_deploy,
             mode="sandbox",  # TODO - but does this even matter?
             server=server,
             dns_host=dns_host,
             app_name=app,
-            archive_path=archive,
+            archive_path=None,
             # config_options -- this could be useful
         )
 
@@ -957,11 +981,14 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
-        elif mode == "deploy":
+        elif mode == "live":
             run_pre_checks_deploy(exp, config, is_mturk)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
+    verify_psynet_requirement()
+    check_versions()
+
     us_only = config.get("us_only")
 
     if (
@@ -994,9 +1021,8 @@ def debug__heroku(ctx, app, docker, archive):
             _pre_launch(
                 ctx, mode="sandbox", archive=archive, local_=False, heroku=True, app=app
             )
-            result = ctx.invoke(
-                dallinger_sandbox, verbose=True, app=app, archive=archive
-            )
+            # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
+            result = ctx.invoke(dallinger_sandbox, verbose=True, app=app, archive=None)
             _post_deploy(result)
         finally:
             _cleanup_exp_directory()
@@ -1026,14 +1052,12 @@ def debug__docker_heroku(ctx, app, archive):
 @click.option("--app", required=True, help="Name of the experiment app.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
-# @click.option("--server", default=None, help="Name of the remote server.")
-# @click.option(
-#     "--skip-flask",
-#     is_flag=True,
-#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
-# )
+@click.option(
+    "--dns-host",
+    help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
+)
 @click.pass_context
-def debug__docker_ssh(ctx, app, archive, server):
+def debug__docker_ssh(ctx, app, archive, server, dns_host):
     """
     Debug the experiment on a remote server via SSH.
     """
@@ -1053,13 +1077,15 @@ def debug__docker_ssh(ctx, app, archive, server):
             app=app,
         )
 
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             deploy,
             mode="sandbox",
             server=server,
+            dns_host=dns_host,
             app_name=app,
             config_options={},
-            archive_path=archive,
+            archive_path=None,
         )
 
         _post_deploy(result)
@@ -1251,10 +1277,16 @@ def _estimate(mode):
     experiment_class = import_local_experiment()["class"]
     wage_per_hour = get_and_load_config().get("wage_per_hour")
 
-    if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(wage_per_hour)
-        log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
-    if mode in ["time", "both"]:
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    if mode in ["reward", "both"]:
+        max_reward = experiment_class.estimated_max_reward(wage_per_hour)
+        log(
+            f"Estimated maximum reward for participant: {config.currency}{round(max_reward, 2)}."
+        )
+    if mode in ["duration", "both"]:
         completion_time = experiment_class.estimated_completion_time(wage_per_hour)
         log(
             f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
@@ -1265,12 +1297,12 @@ def _estimate(mode):
 @click.option(
     "--mode",
     default="both",
-    type=click.Choice(["bonus", "time", "both"]),
-    help="Type of result. Can be either 'bonus', 'time', or 'both'.",
+    type=click.Choice(["reward", "duration", "both"]),
+    help="Type of result. Can be either 'reward', 'duration', or 'both'.",
 )
 def estimate(mode):
     """
-    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    Estimate the maximum reward for a participant and the time for the experiment to complete, respectively.
     """
     try:
         _estimate(mode)
@@ -1304,9 +1336,128 @@ def generate_constraints(ctx):
 
     log(header)
     try:
+        verify_psynet_requirement()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
+
+
+@psynet.command()
+def check_constraints():
+    "Check whether the experiment contains an appropriate constraints.txt file."
+    if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+        print("SKIP_DEPENDENCY_CHECK is set so we will skip checking constraints.txt.")
+        return
+
+    with yaspin(
+        text="Verifying that constraints.txt is up-to-date with requirements.txt...",
+        color="green",
+    ) as spinner:
+        _check_constraints(spinner)
+        spinner.ok("✔")
+
+    verify_psynet_requirement()
+
+
+def _check_constraints(spinner=None):
+    directory = os.getcwd()
+
+    # This code comes from dallinger.utils.ensure_constraints_file_presence.
+    # Ideally this Dallinger function would be refactored into exportable components.
+    requirements_path = Path(directory) / "requirements.txt"
+    constraints_path = Path(directory) / "constraints.txt"
+
+    if not requirements_path.exists():
+        if spinner:
+            spinner.fail("✘")
+        raise click.ClickException(
+            "Experiment directory is missing a requirements.txt file. "
+            "You need to create this file and put your Python package dependencies (e.g. psynet) in it."
+        )
+        # raise click.Abort()
+
+    generate_constraints_cmd = (
+        "    psynet generate-constraints\n"
+        "or, if you are using Docker:\n"
+        "    bash docker/generate-constraints"
+    )
+
+    if not constraints_path.exists():
+        if spinner:
+            spinner.fail("✘")
+        raise click.ClickException(
+            "Error: Experiment directory is missing a constraints.txt file. "
+            "This file pins all of your experiment's Python package dependencies, both explicit and implicit. "
+            "Please check that your requirements.txt file is up-to-date, then generate the constraints.txt file "
+            "by running the following command:\n" + generate_constraints_cmd
+        )
+
+    requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
+    if requirements_path_hash not in constraints_path.read_text():
+        if spinner:
+            spinner.fail("✘")
+        raise click.ClickException(
+            "The constraints.txt file is not up-to-date with the requirements.txt file. "
+            "Please generate a new constraints.txt file by running the following command:\n"
+            + generate_constraints_cmd
+        )
+
+
+def verify_psynet_requirement():
+    environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
+    if os.environ.get(environment_variable, None):
+        print(
+            f"Skipping PsyNet version requirement check because {environment_variable} was non-empty."
+        )
+        return
+
+    with yaspin(
+        text="Verifying PsyNet version in requirements.txt...",
+        color="green",
+    ) as spinner:
+        valid = False
+        with open("requirements.txt", "r") as file:
+            version_tag_or_commit_hash = [
+                "[a-fA-F0-9]{8,40}",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+            ]
+            file_content = file.read()
+            for regex in version_tag_or_commit_hash:
+                match = re.search(
+                    r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
+                    + regex
+                    + "(#egg=psynet)?$",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+                match = re.search(
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+",
+                    file_content,
+                    re.MULTILINE,
+                )
+                if match is not None:
+                    valid = True
+                    break
+
+        if valid:
+            spinner.ok("✔")
+        else:
+            spinner.color = "red"
+            spinner.fail("✗")
+
+        assert valid, (
+            "Incorrect specification for PsyNet in 'requirements.txt'.\n"
+            "\nExamples:\n"
+            "* psynet == 10.1.1\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
+            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+            "in your terminal."
+        )
 
 
 ##########
@@ -1407,7 +1558,9 @@ def export__heroku(ctx, app, **kwargs):
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
-    exp_variables = ctx.invoke(experiment_variables, location="ssh", app=app)
+    exp_variables = ctx.invoke(
+        experiment_variables, location="ssh", app=app, server=server
+    )
     export_(
         ctx,
         app=app,
@@ -1483,7 +1636,6 @@ def export_(
         config.load()
 
     if path is None:
-        # export_root = get_from_config("default_export_root")
         export_root = "~/psynet-data/export"
 
         path = os.path.join(
@@ -1729,7 +1881,7 @@ def load(path):
     populate_db_from_zip_file(path)
 
 
-# Example usage: psynet generate-config --debug_storage_root ~/debug_storage
+# Example usage: psynet generate-config --recruiter mturk
 @psynet.command(
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )
@@ -1764,6 +1916,26 @@ def update_scripts():
     update_scripts_()
 
 
+def update_psynet_requirement_():
+    with open("requirements.txt", "r") as orig_file:
+        with open("updated_requirements.txt", "w") as updated_file:
+            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            for line in orig_file:
+                match = re.search(
+                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
+                    + version_tag
+                    + "#egg=psynet$",
+                    line,
+                )
+                if match is not None:
+                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                else:
+                    updated_file.write(line)
+            updated_file.close()
+        orig_file.close()
+    shutil.move("updated_requirements.txt", "requirements.txt")
+
+
 def update_scripts_():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -1772,16 +1944,22 @@ def update_scripts_():
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
     click.echo("...updating .gitignore.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/.gitignore"),
-        ".gitignore",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/.gitignore"
+    ) as path:
+        shutil.copyfile(
+            path,
+            ".gitignore",
+        )
 
     click.echo("...updating Dockerfile.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/Dockerfile"),
-        "Dockerfile",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/Dockerfile"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "Dockerfile",
+        )
 
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
@@ -1789,38 +1967,174 @@ def update_scripts_():
         file.write("\n")
 
     click.echo("...updating test.py and pytest.ini.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/test.py"),
-        "test.py",
-    )
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/pytest.ini"),
-        "pytest.ini",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/test.py"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "test.py",
+        )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/pytest.ini"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "pytest.ini",
+        )
 
     click.echo("...updating docs directory.")
     if Path("docs").exists():
         shutil.rmtree("docs", ignore_errors=True)
-    shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/docs"),
-        "docs",
-        dirs_exist_ok=True,
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/docs"
+    ) as path:
+        shutil.copytree(
+            path,
+            "docs",
+            dirs_exist_ok=True,
+        )
 
     click.echo("...updating Docker scripts.")
     shutil.rmtree("docker", ignore_errors=True)
-    shutil.copytree(
-        resource_filename("psynet", "resources/experiment_scripts/docker"),
-        "docker",
-        dirs_exist_ok=True,
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/docker"
+    ) as path:
+        shutil.copytree(
+            path,
+            "docker",
+            dirs_exist_ok=True,
+        )
     os.system("chmod +x docker/*")
 
     click.echo("...updating README.md.")
-    shutil.copyfile(
-        resource_filename("psynet", "resources/experiment_scripts/README.md"),
-        "README.md",
-    )
+    with resources.as_file(
+        resources.files("psynet") / "resources/experiment_scripts/README.md"
+    ) as path:
+        shutil.copyfile(
+            path,
+            "README.md",
+        )
+
+
+def post_update_constraints_():
+    import fileinput
+
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        version_tag = "PsyNet@v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        for line in file:
+            print(re.sub(version_tag, f"PsyNet@v{__version__}", line), end="")
+
+
+@psynet.command()
+@click.argument(
+    "iso_code",
+    required=True,
+    type=click.Choice(ISO_639_1_CODES, case_sensitive=False),
+)
+def prepare_translation(iso_code):
+    """
+    To be run in an experiment directory; initializes scripts and help files to their
+    latest PsyNet versions.
+    """
+    _prepare_translation(iso_code.lower())
+
+
+def _prepare_translation(iso_code):
+    po_path = os.path.join("locales", iso_code, "LC_MESSAGES", "experiment.po")
+
+    # Surpress compilation warnings
+    logger = logging.getLogger()
+    logger.disabled = True
+    from .experiment import import_local_experiment
+
+    experiment_class = import_local_experiment().get("class")
+
+    try:
+        pot = experiment_class._create_translation_template_from_experiment_folder()
+    except FileNotFoundError as e:
+        print(
+            '''
+        No translation template was found. Are you sure you are in the experiment folder? Also, make sure you have
+        marked the strings you want to translate with the _() and _p() function. Here's an example:
+        ###################
+        import os
+        from flask import Markup
+        from psynet.page import InfoPage
+        from psynet.utils import get_translator
+        locale = "nl"
+        _, _p = get_translator(
+            locale, module="experiment", locales_dir=os.path.abspath("locales")
+        )
+        my_info_page = InfoPage(
+            Markup(
+                f"""
+                <h1>{_("Instructions")}</h1>
+                <hr>
+                {_("In this experiment, you will listen to different music clips.")} <br>
+                {_("You have to select the music you like most.")}
+                """
+            ),
+            time_estimate=5
+        )
+        ###################
+        Here's the equivalent for a HTML file would be:
+        ###################
+        <h1>{{ gettext("Instructions") }}</h1>
+        <hr>
+        {{ gettext("In this experiment, you will listen to different music clips.") }} <br>
+        {{ gettext("You have to select the music you like most.") }}
+        ###################
+        In case you have stored your strings in a subfolder, you can also register the subfolder to be scanned, by
+        extending the create_translation_template_from_experiment_folder function in your experiment class. Here's an example:
+        ###################
+        @classmethod
+        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
+            super(Exp, cls).create_translation_template_from_experiment_folder(input_directory, pot_path)
+            from psynet.internationalization import create_pot
+            create_pot(input_directory, "my_module/.", pot_path)
+        ###################
+        This will look for strings in the my_module subfolder.
+        '''
+        )
+        raise e
+    logger.disabled = False
+
+    if os.path.exists(po_path):
+        po = load_po(po_path)
+        po_entries = po_to_dict(po)
+        pot_entries = po_to_dict(pot)
+
+        if po_entries.keys() == pot_entries.keys():
+            print("No new translations found.")
+            return
+
+        n_unused_po_entries = sum([key not in pot_entries for key in po_entries.keys()])
+
+        po_entry_list = list(po_entries.values())
+        if n_unused_po_entries > 0:
+            remove_unused_entries = user_confirms(
+                f"Do you want to remove {n_unused_po_entries} unused translations?",
+                default=False,
+            )
+            if remove_unused_entries:
+                old_n = len(po_entries)
+                po_entry_list = [
+                    value for key, value in po_entries.items() if key in pot_entries
+                ]
+                print(f"Removed {old_n - len(po_entry_list)} unused translations.")
+        new_entries = [
+            value for key, value in pot_entries.items() if key not in po_entries
+        ]
+        if new_entries:
+            print(f"Added {len(new_entries)} new translations.")
+        po_entry_list += new_entries
+        po.clear()
+        po.extend(po_entry_list)
+        po = clean_po(po, "experiment")
+        po.save(po_path)
+    else:
+        os.makedirs(os.path.join("locales", iso_code, "LC_MESSAGES"), exist_ok=True)
+        pot.save(po_path)
 
 
 @psynet.group("destroy")
@@ -1861,22 +2175,25 @@ def _destroy(
     f_expire,
     app,
     expire_hit,
+    server=None,
 ):
     if user_confirms(
         "Would you like to delete the app from the web server?", default=True
     ):
         with yaspin("Destroying app...") as spinner:
             try:
+                kwargs = {"app": app}
+                kwargs = {**kwargs, "server": server} if server else kwargs
                 if expire_hit in get_args(f_destroy):
                     ctx.invoke(
                         f_destroy,
-                        app=app,
                         expire_hit=False,
+                        **kwargs,
                     )
                 else:
                     ctx.invoke(
                         f_destroy,
-                        app=app,
+                        **kwargs,
                     )
                 spinner.ok("✔")
             except subprocess.CalledProcessError:
@@ -1905,6 +2222,7 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
+@server_option
 @click.option(
     "--expire-hit/--no-expire-hit",
     flag_value=True,
@@ -1912,7 +2230,7 @@ def _destroy(
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
-def destroy__docker_ssh(ctx, app, expire_hit):
+def destroy__docker_ssh(ctx, app, server, expire_hit):
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
@@ -1922,6 +2240,7 @@ def destroy__docker_ssh(ctx, app, expire_hit):
         expire,
         app=app,
         expire_hit=expire_hit,
+        server=server,
     )
 
 
@@ -2030,3 +2349,23 @@ def verify_id(ctx, param, app):
 # The original Dallinger verify_id function forces app names to begin with dlgr-,
 # which is not appropriate for us
 dallinger.command_line.utils.verify_id = verify_id
+
+
+@psynet.command()
+@click.pass_context
+def test(ctx):
+    """
+    Runs the experiment's regression test.
+    """
+    run_subprocess_with_live_output("pytest test.py")
+
+
+@psynet.command()
+@click.pass_context
+def simulate(ctx):
+    """
+    Generates simulated data for an experiment by running the experiment's regression test
+    and exporting the resulting data.
+    """
+    ctx.invoke(test)
+    ctx.invoke(export__local)

@@ -7,6 +7,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.participant import Participant
 
+from . import deployment_info
 from .utils import get_logger
 
 logger = get_logger()
@@ -23,13 +24,13 @@ class LucidService(object):
         self,
         api_key,
         sha1_hashing_key,
-        sandbox=True,
-        recruitment_config=None,
+        exp_config,
+        recruitment_config,
         max_wait_secs=0,
     ):
         self.api_key = api_key
         self.sha1_hashing_key = sha1_hashing_key
-        self.sandbox = False  # sandbox
+        self.exp_config = exp_config
         self.recruitment_config = recruitment_config
         self.max_wait_secs = max_wait_secs
         self.headers = {
@@ -40,10 +41,7 @@ class LucidService(object):
 
     @property
     def request_base_url_v1(self):
-        url = "https://api.samplicio.us/Demand/v1"
-        if self.sandbox:
-            url = "https://sandbox.techops.engineering/Demand/v1"
-        return url
+        return "https://api.samplicio.us/Demand/v1"
 
     @classmethod
     def log(cls, text):
@@ -70,7 +68,16 @@ class LucidService(object):
         }
 
         # Apply survey configuration from 'lucid_recruitment_config.json' file.
-        request_data = json.dumps({**params, **self.recruitment_config["survey"]})
+        survey_data = self.recruitment_config["survey"]
+        survey_status_code = "01"
+        if (
+            self.exp_config.activate_recruiter_on_start
+            and deployment_info.read("mode") == "live"
+        ):
+            survey_status_code = "03"
+        survey_data["SurveyStatusCode"] = survey_status_code
+
+        request_data = json.dumps({**params, **survey_data})
         response = requests.post(
             f"{self.request_base_url_v1}/Surveys/Create",
             data=request_data,
@@ -83,7 +90,7 @@ class LucidService(object):
             or "SurveyNumber" not in response_data["Survey"]
         ):
             raise LucidServiceException(
-                "LUCID: 'Create survey' request was invalid for unknown reason."
+                "LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey."
             )
         self.log(
             f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
@@ -148,32 +155,56 @@ class LucidService(object):
                 data=request_data,
                 headers=self.headers,
             )
-            response_data = response.json()
 
-        return response_data
+            if not response.ok:
+                raise LucidServiceException(
+                    "LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+
+        self.log("Removed default qualifications from survey.")
 
     def add_qualifications_to_survey(self, survey_number):
         """Add platform and browser specific qualifications to a survey."""
-        qualifications = [
-            {
-                "Name": "MS_is_mobile",
-                "QuestionID": 8214,
-                "LogicalOperator": "NOT",
-                "NumberOfRequiredConditions": 0,
-                "IsActive": True,
-                "Order": 1,
-                "PreCodes": ["true"],
-            },
-            {
-                "Name": "MS_browser_type_Non_Wurfl",
-                "QuestionID": 1035,
-                "LogicalOperator": "OR",
-                "NumberOfRequiredConditions": 0,
-                "IsActive": True,
-                "Order": 2,
-                "PreCodes": ["Chrome"],
-            },
-        ]
+        qualifications = []
+
+        if not self.exp_config.allow_mobile_devices:
+            qualifications.append(
+                {
+                    "Name": "MS_is_mobile",
+                    "QuestionID": 8214,
+                    "LogicalOperator": "NOT",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 1,
+                    "PreCodes": ["true"],
+                }
+            )
+
+        if self.exp_config.force_google_chrome:
+            qualifications.append(
+                {
+                    "Name": "MS_browser_type_Non_Wurfl",
+                    "QuestionID": 1035,
+                    "LogicalOperator": "OR",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 2,
+                    "PreCodes": ["Chrome"],
+                }
+            )
+
+        if self.recruitment_config["qualifications"].get("headphones"):
+            qualifications.append(
+                {
+                    "Name": "headphones",
+                    "QuestionID": 149326,
+                    "LogicalOperator": "OR",
+                    "NumberOfRequiredConditions": 1,
+                    "IsActive": True,
+                    "Order": 3,
+                    "PreCodes": ["1"],
+                }
+            )
 
         for qualification in qualifications:
             request_data = json.dumps(qualification)
@@ -182,71 +213,107 @@ class LucidService(object):
                 data=request_data,
                 headers=self.headers,
             )
-            response_data = response.json()
 
-        return response_data
+            if not response.ok:
+                raise LucidServiceException(
+                    "LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                )
 
-    def can_be_terminated(self, rid):
-        participant_rids = [
-            participant.entry_information.get("worker_id")
-            for participant in Participant.query.all()
-        ]
+        if qualifications:
+            self.log("Added qualifications to survey.")
 
-        if (datetime.now() - rid.creation_time).seconds <= self.recruitment_config[
-            "termination_time_in_s"
-        ]:
+    def can_be_terminated(self, lucid_rid):
+        if (
+            datetime.now() - lucid_rid.creation_time
+        ).seconds <= self.recruitment_config["termination_time_in_s"]:
             return False
 
-        if rid.rid not in participant_rids:
-            return True
+        n = Participant.query.filter_by(worker_id=lucid_rid.rid, progress=0).count()
 
-        try:
-            participant = Participant.query.filter_by(worker_id=rid.rid).one()
-        except NoResultFound:
-            raise NoResultFound(
-                f"No participant for Lucid RID '{rid}' found. This should never happen."
+        return n > 0
+
+    def time_until_termination_in_s(self, rid):
+        lucid_rid = get_lucid_rid(rid)
+
+        if lucid_rid.terminated_at is not None:
+            return 0
+
+        termination_time_in_s = self.recruitment_config["termination_time_in_s"]
+
+        if self.can_be_terminated(lucid_rid):
+            return 0
+        else:
+            time_until_termination_in_s = (
+                termination_time_in_s
+                - (datetime.now() - lucid_rid.creation_time).seconds
             )
-        except MultipleResultsFound:
-            raise MultipleResultsFound(
-                f"Multiple participants for Lucid RID '{rid}' found. This should never happen."
+            return time_until_termination_in_s
+
+    def send_complete_request(self, rid):
+        return self.send_exit_request(rid, 10)
+
+    def send_terminate_request(self, rid):
+        return self.send_exit_request(rid, 20)
+
+    def generate_submit_url(self, ris=None, rid=None):
+        if ris is None or rid is None:
+            raise RuntimeError(
+                "Error generating 'submit_url': Both 'ris' and 'rid' need to be provided!"
             )
-        if participant.progress == 0:
-            return True
+        submit_url = "https://samplicio.us/s/ClientCallBack.aspx"
+        submit_url += f"?RIS={ris}"
+        submit_url += f"&RID={rid}&"
+        submit_url += f"hash={self.sha1_hash(submit_url)}"
+        return submit_url
 
-        return False
+    def send_exit_request(self, rid, ris):
+        redirect_url = self.generate_submit_url(ris=ris, rid=rid)
+        self.log(
+            f"Sending exit request for respondent with RID '{rid}' using redirect URL '{redirect_url}'."
+        )
+        return requests.get(redirect_url)
 
-    def terminate_invalid_respondents(self):
-        from psynet.recruiters import LucidRID
+    def complete_respondent(self, rid):
+        lucid_rid = get_lucid_rid(rid)
 
-        for rid in LucidRID.query.filter_by(terminated_at=None).all():
-            if self.can_be_terminated(rid):
-                redirect_url = (
-                    f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
-                )
-                redirect_url += f"hash={self.sha1_hash(redirect_url)}"
-                self.log(
-                    f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
-                )
-                rid.termination_requested_at = datetime.now()
+        if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
+            response = self.send_complete_request(rid)
+            if response.ok:
+                lucid_rid.completed_at = datetime.now()
                 session.commit()
-                try:
-                    response = requests.get(redirect_url)
-                    if response.status_code == 200:
-                        rid.terminated_at = datetime.now()
-                        session.commit()
-                        self.log(
-                            f"Respondent terminated using redirect URL '{redirect_url}'."
-                        )
-                    else:
-                        self.log(
-                            f"Error terminating respondent using redirect URL '{redirect_url}'."
-                        )
-                        self.log(response.text)
-                        self.log(response.__dict__)
-                except Exception as e:
-                    self.log(
-                        f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
-                    )
+                self.log("Respondent completed successfully.")
+            else:
+                self.log(
+                    f"Error completing respondent. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+        else:
+            self.log(
+                "Completion canceled. Respondent already completed or terminated survey."
+            )
+
+    def set_termination_details(self, rid, reason=None):
+        lucid_rid = get_lucid_rid(rid)
+        lucid_rid.terminated_at = datetime.now()
+        lucid_rid.termination_reason = reason
+        session.commit()
+
+    def terminate_respondent(self, rid, reason):
+        lucid_rid = get_lucid_rid(rid)
+
+        if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
+            response = self.send_terminate_request(rid)
+            if response.ok:
+                self.set_termination_details(rid, reason)
+                session.commit()
+                self.log("Respondent terminated successfully.")
+            else:
+                self.log(
+                    f"Error terminating respondent. Status returned: {response.status_code}, reason: {response.reason}"
+                )
+        else:
+            self.log(
+                "Termination canceled. Respondent already completed or terminated survey."
+            )
 
     def sha1_hash(self, url):
         """
@@ -271,3 +338,20 @@ class LucidService(object):
             .replace("/", "_")
             .replace("=", "")
         )
+
+
+def get_lucid_rid(rid):
+    from psynet.recruiters import LucidRID
+
+    try:
+        lucid_rid = LucidRID.query.filter_by(rid=rid).one()
+    except NoResultFound:
+        raise NoResultFound(
+            f"No LucidRID for Lucid RID '{rid}' found. This should never happen."
+        )
+    except MultipleResultsFound:
+        raise MultipleResultsFound(
+            f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
+        )
+
+    return lucid_rid

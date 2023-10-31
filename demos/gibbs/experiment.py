@@ -4,7 +4,7 @@ import time
 from typing import List, Union
 
 from dallinger import db
-from flask import Markup
+from markupsafe import Markup
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
@@ -176,7 +176,7 @@ class CustomTrialMaker(GibbsTrialMaker):
             time_estimate=5,
         )
 
-    def compute_bonus(self, score, passed):
+    def compute_performance_reward(self, score, passed):
         if score is None:
             return 0.0
         else:

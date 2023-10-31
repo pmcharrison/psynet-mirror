@@ -20,7 +20,3 @@ popular `SurveyJS <https://surveyjs.io/>`_ survey creator tool.
 This tool is used here to implement a clean and intuitive user interface that allows the user to
 rate multiple emotions at the same time. It's also used for the demographic questionnaires
 presented at the end of the experiment.
-
-.. warning::
-    As of December 2022 this implementation is still work-in-progress, but it should
-    be ready for public consumption by spring 2023.

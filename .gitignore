@@ -53,6 +53,7 @@ coverage.xml
 
 # Translations
 *.pot
+*.mo
 
 # Django stuff:
 *.log
@@ -146,6 +147,8 @@ psynet/nips/ganspace/snapshots/ganspace-code.zip
 psynet/nips/ganspace/.vscode/settings.json
 .Rproj.user
 demos/**/data
+demos/**/develop
 demos/**/snapshots
 tmp/*
 typescript
+deployment-info_*

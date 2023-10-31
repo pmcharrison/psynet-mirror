@@ -3,7 +3,7 @@
 # Imports
 ##########################################################################################
 from dominate import tags
-from flask import Markup
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import DebugStorage
@@ -137,7 +137,7 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
             "automaticallyContinue": Event(
                 is_triggered_by="recordEnd",
                 delay=MAX_RECORDING_DURATION + 0.2,
-                js="onNextButton();",
+                js="psynet.submitResponse();",
             ),
         }
 

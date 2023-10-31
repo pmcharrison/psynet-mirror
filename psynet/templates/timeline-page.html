@@ -10,6 +10,10 @@
             {{ x }}
         </style>
     {% endfor %}
+
+    {% for x in css_links %}
+        <link rel="stylesheet" href={{ x }}>
+    {% endfor %}
 {% endblock %}
 
 {% block body %}
@@ -26,7 +30,15 @@
         </div>
     {% endblock %}
 
-    <div id="main-body" class="my-5 container">
+    {% if show_termination_button %}
+        <div class="center_div" style="margin-top: 7px;">
+            <button id="terminate-button" class="btn btn-dark" style="float: left; margin: 0px 0px 30px 7px;">
+                Terminate using this button!
+            </button>
+        </div>
+    {% endif %}
+
+    <div id="main-body" class="my-5 container" style="clear: both;">
         {% block main_body %}
 
             {% block above_progress_display %}
@@ -102,6 +114,17 @@
             </div>
         {% endblock %}
 
+        {% block alert_modal %}
+            <div id="alert-modal" class="modal">
+                <div class="modal-content">
+                    <h3 id="alert-message"></h3>
+                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="alert-button">
+                        {{ pgettext("alert_ok", "OK") }}
+                    </button>
+                </div>
+            </div>
+        {% endblock %}
+
         {% block resume_modal %}
             <div id="resume-modal" class="modal">
                 <div class="modal-content">
@@ -118,65 +141,64 @@
     {% endblock %}
 
     {% block footer %}
-        {% if config.show_footer %}
-            <style>
-                #footer {
-                    background-color: rgb(49, 124, 246);
-                    color: white;
-                    margin: 0px;
-                    padding: 0px;
-                    line-height: 33px;
-                    border-style: none;
-                }
+        <style>
+            #footer {
+                background-color: rgb(49, 124, 246);
+                color: white;
+                margin: 0px;
+                padding: 0px;
+                line-height: 33px;
+                border-style: none;
+                {% if config.show_footer == false %} display: none; {% endif %}
+            }
 
-                #media-download-progress-bar {
-                    width: {{ initial_download_progress }}%;
-                    height: 6px;
-                    background-color: black;
-                }
+            #media-download-progress-bar {
+                width: {{ initial_download_progress }}%;
+                height: 6px;
+                background-color: black;
+            }
 
-                .footer-text {
-                    margin: 0px;
-                }
+            .footer-text {
+                margin: 0px;
+            }
 
-            </style>
+        </style>
 
-            <nav id="footer" class="navbar fixed-bottom">
-                <div id="media-download-progress-bar"></div>
-                    <div class="container py-2">
-                        {% if config.show_bonus %}
-                            <div class="footer-text">
-                                {{ pgettext("timeline", "Bonus") }}:
-                                <strong>
-                                    <span id="bonus-details" style="display: none">
-                                        {{ config.currency }}<span id="basic-bonus">{{ basic_bonus }}</span> (basic) +
-                                        {{ config.currency }}<span id="extra-bonus">{{ extra_bonus }}</span> (extra) =
-                                    </span>
-                                    <span class="fw-bold">
-                                        {{ config.currency }}<span id="total-bonus">{{ total_bonus }}</span>
-                                    </span>
-                                </strong>
-                            </div>
-                        {% endif %}
+        <nav id="footer" class="navbar fixed-bottom">
+            <div id="media-download-progress-bar"></div>
+                <div class="container py-2">
+                    {% if config.show_reward %}
+                        <div class="footer-text">
+                            {{ pgettext("timeline", "Reward") }}:
+                            <strong>
+                                <span id="reward-details" style="display: none">
+                                    {{ config.currency }}<span id="time-reward">{{ time_reward }}</span> (time) +
+                                    {{ config.currency }}<span id="performance-reward">{{ performance_reward }}</span> (performance) =
+                                </span>
+                                <span class="fw-bold">
+                                    {{ config.currency }}<span id="total-reward">{{ total_reward }}</span>
+                                </span>
+                            </strong>
+                        </div>
+                    {% endif %}
 
-                        {% if config.allow_switching_locale and supported_language_dict|length > 1 %}
-                            <div>
-                                <select id="iso-language" class="form-control">
-                                    {% for iso, language in supported_language_dict.items() %}
-                                        {% if iso == current_locale %}
-                                            <option value="{{ iso }}" selected>{{ language }}️</option>
-                                        {% else %}
-                                            <option value="{{ iso }}">{{ language }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        {% endif %}
-                        <button type="button" class="btn btn-light"
-                                id="help-button">{{ pgettext("timeline", "Help!") }}</button>
-                    </div>
-            </nav>
-        {% endif %}
+                    {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
+                        <div>
+                            <select id="iso-language" class="form-control">
+                                {% for iso, language in supported_language_dict.items() %}
+                                    {% if iso == current_locale %}
+                                        <option value="{{ iso }}" selected>{{ language }}️</option>
+                                    {% else %}
+                                        <option value="{{ iso }}">{{ language }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                    <button type="button" class="btn btn-light"
+                            id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+                </div>
+        </nav>
         <script>
             // Allows the user to switch the language of the experiment if this setting is enabled.
             $('#iso-language').on('change', function (x) {
@@ -184,8 +206,7 @@
                 window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (a, name, value) {
                     $_GET[name] = value;
                 });
-                var participant_id = $_GET['participant_id'];
-                $.get('/set_locale_participant/' + participant_id + '?locale=' + $(this).val(), function (data) {
+                $.get("/set_locale_participant/{{ participant.id }}?locale=" + $(this).val(), function (data) {
                     location.reload();
                 });
                 $('#iso-language').val()
@@ -199,7 +220,9 @@
 
     <script src="/static/scripts/jquery-3.6.0.min.js"></script>
 
-
+    {% for x in js_links %}
+        <script src="{{ x }}"></script>
+    {% endfor %}
 
     <script>
         {{ init_js_vars }}
@@ -215,7 +238,8 @@
                         prompt: {},
                         control: {}
                     },
-                    utils: {}
+                    utils: {},
+                    var: {{ js_vars | tojson }}
                 };
 
                 psynet.utils.shallowCopy = function (x) {
@@ -278,6 +302,10 @@
                     return total / numbers.length;
                 };
 
+                psynet.removeBeforeUnloadEventListener = function () {
+                    window.removeEventListener("beforeunload", beforeunloadFunction);
+                };
+
                 psynet.waitForEventListener = async function (target, type) {
                     await new Promise((resolve) => {
                         target.addEventListener(type, () => resolve(), {once: true});
@@ -306,12 +334,7 @@
 
                     if (level != "debug" && psynet.log.counter < psynet.log.max) {
                         psynet.log.counter += 1;
-
-                        route = (
-                            '/log/' + level
-                            + "/" + dallinger.identity.participantId
-                            + "/{{ auth_token }}"
-                        );
+                        route = '/log/' + level + "/{{ unique_id }}";
 
                         dallinger.post(route, {message: msg});
                     }
@@ -590,6 +613,7 @@
                     trial.init = async function () {
                         // Should only be called once, on page load
                         await trial.registerEvent("trialConstruct");
+                        $("#buttonStart").attr("disabled", false);
                     };
 
                     trial.stop = async function () {
@@ -786,6 +810,7 @@
                         resumeModal.css("display", "block");
                         resumeButton.click(async function () {
                             resumeModal.css("display", "none");
+                            $("#js-psych").trigger("focus");
                             await psynet.media.init();
                             resolve();
                         });
@@ -894,7 +919,7 @@
                     }
 
                     // Make sure all batches are processed as arraybuffers
-                    if (args["batchId"] !== null) {
+                    if (args["batchId"]) {
                         request.responseType = "arraybuffer";
                     }
 
@@ -1109,7 +1134,6 @@
                     let fileId = args["fileId"];
                     let url = URL.createObjectURL(data);
                     let metadata = await getImageMetadataFromURL(url);
-
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.url = url;
                     out.width = metadata.width;
@@ -1215,16 +1239,6 @@
                     return processMediaBatch.extract_stimuli(data, args);
                 };
 
-                let checkParticipantId = function () {
-                    if (dallinger.identity.participantId === undefined) {
-                        alert(
-                            "{{ pgettext("timeline_switched_browsers", "Your participant ID is undefined, perhaps because you switched browsers during the test.") }}" +
-                            "{{ pgettext("timeline_switched_browsers", "Unfortunately this behaviour is not currently supported.") }}"
-                        );
-                        throw console.error("Undefined participant ID.");
-                    }
-                };
-
                 let initModal = function () {
                     let modal = document.getElementById("help-modal");
                     let helpBtn = document.getElementById("help-button");
@@ -1275,7 +1289,6 @@
                     console.log("Initialising page...");
 
                     psynet.registerErrorHandler();
-                    checkParticipantId();
                     initModal();
 
                     psynet.response.disable();
@@ -1287,19 +1300,12 @@
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
-                    psynet.authToken = "{{ auth_token }}";
-                    psynet.participantId = dallinger.identity.participantId;
-                    updateProgressAndBonus();
+                    psynet.assignmentId = "{{ participant.assignment_id }}";
+                    psynet.participantId = {{ participant.id }};
+                    psynet.uniqueId = "{{ participant.unique_id }}";
 
-                    // In some cases (e.g. the first timeline page) the auth_token
-                    // may not yet be set in the browser's URL string.
-                    // This is problematic if the participant refreshes the page.
-                    // The following code therefore sets the auth_token using
-                    // the value provided by the backend.
-                    let urlParams = new URLSearchParams(window.location.search);
-                    urlParams.set("auth_token", "{{ auth_token }}");
-                    let fixedUrl = window.location.origin + window.location.pathname + "?" + urlParams;
-                    window.history.replaceState({}, null, fixedUrl);
+                    updateProgressAndReward();
+
                     if (correctBrowser) {
                         setTimeout(() => psynet.trial.init(), 25);
                     }
@@ -1313,7 +1319,33 @@
                     }
                 };
 
+                psynet.processingResponse = false;
+
+                psynet.submitResponse = async function (onRejection) {
+                    if (typeof retrieveResponse == "undefined") {
+                        await psynet.nextPage();
+                    } else {
+                        let response = retrieveResponse();
+                        await psynet.nextPage(
+                            response.rawAnswer,
+                            response.metadata,
+                            response.blobs,
+                            onRejection,
+                        );
+                    }
+                }
+
                 psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
+                    if (!psynet.pageLoaded) {
+                        psynet.alert(
+                            "{{ pgettext("timeline_problem", "Please wait for the page to load.") }} {{ pgettext("timeline_problem", "Try again in a couple of seconds.") }}"
+                        )
+                        return false;
+                    }
+                    if (psynet.processingResponse) {
+                        return false;
+                    }
+                    psynet.processingResponse = true;
                     // rawAnswer, metadata, and blobs default to psynet.response.staged if they
                     // are not provided explicitly.
                     //
@@ -1327,8 +1359,26 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
+                    {% if experiment.with_lucid_recruitment() %}
+                        psynet.removeBeforeUnloadEventListener();
+                    {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
+                    psynet.processingResponse = false;
                     return passedValidation
+                };
+
+                psynet.alert = function (text) {
+                    return new Promise((resolve) => {
+                        let alertModal = $("#alert-modal");
+                        let alertButton = $("#alert-button");
+                        let alertText = $("#alert-message");
+                        alertText.text(text);
+                        alertModal.css("display", "block");
+                        alertButton.click(async function () {
+                            alertModal.css("display", "none");
+                            resolve();
+                        });
+                    });
                 };
 
                 let onSuccessResponse = function (request, onRejection) {
@@ -1341,7 +1391,7 @@
                             response.page.attributes.session_id == psynet.page.attributes.session_id
                         );
                         if (shouldRefreshPage) {
-                            window.location = "/timeline?participant_id=" + dallinger.identity.participantId + "&auth_token=" + "{{ auth_token }}";
+                            window.location = "/timeline?unique_id=" + psynet.uniqueId;
                         } else {
                             psynet.page = response.page;
                             psynet.registerEvent("pageUpdated");
@@ -1349,7 +1399,7 @@
                         passedValidation = true;
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
-                        alert(response.message);
+                        psynet.alert(response.message);
                         psynet.response.enable();
                         psynet.submit.enable();
                         if (onRejection) {
@@ -1377,7 +1427,7 @@
                 let onErrorResponse = function (request) {
                     dallinger.error({
                         "data": {
-                            "participant_id": dallinger.identity.participantId
+                            "participant_id": {{ participant.id }}
                         }
                     });
                 };
@@ -1408,9 +1458,10 @@
                     }
 
                     return JSON.stringify({
-                        "participant_id": dallinger.identity.participantId,
+                        "participant_id": psynet.participantId,
                         "page_uuid": pageUuid,
-                        "auth_token": authToken,
+                        "assignment_id": psynet.assignmentId,
+                        "unique_id": psynet.uniqueId,
                         "raw_answer": rawAnswer,
                         "metadata": allMetadata
                     });
@@ -1569,30 +1620,30 @@
             }()
         )
 
-        let updateProgressAndBonus = function () {
+        let updateProgressAndReward = function () {
             if (psynet.participantId !== undefined) {
-                $.get('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
+                $.get('/timeline/progress_and_reward', {'participantId': psynet.participantId})
                     .done(function (data) {
                         let progressPercentage = data['progressPercentage'];
                         let progressPercentageStr = progressPercentage + '%';
                         $('#timeline-progress-bar').text(progressPercentageStr);
-                        $('#timeline-progress-bar').css("width", progressPercentageStr)
-                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+                        $('#timeline-progress-bar').css("width", progressPercentageStr);
+                        $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage);
 
-                        if (data['bonus'] !== undefined) {
-                            if (data['bonus']['extra'].toFixed(2) > 0) {
-                                $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
-                                $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                                $("#bonus-details").show()
+                        if (data['reward'] !== undefined) {
+                            if (data['reward']['performance'].toFixed(2) > 0) {
+                                $('#time-reward').text(data['reward']['time'].toFixed(2));
+                                $('#performance-reward').text(data['reward']['performance'].toFixed(2));
+                                $("#reward-details").show();
                             }
-                            $('#total-bonus').text(data['bonus']['total'].toFixed(2));
+                            $('#total-reward').text(data['reward']['total'].toFixed(2));
                         }
                     });
             }
         }
 
-        if (dynamicallyUpdateProgressBarAndBonus) {
-            setInterval(updateProgressAndBonus, 1000);
+        if (dynamicallyUpdateProgressBarAndReward) {
+            setInterval(updateProgressAndReward, 1000);
         }
 
         function alertParticipantOpenedDevtools() {
@@ -1605,8 +1656,7 @@
 
         function writeToDbParticipantOpenedDevtools() {
             dallinger.post(
-                '/participant_opened_devtools/' + dallinger.identity.participantId
-                + "/{{ auth_token }}"
+                "/participant_opened_devtools/{{ unique_id }}"
             );
         }
 
@@ -1643,9 +1693,8 @@
 
 {% block libs %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}" type="text/javascript"></script>
-    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}"
-            type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='scripts/platform.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/survey-jquery/survey-jquery.js') }}"></script>
 {% endblock %}
 
 {% block scripts %}
@@ -1661,4 +1710,107 @@
         </script>
     {% endfor %}
 
+    {% if experiment.with_lucid_recruitment() %}
+        <script>
+            {
+                // Terminate on 'page reload', 'window/tab close', and 'no focus' with timeouts and
+                // polling frequency given in milliseconds.
+                let NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.no_focus_timeout_in_s }});
+                let NO_FOCUS_TIMEOUT_REASON = "no-focus-timeout-";
+                {% if aggressive_termination_on_no_focus %}
+                    NO_FOCUS_TIMEOUT = toMilliseconds({{ experiment.recruiter.aggressive_no_focus_timeout_in_s }});
+                    NO_FOCUS_TIMEOUT_REASON = "aggressive-" + NO_FOCUS_TIMEOUT_REASON;
+                {% endif %}
+                const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
+                const POLLING_FREQUENCY = 1000;
+                let checkFocusIntervalID = setInterval(checkFocus, POLLING_FREQUENCY);
+                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
+                let triedToLeave = false;
+                let noFocusSince = 0;
+                let assignmentId = "{{ worker_id }}";
+
+                // Terminate on overall timeout
+                let secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
+                let intervalInSeconds = 1;
+                let overallTimeoutIntervalID = setInterval(function () {
+                    psynet.log.debug("Seconds left before termination: " + secondsLeft);
+                    if (secondsLeft <= 0) {
+                        clearInterval(overallTimeoutIntervalID);
+                        psynet.removeBeforeUnloadEventListener();
+                        terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
+                    }
+                    secondsLeft -= intervalInSeconds;
+                }, toMilliseconds(intervalInSeconds));
+
+                window.addEventListener("beforeunload", beforeunloadFunction);
+
+                // Proceed to next page
+                $(".btn, .sd-btn").click(function () {
+                    psynet.removeBeforeUnloadEventListener();
+                });
+
+                $("#terminate-button").click(function () {
+                    terminateParticipant('terminate-button');
+                });
+
+                function toMilliseconds(seconds) {
+                    return seconds * 1000;
+                }
+
+                function beforeunloadFunction(event) {
+                    event.returnValue = `Are you sure you want to leave?`;
+                    triedToLeave = true;
+                }
+
+                function terminateParticipant(reason) {
+                    psynet.removeBeforeUnloadEventListener();
+                    clearInterval(checkFocusIntervalID);
+                    clearInterval(checkTriedToLeaveIntervalID);
+                    return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + reason)
+                }
+
+                function checkTriedToLeave() {
+                    if (triedToLeave) {
+                        terminateParticipant("user-tried-to-leave");
+                    }
+                }
+
+                function checkFocus() {
+                    if (document.hasFocus()) {
+                        noFocusSince = 0;
+                    } else {
+                        noFocusSince += POLLING_FREQUENCY;
+                        if (noFocusSince > NO_FOCUS_TIMEOUT) {
+                            terminateParticipant(NO_FOCUS_TIMEOUT_REASON + NO_FOCUS_TIMEOUT / 1000 + "s");
+                        } else {
+                            psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
+                        }
+                    }
+                }
+
+                // Terminate due to inactivity
+                let inactivityTimeoutID;
+                function resetInactivityTimer() {
+                    clearTimeout(inactivityTimeoutID);
+                    let timeoutInSeconds = {{ experiment.recruiter.inactivity_timeout_in_s }};
+                    let reason = "inactivity-timeout-" + timeoutInSeconds + "s"
+                    inactivityTimeoutID = setTimeout(terminateParticipant, timeoutInSeconds * 1000, reason);
+                    psynet.log.debug("Reset inactivity timer (" + timeoutInSeconds + " seconds)");
+                }
+
+                // Events that reset the inactivity timer
+                const events = ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"];
+                for (let i = 0; i < events.length; i++) {
+                    window.addEventListener(events[i], resetInactivityTimer);
+                }
+
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    let isValidBrowser = browser.validate();
+                    if (!isValidBrowser) {
+                        terminateParticipant("invalid-browser");
+                    }
+                });
+            }
+        </script>
+    {% endif %}
 {% endblock %}

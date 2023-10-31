@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Union
 from dominate import tags
 from dominate.dom_tag import dom_tag
 from dominate.util import raw
-from flask import Markup
+from markupsafe import Markup
 
 from .asset import Asset, LocalStorage
 from .bot import BotResponse
@@ -18,11 +18,14 @@ from .utils import (
     call_function,
     call_function_with_context,
     get_logger,
+    get_translator,
     is_valid_html5_id,
     linspace,
 )
 
 logger = get_logger()
+
+DEFAULT_LOCALE = "en"
 
 
 class Blob:
@@ -54,10 +57,15 @@ class Prompt:
         Optional text to display to the participant.
         This can either be a string, which will be HTML-escaped
         and displayed as regular text, or an HTML string
-        as produced by ``flask.Markup``.
+        as produced by ``markupsafe.Markup``.
 
     text_align
         CSS alignment of the text.
+
+    buttons
+        An optional list of additional buttons to include on the page.
+        Normally these will be created by calls to :class:`psynet.modular_page.Button`.
+
 
     Attributes
     ----------
@@ -80,17 +88,27 @@ class Prompt:
         in PsyNet's built-in ``prompt.html`` file.
     """
 
-    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left"):
+    def __init__(
+        self,
+        text: Union[None, str, Markup] = None,
+        text_align: str = "left",
+        buttons: Optional[List] = None,
+    ):
         self.text = text
         self.text_align = text_align
+
+        if buttons is None:
+            buttons = []
+
+        self.buttons = buttons
 
     macro = "simple"
     external_template = None
 
     @property
     def metadata(self):
-        # Sometimes self.text will be a flask.Markup object, which will be encoded
-        # strangely by jsonpickle. We call str() to ensure a simpler representation.
+        # Sometimes `self.text` will be a `markupsafe.Markup` object, which will be encoded
+        # strangely by jsonpickle. We call `str()` to ensure a simpler representation.
         return {"text": str(self.text)}
 
     @property
@@ -125,7 +143,7 @@ class AudioPrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     loop
         Whether the audio should loop back to the beginning after finishing.
@@ -255,7 +273,7 @@ class VideoPrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     text_align
         CSS alignment of the text.
@@ -388,7 +406,7 @@ class ImagePrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     width
         CSS width specification for the image (e.g. ``'50%'``).
@@ -474,7 +492,7 @@ class ColorPrompt(Prompt):
 
     text
         Text to display to the participant. This can either be a string
-        for plain text, or an HTML specification from ``flask.Markup``.
+        for plain text, or an HTML specification from ``markupsafe.Markup``.
 
     width
         CSS width specification for the color box (default ``'200px'``).
@@ -537,6 +555,17 @@ class Control:
         client_ip_address :
             The client's IP address.
 
+    buttons :
+        An optional list of additional buttons to include on the page.
+        Normally these will be created by calls to :class:`psynet.modular_page.Button`.
+
+
+    show_next_button :
+        Determines whether a 'next' button is shown on the page.
+        This button is used to submit the response to the present page.
+        If this is not set to ``True``, then the response must be submitted another way,
+        for example by triggering the event ``manualSubmit``.
+
     Attributes
     ----------
 
@@ -560,9 +589,22 @@ class Control:
 
     external_template = None
 
-    def __init__(self, bot_response=NoArgumentProvided):
+    def __init__(
+        self,
+        bot_response=NoArgumentProvided,
+        locale=DEFAULT_LOCALE,
+        buttons: Optional[List] = None,
+        show_next_button: Optional[bool] = True,
+    ):
         self.page = None
         self._bot_response = bot_response
+        self.locale = locale
+
+        if buttons is None:
+            buttons = []
+
+        self.buttons = buttons
+        self.show_next_button = show_next_button
 
     @property
     def macro(self):
@@ -645,6 +687,15 @@ class Control:
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
 
+            3. ``answer``:
+               The formatted answer returned by the participant.
+
+            4. ``raw_answer``:
+               The unformatted answer returned by the participant.
+
+            5. ``page``:
+               The page to which the participant is responding.
+
         Returns
         -------
 
@@ -705,7 +756,8 @@ class NullControl(Control):
     Here the participant just has a single button that takes them to the next page.
     """
 
-    macro = "null"
+    # The macro is named blank, not null, for back-compatibility reasons
+    macro = "blank"
     metadata = {}
 
     def get_bot_response(self, experiment, bot, page, prompt):
@@ -724,8 +776,9 @@ class OptionControl(Control):
         labels: Optional[List[str]] = None,
         style: str = "",
         bot_response=NoArgumentProvided,
+        **kwargs,
     ):
-        super().__init__(bot_response)
+        super().__init__(bot_response=bot_response, **kwargs)
         self.choices = choices
         self.labels = choices if labels is None else labels
         self.style = style
@@ -738,6 +791,10 @@ class OptionControl(Control):
             raise ValueError("name must be a string")
         if not is_valid_html5_id(name):
             raise ValueError("name must be a valid HTML5 id")
+
+    @property
+    def input_type(self):
+        raise NotImplementedError
 
     @property
     def metadata(self):
@@ -785,6 +842,8 @@ class CheckboxControl(OptionControl):
         Whether to display a 'Reset' button to allow for unsetting ticked checkboxes. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when at least one checkbox is ticked. Default: ``never``.
     """
 
+    input_type = "checkbox"
+
     def __init__(
         self,
         choices: List[str],
@@ -794,8 +853,13 @@ class CheckboxControl(OptionControl):
         arrange_vertically: bool = True,
         force_selection: bool = False,
         show_reset_button: str = "never",
+        locale=DEFAULT_LOCALE,
     ):
-        super().__init__(choices, labels, style)
+        if show_reset_button != "never":
+            buttons = [ResetButton()]
+        else:
+            buttons = []
+        super().__init__(choices, labels, style, buttons=buttons)
         self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
@@ -811,6 +875,7 @@ class CheckboxControl(OptionControl):
             )
             for choice, label in zip(self.choices, self.labels)
         ]
+        self.locale = locale
 
     macro = "checkboxes"
 
@@ -832,8 +897,11 @@ class CheckboxControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
+        _, _p = get_translator(self.locale)
         if self.force_selection and len(response.answer) == 0:
-            return FailedValidation("You need to check at least one answer!")
+            return FailedValidation(
+                _p("validation", "You need to check at least one answer!")
+            )
         return None
 
 
@@ -878,6 +946,7 @@ class DropdownControl(OptionControl):
         name: str = "dropdown",
         force_selection: bool = True,
         default_text="Select an option",
+        locale=DEFAULT_LOCALE,
     ):
         super().__init__(choices, labels, style)
         self.validate_name(name)
@@ -889,6 +958,7 @@ class DropdownControl(OptionControl):
             DropdownOption(value=value, text=text)
             for value, text in zip(self.choices, self.labels)
         ]
+        self.locale = locale
 
     macro = "dropdown"
 
@@ -910,8 +980,9 @@ class DropdownControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
+        _, _p = get_translator(self.locale)
         if self.force_selection and response.answer == "":
-            return FailedValidation("You need to select an answer!")
+            return FailedValidation(_p("validation", "You need to select an answer!"))
         return None
 
 
@@ -948,9 +1019,12 @@ class PushButtonControl(OptionControl):
         labels: Optional[List[str]] = None,
         style: str = "min-width: 100px; margin: 10px",
         arrange_vertically: bool = True,
+        show_next_button: bool = False,
         **kwargs,
     ):
-        super().__init__(choices, labels, style, **kwargs)
+        super().__init__(
+            choices, labels, style, show_next_button=show_next_button, **kwargs
+        )
         self.arrange_vertically = arrange_vertically
 
         self.push_buttons = [
@@ -1032,7 +1106,9 @@ class TimedPushButtonControl(PushButtonControl):
         button_highlight_duration: float = 0.75,
         **kwargs,
     ):
-        super().__init__(choices=choices, labels=labels, **kwargs)
+        super().__init__(
+            choices=choices, labels=labels, show_next_button=True, **kwargs
+        )
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
@@ -1111,6 +1187,8 @@ class RadioButtonControl(OptionControl):
         Appends a free text option to the radiobuttons. Default: ``False``.
     """
 
+    input_type = "radio"
+
     def __init__(
         self,
         choices: List[str],
@@ -1122,8 +1200,13 @@ class RadioButtonControl(OptionControl):
         show_reset_button: str = "never",
         show_free_text_option: bool = False,
         placeholder_text_free_text: str = None,
+        locale=DEFAULT_LOCALE,
     ):
-        super().__init__(choices, labels, style)
+        if show_reset_button != "never":
+            buttons = [ResetButton()]
+        else:
+            buttons = []
+        super().__init__(choices, labels, style, buttons=buttons)
         self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
@@ -1152,6 +1235,7 @@ class RadioButtonControl(OptionControl):
                     style=self.style,
                 )
             )
+            self.locale = locale
 
     macro = "radiobuttons"
 
@@ -1171,8 +1255,9 @@ class RadioButtonControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
+        _, _p = get_translator(self.locale)
         if self.force_selection and response.answer is None:
-            return FailedValidation("You need to select an answer!")
+            return FailedValidation(_p("validation", "You need to select an answer!"))
         return None
 
 
@@ -1206,8 +1291,9 @@ class NumberControl(Control):
         width: Optional[str] = "120px",
         text_align: Optional[str] = "right",
         bot_response=NoArgumentProvided,
+        locale=DEFAULT_LOCALE,
     ):
-        super().__init__(bot_response)
+        super().__init__(bot_response=bot_response, locale=locale)
         self.width = width
         self.text_align = text_align
 
@@ -1218,10 +1304,11 @@ class NumberControl(Control):
         return {"width": self.width, "text_align": self.text_align}
 
     def validate(self, response, **kwargs):
+        _, _p = get_translator(self.locale)
         try:
             float(response.answer)
         except ValueError:
-            return FailedValidation("You need to provide a number!")
+            return FailedValidation(_p("validation", "You need to provide a number!"))
         return None
 
     def get_bot_response(self, experiment, bot, page, prompt):
@@ -1286,6 +1373,94 @@ class TextControl(Control):
         return "Hello, I am a bot!"
 
 
+class BaseButton:
+    def render(self):
+        raise NotImplementedError
+
+
+class NextButton(BaseButton):
+    def render(self):
+        return "{{ psynet_controls.next_button(button_params) }}"
+
+
+class ResetButton(BaseButton):
+    def render(self):
+        return "{{ psynet_controls.reset_button(control_config) }}"
+
+
+class Button(BaseButton):
+    """
+    Buttons can be included into modular pages via the page's ``buttons`` argument.
+    These buttons can be used to trigger custom events.
+
+    Parameters
+    ----------
+
+    id_ :
+        The button's ID. This must be written in camelCase.
+        When the button is pressed, an event is triggered with this exact ID.
+
+    text :
+        Text to display on the button.
+
+    style :
+        Optional CSS styling for the button.
+
+    is_response_button :
+        If set to ``True``, then the button is treated as a 'response' button and is only enabled once
+        the PsyNet responseEnable event is triggered.
+
+    start_disabled :
+        If set to ``True``, then the button starts disabled.
+
+    disable_on_click :
+        If set to ``True``, then the button is disabled when it is clicked, typically to avoid redundant clicks.
+    """
+
+    def __init__(
+        self,
+        id_: str,
+        text: Union[str, dom_tag],
+        style: str = "",
+        is_response_button=False,
+        start_disabled=False,
+        disable_on_click=False,
+    ):
+        if not id_.startswith("button"):
+            raise ValueError(
+                "Button IDs must be in camelCase and start with the text 'button'."
+            )
+
+        if "_" in id_ or "-" in id_:
+            raise ValueError(
+                f"Invalid button ID '{id_}': button IDs must be written in camelCase."
+            )
+
+        self.id = id_
+        self.text = text
+        self.style = style
+        self.is_response_button = is_response_button
+        self.start_disabled = start_disabled
+        self.disable_on_click = disable_on_click
+
+    def render(self):
+        return "{{ psynet_controls.generic_button(button_params) }}"
+
+    @property
+    def classes(self):
+        classes = ["btn", "btn-primary", "btn-lg"]
+        if self.is_response_button:
+            classes.append("response")
+        return " ".join(classes)
+
+
+class StartButton(Button):
+    def __init__(self):
+        super().__init__(
+            id_="buttonStart", text="Start", start_disabled=True, disable_on_click=True
+        )
+
+
 class ModularPage(Page):
     """
     The :class:`~psynet.modular_page.ModularPage`
@@ -1306,7 +1481,7 @@ class ModularPage(Page):
     prompt
         A :class:`~psynet.modular_page.Prompt` object that
         determines the prompt to be displayed to the participant.
-        Alternatively, you can also provide text or a ``flask.Markup`` object,
+        Alternatively, you can also provide text or a ``markupsafe.Markup`` object,
         which will then be automatically wrapped in a :class:`~psynet.modular_page.Prompt` object.
 
     control
@@ -1333,6 +1508,38 @@ class ModularPage(Page):
         trialPrepare event to be triggered (e.g. by clicking a 'Play' button,
         or by calling `psynet.trial.registerEvent("trialPrepare")` in JS).
 
+    buttons
+        An optional list of additional buttons to include on the page.
+        Normally these will be created by calls to :class:`psynet.modular_page.Button`.
+
+    show_start_button
+        Determines whether a 'start' button is shown on the page.
+        The default is ``False``, but one might consider setting this to ``True`` if ``start_trial_automatically``
+        is set to ``False``.
+
+    show_next_button
+        Determines whether a 'next' button is shown on the page.
+        The default is ``None``, which means that the decision is deferred to the selected Control.
+        If set to ``True`` or ``False``, the default from the Control is overridden.
+
+    validate
+        Optional validation function to use for the participant's response.
+        If left blank, then the validation function will instead be read from the provided Control.
+        Alternatively, the validation function can be set by overriding this class's ``validate`` method.
+        If no validation function is found, no validation is performed.
+
+        Validation functions provided via the present route may contain various optional arguments.
+        Most typically the function will be of the form ``lambda answer: ...` or ``lambda answer, participant: ...``,
+        but it is also possible to include the arguments ``raw_answer``, ``response``, ``page``, and ``experiment``.
+        Note that ``raw_answer`` is the answer before applying ``format_answer``, and ``answer`` is the answer
+        after applying ``format_answer``.
+
+        Validation functions should return ``None`` if the validation passes,
+        or if it fails a string corresponding to a message to pass to the participant.
+
+        For example, a validation function testing that the answer contains exactly 3 characters might look like this:
+        ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1347,6 +1554,10 @@ class ModularPage(Page):
         events: Optional[dict] = None,
         js_vars: Optional[dict] = None,
         start_trial_automatically: bool = True,
+        buttons: Optional[List] = None,
+        show_start_button: Optional[bool] = False,
+        show_next_button: Optional[bool] = None,
+        validate: Optional[callable] = None,
         **kwargs,
     ):
         if control is None:
@@ -1358,11 +1569,25 @@ class ModularPage(Page):
         if js_vars is None:
             js_vars = {}
 
+        if buttons is None:
+            buttons = []
+
         if not isinstance(prompt, Prompt):
             prompt = Prompt(prompt)
 
         self.prompt = prompt
         self.control = control
+
+        if show_start_button:
+            buttons.append(StartButton())
+
+        buttons += prompt.buttons
+        buttons += control.buttons
+
+        if show_next_button or (show_next_button is None and control.show_next_button):
+            buttons.append(NextButton())
+
+        self.buttons = buttons
 
         if self.control.page is not None:
             raise ValueError(
@@ -1375,6 +1600,8 @@ class ModularPage(Page):
             )
         self.control.page = self
 
+        self._validate_function = validate
+
         template_str = f"""
         {{% extends "timeline-page.html" %}}
 
@@ -1386,6 +1613,7 @@ class ModularPage(Page):
 
         {{% block below_progress_display %}}
         {{{{ {self.control_macro}(control_config) }}}}
+        {self.render_buttons()}
         {{% endblock %}}
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
@@ -1397,6 +1625,7 @@ class ModularPage(Page):
             template_arg={
                 "prompt_config": prompt,
                 "control_config": control,
+                "buttons": buttons,
             },
             media=all_media,
             events=events,
@@ -1408,8 +1637,15 @@ class ModularPage(Page):
                 },
             },
             start_trial_automatically=start_trial_automatically,
+            validate=validate,
             **kwargs,
         )
+
+    def validate(self, response, **kwargs):
+        if self._validate_function is None:
+            return self.control.validate(response, **kwargs)
+        else:
+            return super().validate(response, **kwargs)
 
     def prepare_default_events(self):
         events = super().prepare_default_events()
@@ -1437,10 +1673,19 @@ class ModularPage(Page):
     def import_templates(self):
         return self.import_internal_templates + self.import_external_templates
 
+    def render_buttons(self):
+        logic = []
+        for i, button in enumerate(self.buttons):
+            logic.append(f"{{% set button_params = buttons[{i}] %}}")
+            logic.append(button.render())
+
+        return "\n".join(logic)
+
     @property
     def import_internal_templates(self):
         # We explicitly import these internal templates here to ensure
         # they're imported by the time we try to call them.
+
         return """
         {% import "macros/prompt.html" as psynet_prompts %}
         {% import "macros/control.html" as psynet_controls %}
@@ -1488,13 +1733,6 @@ class ModularPage(Page):
         """
         return self.control.format_answer(raw_answer=raw_answer, **kwargs)
 
-    def validate(self, response, **kwargs):
-        """
-        By default, the ``validate`` method is extracted from the
-        page's :class:`~psynet.page.Control` member.
-        """
-        return self.control.validate(response=response, **kwargs)
-
     def metadata(self, **kwargs):
         """
         By default, the metadata attribute combines the metadata
@@ -1524,13 +1762,17 @@ class AudioMeterControl(Control):
     def __init__(
         self,
         calibrate: bool = False,
-        submit_button: bool = True,
+        show_next_button: bool = True,
         min_time: float = 0.0,
         bot_response=NoArgumentProvided,
+        **kwargs,
     ):
-        super().__init__(bot_response)
+        if "submit_button" in kwargs:
+            raise ValueError(
+                "The 'submit_button' argument in AudioMeterControl has been renamed to 'show_next_button'."
+            )
+        super().__init__(bot_response, show_next_button=show_next_button, **kwargs)
         self.calibrate = calibrate
-        self.submit_button = submit_button
         self.min_time = min_time
         if calibrate:
             self.sliders = MultiSliderControl(
@@ -2212,7 +2454,7 @@ class RecordControl(Control):
         self.auto_advance = auto_advance
 
         if show_meter:
-            self.meter = AudioMeterControl(submit_button=False)
+            self.meter = AudioMeterControl(show_next_button=False)
         else:
             self.meter = None
 
@@ -2610,7 +2852,7 @@ class VideoSliderControl(Control):
 
     @property
     def media(self):
-        return MediaSpec(video={"slider_video": self.url})
+        return MediaSpec(video={"slider-video": self.url})
 
     def visualize_response(self, answer, response, trial):
         html = (
@@ -2678,7 +2920,7 @@ class SurveyJSControl(Control):
         design,
         bot_response=NoArgumentProvided,
     ):
-        super().__init__(bot_response)
+        super().__init__(bot_response, show_next_button=False)
 
         self.design = design
 

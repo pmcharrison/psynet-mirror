@@ -3,7 +3,7 @@ import pathlib
 
 import pytest
 
-from psynet.utils import run_subprocess_with_live_output
+from psynet.utils import run_subprocess_with_live_output, working_directory
 
 psynet_root = pathlib.Path(__file__).parent.parent.resolve()
 demo_root = os.path.join(psynet_root, "demos")
@@ -42,8 +42,15 @@ demos = [d for d in demos if "demos/video_gibbs" not in d]
 # demos = demos[(index + 1) :]
 
 
+@pytest.fixture(scope="class")
+def _in_experiment_directory(experiment_directory):
+    with working_directory(experiment_directory):
+        yield experiment_directory
+
+
+@pytest.mark.usefixtures("_in_experiment_directory")
 @pytest.mark.parametrize("experiment_directory", demos, indirect=True)
-def test_all_demos(in_experiment_directory):
+def test_all_demos(_in_experiment_directory):
     run_subprocess_with_live_output("pytest -x -s -q test.py")
 
 

@@ -21,7 +21,7 @@ up with a description of that animal:
 
 ::
 
-   from flask import Markup
+   from markupsafe import Markup
    from psynet.modular_page import ImagePrompt, ModularPage, TextControl, PushButtonControl
    from psynet.trial.create_and_rate import (
        CreateAndRateNode,
@@ -140,7 +140,7 @@ Let’s now put all pieces together:
 
 ::
 
-   from flask import Markup
+   from markupsafe import Markup
    import psynet.experiment
    from psynet.consent import NoConsent
    from psynet.modular_page import ImagePrompt, ModularPage, PushButtonControl, TextControl

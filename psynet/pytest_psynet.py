@@ -30,13 +30,16 @@ from .command_line import (
     working_directory,
 )
 from .data import init_db
-from .experiment import Experiment, get_experiment, import_local_experiment
+from .experiment import get_experiment, import_local_experiment
 from .redis import redis_vars
 from .trial.main import TrialNetwork
-from .utils import clear_all_caches, disable_logger, wait_until
+from .utils import clear_all_caches, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
+warnings.filterwarnings(
+    "ignore", "color, on_color and attrs are not supported when running in jupyter"
+)
 
 
 def assert_text(driver, element_id, value):
@@ -190,31 +193,17 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
         )
 
 
-@pytest.fixture()
-def config():
-    try:
-        Experiment.extra_parameters()
-    except KeyError as err:
-        if "is already registered" in str(err):
-            pass
-        else:
-            raise
-
-    c = get_config()
-    with disable_logger():
-        # We disable the logger because Dallinger prints an error message to the log
-        # when importing the config file outside a real experiment
-        if not c.ready:
-            c.load()
-
-    return c
-
-
 @pytest.fixture
 def deployment_info():
     from psynet import deployment_info
 
     deployment_info.reset()
+    deployment_info.init(
+        redeploying_from_archive=False,
+        mode="debug",
+        is_local_deployment=True,
+        is_ssh_deployment=False,
+    )
     deployment_info.write(deployment_id="Test deployment")
     yield
     deployment_info.delete()
@@ -225,8 +214,25 @@ def experiment_directory(request):
     return request.param
 
 
+loaded_experiment_directory = None
+
+
 @pytest.fixture(scope="class")
 def in_experiment_directory(experiment_directory):
+    global loaded_experiment_directory
+    if (
+        loaded_experiment_directory is not None
+        and loaded_experiment_directory != experiment_directory
+    ):
+        raise RuntimeError(
+            "Tried to run tests in two different experiment directories in the same testing session "
+            f"('{loaded_experiment_directory}' and '{experiment_directory}'. "
+            "This is not supported, because it is hard to unload an experiment fully without contaminating "
+            "the next one. If you are seeing this error in the PsyNet test suite, you should make sure your test "
+            "is located in the tests/isolated directory, and make sure that each test file only accesses a single "
+            "experiment directory."
+        )
+    loaded_experiment_directory = experiment_directory
     redis_vars.clear()
     with working_directory(experiment_directory):
         yield experiment_directory

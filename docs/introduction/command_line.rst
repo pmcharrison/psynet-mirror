@@ -69,7 +69,7 @@ experiment deployment. To do this you add ``--archive path/to/database.zip`` whe
 
 .. _estimate:
 
-Estimate maximum bonus and completion time (``estimate``)
+Estimate maximum reward and completion time (``estimate``)
 ---------------------------------------------------------
 
 This command examines the timeline, estimates how long the participant will take to complete the experiment,
@@ -125,6 +125,28 @@ under discussion at the moment, so don't worry too much about it.
   psynet generate-constraints
 
 
+Run the experiment's regression test
+------------------------------------
+
+This command runs the experiment's regression test, as defined in ``test.py``. This normally involves
+running one or more simulated participants through the experiment.
+
+.. code:: bash
+
+  psynet test
+
+
+Simulate data for an experiment
+-------------------------------
+
+This command generates simulated data for an experiment by running the experiment's regression test
+and exporting the resulting data.
+
+.. code:: bash
+
+  psynet simulate
+
+
 .. _update:
 
 Update PsyNet/Dallinger (``update``)
@@ -157,4 +179,3 @@ versions (e.g. downgraded) using the ``--psynet-version`` and
                               version to install.
     --verbose                 Verbose mode
     --help                    Show this message and exit.
-

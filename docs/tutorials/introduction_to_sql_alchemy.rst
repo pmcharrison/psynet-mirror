@@ -81,11 +81,11 @@ This query returns a list of all the ``CustomTrial`` objects in the database. We
         if t.participant.var.name == "James"
     ]
 
-We could then sum the bonuses from each of these trials:
+We could then sum the performance rewards from each of these trials:
 
 .. code-block:: python
 
-    james_bonus = sum([t.bonus for t in james_trials])
+    james_performance_reward = sum([t.performance_reward for t in james_trials])
 
 We have to be careful, though, about certain performance questions when using SQLAlchemy. There are a couple of things that are particularly important to be aware of:
 
@@ -304,7 +304,7 @@ In the terminal, restart Postgres:
 
     brew services restart postgresql
 
-Now all SQL commands will be streamed to a log file; on my computer this log file is located at ``/usr/local/var/log/postgres.log``, but I’ve also seen it at ``/usr/local/var/log/postgresql@14.log``.
+Now all SQL commands will be streamed to a log file; on my computer this log file is located at ``/usr/local/var/log/postgres.log``, but I’ve also seen it at ``/usr/local/var/log/postgresql@14.log`` and ``/opt/homebrew/var/log/postgres.log``.
 
 Open a live preview of this log file using the following command:
 

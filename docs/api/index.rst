@@ -10,7 +10,6 @@ API Documentation
    bot
    command_line
    consents
-   dashboard
    data
    demography
    error
@@ -27,6 +26,7 @@ API Documentation
    recruiters
    redis
    serialize
+   sync
    timeline
    trial/index
    utils

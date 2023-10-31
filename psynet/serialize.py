@@ -3,12 +3,15 @@ import re
 from functools import cached_property
 
 import dominate.tags
-import flask
 import jsonpickle
 from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
+from markupsafe import Markup
 
 from .data import SQLBase
+from .utils import get_logger
+
+logger = get_logger()
 
 # old_loadclass = jsonpickle.unpickler.loadclass
 #
@@ -34,7 +37,38 @@ from .data import SQLBase
 jsonpickle.unpickler.loadclass = loadclass
 
 
+def is_lambda_function(x):
+    return callable(x) and hasattr(x, "__name__") and x.__name__ == "<lambda>"
+
+
+class PsyNetPickler(Pickler):
+    def flatten(self, obj, reset=True):
+        if is_lambda_function(obj):
+            try:
+                source_file, source_line = (
+                    obj.__code__.co_filename,
+                    obj.__code__.co_firstlineno,
+                )
+            except Exception as e:
+                source_file, source_line = "UNKNOWN", "UNKNOWN"
+                logger.error(
+                    msg="Failed to find source code for lambda function.", exc_info=e
+                )
+            raise TypeError(
+                "Cannot pickle lambda functions. "
+                "Can you replace this function with a named function defined by `def`?\n"
+                f"The problematic function was defined in {source_file} "
+                f"on line {source_line}."
+            )
+        else:
+            return super().flatten(obj, reset=reset)
+
+
 class PsyNetUnpickler(Unpickler):
+    """
+    The PsyNetUnpickler class
+    """
+
     # def _restore(self, obj):
     #     print(obj)
     #     if isinstance(obj, dict) and "py/object" in obj:
@@ -98,11 +132,11 @@ class PsyNetUnpickler(Unpickler):
         return import_local_experiment()
 
 
+pickler = PsyNetPickler()
+
+
 def serialize(x, **kwargs):
-    return jsonpickle.encode(x, **kwargs)
-
-
-pickler = Pickler()
+    return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
@@ -123,10 +157,14 @@ def unserialize(x):
 
 # These classes cannot be reliably pickled by the `jsonpickle` library.
 # Instead we fall back to Python's built-in pickle library.
-no_json_classes = [flask.Markup]
+no_json_classes = [Markup]
 
 
 class NoJSONHandler(jsonpickle.handlers.BaseHandler):
+    """
+    The NoJSONHandler class
+    """
+
     def flatten(self, obj, state):
         state["bytes"] = pickle.dumps(obj, 0).decode("latin-1")
         return state
@@ -140,6 +178,10 @@ for _cls in no_json_classes:
 
 
 class SQLHandler(jsonpickle.handlers.BaseHandler):
+    """
+    The SQLHandler class
+    """
+
     def flatten(self, obj, state):
         primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
         primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
@@ -168,6 +210,10 @@ jsonpickle.register(SQLBase, SQLHandler, base=True)
 
 
 class DominateHandler(jsonpickle.handlers.BaseHandler):
+    """
+    The DominateHandler class
+    """
+
     def flatten(self, obj, state):
         return str(obj)
 

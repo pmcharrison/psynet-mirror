@@ -1,4 +1,4 @@
-FROM ghcr.io/dallinger/dallinger:9.6.0
+FROM ghcr.io/dallinger/dallinger:9.10.0
 # If you want to pin a Dallinger development version, don't do it here!
 # Instead pin it below (see comments)
 #
@@ -11,8 +11,7 @@ WORKDIR /PsyNet
 COPY pyproject.toml pyproject.toml
 COPY LICENSE LICENSE
 
-RUN apt update
-RUN apt -f -y install curl redis-server unzip libpq-dev
+RUN apt update && apt -f -y install curl redis-server unzip libpq-dev gettext
 RUN service redis-server start
 RUN curl https://cli-assets.heroku.com/install.sh | sh
 RUN wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_109.0.5414.74-1_amd64.deb
@@ -36,9 +35,8 @@ RUN touch README.md
 COPY psynet/version.py psynet/version.py
 
 RUN pip install pip-tools --upgrade
-RUN pip-compile dev-requirements.in --verbose
+RUN pip-compile dev-requirements.in /dallinger/requirements.txt --verbose --output-file dev-requirements.txt
 RUN pip install --no-cache-dir -r dev-requirements.txt
-RUN pip install -r dev-requirements.txt
 
 COPY . .
 RUN pip install --no-dependencies -e .

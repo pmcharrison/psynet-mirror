@@ -6,16 +6,16 @@ import time
 from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
+from importlib import resources
 from statistics import median
 from typing import Callable, Dict, List, Optional, Union
 
-import flask
-import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
+from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -24,6 +24,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
+    call_function,
     call_function_with_context,
     check_function_args,
     dict_to_js_vars,
@@ -156,7 +157,7 @@ class Trigger(dict):
 
 def get_template(name):
     assert isinstance(name, str)
-    path_all_templates = importlib_resources.files(templates)
+    path_all_templates = resources.files(templates)
     path_template = path_all_templates.joinpath(name)
     with open(path_template, "r") as file:
         return file.read()
@@ -583,6 +584,9 @@ class Page(Elt):
     js_vars:
         Dictionary of arguments to instantiate as global Javascript variables.
 
+    js_links:
+        Optional list of paths to JavaScript scripts to include in the page.
+
     media: :class:`psynet.timeline.MediaSpec`
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
@@ -614,6 +618,9 @@ class Page(Elt):
                 font-size: 28px;
                 font-weight: bold;
             }
+
+    css_links:
+        Optional list of links to CSS stylesheets to include in the page.
 
     contents:
         Optional dictionary to store some experiment specific data. For example, in an experiment about melodies, the contents property might look something like this: {”melody”: [1, 5, 2]}.
@@ -652,6 +659,9 @@ class Page(Elt):
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
+    show_termination_button:
+        If ``True``, a button is displayed allowing the participant to terminate the experiment, Default ``False``.
+
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
         of a queued audio file. Otherwise the trial will wait for the
@@ -663,6 +673,25 @@ class Page(Elt):
         This will override any ``bot_response`` function specified in the class's
         ``bot_response`` method.
 
+    validate
+        Optional validation function to use for the participant's response.
+        Alternatively, the validation function can be set by overriding this class's ``validate`` method.
+        If no validation function is found, no validation is performed.
+        See :meth:`~psynet.timeline.Page.validate` for information about how to write this function.
+
+        Validation functions provided via the present route may contain various optional arguments.
+        Most typically the function will be of the form ``lambda answer: ...` or ``lambda answer, participant: ...``,
+        but it is also possible to include the arguments ``raw_answer``, ``response``, ``page``, and ``experiment``.
+        Note that ``raw_answer`` is the answer before applying ``format_answer``, and ``answer`` is the answer
+        after applying ``format_answer``.
+
+        Validation functions should return ``None`` if the validation passes,
+        or if it fails a string corresponding to a message to pass to the participant.
+
+        For example, a validation function testing that the answer contains exactly 3 characters might look like this:
+        ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
+
+
     Attributes
     ----------
 
@@ -672,40 +701,50 @@ class Page(Elt):
     session_id : str
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
 
-    dynamically_update_progress_bar_and_bonus : bool
-        If ``True``, then the page will regularly poll for updates to the progress bar and the bonus.
-        If ``False`` (default), the progress bar and bonus are updated only on page refresh or on transition to
+    dynamically_update_progress_bar_and_reward : bool
+        If ``True``, then the page will regularly poll for updates to the progress bar and the reward.
+        If ``False`` (default), the progress bar and reward are updated only on page refresh or on transition to
         the next page.
     """
 
     returns_time_credit = True
-    dynamically_update_progress_bar_and_bonus = False
+    dynamically_update_progress_bar_and_reward = False
 
     def __init__(
         self,
+        *,
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
+        js_links: Optional[List] = None,
         media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
         css: Optional[List] = None,
+        css_links: Optional[List] = None,
         contents: Optional[Dict] = None,
         session_id: Optional[str] = None,
         save_answer: bool = True,
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
+        show_termination_button: bool = False,
+        aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
+        validate: Optional[callable] = None,
     ):
         if template_arg is None:
             template_arg = {}
         if js_vars is None:
             js_vars = {}
+        if js_links is None:
+            js_links = []
         if contents is None:
             contents = {}
+        if css_links is None:
+            css_links = []
 
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
@@ -725,22 +764,27 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
+        self.js_links = js_links
 
         self.expected_repetitions = 1
 
         self.media = MediaSpec() if media is None else media
         self.media.check()
 
-        self.scripts = [] if scripts is None else [flask.Markup(x) for x in scripts]
+        self.scripts = [] if scripts is None else [Markup(x) for x in scripts]
         assert isinstance(self.scripts, list)
 
-        self.css = [] if css is None else [flask.Markup(x) for x in css]
+        self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
+
+        self.css_links = css_links
 
         self._contents = contents
         self.session_id = session_id
         self.save_answer = save_answer
         self.start_trial_automatically = start_trial_automatically
+        self.show_termination_button = show_termination_button
+        self.aggressive_termination_on_no_focus = aggressive_termination_on_no_focus
 
         self.events = {
             **self.prepare_default_events(),
@@ -752,11 +796,14 @@ class Page(Elt):
         self.progress_display = progress_display
 
         self._bot_response = bot_response
+        self._validate_function = validate
 
-    def call__bot_response(self, experiment, bot):
+    def call__bot_response(self, experiment, bot, response=NoArgumentProvided):
         from .bot import BotResponse
 
-        if self._bot_response == NoArgumentProvided:
+        if response != NoArgumentProvided:
+            res = response
+        elif self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot)
         elif callable(self._bot_response):
             res = call_function_with_context(
@@ -788,10 +835,15 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
+            "trialManualRequest": Event(
+                is_triggered_by=["trialConstruct", "buttonStart"],
+                once=True,
+                js="$('#buttonStart').attr('disabled', true)",
+            ),
             "trialPrepare": Event(
                 is_triggered_by="trialConstruct"
                 if self.start_trial_automatically
-                else None,
+                else "trialManualRequest",
                 once=True,
             ),
             "trialStart": Event(is_triggered_by="trialPrepare", once=True),
@@ -820,7 +872,7 @@ class Page(Elt):
         return {
             "session_id": self.session_id,
             "type": type(self).__name__,
-            "auth_token": participant.auth_token,
+            "unique_id": participant.unique_id,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
         }
@@ -1035,6 +1087,15 @@ class Page(Elt):
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
 
+            3. ``answer``:
+               The formatted answer returned by the participant.
+
+            4. ``raw_answer``:
+               The unformatted answer returned by the participant.
+
+            5. ``page``:
+               The page to which the participant is responding.
+
         Returns
         -------
 
@@ -1043,7 +1104,8 @@ class Page(Elt):
             :class:`psynet.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
-        return None
+        if self._validate_function is not None:
+            return call_function(self._validate_function, response=response, **kwargs)
 
     def pre_render(self):
         """
@@ -1057,34 +1119,39 @@ class Page(Elt):
         from .experiment import get_and_load_config
 
         internal_js_vars = {
-            "authToken": participant.auth_token,
+            "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
-            "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
+            "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
         config = get_and_load_config()
+        js_vars = {**self.js_vars, **internal_js_vars}
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": flask.Markup(
-                dict_to_js_vars({**self.js_vars, **internal_js_vars})
-            ),
-            "define_media_requests": flask.Markup(self.define_media_requests),
+            "init_js_vars": Markup(dict_to_js_vars(js_vars)),
+            "js_vars": js_vars,
+            "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
-            "extra_bonus": "%.2f" % participant.performance_bonus,
-            "total_bonus": "%.2f"
-            % (participant.performance_bonus + participant.time_credit.get_bonus()),
+            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "performance_reward": "%.2f" % participant.performance_reward,
+            "total_reward": "%.2f"
+            % (
+                participant.performance_reward
+                + participant.time_credit.get_time_reward()
+            ),
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
             "participant": participant,
-            "auth_token": participant.auth_token,
+            "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
-            "css": self.css,
+            "js_links": self.js_links,
+            "css": self.css + experiment.css,
+            "css_links": self.css_links + experiment.css_links,
             "events": self.events,
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
@@ -1095,6 +1162,8 @@ class Page(Elt):
             },
             "current_locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
+            "show_termination_button": self.show_termination_button,
+            "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         return render_string_with_translations(
             template_string=self.template_str, locale=locale, **all_template_args
@@ -1356,6 +1425,17 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
+    @property
+    def consents(self):
+        from .consent import Consent
+
+        return [elt for elt in self.elts if isinstance(elt, Consent)]
+
+    def verify_consents(self, experiment):
+        recruiter = experiment.recruiter
+        if hasattr(recruiter, "verify_consents"):
+            recruiter.verify_consents(self.consents)
+
     @cached_property
     def modules(self):
         return {e.module_id: e.module for e in self.elts}
@@ -1496,8 +1576,8 @@ class Timeline:
                 if isinstance(new_elt, Page):
                     finished = True
 
-    def estimated_max_bonus(self, wage_per_hour):
-        return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
+    def estimated_max_reward(self, wage_per_hour):
+        return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
 
     def estimated_completion_time(self, wage_per_hour):
         return self.estimated_time_credit.get_max("time", wage_per_hour=wage_per_hour)
@@ -1511,7 +1591,7 @@ class CreditEstimate:
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
             return self._max_time
-        elif mode == "bonus":
+        elif mode == "reward":
             assert wage_per_hour is not None
             return self._max_time * wage_per_hour / (60 * 60)
         elif mode == "all":
@@ -1519,7 +1599,7 @@ class CreditEstimate:
                 "time_seconds": self._max_time,
                 "time_minutes": self._max_time / 60,
                 "time_hours": self._max_time / (60 * 60),
-                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour),
+                "reward": self.get_max("reward", wage_per_hour=wage_per_hour),
             }
 
     def _estimate_max_time(self, elts):
@@ -1606,8 +1686,6 @@ class Response(_Response):
     successful_validation: bool
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
-        Stored in ``property2`` in the database.
-        (Not yet implemented)
 
     client_ip_address : str
         The participant's IP address as reported by Flask.
@@ -1680,8 +1758,9 @@ def is_list_of(x, what):
 
 def join(*args):
     from .asset import AssetSpecification
+    from .sync import Barrier
 
-    valid_classes = (AssetSpecification, Elt, Module)
+    valid_classes = (AssetSpecification, Elt, Module, Barrier)
 
     for i, arg in enumerate(args):
         if not (
@@ -1689,7 +1768,7 @@ def join(*args):
             or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module nor a list of such objects: ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module/Barrier nor a list of such objects: ({arg})."
             )
 
     args = [a for a in args if a is not None]
@@ -1706,9 +1785,9 @@ def join(*args):
     else:
 
         def f(x, y):
-            if isinstance(x, Module):
+            if isinstance(x, (Module, Barrier)):
                 x = x.resolve()
-            if isinstance(y, Module):
+            if isinstance(y, (Module, Barrier)):
                 y = y.resolve()
             if x is None:
                 return y
@@ -1837,7 +1916,9 @@ def while_loop(
     from .page import UnsuccessfulEndPage
 
     if fail_on_timeout is True:
-        after_timeout_logic = UnsuccessfulEndPage()
+        after_timeout_logic = UnsuccessfulEndPage(
+            failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+        )
     else:
         after_timeout_logic = GoTo(end_while)
 
@@ -2110,7 +2191,7 @@ class ModuleState(SQLBase, SQLMixin):
     participant = relationship(
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
-        backref="_module_states",
+        backref=backref("_module_states", post_update=True, lazy="selectin"),
     )
     # current_trial = Column(
     #     PythonObject
@@ -2225,6 +2306,14 @@ class Module:
         for asset in self._staged_assets:
             asset.module_id = self.id
 
+        for node in self.nodes:
+            if node.module_id is not None and node.module_id != self.id:
+                raise RuntimeError(
+                    "Nodes cannot belong to multiple modules/trial makers. "
+                    "Please make a separate node list for each one."
+                )
+            node.module_id = self.id
+
     @property
     def assets(self):
         return ModuleAssets(self.id)
@@ -2262,7 +2351,7 @@ class Module:
     def nodes_register_in_db(self):
         for node in self.nodes:
             db.session.add(node)
-            node.module_id = self.id
+            assert node.module_id == self.id
             if node.network is None:
                 node.add_default_network()
         db.session.commit()
@@ -2447,7 +2536,7 @@ class Module:
 
         return span.render()
 
-    def get_progress_info(self):
+    def get_progress_info(self, participant_counts, **kwargs):
         target_n_participants = (
             self.target_n_participants
             if hasattr(self, "target_n_participants")
@@ -2455,16 +2544,16 @@ class Module:
         )
         # TODO a more sophisticated calculation of progress
         progress = (
-            len(self.finished_participants) / target_n_participants
+            participant_counts["finished"] / target_n_participants
             if target_n_participants is not None and target_n_participants > 0
             else 1
         )
 
         return {
             self.id: {
-                "started_n_participants": len(self.started_participants),
-                "finished_n_participants": len(self.finished_participants),
-                "aborted_n_participants": len(self.aborted_participants),
+                "started_n_participants": participant_counts["started"],
+                "finished_n_participants": participant_counts["finished"],
+                "aborted_n_participants": participant_counts["aborted"],
                 "target_n_participants": target_n_participants,
                 "progress": progress,
             }

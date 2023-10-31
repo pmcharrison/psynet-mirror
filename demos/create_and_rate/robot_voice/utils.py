@@ -3,7 +3,7 @@ import math
 import urllib
 
 import numpy as np
-from flask import Markup
+from markupsafe import Markup
 
 from psynet.modular_page import ImagePrompt
 from psynet.timeline import Event, ProgressDisplay, ProgressStage

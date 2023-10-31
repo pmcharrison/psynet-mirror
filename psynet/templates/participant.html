@@ -43,7 +43,7 @@
 
         {% if participant is not none %}
             function copyURLForResumingSession() {
-                let url = "{{ get_resume_url(participant) }}";
+                let url = "{{ get_timeline_url(participant) }}";
                 navigator.clipboard.writeText(url).then(function() {
                   console.log("Copied URL to cliboard.");
                 });
@@ -95,6 +95,10 @@
             <td>{{ participant.id }}</td>
         </tr>
         <tr>
+            <td>Unique ID</td>
+            <td>{{ participant.unique_id }}</td>
+        </tr>
+        <tr>
             <td>Worker ID</td>
             <td>{{ participant.worker_id }}</td>
         </tr>
@@ -115,18 +119,17 @@
             <td>{{ participant.current_module_id }}</td>
         </tr>
         <tr>
-            <td>Current bonus</td>
-            <td>{{ participant.calculate_bonus() }}</td>
+            <td>Current reward</td>
+            <td>{{ participant.calculate_reward() }}</td>
         </tr>
         <tr>
             <td>Link for resuming session</td>
             <td>
-
-                <a href="{{ get_resume_url(participant) }}" target="_blank">{{ get_resume_url(participant) }}</a>
+                <a href="{{ get_timeline_url(participant) }}" target="_blank">{{ get_timeline_url(participant) }}</a>
                 <button type="button" class="btn btn-secondary" id="btn-copy-url" onclick="copyURLForResumingSession()">Copy</button>
             </td>
         </tr>
     </table>
 {% endmacro %}
 
-{% macro get_resume_url(participant) %}{{ app_base_url }}/resume/{{ participant.auth_token }}{% endmacro %}
+{% macro get_timeline_url(participant) %}{{ app_base_url }}/timeline?unique_id={{ participant.unique_id }}{% endmacro %}

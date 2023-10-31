@@ -4,7 +4,7 @@ import random
 from typing import List, Optional
 
 import numpy as np
-from flask import Markup
+from markupsafe import Markup
 from scipy import stats
 
 import psynet.experiment

@@ -1,4 +1,4 @@
-import flask
+from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import CachedAsset, DebugStorage
@@ -137,7 +137,7 @@ example_js_synth_5 = ModularPage(
 
 example_preloading = PageMaker(
     lambda assets: InfoPage(
-        flask.Markup(
+        Markup(
             """
         <p>
             This page demonstrates audio preloading.
@@ -443,9 +443,9 @@ class Exp(psynet.experiment.Experiment):
         AudiovisualConsent(),
         Module(
             "audio_demo",
-            # example_js_synth_1,
-            # example_js_synth_2,
-            # example_js_synth_3,
+            example_js_synth_1,
+            example_js_synth_2,
+            example_js_synth_3,
             example_js_synth_4,
             example_js_synth_5,
             example_audio_page,

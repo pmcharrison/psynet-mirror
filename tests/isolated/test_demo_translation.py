@@ -18,10 +18,11 @@ PYTEST_BOT_CLASS = bot_class()
 class TestExp(object):
     def test_variables(self, db_session):
         config = get_and_load_config()
+
         assert json.loads(config.get("supported_locales")) == ["en", "de", "nl"]
         assert config.get("allow_switching_locale") is True
 
-    def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
+    def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 

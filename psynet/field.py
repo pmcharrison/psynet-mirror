@@ -5,7 +5,6 @@ from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
 
-from .serialize import serialize, unserialize
 from .utils import get_logger
 
 logger = get_logger()
@@ -49,10 +48,14 @@ class PythonObject(TypeDecorator):
 
     @classmethod
     def serialize(cls, value):
+        from .serialize import serialize
+
         return serialize(value)
 
     @classmethod
     def unserialize(cls, value):
+        from .serialize import unserialize
+
         return unserialize(value)
 
 
@@ -406,13 +409,11 @@ def json_clean(x, details=False, contents=False):
         del x["metadata_"]
 
 
-def json_unpack_answer(x):
-    if "answer" in x and isinstance(x["answer"], dict):
-        answer = x["answer"]
-        del x["answer"]
-        for key, value in answer.items():
-            x[f"answer__{key}"] = value
-
+def json_unpack_field(x: dict, field: str, replace: bool = False):
+    if field in x and isinstance(x[field], dict):
+        for key, value in x[field].items():
+            if replace or (key not in x):
+                x[key] = value
     return x
 
 
