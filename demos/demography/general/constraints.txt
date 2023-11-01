@@ -357,7 +357,7 @@ s3transfer==0.6.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.10.0/dev-requirements.txt
     #   boto3
-scipy==1.11.3
+scipy==1.11.2
     # via statsmodels
 selenium==4.11.2
     # via
