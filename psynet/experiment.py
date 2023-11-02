@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import traceback
 import uuid
 from collections import OrderedDict
@@ -33,6 +34,7 @@ from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
+from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import func
 
@@ -512,6 +514,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.grow_all_networks()
+
+    @staticmethod
+    def before_request():
+        flask_app_globals.start = time.monotonic()
+
+    @staticmethod
+    def after_request(request, response):
+        diff = time.monotonic() - flask_app_globals.start
+        if "/timeline" in request.path:
+            logger.info(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Timeline page took {diff} seconds to load"
+            )
+        return response
 
     def load_deployment_config(self):
         config = get_config()

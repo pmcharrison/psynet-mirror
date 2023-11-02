@@ -305,7 +305,7 @@ def parse_resources(logs):
 
 
 def parse_loading_times(logs):
-    timeline = logs.query("message.str.contains('/timeline/')", engine="python")
+    timeline = logs.query("message.str.contains('Timeline page took')", engine="python")
 
     # TODO update this to work with latest Dallinger PR: https://github.com/Dallinger/Dallinger/pull/5749
 
@@ -313,8 +313,10 @@ def parse_loading_times(logs):
         datetime.strptime(re.findall(r"\[(.*?)\]", message)[0], "%Y-%m-%d %H:%M:%S")
         for message in timeline.message
     ]
+
     loading_times = [
-        float(message.split(" ")[-1].split("\n")[0]) for message in timeline.message
+        float(message.split("Timeline page took ")[-1].split(" seconds")[0])
+        for message in timeline.message
     ]
 
     return pd.DataFrame({"timestamp": timestamps, "loading_time": loading_times})
