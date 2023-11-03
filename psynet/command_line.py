@@ -1826,17 +1826,17 @@ def logs():
 @app_option(required=True)
 @server_option
 @click.option(
-    "--log_path",
+    "--path",
     default=None,
     help="Path of the log file",
 )
 @click.pass_context
-def logs__docker_ssh(ctx, app, server, log_path):
-    if log_path is None:
+def logs__docker_ssh(ctx, app, server, path):
+    if path is None:
         log_name = f"{app}.log"
-        log_path = os.path.join(os.getcwd(), log_name)
-    export_docker_ssh_logs(app, server, log_path)
-    log(f"Log file saved to: {log_path}")
+        path = os.path.join(os.getcwd(), log_name)
+    export_docker_ssh_logs(app, server, path)
+    log(f"Log file saved to: {path}")
 
 
 @psynet.command()
