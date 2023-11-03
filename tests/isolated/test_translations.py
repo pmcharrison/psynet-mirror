@@ -45,6 +45,7 @@ def test_run():
     VARIABLE_PLACEHOLDERS = {
         "BASE_PAYMENT": 0.1,
         "TIME_REWARD": 0.1,
+        "TOTAL_REWARD": 0.2,
         "CURRENCY": "$",
         "EMAIL": "dummy@email.com",
         "MIN_ACCUMULATED_REWARD_FOR_ABORT": 2,
