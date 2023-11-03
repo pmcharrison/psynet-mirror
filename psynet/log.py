@@ -10,6 +10,7 @@ import pexpect
 
 
 def export_docker_ssh_logs(app, server, log_path, timeout=60):
+    log_path = os.path.abspath(log_path)
     assert log_path.endswith(
         ".log"
     ), f"Log path ({log_path}) must have a valid extension (.log)."
