@@ -731,8 +731,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def check_resources():
         current_timestamp = datetime.now()
+        free_disk_space = psutil.disk_usage("/").free / (2**30)
+
         logger.info(
-            f"CPU usage: {psutil.cpu_percent()}%; memory usage: {psutil.virtual_memory().percent}% [{current_timestamp}]"
+            f"CPU usage: {psutil.cpu_percent()}%; RAM usage: {psutil.virtual_memory().percent}%; Free disk space: {free_disk_space:.2f} GB [{current_timestamp}]"
         )
 
     @scheduled_task("interval", minutes=1, max_instances=1)

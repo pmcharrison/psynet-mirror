@@ -293,7 +293,10 @@ def parse_resources(logs):
         lambda x: float(re.findall(r"CPU usage: (.*?)%", x)[0])
     )
     resources["memory_usage"] = resources.message.apply(
-        lambda x: float(re.findall(r"memory usage: (.*?)%", x)[0])
+        lambda x: float(re.findall(r"RAM usage: (.*?)%", x)[0])
+    )
+    resources["free_disk_storage"] = resources.message.apply(
+        lambda x: float(re.findall(r"Free disk space: (.*?)%", x)[0])
     )
     resources["timestamp"] = resources.message.apply(
         lambda x: datetime.strptime(
@@ -301,7 +304,7 @@ def parse_resources(logs):
         )
     )
     resources = resources.reset_index()
-    return resources[["cpu_usage", "memory_usage", "timestamp"]]
+    return resources[["cpu_usage", "memory_usage", "free_disk_storage", "timestamp"]]
 
 
 def parse_loading_times(logs):
@@ -539,6 +542,20 @@ def write_resource_usage(loading_time_df, resource_df, messages, output_path, lo
         )
         plot_path = basename(abs_plot_path)
         report_md += f"![Memory usage]({plot_path})\n\n"
+
+        report_md += f"**Average free storage usage**: {resource_df['free_disk_storage'].mean():.2f}%\n\n"
+
+        abs_plot_path = plot_name(output_path, log_path, "free_disk_storage")
+        _plot_resource_usage_over_time(
+            resource_df.timestamp,
+            resource_df["free_disk_storage"],
+            "Mean free disk storage usage per minute",
+            "Percentage",
+            abs_plot_path,
+            visual_guides=visual_guides,
+        )
+        plot_path = basename(abs_plot_path)
+        report_md += f"![Free disk storage]({plot_path})\n\n"
 
     return report_md
 
