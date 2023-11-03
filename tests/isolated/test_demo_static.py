@@ -106,7 +106,7 @@ class TestExp:
                 "main-body",
                 """
                 That\'s the end of the experiment! You will receive a total reward of $9.22 which consists of
-                $0.10 as base payment plus an extra reward of $9.12.
+                $0.10 as base payment plus a bonus of $9.12.
                 Thank you for taking part.
                 Please click "Finish" to complete the HIT. Finish
                 """,

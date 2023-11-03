@@ -1251,7 +1251,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def bonus(self, participant):
         """
-        Calculates and returns the extra reward the given participant gets when
+        Calculates and returns the bonus the given participant gets when
         completing the experiment.
 
         :param participant:
@@ -1261,8 +1261,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :returns:
             The reward as a ``float``.
         """
-        extra_reward = max(0, participant.calculate_reward() - self.base_payment)
-        return self.check_bonus(extra_reward, participant)
+        bonus = max(0, participant.calculate_reward() - self.base_payment)
+        return self.check_bonus(bonus, participant)
 
     def check_bonus(self, reward, participant):
         """
