@@ -6,7 +6,7 @@
 <br><br>
 {% trans name="final-page-rewards" %}You will receive a <strong>total reward of {{ CURRENCY }}{{ TOTAL_REWARD }}</strong>.{% endtrans %}
 {% if experiment.bonus(participant) > 0 %}
-{% trans name="final-page-rewards-details" %}The reward consists of {{ CURRENCY }}{{ BASE_PAYMENT }} as base payment plus a bonus of {{ CURRENCY }}{{ BONUS }}.{% endtrans %}
+{% trans name="final-page-rewards-details" %}Your reward consists of {{ CURRENCY }}{{ BASE_PAYMENT }} as base payment plus a bonus of {{ CURRENCY }}{{ BONUS }}.{% endtrans %}
 {% endif %}
 {% endif %}
 <br>
