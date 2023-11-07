@@ -11,6 +11,8 @@ or a code repository for a fully-fledged experiment.
 Suppose we've copied the PsyNet demo ``demos/audio``,
 pasted it to a new location on our computer,
 and named this new directory ``my-audio``.
+It's best if you put this somewhere outside your PsyNet package installation directory;
+for example, you could put in a new folder called ``~/psynet-experiments``.
 The first step is then to open this directory in PyCharm
 (click File, Open, then select your project, then click Open).
 If asked, click New Window.
@@ -48,3 +50,13 @@ prefixed to the terminal prompt. This indicates that you are in the desired virt
 You should be able to run ``psynet --version`` in this terminal to confirm that you have
 successfully installed PsyNet.
 You should then be able to run ``psynet debug local`` to launch a local version of your experiment.
+
+If you decide at some point you want to make a fresh virtual environment for a pre-existing project,
+you can do this by clicking on the Interpreter button in the bottom right corner of your screen
+(which might currently say something like ``Python 3.xx (<your-project-name>)``),
+click ``Add New Interpreter``, then click ``Add Local Interpreter``.
+Select the ``virtualenv`` option, then press OK.
+This will create the new environment, but it won't install any dependencies.
+To install the dependencies, you should open a new terminal, verify you are in the correct virtual environment
+(by confirming that you see ``(<your-project-name)`` prefixed to the terminal prompt)
+then run ``pip install -r constraints.txt``.
