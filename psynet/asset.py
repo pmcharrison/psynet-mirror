@@ -2701,7 +2701,12 @@ class LocalStorage(AssetStorage):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
             return self.check_local_cache(host_path, is_folder)
         elif deployment_info.read("is_ssh_deployment"):
-            return self.check_ssh_cache(host_path, is_folder)
+            return self.check_ssh_cache(
+                host_path,
+                is_folder,
+                ssh_host=deployment_info.read("ssh_host"),
+                ssh_user=deployment_info.read("ssh_user"),
+            )
         else:
             raise RuntimeError(
                 f"Not sure how to check cache given the current run configuration: {deployment_info.read_all()}"
@@ -2714,9 +2719,9 @@ class LocalStorage(AssetStorage):
             or (not is_folder and os.path.isfile(file_system_path))
         )
 
-    def check_ssh_cache(self, host_path: str, is_folder: bool):
-        ssh_host = "musix.mus.cam.ac.uk"  # todo - propagate properly
-        ssh_user = "pmch2"
+    def check_ssh_cache(
+        self, host_path: str, is_folder: bool, ssh_host: str, ssh_user: str
+    ):
         sftp = self.sftp_connection(ssh_host, ssh_user)
 
         # At some point, we need to refactor the logic for get_file_system_path to clarify
