@@ -1451,7 +1451,7 @@ def verify_psynet_requirement():
         assert valid, (
             "Incorrect specification for PsyNet in 'requirements.txt'.\n"
             "\nExamples:\n"
-            "* psynet == 10.1.1\n"
+            "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
@@ -1919,16 +1919,14 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            version = r"\d+\.\d+\.\d+"
             for line in orig_file:
                 match = re.search(
-                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
-                    + version_tag
-                    + "#egg=psynet$",
+                    r"^psynet(\s?)==(\s?)" + version + "$",
                     line,
                 )
                 if match is not None:
-                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                    updated_file.write(re.sub(version, f"{__version__}", line))
                 else:
                     updated_file.write(line)
             updated_file.close()
