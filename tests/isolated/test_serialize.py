@@ -6,7 +6,7 @@ from dallinger import db
 import psynet.field  # noqa
 from psynet.experiment import import_local_experiment
 from psynet.pytest_psynet import path_to_demo
-from psynet.serialize import serialize, unserialize
+from psynet.serialize import PsyNetUnpickler, serialize, unserialize
 from psynet.trial.static import StaticNode, StaticTrial
 
 
@@ -164,3 +164,16 @@ def test_serialize_dominate_tag():
 def test_serialize_lambda():
     with pytest.raises(TypeError, match="Cannot pickle lambda functions."):
         serialize(lambda x: x)
+
+
+def test_unserialize():
+    from psynet.trial.main import Trial
+
+    unpickler = PsyNetUnpickler()
+
+    obj = {"py/object": "psynet.trial.main.Trial", "identifiers": {"id": 9999999}}
+    with pytest.warns(
+        Warning,
+        match="The unserializer failed to find the following object in the database",
+    ):
+        assert unpickler.load_sql_object(Trial, obj) is None

@@ -1,5 +1,6 @@
 import pickle
 import re
+import warnings
 from functools import cached_property
 
 import dominate.tags
@@ -123,7 +124,13 @@ class PsyNetUnpickler(Unpickler):
 
     def load_sql_object(self, cls, obj):
         identifiers = obj["identifiers"]
-        return cls.query.filter_by(**identifiers).one()
+        res = cls.query.filter_by(**identifiers).one_or_none()
+        if res is None:
+            warnings.warn(
+                f"The unserializer failed to find the following object in the database: {obj}. "
+                "Returning `None` instead."
+            )
+        return res
 
     @cached_property
     def experiment(self):
@@ -132,14 +139,13 @@ class PsyNetUnpickler(Unpickler):
         return import_local_experiment()
 
 
-pickler = PsyNetPickler()
-
-
 def serialize(x, **kwargs):
+    pickler = PsyNetPickler()
     return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
+    pickler = PsyNetPickler()
     return pickler.flatten(x)
 
 
@@ -149,8 +155,8 @@ def unserialize(x):
     # producing duplicate mappers for each custom class.
     # import_local_experiment()
     # custom_classes = list(get_custom_sql_classes().values())
-    unpickler = PsyNetUnpickler()
     # return jsonpickle.decode(x, context=unpickler, classes=custom_classes)
+    unpickler = PsyNetUnpickler()
     return jsonpickle.decode(x, context=unpickler)
     # return jsonpickle.decode(x, classes=custom_classes)
 
