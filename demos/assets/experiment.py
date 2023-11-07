@@ -8,10 +8,10 @@ import psynet.experiment
 from psynet.asset import (
     CachedAsset,
     CachedFunctionAsset,
-    DebugStorage,
     ExperimentAsset,
     ExternalAsset,
     ExternalS3Asset,
+    LocalStorage,
 )
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
@@ -87,7 +87,7 @@ def save_text(participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Assets demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

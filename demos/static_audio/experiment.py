@@ -1,10 +1,5 @@
 import psynet.experiment
-from psynet.asset import (  # noqa
-    CachedFunctionAsset,
-    DebugStorage,
-    LocalStorage,
-    S3Storage,
-)
+from psynet.asset import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import (

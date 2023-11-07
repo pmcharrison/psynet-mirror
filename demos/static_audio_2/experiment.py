@@ -1,7 +1,7 @@
 import random
 
 import psynet.experiment
-from psynet.asset import DebugStorage, FastFunctionAsset, S3Storage  # noqa
+from psynet.asset import FastFunctionAsset, LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -84,7 +84,7 @@ class CustomTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo (2)"
 
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "static-audio")
 
     timeline = Timeline(

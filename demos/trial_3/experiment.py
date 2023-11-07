@@ -3,8 +3,8 @@ import random
 import psynet.experiment
 from psynet.asset import (  # noqa
     CachedFunctionAsset,
-    DebugStorage,
     FastFunctionAsset,
+    LocalStorage,
     S3Storage,
 )
 from psynet.bot import Bot

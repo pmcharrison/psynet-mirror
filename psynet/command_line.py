@@ -882,7 +882,6 @@ def check_prolific_payment(experiment, config):
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
-    from .asset import DebugStorage
     from .experiment import get_experiment
 
     exp = get_experiment()
@@ -968,13 +967,14 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         is_mturk = isinstance(recruiter, MTurkRecruiter)
         is_prolific = isinstance(recruiter, ProlificRecruiter)
 
-        if mode in ["sandbox", "deploy"]:
-            if isinstance(exp.asset_storage, DebugStorage):
+        if heroku:
+            if not exp.asset_storage.heroku_compatible:
                 raise AttributeError(
-                    "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
-                    "If you don't need assets in your experiment, you can probably remove the line altogether, "
-                    "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
-                    "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+                    f"You can't deploy an experiment to Heroku with this asset storage back-end ({exp.asset_storage}). "
+                    "The storage back-end is set in your experiment class with a line like `asset_storage = ...`. "
+                    "If you don't need assets in your experiment, you can probably remove the line altogether. "
+                    "If you do need assets, you should replace the current storage option with a "
+                    "Heroku-compatible backend, for example S3Storage('your-bucket', 'your-root')."
                 )
             if is_prolific:
                 check_prolific_payment(exp, config)

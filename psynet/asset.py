@@ -7,6 +7,7 @@ import urllib
 import urllib.parse
 import urllib.request
 import uuid
+import warnings
 from functools import cached_property
 from typing import Optional
 
@@ -2290,6 +2291,8 @@ class AssetStorage:
     Defines a storage back-end for storing assets.
     """
 
+    heroku_compatible = True
+
     @property
     def experiment(self):
         from .experiment import get_experiment
@@ -2484,6 +2487,7 @@ class LocalStorage(AssetStorage):
     """
 
     label = "assets"
+    heroku_compatible = False
 
     def __init__(self, root=None):
         """
@@ -2746,9 +2750,17 @@ class LocalStorage(AssetStorage):
 class DebugStorage(LocalStorage):
     """
     A local storage back-end used for debugging.
+
+    .. deprecated:: 11.0.0
+        Use ``LocalStorage`` instead.
     """
 
-    pass
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "DebugStorage is deprecated, please replace it with LocalStorage.",
+            DeprecationWarning,
+        )
+        super().__init__(*args, **kwargs)
 
 
 # def create_bucket_if_necessary(fun):
