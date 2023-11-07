@@ -60,3 +60,43 @@ This will create the new environment, but it won't install any dependencies.
 To install the dependencies, you should open a new terminal, verify you are in the correct virtual environment
 (by confirming that you see ``(<your-project-name)`` prefixed to the terminal prompt)
 then run ``pip install -r constraints.txt``.
+
+Updating PsyNet
+---------------
+
+If you are working from an old experiment, it might be implemented using an older version of PsyNet.
+You can see what version of PsyNet it uses by looking inside ``requirements.txt``
+for a number that looks like ``10.1.0``. For example, you might see something like this:
+
+::
+
+    psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.0#egg=psynet
+
+It's a good idea to check what the latest released version of PsyNet is.
+You can do this by looking at the CHANGELOG on GitLab
+(https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md?ref_type=heads).
+This CHANGELOG lists the changes that happen with each new version of PsyNet.
+You can compare the PsyNet version in your experiment to the latest PsyNet version listed here
+to work out how PsyNet has changed in the meantime, and what (if anything) you might need to
+change about your experiment in order to make it compatible with the latest PsyNet version.
+In general, the rule is that only 'major' version changes should require changes to your experiment.
+A major change is signified by the first number in the version tag increasing,
+so for example from 10.3.1 to 11.0.0.
+If both version tags begin with the same number, then you should probably be fine,
+and you can just go ahead and increase the PsyNet version number in ``requirements.txt``.
+
+If you have indeed increased the PsyNet version number, you need to update ``constraints.txt``.
+On Docker, this means running:
+
+::
+
+    bash docker/generate-constraints
+
+Without Docker, this means running:
+
+::
+
+    psynet generate-constraints
+
+This command requires internet access and may take a minute or so to run.
+Once it is complete, you should be able to run ``psynet debug local`` as before.
