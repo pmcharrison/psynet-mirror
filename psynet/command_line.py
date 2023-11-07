@@ -871,11 +871,11 @@ def docs(force_rebuild):
 def check_prolific_payment(experiment, config):
     from .experiment import get_and_load_config
 
-    cents = config.get("prolific_reward_cents")
+    base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
     wage_per_hour = get_and_load_config().get("wage_per_hour")
     assert (
-        wage_per_hour * minutes / 60 == cents / 100
+        wage_per_hour * minutes / 60 == base_payment
     ), "Wage per hour does not match Prolific reward"
 
 
