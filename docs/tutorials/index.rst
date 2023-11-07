@@ -4,6 +4,7 @@ Tutorials
 .. toctree::
    :maxdepth: 1
 
+   creating_a_new_experiment
    classes
    timeline
    assets
