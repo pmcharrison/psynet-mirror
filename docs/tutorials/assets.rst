@@ -61,18 +61,19 @@ Types of assets
 PsyNet defines several types of Assets, each with their own specific applications.
 There are three main types of assets:
 
-1. An :class:`~psynet.asset.ExternalAsset` is an asset that is not managed by PsyNet. This would typically mean
-some kind of file that is hosted on a remote web server and is accessible by a URL.
-
-2. An :class:`~psynet.asset.ExperimentAsset` is an asset that is specific to the current experiment
+1. An :class:`~psynet.asset.ExperimentAsset` is an asset that is specific to the current experiment
 deployment. This would typically mean assets that are generated *during the course*
 of the experiment, for example recordings from a singer, or stimuli generated on the basis of
 participant responses.
 
-3. A :class:`~psynet.asset.CachedAsset` is an asset that is reused over multiple experiment
+2. A :class:`~psynet.asset.CachedAsset` is an asset that is reused over multiple experiment
 deployments. The classic use of a ``CachedAsset`` would be to represent some kind of stimulus
 that is pre-defined in advance of experiment launch. In the standard case, the :class:`~psynet.asset.CachedAsset`
 refers to a file on the local computer that is uploaded to a remote server on deployment.
+
+3. An :class:`~psynet.asset.ExternalAsset` is an asset that is not managed by PsyNet. This would typically mean
+some kind of file that is hosted on a remote web server and is accessible by a URL. We don't generally recommend
+using these unless it's really necessary.
 
 It's also worth knowing about a few special cases of these asset types.
 
