@@ -867,6 +867,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "max_participant_payment": 25.0,
         }
 
+    @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
+    @staticmethod
+    def custom_route(endpoint):
+        from psynet.api import EXPOSED_FUNCTIONS
+
+        if endpoint not in EXPOSED_FUNCTIONS:
+            return error_response(
+                error_text=f"{endpoint} is not defined. Defined endpoints are: {list(EXPOSED_FUNCTIONS.keys())}",
+                simple=True,
+            )
+
+        if request.method == "POST":
+            data = request.get_json()
+        elif request.method == "GET":
+            data = request.args
+        else:
+            return error_response(
+                error_text=f"Unsupported request method {request.method}", simple=True
+            )
+        function = EXPOSED_FUNCTIONS[endpoint]
+        return function(**data)
+
     @property
     def psynet_logo(self):
         return PsyNetLogo()
