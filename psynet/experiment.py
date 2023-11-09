@@ -1281,10 +1281,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :type participant:
             :attr:`~psynet.participant.Participant`
         :returns:
-            The reward as a ``float``.
+            The reward as a ``float`` rounded to two decimal places.
         """
         bonus = max(0, participant.calculate_reward() - self.base_payment)
-        return self.check_bonus(bonus, participant)
+        return round(self.check_bonus(bonus, participant), 2)
 
     def check_bonus(self, reward, participant):
         """
