@@ -452,8 +452,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return load_po(pot_path)
 
     def check_min_accumulated_reward_for_abort(self):
-        assert (
-            get_config().get("recruiter") == "prolific"
+        assert get_config().get("recruiter") == "prolific" or get_config().get(
+            "min_accumulated_reward_for_abort"
+        ) == get_config().get(
+            "base_payment"
         ), "Consider setting 'min_accumulated_reward_for_abort' to 'base_payment'."
 
     def compile_translations_if_necessary(self, locales_dir, module):
