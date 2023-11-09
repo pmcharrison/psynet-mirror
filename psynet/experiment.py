@@ -2168,7 +2168,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                                 participant.status = "aborted"
                                 db.session.commit()
                             else:
-                                template_name = "already_aborted.html"
+                                template_name = "aborted_already.html"
         except ValueError:
             logger.error("Invalid assignment ID.")
         except sqlalchemy.orm.exc.NoResultFound:
