@@ -2,7 +2,7 @@
 
 {% block main_body %}
     {{ pgettext("final_page_unsuccessful", "Unfortunately the experiment must end early.") }}
-ss
+
     {% if not experiment.with_lucid_recruitment() %}
         {{ pgettext("final_page_unsuccessful", "However, you will still be paid for the time you spent already.") }}
         {% if config.show_reward %}
