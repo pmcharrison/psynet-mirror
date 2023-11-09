@@ -4,9 +4,9 @@
 {% set TOTAL_REWARD = "%.2f"|format(participant.calculate_reward()) %}
 {% set CURRENCY = config.currency %}
 <br><br>
-{% trans name="final-page-rewards" %}You will receive a <strong>total reward of {{ CURRENCY }}{{ TOTAL_REWARD }}</strong>.{% endtrans %}
+{% trans name="final-page-rewards" %}You will receive a <strong>total reward of {{ CURRENCY }}{{ TOTAL_REWARD }}</strong>{% endtrans %}
 {% if experiment.bonus(participant) > 0 %}
-{% trans name="final-page-rewards-details" %}Your reward consists of {{ CURRENCY }}{{ BASE_PAYMENT }} as base payment plus a bonus of {{ CURRENCY }}{{ BONUS }}.{% endtrans %}
+{% trans name="final-page-rewards-details" %} which consists of {{ CURRENCY }}{{ BASE_PAYMENT }} as base payment plus a bonus of {{ CURRENCY }}{{ BONUS }}{% endtrans %}.
 {% endif %}
 {% endif %}
 <br>
