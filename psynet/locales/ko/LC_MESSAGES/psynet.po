@@ -647,7 +647,6 @@ msgctxt "aborted_already_header"
 msgid "Thank you for your interest in this study"
 msgstr "이 연구에 관심을 가져주셔서 감사합니다."
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "header"
@@ -2068,6 +2067,15 @@ msgstr "\"마침\"을 클릭하여 HIT를 완료하세요."
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
 msgid ""
+" which consists of %(CURRENCY)s%(BASE_PAYMENT)s as base payment plus a bonus"
+" of %(CURRENCY)s%(BONUS)s"
+msgstr ""
+"%(CURRENCY)s%(BASE_PAYMENT)s를 기본 지급액으로 하고 보너스로 %(CURRENCY)s%(BONUS)s를 더한 "
+"금액으로 구성됩니다."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
@@ -2098,6 +2106,13 @@ msgstr ""
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
 msgid ""
+"You will receive a <strong>total reward of "
+"%(CURRENCY)s%(TOTAL_REWARD)s</strong>"
+msgstr "총 보상은 <strong>%(CURRENCY)s%(TOTAL_REWARD)s를 받게 됩니다</strong>."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
 "You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
 "for the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
@@ -2110,6 +2125,18 @@ msgstr ""
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
 msgstr "이것으로 실험이 끝났습니다!"
+
+#: psynet/templates/final-page-successful.html
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment."
+msgstr "이것으로 실험이 끝났습니다."
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "참여해 주셔서 감사합니다!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html

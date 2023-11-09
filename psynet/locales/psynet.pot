@@ -1654,26 +1654,25 @@ msgstr ""
 #: psynet/templates/final-page-rewards.html
 #, python-format
 msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+" which consists of %(CURRENCY)s%(BASE_PAYMENT)s as base payment plus a bonus"
+" of %(CURRENCY)s%(BONUS)s"
 msgstr ""
 
 #: psynet/templates/final-page-rewards.html
 #, python-format
 msgid ""
-"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
-"for the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
+"You will receive a <strong>total reward of "
+"%(CURRENCY)s%(TOTAL_REWARD)s</strong>"
 msgstr ""
 
 #: psynet/templates/final-page-successful.html
 msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
+msgid "That's the end of the experiment."
 msgstr ""
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-msgid "Thank you for taking part."
+msgid "Thank you for taking part!"
 msgstr ""
 
 #: psynet/templates/final-page-unsuccessful.html

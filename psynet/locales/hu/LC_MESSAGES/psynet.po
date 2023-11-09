@@ -670,7 +670,6 @@ msgctxt "aborted_already_header"
 msgid "Thank you for your interest in this study"
 msgstr "Köszönjük, hogy érdeklődik a tanulmány iránt"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "header"
@@ -2280,6 +2279,15 @@ msgstr "A HIT befejezéséhez kattintson a \"Befejezés\" gombra."
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
 msgid ""
+" which consists of %(CURRENCY)s%(BASE_PAYMENT)s as base payment plus a bonus"
+" of %(CURRENCY)s%(BONUS)s"
+msgstr ""
+"amely %(CURRENCY)s%(BASE_PAYMENT)s alapfizetésből és %(CURRENCY)s%(BONUS)s "
+"bónuszból áll."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
@@ -2314,6 +2322,15 @@ msgstr ""
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
 msgid ""
+"You will receive a <strong>total reward of "
+"%(CURRENCY)s%(TOTAL_REWARD)s</strong>"
+msgstr ""
+"Kapsz egy <strong>összesen "
+"%(CURRENCY)s%(TOTAL_REWARD)s%(TOTAL_REWARD)s</strong> jutalmat."
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
 "You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
 "for the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
@@ -2328,6 +2345,18 @@ msgstr ""
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
 msgstr "Ez a kísérlet vége!"
+
+#: psynet/templates/final-page-successful.html
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment."
+msgstr "Ez a kísérlet vége."
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Köszönjük a részvételt!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html

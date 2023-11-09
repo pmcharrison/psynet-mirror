@@ -667,7 +667,6 @@ msgctxt "aborted_already_header"
 msgid "Thank you for your interest in this study"
 msgstr "Хвала вам на интересовању за ову студију"
 
-#. ""
 #: psynet/templates/aborted_already.html
 #, fuzzy
 msgctxt "header"
@@ -2253,6 +2252,15 @@ msgstr "Кликните на „Заврши“ да бисте завршил�
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
 msgid ""
+" which consists of %(CURRENCY)s%(BASE_PAYMENT)s as base payment plus a bonus"
+" of %(CURRENCY)s%(BONUS)s"
+msgstr ""
+"који се састоји од %(CURRENCY)s%(BASE_PAYMENT)s као основне уплате плус "
+"бонус од %(CURRENCY)s%(BONUS)s"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
 "In addition to your base payment of "
 "<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
 "<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
@@ -2286,6 +2294,14 @@ msgstr ""
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
 msgid ""
+"You will receive a <strong>total reward of "
+"%(CURRENCY)s%(TOTAL_REWARD)s</strong>"
+msgstr ""
+"Добићете <strong>укупну награду од %(CURRENCY)s%(TOTAL_REWARD)s</strong>"
+
+#: psynet/templates/final-page-rewards.html
+#, python-format, fuzzy
+msgid ""
 "You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
 "for the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
@@ -2299,6 +2315,18 @@ msgstr ""
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
 msgstr "То је крај експеримента!"
+
+#: psynet/templates/final-page-successful.html
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment."
+msgstr "То је крај експеримента."
+
+#: psynet/templates/final-page-successful.html
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Хвала вам на учешћу!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
