@@ -1,7 +1,7 @@
 import random
 
 import psynet.experiment
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -27,7 +27,7 @@ class CustomTrial(StaticTrial):
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio stimulus set from directory demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

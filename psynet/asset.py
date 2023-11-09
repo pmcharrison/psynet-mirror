@@ -7,6 +7,7 @@ import urllib
 import urllib.parse
 import urllib.request
 import uuid
+import warnings
 from functools import cached_property
 from typing import Optional
 
@@ -2290,6 +2291,8 @@ class AssetStorage:
     Defines a storage back-end for storing assets.
     """
 
+    heroku_compatible = True
+
     @property
     def experiment(self):
         from .experiment import get_experiment
@@ -2484,6 +2487,7 @@ class LocalStorage(AssetStorage):
     """
 
     label = "assets"
+    heroku_compatible = False
 
     def __init__(self, root=None):
         """
@@ -2701,7 +2705,12 @@ class LocalStorage(AssetStorage):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
             return self.check_local_cache(host_path, is_folder)
         elif deployment_info.read("is_ssh_deployment"):
-            return self.check_ssh_cache(host_path, is_folder)
+            return self.check_ssh_cache(
+                host_path,
+                is_folder,
+                ssh_host=deployment_info.read("ssh_host"),
+                ssh_user=deployment_info.read("ssh_user"),
+            )
         else:
             raise RuntimeError(
                 f"Not sure how to check cache given the current run configuration: {deployment_info.read_all()}"
@@ -2714,9 +2723,9 @@ class LocalStorage(AssetStorage):
             or (not is_folder and os.path.isfile(file_system_path))
         )
 
-    def check_ssh_cache(self, host_path: str, is_folder: bool):
-        ssh_host = "musix.mus.cam.ac.uk"  # todo - propagate properly
-        ssh_user = "pmch2"
+    def check_ssh_cache(
+        self, host_path: str, is_folder: bool, ssh_host: str, ssh_user: str
+    ):
         sftp = self.sftp_connection(ssh_host, ssh_user)
 
         # At some point, we need to refactor the logic for get_file_system_path to clarify
@@ -2741,9 +2750,17 @@ class LocalStorage(AssetStorage):
 class DebugStorage(LocalStorage):
     """
     A local storage back-end used for debugging.
+
+    .. deprecated:: 11.0.0
+        Use ``LocalStorage`` instead.
     """
 
-    pass
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "DebugStorage is deprecated, please replace it with LocalStorage.",
+            DeprecationWarning,
+        )
+        super().__init__(*args, **kwargs)
 
 
 # def create_bucket_if_necessary(fun):

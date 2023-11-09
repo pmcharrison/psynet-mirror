@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 import psynet.experiment
-from psynet.asset import DebugStorage, S3Storage  # noqa
+from psynet.asset import LocalStorage, S3Storage  # noqa
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -20,7 +20,7 @@ class Exp(psynet.experiment.Experiment):
     label = "REPP tests demo"
 
     # asset_storage = S3Storage("psynet-tests", "repp-tests")
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

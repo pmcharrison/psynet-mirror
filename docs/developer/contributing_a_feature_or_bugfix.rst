@@ -31,7 +31,7 @@ Let’s suppose that we want to address issue #288, ‘Add Node.participant and 
 
 |br|
 
-Step 2: Creating an merge request
+Step 2: Creating a merge request
 +++++++++++++++++++++++++++++++++
 
 GitLab provides a useful button on the issue page for us to click: ‘Create merge request’. Don’t click the button straightaway, but click the arrow on its right instead.

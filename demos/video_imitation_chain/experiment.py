@@ -6,7 +6,7 @@ import random
 from dallinger import db
 
 import psynet.experiment
-from psynet.asset import Asset, CachedAsset, DebugStorage, S3Storage  # noqa
+from psynet.asset import Asset, CachedAsset, LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -138,7 +138,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Video imitation chain demo"
 
     # asset_storage = S3Storage("psynet-tests", "video-imitation-chain")
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     initial_recruitment_size = 1
 

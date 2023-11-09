@@ -1,7 +1,7 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import CachedAsset, DebugStorage
+from psynet.asset import CachedAsset, LocalStorage
 from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
@@ -436,7 +436,7 @@ example_record_audio_video = join(
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         MainConsent(),

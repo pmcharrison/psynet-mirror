@@ -6,7 +6,7 @@ from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioPrompt,
@@ -362,7 +362,7 @@ trial_maker = CreateAndRateTrialMaker(
 class Exp(psynet.experiment.Experiment):
     label = "Genetic Algorithm with People"
     initial_recruitment_size = 1
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

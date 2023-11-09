@@ -38,7 +38,7 @@ from sqlalchemy import func
 from psynet import __version__
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
+from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -879,6 +879,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "max_participant_payment": 25.0,
         }
 
+    @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
+    @staticmethod
+    def custom_route(endpoint):
+        from psynet.api import EXPOSED_FUNCTIONS
+
+        if endpoint not in EXPOSED_FUNCTIONS:
+            return error_response(
+                error_text=f"{endpoint} is not defined. Defined endpoints are: {list(EXPOSED_FUNCTIONS.keys())}",
+                simple=True,
+            )
+
+        if request.method == "POST":
+            data = request.get_json()
+        elif request.method == "GET":
+            data = request.args
+        else:
+            return error_response(
+                error_text=f"Unsupported request method {request.method}", simple=True
+            )
+        function = EXPOSED_FUNCTIONS[endpoint]
+        return function(**data)
+
     @property
     def psynet_logo(self):
         return PsyNetLogo()
@@ -1524,14 +1546,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "DEPLOYMENT_PACKAGE",
             ),
         ]
-        if isinstance(cls.assets.storage, DebugStorage):
-            _path = f"static/{cls.assets.storage.label}"
-            files.append(
-                (
-                    _path,
-                    _path,
-                )
-            )
+        # We don't think this is needed any more but just keeping a note in case we're proved wrong (25 Sep 2023)
+        # if isinstance(cls.assets.storage, DebugStorage):
+        #     _path = f"static/{cls.assets.storage.label}"
+        #     files.append(
+        #         (
+        #             _path,
+        #             _path,
+        #         )
+        #     )
         return files
 
     @classmethod

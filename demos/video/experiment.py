@@ -1,7 +1,7 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import CachedAsset, DebugStorage
+from psynet.asset import CachedAsset, LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioRecordControl,
@@ -246,7 +246,7 @@ video_pages = join(
 
 class Exp(psynet.experiment.Experiment):
     label = "Video demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

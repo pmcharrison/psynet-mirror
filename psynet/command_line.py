@@ -871,18 +871,17 @@ def docs(force_rebuild):
 def check_prolific_payment(experiment, config):
     from .experiment import get_and_load_config
 
-    cents = config.get("prolific_reward_cents")
+    base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
     wage_per_hour = get_and_load_config().get("wage_per_hour")
     assert (
-        wage_per_hour * minutes / 60 == cents / 100
+        wage_per_hour * minutes / 60 == base_payment
     ), "Wage per hour does not match Prolific reward"
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
-    from .asset import DebugStorage
     from .experiment import get_experiment
 
     exp = get_experiment()
@@ -968,13 +967,14 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         is_mturk = isinstance(recruiter, MTurkRecruiter)
         is_prolific = isinstance(recruiter, ProlificRecruiter)
 
-        if mode in ["sandbox", "deploy"]:
-            if isinstance(exp.asset_storage, DebugStorage):
+        if heroku:
+            if not exp.asset_storage.heroku_compatible:
                 raise AttributeError(
-                    "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
-                    "If you don't need assets in your experiment, you can probably remove the line altogether, "
-                    "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
-                    "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+                    f"You can't deploy an experiment to Heroku with this asset storage back-end ({exp.asset_storage}). "
+                    "The storage back-end is set in your experiment class with a line like `asset_storage = ...`. "
+                    "If you don't need assets in your experiment, you can probably remove the line altogether. "
+                    "If you do need assets, you should replace the current storage option with a "
+                    "Heroku-compatible backend, for example S3Storage('your-bucket', 'your-root')."
                 )
             if is_prolific:
                 check_prolific_payment(exp, config)
@@ -1451,7 +1451,7 @@ def verify_psynet_requirement():
         assert valid, (
             "Incorrect specification for PsyNet in 'requirements.txt'.\n"
             "\nExamples:\n"
-            "* psynet == 10.1.1\n"
+            "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
@@ -1919,16 +1919,14 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            version = r"\d+\.\d+\.\d+"
             for line in orig_file:
                 match = re.search(
-                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
-                    + version_tag
-                    + "#egg=psynet$",
+                    r"^psynet(\s?)==(\s?)" + version + "$",
                     line,
                 )
                 if match is not None:
-                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                    updated_file.write(re.sub(version, f"{__version__}", line))
                 else:
                     updated_file.write(line)
             updated_file.close()

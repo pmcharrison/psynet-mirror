@@ -6,7 +6,7 @@ from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.bot import Bot
 from psynet.consent import CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -105,7 +105,7 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio Gibbs sampling demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(
