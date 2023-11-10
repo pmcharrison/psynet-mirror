@@ -582,13 +582,13 @@ def is_chromedriver_process(process):
 
 def _run_bot():
     from .bot import Bot
-    from .experiment import get_experiment, run_bot
+    from .experiment import get_experiment
 
     exp = get_experiment()
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
     os.environ["DEPLOYMENT_PACKAGE"] = "True"
-    bot = [Bot()]
+    bot = Bot()
     exp.run_bot(bot)
 
 @psynet.command()
