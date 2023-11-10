@@ -576,6 +576,38 @@ def is_chromedriver_process(process):
     except psutil.NoSuchProcess:
         pass
 
+###########
+# run bot #
+###########
+
+def _run_bot():
+    from .bot import Bot
+    from .experiment import get_experiment, run_bot
+
+    exp = get_experiment()
+
+    os.environ["PASSTHROUGH_ERRORS"] = "True"
+    os.environ["DEPLOYMENT_PACKAGE"] = "True"
+    bot = [Bot()]
+    exp.run_bot(bot)
+
+@psynet.command()
+@click.pass_context
+def run_bot(ctx):
+    """
+    Run a bot through the local version of the experiment.
+    """
+    try:
+        _run_bot()
+    except ProgrammingError:
+        log("Initialize the database and try again.")
+        db.session.rollback()
+        init_db(drop_all=True)
+        db.session.commit()
+        _run_bot()
+
+
+
 
 ##############
 # pre deploy #
