@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import traceback
 import uuid
 from collections import OrderedDict
@@ -18,6 +19,7 @@ from typing import List
 import dallinger.experiment
 import dallinger.models
 import flask
+import pexpect
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
@@ -551,6 +553,57 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
+        os.environ["PARALLEL_BOTS"] = "False"
+
+        parallel_bots = os.environ["PARALLEL_BOTS"] == "True"
+        if parallel_bots:
+            self._test_experiment_parallel()
+        else:
+            self._test_experiment_serial()
+
+    # This is how many seconds to wait between invoking parallel bots
+    parallel_stagger_interval_s = 2.0
+
+    def _test_experiment_parallel(self):
+        # Start N subprocesses, and in each one call `psynet run-bot`
+
+        processes = []
+        for i in range(self.test_n_bots):
+            if i > 0:
+                time.sleep(self.parallel_stagger_interval_s)
+
+            logger.info(f"Creating and running bot {i}...")
+            # For example pexpect usage, see run_subprocess_with_live_output
+            # I don't think we need the 'bash' part
+            # We should think about timeout though
+            p = pexpect.spawn("psynet run-bot", timeout=None, cwd=None)
+            processes.append(p)
+
+        waiting_for_bots = True
+        n_bots_finished = 0
+        while waiting_for_bots:
+            for p in processes:
+                # Print any output from the process to the console (see run_subprocess_with_live_output)
+                while not p.eof():
+                    line = p.readline().decode("utf-8")
+                    logger.info(line)
+                p.close()
+                logger.info(p.exitstatus)
+                logger.info(p.signalstatus)
+                # Check whether the process has finished (see run_subprocess_with_live_output)
+                if p.exitstatus > 0:
+                    n_bots_finished += 1
+            # If all bots are finished, we set waiting_for_bots = False
+            if n_bots_finished == len(processes):
+                waiting_for_bots = False
+
+        # Wait parallel_stagger_interval_s before starting each subprocess
+        # Make sure we wait until all subprocesses are finished
+        bots = Bot.query.all()
+        self.test_check_bots(bots)
+
+    def _test_experiment_serial(self):
+        # Same logic as before
         bots = self.test_create_bots()
         self.test_run_bots(bots)
         self.test_check_bots(bots)
