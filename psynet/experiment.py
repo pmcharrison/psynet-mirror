@@ -549,14 +549,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         pass
 
     test_n_bots = 2
+    parallel_bots = True
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
-        os.environ["PARALLEL_BOTS"] = "True"
+        # os.environ["PARALLEL_BOTS"] = "False"
 
-        parallel_bots = os.environ["PARALLEL_BOTS"] == "True"
-        if parallel_bots:
+        # parallel_bots = os.environ["PARALLEL_BOTS"] == "True"
+        if self.parallel_bots:
             self._test_experiment_parallel()
         else:
             self._test_experiment_serial()
@@ -595,10 +596,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if len(bots_finished) == len(processes):
                 waiting_for_bots = False
 
-        for p in processes:
-            line = p.readline()
-            logger.info(line)
-            p.close()
+        # for p in processes:
+        #     line = p.readline()
+        #     logger.info(line)
+        #     p.close()
 
         # Wait parallel_stagger_interval_s before starting each subprocess
         # Make sure we wait until all subprocesses are finished
