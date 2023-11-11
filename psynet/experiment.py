@@ -548,12 +548,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         pass
 
-    test_n_bots = 1
+    test_n_bots = 2
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
-        os.environ["PARALLEL_BOTS"] = "False"
+        os.environ["PARALLEL_BOTS"] = "True"
 
         parallel_bots = os.environ["PARALLEL_BOTS"] == "True"
         if parallel_bots:
@@ -572,7 +572,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if i > 0:
                 time.sleep(self.parallel_stagger_interval_s)
 
-            logger.info(f"Creating and running bot {i}...")
+            logger.info(f"Creating and running bot {i+1}...")
             # For example pexpect usage, see run_subprocess_with_live_output
             # I don't think we need the 'bash' part
             # We should think about timeout though
@@ -580,22 +580,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             processes.append(p)
 
         waiting_for_bots = True
-        n_bots_finished = 0
+        bots_finished = set()
+
         while waiting_for_bots:
-            for p in processes:
+            for i in range(len(processes)):
+                p = processes[i]
                 # Print any output from the process to the console (see run_subprocess_with_live_output)
-                while not p.eof():
-                    line = p.readline().decode("utf-8")
-                    logger.info(line)
-                p.close()
-                logger.info(p.exitstatus)
-                logger.info(p.signalstatus)
+                line = p.readline()
+                logger.info(line)
                 # Check whether the process has finished (see run_subprocess_with_live_output)
-                if p.exitstatus > 0:
-                    n_bots_finished += 1
+                if p.eof():
+                    bots_finished.add(i)
             # If all bots are finished, we set waiting_for_bots = False
-            if n_bots_finished == len(processes):
+            if len(bots_finished) == len(processes):
                 waiting_for_bots = False
+
+        for p in processes:
+            line = p.readline()
+            logger.info(line)
+            p.close()
 
         # Wait parallel_stagger_interval_s before starting each subprocess
         # Make sure we wait until all subprocesses are finished
