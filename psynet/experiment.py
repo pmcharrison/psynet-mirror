@@ -568,15 +568,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _test_experiment_parallel(self):
         # Start N subprocesses, and in each one call `psynet run-bot`
 
+        import subprocess
+
         processes = []
         for i in range(self.test_n_bots):
+
+            # Wait parallel_stagger_interval_s before starting each subprocess
             if i > 0:
                 time.sleep(self.parallel_stagger_interval_s)
 
             logger.info(f"Creating and running bot {i+1}...")
-            # For example pexpect usage, see run_subprocess_with_live_output
-            # I don't think we need the 'bash' part
-            # We should think about timeout though
             p = pexpect.spawn("psynet run-bot", timeout=None, cwd=None)
             processes.append(p)
 
@@ -594,16 +595,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if p.eof():
                     bots_finished.add(i)
 
+            # Make sure we wait until all subprocesses are finished
             if len(bots_finished) == len(processes):
                 waiting_for_bots = False
 
-        # for p in processes:
-        #     line = p.readline()
-        #     logger.info(line)
-        #     p.close()
-
-        # Wait parallel_stagger_interval_s before starting each subprocess
-        # Make sure we wait until all subprocesses are finished
         bots = Bot.query.all()
         self.test_check_bots(bots)
 
