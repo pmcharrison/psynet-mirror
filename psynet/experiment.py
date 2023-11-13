@@ -1328,10 +1328,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return self.num_working_participants * self.base_payment
 
     def with_recruiter(self, nickname):
+        if nickname not in ["hotair", "lucid", "mturk", "prolific"]:
+            raise ValueError(f"Unknown recruiter nickname '{nickname}'.")
+
         if nickname == "lucid":
             return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
         else:
-            raise ValueError("Unknown recruiter nickname '{nickname}'.")
+            return self.recruiter.nickname == nickname
 
     def process_response(
         self,
