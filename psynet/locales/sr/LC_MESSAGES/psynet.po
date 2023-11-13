@@ -3050,8 +3050,8 @@ msgid ""
 "will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
 msgstr ""
 "Када притиснете <б>Даље</б>, ваша пријава ће бити одобрена и <б>примићете "
-"пуну уплату за студију од %(ЦУРРЕНЦИ)с%(БАСЕ_ПАИМЕНТ)с</б>. Такође ћете "
-"добити <б>додатни бонус од %(ЦУРРЕНЦИ)с%(БОНУС)с</б>."
+"пуну уплату за студију од %(CURRENCY)с%(BASE_PAYMENT)с</б>. Такође ћете "
+"добити <б>додатни бонус од %(CURRENCY)с%(BONUS)с</б>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3060,7 +3060,7 @@ msgid ""
 "receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 msgstr ""
 "Када притиснете <б>Даље</б>, ваша пријава ће бити одобрена и добићете "
-"<б>пуну уплату за учење од %(ЦУРРЕНЦИ)с%(ТОТАЛ_РЕВАРД)с</б>."
+"<б>пуну уплату за учење од %(CURRENCY)с%(TOTAL_REWARD)с</б>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3071,14 +3071,14 @@ msgid ""
 "%(CURRENCY)s%(BONUS)s."
 msgstr ""
 "Када притиснете <б>Даље</б>, ваша пријава ће бити одобрена. Добићете "
-"<б>укупну уплату од %(ЦУРРЕНЦИ)с%(ТОТАЛ_РЕВАРД)с</б>, која ће бити плаћена "
-"као основна уплата од %(ЦУРРЕНЦИ)с%(БАСЕ_ПАИМЕНТ)с и бонус од %( "
-"ЦУРРЕНЦИ)с%(БОНУС)с."
+"<б>укупну уплату од %(CURRENCY)с%(TOTAL_REWARD)с</б>, која ће бити плаћена "
+"као основна уплата од %(CURRENCY)с%(BASE_PAYMENT)с и бонус од %( "
+"CURRENCY)с%(BONUS)с."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
 msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
-msgstr "Зарадили сте <б>укупну уплату од %(ЦУРРЕНЦИ)с%(ТОТАЛ_РЕВАРД)с</б>."
+msgstr "Зарадили сте <б>укупну уплату од %(CURRENCY)с%(TOTAL_REWARD)с</б>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3094,7 +3094,7 @@ msgid ""
 "return the study."
 msgstr ""
 "Нисте могли да довршите експеримент, али <б>и даље ћете бити плаћени "
-"%(ЦУРРЕНЦИ)с%(ТОТАЛ_РЕВАРД)с</б> за време које сте до сада уложили. Када "
+"%(CURRENCY)с%(TOTAL_REWARD)с</б> за време које сте до сада уложили. Када "
 "притиснете <б>Даље</б>, платићемо вам путем бонус механизма. Вратите "
 "студију."
 
