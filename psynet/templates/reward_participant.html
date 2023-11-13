@@ -1,0 +1,50 @@
+{% extends "psynet_layout.html" %}
+
+{% block body %}
+<div class="main_div">
+        <div>
+            <div class="col-xs-2">
+              <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
+            </div>
+            <h1 id="header" style="clear: both;">{{ pgettext("reward_participant_header", "Your reward") }}</h1>
+            <hr>
+            <div>
+
+                {% if total_reward < min_accumulated_reward_for_abort %}
+                    {% if experiment.with_recruiter("hotair") %}
+                        {{ pgettext("reward_participant_fail_mturk", "You did not complete enough of the experiment to receive a payment, sorry.") }}
+                    {% elif experiment.with_recruiter("mturk") %}
+                        {{ pgettext("reward_participant_fail_hotair", "You did not complete enough of the participant to receive a payment, sorry. Please return the HIT.") }}
+                    {% endif %}
+                {% else %}
+                    {% set BASE_PAYMENT = "%.2f"|format(participant.base_payment) %}
+                    {% set BONUS = "%.2f"|format(experiment.bonus(participant)) %}
+                    {% set CURRENCY = config.currency %}
+                    {% set TOTAL_REWARD = "%.2f"|format(total_reward) %}
+                    {% if experiment.with_recruiter("hotair") %}
+                        {% trans name="participant-rewards-hotair" %}You earned a <b>total payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>.{% endtrans %}
+                    {% elif experiment.with_recruiter("mturk") %}
+                        {% trans name="participant-rewards-mturk" %}When you press <b>Next</b>, your submission will be approved. You will receive a <b>total payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>, which will be paid as a base payment of {{ CURRENCY }}{{ BASE_PAYMENT }} and a bonus of {{ CURRENCY }}{{ BONUS }}.{% endtrans %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <p class="vspace"></p>
+        <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Next") }}</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function finish() {
+          submitAssignment();
+        }
+        {% if experiment.with_recruiter("lucid") %}
+            finish();
+        {% else %}
+            document.getElementById("next-button").onclick = finish;
+        {% endif %}
+    </script>
+{% endblock %}
