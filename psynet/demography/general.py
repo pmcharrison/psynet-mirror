@@ -382,8 +382,8 @@ class LanguagesInOrderOfProficiency(ModularPage):
         self.label = label
         self.locale = locale
         self.prompt = _p(
-                "language-select",
-                "Please list the languages you speak in order of proficiency (first language first, second language second, ...)"
+            "language-select",
+            "Please list the languages you speak in order of proficiency (first language first, second language second, ...)",
         )
         self.time_estimate = 5
         super().__init__(
