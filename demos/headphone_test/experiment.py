@@ -22,6 +22,7 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 2
+    parallel_bots = False
 
     def test_run_bots(self, bots):
         bots[0].var.is_good_bot = True
