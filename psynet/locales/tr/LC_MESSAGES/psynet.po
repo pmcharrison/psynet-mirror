@@ -2034,11 +2034,11 @@ msgstr "Deney sonu."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr "Bitir"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "HIT'yi tamamlamak için lütfen \"Bitir \"e tıklayın."
@@ -2118,15 +2118,20 @@ msgid "That's the end of the experiment."
 msgstr "Bu deneyin sonu."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Katıldığınız için teşekkür ederiz!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "Deneyin sonuna geldik. Katıldığınız için teşekkürler!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Thank you for taking part."
 msgstr "Katıldığınız için teşekkürler."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Katıldığınız için teşekkür ederiz!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -2806,6 +2811,32 @@ msgid ""
 msgstr ""
 "MTurk reklam sayfasındaki <strong>Deneyi iptal et</strong> düğmesini "
 "kullanarak deneyi iptal edebilirsiniz</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "Toplam %(CURRENCY)s%(TOTAL_REWARD)s tutarında bir ödeme kazandınız"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "Toplamda %(CURRENCY)s%(TOTAL_REWARD)s tutarında bir ödeme kazandınız."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr "Ödeme almak için deneyi yeterince tamamlayamadınız, üzgünüz."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Ödülünüz"
 
 #: psynet/templates/start.html
 msgctxt "start"

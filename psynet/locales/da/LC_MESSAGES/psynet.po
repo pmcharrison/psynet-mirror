@@ -2270,12 +2270,12 @@ msgstr "Forsøgets afslutning."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Færdig"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
@@ -2356,16 +2356,21 @@ msgid "That's the end of the experiment."
 msgstr "Det er afslutningen på eksperimentet."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Tak, fordi du deltog!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "Det var afslutningen på eksperimentet. Tak, fordi du deltog!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "Tak for din deltagelse."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Tak, fordi du deltog!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -3067,6 +3072,34 @@ msgid ""
 msgstr ""
 "Du kan muligvis afbryde forsøget ved hjælp af knappen <strong>Afbryd "
 "forsøg</strong> <strong>på MTurk-annoncesiden</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "Du har tjent en samlet betaling på %(CURRENCY)s%(TOTAL_REWARD)s"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "Du har tjent en samlet betaling på %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Du har ikke gennemført nok af eksperimentet til at modtage en betaling, "
+"beklager."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Din belønning"
 
 #: psynet/templates/start.html
 #, fuzzy

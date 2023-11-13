@@ -2281,12 +2281,12 @@ msgstr "Akhir percobaan."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Selesai"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
@@ -2370,16 +2370,21 @@ msgid "That's the end of the experiment."
 msgstr "Itulah akhir dari eksperimen ini."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Terima kasih telah mengambil bagian!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "Itulah akhir dari eksperimen ini, terima kasih atas partisipasinya!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "Terima kasih telah mengambil bagian."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Terima kasih telah mengambil bagian!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -3088,6 +3093,36 @@ msgid ""
 msgstr ""
 "Anda mungkin dapat membatalkan eksperimen dengan menggunakan tombol "
 "<strong>Batalkan eksperimen</strong> pada halaman iklan MTurk</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr ""
+"Anda mendapatkan total pembayaran sebesar %(CURRENCY)s%(TOTAL_REWARD)s"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr ""
+"Anda mendapatkan total pembayaran sebesar %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Anda tidak menyelesaikan percobaan yang cukup untuk menerima pembayaran, "
+"maaf."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Hadiah Anda"
 
 #: psynet/templates/start.html
 #, fuzzy

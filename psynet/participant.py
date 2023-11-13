@@ -443,10 +443,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         :returns:
             The reward as a ``float``.
         """
-        return round(
-            self.time_credit.get_time_reward() + self.performance_reward,
-            ndigits=2,
-        )
+        return self.time_credit.get_time_reward() + self.performance_reward
 
     def inc_performance_reward(self, value):
         self.performance_reward += value

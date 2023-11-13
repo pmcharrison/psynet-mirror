@@ -2265,12 +2265,12 @@ msgstr "A kísérlet vége."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Befejezés"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
@@ -2353,16 +2353,21 @@ msgid "That's the end of the experiment."
 msgstr "Ez a kísérlet vége."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Köszönjük a részvételt!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "Itt a kísérlet vége, köszönjük a részvételt!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "Köszönjük a részvételt."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Köszönjük a részvételt!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -3069,6 +3074,34 @@ msgid ""
 msgstr ""
 "A kísérletet az <strong>Kísérlet megszakítása</strong> gombbal <strong>az "
 "MTurk hirdetés oldalán</strong> megszakíthatja."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "Ön összesen %(CURRENCY)s%(TOTAL_REWARD)s összegű kifizetést kapott."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "Ön összesen %(CURRENCY)s%(TOTAL_REWARD)s összegű kifizetést kapott."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Sajnáljuk, hogy nem teljesítettél elég kísérletet ahhoz, hogy kifizetést "
+"kapj."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "A jutalmad"
 
 #: psynet/templates/start.html
 #, fuzzy

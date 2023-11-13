@@ -1642,11 +1642,11 @@ msgstr ""
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr ""
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr ""
@@ -1667,10 +1667,9 @@ msgstr ""
 
 #: psynet/templates/final-page-successful.html
 msgctxt "final_page_successful"
-msgid "That's the end of the experiment."
+msgid "That's the end of the experiment. Thank you for taking part!"
 msgstr ""
 
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Thank you for taking part!"
 msgstr ""
@@ -2192,6 +2191,22 @@ msgctxt "mturk_error"
 msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+
+#: psynet/templates/reward_participant.html
+#, python-format
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr ""
+
+#: psynet/templates/reward_participant.html
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+
+#: psynet/templates/reward_participant.html
+msgctxt "reward_participant_header"
+msgid "Your reward"
 msgstr ""
 
 #: psynet/templates/start.html

@@ -52,7 +52,7 @@
                         {% endblock no_assignment %}
                     {% else %}
                         {% block live %}
-                            {% if not experiment.with_lucid_recruitment() %}
+                            {% if not experiment.with_recruiter("lucid") %}
                                 {% if experiment.recruiter.nickname == "mturk" %}
                                     <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
                                 {% else %}
@@ -107,7 +107,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function (event) {
             let isValidBrowser = browser.validate();
-            {% if experiment.with_lucid_recruitment() %}
+            {% if experiment.with_recruiter("lucid") %}
                 if (!isValidBrowser) {
                     terminateParticipant("invalid-browser");
                 }
@@ -128,7 +128,7 @@
             window.location = url;
           }
         }
-        {% if experiment.with_lucid_recruitment() %}
+        {% if experiment.with_recruiter("lucid") %}
           proceedToConsentPage(null);
         {% else %}
           document.getElementById("begin-button").onclick = proceedToConsentPage;

@@ -1359,7 +1359,7 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
-                    {% if experiment.with_lucid_recruitment() %}
+                    {% if experiment.with_recruiter("lucid") %}
                         psynet.removeBeforeUnloadEventListener();
                     {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
@@ -1710,7 +1710,7 @@
         </script>
     {% endfor %}
 
-    {% if experiment.with_lucid_recruitment() %}
+    {% if experiment.with_recruiter("lucid") %}
         <script>
             {
                 // Terminate on 'page reload', 'window/tab close', and 'no focus' with timeouts and

@@ -2235,12 +2235,12 @@ msgstr "Koniec experimentu."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Dokončenie"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
@@ -2320,16 +2320,21 @@ msgid "That's the end of the experiment."
 msgstr "To je koniec experimentu."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Ďakujeme vám za účasť!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "To je koniec experimentu. Ďakujeme vám za účasť!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "Ďakujeme vám za účasť."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Ďakujeme vám za účasť!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -3031,6 +3036,34 @@ msgid ""
 msgstr ""
 "Experiment môžete prerušiť pomocou tlačidla <strong>Pretrhnúť "
 "experiment</strong> <strong>na stránke inzerátu MTurk</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "Získali ste celkovú platbu vo výške %(CURRENCY)s%(TOTAL_REWARD)s"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "Získali ste celkovú platbu vo výške %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Nevykonali ste dostatočný počet experimentov, aby ste dostali platbu, je nám"
+" ľúto."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Vaša odmena"
 
 #: psynet/templates/start.html
 #, fuzzy

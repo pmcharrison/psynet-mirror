@@ -2256,12 +2256,12 @@ msgstr "Koe päättyi."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Viimeistely"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
@@ -2340,16 +2340,21 @@ msgid "That's the end of the experiment."
 msgstr "Tämä on kokeen loppu."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Kiitos osallistumisesta!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "Kokeilu on päättynyt, kiitos osallistumisesta!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "Kiitos osallistumisesta."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Kiitos osallistumisesta!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -3066,6 +3071,24 @@ msgid ""
 msgstr ""
 "Voit ehkä keskeyttää kokeilun käyttämällä <strong>Peruuta kokeilu</strong> "
 "-painiketta <strong>MTurkin mainossivulla</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "Ansaitsit yhteensä %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr "Et suorittanut tarpeeksi kokeilua saadaksesi maksun, olen pahoillani."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Palkintosi"
 
 #: psynet/templates/start.html
 #, fuzzy

@@ -2048,11 +2048,11 @@ msgstr "Einde van het experiment."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr "Voltooien"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klik op \"Voltooien\" om de HIT te voltooien."
@@ -2132,15 +2132,20 @@ msgid "That's the end of the experiment."
 msgstr "Dat is het einde van het experiment."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Bedankt voor uw deelname!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "Dit is het einde van het experiment. Bedankt voor uw deelname!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Thank you for taking part."
 msgstr "Bedankt voor uw deelname."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Bedankt voor uw deelname!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -2823,6 +2828,34 @@ msgid ""
 msgstr ""
 "U kunt het experiment afbreken via de knop <strong>Experiment "
 "afbreken</strong> <strong>op de advertentiepagina van MTurk</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "U hebt een totale betaling verdiend van %(CURRENCY)s%(TOTAL_REWARD)s"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "U hebt een totale betaling van %(CURRENCY)s%(TOTAL_REWARD)s verdiend."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"U hebt niet genoeg van het experiment voltooid om een betaling te ontvangen,"
+" sorry."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Uw beloning"
 
 #: psynet/templates/start.html
 msgctxt "start"

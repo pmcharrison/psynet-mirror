@@ -2243,12 +2243,12 @@ msgstr "تجربہ کا اختتام۔"
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "ختم کرنا"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
@@ -2329,16 +2329,21 @@ msgid "That's the end of the experiment."
 msgstr "یہ تجربہ کا اختتام ہے۔"
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "حصہ لینے کے لیے آپ کا شکریہ!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "یہ تجربہ کا اختتام ہے۔ حصہ لینے کے لیے آپ کا شکریہ!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
 msgid "Thank you for taking part."
 msgstr "حصہ لینے کے لیے آپ کا شکریہ۔"
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "حصہ لینے کے لیے آپ کا شکریہ!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -3037,6 +3042,32 @@ msgid ""
 msgstr ""
 "آپ MTurk اشتہار کے صفحے پر <strong>تجربہ ختم کریں</strong> بٹن <strong> کا "
 "استعمال کرتے ہوئے تجربہ کو ختم کرنے کے قابل ہو سکتے ہیں۔"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "آپ نے %(CURRENCY)s%(TOTAL_REWARD)s کی کل ادائیگی حاصل کی۔"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "آپ نے %(CURRENCY)s%(TOTAL_REWARD)s کی کل ادائیگی حاصل کی۔"
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr "آپ نے ادائیگی حاصل کرنے کے لیے کافی تجربہ مکمل نہیں کیا، معذرت۔"
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "آپ کا انعام"
 
 #: psynet/templates/start.html
 #, fuzzy

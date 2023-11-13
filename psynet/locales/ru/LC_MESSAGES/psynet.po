@@ -2059,11 +2059,11 @@ msgstr "Окончание эксперимента."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
+#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr "Завершить"
 
 #: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Пожалуйста, нажмите \"Finish\", чтобы завершить HIT."
@@ -2145,15 +2145,20 @@ msgid "That's the end of the experiment."
 msgstr "На этом эксперимент можно считать законченным."
 
 #: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
-msgid "Thank you for taking part!"
-msgstr "Спасибо за участие!"
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment. Thank you for taking part!"
+msgstr "На этом эксперимент закончен. Спасибо за участие!"
 
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Thank you for taking part."
 msgstr "Спасибо за участие."
+
+#: psynet/templates/final-page-unsuccessful.html
+#, fuzzy
+msgid "Thank you for taking part!"
+msgstr "Спасибо за участие!"
 
 #: psynet/templates/final-page-unsuccessful.html
 #, fuzzy
@@ -2789,6 +2794,34 @@ msgid ""
 msgstr ""
 "Вы можете прервать эксперимент с помощью кнопки <strong>Прервать "
 "эксперимент</strong> <strong>на странице объявлений MTurk</strong>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"\n"
+"                    You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s\n"
+"                    "
+msgstr "Вы заработали общую выплату в размере %(CURRENCY)s%(TOTAL_REWARD)s"
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
+msgstr "Вы заработали общую выплату в размере %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Вы не выполнили достаточную часть эксперимента, чтобы получить выплату, "
+"извините."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_header"
+msgid "Your reward"
+msgstr "Ваше вознаграждение"
 
 #: psynet/templates/start.html
 msgctxt "start"

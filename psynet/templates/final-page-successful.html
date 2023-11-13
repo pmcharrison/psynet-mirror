@@ -1,31 +1,21 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-    {{ pgettext("final_page_successful", "That's the end of the experiment.") }}
-    {{ gettext("Thank you for taking part!") }}
-    {% if config.show_reward and not experiment.with_lucid_recruitment() %}
-        {% include "final-page-rewards.html" %}
-    {% endif %}
-    {% if not experiment.with_lucid_recruitment() %}
-        <p class="vspace"></p>
-        <p>
-            {{ gettext('Please click "Finish" to complete the HIT.') }}
-        </p>
-        <p class="vspace"></p>
-        <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Finish") }}</button>
-    {% endif %}
+    {{ pgettext("final_page_successful", "That's the end of the experiment. Thank you for taking part!") }}
+    <p class="vspace"></p>
+    <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Finish") }}</button>
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     <script>
-        function finish() {
-          submitAssignment();
-        }
-        {% if experiment.with_lucid_recruitment() %}
-            finish();
+        {% if experiment.with_recruiter("lucid") %}
+            submitAssignment();
         {% else %}
-            document.getElementById("next-button").onclick = finish;
+            function reward_participant() {
+              window.location = '/reward_participant?unique_id={{unique_id}}';
+            }
+            document.getElementById("next-button").onclick = reward_participant;
         {% endif %}
     </script>
 {% endblock %}

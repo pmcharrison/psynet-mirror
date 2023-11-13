@@ -1,4 +1,4 @@
-{% if not experiment.with_lucid_recruitment() %}
+{% if not experiment.with_recruiter("lucid") %}
 {% set BASE_PAYMENT = "%.2f"|format(participant.base_payment) %}
 {% set BONUS = "%.2f"|format(experiment.bonus(participant)) %}
 {% set TOTAL_REWARD = "%.2f"|format(participant.calculate_reward()) %}

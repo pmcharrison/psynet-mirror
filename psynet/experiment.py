@@ -1327,8 +1327,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
 
-    def with_lucid_recruitment(self):
-        return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
+    def with_recruiter(self, nickname):
+        if nickname == "lucid":
+            return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
+        else:
+            raise ValueError("Unknown recruiter nickname '{nickname}'.")
 
     def process_response(
         self,
@@ -2193,6 +2196,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
+
+    @experiment_route("/reward_participant", methods=["GET"])
+    @classmethod
+    def reward_participant(cls):
+        unique_id = request.args.get("unique_id")
+        participant = cls.get_participant_from_unique_id(unique_id)
+
+        return render_template_with_translations(
+            "reward_participant.html",
+            min_accumulated_reward_for_abort=get_config().get(
+                "min_accumulated_reward_for_abort"
+            ),
+            total_reward=max(
+                get_config().get("base_payment"), participant.calculate_reward()
+            ),
+        )
 
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
