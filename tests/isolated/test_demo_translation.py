@@ -6,7 +6,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
 from psynet.experiment import get_and_load_config
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    next_page,
+    path_to_demo,
+    reward_participant_page,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -77,3 +83,4 @@ class TestExp(object):
 
             # Page 5
             next_page(driver, "next-button", finished=True)
+            reward_participant_page(driver, "next-button")

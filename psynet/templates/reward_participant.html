@@ -2,47 +2,46 @@
 
 {% block body %}
 <div class="main_div">
+    <div>
+        <div class="col-xs-2">
+            <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
+        </div>
+        <h1 id="header" style="clear: both;">{{ pgettext("reward_participant_header", "Your reward") }}</h1>
+        <hr>
         <div>
-            <div class="col-xs-2">
-              <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
-            </div>
-            <h1 id="header" style="clear: both;">{{ pgettext("reward_participant_header", "Your reward") }}</h1>
-            <hr>
-            <div>
-                {% set BASE_PAYMENT = "%.2f"|format(participant.base_payment) %}
-                {% set BONUS = "%.2f"|format(experiment.bonus(participant)) %}
-                {% set CURRENCY = config.currency %}
-                {% set TOTAL_REWARD = "%.2f"|format(total_reward) %}
-                {% if experiment.with_recruiter("prolific") %}
-                    {% if total_reward < min_accumulated_reward_for_abort %}
-                        {{ pgettext("reward_participant_fail_prolific_1", "You did not complete enough of the experiment to receive a payment, sorry. Please return the study.") }}
-                    {% elif min_accumulated_reward_for_abort <= total_reward < participant.base_payment %}
-                        {{ pgettext("reward_participant_fail_prolific_2", "You were unable to complete the experiment, but <b>you will still be paid {{ CURRENCY }}{{ TOTAL_REWARD }}</b> for the time you put in so far. When you press <b>Next</b>, we will pay you via the bonus mechanism. Please then return the study.") }}
-                    {% elif total_reward == participant.base_payment %}
-                        {{ pgettext("reward_participant_fail_prolific_3", "When you press <b>Next</b>, your submission will be approved and you will receive the <b>full study payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>.") }}
-                    {% elif total_reward > participant.base_payment %}
-                       {{ pgettext("reward_participant_fail_prolific_4", "When you press <b>Next</b>, your submission will be approved and <b>you will receive the full study payment of {{ CURRENCY }}{{ BASE_PAYMENT }}</b>. You will also receive an <b>additional bonus of {{ CURRENCY }}{{ BONUS }}</b>.") }}
+            {% set BASE_PAYMENT = "%.2f"|format(participant.base_payment) %}
+            {% set BONUS = "%.2f"|format(experiment.bonus(participant)) %}
+            {% set CURRENCY = config.currency %}
+            {% set TOTAL_REWARD = "%.2f"|format(total_reward) %}
+            {% if experiment.with_recruiter("prolific") %}
+                {% if total_reward < min_accumulated_reward_for_abort %}
+                    {{ pgettext("reward_participant_fail_prolific_1", "You did not complete enough of the experiment to receive a payment, sorry. Please return the study.") }}
+                {% elif min_accumulated_reward_for_abort <= total_reward < participant.base_payment %}
+                    {{ pgettext("reward_participant_fail_prolific_2", "You were unable to complete the experiment, but <b>you will still be paid {{ CURRENCY }}{{ TOTAL_REWARD }}</b> for the time you put in so far. When you press <b>Next</b>, we will pay you via the bonus mechanism. Please then return the study.") }}
+                {% elif total_reward == participant.base_payment %}
+                    {{ pgettext("reward_participant_fail_prolific_3", "When you press <b>Next</b>, your submission will be approved and you will receive the <b>full study payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>.") }}
+                {% elif total_reward > participant.base_payment %}
+                   {{ pgettext("reward_participant_fail_prolific_4", "When you press <b>Next</b>, your submission will be approved and <b>you will receive the full study payment of {{ CURRENCY }}{{ BASE_PAYMENT }}</b>. You will also receive an <b>additional bonus of {{ CURRENCY }}{{ BONUS }}</b>.") }}
+                {% endif %}
+            {% else %}
+                {% if total_reward < min_accumulated_reward_for_abort %}
+                    {% if experiment.with_recruiter("hotair") %}
+                        {{ pgettext("reward_participant_fail_mturk", "You did not complete enough of the experiment to receive a payment, sorry.") }}
+                    {% elif experiment.with_recruiter("mturk") %}
+                        {{ pgettext("reward_participant_fail_hotair", "You did not complete enough of the experiment to receive a payment, sorry. Please return the HIT.") }}
                     {% endif %}
                 {% else %}
-                    {% if total_reward < min_accumulated_reward_for_abort %}
-                        {% if experiment.with_recruiter("hotair") %}
-                            {{ pgettext("reward_participant_fail_mturk", "You did not complete enough of the experiment to receive a payment, sorry.") }}
-                        {% elif experiment.with_recruiter("mturk") %}
-                            {{ pgettext("reward_participant_fail_hotair", "You did not complete enough of the experiment to receive a payment, sorry. Please return the HIT.") }}
-                        {% endif %}
-                    {% else %}
-                        {% if experiment.with_recruiter("hotair") %}
-                            {% trans name="participant-rewards-hotair" %}You earned a <b>total payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>.{% endtrans %}
-                        {% elif experiment.with_recruiter("mturk") %}
-                            {% trans name="participant-rewards-mturk" %}When you press <b>Next</b>, your submission will be approved. You will receive a <b>total payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>, which will be paid as a base payment of {{ CURRENCY }}{{ BASE_PAYMENT }} and a bonus of {{ CURRENCY }}{{ BONUS }}.{% endtrans %}
-                        {% endif %}
+                    {% if experiment.with_recruiter("hotair") %}
+                        {% trans name="participant-rewards-hotair" %}You earned a <b>total payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>.{% endtrans %}
+                    {% elif experiment.with_recruiter("mturk") %}
+                        {% trans name="participant-rewards-mturk" %}When you press <b>Next</b>, your submission will be approved. You will receive a <b>total payment of {{ CURRENCY }}{{ TOTAL_REWARD }}</b>, which will be paid as a base payment of {{ CURRENCY }}{{ BASE_PAYMENT }} and a bonus of {{ CURRENCY }}{{ BONUS }}.{% endtrans %}
                     {% endif %}
                 {% endif %}
-            </div>
+            {% endif %}
         </div>
-        <p class="vspace"></p>
-        <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Next") }}</button>
     </div>
+    <p class="vspace"></p>
+    <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Finish") }}</button>
 </div>
 {% endblock %}
 

@@ -4,7 +4,12 @@ import pytest
 
 from psynet.experiment import get_and_load_config
 from psynet.participant import Participant
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    bot_class,
+    next_page,
+    path_to_demo,
+    reward_participant_page,
+)
 from psynet.trial.mcmcp import MCMCPNetwork
 
 PYTEST_BOT_CLASS = bot_class()
@@ -39,6 +44,7 @@ class TestExp:
 
             next_page(driver, "next-button")
             next_page(driver, "next-button", finished=True)
+            reward_participant_page(driver, "next-button")
 
     def test_default_variables(self, db_session):
         from psynet.experiment import get_experiment

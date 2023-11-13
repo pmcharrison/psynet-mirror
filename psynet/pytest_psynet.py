@@ -193,6 +193,11 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
         )
 
 
+def reward_participant_page(driver, button_identifier, by=By.ID, max_wait=10.0):
+    button = driver.find_element(by, button_identifier)
+    button.click()
+
+
 @pytest.fixture
 def deployment_info():
     from psynet import deployment_info

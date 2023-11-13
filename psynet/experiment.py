@@ -1286,7 +1286,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             The reward as a ``float`` rounded to two decimal places.
         """
         bonus = max(0, participant.calculate_reward() - self.base_payment)
-        return round(self.check_bonus(bonus, participant), 2)
+        return self.check_bonus(bonus, participant)
 
     def check_bonus(self, reward, participant):
         """

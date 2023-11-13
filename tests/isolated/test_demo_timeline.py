@@ -7,7 +7,13 @@ from selenium.webdriver.common.by import By
 
 from psynet.experiment import get_and_load_config
 from psynet.participant import Participant, get_participant
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    next_page,
+    path_to_demo,
+    reward_participant_page,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -226,18 +232,14 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                (
-                    "That's the end of the experiment. Thank you for taking part! "
-                    "You will receive a total reward of $0.36 "
-                    "which consists of $0.10 as base payment plus a bonus of $0.26. "
-                    'Please click "Finish" to complete the HIT. Finish'
-                ),
+                ("That's the end of the experiment. Thank you for taking part! Finish"),
             )
 
             next_page(driver, "next-button", finished=True)
+            reward_participant_page(driver, "next-button")
 
             time.sleep(0.75)
 
             db.session.commit()
             assert participant.base_payment == 0.10
-            assert participant.bonus == 0.26
+            assert round(participant.bonus, 2) == 0.26

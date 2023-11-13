@@ -9,7 +9,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from psynet.experiment import get_experiment
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    bot_class,
+    next_page,
+    path_to_demo,
+    reward_participant_page,
+)
 from psynet.trial.main import Trial, TrialNode
 
 logger = logging.getLogger(__file__)
@@ -64,6 +69,7 @@ class TestExp:
                 time.sleep(1)
             self.wait_for_element(driver, "next-button")
             next_page(driver, "next-button", finished=True)
+            reward_participant_page(driver, "next-button")
 
         self.assertions()
 

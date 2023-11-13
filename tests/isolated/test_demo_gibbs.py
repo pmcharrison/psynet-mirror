@@ -5,7 +5,13 @@ from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    next_page,
+    path_to_demo,
+    reward_participant_page,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -87,5 +93,5 @@ class TestExp:
             text_input = driver.find_element(By.ID, "text-input")
             text_input.send_keys("No technical problems.")
             next_page(driver, "next-button")
-
             next_page(driver, "next-button", finished=True)
+            reward_participant_page(driver, "next-button")
