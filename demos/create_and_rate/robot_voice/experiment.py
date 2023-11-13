@@ -48,7 +48,6 @@ GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 AUDIO_DURATION = 0.75
 
 RATE_MODE = "select"  # 'rate' or 'select'

@@ -168,19 +168,13 @@ This ``ColorText`` definition is complemented by the following macro definition 
 
     {% macro color_text_area(config) %}
 
-        <textarea id="text-input" type="text" class="form-control" style="background-color: {{ config.color }};"></textarea>
+        <textarea id="text-input" type="text" class="form-control" style="background-color: {{ config.color }}; margin-bottom: 40px;"></textarea>
 
         <script>
-            get_data = function() {
-                return document.getElementById('text-input').value
+            psynet.stageResponse = function() {
+                psynet.response.staged.rawAnswer = document.getElementById('text-input').value
             }
         </script>
-
-        <p class="vspace"></p>
-
-        <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onClick="psynet.nextPage(get_data());">
-            Next
-        </button>
 
     {% endmacro %}
 
@@ -188,9 +182,11 @@ This macro has several important components.
 
 * First, there is a ``textarea`` element, a standard HTML element corresponding to a text box that can be filled in by the user. This textbox has a customizable background color determined by the value of ``config.color``.
 
-* Second, a function is defined called ``get_data`` [#]_. This function is written in Javascript, and extracts the current contents of the textbox as a string (e.g., ‘Hello’).
-
-* Third, a button is defined that calls ``psynet.nextPage`` when it is pressed, submitting the value returned by ``get_data``, and triggering the move to the next page. This value is received by Python and is eventually stored in places such as ``participant.answer`` and ``trial.answer``.
+* Second, a function is defined called ``psynet.stageResponse`` [#]_. This function is written in Javascript,
+  and extracts the current contents of the textbox as a string (e.g., ‘Hello’).
+  It then saves this string to ``psynet.response.staged.rawAnswer``.
+  This 'stages' the answer, so that when the page is exited (by clicking the 'Next' button) this answer
+  is submitted to the PsyNet back-end.
 
 In some cases we might want to postprocess this response in Python before we save it. This can be achieved by writing a custom ``format_answer`` method for the custom ``Control`` class. For example, if we wanted to capitalize all the responses, we could write something like this:
 

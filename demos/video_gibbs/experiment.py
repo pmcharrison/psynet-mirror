@@ -38,7 +38,6 @@ GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
 
 NUM_CHAINS_PER_EXPERIMENT = 2

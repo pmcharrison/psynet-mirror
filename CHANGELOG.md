@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### Added
+- Added JS function ``psynet.stageResponse`` as a mechanism for staging responses in custom controls.
+
+#### Fixed
+- Fixed bug in custom prompts demo and tutorial.
+
 # [10.4.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.0) Release 2023-09-24
 
 #### Fixed
