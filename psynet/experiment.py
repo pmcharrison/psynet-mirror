@@ -2208,6 +2208,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             min_accumulated_reward_for_abort=get_config().get(
                 "min_accumulated_reward_for_abort"
             ),
+            participant=participant,
             total_reward=max(
                 get_config().get("base_payment"), participant.calculate_reward()
             ),
