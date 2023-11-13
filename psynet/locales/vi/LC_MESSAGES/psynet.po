@@ -3076,9 +3076,64 @@ msgstr ""
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and <b>you will"
+" receive the full study payment of %(CURRENCY)s%(BASE_PAYMENT)s</b>. You "
+"will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
+msgstr ""
+"Khi bạn nhấn <b>Tiếp theo</b>, nội dung gửi của bạn sẽ được phê duyệt và "
+"<b>bạn sẽ nhận được toàn bộ khoản thanh toán nghiên cứu là "
+"%(CURRENCY)s%(BASE_PAYMENT)s</b>. Bạn cũng sẽ nhận được <b>phần thưởng bổ "
+"sung là %(CURRENCY)s%(BONUS)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and you will "
+"receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Khi bạn nhấn <b>Tiếp theo</b>, nội dung gửi của bạn sẽ được phê duyệt và bạn"
+" sẽ nhận được <b>toàn bộ khoản thanh toán học tập là "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved. You will "
+"receive a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>, which will "
+"be paid as a base payment of %(CURRENCY)s%(BASE_PAYMENT)s and a bonus of "
+"%(CURRENCY)s%(BONUS)s."
+msgstr ""
+"Khi bạn nhấn <b>Tiếp theo</b>, nội dung gửi của bạn sẽ được phê duyệt. Bạn "
+"sẽ nhận được <b>tổng thanh toán %(CURRENCY)s%(TOTAL_REWARD)s</b>, sẽ được "
+"thanh toán dưới dạng thanh toán cơ bản %(CURRENCY)s%(BASE_PAYMENT)s và tiền "
+"thưởng %( TIỀN TỆ)s%(TIỀN THƯỞNG)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Bạn đã kiếm được <b>tổng số tiền thanh toán là "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
 msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
 msgstr ""
 "Bạn đã kiếm được tổng số tiền thanh toán là %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"You were unable to complete the experiment, but <b>you will still be paid "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> for the time you put in so far. When you "
+"press <b>Next</b>, we will pay you via the bonus mechanism. Please then "
+"return the study."
+msgstr ""
+"Bạn không thể hoàn thành thử nghiệm, nhưng <b>bạn sẽ vẫn được trả "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> cho thời gian bạn đã thực hiện cho đến nay."
+" Khi bạn nhấn <b>Tiếp theo</b>, chúng tôi sẽ thanh toán cho bạn thông qua cơ"
+" chế thưởng. Xin vui lòng trả lại nghiên cứu."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy
@@ -3087,6 +3142,34 @@ msgid ""
 "You did not complete enough of the experiment to receive a payment, sorry."
 msgstr ""
 "Rất tiếc, bạn chưa hoàn thành đủ thử nghiệm để nhận được khoản thanh toán."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_hotair"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the HIT."
+msgstr ""
+"Rất tiếc, bạn chưa hoàn thành đủ thử nghiệm để nhận được khoản thanh toán. "
+"Vui lòng trả lại HIT."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_mturk"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Rất tiếc, bạn chưa hoàn thành đủ thử nghiệm để nhận được khoản thanh toán."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_prolific_1"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the study."
+msgstr ""
+"Rất tiếc, bạn chưa hoàn thành đủ thử nghiệm để nhận được khoản thanh toán. "
+"Hãy trả lại nghiên cứu."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy

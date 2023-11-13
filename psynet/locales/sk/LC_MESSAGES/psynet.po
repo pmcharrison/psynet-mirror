@@ -3047,8 +3047,59 @@ msgstr "Získali ste celkovú platbu vo výške %(CURRENCY)s%(TOTAL_REWARD)s"
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and <b>you will"
+" receive the full study payment of %(CURRENCY)s%(BASE_PAYMENT)s</b>. You "
+"will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
+msgstr ""
+"Po stlačení tlačidla <b>Ďalej</b> bude vaša žiadosť schválená a <b>obdržíte "
+"plnú platbu za štúdium vo výške %(CURRENCY)s%(BASE_PAYMENT)s</b>. Získate aj"
+" <b>dodatočný bonus vo výške %(CURRENCY)s%(BONUS)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and you will "
+"receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Po stlačení tlačidla <b>Ďalšie</b> bude vaše podanie schválené a dostanete "
+"<b>plnú platbu za štúdium vo výške %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved. You will "
+"receive a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>, which will "
+"be paid as a base payment of %(CURRENCY)s%(BASE_PAYMENT)s and a bonus of "
+"%(CURRENCY)s%(BONUS)s."
+msgstr ""
+"Po stlačení tlačidla <b>Ďalšie</b> bude vaše podanie schválené. Dostanete "
+"<b>celkovú platbu %(CURRENCY)s%(TOTAL_REWARD)s</b>, ktorá bude vyplatená ako"
+" základná platba %(CURRENCY)s%(BASE_PAYMENT)s a bonus %(CURRENCY)s%(BONUS)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Získali ste <b>celkovú platbu vo výške %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
 msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
 msgstr "Získali ste celkovú platbu vo výške %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"You were unable to complete the experiment, but <b>you will still be paid "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> for the time you put in so far. When you "
+"press <b>Next</b>, we will pay you via the bonus mechanism. Please then "
+"return the study."
+msgstr ""
+"Experiment sa vám nepodarilo dokončiť, ale <b>za čas, ktorý ste doposiaľ "
+"strávili, vám ešte vyplatíme %(CURRENCY)s%(TOTAL_REWARD)s</b>. Keď stlačíte "
+"<b>Next</b>, vyplatíme vám peniaze prostredníctvom bonusového mechanizmu. "
+"Potom prosím štúdiu vráťte."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy
@@ -3058,6 +3109,35 @@ msgid ""
 msgstr ""
 "Nevykonali ste dostatočný počet experimentov, aby ste dostali platbu, je nám"
 " ľúto."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_hotair"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the HIT."
+msgstr ""
+"Nevykonali ste dostatočný počet experimentov na to, aby ste dostali platbu, "
+"ospravedlňujeme sa. Prosím, vráťte HIT."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_mturk"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Nevykonali ste dostatočný počet experimentov, aby ste dostali platbu, je nám"
+" ľúto."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_prolific_1"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the study."
+msgstr ""
+"Nevykonali ste dostatočný počet experimentov na to, aby ste dostali platbu, "
+"ospravedlňujeme sa. Prosím, vráťte štúdiu."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy

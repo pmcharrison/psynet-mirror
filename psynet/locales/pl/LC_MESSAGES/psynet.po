@@ -3114,9 +3114,65 @@ msgstr ""
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and <b>you will"
+" receive the full study payment of %(CURRENCY)s%(BASE_PAYMENT)s</b>. You "
+"will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
+msgstr ""
+"Po naciśnięciu przycisku <b>Next</b>, zgłoszenie zostanie zatwierdzone i "
+"<b>otrzymają Państwo pełną wypłatę za badanie w wysokości "
+"%(CURRENCY)s%(BASE_PAYMENT)s</b>. Otrzymają Państwo również <b>dodatkowy "
+"bonus w wysokości %(CURRENCY)s%(BONUS)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and you will "
+"receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Po naciśnięciu <b>Next</b>, Państwa zgłoszenie zostanie zatwierdzone i "
+"otrzymają Państwo <b>pełną płatność za badanie w wysokości "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved. You will "
+"receive a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>, which will "
+"be paid as a base payment of %(CURRENCY)s%(BASE_PAYMENT)s and a bonus of "
+"%(CURRENCY)s%(BONUS)s."
+msgstr ""
+"Po naciśnięciu przycisku <b>Next</b> zgłoszenie zostanie zatwierdzone. "
+"Otrzymają Państwo <b>całkowitą wypłatę w wysokości "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b>, która zostanie wypłacona jako wypłata "
+"podstawowa w wysokości %(CURRENCY)s%(BASE_PAYMENT)s oraz premia w wysokości "
+"%(CURRENCY)s%(BONUS)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Otrzymał(a) Pan(i) <b>łączną wypłatę w wysokości "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
 msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
 msgstr ""
 "Otrzymał(a) Pan(i) łączną wypłatę w wysokości %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"You were unable to complete the experiment, but <b>you will still be paid "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> for the time you put in so far. When you "
+"press <b>Next</b>, we will pay you via the bonus mechanism. Please then "
+"return the study."
+msgstr ""
+"Nie udało Ci się ukończyć eksperymentu, ale <b>zostanie Ci wypłacone "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> za czas, który poświęciłeś do tej pory. Po "
+"naciśnięciu <b>Next</b>, wypłacimy Ci pieniądze za pomocą mechanizmu "
+"bonusowego. Następnie proszę zwrócić badanie."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy
@@ -3126,6 +3182,35 @@ msgid ""
 msgstr ""
 "Nie ukończył(a) Pan(i) wystarczającej części eksperymentu, aby otrzymać "
 "płatność, przepraszamy."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_hotair"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the HIT."
+msgstr ""
+"Nie ukończyłeś wystarczającej części eksperymentu, aby otrzymać płatność, "
+"przepraszamy. Proszę zwrócić HIT."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_mturk"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Nie ukończył(a) Pan(i) wystarczającej części eksperymentu, aby otrzymać "
+"płatność, przepraszamy."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_prolific_1"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the study."
+msgstr ""
+"Nie ukończyłeś wystarczającej ilości eksperymentu, aby otrzymać płatność, "
+"przepraszamy. Proszę zwrócić badanie."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy

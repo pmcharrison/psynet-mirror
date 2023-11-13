@@ -3036,8 +3036,58 @@ msgstr "Te teenisite kokku %(CURRENCY)s%(TOTAL_REWARD)s maksed"
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and <b>you will"
+" receive the full study payment of %(CURRENCY)s%(BASE_PAYMENT)s</b>. You "
+"will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
+msgstr ""
+"Kui vajutate <b>Next</b>, kiidetakse teie taotlus heaks ja <b>saate täieliku"
+" õppemaksu %(CURRENCY)s%(BASE_PAYMENT)s</b>. Saate ka <b>lisaboonuse "
+"%(CURRENCY)s%(BONUS)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved and you will "
+"receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr ""
+"Kui vajutate <b>Next</b>, kiidetakse teie taotlus heaks ja saate <b>täieliku"
+" õppemaksu %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"When you press <b>Next</b>, your submission will be approved. You will "
+"receive a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>, which will "
+"be paid as a base payment of %(CURRENCY)s%(BASE_PAYMENT)s and a bonus of "
+"%(CURRENCY)s%(BONUS)s."
+msgstr ""
+"Kui vajutate <b>Järgmine</b>, kiidetakse teie taotlus heaks. Te saate "
+"<b>summamakse %(CURRENCY)s%(TOTAL_REWARD)s</b>, mis makstakse baasmaksena "
+"%(CURRENCY)s%(BASE_PAYMENT)s ja boonusena %(CURRENCY)s%(BONUS)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+msgstr "Te teenisite <b>summamakse %(CURRENCY)s%(TOTAL_REWARD)s</b>."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
 msgid "You earned a total payment of %(CURRENCY)s%(TOTAL_REWARD)s."
 msgstr "Sa teenisid kokku %(CURRENCY)s%(TOTAL_REWARD)s."
+
+#: psynet/templates/reward_participant.html
+#, python-format, fuzzy
+msgid ""
+"You were unable to complete the experiment, but <b>you will still be paid "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> for the time you put in so far. When you "
+"press <b>Next</b>, we will pay you via the bonus mechanism. Please then "
+"return the study."
+msgstr ""
+"Teil ei õnnestunud eksperiment lõpule viia, kuid <b>Sulle makstakse siiski "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> senise aja eest. Kui vajutate "
+"<b>Järgmiseks</b>, maksame teile boonusmehhanismi kaudu. Palun tagastage "
+"seejärel uuring."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy
@@ -3046,6 +3096,34 @@ msgid ""
 "You did not complete enough of the experiment to receive a payment, sorry."
 msgstr ""
 "Te ei lõpetanud piisavalt palju eksperimenti, et saada tasu, vabandust."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_hotair"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the HIT."
+msgstr ""
+"Te ei lõpetanud piisavalt palju eksperimenti, et saada tasu, vabandust. "
+"Palun tagastage HIT."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_mturk"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry."
+msgstr ""
+"Te ei lõpetanud piisavalt palju eksperimenti, et saada tasu, vabandust."
+
+#: psynet/templates/reward_participant.html
+#, fuzzy
+msgctxt "reward_participant_fail_prolific_1"
+msgid ""
+"You did not complete enough of the experiment to receive a payment, sorry. "
+"Please return the study."
+msgstr ""
+"Te ei täitnud eksperimenti piisavalt, et saada tasu, vabandust. Palun "
+"tagastage uuring."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy
