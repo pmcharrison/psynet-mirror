@@ -586,13 +586,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         while waiting_for_bots:
             for i in range(len(processes)):
                 p = processes[i]
-                # Print any output from the process to the console (see run_subprocess_with_live_output)
-                line = p.readline()
-                logger.info(line)
-                # Check whether the process has finished (see run_subprocess_with_live_output)
+                line = p.readline().decode().strip().replace("INFO:root:", "")
+
+                if len(line) > 0:
+                    logger.info(f"(Bot {i + 1}) " + line)
+
                 if p.eof():
                     bots_finished.add(i)
-            # If all bots are finished, we set waiting_for_bots = False
+
             if len(bots_finished) == len(processes):
                 waiting_for_bots = False
 
