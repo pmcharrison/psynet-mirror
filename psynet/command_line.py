@@ -576,9 +576,11 @@ def is_chromedriver_process(process):
     except psutil.NoSuchProcess:
         pass
 
+
 ###########
 # run bot #
 ###########
+
 
 def _run_bot():
     from .bot import Bot
@@ -591,11 +593,15 @@ def _run_bot():
     bot = Bot()
     exp.run_bot(bot)
 
+
 @psynet.command()
 @click.pass_context
 def run_bot(ctx):
     """
     Run a bot through the local version of the experiment.
+    Prior to running this command you must spin up a local experiment, for example
+    by running ``psynet debug local``. You can then call ``psynet run-bot``
+    multiple times to simulate multiple bots being run through the experiment.
     """
     try:
         _run_bot()
@@ -605,8 +611,6 @@ def run_bot(ctx):
         init_db(drop_all=True)
         db.session.commit()
         _run_bot()
-
-
 
 
 ##############
