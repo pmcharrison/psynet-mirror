@@ -65,7 +65,7 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 6
-    parallel_bots = False
+    test_parallel_bots = False
 
     def test_run_bots(self, bots: List[Bot]):
         advance_past_wait_pages(bots)
