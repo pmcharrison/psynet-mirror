@@ -580,6 +580,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def _test_experiment_parallel(self):
         # Start N subprocesses, and in each one call `psynet run-bot`
+        logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
 
         processes = []
         for i in range(self.test_n_bots):
@@ -621,6 +622,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
     def _test_experiment_serial(self):
+        logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
         bots = [Bot() for _ in range(self.test_n_bots)]
         self.test_serial_run_bots(bots)
         self.test_check_bots(bots)
