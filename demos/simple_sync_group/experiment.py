@@ -67,7 +67,7 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 6
     test_parallel_bots = False
 
-    def test_run_bots(self, bots: List[Bot]):
+    def test_serial_run_bots(self, bots: List[Bot]):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]

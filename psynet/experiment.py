@@ -147,6 +147,12 @@ class ExperimentMeta(type):
                 "any custom bot initialization code inside test_run_bot (before calling super().test_run_bot())."
             )
 
+        if hasattr(cls, "test_run_bots"):
+            raise RuntimeError(
+                "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
+                "Please note that this test route is only used if test_parallel_bots is False."
+            )
+
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # pylint: disable=abstract-method
@@ -615,10 +621,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _test_experiment_serial(self):
         # Same logic as before
         bots = [Bot() for _ in range(self.test_n_bots)]
-        self.test_run_bots(bots)
+        self.test_serial_run_bots(bots)
         self.test_check_bots(bots)
 
-    def test_run_bots(self, bots):
+    def test_serial_run_bots(self, bots):
         for bot in bots:
             db.session.add(bot)  # Protects against DetachedInstanceErrors
             self.run_bot(bot)

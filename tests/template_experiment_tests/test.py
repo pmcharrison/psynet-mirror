@@ -12,7 +12,7 @@
 # You can customize the behavior of the automated tests by overriding certain methods within
 # your experiment class, located in experiment.py:
 # - test_experiment
-# - test_run_bots
+# - test_serial_run_bots
 # - test_check_bots
 # - test_check_bot
 
