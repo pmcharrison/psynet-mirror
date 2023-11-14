@@ -567,7 +567,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
 
-        for _mode in self.test_modes:
+        for _mode in set(self.test_modes):
             if _mode == "serial" or self.test_n_bots == 1:
                 self._test_experiment_serial()
             elif _mode == "parallel":
