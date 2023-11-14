@@ -568,11 +568,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _test_experiment_parallel(self):
         # Start N subprocesses, and in each one call `psynet run-bot`
 
-        import subprocess
-
         processes = []
         for i in range(self.test_n_bots):
-
             # Wait parallel_stagger_interval_s before starting each subprocess
             if i > 0:
                 time.sleep(self.parallel_stagger_interval_s)
@@ -587,15 +584,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         while waiting_for_bots:
             for i in range(len(processes)):
                 p = processes[i]
-                line = p.readline().decode().strip().replace("INFO:root:", "")
 
-                if len(line) > 0:
-                    logger.info(f"(Bot {i + 1}) " + line)
-
-                if p.eof():
+                try:
+                    while True:
+                        output = (
+                            p.read_nonblocking(size=100000, timeout=0)
+                            .decode()
+                            .strip()
+                            .split("\n")
+                        )
+                        for line in output:
+                            line.replace("INFO:root:", "")
+                            logger.info(f"(Bot {i + 1}) " + line)
+                        time.sleep(0.01)
+                except pexpect.TIMEOUT:
+                    pass
+                except pexpect.EOF:
                     bots_finished.add(i)
 
-            # Make sure we wait until all subprocesses are finished
             if len(bots_finished) == len(processes):
                 waiting_for_bots = False
 
