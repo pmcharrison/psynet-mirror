@@ -583,7 +583,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         processes = []
         for i in range(self.test_n_bots):
-            # Wait parallel_stagger_interval_s before starting each subprocess
             if i > 0:
                 time.sleep(self.parallel_stagger_interval_s)
 
