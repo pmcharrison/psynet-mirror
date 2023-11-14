@@ -26,7 +26,7 @@
             {% if experiment.with_recruiter("hotair") %}
                 {% if total_reward < min_accumulated_reward_for_abort %}
                     {{ pgettext("reward_participant_fail_mturk", "You did not complete enough of the experiment to receive a payment, sorry.") }}
-                 {% else %}
+                {% else %}
                     {% trans name="participant-rewards-hotair" %}You earned a <b>total payment of {{CURRENCY}}{{TOTAL_REWARD}}</b>.{% endtrans %}
                 {% endif %}
             {% elif experiment.with_recruiter("mturk") %}
