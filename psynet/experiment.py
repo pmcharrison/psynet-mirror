@@ -141,6 +141,12 @@ class ExperimentMeta(type):
         cls.css = cls.css.copy()
         cls.css_links = cls.css_links.copy()
 
+        if hasattr(cls, "test_create_bots"):
+            raise RuntimeError(
+                "Experiment.test_create_bots has been removed, please do not override it. Instead you should put "
+                "any custom bot initialization code inside test_run_bot (before calling super().test_run_bot())."
+            )
+
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # pylint: disable=abstract-method
@@ -608,12 +614,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def _test_experiment_serial(self):
         # Same logic as before
-        bots = self.test_create_bots()
+        bots = [Bot() for _ in range(self.test_n_bots)]
         self.test_run_bots(bots)
         self.test_check_bots(bots)
-
-    def test_create_bots(self):
-        return [Bot() for _ in range(self.test_n_bots)]
 
     def test_run_bots(self, bots):
         for bot in bots:
