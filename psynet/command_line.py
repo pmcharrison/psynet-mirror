@@ -1836,6 +1836,7 @@ def logs__docker_ssh(ctx, app, server, path):
         log_name = f"{app}.log"
         path = os.path.join(os.getcwd(), log_name)
     export_docker_ssh_logs(app, server, path)
+    create_report(path)
     log(f"Log file saved to: {path}")
 
 
