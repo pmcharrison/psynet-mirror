@@ -302,7 +302,6 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_parallel_bots = False
     test_n_bots = 1
 
     def __init__(self, session=None):
