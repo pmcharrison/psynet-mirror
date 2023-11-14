@@ -23,7 +23,7 @@
                 {% elif total_reward > participant.base_payment %}
                     {% trans name="reward_participant_fail_prolific_4" %}When you press <b>Next</b>, your submission will be approved and <b>you will receive the full study payment of {{CURRENCY}}{{BASE_PAYMENT}}</b>. You will also receive an <b>additional bonus of {{CURRENCY}}{{BONUS}}</b>.{% endtrans %}
                 {% endif %}
-            {% if experiment.with_recruiter("hotair") %}
+            {% elif experiment.with_recruiter("hotair") %}
                 {% if total_reward < min_accumulated_reward_for_abort %}
                     {{ pgettext("reward_participant_fail_mturk", "You did not complete enough of the experiment to receive a payment, sorry.") }}
                 {% else %}
