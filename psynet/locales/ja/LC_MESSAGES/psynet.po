@@ -2024,7 +2024,6 @@ msgstr "実験終了。"
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "フィニッシュ"
@@ -2743,16 +2742,6 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr "MTurkの広告ページにある<strong>実験中止</strong>ボタンで実験を中止することができるかもしれません</strong>。"
-
-#. ""
-#: psynet/templates/reward_participant.html
-#, python-format, fuzzy
-msgid ""
-"When you press <b>Next</b>, your submission will be approved and <b>you will"
-" receive the full study payment of %(CURRENCY)s%(BASE_PAYMENT)s</b>. You "
-"will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
-msgstr ""
-"<b>次へ</b>を押すと、あなたの提出が承認され、<b>研究費全額である%(CURRENCY)s%(BASE_PAYMENT)s</b>が支払われます。"
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy

@@ -2261,7 +2261,6 @@ msgstr "Ende des Experiments."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr "Fertigstellen"
 
@@ -3119,9 +3118,9 @@ msgid ""
 "will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
 msgstr ""
 "Wenn Sie auf <b>Weiter</b> drücken, wird Ihr Antrag genehmigt und <b>Sie "
-"erhalten die volle Studienvergütung von %(WÄHRUNG)s%(BASISVERGÜTUNG)s</b>. "
+"erhalten die volle Studienvergütung von %(CURRENCY)s%(BASE_PAYMENT)s</b>. "
 "Außerdem erhalten Sie einen <b>zusätzlichen Bonus von "
-"%(WÄHRUNG)s%(BONUS)s</b>."
+"%(CURRENCY)s%(BONUS)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3131,7 +3130,7 @@ msgid ""
 msgstr ""
 "Wenn Sie auf <b>Weiter</b> drücken, wird Ihre Einreichung genehmigt und Sie "
 "erhalten die <b>vollständige Studienvergütung von "
-"%(WÄHRUNG)s%(GESAMT_ERHALT)s</b>."
+"%(CURRENCY)s%(TOTAL_REWARD)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3142,15 +3141,15 @@ msgid ""
 "%(CURRENCY)s%(BONUS)s."
 msgstr ""
 "Wenn Sie auf <b>Weiter</b> drücken, wird Ihr Antrag genehmigt und Sie "
-"erhalten eine <b>Gesamtzahlung von %(WÄHRUNG)s%(GESAMTZAHLUNG)s</b>, die "
-"sich aus einer Basiszahlung von %(WÄHRUNG)s%(BASISZAHLUNG)s und einem Bonus "
-"von %(WÄHRUNG)s%(BONUS)s zusammensetzt."
+"erhalten eine <b>Gesamtzahlung von %(CURRENCY)s%(TOTAL_REWARD)s</b>, die "
+"sich aus einer Basiszahlung von %(CURRENCY)s%(BASE_PAYMENT)s und einem Bonus"
+" von %(CURRENCY)s%(BONUS)s zusammensetzt."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
 msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 msgstr ""
-"Sie haben eine <b>Gesamtzahlung von %(WÄHRUNG)s%(GESAMT_ERHALT)s</b> "
+"Sie haben eine <b>Gesamtzahlung von %(CURRENCY)s%(TOTAL_REWARD)s</b> "
 "verdient."
 
 #: psynet/templates/reward_participant.html
@@ -3168,7 +3167,7 @@ msgid ""
 "return the study."
 msgstr ""
 "Sie konnten das Experiment nicht abschließen, aber <b>Sie erhalten trotzdem "
-"%(WÄHRUNG)s%(GESAMT_ERHALT)s</b> für die Zeit, die Sie bisher investiert "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> für die Zeit, die Sie bisher investiert "
 "haben. Wenn Sie <b>Weiter</b> drücken, werden wir Sie über den "
 "Bonusmechanismus bezahlen. Bitte geben Sie die Studie dann zurück."
 

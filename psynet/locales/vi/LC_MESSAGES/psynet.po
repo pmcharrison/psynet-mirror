@@ -2263,7 +2263,6 @@ msgstr "Kết thúc thí nghiệm."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Hoàn thành"
@@ -3107,7 +3106,7 @@ msgstr ""
 "Khi bạn nhấn <b>Tiếp theo</b>, nội dung gửi của bạn sẽ được phê duyệt. Bạn "
 "sẽ nhận được <b>tổng thanh toán %(CURRENCY)s%(TOTAL_REWARD)s</b>, sẽ được "
 "thanh toán dưới dạng thanh toán cơ bản %(CURRENCY)s%(BASE_PAYMENT)s và tiền "
-"thưởng %( TIỀN TỆ)s%(TIỀN THƯỞNG)s."
+"thưởng %(CURRENCY)s%(BONUS)s."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy

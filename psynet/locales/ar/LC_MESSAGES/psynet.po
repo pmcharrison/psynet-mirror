@@ -2178,7 +2178,6 @@ msgstr "نهاية التجربة."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "ينهي"
@@ -2992,8 +2991,8 @@ msgid ""
 msgstr ""
 "عندما تضغط على <b>التالي</b>، ستتم الموافقة على إرسالك. ستتلقى <b>دفعة "
 "إجمالية قدرها %(CURRENCY)s%(TOTAL_REWARD)s</b>، والتي سيتم دفعها كدفعة "
-"أساسية قدرها %(CURRENCY)s%(BASE_PAYMENT)s ومكافأة قدرها %( "
-"العملة)s%(المكافأة)s."
+"أساسية قدرها %(CURRENCY)s%(BASE_PAYMENT)s ومكافأة قدرها "
+"%(CURRENCY)s%(BONUS)s."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy

@@ -2270,7 +2270,6 @@ msgstr "Forsøgets afslutning."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Færdig"

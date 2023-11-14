@@ -2243,7 +2243,6 @@ msgstr "تجربہ کا اختتام۔"
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "ختم کرنا"
@@ -3081,8 +3080,8 @@ msgid ""
 msgstr ""
 "جب آپ <b>اگلا</b> دبائیں گے تو آپ کی جمع آوری منظور ہو جائے گی۔ آپ کو "
 "<b>%(CURRENCY)s%(TOTAL_REWARD)s</b> کی کل ادائیگی موصول ہوگی، جو "
-"%(CURRENCY)s%(BASE_PAYMENT)s کی بنیادی ادائیگی اور %( کے بونس کے طور پر ادا "
-"کی جائے گی۔ %(CURRENCY)s%(BONUS)s۔"
+"%(CURRENCY)s%(BASE_PAYMENT)s کی بنیادی ادائیگی اور %(CURRENCY)s%(BONUS)s کے "
+"بونس کے طور پر ادا کی جائے گی۔"
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy

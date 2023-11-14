@@ -2277,7 +2277,6 @@ msgstr "Fim da experiência."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Acabamento"
@@ -3095,8 +3094,8 @@ msgid ""
 "will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
 msgstr ""
 "Quando premir <b>Next</b>, a sua submissão será aprovada e <b>receberá o "
-"pagamento total do estudo de %(MOEDA)s%(PAGAMENTO_BASE)s</b>. Receberá "
-"também um <b>bónus adicional de %(MOEDA)s%(BÓNUS)s</b>."
+"pagamento total do estudo de %(CURRENCY)s%(BASE_PAYMENT)s</b>. Receberá "
+"também um <b>bónus adicional de %(CURRENCY)s%(BONUS)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3116,14 +3115,14 @@ msgid ""
 "%(CURRENCY)s%(BONUS)s."
 msgstr ""
 "Quando pressionar <b>Próximo</b>, a sua submissão será aprovada. Receberá um"
-" <b>pagamento total de %(MOEDA)s%(TOTAL_REWARD)s</b>, que será pago como um "
-"pagamento base de %(MOEDA)s%(PAGAMENTO_BASE)s e um bónus de "
-"%(MOEDA)s%(BÓNUS)s."
+" <b>pagamento total de %(CURRENCY)s%(TOTAL_REWARD)s</b>, que será pago como "
+"um pagamento base de %(CURRENCY)s%(BASE_PAYMENT)s e um bónus de "
+"%(CURRENCY)s%(BONUS)s."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
 msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
-msgstr "Ganhou um <b>pagamento total de %(MOEDA)s%(TOTAL_REWARD)s</b>."
+msgstr "Ganhou um <b>pagamento total de %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3139,7 +3138,7 @@ msgid ""
 "return the study."
 msgstr ""
 "Não conseguiu completar a experiência, mas <b>ser-lhe-á pago "
-"%(MOEDA)s%(REEMBOLSO_Total)s</b> pelo tempo que dedicou até agora. Quando "
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> pelo tempo que dedicou até agora. Quando "
 "carregar em <b>Próximo</b>, pagar-lhe-emos através do mecanismo de bónus."
 
 #: psynet/templates/reward_participant.html

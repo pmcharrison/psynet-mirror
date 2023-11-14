@@ -2313,7 +2313,6 @@ msgstr "Fin del experimento."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "Acabado"
@@ -3161,8 +3160,8 @@ msgid ""
 "will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
 msgstr ""
 "Cuando pulse <b>Siguiente</b>, su envío será aprobado y <b>recibirá el pago "
-"completo del estudio de %(MONEDA)s%(PAGO_BASE)s</b>. También recibirá una "
-"<b>bonificación adicional de %(MONEDA)s%(BONIFICACIÓN)s</b>."
+"completo del estudio de %(CURRENCY)s%(BASE_PAYMENT)s</b>. También recibirá "
+"una <b>bonificación adicional de %(CURRENCY)s%(BONUS)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3171,7 +3170,7 @@ msgid ""
 "receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 msgstr ""
 "Cuando pulse <b>Siguiente</b>, su envío será aprobado y recibirá el <b>pago "
-"total del estudio de %(MONEDA)s%(TOTAL_REEMBOLSO)s</b>."
+"total del estudio de %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3182,14 +3181,13 @@ msgid ""
 "%(CURRENCY)s%(BONUS)s."
 msgstr ""
 "Cuando pulse <b>Siguiente</b>, su envío será aprobado. Recibirá un <b>pago "
-"total de %(MONEDA)s%(RECOMPENSO_TOTAL)s</b>, que se abonará como un pago "
-"base de %(MONEDA)s%(PAGO_BASE)s y una bonificación de "
-"%(MONEDA)s%(BONIFICACIÓN)s."
+"total de %(CURRENCY)s%(TOTAL_REWARD)s</b>, que se abonará como un pago base "
+"de %(CURRENCY)s%(BASE_PAYMENT)s y una bonificación de %(CURRENCY)s%(BONUS)s."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
 msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
-msgstr "Ha ganado un <b>pago total de %(MONEDA)s%(TOTAL_REEMBOLSO)s</b>."
+msgstr "Ha ganado un <b>pago total de %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3205,9 +3203,9 @@ msgid ""
 "return the study."
 msgstr ""
 "No ha podido completar el experimento, pero <b>aún así se le pagará "
-"%(MONEDA)s%(TOTAL_RECOMPENSADO)s</b> por el tiempo invertido hasta el "
-"momento. Cuando pulse <b>Siguiente</b>, le pagaremos a través del mecanismo "
-"de bonificación. Por favor, devuelva entonces el estudio."
+"%(CURRENCY)s%(TOTAL_REWARD)s</b> por el tiempo invertido hasta el momento. "
+"Cuando pulse <b>Siguiente</b>, le pagaremos a través del mecanismo de "
+"bonificación. Por favor, devuelva entonces el estudio."
 
 #: psynet/templates/reward_participant.html
 #, fuzzy

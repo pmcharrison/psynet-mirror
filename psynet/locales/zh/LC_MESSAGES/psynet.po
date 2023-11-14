@@ -1766,7 +1766,6 @@ msgstr "实验结束。"
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr "完成"
 
@@ -2490,7 +2489,7 @@ msgstr ""
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
 msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
-msgstr "您赚取的总金额为 %(CURRENCY)s%(TOTAL_REWARD)s</b>。"
+msgstr "<b>您赚取的总金额为 %(CURRENCY)s%(TOTAL_REWARD)s</b>。"
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy

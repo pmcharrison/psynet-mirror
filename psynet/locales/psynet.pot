@@ -1642,7 +1642,6 @@ msgstr ""
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr ""
 
@@ -2191,69 +2190,6 @@ msgctxt "mturk_error"
 msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-#, python-format
-msgid ""
-"When you press <b>Next</b>, your submission will be approved and <b>you will"
-" receive the full study payment of %(CURRENCY)s%(BASE_PAYMENT)s</b>. You "
-"will also receive an <b>additional bonus of %(CURRENCY)s%(BONUS)s</b>."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-#, python-format
-msgid ""
-"When you press <b>Next</b>, your submission will be approved and you will "
-"receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-#, python-format
-msgid ""
-"When you press <b>Next</b>, your submission will be approved. You will "
-"receive a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>, which will "
-"be paid as a base payment of %(CURRENCY)s%(BASE_PAYMENT)s and a bonus of "
-"%(CURRENCY)s%(BONUS)s."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-#, python-format
-msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-#, python-format
-msgid ""
-"You were unable to complete the experiment, but <b>you will still be paid "
-"%(CURRENCY)s%(TOTAL_REWARD)s</b> for the time you put in so far. When you "
-"press <b>Next</b>, we will pay you via the bonus mechanism. Please then "
-"return the study."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-msgctxt "reward_participant_fail_hotair"
-msgid ""
-"You did not complete enough of the experiment to receive a payment, sorry. "
-"Please return the HIT."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-msgctxt "reward_participant_fail_mturk"
-msgid ""
-"You did not complete enough of the experiment to receive a payment, sorry."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-msgctxt "reward_participant_fail_prolific_1"
-msgid ""
-"You did not complete enough of the experiment to receive a payment, sorry. "
-"Please return the study."
-msgstr ""
-
-#: psynet/templates/reward_participant.html
-msgctxt "reward_participant_header"
-msgid "Your reward"
 msgstr ""
 
 #: psynet/templates/start.html

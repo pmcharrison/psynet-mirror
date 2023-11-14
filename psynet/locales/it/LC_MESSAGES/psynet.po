@@ -2248,7 +2248,6 @@ msgstr "Fine dell'esperimento."
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 msgid "Finish"
 msgstr "Fine"
 
@@ -3090,7 +3089,7 @@ msgid ""
 "receive the <b>full study payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 msgstr ""
 "Premendo <b>Next</b>, la sua richiesta sarà approvata e riceverà il "
-"<b>pagamento completo dello studio di %(CURRENCY)s%(TOTALE_REWARD)s</b>."
+"<b>pagamento completo dello studio di %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
@@ -3109,7 +3108,7 @@ msgstr ""
 #, python-format, fuzzy
 msgid "You earned a <b>total payment of %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 msgstr ""
-"Ha guadagnato un <b>pagamento totale di %(CURRENCY)s%(TOTALE_REWARD)s</b>."
+"Ha guadagnato un <b>pagamento totale di %(CURRENCY)s%(TOTAL_REWARD)s</b>."
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy

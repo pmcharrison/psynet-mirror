@@ -2253,7 +2253,6 @@ msgstr "प्रयोग का अंत।"
 #: psynet/templates/final-page-rejected-consent.html
 #: psynet/templates/final-page-successful.html
 #: psynet/templates/final-page-unsuccessful.html
-#: psynet/templates/reward_participant.html
 #, fuzzy
 msgid "Finish"
 msgstr "खत्म करना"
@@ -3091,8 +3090,7 @@ msgid ""
 msgstr ""
 "जब आप <b>अगला</b> दबाएंगे, तो आपका सबमिशन स्वीकृत हो जाएगा। आपको "
 "<b>%(CURRENCY)s%(TOTAL_REWARD)s का कुल भुगतान</b> प्राप्त होगा, जिसका भुगतान"
-" %(CURRENCY)s%(BASE_PAYMENT)s के आधार भुगतान और %( बोनस) के रूप में किया "
-"जाएगा। मुद्रा)s%(बोनस)s।"
+" %(CURRENCY)s%(BASE_PAYMENT)s के आधार भुगतान और %(CURRENCY)s%(BONUS)s।"
 
 #: psynet/templates/reward_participant.html
 #, python-format, fuzzy
