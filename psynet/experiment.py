@@ -622,7 +622,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
     def _test_experiment_serial(self):
-        # Same logic as before
         bots = [Bot() for _ in range(self.test_n_bots)]
         self.test_serial_run_bots(bots)
         self.test_check_bots(bots)
