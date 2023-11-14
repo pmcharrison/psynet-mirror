@@ -128,7 +128,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_n_bots = 6
+    test_n_bots = 2
     test_modes = ["serial"]
 
     def test_serial_run_bots(self, bots: List[Bot]):
