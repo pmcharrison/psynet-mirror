@@ -603,14 +603,7 @@ def run_bot(ctx):
     by running ``psynet debug local``. You can then call ``psynet run-bot``
     multiple times to simulate multiple bots being run through the experiment.
     """
-    try:
-        _run_bot()
-    except ProgrammingError:
-        log("Initialize the database and try again.")
-        db.session.rollback()
-        init_db(drop_all=True)
-        db.session.commit()
-        _run_bot()
+    _run_bot()
 
 
 ##############
