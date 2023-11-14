@@ -128,8 +128,8 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_n_bots = 2
-    test_parallel_bots = False
+    test_n_bots = 6
+    test_modes = ["serial"]
 
     def test_serial_run_bots(self, bots: List[Bot]):
         from psynet.page import WaitPage
