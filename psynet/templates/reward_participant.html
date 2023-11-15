@@ -17,7 +17,7 @@
                 {% if total_reward < min_accumulated_reward_for_abort %}
                     {{ pgettext("reward_participant_prolific_fail_1", "You did not complete enough of the experiment to receive a payment, sorry. Please return the study.") }}
                 {% elif min_accumulated_reward_for_abort <= total_reward < participant.base_payment %}
-                    {% trans name="reward_participant_prolific_fail_2" %}You were unable to complete the experiment, but <b>you will still be paid {{CURRENCY}}{{TOTAL_REWARD}}</b> for the time you put in so far.{% endtrans %} {% trans name="reward_participant_prolific_fail_3" %}When you press <b>Next</b>, we will pay you via the bonus mechanism.{% trans name="reward_participant_prolific_fail_4" %} {% trans name="reward_participant_prolific_fail_5" %}Please then return the study.{% endtrans %}
+                    {% trans name="reward_participant_prolific_fail_2" %}You were unable to complete the experiment, but <b>you will still be paid {{CURRENCY}}{{TOTAL_REWARD}}</b> for the time you put in so far.{% endtrans %} {% trans name="reward_participant_prolific_fail_3" %}When you press <b>Next</b>, we will pay you via the bonus mechanism.{% endtrans %} {% trans name="reward_participant_prolific_fail_4" %}Please then return the study.{% endtrans %}
                 {% elif total_reward == participant.base_payment %}
                     {% trans name="reward_participant_prolific_success_1" %}When you press <b>Next</b>, your submission will be approved and you will receive the <b>full study payment of {{CURRENCY}}{{TOTAL_REWARD}}</b>.{% endtrans %}
                 {% elif total_reward > participant.base_payment %}
