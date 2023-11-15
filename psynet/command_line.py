@@ -2407,13 +2407,19 @@ _test_options["serial"] = click.option(
     "--serial", is_flag=True, help="Force the tests to be run serially."
 )
 
+_test_options["stagger"] = click.option(
+    "--stagger",
+    help="Time interval to wait (in seconds) between instantiating each parallel bot.",
+)
+
 
 @test.command("local")
 @_test_options["existing"]
 @_test_options["n_bots"]
 @_test_options["parallel"]
 @_test_options["serial"]
-def test__local(existing=False, n_bots=None, parallel=None, serial=None):
+@_test_options["stagger"]
+def test__local(existing=False, n_bots=None, parallel=None, serial=None, stagger=None):
     """
     Test the experiment locally.
     """
@@ -2432,6 +2438,9 @@ def test__local(existing=False, n_bots=None, parallel=None, serial=None):
     elif serial:
         exp.test_modes = ["serial"]
 
+    if stagger:
+        exp.test_parallel_stagger_interval_s = float(stagger)
+
     if existing:
         exp.test_experiment()
     else:
@@ -2446,8 +2455,11 @@ def test__local(existing=False, n_bots=None, parallel=None, serial=None):
 @_test_options["n_bots"]
 @_test_options["parallel"]
 @_test_options["serial"]
+@_test_options["stagger"]
 @click.pass_context
-def test__docker_ssh(ctx, app, server, n_bots=None, parallel=None, serial=None):
+def test__docker_ssh(
+    ctx, app, server, n_bots=None, parallel=None, serial=None, stagger=None
+):
     """
     Runs experiment tests on the remote server.
     Assumes that the app has already been launched on the remote server using ``psynet debug ssh``.
@@ -2469,6 +2481,9 @@ def test__docker_ssh(ctx, app, server, n_bots=None, parallel=None, serial=None):
 
     if serial:
         cmd += " --serial"
+
+    if stagger:
+        cmd += " --stagger"
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
