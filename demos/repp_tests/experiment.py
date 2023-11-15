@@ -38,8 +38,6 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_n_bots = 1
-
     def test_check_bot(self, bot: Bot, **kwargs):
         from psynet.process import AsyncProcess
 

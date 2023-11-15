@@ -207,7 +207,6 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Asynchronous pruning demo"
-    test_n_bots = 1
 
     timeline = Timeline(
         NoConsent(),
