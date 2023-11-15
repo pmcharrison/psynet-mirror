@@ -278,9 +278,13 @@ def wait_while(
     else:
         logic = join(CodeBlock(log), _wait_page)
 
+    label = "wait_while"
+    if log_message:
+        label += log_message
+
     return join(
         while_loop(
-            "wait_while",
+            label,
             condition,
             logic=logic,
             expected_repetitions=expected_repetitions,

@@ -241,5 +241,5 @@ class TestExp(object):
             time.sleep(0.75)
 
             db.session.commit()
-            assert participant.base_payment == 0.10
+            assert participant.base_payment == 0.34
             assert round(participant.bonus, 2) == 0.26
