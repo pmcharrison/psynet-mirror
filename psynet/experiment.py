@@ -1,6 +1,7 @@
 import configparser
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -14,6 +15,7 @@ from os.path import exists
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
+from statistics import mean
 from typing import List
 
 import dallinger.experiment
@@ -593,6 +595,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         waiting_for_bots = True
         bots_finished = set()
+        bot_progress_list = [None for _ in range(self.test_n_bots)]
+        bot_processing_times = [None for _ in range(self.test_n_bots)]
+        wait_page_times = [None for _ in range(self.test_n_bots)]
 
         while waiting_for_bots:
             for i in range(len(processes)):
@@ -609,6 +614,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         for line in output:
                             line.replace("INFO:root:", "")
                             logger.info(f"(Bot {i + 1}) " + line)
+
+                            progress_regex = re.search("progress = ([0-9]*)%", line)
+                            if progress_regex:
+                                bot_progress_list[i] = float(progress_regex.group(1))
+
+                            processing_time_regex = re.search(
+                                "mean processing time per page = ([0-9]*\\.[0-9]*) seconds",
+                                line,
+                            )
+                            if processing_time_regex:
+                                bot_processing_times[i] = float(
+                                    processing_time_regex.group(1)
+                                )
+
+                            wait_page_time_regex = re.search(
+                                "total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
+                                line,
+                            )
+                            if wait_page_time_regex:
+                                wait_page_times[i] = float(
+                                    wait_page_time_regex.group(1)
+                                )
+
                         time.sleep(0.01)
                 except pexpect.TIMEOUT:
                     pass
@@ -620,6 +648,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         bots = Bot.query.all()
         self.test_check_bots(bots)
+
+        bot_progress_list = [_time for _time in bot_progress_list if _time is not None]
+        if len(bot_progress_list) > 0:
+            logger.info(f"Mean bot progress = {mean(bot_progress_list):.0f}%.")
+        else:
+            logger.info("Failed to compute mean progress scores.")
+
+        bot_processing_times = [
+            _time for _time in bot_processing_times if _time is not None
+        ]
+        if len(bot_processing_times) > 0:
+            logger.info(
+                f"Mean processing time per page = {mean(bot_processing_times):.3f} seconds."
+            )
+        else:
+            logger.info("Failed to compute mean processing times per page.")
+
+        wait_page_times = [_time for _time in wait_page_times if _time is not None]
+        if len(wait_page_times) > 0:
+            logger.info(
+                f"Mean total WaitPage time per bot = {mean(wait_page_times):.3f} seconds."
+            )
+        else:
+            logger.info("Failed to compute mean total WaitPage times per bot.")
 
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")

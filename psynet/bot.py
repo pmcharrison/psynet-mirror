@@ -1,5 +1,6 @@
 import time
 import uuid
+from statistics import mean
 from typing import List
 
 import requests
@@ -110,7 +111,14 @@ class Bot(Participant):
         # with working_directory(self.experiment.var.server_working_directory):
         # app = util.import_app("dallinger.experiment_server.sockets:app")
         # with app.app_context(), app.test_request_context():
+        from psynet.page import WaitPage
+
+        processing_times = []
+        wait_page_times = []
+
         while True:
+            time_started = time.monotonic()
+
             page = self.get_current_page()
             if render_pages:
                 with time_logger("timeline_route"):
@@ -119,16 +127,37 @@ class Bot(Participant):
                     )
                 assert req.status_code == 200
             with time_logger("take_page"):
-                self.take_page(page, time_factor)
+                sleep_time = self.take_page(page, time_factor)["sleep_time"]
             db.session.commit()
+
+            time_finished = time.monotonic()
+            total_time = time_finished - time_started
+
+            if isinstance(page, WaitPage):
+                wait_page_times.append(total_time)
+
+            processing_time = total_time - sleep_time
+            processing_times.append(processing_time)
+
             if not self.status == "working":
                 break
+
+        if len(processing_times) > 0:
+            time_per_page = f"{mean(processing_times):.3f}"
+        else:
+            time_per_page = "NA"
+
         logger.info(
-            f"Bot {self.id} has finished the experiment (took {self.page_count} page(s))."
+            f"Bot {self.id} has finished the experiment (took {self.page_count} page(s), "
+            f"progress = {100 * self.progress:.0f}%, "
+            f"mean processing time per page = {time_per_page} seconds, "
+            f"total WaitPage time = {sum(wait_page_times):.3f} seconds)."
         )
 
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
+
+        start_time = time.monotonic()
 
         if page is None:
             with time_logger("get_current_page"):
@@ -138,18 +167,18 @@ class Bot(Participant):
         experiment = self.experiment
         assert isinstance(page, Page)
 
-        time_taken = page.time_estimate * time_factor
+        sleep_time = page.time_estimate * time_factor
 
-        if time_taken == 0 and isinstance(page, WaitPage):
-            time_taken = 0.5
+        if sleep_time == 0 and isinstance(page, WaitPage):
+            sleep_time = 0.5
 
-        if time_taken > 0:
-            time.sleep(time_taken)
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
         response = page.call__bot_response(experiment, bot, response)
 
         if "time_taken" not in response.metadata:
-            response.metadata["time_taken"] = time_taken
+            response.metadata["time_taken"] = sleep_time
 
         if not isinstance(page, EndPage):
             try:
@@ -177,6 +206,14 @@ class Bot(Participant):
         self.page_count += 1
 
         db.session.commit()
+
+        end_time = time.monotonic()
+        processing_time = end_time - start_time - sleep_time
+
+        return {
+            "sleep_time": sleep_time,
+            "processing_time": processing_time,
+        }
 
 
 class BotResponse:
