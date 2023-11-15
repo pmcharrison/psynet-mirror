@@ -576,7 +576,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 raise ValueError(f"Invalid test mode: {_mode}")
 
     # This is how many seconds to wait between invoking parallel bots
-    test_parallel_stagger_interval_s = 2.0
+    test_parallel_stagger_interval_s = 0.1
 
     def _test_experiment_parallel(self):
         # Start N subprocesses, and in each one call `psynet run-bot`
