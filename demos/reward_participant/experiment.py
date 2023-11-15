@@ -27,11 +27,13 @@ class Exp(psynet.experiment.Experiment):
         return super().with_recruiter(nickname)
 
     def run_bot(self, bot):
+        # Prolific
         self.var.with_recruiter = "prolific"
         db.session.commit()
         req = requests.get(
             f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
         )
+        # total_reward == participant.base_payment
         assert (
             "When you press <b>Next</b>, your submission will be approved and you will receive the <b>full study payment of $0.34"
             in str(req.content)
@@ -43,15 +45,14 @@ class Exp(psynet.experiment.Experiment):
         req = requests.get(
             f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
         )
+        # total_reward > participant.base_payment
         assert (
-            "When you press <b>Next</b>, your submission will be approved and <b>you will receive the full study payment of $0.34</b>. You will also receive an <b>additional bonus of $0.69</b>."
+            "When you press <b>Next</b>, your submission will be approved and <b>you will receive the full study payment of $0.34</b>. You will also receive an <b>additional bonus of $0.66</b>."
             in str(req.content)
         )
 
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=11111, stdoutToServer=True, stderrToServer=True
-        )
+        # total_reward < min_accumulated_reward_for_abort
+        # bot.performance_reward = -1
+        # db.session.commit()
 
         bot.run_to_completion()
