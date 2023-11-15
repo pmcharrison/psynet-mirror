@@ -1283,7 +1283,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :type participant:
             :attr:`~psynet.participant.Participant`
         :returns:
-            The reward as a ``float`` rounded to two decimal places.
+            The reward as a ``float``.
         """
         bonus = max(0, participant.calculate_reward() - self.base_payment)
         return self.check_bonus(bonus, participant)
@@ -2212,10 +2212,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "min_accumulated_reward_for_abort"
             ),
             participant=participant,
-            total_reward=max(
-                get_config().get("base_payment"), participant.calculate_reward()
-            ),
+            total_reward=cls.total_reward(participant),
         )
+
+    @classmethod
+    def total_reward(self, participant):
+        return max(get_config().get("base_payment"), participant.calculate_reward())
 
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
