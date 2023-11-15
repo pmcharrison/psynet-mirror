@@ -2384,30 +2384,70 @@ def test(ctx):
     pass
 
 
-@test.command("local")
-@click.option(
+_test_options = {}
+
+_test_options["existing"] = click.option(
     "--existing",
     is_flag=True,
     help="Use this flag if the experiment server is already running",
 )
-def test__local(existing=False):
+
+_test_options["n_bots"] = click.option(
+    "--n-bots",
+    help="Number of bots to use in the test. If not specified, will default to Experiment.test_n_bots.",
+)
+
+_test_options["parallel"] = click.option(
+    "--parallel",
+    is_flag=True,
+    help="Force the tests to be run in parallel. Only relevant if the number of bots is greater than 1.",
+)
+
+_test_options["serial"] = click.option(
+    "--serial", is_flag=True, help="Force the tests to be run serially."
+)
+
+
+@test.command("local")
+@_test_options["existing"]
+@_test_options["n_bots"]
+@_test_options["parallel"]
+@_test_options["serial"]
+def test__local(existing=False, n_bots=None, parallel=None, serial=None):
     """
     Test the experiment locally.
     """
-    if existing:
-        from psynet.experiment import get_experiment
+    assert not (parallel and serial)
 
-        exp = get_experiment()
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+
+    if n_bots:
+        n_bots = int(n_bots)
+        exp.test_n_bots = n_bots
+
+    if parallel:
+        exp.test_modes = ["parallel"]
+    elif serial:
+        exp.test_modes = ["serial"]
+
+    if existing:
         exp.test_experiment()
     else:
-        run_subprocess_with_live_output("pytest test.py")
+        import pytest
+
+        pytest.main(["test.py"])
 
 
 @test.command("ssh")
 @click.option("--app", required=True, help="Name of the experiment app.")
 @server_option
+@_test_options["n_bots"]
+@_test_options["parallel"]
+@_test_options["serial"]
 @click.pass_context
-def test__docker_ssh(ctx, app, server):
+def test__docker_ssh(ctx, app, server, n_bots=None, parallel=None, serial=None):
     """
     Runs experiment tests on the remote server.
     Assumes that the app has already been launched on the remote server using ``psynet debug ssh``.
@@ -2419,13 +2459,22 @@ def test__docker_ssh(ctx, app, server):
     """
     from dallinger.command_line.docker_ssh import Executor
 
+    cmd = "psynet test local --existing"
+
+    if n_bots:
+        cmd += f" --n-bots {n_bots}"
+
+    if parallel:
+        cmd += " --parallel"
+
+    if serial:
+        cmd += " --serial"
+
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
     executor = Executor(ssh_host, user=ssh_user)
-    executor.run_and_echo(
-        f"cd ~/dallinger/{app} && docker compose exec web psynet test local --existing"
-    )
+    executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
 
 
 @psynet.command()
