@@ -2378,13 +2378,54 @@ def verify_id(ctx, param, app):
 dallinger.command_line.utils.verify_id = verify_id
 
 
-@psynet.command()
+@psynet.group("test")
 @click.pass_context
 def test(ctx):
+    pass
+
+
+@test.command("local")
+@click.option(
+    "--existing",
+    is_flag=True,
+    help="Use this flag if the experiment server is already running",
+)
+def test__local(existing=False):
     """
-    Runs the experiment's regression test.
+    Test the experiment locally.
     """
-    run_subprocess_with_live_output("pytest test.py")
+    if existing:
+        from psynet.experiment import get_experiment
+
+        exp = get_experiment()
+        exp.test_experiment()
+    else:
+        run_subprocess_with_live_output("pytest test.py")
+
+
+@test.command("ssh")
+@click.option("--app", required=True, help="Name of the experiment app.")
+@server_option
+@click.pass_context
+def test__docker_ssh(ctx, app, server):
+    """
+    Runs experiment tests on the remote server.
+    Assumes that the app has already been launched on the remote server using ``psynet debug ssh``.
+
+    Running this command will not reset the database to a vanilla state, but will instead just use the state
+    that exists already. This may cause strange results if the tests are run multiple times.
+
+    Note: this feature is currently experimental and the API is likely to change without warning.
+    """
+    from dallinger.command_line.docker_ssh import Executor
+
+    server_info = CONFIGURED_HOSTS[server]
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+    executor = Executor(ssh_host, user=ssh_user)
+    executor.run_and_echo(
+        f"cd ~/dallinger/{app} && docker compose exec web psynet test local --existing"
+    )
 
 
 @psynet.command()
@@ -2394,5 +2435,5 @@ def simulate(ctx):
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
     """
-    ctx.invoke(test)
+    ctx.invoke(test__local)
     ctx.invoke(export__local)
