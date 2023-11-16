@@ -27,6 +27,14 @@ class Exp(psynet.experiment.Experiment):
 
         return super().with_recruiter(nickname)
 
+    def reset_performance_reward(self, bot):
+        bot.performance_reward = 0
+
+    def make_request(self, bot):
+        return requests.get(
+            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
+        )
+
     def run_bot(self, bot):
         # Prolific
         self.var.with_recruiter = "prolific"
@@ -35,10 +43,9 @@ class Exp(psynet.experiment.Experiment):
         page = bot.get_current_page()
         bot.take_page(page)
         assert round(bot.time_reward(), 2) == 0.34
+        assert bot.performance_reward == 0
         db.session.commit()
-        req = requests.get(
-            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
-        )
+        req = self.make_request(bot)
         assert (
             "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>."
             in str(req.content)
@@ -48,10 +55,7 @@ class Exp(psynet.experiment.Experiment):
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward = 0.16
         db.session.commit()
-
-        req = requests.get(
-            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
-        )
+        req = self.make_request(bot)
         assert (
             "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>. "
             + "You will also receive an additional bonus of <b>$0.16</b>."
@@ -62,10 +66,7 @@ class Exp(psynet.experiment.Experiment):
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward -= 0.31
         db.session.commit()
-
-        req = requests.get(
-            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
-        )
+        req = self.make_request(bot)
         assert (
             "You did not complete enough of the experiment to receive a payment, sorry. Please return the study."
             in str(req.content)
@@ -75,10 +76,7 @@ class Exp(psynet.experiment.Experiment):
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward += 0.01
         db.session.commit()
-
-        req = requests.get(
-            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
-        )
+        req = self.make_request(bot)
         assert (
             "You were unable to complete the experiment, but you will still be paid <b>$0.34</b> for the time you put in so far. "
             + "When you press <b>Next</b>, we will pay you via the bonus mechanism. Please then return the study."
@@ -89,14 +87,42 @@ class Exp(psynet.experiment.Experiment):
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward += 0.01
         db.session.commit()
-
-        req = requests.get(
-            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
-        )
+        req = self.make_request(bot)
         assert (
             "You were unable to complete the experiment, but you will still be paid <b>$0.34</b> for the time you put in so far. "
             + "When you press <b>Next</b>, we will pay you via the bonus mechanism. Please then return the study."
             in str(req.content)
         )
 
+        # Reset performance_reward
+        self.reset_performance_reward(bot)
+
+        # Hotair
+        self.var.with_recruiter = "hotair"
+
+        # reward_min_base_payment > min_accumulated_reward_for_abort (0.34 > 0.2)
+        assert round(bot.time_reward(), 2) == 0.34
+        db.session.commit()
+        req = self.make_request(bot)
+        assert "You earned a total payment of <b>$0.34</b>." in str(req.content)
+
+        # reward_min_base_payment == min_accumulated_reward_for_abort (0.2 == 0.2)
+        assert round(bot.time_reward(), 2) == 0.34
+        bot.base_payment = 0.2
+        bot.performance_reward -= 0.14
+        db.session.commit()
+        req = self.make_request(bot)
+        assert "You earned a total payment of <b>$0.20</b>." in str(req.content)
+
+        # reward_min_base_payment < min_accumulated_reward_for_abort (0.19 < 0.2)
+        assert round(bot.time_reward(), 2) == 0.34
+        bot.base_payment = 0.19
+        db.session.commit()
+        req = self.make_request(bot)
+        assert (
+            "You did not complete enough of the experiment to receive a payment, sorry."
+            in str(req.content)
+        )
+
         bot.run_to_completion()
+        # print(req.content)

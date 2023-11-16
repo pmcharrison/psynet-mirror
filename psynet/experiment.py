@@ -2216,7 +2216,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant=participant,
             reward=round(participant.calculate_reward(), 2),
             reward_min_base_payment=max(
-                get_config().get("base_payment"), participant.calculate_reward()
+                participant.base_payment, participant.calculate_reward()
             ),
         )
 
