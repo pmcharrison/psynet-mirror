@@ -42,6 +42,6 @@ class Exp(psynet.experiment.Experiment):
         from psynet.process import AsyncProcess
 
         assert not bot.failed
-        processes = AsyncProcess.query.all()
+        processes = AsyncProcess.query.filter_by(participant_id=bot.id).all()
         assert all(not p.failed for p in processes)
         assert all(not p.pending for p in processes)

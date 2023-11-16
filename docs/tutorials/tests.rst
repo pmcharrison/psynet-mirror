@@ -26,13 +26,13 @@ and entering the following in your command line:
 
 ::
 
-    pytest test.py
+    psynet test local
 
 or, if using PsyNet within Docker:
 
 ::
 
-    bash docker/run pytest test.py
+    bash docker/psynet test local
 
 This command takes a few moments to start as it has to spin up a
 PsyNet local server. Once the server is ready,
@@ -174,6 +174,49 @@ together.
             pages = [bot.get_current_page() for bot in bots]
             for page in pages:
                 assert isinstance(page, SuccessfulEndPage)
+
+
+Parallel testing
+----------------
+
+By default the PsyNet experiment test just sends one bot through the entire experiment.
+It is possible however to send more bots through the same experiment, and to tell PsyNet
+to run those bots through the experiment in parallel, to give a better simulation of
+the load incurred by a real experiment.
+To change the default behavior for a given experiment, you can set the relevant attributes
+on the experiment class, like this:
+
+.. code-block:: python
+
+    class Experiment(...):
+        ...
+
+        test_n_bots = 5
+        test_modes = ["parallel"]
+
+
+Alternatively, you can set these options when you call ``psynet test``, for example by writing:
+
+.. code-block:: shell
+
+    psynet test --n-bots 5 --parallel
+
+
+Testing on remote servers
+-------------------------
+
+Sometimes it's useful to test an experiment on remote server to get a better idea of how the server will
+cope with large numbers of participants. First you need to launch a debug experiment to the server:
+
+.. code-block:: shell
+
+    psynet debug ssh --app my-experiment
+
+Then you invoke ``psynet test``, similar to before but with ``ssh`` instead of ``local``:
+
+.. code-block:: shell
+
+    psynet test ssh --app my-experiment --n-bots 5 --parallel
 
 
 Front-end tests

@@ -1,5 +1,7 @@
 import time
 import uuid
+from datetime import datetime
+from statistics import mean
 from typing import List
 
 import requests
@@ -110,7 +112,14 @@ class Bot(Participant):
         # with working_directory(self.experiment.var.server_working_directory):
         # app = util.import_app("dallinger.experiment_server.sockets:app")
         # with app.app_context(), app.test_request_context():
+        n_pages = 0
+
+        page_processing_times = []
+        page_total_times = []
+
         while True:
+            page_time_started = time.monotonic()
+
             page = self.get_current_page()
             if render_pages:
                 with time_logger("timeline_route"):
@@ -119,16 +128,53 @@ class Bot(Participant):
                     )
                 assert req.status_code == 200
             with time_logger("take_page"):
-                self.take_page(page, time_factor)
+                sleep_time = self.take_page(page, time_factor)["sleep_time"]
             db.session.commit()
+
+            page_time_finished = time.monotonic()
+            page_total_time = page_time_finished - page_time_started
+
+            page_total_times.append(page_total_time)
+
+            page_processing_time = page_total_time - sleep_time
+            page_processing_times.append(page_processing_time)
+
+            n_pages += 1
+
             if not self.status == "working":
                 break
+
+        if n_pages > 0:
+            mean_page_processing_time = mean(page_processing_times)
+        else:
+            mean_page_processing_time = None
+
+        total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
+
+        # To do - migrate these metrics to generic Participants (not just bots) so that we can report them
+        # everywhere
+        stats = {
+            "page_count": self.page_count,
+            "progress": self.progress,
+            "mean_page_processing_time": mean_page_processing_time,
+            "total_wait_page_time": self.total_wait_page_time,
+            "total_experiment_time": total_experiment_time,
+        }
+
         logger.info(
-            f"Bot {self.id} has finished the experiment (took {self.page_count} page(s))."
+            f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"progress = {100 * stats['progress']:.0f}%, "
+            f"mean processing time per page = {stats['mean_page_processing_time']} seconds, "
+            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
+            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
         )
+
+        return stats
 
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
+
+        start_time = time.monotonic()
 
         if page is None:
             with time_logger("get_current_page"):
@@ -138,18 +184,18 @@ class Bot(Participant):
         experiment = self.experiment
         assert isinstance(page, Page)
 
-        time_taken = page.time_estimate * time_factor
+        sleep_time = page.time_estimate * time_factor
 
-        if time_taken == 0 and isinstance(page, WaitPage):
-            time_taken = 0.5
+        if sleep_time == 0 and isinstance(page, WaitPage):
+            sleep_time = 0.5
 
-        if time_taken > 0:
-            time.sleep(time_taken)
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
         response = page.call__bot_response(experiment, bot, response)
 
         if "time_taken" not in response.metadata:
-            response.metadata["time_taken"] = time_taken
+            response.metadata["time_taken"] = sleep_time
 
         if not isinstance(page, EndPage):
             try:
@@ -177,6 +223,14 @@ class Bot(Participant):
         self.page_count += 1
 
         db.session.commit()
+
+        end_time = time.monotonic()
+        processing_time = end_time - start_time - sleep_time
+
+        return {
+            "sleep_time": sleep_time,
+            "processing_time": processing_time,
+        }
 
 
 class BotResponse:

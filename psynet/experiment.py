@@ -1,9 +1,11 @@
 import configparser
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
+import time
 import traceback
 import uuid
 from collections import OrderedDict
@@ -13,11 +15,13 @@ from os.path import exists
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
+from statistics import mean
 from typing import List
 
 import dallinger.experiment
 import dallinger.models
 import flask
+import pexpect
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
@@ -138,6 +142,18 @@ class ExperimentMeta(type):
         # inadvertently altering the base class.
         cls.css = cls.css.copy()
         cls.css_links = cls.css_links.copy()
+
+        if hasattr(cls, "test_create_bots"):
+            raise RuntimeError(
+                "Experiment.test_create_bots has been removed, please do not override it. Instead you should put "
+                "any custom bot initialization code inside test_run_bot (before calling super().test_run_bot())."
+            )
+
+        if hasattr(cls, "test_run_bots"):
+            raise RuntimeError(
+                "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
+                "Please note that this test route is only used if the tests are run in serial mode."
+            )
 
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
@@ -547,18 +563,157 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         pass
 
     test_n_bots = 1
+    test_mode = "serial"
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
-        bots = self.test_create_bots()
-        self.test_run_bots(bots)
+
+        if self.test_mode == "serial" or self.test_n_bots == 1:
+            self._test_experiment_serial()
+        elif self.test_mode == "parallel":
+            self._test_experiment_parallel()
+        else:
+            raise ValueError(f"Invalid test mode: {self.test_mode}")
+
+    # This is how many seconds to wait between invoking parallel bots
+    test_parallel_stagger_interval_s = 0.1
+
+    def _test_experiment_parallel(self):
+        # Start N subprocesses, and in each one call `psynet run-bot`
+        logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
+
+        n_processes = self.test_n_bots
+
+        processes = []
+        process_ids = list(range(n_processes))
+        bot_ids = [process_id + 1 for process_id in process_ids]
+
+        for bot_id in bot_ids:
+            if bot_id > 0:
+                time.sleep(self.test_parallel_stagger_interval_s)
+
+            logger.info(f"Creating and running bot {bot_id}...")
+            p = pexpect.spawn("psynet run-bot", timeout=None, cwd=None)
+            processes.append(p)
+
+        waiting_for_processes = True
+        finished_processes = set()
+
+        testing_stats = self.TestingStats(self.testing_stat_definitions)
+
+        while waiting_for_processes:
+            for process, process_id, bot_id in zip(processes, process_ids, bot_ids):
+                try:
+                    while True:
+                        output = (
+                            process.read_nonblocking(size=100000, timeout=0)
+                            .decode()
+                            .strip()
+                            .split("\n")
+                        )
+                        for line in output:
+                            line.replace("INFO:root:", "")
+                            logger.info(f"(Bot {bot_id}) " + line)
+
+                            testing_stats.update_from_line(bot_id, line)
+
+                        time.sleep(0.01)
+                except pexpect.TIMEOUT:
+                    pass
+                except pexpect.EOF:
+                    assert p.exitstatus == 0
+                    finished_processes.add(process_id)
+
+            if len(finished_processes) == n_processes:
+                waiting_for_processes = False
+
+        bots = Bot.query.all()
         self.test_check_bots(bots)
 
-    def test_create_bots(self):
-        return [Bot() for _ in range(self.test_n_bots)]
+        testing_stats.report()
 
-    def test_run_bots(self, bots):
+    class TestingStats:
+        def __init__(self, stat_definitions):
+            self.stat_definitions = stat_definitions
+            self.data = {
+                stat_definition.key: {} for stat_definition in stat_definitions
+            }
+
+        def update_from_line(self, bot_id, line):
+            for stat_definition in self.stat_definitions:
+                stat = stat_definition.extract_stat(line)
+                if stat is not None:
+                    self.update_from_stat(stat_definition.key, bot_id, stat)
+
+        def update_from_stat(self, stat_key, bot_id, value):
+            self.data[stat_key][bot_id] = value
+
+        def report(self):
+            logger.info("BOT TESTING STATISTICS:")
+            for stat_definition in self.stat_definitions:
+                values = self.data[stat_definition.key].values()
+                stat_definition.report(values)
+
+    class TestingStatDefinition:
+        def __init__(self, key, label, regex, suffix, decimal_places=3):
+            self.key = key
+            self.label = label
+            self.regex = regex
+            self.suffix = suffix
+            self.decimal_places = decimal_places
+
+        def extract_stat(self, line):
+            match = re.search(self.regex, line)
+            if match:
+                return float(match.group(1))
+
+        def report(self, values):
+            values_not_none = [value for value in values if value is not None]
+
+            if len(values_not_none) > 0:
+                _mean = mean(values_not_none)
+                template = f"Mean %s = %.{self.decimal_places}f%s"
+                logger.info(template % (self.label, _mean, self.suffix))
+            else:
+                logger.info(f"Didn't find any values for {self.label} to report.")
+
+    testing_stat_definitions = [
+        TestingStatDefinition(
+            "progress",
+            label="progress through experiment",
+            regex="progress = ([0-9]*)%",
+            suffix="%",
+            decimal_places=0,
+        ),
+        TestingStatDefinition(
+            "mean_processing_time",
+            label="processing time per page",
+            regex="mean processing time per page = ([0-9]*\\.[0-9]*) seconds",
+            suffix=" seconds",
+        ),
+        TestingStatDefinition(
+            "total_wait_page_time",
+            label="total wait page time per bot",
+            regex="total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
+            suffix=" seconds",
+            decimal_places=2,
+        ),
+        TestingStatDefinition(
+            "total_experiment_time",
+            label="time taken to complete experiment",
+            regex="total experiment time = ([0-9]*\\.[0-9]*) seconds",
+            suffix=" seconds",
+        ),
+    ]
+
+    def _test_experiment_serial(self):
+        logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
+        bots = [Bot() for _ in range(self.test_n_bots)]
+        self.test_serial_run_bots(bots)
+        self.test_check_bots(bots)
+
+    def test_serial_run_bots(self, bots):
         for bot in bots:
             db.session.add(bot)  # Protects against DetachedInstanceErrors
             self.run_bot(bot)
