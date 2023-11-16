@@ -205,7 +205,7 @@ Alternatively, you can set these options when you call ``psynet test``, for exam
 Testing on remote servers
 -------------------------
 
-Sometimes it's useful to test an experiment on remote server to get a better idea of how the server with
+Sometimes it's useful to test an experiment on remote server to get a better idea of how the server will
 cope with large numbers of participants. First you need to launch a debug experiment to the server:
 
 .. code-block:: shell
