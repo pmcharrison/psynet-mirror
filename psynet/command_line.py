@@ -587,11 +587,12 @@ def _run_bot(real_time=False):
     from .experiment import get_experiment
 
     exp = get_experiment()
+    exp.test_real_time = real_time
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
     os.environ["DEPLOYMENT_PACKAGE"] = "True"
     bot = Bot()
-    exp.run_bot(bot, real_time=real_time)
+    exp.run_bot(bot)
 
 
 @psynet.command()

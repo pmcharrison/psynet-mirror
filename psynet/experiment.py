@@ -723,8 +723,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.add(bot)  # Protects against DetachedInstanceErrors
             self.run_bot(bot, real_time=self.test_real_time)
 
-    def run_bot(self, bot, real_time=False):
-        time_factor = bool(real_time)
+    def run_bot(self, bot):
+        time_factor = bool(self.test_real_time)
         bot.take_experiment(render_pages=True, time_factor=time_factor)
 
     def test_check_bots(self, bots: List[Bot]):
