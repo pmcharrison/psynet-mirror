@@ -721,7 +721,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def test_serial_run_bots(self, bots):
         for bot in bots:
             db.session.add(bot)  # Protects against DetachedInstanceErrors
-            self.run_bot(bot, real_time=self.test_real_time)
+            self.run_bot(bot)
 
     def run_bot(self, bot):
         time_factor = bool(self.test_real_time)
