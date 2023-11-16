@@ -2205,19 +2205,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def reward_participant(cls):
         unique_id = request.args.get("unique_id")
         participant = cls.get_participant_from_unique_id(unique_id)
+        reward = participant.calculate_reward()
+        reward_min_base_payment = max(participant.base_payment, reward)
 
         return render_template_with_translations(
             "reward_participant.html",
             base_payment=participant.base_payment,
-            bonus=get_experiment().bonus(participant),
+            bonus=round(get_experiment().bonus(participant), 2),
             min_accumulated_reward_for_abort=get_config().get(
                 "min_accumulated_reward_for_abort"
             ),
             participant=participant,
-            reward=round(participant.calculate_reward(), 2),
-            reward_min_base_payment=max(
-                participant.base_payment, participant.calculate_reward()
-            ),
+            reward=round(reward, 2),
+            reward_min_base_payment=reward_min_base_payment,
         )
 
     @classmethod

@@ -54,6 +54,6 @@ def test_run():
         "PERFORMANCE_REWARD": 0.1,
         "TERMINATION_TIME": 120,
         "TIME_REWARD": 0.2,
-        "TOTAL_REWARD": 0.2,
+        "REWARD": 0.2,
     }
     check_translations(variable_placeholders=VARIABLE_PLACEHOLDERS)
