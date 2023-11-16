@@ -1587,108 +1587,117 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_files(cls):
+        files = []
+        for trialmaker in cls.timeline.trial_makers.values():
+            files.extend(trialmaker.extra_files())
+
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
-        files = [
-            (
-                # Warning: this won't affect templates that already exist in Dallinger
-                resources.files("psynet") / "templates",
-                "/templates",
-            ),
-            (
-                resources.files("psynet") / "resources/favicon.png",
-                "/static/favicon.png",
-            ),
-            (
-                resources.files("psynet") / "resources/favicon.svg",
-                "/static/favicon.svg",
-            ),
-            (
-                resources.files("psynet") / "resources/logo.png",
-                "/static/images/logo.png",
-            ),
-            (
-                resources.files("psynet") / "resources/images/psynet.svg",
-                "/static/images/logo.svg",
-            ),
-            (
-                resources.files("psynet") / "resources/images/princeton-consent.png",
-                "/static/images/princeton-consent.png",
-            ),
-            (
-                resources.files("psynet") / "resources/images/unity_logo.png",
-                "/static/images/unity_logo.png",
-            ),
-            (
-                resources.files("psynet") / "resources/scripts/dashboard_timeline.js",
-                "/static/scripts/dashboard_timeline.js",
-            ),
-            (
-                resources.files("psynet") / "resources/css/bootstrap.min.css",
-                "/static/css/bootstrap.min.css",
-            ),
-            (
-                resources.files("psynet") / "resources/css/consent.css",
-                "/static/css/consent.css",
-            ),
-            (
-                resources.files("psynet") / "resources/css/dashboard_timeline.css",
-                "/static/css/dashboard_timeline.css",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/jQuery/jquery-3.6.0.min.js",
-                "/static/scripts/jquery-3.6.0.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/platform-1.3.6/platform.min.js",
-                "/static/scripts/platform.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
-                "/static/scripts/detectIncognito.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/raphael-2.3.0/raphael.min.js",
-                "/static/scripts/raphael-2.3.0.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/jQuery-Knob/js/jquery.knob.js",
-                "/static/scripts/jquery.knob.js",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/js-synthesizer",
-                "/static/scripts/js-synthesizer",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/Tonejs",
-                "/static/scripts/Tonejs",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/survey-jquery",
-                "/static/scripts/survey-jquery",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/abc-js",
-                "/static/scripts/abc-js",
-            ),
-            (
-                resources.files("psynet") / "resources/scripts/prepare_docker_image.sh",
-                "prepare_docker_image.sh",
-            ),
-            (
-                ".deploy",
-                ".deploy",
-            ),
-            (
-                resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
-                "DEPLOYMENT_PACKAGE",
-            ),
-        ]
+        files.extend(
+            [
+                (
+                    # Warning: this won't affect templates that already exist in Dallinger
+                    resources.files("psynet") / "templates",
+                    "/templates",
+                ),
+                (
+                    resources.files("psynet") / "resources/favicon.png",
+                    "/static/favicon.png",
+                ),
+                (
+                    resources.files("psynet") / "resources/favicon.svg",
+                    "/static/favicon.svg",
+                ),
+                (
+                    resources.files("psynet") / "resources/logo.png",
+                    "/static/images/logo.png",
+                ),
+                (
+                    resources.files("psynet") / "resources/images/psynet.svg",
+                    "/static/images/logo.svg",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/images/princeton-consent.png",
+                    "/static/images/princeton-consent.png",
+                ),
+                (
+                    resources.files("psynet") / "resources/images/unity_logo.png",
+                    "/static/images/unity_logo.png",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/dashboard_timeline.js",
+                    "/static/scripts/dashboard_timeline.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/bootstrap.min.css",
+                    "/static/css/bootstrap.min.css",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/consent.css",
+                    "/static/css/consent.css",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/dashboard_timeline.css",
+                    "/static/css/dashboard_timeline.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jQuery/jquery-3.6.0.min.js",
+                    "/static/scripts/jquery-3.6.0.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/platform-1.3.6/platform.min.js",
+                    "/static/scripts/platform.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
+                    "/static/scripts/detectIncognito.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/raphael-2.3.0/raphael.min.js",
+                    "/static/scripts/raphael-2.3.0.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jQuery-Knob/js/jquery.knob.js",
+                    "/static/scripts/jquery.knob.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/js-synthesizer",
+                    "/static/scripts/js-synthesizer",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/Tonejs",
+                    "/static/scripts/Tonejs",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/survey-jquery",
+                    "/static/scripts/survey-jquery",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/abc-js",
+                    "/static/scripts/abc-js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/prepare_docker_image.sh",
+                    "prepare_docker_image.sh",
+                ),
+                (
+                    ".deploy",
+                    ".deploy",
+                ),
+                (
+                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
+                    "DEPLOYMENT_PACKAGE",
+                ),
+            ]
+        )
         # We don't think this is needed any more but just keeping a note in case we're proved wrong (25 Sep 2023)
         # if isinstance(cls.assets.storage, DebugStorage):
         #     _path = f"static/{cls.assets.storage.label}"
