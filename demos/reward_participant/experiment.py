@@ -31,7 +31,7 @@ class Exp(psynet.experiment.Experiment):
         # Prolific
         self.var.with_recruiter = "prolific"
 
-        # Case when 'reward == base_payment'
+        # reward == base_payment (0.34 == 0.34)
         page = bot.get_current_page()
         bot.take_page(page)
         assert round(bot.time_reward(), 2) == 0.34
@@ -39,28 +39,28 @@ class Exp(psynet.experiment.Experiment):
         req = requests.get(
             f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
         )
-
         assert (
             "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>."
             in str(req.content)
         )
 
-        # Case when 'reward > participant.base_payment'
+        # reward > participant.base_payment (0.5 > 0.34)
         assert round(bot.time_reward(), 2) == 0.34
-        bot.performance_reward = 0.66
+        bot.performance_reward = 0.16
         db.session.commit()
 
         req = requests.get(
             f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
         )
         assert (
-            "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>. You will also receive an additional bonus of <b>$0.66</b>."
+            "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>. "
+            + "You will also receive an additional bonus of <b>$0.16</b>."
             in str(req.content)
         )
 
-        # reward < min_accumulated_reward_for_abort
+        # reward < min_accumulated_reward_for_abort (0.19 < 0.2)
         assert round(bot.time_reward(), 2) == 0.34
-        bot.performance_reward -= 0.81
+        bot.performance_reward -= 0.31
         db.session.commit()
 
         req = requests.get(
@@ -71,7 +71,7 @@ class Exp(psynet.experiment.Experiment):
             in str(req.content)
         )
 
-        # min_accumulated_reward_for_abort = reward < base_payment
+        # min_accumulated_reward_for_abort = reward < base_payment (0.2 == 0.2 < 0.34)
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward += 0.01
         db.session.commit()
@@ -85,7 +85,7 @@ class Exp(psynet.experiment.Experiment):
             in str(req.content)
         )
 
-        # min_accumulated_reward_for_abort < reward < base_payment
+        # min_accumulated_reward_for_abort < reward < base_payment (0.2 < 0.21 < 0.34)
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward += 0.01
         db.session.commit()
