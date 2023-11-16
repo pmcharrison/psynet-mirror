@@ -2442,9 +2442,9 @@ def test__local(existing=False, n_bots=None, parallel=None, serial=None, stagger
         exp.test_n_bots = n_bots
 
     if parallel:
-        exp.test_modes = ["parallel"]
+        exp.test_mode = "parallel"
     elif serial:
-        exp.test_modes = ["serial"]
+        exp.test_mode = "serial"
 
     if stagger:
         exp.test_parallel_stagger_interval_s = float(stagger)

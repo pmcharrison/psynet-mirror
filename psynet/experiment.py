@@ -152,7 +152,7 @@ class ExperimentMeta(type):
         if hasattr(cls, "test_run_bots"):
             raise RuntimeError(
                 "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
-                "Please note that this test route is only used if Experiment.test_modes contains 'serial'."
+                "Please note that this test route is only used if the tests are run in serial mode."
             )
 
 
@@ -563,19 +563,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         pass
 
     test_n_bots = 1
-    test_modes = ["serial"]
+    test_modes = "serial"
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
 
-        for _mode in set(self.test_modes):
-            if _mode == "serial" or self.test_n_bots == 1:
-                self._test_experiment_serial()
-            elif _mode == "parallel":
-                self._test_experiment_parallel()
-            else:
-                raise ValueError(f"Invalid test mode: {_mode}")
+        if self.test_mode == "serial" or self.test_n_bots == 1:
+            self._test_experiment_serial()
+        elif self.test_mode == "parallel":
+            self._test_experiment_parallel()
+        else:
+            raise ValueError(f"Invalid test mode: {self.test_mode}")
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1

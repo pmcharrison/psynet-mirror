@@ -65,7 +65,7 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 6
-    test_modes = ["serial"]
+    test_mode = "serial"
 
     def test_serial_run_bots(self, bots: List[Bot]):
         advance_past_wait_pages(bots)

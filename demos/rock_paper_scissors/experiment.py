@@ -129,7 +129,7 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 2
-    test_modes = ["serial"]
+    test_mode = "serial"
 
     def test_serial_run_bots(self, bots: List[Bot]):
         from psynet.page import WaitPage
