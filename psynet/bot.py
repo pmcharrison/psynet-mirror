@@ -115,7 +115,6 @@ class Bot(Participant):
         n_pages = 0
 
         page_processing_times = []
-        # wait_page_times = []
         page_total_times = []
 
         while True:
@@ -136,8 +135,6 @@ class Bot(Participant):
             page_total_time = page_time_finished - page_time_started
 
             page_total_times.append(page_total_time)
-            # if isinstance(page, WaitPage):
-            #     wait_page_times.append(page_total_time)
 
             page_processing_time = page_total_time - sleep_time
             page_processing_times.append(page_processing_time)
@@ -149,12 +146,9 @@ class Bot(Participant):
 
         if n_pages > 0:
             mean_page_processing_time = mean(page_processing_times)
-            # total_wait_page_time = mean(wait_page_times)
         else:
             mean_page_processing_time = None
-            # total_wait_page_time = None
 
-        # total_experiment_time = time.monotonic() - run_start_time
         total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
 
         stats = {
