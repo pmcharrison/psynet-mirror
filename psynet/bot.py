@@ -115,6 +115,7 @@ class Bot(Participant):
 
         processing_times = []
         wait_page_times = []
+        total_times = []
 
         while True:
             time_started = time.monotonic()
@@ -133,6 +134,7 @@ class Bot(Participant):
             time_finished = time.monotonic()
             total_time = time_finished - time_started
 
+            total_times.append(total_time)
             if isinstance(page, WaitPage):
                 wait_page_times.append(total_time)
 
@@ -151,7 +153,8 @@ class Bot(Participant):
             f"Bot {self.id} has finished the experiment (took {self.page_count} page(s), "
             f"progress = {100 * self.progress:.0f}%, "
             f"mean processing time per page = {time_per_page} seconds, "
-            f"total WaitPage time = {sum(wait_page_times):.3f} seconds)."
+            f"total WaitPage time = {sum(wait_page_times):.3f} seconds, "
+            f"total experiment time = {sum(total_times):.3f} seconds)."
         )
 
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
