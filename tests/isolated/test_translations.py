@@ -44,16 +44,16 @@ def test_translation_verification():
 @pytest.mark.skip(reason="disabled during development")
 def test_run():
     VARIABLE_PLACEHOLDERS = {
+        "AGE": 12,
         "BASE_PAYMENT": 0.1,
         "BONUS": 0.1,
         "CURRENCY": "$",
+        "EMAIL": "dummy@email.com",
+        "HIDE_AFTER": 2,
+        "MIN_ACCUMULATED_REWARD_FOR_ABORT": 2,
         "PERFORMANCE_REWARD": 0.1,
+        "TERMINATION_TIME": 120,
         "TIME_REWARD": 0.2,
         "TOTAL_REWARD": 0.2,
-        "EMAIL": "dummy@email.com",
-        "MIN_ACCUMULATED_REWARD_FOR_ABORT": 2,
-        "TERMINATION_TIME": 120,
-        "AGE": 12,
-        "HIDE_AFTER": 2,
     }
     check_translations(variable_placeholders=VARIABLE_PLACEHOLDERS)
