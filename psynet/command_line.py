@@ -582,7 +582,7 @@ def is_chromedriver_process(process):
 ###########
 
 
-def _run_bot():
+def _run_bot(real_time=False):
     from .bot import Bot
     from .experiment import get_experiment
 
@@ -591,19 +591,24 @@ def _run_bot():
     os.environ["PASSTHROUGH_ERRORS"] = "True"
     os.environ["DEPLOYMENT_PACKAGE"] = "True"
     bot = Bot()
-    exp.run_bot(bot)
+    exp.run_bot(bot, real_time=real_time)
 
 
 @psynet.command()
+@click.option(
+    "--real-time",
+    is_flag=True,
+    help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
+)
 @click.pass_context
-def run_bot(ctx):
+def run_bot(ctx, real_time=False):
     """
     Run a bot through the local version of the experiment.
     Prior to running this command you must spin up a local experiment, for example
     by running ``psynet debug local``. You can then call ``psynet run-bot``
     multiple times to simulate multiple bots being run through the experiment.
     """
-    _run_bot()
+    _run_bot(real_time=real_time)
 
 
 ##############
@@ -2420,6 +2425,12 @@ _test_options["stagger"] = click.option(
     help="Time interval to wait (in seconds) between instantiating each parallel bot.",
 )
 
+_test_options["real_time"] = click.option(
+    "--real-time",
+    is_flag=True,
+    help="Instead of running each bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
+)
+
 
 @test.command("local")
 @_test_options["existing"]
@@ -2427,7 +2438,15 @@ _test_options["stagger"] = click.option(
 @_test_options["parallel"]
 @_test_options["serial"]
 @_test_options["stagger"]
-def test__local(existing=False, n_bots=None, parallel=None, serial=None, stagger=None):
+@_test_options["real_time"]
+def test__local(
+    existing=False,
+    n_bots=None,
+    parallel=None,
+    serial=None,
+    stagger=None,
+    real_time=None,
+):
     """
     Test the experiment locally.
     """
@@ -2449,6 +2468,9 @@ def test__local(existing=False, n_bots=None, parallel=None, serial=None, stagger
     if stagger:
         exp.test_parallel_stagger_interval_s = float(stagger)
 
+    if real_time:
+        exp.test_real_time = True
+
     if existing:
         exp.test_experiment()
     else:
@@ -2464,9 +2486,17 @@ def test__local(existing=False, n_bots=None, parallel=None, serial=None, stagger
 @_test_options["parallel"]
 @_test_options["serial"]
 @_test_options["stagger"]
+@_test_options["real_time"]
 @click.pass_context
 def test__docker_ssh(
-    ctx, app, server, n_bots=None, parallel=None, serial=None, stagger=None
+    ctx,
+    app,
+    server,
+    n_bots=None,
+    parallel=None,
+    serial=None,
+    stagger=None,
+    real_time=None,
 ):
     """
     Runs experiment tests on the remote server.
@@ -2492,6 +2522,9 @@ def test__docker_ssh(
 
     if stagger:
         cmd += " --stagger"
+
+    if real_time:
+        cmd += " --real-time"
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]

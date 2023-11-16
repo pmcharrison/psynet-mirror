@@ -564,6 +564,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     test_n_bots = 1
     test_mode = "serial"
+    test_real_time = False
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -589,12 +590,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         process_ids = list(range(n_processes))
         bot_ids = [process_id + 1 for process_id in process_ids]
 
+        cmd = "psynet run-bot"
+        if self.test_real_time:
+            cmd += " --real-time"
+
         for bot_id in bot_ids:
             if bot_id > 0:
                 time.sleep(self.test_parallel_stagger_interval_s)
 
             logger.info(f"Creating and running bot {bot_id}...")
-            p = pexpect.spawn("psynet run-bot", timeout=None, cwd=None)
+            p = pexpect.spawn(cmd, timeout=None, cwd=None)
             processes.append(p)
 
         waiting_for_processes = True
@@ -716,10 +721,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def test_serial_run_bots(self, bots):
         for bot in bots:
             db.session.add(bot)  # Protects against DetachedInstanceErrors
-            self.run_bot(bot)
+            self.run_bot(bot, real_time=self.test_real_time)
 
-    def run_bot(self, bot):
-        bot.take_experiment(render_pages=True)
+    def run_bot(self, bot, real_time=False):
+        time_factor = bool(real_time)
+        bot.take_experiment(render_pages=True, time_factor=time_factor)
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
