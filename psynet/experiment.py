@@ -622,7 +622,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 except pexpect.TIMEOUT:
                     pass
                 except pexpect.EOF:
-                    assert p.exitstatus == 0
+                    assert process.exitstatus == 0
                     finished_processes.add(process_id)
 
             if len(finished_processes) == n_processes:
