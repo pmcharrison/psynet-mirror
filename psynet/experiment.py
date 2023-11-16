@@ -563,7 +563,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         pass
 
     test_n_bots = 1
-    test_modes = "serial"
+    test_mode = "serial"
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
