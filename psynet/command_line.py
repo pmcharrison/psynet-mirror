@@ -2400,11 +2400,19 @@ _test_options["n_bots"] = click.option(
 _test_options["parallel"] = click.option(
     "--parallel",
     is_flag=True,
-    help="Force the tests to be run in parallel. Only relevant if the number of bots is greater than 1.",
+    help=(
+        "Forces the tests to be run in parallel, overriding the default specified in the Experiment class. "
+        "Only relevant if the number of bots is greater than 1. Does the opposite of --serial."
+    ),
 )
 
 _test_options["serial"] = click.option(
-    "--serial", is_flag=True, help="Force the tests to be run serially."
+    "--serial",
+    is_flag=True,
+    help=(
+        "Forces the tests to be run serially, overriding the default specified in the Experiment class. "
+        "Does the opposite of --parallel."
+    ),
 )
 
 _test_options["stagger"] = click.option(
