@@ -2424,7 +2424,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentageStr": f"{progress_percentage}%",
         }
         if get_and_load_config().get("show_reward"):
-            time_reward = participant.time_credit.get_time_reward()
+            time_reward = participant.time_reward()
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
             data["reward"] = {

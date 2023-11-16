@@ -1134,13 +1134,10 @@ class Page(Elt):
             "js_vars": js_vars,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "time_reward": "%.2f" % participant.time_reward(),
             "performance_reward": "%.2f" % participant.performance_reward,
             "total_reward": "%.2f"
-            % (
-                participant.performance_reward
-                + participant.time_credit.get_time_reward()
-            ),
+            % (participant.performance_reward + participant.time_reward()),
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
