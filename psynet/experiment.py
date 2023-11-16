@@ -584,23 +584,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
 
         n_processes = self.test_n_bots
-        processes = []
 
-        for i in range(n_processes):
-            if i > 0:
+        processes = []
+        process_ids = list(range(n_processes))
+        bot_ids = [process_id + 1 for process_id in process_ids]
+
+        for bot_id in bot_ids:
+            if bot_id > 0:
                 time.sleep(self.test_parallel_stagger_interval_s)
 
-            logger.info(f"Creating and running bot {i+1}...")
+            logger.info(f"Creating and running bot {bot_id}...")
             p = pexpect.spawn("psynet run-bot", timeout=None, cwd=None)
             processes.append(p)
 
         waiting_for_processes = True
         finished_processes = set()
 
-        testing_stats = self.TestingStats(n_processes, self.testing_stat_definitions)
+        testing_stats = self.TestingStats(self.testing_stat_definitions)
 
         while waiting_for_processes:
-            for process_id, process in enumerate(processes):
+            for process, process_id, bot_id in zip(processes, process_ids, bot_ids):
                 try:
                     while True:
                         output = (
@@ -611,9 +614,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         )
                         for line in output:
                             line.replace("INFO:root:", "")
-                            logger.info(f"(Bot {process_id + 1}) " + line)
+                            logger.info(f"(Bot {bot_id}) " + line)
 
-                            testing_stats.update_from_line(process_id, line)
+                            testing_stats.update_from_line(bot_id, line)
 
                         time.sleep(0.01)
                 except pexpect.TIMEOUT:
@@ -630,27 +633,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         testing_stats.report()
 
     class TestingStats:
-        def __init__(self, n_processes, stat_definitions):
-            self.n_process = n_processes
+        def __init__(self, stat_definitions):
             self.stat_definitions = stat_definitions
             self.data = {
-                stat_definition.key: [None for _ in range(n_processes)]
-                for stat_definition in stat_definitions
+                stat_definition.key: {} for stat_definition in stat_definitions
             }
 
-        def update_from_line(self, process_id, line):
+        def update_from_line(self, bot_id, line):
             for stat_definition in self.stat_definitions:
                 stat = stat_definition.extract_stat(line)
                 if stat is not None:
-                    self.update_from_stat(stat_definition.key, process_id, stat)
+                    self.update_from_stat(stat_definition.key, bot_id, stat)
 
-        def update_from_stat(self, stat_key, process_id, value):
-            self.data[stat_key][process_id] = value
+        def update_from_stat(self, stat_key, bot_id, value):
+            self.data[stat_key][bot_id] = value
 
         def report(self):
             logger.info("BOT TESTING STATISTICS:")
             for stat_definition in self.stat_definitions:
-                values = self.data[stat_definition.key]
+                values = self.data[stat_definition.key].values()
                 stat_definition.report(values)
 
     class TestingStatDefinition:
@@ -686,19 +687,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ),
         TestingStatDefinition(
             "mean_processing_time",
-            label="processing time per page (seconds)",
+            label="processing time per page",
             regex="mean processing time per page = ([0-9]*\\.[0-9]*) seconds",
             suffix=" seconds",
         ),
         TestingStatDefinition(
             "total_wait_page_time",
-            label="total wait page time per bot (seconds)",
+            label="total wait page time per bot",
             regex="total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
             suffix=" seconds",
+            decimal_places=2,
         ),
         TestingStatDefinition(
             "total_experiment_time",
-            label="total experiment time per bot (seconds)",
+            label="time taken to complete experiment",
             regex="total experiment time = ([0-9]*\\.[0-9]*) seconds",
             suffix=" seconds",
         ),

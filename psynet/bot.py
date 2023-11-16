@@ -1,5 +1,6 @@
 import time
 import uuid
+from datetime import datetime
 from statistics import mean
 from typing import List
 
@@ -111,14 +112,14 @@ class Bot(Participant):
         # with working_directory(self.experiment.var.server_working_directory):
         # app = util.import_app("dallinger.experiment_server.sockets:app")
         # with app.app_context(), app.test_request_context():
-        from psynet.page import WaitPage
+        n_pages = 0
 
-        processing_times = []
-        wait_page_times = []
-        total_times = []
+        page_processing_times = []
+        # wait_page_times = []
+        page_total_times = []
 
         while True:
-            time_started = time.monotonic()
+            page_time_started = time.monotonic()
 
             page = self.get_current_page()
             if render_pages:
@@ -131,31 +132,48 @@ class Bot(Participant):
                 sleep_time = self.take_page(page, time_factor)["sleep_time"]
             db.session.commit()
 
-            time_finished = time.monotonic()
-            total_time = time_finished - time_started
+            page_time_finished = time.monotonic()
+            page_total_time = page_time_finished - page_time_started
 
-            total_times.append(total_time)
-            if isinstance(page, WaitPage):
-                wait_page_times.append(total_time)
+            page_total_times.append(page_total_time)
+            # if isinstance(page, WaitPage):
+            #     wait_page_times.append(page_total_time)
 
-            processing_time = total_time - sleep_time
-            processing_times.append(processing_time)
+            page_processing_time = page_total_time - sleep_time
+            page_processing_times.append(page_processing_time)
+
+            n_pages += 1
 
             if not self.status == "working":
                 break
 
-        if len(processing_times) > 0:
-            time_per_page = f"{mean(processing_times):.3f}"
+        if n_pages > 0:
+            mean_page_processing_time = mean(page_processing_times)
+            # total_wait_page_time = mean(wait_page_times)
         else:
-            time_per_page = "NA"
+            mean_page_processing_time = None
+            # total_wait_page_time = None
+
+        # total_experiment_time = time.monotonic() - run_start_time
+        total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
+
+        stats = {
+            "page_count": self.page_count,
+            "progress": self.progress,
+            "mean_page_processing_time": mean_page_processing_time,
+            "total_wait_page_time": self.total_wait_page_time,
+            "total_experiment_time": total_experiment_time,
+        }
 
         logger.info(
-            f"Bot {self.id} has finished the experiment (took {self.page_count} page(s), "
-            f"progress = {100 * self.progress:.0f}%, "
-            f"mean processing time per page = {time_per_page} seconds, "
-            f"total WaitPage time = {sum(wait_page_times):.3f} seconds, "
-            f"total experiment time = {sum(total_times):.3f} seconds)."
+            f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"progress = {100 * stats['progress']:.0f}%, "
+            f"mean processing time per page = {stats['mean_page_processing_time']} seconds, "
+            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
+            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
         )
+
+        return stats
 
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
