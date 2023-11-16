@@ -151,6 +151,8 @@ class Bot(Participant):
 
         total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
 
+        # To do - migrate these metrics to generic Participants (not just bots) so that we can report them
+        # everywhere
         stats = {
             "page_count": self.page_count,
             "progress": self.progress,
