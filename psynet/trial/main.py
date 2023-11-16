@@ -1881,6 +1881,10 @@ class TrialMaker(Module):
                 f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
             )
 
+    @classmethod
+    def extra_files(cls):
+        return []
+
 
 class NetworkTrialMakerState(TrialMakerState):
     pass
