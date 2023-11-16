@@ -3,7 +3,7 @@ from dallinger import db
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.page import SuccessfulEndPage
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
@@ -15,6 +15,7 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
+        InfoPage("Reward participant demo", time_estimate=101),
         SuccessfulEndPage(),
     )
 
@@ -29,30 +30,73 @@ class Exp(psynet.experiment.Experiment):
     def run_bot(self, bot):
         # Prolific
         self.var.with_recruiter = "prolific"
+
+        # Case when 'reward == base_payment'
+        page = bot.get_current_page()
+        bot.take_page(page)
+        assert round(bot.time_reward(), 2) == 0.34
         db.session.commit()
         req = requests.get(
             f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
         )
-        # total_reward == participant.base_payment
+
         assert (
-            "When you press <b>Next</b>, your submission will be approved and you will receive the <b>full study payment of $0.34"
+            "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>."
             in str(req.content)
         )
 
-        bot.performance_reward += 1
+        # Case when 'reward > participant.base_payment'
+        assert round(bot.time_reward(), 2) == 0.34
+        bot.performance_reward = 0.66
         db.session.commit()
 
         req = requests.get(
             f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
         )
-        # total_reward > participant.base_payment
         assert (
-            "When you press <b>Next</b>, your submission will be approved and <b>you will receive the full study payment of $0.34</b>. You will also receive an <b>additional bonus of $0.66</b>."
+            "When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>$0.34</b>. You will also receive an additional bonus of <b>$0.66</b>."
             in str(req.content)
         )
 
-        # total_reward < min_accumulated_reward_for_abort
-        # bot.performance_reward = -1
-        # db.session.commit()
+        # reward < min_accumulated_reward_for_abort
+        assert round(bot.time_reward(), 2) == 0.34
+        bot.performance_reward -= 0.81
+        db.session.commit()
+
+        req = requests.get(
+            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
+        )
+        assert (
+            "You did not complete enough of the experiment to receive a payment, sorry. Please return the study."
+            in str(req.content)
+        )
+
+        # min_accumulated_reward_for_abort = reward < base_payment
+        assert round(bot.time_reward(), 2) == 0.34
+        bot.performance_reward += 0.01
+        db.session.commit()
+
+        req = requests.get(
+            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
+        )
+        assert (
+            "You were unable to complete the experiment, but you will still be paid <b>$0.34</b> for the time you put in so far. "
+            + "When you press <b>Next</b>, we will pay you via the bonus mechanism. Please then return the study."
+            in str(req.content)
+        )
+
+        # min_accumulated_reward_for_abort < reward < base_payment
+        assert round(bot.time_reward(), 2) == 0.34
+        bot.performance_reward += 0.01
+        db.session.commit()
+
+        req = requests.get(
+            f"http://localhost:5000/reward_participant?unique_id={bot.unique_id}"
+        )
+        assert (
+            "You were unable to complete the experiment, but you will still be paid <b>$0.34</b> for the time you put in so far. "
+            + "When you press <b>Next</b>, we will pay you via the bonus mechanism. Please then return the study."
+            in str(req.content)
+        )
 
         bot.run_to_completion()

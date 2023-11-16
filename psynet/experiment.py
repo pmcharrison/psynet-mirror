@@ -2208,16 +2208,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return render_template_with_translations(
             "reward_participant.html",
+            base_payment=participant.base_payment,
+            bonus=get_experiment().bonus(participant),
             min_accumulated_reward_for_abort=get_config().get(
                 "min_accumulated_reward_for_abort"
             ),
             participant=participant,
-            total_reward=cls.total_reward(participant),
+            reward=round(participant.calculate_reward(), 2),
+            reward_min_base_payment=max(
+                get_config().get("base_payment"), participant.calculate_reward()
+            ),
         )
-
-    @classmethod
-    def total_reward(self, participant):
-        return max(get_config().get("base_payment"), participant.calculate_reward())
 
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
