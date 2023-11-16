@@ -164,7 +164,7 @@ class Bot(Participant):
         logger.info(
             f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
             f"progress = {100 * stats['progress']:.0f}%, "
-            f"mean processing time per page = {stats['mean_page_processing_time']} seconds, "
+            f"mean processing time per page = {stats['mean_page_processing_time']:.3f} seconds, "
             f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
             f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
         )
