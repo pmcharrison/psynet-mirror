@@ -150,11 +150,10 @@ class Barrier:
         # Note: this currently emits one SQL query per participant; this could be optimized
         link = self.get_participant_link(participant)
         if link is None:
-            return
-            # raise RuntimeError(
-            #     "Could not find an appropriate barrier link to release the participant from "
-            #     f"(participant_id = {participant.id}, barrier_id = '{self.id}')."
-            # )
+            raise RuntimeError(
+                "Could not find an appropriate barrier link to release the participant from "
+                f"(participant_id = {participant.id}, barrier_id = '{self.id}')."
+            )
         link.release()
 
     def can_participant_exit(self, participant: "Participant"):
