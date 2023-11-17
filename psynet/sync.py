@@ -157,18 +157,48 @@ class Barrier:
         link.release()
 
     def can_participant_exit(self, participant: "Participant"):
-        self.process_potential_releases()
+        self.process_potential_releases(participant)
         barrier_is_active = self.id in participant.active_barriers
         return not barrier_is_active
 
-    def process_potential_releases(self):
-        waiting_participants = self._get_waiting_participants()
-        participants_to_release = self.choose_who_to_release(waiting_participants)
+    def process_potential_releases(self, participant):
+        # Concurrency hack 1:
+        # Using a local file lock to ensure that this function never runs multiple times in different processes.
+        # This seems to be the most reliable solution, but a file-based lock doesn't work when we have multiple
+        # web nodes (e.g. Heroku), so we'd need to replace this with a database-backed or Redis-backed solution
+        # eventually.
+        from filelock import FileLock
 
-        for participant in participants_to_release:
-            self.release(participant)
+        lock_path = "/tmp/psynet-process-potential-releases.lock"
 
-        db.session.commit()
+        lock = FileLock(lock_path, timeout=30)
+
+        with lock.acquire():
+            # Concurrency hack 2:
+            # Lock the participant_link_barrier table. This seems to reduce but not eliminate conflicts.
+            # A problem may be that the lock is terminated whenever we call `db.session.commit()` and sometimes
+            # this occurs(?) inside deeper methods.
+            db.engine.execute(
+                "LOCK TABLE participant_link_barrier IN SHARE ROW EXCLUSIVE MODE"
+            )
+            waiting_participants = self._get_waiting_participants()
+
+            if len(waiting_participants) == 0:
+                return
+
+            # Concurrency hack 3:
+            # Use a heuristic to try and avoid multiple versions of the function being run simultaneously.
+            # This seems to reduce but not eliminate conflicts.
+            min_p_id = min(p.id for p in waiting_participants)
+            if participant.id != min_p_id:
+                return
+
+            participants_to_release = self.choose_who_to_release(waiting_participants)
+
+            for participant in participants_to_release:
+                self.release(participant)
+
+            db.session.commit()
 
 
 class GroupBarrier(Barrier):
@@ -366,7 +396,7 @@ class Grouper(Barrier):
                 for _participant in _group.participants:
                     participants_to_release.append(_participant)
 
-            db.session.commit()
+            # db.session.commit()
 
         return participants_to_release
 
