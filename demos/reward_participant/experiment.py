@@ -140,7 +140,7 @@ class Exp(psynet.experiment.Experiment):
         req = self.make_request(bot)
         assert (
             "When you press <b>Next</b>, your submission will be approved. "
-            + "You will receive a total payment of <b>$0.34</b>, which will be paid as a base payment of <b>$0.34</b> and a bonus of <b>$0.00</b>."
+            + "You will receive a total payment of <b>$0.34</b>."
             in str(req.content)
         )
 
@@ -151,7 +151,7 @@ class Exp(psynet.experiment.Experiment):
         req = self.make_request(bot)
         assert (
             "When you press <b>Next</b>, your submission will be approved. "
-            + "You will receive a total payment of <b>$0.50</b>, which will be paid as a base payment of <b>$0.34</b> and a bonus of <b>$0.16</b>."
+            + "You will receive a total payment of <b>$0.50</b>. It will be paid as a base payment of <b>$0.34</b> and a bonus of <b>$0.16</b>."
             in str(req.content)
         )
 
