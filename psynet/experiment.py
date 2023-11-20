@@ -908,6 +908,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return PsyNetLogo()
 
     @property
+    def recruiter_supports_payments_below_base_payment(self):
+        return isinstance(self.recruiter, ProlificRecruiter)
+
+    @property
     def start_experiment_in_popup_window(self):
         if self.var.has("start_experiment_in_popup_window"):
             # This is for simulating pop up behaviour in psynet demo tests

@@ -25,7 +25,7 @@
             }
 
             submitAssignment = function() {
-                if ("{{ experiment.recruiter.nickname }}" == "prolific") {
+                if ({{ experiment.recruiter_supports_payments_below_base_payment | lower }}) {
                     if ({{ participant.calculate_reward() }} < {{ participant.base_payment }}) {
                         window.location = "/abort/{{ participant.assignment_id }}";
                     }
