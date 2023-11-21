@@ -70,3 +70,8 @@ class TestExp:
             ]
             assert participant.module_states["introduction"][0].aborted
             assert not participant.module_states["introduction"][0].finished
+
+            assert round(participant.bonus, 2) == 0
+            assert round(participant.performance_reward, 2) == 0
+            assert round(participant.time_reward(), 2) == 0.15
+            assert round(participant.calculate_reward(), 2) == 0.15
