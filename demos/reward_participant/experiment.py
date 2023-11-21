@@ -143,15 +143,20 @@ class Exp(psynet.experiment.Experiment):
             + "You will receive a total payment of <b>$0.34</b>."
             in str(req.content)
         )
+        assert not ("It will be paid as a base payment of" in str(req.content))
 
         # reward_min_base_payment > min_accumulated_reward_for_abort (0.5 > 0.2)
         assert round(bot.time_reward(), 2) == 0.34
         bot.performance_reward = 0.16
         db.session.commit()
         req = self.make_request(bot)
+        print(req.content)
         assert (
-            "When you press <b>Next</b>, your submission will be approved. "
-            + "You will receive a total payment of <b>$0.50</b>. It will be paid as a base payment of <b>$0.34</b> and a bonus of <b>$0.16</b>."
+            "When you press <b>Next</b>, your submission will be approved. You will receive a total payment of <b>$0.50</b>."
+            in str(req.content)
+        )
+        assert (
+            "It will be paid as a base payment of <b>$0.34</b> and a bonus of <b>$0.16</b>."
             in str(req.content)
         )
 
