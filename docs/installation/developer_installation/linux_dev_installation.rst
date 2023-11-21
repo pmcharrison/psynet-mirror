@@ -1,5 +1,5 @@
 
-The following installation instructions apply to **Ubuntu 20.04 LTS (Focal Fossa)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
+The following installation instructions apply to **Ubuntu 22.04 LTS (Jammy Jellyfish)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 .. note::
    You must have set up your GitLab SSH keys already.
@@ -15,19 +15,19 @@ Update and install required system packages
 
    sudo apt update
    sudo apt upgrade
-   sudo apt install vim python3.10-dev python3.10-venv python3-pip redis-server git libenchant1c2a postgresql postgresql-contrib libpq-dev unzip
+   sudo apt install vim python3.11-dev python3.11-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip
 
 Install Python
 ~~~~~~~~~~~~~~
 
 PsyNet requires a recent version of Python 3. To check the minimum version of Python required,
 look at PsyNet's
-`pyproject.toml<https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
+`pyproject.toml <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
 specifically at the line beginning with ``requires-python``, and see which version of Python is required.
 To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
 If this version is lower than the minimum version specified in pyproject.toml, you should update your Python.
 The easiest way to do this is via the ``apt install`` command above, for example
-``sudo apt install python3.10-dev`` for Python 3.10.
+``sudo apt install python3.11-dev`` for Python 3.11.
 
 Install Docker and Docker plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,7 +107,7 @@ Setup virtual environment
    echo "source ~/.local/bin/virtualenvwrapper.sh" >> ~/.bashrc
    export VIRTUALENVWRAPPER_PYTHON=$(which python3)
    source ~/.local/bin/virtualenvwrapper.sh
-   mkvirtualenv psynet --python $(which python3.10)
+   mkvirtualenv psynet --python $(which python3.11)
 
 In case you experience problems setting up the virtual environment:
 
@@ -181,18 +181,26 @@ As an *experiment author* you are now done with the installation and you can beg
 
 As a *developer* who wants to work on `psynet`'s source code, however, please continue with the remaining installation steps below.
 
-.. note::
-   Below instructions apply to *developers only*.
+
+Additional software for developers
+----------------------------------
+
+Below instructions apply to developers only.
 
 Install ChromeDriver
 ~~~~~~~~~~~~~~~~~~~~
 
 Needed for running the Selenium tests with headless Chrome.
 
+.. note::
+   The version of ChromeDriver *must* match the version of Chrome you have currently installed.
+
+See `Chrome for Testing <https://googlechromelabs.github.io/chrome-for-testing/#stable>`_ to find the download link for ChromeDriver corresponding to your Chrome installation. Copy the link and use it to download and then unzip the ChromeDriver executable, e.g.:
+
 .. code-block:: bash
 
-   wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip --directory /tmp
-   sudo unzip /tmp/chromedriver_linux64.zip chromedriver -d /usr/local/bin/
+   wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chromedriver-linux64.zip --directory /tmp
+   sudo unzip /tmp/chromedriver-linux64.zip chromedriver -d /usr/local/bin/
 
 Install additional Python packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
