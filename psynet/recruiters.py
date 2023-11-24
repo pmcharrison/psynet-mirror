@@ -457,6 +457,57 @@ class LucidRecruiter(BaseLucidRecruiter):
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
 
 
+class MTurkRecruiter(dallinger.recruiters.MTurkRecruiter):
+    """
+    An improved version of Dallinger's MTurk recruiter.
+    """
+
+    def error_page_content(
+        self, _, _p, contact_address, error_type, hit_id, assignment_id, worker_id
+    ):
+        html = tags.div()
+        with html:
+            tags.p(
+                _p(
+                    "mturk_error",
+                    "To enquire about compensation, please contact the researcher at {EMAIL} and describe what led to this error.",
+                ).format(EMAIL=contact_address)
+            )
+            tags.p(_p("mturk_error", "Please also quote the following information:"))
+            tags.ul(
+                tags.li(f'{_("Error type")}: {error_type}'),
+                tags.li(f'{_("HIT ID")}: {hit_id}'),
+                tags.li(f'{_("Assignment ID")}: {assignment_id}'),
+                tags.li(f'{_("Worker ID")}: {worker_id}'),
+            )
+        return html
+
+
+class Prolificrecruiter(dallinger.recruiters.ProlificRecruiter):
+    """
+    An improved version of Dallinger's Prolific recruiter.
+    """
+
+    def error_page_content(self, _, _p):
+        html = tags.div()
+        with html:
+            tags.p(
+                " ".join(
+                    [
+                        _p(
+                            "prolific_error",
+                            "Don't worry, your progress has been recorded.",
+                        ),
+                        _p(
+                            "prolific_error",
+                            "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
+                        ),
+                    ]
+                )
+            )
+        return html
+
+
 class GenericRecruiter(PsyNetRecruiter):
     """
     An improved version of Dallinger's Hot-Air Recruiter.
@@ -483,7 +534,7 @@ class GenericRecruiter(PsyNetRecruiter):
             return super().exit_response(experiment, participant)
 
         elif isinstance(message, str):
-            html = dominate.tags.p(message).render()
+            html = tags.p(message).render()
 
         elif isinstance(message, dominate.dom_tag.dom_tag):
             html = message.render()

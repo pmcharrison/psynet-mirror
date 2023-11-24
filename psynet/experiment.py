@@ -31,7 +31,6 @@ from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
-from dominate import tags
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import func
 
@@ -663,7 +662,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception:
             locale = None
         gettext, pgettext = get_translator(locale)
-        _, _p = gettext, pgettext
 
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
@@ -671,52 +669,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 pgettext,
                 assignment_id=assignment_id,
                 external_submit_url=external_submit_url,
+                contact_address=contact_address,
+                error_type=error_type,
+                hit_id=hit_id,
             )
-
-        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
-        if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific(gettext, pgettext)
-        elif isinstance(self.recruiter, MTurkRecruiter):
-            html = tags.div()
-            with html:
-                tags.p(
-                    _p(
-                        "mturk_error",
-                        "To enquire about compensation, please contact the researcher at {EMAIL} and describe what led to this error.",
-                    ).format(EMAIL=contact_address)
-                )
-                tags.p(
-                    _p("mturk_error", "Please also quote the following information:")
-                )
-                tags.ul(
-                    tags.li(f'{_("Error type")}: {error_type}'),
-                    tags.li(f'{_("HIT ID")}: {hit_id}'),
-                    tags.li(f'{_("Assignment ID")}: {assignment_id}'),
-                    tags.li(f'{_("Worker ID")}: {worker_id}'),
-                )
-
-            return html
-        else:
-            return ""
-
-    def error_page_content__prolific(self, _, _p):
-        html = tags.div()
-        with html:
-            tags.p(
-                " ".join(
-                    [
-                        _p(
-                            "prolific_error",
-                            "Don't worry, your progress has been recorded.",
-                        ),
-                        _p(
-                            "prolific_error",
-                            "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
-                        ),
-                    ]
-                )
-            )
-        return html
+        return ""
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
