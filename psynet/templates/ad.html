@@ -53,7 +53,7 @@
                     {% else %}
                         {% block live %}
                             {% if not experiment.with_recruiter("lucid") %}
-                                {% if experiment.recruiter.nickname == "mturk" %}
+                                {% if experiment.with_recruiter("mturk") %}
                                     <h1>{{ pgettext("ad", "Thanks for accepting this HIT.") }}</h1>
                                 {% else %}
                                     <h1>{{ pgettext("ad", "Thanks for your interest in this experiment.") }}</h1>

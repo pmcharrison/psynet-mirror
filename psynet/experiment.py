@@ -1295,7 +1295,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if nickname == "lucid":
             return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
         else:
-            return self.recruiter.nickname == nickname
+            return self.with_recruiter(nickname)
 
     def process_response(
         self,
@@ -2120,13 +2120,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ):
                     template_name = "abort_possible.html"
                     participant_abort_info = participant.abort_info()
-                    recruiter = get_experiment().recruiter
+                    exp = get_experiment()
 
-                    if recruiter.nickname == "prolific":
+                    if exp.with_recruiter("prolific"):
                         reward = participant.calculate_reward()
                         if reward < participant.base_payment:
                             if not participant.status == "aborted":
-                                recruiter.reward_bonus(
+                                exp.recruiter.reward_bonus(
                                     participant,
                                     reward,
                                     _p(
