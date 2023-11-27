@@ -891,8 +891,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def get_initial_recruitment_size(self):
         return get_and_load_config().get("initial_recruitment_size")
 
-    @property
-    def label(self):
+    @classproperty
+    def label(cls):  # noqa
         return get_and_load_config().get("label")
 
     @property
