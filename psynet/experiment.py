@@ -1295,7 +1295,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if nickname == "lucid":
             return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
         else:
-            return self.with_recruiter(nickname)
+            return self.recruiter.nickname == nickname
 
     def process_response(
         self,
