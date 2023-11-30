@@ -34,6 +34,13 @@ before_script:
   - docker pull $DOCKER_IMAGE_CACHE_FROM || true
   - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_LOCAL_TAG .
 
+pre_commit:
+  image: python:3.11.6
+  before_script:
+    - pip install pre-commit
+  script:
+    - pre-commit run --all-files
+
 tests:
   parallel: 10
   stage: test
