@@ -50,6 +50,7 @@ video_pages = join(
                 <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
                 """
                 ),
+                mirrored=True,
             ),
         ),
         time_estimate=5,
@@ -65,6 +66,7 @@ video_pages = join(
                 <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
                 """
                 ),
+                mirrored=True,
                 play_window=[3, 4],
             ),
         ),
@@ -76,6 +78,7 @@ video_pages = join(
             VideoPrompt(
                 assets["birds"],
                 "Here we play a video, muted, alongside an audio file.",
+                mirrored=True,
                 muted=True,
             ),
             media=MediaSpec(audio={"soundtrack": assets["funk-game-loop"]}),
@@ -98,6 +101,7 @@ video_pages = join(
                 Here's a second version, where the video and audio both come from the same original recording.
                 If everything is working properly, the video and the audio should be well-synchronized.
                 """,
+                mirrored=True,
                 muted=True,
                 play_window=[12, None],
             ),
@@ -123,6 +127,7 @@ video_pages = join(
             VideoPrompt(
                 assets["birds"],
                 "Here we play a video and instruct the user to record an audio response.",
+                mirrored=True,
                 muted=True,
                 play_window=[0, 4],
             ),
@@ -157,6 +162,7 @@ video_pages = join(
                 Here we play a video and instruct the user to record a video response after a countdown.
                 The soundtrack also has a 0.5 second fade-in and fade-out.
                 """,
+                mirrored=True,
                 muted=True,
                 play_window=[0, 4],
                 width="180px",
@@ -236,6 +242,7 @@ video_pages = join(
                         Click <a href="{participant.assets["video_record_page_screen"].url}">this link</a> to download the corresponding screen recording.
                     """
                 ),
+                mirrored=True,
                 width="400px",
             ),
         ),

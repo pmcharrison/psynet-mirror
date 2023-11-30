@@ -427,6 +427,7 @@ example_record_audio_video = join(
             VideoPrompt(
                 participant.assets["video_record_page"],
                 "Here's the recording you just made.",
+                mirrored=True,
             ),
         ),
         time_estimate=5,
