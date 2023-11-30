@@ -89,6 +89,7 @@ New events are defined by use of the page’s ``events`` argument. Take the foll
         VideoPrompt(
             "/static/birds.mp4",
             "Here we play a video, muted, alongside an audio file.",
+            mirrored=True,
             muted=True,
         ),
         time_estimate=5,

@@ -300,7 +300,7 @@ class VideoPrompt(Prompt):
         If ``True`` (default), the video will disappear once it has finished playing.
 
     mirrored
-        Whether the video is displayed as if looking into a mirror. Default: `True`.
+        Whether to mirror the video on playback. Default: `False`.
 
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
@@ -310,13 +310,13 @@ class VideoPrompt(Prompt):
         self,
         video,
         text: Union[str, Markup],
-        text_align="left",
+        text_align: str = "left",
         width: str = "560px",
         play_window: Optional[List] = None,
         controls: bool = False,
         muted: bool = False,
         hide_when_finished: bool = True,
-        mirrored: bool = True,
+        mirrored: bool = False,
         **kwargs,
     ):
         from .asset import Asset

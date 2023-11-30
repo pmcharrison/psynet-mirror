@@ -93,6 +93,7 @@ class CustomTrial(CameraImitationChainTrial):
                 VideoPrompt(
                     stimulus,
                     "When you are ready, press next to imitate the figure that you see.",
+                    mirrored=True,
                     text_align="center",
                     width="360px",
                 ),
