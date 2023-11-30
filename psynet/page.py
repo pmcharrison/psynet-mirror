@@ -211,6 +211,10 @@ class WaitPage(Page):
     def get_bot_response(self, experiment, bot):
         return None
 
+    def on_complete(self, experiment, participant):
+        participant.total_wait_page_time += self.wait_time
+        super().on_complete(experiment, participant)
+
 
 def wait_while(
     condition,

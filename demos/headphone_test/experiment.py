@@ -23,10 +23,9 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 2
 
-    def test_run_bots(self, bots):
-        bots[0].var.is_good_bot = True
-        bots[1].var.is_good_bot = False
-        super().test_run_bots(bots)
+    def run_bot(self, bot):
+        bot.var.is_good_bot = bot.id == 1
+        super().run_bot(bot)
 
     def test_check_bot(self, bot: Bot, **kwargs):
         from psynet.prescreen import AntiphaseHeadphoneTrial, HugginsHeadphoneTrial
