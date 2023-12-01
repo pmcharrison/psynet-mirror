@@ -15,8 +15,6 @@ Prompts
 
 The following subclasses of :class:`~psynet.modular_page.Prompt` exist:
 
-* :class:`~psynet.modular_page.TextPrompt`
-
 * :class:`~psynet.modular_page.AudioPrompt`
 
 * :class:`~psynet.modular_page.ImagePrompt`
@@ -24,6 +22,9 @@ The following subclasses of :class:`~psynet.modular_page.Prompt` exist:
 * :class:`~psynet.modular_page.ColorPrompt`
 
 * :class:`~psynet.modular_page.VideoPrompt`
+
+* :class:`~psynet.graphic.GraphicPrompt`
+
 
 
 Controls
@@ -84,6 +85,8 @@ Audio/Video controls
 .. image:: ../_static/images/video_slider_control.png
   :width: 580
   :alt: VideoSliderControl
+
+* :class:`~psynet.graphic.GraphicControl`
 
 Option controls
 ~~~~~~~~~~~~~~~
