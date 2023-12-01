@@ -15,11 +15,16 @@ Prompts
 
 The following subclasses of :class:`~psynet.modular_page.Prompt` exist:
 
+* :class:`~psynet.modular_page.TextPrompt`
+
 * :class:`~psynet.modular_page.AudioPrompt`
 
 * :class:`~psynet.modular_page.ImagePrompt`
 
 * :class:`~psynet.modular_page.ColorPrompt`
+
+* :class:`~psynet.modular_page.VideoPrompt`
+
 
 Controls
 --------
