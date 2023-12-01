@@ -151,6 +151,8 @@ Other controls
   :width: 800
   :alt: TextControl
 
+* :class:`~psynet.modular_page.SurveyJSControl`
+
 
 API
 ---
