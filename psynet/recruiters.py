@@ -360,7 +360,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             assignment_id = assignment_id
         return {"ris": ris, "rid": assignment_id}
 
-    def error_page_content(self, _, _p, assignment_id, external_submit_url):
+    def error_page_content(self, _, _p, assignment_id, external_submit_url, **kwargs):
         if external_submit_url is None:
             external_submit_url = self.external_submit_url(assignment_id=assignment_id)
 
@@ -483,12 +483,12 @@ class MTurkRecruiter(dallinger.recruiters.MTurkRecruiter):
         return html
 
 
-class Prolificrecruiter(dallinger.recruiters.ProlificRecruiter):
+class ProlificRecruiter(dallinger.recruiters.ProlificRecruiter):
     """
     An improved version of Dallinger's Prolific recruiter.
     """
 
-    def error_page_content(self, _, _p):
+    def error_page_content(self, _, _p, **kwargs):
         html = tags.div()
         with html:
             tags.p(

@@ -2031,11 +2031,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
         compensate = True
+        external_submit_url = None
         participant = None
+        recruiter = get_experiment().recruiter
+
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-            recruiter = get_experiment().recruiter
-            external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(
                     participant=participant

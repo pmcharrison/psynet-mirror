@@ -1,8 +1,12 @@
+import requests
+from dallinger import db
+
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.process import LocalAsyncProcess, WorkerAsyncProcess
+from psynet.recruiters import DevLucidRecruiter, MTurkRecruiter, ProlificRecruiter
 from psynet.timeline import CodeBlock, Timeline, switch
 from psynet.utils import get_logger
 
@@ -74,5 +78,73 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def test_experiment(self):
-        pass
+    def with_recruiter(self, nickname):
+        # We use this for patching the recruiter while testing the recruiter UI
+        if self.var.has("with_recruiter"):
+            patched_recruiter = self.var.with_recruiter
+            if nickname == "mturk":
+                self.recruiter = MTurkRecruiter(skip_config_validation=True)
+            elif nickname == "prolific":
+                self.recruiter = ProlificRecruiter()
+            elif nickname == "lucid":
+                self.recruiter = DevLucidRecruiter()
+            return nickname == patched_recruiter
+        return super().with_recruiter(nickname)
+
+    def take_pages_and_make_request(self, bot):
+        for i in range(2):
+            page = bot.get_current_page()
+            bot.take_page(page)
+        return requests.get("http://localhost:5000/error-page")
+
+    test_n_bots = 4
+
+    def run_bot(self, bot):
+        # Hotair
+        if bot.id == 1:
+            req = self.take_pages_and_make_request(bot)
+            assert (
+                "There has been an error and so you are unable to continue, sorry!"
+                in str(req.content)
+            )
+            bot.run_to_completion()
+
+        # Lucid
+        if bot.id == 2:
+            db.session.commit()
+            self.var.with_recruiter = "lucid"
+            req = self.take_pages_and_make_request(bot)
+            assert "Redirecting to Lucid Marketplace..." in str(req.content)
+            bot.run_to_completion()
+
+        # MTurk
+        if bot.id == 3:
+            self.var.with_recruiter = "mturk"
+            req = self.take_pages_and_make_request(bot)
+            assert (
+                "There has been an error and so you are unable to continue, sorry!"
+                in str(req.content)
+            )
+            assert (
+                "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>."
+                in str(req.content)
+            )
+            assert (
+                'If this is not the case, please contact us at <a href="mailto:XXX@gmail.com">XXX@gmail.com</a> quoting the following information:'
+                in str(req.content)
+            )
+            bot.run_to_completion()
+
+        # Prolific
+        if bot.id == 4:
+            self.var.with_recruiter = "prolific"
+            req = self.take_pages_and_make_request(bot)
+            assert (
+                "There has been an error and so you are unable to continue, sorry!"
+                in str(req.content)
+            )
+            assert (
+                "Don\\'t worry, your progress has been recorded. To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error."
+                in str(req.content)
+            )
+            bot.run_to_completion()

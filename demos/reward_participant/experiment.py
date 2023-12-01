@@ -150,7 +150,6 @@ class Exp(psynet.experiment.Experiment):
         bot.performance_reward = 0.16
         db.session.commit()
         req = self.make_request(bot)
-        print(req.content)
         assert (
             "When you press <b>Next</b>, your submission will be approved. You will receive a total payment of <b>$0.50</b>."
             in str(req.content)

@@ -10,8 +10,12 @@
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
-                {% if config.show_abort_button %}
-                    {% if experiment.with_recruiter("mturk") or experiment.with_recruiter("hotair") %}
+                {% if experiment.with_recruiter("lucid") %}
+                    <p id="error-text-main">
+                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
+                    </p>
+                {% elif experiment.with_recruiter("mturk") or experiment.with_recruiter("hotair") %}
+                    {% if config.show_abort_button %}
                         {% if compensate == True %}
                             <p id="error-text-main">
                                 {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
@@ -52,7 +56,12 @@
                             </script>
                         {% endif %}
                     {% endif %}
+                {% elif experiment.with_recruiter("prolific") %}
+                    <p id="error-text-main">
+                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
+                    </p>
                 {% else %}
+                    <!-- TODO -->
                     <p id="error-text-main">
                         {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
                     </p>

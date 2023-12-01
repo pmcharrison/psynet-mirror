@@ -26,5 +26,8 @@ base_payment = 0.34
 
 # recruiter = lucid
 # debug_recruiter = DevLucidRecruiter
-# lucid_recruitment_config = file:./lucid_recruitment_config.json
-# show_reward = false
+lucid_recruitment_config = file:./lucid_recruitment_config.json
+show_reward = false
+show_abort_button = true
+lucid_sha1_hashing_key = secret
+lucid_api_key = secret
