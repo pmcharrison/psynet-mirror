@@ -1,5 +1,4 @@
 import requests
-from dallinger import db
 
 import psynet.experiment
 from psynet.consent import NoConsent
@@ -58,6 +57,14 @@ def local_async_process_error(error_code):
 class Exp(psynet.experiment.Experiment):
     label = "Error handling demo"
 
+    config = {
+        "lucid_api_key": "secret",
+        "lucid_sha1_hashing_key": "secret",
+        "lucid_recruitment_config": "file:./lucid_recruitment_config.json",
+        "show_abort_button": True,
+        "show_reward": False,
+    }
+
     def need_more_participants(self):
         return Participant.query.count() < 4
 
@@ -111,7 +118,6 @@ class Exp(psynet.experiment.Experiment):
 
         # Lucid
         if bot.id == 2:
-            db.session.commit()
             self.var.with_recruiter = "lucid"
             req = self.take_pages_and_make_request(bot)
             assert "Redirecting to Lucid Marketplace..." in str(req.content)
