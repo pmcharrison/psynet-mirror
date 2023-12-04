@@ -9,7 +9,7 @@
             {% if experiment.with_recruiter("mturk") %}
                 {{ gettext('Please click "Finish" to complete the HIT.') }}
             {% elif experiment.with_recruiter("prolific") %}
-                {{ gettext('Please click "Finish" to complete the survey.') }}
+                {{ gettext('Please click "Finish" to complete the study.') }}
             {% else %}
                 {{ gettext('Please click "Finish" to complete the experiment.') }}
             {% endif %}
