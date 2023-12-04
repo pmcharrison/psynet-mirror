@@ -77,6 +77,6 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def test_check_bot(self, bot: Bot):
+    def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
         assert len(bot.alive_trials) == self.trials_per_participant
