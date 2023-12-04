@@ -742,7 +742,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_check_bots(self, bots: List[Bot], failed: bool = False):
         for b in bots:
-            self.test_check_bot(b, failed)
+            self.test_check_bot(b, failed=failed)
 
     def test_check_bot(self, bot: Bot, failed: bool = False, **kwargs):
         assert bot.failed == failed
