@@ -6,7 +6,13 @@
     {% if not experiment.with_recruiter("lucid") %}
         <p class="vspace"></p>
         <p>
-            {{ gettext('Please click "Finish" to complete the HIT.') }}
+            {% if experiment.with_recruiter("mturk") %}
+                {{ gettext('Please click "Finish" to complete the HIT.') }}
+            {% elif experiment.with_recruiter("prolific") %}
+                {{ gettext('Please click "Finish" to complete the survey.') }}
+            {% else %}
+                {{ gettext('Please click "Finish" to complete the experiment.') }}
+            {% endif %}
         </p>
         <p class="vspace"></p>
         <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Finish") }}</button>
