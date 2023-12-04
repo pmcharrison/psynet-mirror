@@ -428,38 +428,6 @@ msgstr "Telah terjadi kesalahan sehingga Anda tidak dapat melanjutkan, maaf!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "Harap juga mengutip informasi berikut ini:"
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr ""
-"Untuk menanyakan tentang kompensasi, silakan hubungi peneliti di {EMAIL} dan"
-" jelaskan apa yang menyebabkan kesalahan ini."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "Jangan khawatir, kemajuan Anda telah dicatat."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr ""
-"Untuk menanyakan tentang kompensasi, silakan kirim pesan kepada peneliti "
-"melalui situs web Prolific dan jelaskan apa yang menyebabkan kesalahan Anda."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "Terima kasih atas partisipasi Anda, inilah hadiah Anda."
@@ -522,6 +490,38 @@ msgstr "Anda harus memasukkan angka yang Anda lihat ke dalam kotak teks."
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "Mengalihkan ke Pasar Lucid..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Harap juga mengutip informasi berikut ini:"
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"Untuk menanyakan tentang kompensasi, silakan hubungi peneliti di {EMAIL} dan"
+" jelaskan apa yang menyebabkan kesalahan ini."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Jangan khawatir, kemajuan Anda telah dicatat."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"Untuk menanyakan tentang kompensasi, silakan kirim pesan kepada peneliti "
+"melalui situs web Prolific dan jelaskan apa yang menyebabkan kesalahan Anda."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -2163,6 +2163,18 @@ msgstr ""
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Pengiriman Survei Lucid"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "Silakan klik \"Selesai\" untuk menyelesaikan percobaan."
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "Silakan klik \"Selesai\" untuk menyelesaikan studi."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

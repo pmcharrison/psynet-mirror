@@ -428,38 +428,6 @@ msgstr "Došlo je do pogreške i stoga ne možete nastaviti, ispričavamo se!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "Molimo navedite i sljedeće podatke:"
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr ""
-"Da biste se raspitali o naknadi, obratite se istraživaču na {EMAIL} i "
-"opišite što je dovelo do ove pogreške."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "Ne brinite, vaš napredak je zabilježen."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr ""
-"Za upit o naknadi, pošaljite istraživaču poruku putem web stranice Prolific "
-"i opišite što je dovelo do vaše pogreške."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "Hvala na sudjelovanju! Evo tvoje nagrade."
@@ -521,6 +489,38 @@ msgstr "Morate unijeti broj koji vidite u tekstualni okvir."
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "Preusmjeravanje na Lucid Marketplace..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Molimo navedite i sljedeće podatke:"
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"Da biste se raspitali o naknadi, obratite se istraživaču na {EMAIL} i "
+"opišite što je dovelo do ove pogreške."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Ne brinite, vaš napredak je zabilježen."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"Za upit o naknadi, pošaljite istraživaču poruku putem web stranice Prolific "
+"i opišite što je dovelo do vaše pogreške."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -2124,6 +2124,18 @@ msgstr ""
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid Podnošenje ankete"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "Kliknite \"Završi\" za dovršetak eksperimenta."
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "Kliknite \"Završi\" da biste dovršili studiju."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

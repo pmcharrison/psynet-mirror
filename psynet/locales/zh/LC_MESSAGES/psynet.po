@@ -359,34 +359,6 @@ msgstr "出现了一个错误，导致您无法继续，对不起！"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "请同时引用以下信息："
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr "如需询问赔偿事宜，请通过{EMAIL}联系研究人员，并描述导致这一错误的原因。"
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "别担心，你的进展已经被记录下来了。"
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "感谢您的参与！这是您的奖励。"
@@ -446,6 +418,34 @@ msgstr "您必须在文本框中输入您看到的数字。"
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "重定向到Lucid Marketplace..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "请同时引用以下信息："
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr "如需询问赔偿事宜，请通过{EMAIL}联系研究人员，并描述导致这一错误的原因。"
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "别担心，你的进展已经被记录下来了。"
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -1650,6 +1650,18 @@ msgstr "这项研究完全是自愿的；您不会因为参与而得到任何金
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "提交Lucid调查报告"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "请点击 \"完成 \"完成实验。"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "请点击 \"完成 \"完成研究。"
 
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"

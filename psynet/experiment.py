@@ -740,12 +740,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         time_factor = bool(self.test_real_time)
         bot.take_experiment(render_pages=True, time_factor=time_factor)
 
-    def test_check_bots(self, bots: List[Bot]):
+    def test_check_bots(self, bots: List[Bot], failed: bool = False):
         for b in bots:
-            self.test_check_bot(b)
+            self.test_check_bot(b, failed)
 
-    def test_check_bot(self, bot: Bot, **kwargs):
-        assert not bot.failed
+    def test_check_bot(self, bot: Bot, failed: bool = False, **kwargs):
+        assert bot.failed == failed
 
     @classmethod
     def error_page(

@@ -428,38 +428,6 @@ msgstr "Hiba történt, ezért nem tudod folytatni, sajnálom!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "Kérjük, adja meg a következő információkat is:"
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr ""
-"Ha kártérítésről szeretne érdeklődni, kérjük, vegye fel a kapcsolatot a "
-"kutatóval a {EMAIL} címen, és írja le, mi vezetett a hibához."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "Ne aggódj, a fejlődésed rögzítésre került."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr ""
-"Ha kártérítésről szeretne érdeklődni, kérjük, küldjön üzenetet a kutatónak a"
-" Prolific weboldalán keresztül, és írja le, mi vezetett az Ön hibájához."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "Köszönjük a részvételt! Itt a jutalmad."
@@ -521,6 +489,38 @@ msgstr "A látott számot kell beírnod a szövegdobozba."
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "Átirányítás a Lucid Marketplace-re..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Kérjük, adja meg a következő információkat is:"
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"Ha kártérítésről szeretne érdeklődni, kérjük, vegye fel a kapcsolatot a "
+"kutatóval a {EMAIL} címen, és írja le, mi vezetett a hibához."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Ne aggódj, a fejlődésed rögzítésre került."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"Ha kártérítésről szeretne érdeklődni, kérjük, küldjön üzenetet a kutatónak a"
+" Prolific weboldalán keresztül, és írja le, mi vezetett az Ön hibájához."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -2147,6 +2147,18 @@ msgstr ""
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid felmérés benyújtása"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "A kísérlet befejezéséhez kattintson a \"Befejezés\" gombra."
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "A tanulmány befejezéséhez kattintson a \"Befejezés\" gombra."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

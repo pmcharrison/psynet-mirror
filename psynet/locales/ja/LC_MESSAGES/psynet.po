@@ -422,34 +422,6 @@ msgstr "エラーが発生したため、続行できません、申し訳あり
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "また、以下の内容も引用してください："
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr "補償についてのお問い合わせは、研究員まで{EMAIL}でご連絡いただき、今回のエラーに至った経緯をお書き添えください。"
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "あなたの進捗状況は記録されていますのでご安心ください。"
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr "補償についてのお問い合わせは、プロリフィックのウェブサイトから研究者にメッセージを送り、何が原因でエラーになったかを書いてください。"
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "ご参加ありがとうございました！ ご褒美です。"
@@ -509,6 +481,34 @@ msgstr "表示された数字をテキストボックスに入力してくださ
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "ルシードマーケットプレイスへのリダイレクト..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "また、以下の内容も引用してください："
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr "補償についてのお問い合わせは、研究員まで{EMAIL}でご連絡いただき、今回のエラーに至った経緯をお書き添えください。"
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "あなたの進捗状況は記録されていますのでご安心ください。"
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr "補償についてのお問い合わせは、プロリフィックのウェブサイトから研究者にメッセージを送り、何が原因でエラーになったかを書いてください。"
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -1913,6 +1913,18 @@ msgstr "この研究は完全に任意であり、参加に対して金銭的な
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ルシードアンケート提出"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "Finish \"をクリックして実験を終了してください。"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "Finish \"をクリックして調査を終了してください。"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

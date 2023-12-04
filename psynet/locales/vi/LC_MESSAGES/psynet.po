@@ -429,38 +429,6 @@ msgstr "Đã xảy ra lỗi và vì vậy bạn không thể tiếp tục, xin l
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "Cũng xin trích dẫn các thông tin sau:"
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr ""
-"Để hỏi về khoản bồi thường, vui lòng liên hệ với nhà nghiên cứu tại {EMAIL} "
-"và mô tả nguyên nhân dẫn đến lỗi này."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "Đừng lo lắng, quá trình của bạn đã được ghi lại."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr ""
-"Để hỏi về bồi thường, vui lòng gửi tin nhắn cho nhà nghiên cứu qua trang web"
-" Prolific và mô tả nguyên nhân dẫn đến lỗi của bạn."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "Cảm ơn vì đã tham gia! Đây là phần thưởng của bạn."
@@ -522,6 +490,38 @@ msgstr "Bạn phải nhập số mà bạn nhìn thấy vào hộp văn bản."
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "Đang chuyển hướng đến Lucid Marketplace..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Cũng xin trích dẫn các thông tin sau:"
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"Để hỏi về khoản bồi thường, vui lòng liên hệ với nhà nghiên cứu tại {EMAIL} "
+"và mô tả nguyên nhân dẫn đến lỗi này."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Đừng lo lắng, quá trình của bạn đã được ghi lại."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"Để hỏi về bồi thường, vui lòng gửi tin nhắn cho nhà nghiên cứu qua trang web"
+" Prolific và mô tả nguyên nhân dẫn đến lỗi của bạn."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -2145,6 +2145,18 @@ msgstr ""
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Gửi khảo sát sáng suốt"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "Vui lòng nhấp vào \"Hoàn tất\" để hoàn thành thử nghiệm."
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "Vui lòng nhấp vào \"Hoàn tất\" để hoàn thành nghiên cứu."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

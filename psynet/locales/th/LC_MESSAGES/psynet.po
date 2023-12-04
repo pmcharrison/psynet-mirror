@@ -426,38 +426,6 @@ msgstr "เกิดข้อผิดพลาด คุณจึงไม่�
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "โปรดอ้างอิงข้อมูลต่อไปนี้ด้วย:"
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr ""
-"หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดติดต่อนักวิจัยที่ {EMAIL} "
-"และอธิบายว่าอะไรทำให้เกิดข้อผิดพลาดนี้"
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "ไม่ต้องกังวล ความคืบหน้าของคุณได้รับการบันทึกแล้ว"
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr ""
-"หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดส่งข้อความถึงผู้วิจัยผ่านเว็บไซต์ "
-"Prolific และอธิบายสิ่งที่นำไปสู่ข้อผิดพลาดของคุณ"
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "ขอขอบคุณสำหรับการมีส่วนร่วม! นี่คือรางวัลของคุณ"
@@ -518,6 +486,38 @@ msgstr "คุณต้องป้อนตัวเลขที่คุณเ
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "กำลังเปลี่ยนเส้นทางไปยัง Lucid Marketplace..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "โปรดอ้างอิงข้อมูลต่อไปนี้ด้วย:"
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดติดต่อนักวิจัยที่ {EMAIL} "
+"และอธิบายว่าอะไรทำให้เกิดข้อผิดพลาดนี้"
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "ไม่ต้องกังวล ความคืบหน้าของคุณได้รับการบันทึกแล้ว"
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"หากต้องการสอบถามเกี่ยวกับค่าชดเชย โปรดส่งข้อความถึงผู้วิจัยผ่านเว็บไซต์ "
+"Prolific และอธิบายสิ่งที่นำไปสู่ข้อผิดพลาดของคุณ"
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -2066,6 +2066,18 @@ msgstr ""
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "การส่งแบบสำรวจที่ชัดเจน"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "กรุณาคลิก \"เสร็จสิ้น\" เพื่อทำการทดสอบให้เสร็จสิ้น"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "กรุณาคลิก \"เสร็จสิ้น\" เพื่อศึกษาให้เสร็จสิ้น"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy

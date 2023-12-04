@@ -424,38 +424,6 @@ msgstr "אירעה שגיאה ולכן אינך יכול להמשיך, מצטע�
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "mturk_error"
-msgid "Please also quote the following information:"
-msgstr "נא לצטט גם את המידע הבא:"
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr ""
-"כדי לברר לגבי פיצוי, צור קשר עם החוקר בכתובת {EMAIL} ותאר מה הוביל לשגיאה "
-"זו."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid "Don't worry, your progress has been recorded."
-msgstr "אל תדאג, ההתקדמות שלך תועדה."
-
-#: psynet/experiment.py
-#, fuzzy
-msgctxt "prolific_error"
-msgid ""
-"To enquire about compensation, please send the researcher a message via the "
-"Prolific website and describe what led to your error."
-msgstr ""
-"כדי לברר לגבי פיצוי, אנא שלח לחוקר הודעה דרך אתר האינטרנט של פרוליפיק ותאר "
-"מה הוביל לטעות שלך."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "route_abort_thank_you"
 msgid "Thank you for participating! Here is your reward."
 msgstr "תודה על ההשתתפות! הנה הפרס שלך."
@@ -515,6 +483,38 @@ msgstr "עליך להזין את המספר שאתה רואה בתיבת הטק�
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr "מפנה מחדש ל-Lucid Marketplace..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "נא לצטט גם את המידע הבא:"
+
+#: psynet/recruiters.py
+#, python-brace-format, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"כדי לברר לגבי פיצוי, צור קשר עם החוקר בכתובת {EMAIL} ותאר מה הוביל לשגיאה "
+"זו."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "אל תדאג, ההתקדמות שלך תועדה."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"כדי לברר לגבי פיצוי, אנא שלח לחוקר הודעה דרך אתר האינטרנט של פרוליפיק ותאר "
+"מה הוביל לטעות שלך."
 
 #: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
@@ -2033,6 +2033,18 @@ msgstr "מחקר זה הוא וולונטרי לחלוטין; לא תקבל שו
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "הגשת סקר צלול"
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the experiment."
+msgstr "אנא לחץ על \"סיום\" כדי להשלים את הניסוי."
+
+#. ""
+#: psynet/templates/final-page-rejected-consent.html
+#, fuzzy
+msgid "Please click \"Finish\" to complete the study."
+msgstr "אנא לחץ על \"סיום\" כדי להשלים את המחקר."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
