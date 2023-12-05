@@ -6,6 +6,33 @@ Prerequisites
 
 We recommend that you update MacOS to the latest version before installing PsyNet.
 
+Add your SSH key to GitLab
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To authenticate to PsyNet's GitLab repository you need to create a (free)
+GitLab account, generate an SSH key (if you don't have one already),
+and upload it to GitLab.
+
+To generate an SSH key:
+
+.. code-block:: bash
+
+   ssh-keygen -b 4096 -t rsa
+
+Press Enter to save the key in the default location,
+and Enter again twice to create the key with no passphrase.
+
+Copy the SSH key to the clipboard by running this command:
+
+.. code-block:: bash
+
+   pbcopy < ~/.ssh/id_rsa.pub
+
+Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
+click 'Add new key', paste the key in the 'Key' box,
+remove the Expiration date if you think it's helpful, then click 'Add key'.
+
+
 Install Python
 ~~~~~~~~~~~~~~
 
@@ -229,31 +256,6 @@ Additional developer installation steps
 
 If you are planning to contribute to PsyNet's source code,
 please continue with the remaining installation steps below.
-
-Add your SSH key to GitLab
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to contribute code to PsyNet you will need to generate an SSH key
-(if you don't have one already) and upload it to GitLab.
-
-To generate an SSH key:
-
-.. code-block:: bash
-
-   ssh-keygen -b 4096 -t rsa
-
-Press Enter to save the key in the default location,
-and Enter again twice to create the key with no passphrase.
-
-Copy the SSH key to the clipboard by running this command:
-
-.. code-block:: bash
-
-   pbcopy < ~/.ssh/id_rsa.pub
-
-Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
-click 'Add new key', paste the key in the 'Key' box,
-remove the Expiration date if you think it's helpful, then click 'Add key'.
 
 Install ChromeDriver
 ~~~~~~~~~~~~~~~~~~~~
