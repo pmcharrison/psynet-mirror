@@ -252,6 +252,26 @@ Verify successful installation
 If you are planning to use PsyNet just to design and run experiments,
 you are now done with the installation.
 
+Opening a project in your IDE
+-----------------------------
+
+We recommend using PsyNet with an IDE. In particular we recommend that you use PyCharm Professional,
+which has special tools for working with Python and HTML/JS. This is paid software but you can
+get free student/educational licenses.
+
+As a first step we recommend opening up PsyNet as a PyCharm project so that you can try out some of the demos.
+To do this, go to PyCharm, click File > Open and then open the folder containing your PsyNet installation,
+typically ``~/PsyNet``.
+You should now configure PyCharm to use the ``psynet`` virtual environment you created earlier.
+Ignore any requests that PyCharm makes to create a virtual environment for you, and instead click in the bottom right
+corner of the screen where you should see something like 'Python 3.X' or 'No virtual environment'.
+Click "Add new interpreter" > "Add local interpreter".
+Select "Virtualenv environment", select "Existing", and then select your ``psynet`` virtual environment;
+it should look something like ``/Users/your-name/.virtualenvs/psynet/bin/python``.
+PyCharm will spend some time processing this selection, but then when you open a new terminal tab it should load 
+your virtual environment automatically.
+
+
 Additional developer installation steps
 ---------------------------------------
 
