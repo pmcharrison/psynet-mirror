@@ -134,3 +134,44 @@ and you are using MacOS, then you may be able to fix your problem by running the
 .. code:: bash
 
     brew services restart redis
+
+
+Postgres stops working after a Homebrew upgrade
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+If you find that Postgres stops working after upgrading via Homebrew,
+you might need to delete your local Postgres files and try again.
+This can be done as follows
+(these instructions are from `Moncef Belyamani's tutorial <https://www.moncefbelyamani.com/how-to-upgrade-postgresql-with-homebrew/>`_):
+
+.. code-block:: bash
+
+   brew remove --force postgresql
+
+Or if you had previously a versioned form of Postgres, for example Postgres 14:
+
+.. code-block:: bash
+
+   brew remove --force postgresql@14
+
+Delete the Postgres folders:
+
+.. code-block:: bash
+
+   rm -rf /usr/local/var/postgres/
+   rm -rf /usr/local/var/postgresql@14/
+
+Or if you're on an Apple Silicon Mac:
+
+.. code-block:: bash
+
+   rm -rf /opt/homebrew/var/postgres
+   rm -rf /opt/homebrew/var/postgresql@14
+
+Finally you can reinstall Postgres:
+
+.. code-block:: bash
+
+   brew install postgresql@14
+   brew services start postgresql@14
