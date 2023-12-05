@@ -1254,13 +1254,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
 
     def fail_participant(self, participant):
+        failed_reason = ", ".join(participant.failure_tags)
         logger.info(
-            "Failing participant %i (%i routine(s) found)...",
+            "Failing participant %i (%i routine(s) found, reason: %s)",
             participant.id,
             len(self.participant_fail_routines),
+            failed_reason,
         )
         participant.failed = True
-        participant.failed_reason = ", ".join(participant.failure_tags)
+        participant.failed_reason = failed_reason
         participant.time_of_death = datetime.now()
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
