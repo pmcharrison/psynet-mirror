@@ -6,13 +6,28 @@ from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import ColorBlindnessTest
 from psynet.timeline import Timeline
+from psynet.modular_page import ModularPage, PushButtonControl, Prompt, Control, TextControl, NumberControl
 
+class ValidationPage(ModularPage):
+    pass
+def get_calibration_page():
+    time_estimate = 60
+    lable = "validation"
+    prompt = index.html
+    return ValidationPage(
+        "validation",
+        (prompt),
+        TextControl(one_line=False),
+        save_answer=lable,
+        time_estimate=time_estimate,
+    )
 
 class Exp(psynet.experiment.Experiment):
     label = "Colour blindness demo"
 
     timeline = Timeline(
         NoConsent(),
+        get_calibration_page(),
         ColorBlindnessTest(),
         InfoPage(
             "You passed the color blindness task! Congratulations.", time_estimate=3
