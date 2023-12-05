@@ -1,4 +1,4 @@
-from .media_gibbs import (
+from .media_gibbs import (  # noqa
     AudioGibbsNetwork,
     AudioGibbsNode,
     AudioGibbsTrial,
