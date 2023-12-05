@@ -17,15 +17,42 @@ Update and install required system packages
    sudo apt upgrade
    sudo apt install vim python3.10-dev python3.10-venv python3-pip redis-server git libenchant1c2a postgresql postgresql-contrib libpq-dev unzip
 
+Add your SSH key to GitLab
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To authenticate to PsyNet's GitLab repository you need to create a (free)
+GitLab account, generate an SSH key (if you don't have one already),
+and upload it to GitLab.
+
+To generate an SSH key:
+
+.. code-block:: bash
+
+   ssh-keygen -b 4096 -t rsa
+
+Press Enter to save the key in the default location,
+and Enter again twice to create the key with no passphrase.
+
+Copy the SSH key to the clipboard by running this command:
+
+.. code-block:: bash
+
+   pbcopy < ~/.ssh/id_rsa.pub
+
+Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
+click 'Add new key', paste the key in the 'Key' box,
+remove the Expiration date if you think it's helpful, then click 'Add key'.
+
 Install Python
 ~~~~~~~~~~~~~~
 
-PsyNet requires a recent version of Python 3. To check the minimum version of Python required,
+PsyNet requires a recent version of Python 3. To check the minimum and recommended versions of Python,
 look at PsyNet's
-`pyproject.toml<https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
-specifically at the line beginning with ``requires-python``, and see which version of Python is required.
+`pyproject.toml <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
+specifically at the line beginning with ``requires-python``.
 To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
-If this version is lower than the minimum version specified in pyproject.toml, you should update your Python.
+If your current version is lower than the minimum version, you should update your Python
+to the recommended version.
 The easiest way to do this is via the ``apt install`` command above, for example
 ``sudo apt install python3.10-dev`` for Python 3.10.
 
@@ -99,28 +126,62 @@ Install Python virtualenv
 Setup virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+You need to use virtual environments to work with PsyNet.
+This can be confusing if you haven't used Python virtual environments before.
+We strongly recommend you take half an hour at this point to read some online tutorials
+about virtual environments and managing them with ``virtualenvwrapper` before continuing.
+
+The following code installs ``virtualenvwrapper``:
+
 .. code-block:: bash
 
+   pip3 install virtualenv
+   pip3 install virtualenvwrapper
    export WORKON_HOME=$HOME/.virtualenvs
    mkdir -p $WORKON_HOME
-   echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3)" >> ~/.bashrc
-   echo "source ~/.local/bin/virtualenvwrapper.sh" >> ~/.bashrc
    export VIRTUALENVWRAPPER_PYTHON=$(which python3)
-   source ~/.local/bin/virtualenvwrapper.sh
-   mkvirtualenv psynet --python $(which python3.10)
+   source $(which virtualenvwrapper.sh)
+   echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3)" >> ~/.zshrc
+   echo "source $(which virtualenvwrapper.sh)" >> ~/.zshrc
+
+The following code creates a virtual environment called 'psynet' into which we are going to install Psynet.
+
+.. code-block:: bash
+
+   mkvirtualenv psynet --python $(which python3)
+
+This virtual environment will contain your PsyNet installation alongside all the Python dependencies that go
+with it. Virtual environments are useful because they allow you to keep control of the precise Python package
+versions that are required by particular projects.
+
+Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
+make sure you are in the appropriate virtual environment. You do this by writing code like the following
+in your terminal:
+
+.. code-block:: bash
+
+   workon psynet
+
+where in this case ``psynet`` is the name of the virtual environment.
+One workflow is to have just one virtual environment for all of your PsyNet work, called ``psynet`` as above;
+another is to create a separate virtual environment for each experiment you are working on.
+
+To delete a pre-existing virtual environment, use the ``rmvirtualenv`` command like this:
+
+.. code-block:: bash
+
+   rmvirtualenv psynet
+
+To make another virtual environment, use the ``mkvirtualenv`` command like this:
+
+.. code-block:: bash
+
+   mkvirtualenv my-experiment --python $(which python3)
 
 In case you experience problems setting up the virtual environment:
 
 - Check in which directory virtualenvwrapper.sh is installed. This might be a different directory than '~/.local/bin/'. In that case, adapt the code above to source this file accordingly.
 - Check whether the directory where virtualenvwrapper.sh was installed is added to PATH. If not, add the directory to PATH.
-
-
-Activate virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-   workon psynet
 
 
 Dallinger
@@ -129,14 +190,12 @@ Dallinger
 Install Dallinger
 ~~~~~~~~~~~~~~~~~
 
-In the example below Dallinger is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
-
 .. note::
    Make sure you have activated your virtual environment by running `workon psynet`.
 
 .. code-block:: bash
 
-   cd ~
+   cd
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
    pip install -r dev-requirements.txt
@@ -156,15 +215,13 @@ PsyNet
 Install PsyNet
 ~~~~~~~~~~~~~~
 
-In the example below PsyNet is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
-
 .. note::
    * Make sure you have added an SSH Public Key under your GitLab profile.
    * Also, make sure you have activated your virtual environment by running `workon psynet`.
 
 .. code-block:: bash
 
-   cd ~
+   cd
    git clone git@gitlab.com:PsyNetDev/psynet
    cd psynet
    pip install --editable .
@@ -176,13 +233,14 @@ Verify successful installation
 
    psynet --version
 
-As an *experiment author* you are now done with the installation and you can begin building experiments.
+If you are planning to use PsyNet just to design and run experiments,
+you are now done with the installation.
 
+Additional developer installation steps
+---------------------------------------
 
-As a *developer* who wants to work on `psynet`'s source code, however, please continue with the remaining installation steps below.
-
-.. note::
-   Below instructions apply to *developers only*.
+If you are planning to contribute to PsyNet's source code,
+please continue with the remaining installation steps below.
 
 Install ChromeDriver
 ~~~~~~~~~~~~~~~~~~~~
