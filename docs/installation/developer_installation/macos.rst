@@ -1,30 +1,30 @@
 macOS installation
 ==================
 
-The following installation instructions apply to **macOS Monterey (12.1), Big Sur (11.1), and Catalina (10.15)**. They address both experiment authors as well as developers who want to work on PsyNet's source code.
-
-.. note::
-   You must have set up your GitLab SSH keys already.
-
-
 Prerequisites
 -------------
 
-Before starting installation make sure you have the latest macOS updates installed.
-Thereafter follow the step-by-step instructions below.
+We recommend that you update MacOS to the latest version before installing PsyNet.
 
 Install Python
 ~~~~~~~~~~~~~~
 
-PsyNet requires a recent version of Python 3. To check the minimum version of Python required,
+PsyNet requires a recent version of Python 3. To check the minimum and recommended versions of Python,
 look at PsyNet's
 `pyproject.toml <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
-specifically at the line beginning with ``requires-python``, and see which version of Python is required.
+specifically at the line beginning with ``requires-python``.
 To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
-If this version is lower than the minimum version specified in pyproject.toml, you should update your Python.
-The easiest way to do this is to visit the Python website and download an appropriate version.
-Downloading a version that is too new can be risky, so the easiest solution is to download the precise version
-specified in pyproject.toml. Run the installer to install Python, then try ``python3 --version`` to ensure
+If your current version is lower than the minimum version, you should update your Python
+to the recommended version.
+We recommend doing this by going to the `Python website <https://www.python.org/downloads/>`_,
+and downloading the installer corresponding to the latest patch of the recommended version.
+If the recommended version is 3.11, this means searching for Python version 3.11.x where
+'x' is as high as possible.
+At the time of writing this installer can be found by looking under the section
+'Looking for a specific release?', clicking the desired Python version, then clicking
+'macOS 64-bit universal2 installer'.
+
+One installation is complete, try ``python3 --version`` again to ensure
 that the correct version is found. To install old versions you might need to run ``brew uninstall python3``,
 or go to the Applications folder and delete the appropriate version of Python.
 
@@ -54,52 +54,14 @@ Install and setup PostgreSQL
    brew services start postgresql@14
    createuser -P dallinger --createdb
 
-Password: *dallinger*
+When prompted, enter the follwing password: *dallinger*
 
 .. code-block:: bash
 
    createdb -O dallinger dallinger
    createdb -O dallinger dallinger-import
-   exit
 
    brew services restart postgresql@14
-
-If you find that Postgres stops working after upgrading via Homebrew,
-you might need to delete your local Postgres files and try again.
-This can be done as follows
-(these instructions are from `Moncef Belyamani's tutorial <https://www.moncefbelyamani.com/how-to-upgrade-postgresql-with-homebrew/>`_):
-
-.. code-block:: bash
-
-   brew remove --force postgresql
-
-Or if you had previously a versioned form of Postgres, for example Postgres 14:
-
-.. code-block:: bash
-
-   brew remove --force postgresql@14
-
-Delete the Postgres folders:
-
-.. code-block:: bash
-
-   rm -rf /usr/local/var/postgres/
-   rm -rf /usr/local/var/postgresql@14/
-
-Or if you're on an Apple Silicon Mac:
-
-.. code-block:: bash
-
-   rm -rf /opt/homebrew/var/postgres
-   rm -rf /opt/homebrew/var/postgresql@14
-
-Finally you can reinstall Postgres:
-
-.. code-block:: bash
-
-   brew install postgresql@14
-   brew services start postgresql@14
-
 
 Install Heroku
 ~~~~~~~~~~~~~~
@@ -119,16 +81,24 @@ Install Redis
 Setup Git
 ~~~~~~~~~
 
+If you don't have Git already, install it with the following commands,
+inserting your name and email address as appropriate.
+
 .. code-block:: bash
 
+   brew install git
    git config --global user.email "you@example.com"
    git config --global user.name "Your Name"
 
 Setup virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
-   If you are installing on Big Sur 11.3 with the M1 chip, please skip below
+You need to use virtual environments to work with PsyNet.
+This can be confusing if you haven't used Python virtual environments before.
+We strongly recommend you take half an hour at this point to read some online tutorials
+about virtual environments and managing them with ``virtualenvwrapper` before continuing.
+
+The following code installs ``virtualenvwrapper``:
 
 .. code-block:: bash
 
@@ -138,9 +108,42 @@ Setup virtual environment
    mkdir -p $WORKON_HOME
    export VIRTUALENVWRAPPER_PYTHON=$(which python3)
    source $(which virtualenvwrapper.sh)
-   mkvirtualenv psynet --python $(which python3)
    echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3)" >> ~/.zshrc
    echo "source $(which virtualenvwrapper.sh)" >> ~/.zshrc
+
+The following code creates a virtual environment called 'psynet' into which we are going to install Psynet.
+
+.. code-block:: bash
+
+   mkvirtualenv psynet --python $(which python3)
+
+This virtual environment will contain your PsyNet installation alongside all the Python dependencies that go
+with it. Virtual environments are useful because they allow you to keep control of the precise Python package
+versions that are required by particular projects.
+
+Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
+make sure you are in the appropriate virtual environment. You do this by writing code like the following
+in your terminal:
+
+.. code-block:: bash
+
+   workon psynet
+
+where in this case ``psynet`` is the name of the virtual environment.
+One workflow is to have just one virtual environment for all of your PsyNet work, called ``psynet`` as above;
+another is to create a separate virtual environment for each experiment you are working on.
+
+To delete a pre-existing virtual environment, use the ``rmvirtualenv`` command like this:
+
+.. code-block:: bash
+
+   rmvirtualenv psynet
+
+To make another virtual environment, use the ``mkvirtualenv`` command like this:
+
+.. code-block:: bash
+
+   mkvirtualenv my-experiment --python $(which python3)
 
 Activate virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,7 +155,7 @@ Activate virtual environment
 Disable AirPlay
 ~~~~~~~~~~~~~~~
 
-macOS Monterey introduces 'AirPlay Receiver' functionality that clashes with the default ports used by Dallinger and PsyNet.
+macOS's 'AirPlay Receiver' functionality clashes with the default ports used by Dallinger and PsyNet.
 You should disable this functionality before proceeding. To achieve this, go to System Preferences, then Sharing,
 and then untick the box labeled 'Airplay Receiver'.
 
@@ -162,14 +165,12 @@ Dallinger
 Install Dallinger
 ~~~~~~~~~~~~~~~~~
 
-In the example below Dallinger is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
-
 .. note::
    Make sure you have activated your virtual environment by running `workon psynet`.
 
 .. code-block:: bash
 
-   cd ~
+   cd
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
    pip3 install -r dev-requirements.txt
@@ -189,40 +190,29 @@ PsyNet
 Install PsyNet
 ~~~~~~~~~~~~~~
 
-In the example below PsyNet is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
-
 .. note::
-   * Make sure you have added an SSH Public Key under your GitLab profile.
-   * Also, make sure you have activated your virtual environment by running `workon psynet`.
+   * Make sure you have activated your virtual environment by running `workon psynet`.
+
 
 .. code-block:: bash
 
-   cd ~
-   git clone git@gitlab.com:PsyNetDev/psynet
-   cd psynet
-   pip3 install --editable .
+   cd
+   git clone git@gitlab.com:PsyNetDev/PsyNet
+   cd PsyNet
 
-Legacy instructions for Big Sur 11.3/M1
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+By default Git will check out the latest version of the master branch.
+This is good if you are actively contributing code to PsyNet, but if you are instead just
+designing and deploying experiments you probably want to check out the latest release of PsyNet instead.
+To check out the latest PsyNet release, first go to PsyNet's
+`pyproject.toml <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file
+and look for the version number specified in the line beginning `version = `.
+Suppose this number is `10.4.0`; you can check out this version by writing ``git checkout v10.4.0``.
 
-Originally when macOS Big Sur came out, we experienced issues compiling some of PsyNet's dependencies.
-We found that we could resolve these issues by moving to the virtual environment manager `conda`.
-This fix no longer seems to be necessary, but for posterity we give our original instructions below,
-in case they are still useful to some people. By default, though, you should skip this section.
-
-In order to have PsyNet work with Big Sur 11.3 macOS with the M1 chip, we advise you use `conda` to download, install, and manage packages within your virtual environment. You can obtain this software by downloading `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ . You could also accomplish this with `Anaconda <https://www.anaconda.com/>`_, but this will download about 5 GB worth of software that is not needed to install PsyNet. Once you have installed Miniconda, you can then type the following commands into your Terminal:
+Finally, we can install PsyNet with the following:
 
 .. code-block:: bash
 
-   cd ~
-   git clone git@gitlab.com:PsyNetDev/psynet
-   cd psynet
-   conda create --name psynet python=3.10 # creates a virtual environment called psynet, respond yes to prompt
-   conda activate psynet
-   pip3 install --editable .
-   conda install psycopg2 # needs to be installed , respond yes to prompt
-
-Note that if you close your Terminal, you will need to ensure that you type `conda activate psynet` everytime you want to work on PsyNet. You can return to your base environment with `conda deactivate` while in the virtual environment.
+    pip3 install --editable .
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,13 +221,39 @@ Verify successful installation
 
    psynet --version
 
-As an *experiment author* you are now done with the installation and you can begin building experiments.
+If you are planning to use PsyNet just to design and run experiments,
+you are now done with the installation.
 
+Additional developer installation steps
+---------------------------------------
 
-As a *developer* who wants to work on `psynet`'s source code, however, please continue with the remaining installation steps below.
+If you are planning to contribute to PsyNet's source code,
+please continue with the remaining installation steps below.
 
-.. note::
-   Below instructions apply to *developers only*.
+Add your SSH key to GitLab
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to contribute code to PsyNet you will need to generate an SSH key
+(if you don't have one already) and upload it to GitLab.
+
+To generate an SSH key:
+
+.. code-block:: bash
+
+   ssh-keygen -b 4096 -t rsa
+
+Press Enter to save the key in the default location,
+and Enter again twice to create the key with no passphrase.
+
+Copy the SSH key to the clipboard by running this command:
+
+.. code-block:: bash
+
+   pbcopy < ~/.ssh/id_rsa.pub
+
+Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
+click 'Add new key', paste the key in the 'Key' box,
+remove the Expiration date if you think it's helpful, then click 'Add key'.
 
 Install ChromeDriver
 ~~~~~~~~~~~~~~~~~~~~
@@ -246,9 +262,19 @@ Needed for running the Selenium tests with headless Chrome.
 
 .. code-block:: bash
 
-   brew install wget
-   wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_mac64.zip --directory /tmp
-   sudo unzip /tmp/chromedriver_mac64.zip chromedriver -d /usr/local/bin/
+   brew install chromedriver
+
+By default chromedriver will be blocked by the MacOS security policy.
+To unblock it, first try to run it:
+
+.. code-block:: bash
+
+   chromedriver --version
+
+If you see an error message stating that Apple cannot check chromedriver for malicious software,
+you can disable it by going to System Settings, Privacy & Security,
+then looking for a line that says '"Chromedriver was blocked from use because it is not from an
+identified developer"'. Click 'Allow anyway', then try rerunning Chromedriver.
 
 Install additional Python packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
