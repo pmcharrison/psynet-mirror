@@ -1,5 +1,4 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
-import os
 
 from markupsafe import Markup
 
@@ -15,7 +14,7 @@ from psynet.trial.media_gibbs import (
     ImageGibbsTrial,
     ImageGibbsTrialMaker,
 )
-from psynet.utils import get_logger, linspace
+from psynet.utils import get_logger
 
 from . import custom_synth
 
@@ -24,11 +23,7 @@ logger = get_logger()
 # Custom parameters, change these as you like!
 TARGETS = ["positive", "energetic"]
 RGB_RANGE = [0, 255]
-VECTOR_RANGES = [
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE
-]
+VECTOR_RANGES = [RGB_RANGE, RGB_RANGE, RGB_RANGE]
 DIMENSIONS = len(VECTOR_RANGES)
 GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True

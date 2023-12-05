@@ -11,7 +11,15 @@ from markupsafe import Markup, escape
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
-from ..modular_page import MediaSliderControl, AudioSliderControl, ImageSliderControl, HtmlSliderControl, VideoSliderControl, ModularPage, EXTENSIONS
+from ..modular_page import (
+    EXTENSIONS,
+    AudioSliderControl,
+    HtmlSliderControl,
+    ImageSliderControl,
+    MediaSliderControl,
+    ModularPage,
+    VideoSliderControl,
+)
 from ..timeline import MediaSpec
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -216,7 +224,10 @@ class MediaGibbsTrial(GibbsTrial):
             raise ValueError(
                 "<snap_slider_before_release> can only equal <True> if <granularity> is an integer."
             )
-        if self.network.modality in ["image", "html"] and self.disable_slider_on_change == "while_playing":
+        if (
+            self.network.modality in ["image", "html"]
+            and self.disable_slider_on_change == "while_playing"
+        ):
             raise ValueError(
                 f"<disable_slider_on_change> cannot equal <'while_playing'> if the modality is {self.network.modality}."
             )
@@ -261,6 +272,7 @@ class MediaGibbsTrial(GibbsTrial):
     @property
     def vector_ranges(self):
         return self.node.vector_ranges
+
 
 class MediaGibbsNode(GibbsNode):
     """
@@ -399,6 +411,7 @@ class MediaGibbsNode(GibbsNode):
 class MediaGibbsTrialMaker(GibbsTrialMaker):
     pass
 
+
 class AudioGibbsNetwork(MediaGibbsNetwork):
     modality = "audio"
     pass
@@ -503,7 +516,7 @@ class ImageGibbsTrial(MediaGibbsTrial):
                 snap_values="media_locations" if self.snap_slider else None,
                 minimal_time=self.minimal_time,
                 minimal_interactions=self.minimal_interactions,
-                continuous_updates=self.continuous_updates
+                continuous_updates=self.continuous_updates,
             ),
             media=self.media,
             time_estimate=self.time_estimate,
@@ -518,7 +531,6 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
     @property
     def default_network_class(self):
         return ImageGibbsNetwork
-
 
 
 class HtmlGibbsNetwork(MediaGibbsNetwork):
@@ -564,7 +576,7 @@ class HtmlGibbsTrial(MediaGibbsTrial):
                 snap_values="media_locations" if self.snap_slider else None,
                 minimal_time=self.minimal_time,
                 minimal_interactions=self.minimal_interactions,
-                continuous_updates=self.continuous_updates
+                continuous_updates=self.continuous_updates,
             ),
             media=self.media,
             time_estimate=self.time_estimate,
@@ -579,6 +591,7 @@ class HtmlGibbsTrialMaker(MediaGibbsTrialMaker):
     @property
     def default_network_class(self):
         return HtmlGibbsNetwork
+
 
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
@@ -626,6 +639,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
 
 class VideoGibbsNode(MediaGibbsNode):
     pass
+
 
 class VideoGibbsTrialMaker(MediaGibbsTrialMaker):
     @property

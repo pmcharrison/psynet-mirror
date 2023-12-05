@@ -1,7 +1,5 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-from markupsafe import Markup
-
 import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
@@ -60,7 +58,7 @@ class CustomTrial(VideoGibbsTrial):
             "Adjust the slider so that the video is as "
             f"<strong>{self.context['target']}</strong> "
             "as possible.",
-            text_align = 'center'
+            text_align="center",
         )
 
 

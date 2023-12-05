@@ -1,19 +1,14 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
-import os
 
 from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.media_gibbs import (
-    HtmlGibbsNode,
-    HtmlGibbsTrial,
-    HtmlGibbsTrialMaker,
-)
+from psynet.trial.media_gibbs import HtmlGibbsNode, HtmlGibbsTrial, HtmlGibbsTrialMaker
 from psynet.utils import get_logger
 
 from . import custom_synth
@@ -23,17 +18,12 @@ logger = get_logger()
 # Custom parameters, change these as you like!
 TARGETS = ["positive", "energetic"]
 RGB_RANGE = [0, 255]
-VECTOR_RANGES = [
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE
-]
+VECTOR_RANGES = [RGB_RANGE, RGB_RANGE, RGB_RANGE]
 DIMENSIONS = len(VECTOR_RANGES)
 GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
 
 NUM_CHAINS_PER_EXPERIMENT = 2
@@ -93,7 +83,7 @@ trial_maker = HtmlGibbsTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "SVG Gibbs sampling demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(

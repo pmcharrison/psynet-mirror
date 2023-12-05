@@ -9,14 +9,15 @@ from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioPrompt,
     Control,
+    FrameSliderControl,
     ModularPage,
     Prompt,
     PushButtonControl,
     TimedPushButtonControl,
-    FrameSliderControl, VideoSliderControl,
+    VideoSliderControl,
 )
 from psynet.page import DebugResponsePage, SuccessfulEndPage
-from psynet.timeline import Timeline, MediaSpec
+from psynet.timeline import MediaSpec, Timeline
 from psynet.utils import NoArgumentProvided
 
 
@@ -50,16 +51,18 @@ class ColorText(Control):
         return "Hello, I am a bot!"
 
 
-media_spec = MediaSpec()
-media_spec.add("video",
-                {
-                    "slider_stimuli": {
-                        "url": '/static/video/video-slider.batch',
-                        "ids": [f"slider_stimulus_{x}" for x in range(25)],
-                        "type": "batch",
-                    }
-                },
-                )
+video_slider_media_spec = MediaSpec()
+video_slider_media_spec.add(
+    "video",
+    {
+        "slider_stimuli": {
+            "url": "/static/video/video-slider.batch",
+            "ids": [f"slider_stimulus_{x}" for x in range(25)],
+            "type": "batch",
+        }
+    },
+)
+
 
 class Exp(psynet.experiment.Experiment):
     label = "Modular page demo"
@@ -114,45 +117,48 @@ class Exp(psynet.experiment.Experiment):
         DebugResponsePage(),
         ModularPage(
             "video_slider",
-            prompt=Prompt("This is an example of a video slider page where every slider position is linked to a separate video.",
-                          text_align='center'),
+            prompt=Prompt(
+                "This is an example of a video slider page where every slider position is linked to a separate video.",
+                text_align="center",
+            ),
             control=VideoSliderControl(
                 start_value=random.sample(range(256), 1)[0],
                 min_value=0,
                 max_value=255,
                 slider_media={
-                    'slider_stimuli': {
-                        'url': '/static/video/video-slider.batch',
-                        'ids': [f"slider_stimulus_{x}" for x in range(25)],
-                        'type': 'batch'
+                    "slider_stimuli": {
+                        "url": "/static/video/video-slider.batch",
+                        "ids": [f"slider_stimulus_{x}" for x in range(25)],
+                        "type": "batch",
                     }
                 },
-                media_locations={ "slider_stimulus_0": 0.0,
-                                  "slider_stimulus_1": 10.625,
-                                  "slider_stimulus_2": 21.25,
-                                  "slider_stimulus_3": 31.875,
-                                  "slider_stimulus_4": 42.5,
-                                  "slider_stimulus_5": 53.125,
-                                  "slider_stimulus_6": 63.75,
-                                  "slider_stimulus_7": 74.375,
-                                  "slider_stimulus_8": 85.0,
-                                  "slider_stimulus_9": 95.625,
-                                  "slider_stimulus_10": 106.25,
-                                  "slider_stimulus_11": 116.875,
-                                  "slider_stimulus_12": 127.5,
-                                  "slider_stimulus_13": 138.125,
-                                  "slider_stimulus_14": 148.75,
-                                  "slider_stimulus_15": 159.375,
-                                  "slider_stimulus_16": 170.0,
-                                  "slider_stimulus_17": 180.625,
-                                  "slider_stimulus_18": 191.25,
-                                  "slider_stimulus_19": 201.875,
-                                  "slider_stimulus_20": 212.5,
-                                  "slider_stimulus_21": 223.125,
-                                  "slider_stimulus_22": 233.75,
-                                  "slider_stimulus_23": 244.375,
-                                  "slider_stimulus_24": 255.0,
-                                  },
+                media_locations={
+                    "slider_stimulus_0": 0.0,
+                    "slider_stimulus_1": 10.625,
+                    "slider_stimulus_2": 21.25,
+                    "slider_stimulus_3": 31.875,
+                    "slider_stimulus_4": 42.5,
+                    "slider_stimulus_5": 53.125,
+                    "slider_stimulus_6": 63.75,
+                    "slider_stimulus_7": 74.375,
+                    "slider_stimulus_8": 85.0,
+                    "slider_stimulus_9": 95.625,
+                    "slider_stimulus_10": 106.25,
+                    "slider_stimulus_11": 116.875,
+                    "slider_stimulus_12": 127.5,
+                    "slider_stimulus_13": 138.125,
+                    "slider_stimulus_14": 148.75,
+                    "slider_stimulus_15": 159.375,
+                    "slider_stimulus_16": 170.0,
+                    "slider_stimulus_17": 180.625,
+                    "slider_stimulus_18": 191.25,
+                    "slider_stimulus_19": 201.875,
+                    "slider_stimulus_20": 212.5,
+                    "slider_stimulus_21": 223.125,
+                    "slider_stimulus_22": 233.75,
+                    "slider_stimulus_23": 244.375,
+                    "slider_stimulus_24": 255.0,
+                },
                 # width="400px",
                 # height="400px",
                 autoplay=True,
@@ -167,7 +173,7 @@ class Exp(psynet.experiment.Experiment):
                 minimal_time=0,
                 minimal_interactions=1,
             ),
-            media=media_spec,
+            media=video_slider_media_spec,
             time_estimate=5,
         ),
         DebugResponsePage(),

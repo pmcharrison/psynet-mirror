@@ -367,7 +367,7 @@ class MediaSpec:
         if video is None:
             video = {}
 
-        self.data = {"audio": audio, "image": image, "html": html,  "video": video}
+        self.data = {"audio": audio, "image": image, "html": html, "video": video}
 
         for modality in self.data.values():
             for key, value in modality.items():

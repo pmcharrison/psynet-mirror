@@ -2099,7 +2099,12 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["wav", "mp3"], "image": ["jpg", "jpeg", "png", "gif", "svg"], "html": ["svg", "txt"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {
+    "audio": ["wav", "mp3"],
+    "image": ["jpg", "jpeg", "png", "gif", "svg"],
+    "html": ["svg", "txt"],
+    "video": ["mp4", "ogg"],
+}
 
 
 class MediaSliderControl(SliderControl):
@@ -2292,10 +2297,23 @@ class MediaSliderControl(SliderControl):
         self.js_vars["modality"] = modality
         self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
-        self.js_vars["disable_while_playing"] = True if (type(disable_slider_on_change) == int or type(
-            disable_slider_on_change) == float or disable_slider_on_change == "while_playing") else False
-        self.js_vars["disable_duration"] = disable_slider_on_change if (
-                type(disable_slider_on_change) == int or type(disable_slider_on_change) == float) else 0
+        self.js_vars["disable_while_playing"] = (
+            True
+            if (
+                type(disable_slider_on_change) is int
+                or type(disable_slider_on_change) is float
+                or disable_slider_on_change == "while_playing"
+            )
+            else False
+        )
+        self.js_vars["disable_duration"] = (
+            disable_slider_on_change
+            if (
+                type(disable_slider_on_change) is int
+                or type(disable_slider_on_change) is float
+            )
+            else 0
+        )
 
     macro = "media_slider"
 
@@ -2306,7 +2324,7 @@ class MediaSliderControl(SliderControl):
             "media_locations": self.media_locations,
             "modality": self.modality,
             "autoplay": self.autoplay,
-            "disable_slider_on_change": self.disable_slider_on_change
+            "disable_slider_on_change": self.disable_slider_on_change,
         }
 
 
@@ -2366,7 +2384,7 @@ class AudioSliderControl(MediaSliderControl):
         return {
             **super().metadata,
             "sound_locations": self.media_locations,
-            "autoplay": self.autoplay
+            "autoplay": self.autoplay,
         }
 
 
@@ -2511,7 +2529,7 @@ class ImageSliderControl(MediaSliderControl):
             min_value=min_value,
             max_value=max_value,
             slider_media=slider_media,
-            modality='image',
+            modality="image",
             media_locations=media_locations,
             autoplay=autoplay,
             disable_slider_on_change=disable_slider_on_change,
@@ -2541,6 +2559,7 @@ class ImageSliderControl(MediaSliderControl):
             "continuous_updates": self.continuous_updates,
             "prompt_above_media": self.prompt_above_media,
         }
+
 
 class HtmlSliderControl(MediaSliderControl):
     """
@@ -2683,7 +2702,7 @@ class HtmlSliderControl(MediaSliderControl):
             min_value=min_value,
             max_value=max_value,
             slider_media=slider_media,
-            modality='image',
+            modality="image",
             media_locations=media_locations,
             autoplay=autoplay,
             disable_slider_on_change=disable_slider_on_change,
@@ -2713,6 +2732,7 @@ class HtmlSliderControl(MediaSliderControl):
             "continuous_updates": self.continuous_updates,
             "prompt_above_media": self.prompt_above_media,
         }
+
 
 class VideoSliderControl(MediaSliderControl):
     """
@@ -2851,7 +2871,7 @@ class VideoSliderControl(MediaSliderControl):
             min_value=min_value,
             max_value=max_value,
             slider_media=slider_media,
-            modality='video',
+            modality="video",
             media_locations=media_locations,
             autoplay=autoplay,
             disable_slider_on_change=disable_slider_on_change,
