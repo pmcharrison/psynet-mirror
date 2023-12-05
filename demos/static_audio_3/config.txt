@@ -1,6 +1,6 @@
 [Config]
 title = Demo experiment (Chrome browser, XXX minutes to complete)
-description = This experiment requires you to XXX. Please use a Chrome browser in incognito mode. We use a dynamic payment scheme which means you get paid in proportion to how far you make it through the experiment. This payment will take the form of a small base payment supplemented by a time-dependent bonus payment. If you time out, don't worry, we will approve your experiment manually.
+description = This experiment requires you to XXX. Please use a Chrome browser in incognito mode. We keep track of how much money you earn as you progress through the experiment; this means that if the experiment has to end early (e.g. equipment problems) we know how much to pay you. This number will be displayed at the bottom of the screen during the experiment. If you finish the experiment but time out, don't worry, we will approve your experiment manually.
 contact_email_on_error = XXX@gmail.com
 organization_name = XXX
 
@@ -18,6 +18,7 @@ auto_recruit = false
 # with bonus for time spent on the task.
 prolific_estimated_completion_minutes = 2
 # 10 dollars an hour -> 16.666666667 cents per minutes
+base_payment = 0.34
 
 [Lucid]
 # When recruiting with Lucid below settings need to be applied,
@@ -26,4 +27,4 @@ prolific_estimated_completion_minutes = 2
 # recruiter = lucid
 # debug_recruiter = DevLucidRecruiter
 # lucid_recruitment_config = file:./lucid_recruitment_config.json
-# show_bonus = false
+# show_reward = false
