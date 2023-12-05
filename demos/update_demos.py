@@ -87,12 +87,14 @@ def update_scripts(dir):
 
 
 # Update PsyNet Docker image version
-with fileinput.FileInput(
-    "psynet/resources/experiment_scripts/Dockerfile", inplace=True
-) as file:
-    version = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
-    for line in file:
-        print(re.sub(version, f"psynet:v{__version__}", line), end="")
+for path in [
+    "psynet/resources/experiment_scripts/Dockerfile",
+    "psynet/resources/experiment_scripts/docker/generate-constraints",
+]:
+    with fileinput.FileInput(path, inplace=True) as file:
+        version_tag = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        for line in file:
+            print(re.sub(version_tag, f"psynet:v{__version__}", line), end="")
 
 # Update demos
 n_jobs = 8
