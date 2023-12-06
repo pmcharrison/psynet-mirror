@@ -28,9 +28,7 @@
           dallinger.submitAssignment();
         }
         {% if experiment.with_lucid_recruitment() %}
-            setTimeout(() => {
-              finish();
-            }, 2000)
+            finish();
         {% endif %}
 </script>
 {% endblock %}
