@@ -26,6 +26,9 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
+CHAINS_PER_PARTICIPANT = 2
+SHAPES = ["Figure 8", "Circle", "Triangle", "Square"]
+
 
 class CustomVideoRecordControl(VideoRecordControl):
     def __init__(self, **kwargs):
@@ -59,7 +62,7 @@ class CustomTrial(CameraImitationChainTrial):
 
     def show_trial(self, experiment, participant):
         if self.degree == 0:
-            instruction = f"Please trace out a {self.origin.seed} in the air \
+            instruction = f"Please trace out a {self.definition} in the air \
                             for the camera using your hands or fingers."
             return ModularPage(
                 "webcam_recording",
@@ -115,10 +118,6 @@ class CustomTrial(CameraImitationChainTrial):
 
 
 class CustomNode(CameraImitationChainNode):
-    def create_initial_seed(self, experiment, participant):
-        possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
-        return random.choice(possibilities)
-
     def summarize_trials(self, trials, experiment, participant):
         assert len(trials) == 1
         trial = trials[0]
@@ -159,11 +158,14 @@ class Exp(psynet.experiment.Experiment):
             id_="video-chain",
             trial_class=CustomTrial,
             node_class=CustomNode,
+            start_nodes=lambda participant: [
+                CustomNode(definition=shape) for shape in random.choices(SHAPES, k=2)
+            ],
             chain_type="within",
             expected_trials_per_participant=8,
             max_nodes_per_chain=4,
             chains_per_experiment=None,
-            chains_per_participant=2,
+            chains_per_participant=CHAINS_PER_PARTICIPANT,
             trials_per_node=1,
             balance_across_chains=False,
             recruit_mode="n_participants",
