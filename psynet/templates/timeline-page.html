@@ -681,8 +681,13 @@
                         blobs: {}
                     },
                     enable: () => $(".response").removeAttr("disabled"),
-                    disable: () => $(".response").attr("disabled", "disabled")
+                    disable: () => $(".response").attr("disabled", "disabled"),
+                    getAnswer: null,
+                    getMetadata: null,
+                    getBlobs: null
                 };
+
+                psynet.stageResponse = null;
 
                 psynet.trial.onEvent("responseEnable", psynet.response.enable);
                 psynet.trial.onEvent("submitEnable", psynet.submit.enable);
@@ -1322,6 +1327,15 @@
                 psynet.processingResponse = false;
 
                 psynet.submitResponse = async function (onRejection) {
+                    if (psynet.response.getAnswer) {
+                        psynet.response.staged.rawAnswer = psynet.response.getAnswer();
+                    }
+                    if (psynet.response.getMetadata) {
+                        psynet.response.staged.metadata = psynet.response.getMetadata();
+                    }
+                    if (psynet.response.getBlobs) {
+                        psynet.response.staged.blobs = psynet.response.getBlobs();
+                    }
                     if (psynet.stageResponse) {
                         psynet.stageResponse();
                     }
