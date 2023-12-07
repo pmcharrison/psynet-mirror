@@ -1397,7 +1397,7 @@
                             window.location = "/timeline?unique_id=" + psynet.uniqueId;
                         } else {
                             psynet.page = response.page;
-                            psynet.registerEvent("pageUpdated");
+                            psynet.trial.registerEvent("pageUpdated");
                         }
                         passedValidation = true;
                     } else if (response.submission === "rejected") {
