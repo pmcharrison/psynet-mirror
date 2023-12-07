@@ -15,13 +15,13 @@
             {% set REWARD = "%.2f"|format(reward) %}
             {% set REWARD_MIN_BASE_PAYMENT = "%.2f"|format(reward_min_base_payment) %}
             {% if experiment.with_recruiter("hotair") %}
-                {% if reward_min_base_payment >= min_accumulated_reward_for_abort %}
+                {% if reward >= min_accumulated_reward_for_abort %}
                     {% trans name="reward_participant_hotair_success" %}You earned a total payment of <b>{{CURRENCY}}{{REWARD_MIN_BASE_PAYMENT}}</b>.{% endtrans %}
                 {% else %}
                     {{ pgettext("reward_participant_hotair_fail", "You did not complete enough of the experiment to receive a payment, sorry.") }}
                 {% endif %}
             {% elif experiment.with_recruiter("mturk") %}
-                {% if reward_min_base_payment >= min_accumulated_reward_for_abort %}
+                {% if reward >= min_accumulated_reward_for_abort %}
                     {% trans name="reward_participant_mturk_success_1" %}When you press <b>Next</b>, your submission will be approved. You will receive a total payment of <b>{{CURRENCY}}{{REWARD_MIN_BASE_PAYMENT}}</b>.{% endtrans %}
                     {% if bonus > 0 %}
                         {% trans name="reward_participant_mturk_success_2" %}It will be paid as a base payment of <b>{{CURRENCY}}{{BASE_PAYMENT}}</b> and a bonus of <b>{{CURRENCY}}{{BONUS}}</b>.{% endtrans %}
