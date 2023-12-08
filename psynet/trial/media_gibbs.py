@@ -127,6 +127,12 @@ class MediaGibbsTrial(GibbsTrial):
         If ``False`` (default), the sound only plays once the participant
         first moves the slider.
 
+    disable_while_playing : bool
+        If `True`, the slider is disabled while the media is playing. Default: `False`.
+
+        .. deprecated:: 11.0.0
+        Use ``disable_slider_on_change`` instead.
+
     disable_slider_on_change:
         - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
 
@@ -167,6 +173,7 @@ class MediaGibbsTrial(GibbsTrial):
     snap_slider = False
     snap_slider_before_release = False
     autoplay = False
+    disable_while_playing = False
     disable_slider_on_change = "never"
     minimal_interactions = 3
     minimal_time = 3.0
@@ -191,6 +198,7 @@ class MediaGibbsTrial(GibbsTrial):
                 modality=self.network.modality,
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
                 disable_slider_on_change=self.disable_slider_on_change,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
@@ -435,6 +443,7 @@ class AudioGibbsTrial(MediaGibbsTrial):
                 audio=self.media.audio,
                 sound_locations=self.media_locations,
                 autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
                 disable_slider_on_change=self.disable_slider_on_change,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
@@ -616,6 +625,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
                 slider_media=self.media.data[self.network.modality],
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
                 disable_slider_on_change=self.disable_slider_on_change,
                 prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,

@@ -3,6 +3,7 @@ import json
 import random
 import shutil
 import tempfile
+import warnings
 from typing import Dict, List, Optional, Union
 
 from dominate import tags
@@ -2153,6 +2154,12 @@ class MediaSliderControl(SliderControl):
     autoplay:
         The media closest to the current slider position is shown once the page is loaded. Default: `False`.
 
+    disable_while_playing : bool
+        If `True`, the slider is disabled while the media is playing. Default: `False`.
+
+        .. deprecated:: 11.0.0
+        Use ``disable_slider_on_change`` instead.
+
     disable_slider_on_change:
         - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
 
@@ -2224,6 +2231,7 @@ class MediaSliderControl(SliderControl):
         modality: str,
         media_locations: dict,
         autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
         disable_slider_on_change: Optional[Union[float, str]] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
@@ -2273,6 +2281,12 @@ class MediaSliderControl(SliderControl):
                 "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
             )
 
+        if disable_while_playing is True:
+            warnings.warn(
+                "disable_while_playing is deprecated, please migrate to disable_slider_on_change.",
+                DeprecationWarning,
+            )
+
         super().__init__(
             start_value=start_value,
             min_value=min_value,
@@ -2291,6 +2305,7 @@ class MediaSliderControl(SliderControl):
         self.media_locations = media_locations
         self.modality = modality
         self.autoplay = autoplay
+        self.disable_while_playing = disable_while_playing
         self.disable_slider_on_change = disable_slider_on_change
         self.snap_values = snap_values
         self.slider_media = slider_media
@@ -2300,7 +2315,8 @@ class MediaSliderControl(SliderControl):
         self.js_vars["disable_while_playing"] = (
             True
             if (
-                type(disable_slider_on_change) is int
+                disable_while_playing is True
+                or type(disable_slider_on_change) is int
                 or type(disable_slider_on_change) is float
                 or disable_slider_on_change == "while_playing"
             )
@@ -2324,6 +2340,7 @@ class MediaSliderControl(SliderControl):
             "media_locations": self.media_locations,
             "modality": self.modality,
             "autoplay": self.autoplay,
+            "disable_while_playing": self.disable_while_playing,
             "disable_slider_on_change": self.disable_slider_on_change,
         }
 
@@ -2341,6 +2358,7 @@ class AudioSliderControl(MediaSliderControl):
         audio: dict,
         sound_locations: dict,
         autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
         disable_slider_on_change: Optional[Union[float, str]] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
@@ -2365,6 +2383,7 @@ class AudioSliderControl(MediaSliderControl):
             modality="audio",
             media_locations=sound_locations,
             autoplay=autoplay,
+            disable_while_playing=disable_while_playing,
             disable_slider_on_change=disable_slider_on_change,
             n_steps=n_steps,
             slider_id=slider_id,
@@ -2777,6 +2796,12 @@ class VideoSliderControl(MediaSliderControl):
     autoplay:
         The media closest to the current slider position is shown once the page is loaded. Default: `False`.
 
+    disable_while_playing : bool
+        If `True`, the slider is disabled while the media is playing. Default: `False`.
+
+        .. deprecated:: 11.0.0
+        Use ``disable_slider_on_change`` instead.
+
     disable_slider_on_change:
         - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
 
@@ -2852,6 +2877,7 @@ class VideoSliderControl(MediaSliderControl):
         slider_media: dict,
         media_locations: dict,
         autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
         disable_slider_on_change: Optional[Union[float, str]] = "never",
         prompt_above_media: Optional[bool] = False,
         media_width: Optional[str] = "",
@@ -2874,6 +2900,7 @@ class VideoSliderControl(MediaSliderControl):
             modality="video",
             media_locations=media_locations,
             autoplay=autoplay,
+            disable_while_playing=disable_while_playing,
             disable_slider_on_change=disable_slider_on_change,
             n_steps=n_steps,
             slider_id=slider_id,
