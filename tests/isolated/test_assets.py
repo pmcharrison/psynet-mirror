@@ -5,7 +5,7 @@ import pytest
 from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
-from psynet.asset import CachedFunctionAsset, DebugStorage, ExperimentAsset
+from psynet.asset import CachedFunctionAsset, ExperimentAsset, LocalStorage
 from psynet.pytest_psynet import path_to_demo
 
 
@@ -19,7 +19,7 @@ class MultiplyAsset(ExperimentAsset):
 @pytest.fixture
 def debug_storage(in_experiment_directory):
     with tempfile.TemporaryDirectory() as tempdir:
-        yield DebugStorage(tempdir)
+        yield LocalStorage(tempdir)
 
 
 @pytest.fixture

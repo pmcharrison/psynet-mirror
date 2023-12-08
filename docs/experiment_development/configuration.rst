@@ -240,6 +240,7 @@ General
     or ``multi``.
 
     .. note::
+
         When running in debug mode, the HotAir recruiter (``hotair``) will
         always be used. The exception is if the ``--bots`` option is passed to
         ``psynet debug``, in which case the BotRecruiter will be used instead.
@@ -384,12 +385,6 @@ Prolific
 ``prolific_estimated_completion_minutes`` *int* |dlgr-icon|
     Estimated duration in minutes of the experiment or survey.
 
-``prolific_maximum_allowed_minutes`` *int* |dlgr-icon|
-    Max time in minutes for a participant to finish the submission.
-    Submissions are timed out if it takes longer, so make sure it is not too low.
-    The default is 3 times the ``prolific_estimated_completion_minutes``, plus two
-    minutes.
-
 ``prolific_recruitment_config`` *unicode - JSON formatted* |dlgr-icon|
     JSON data to add additional recruitment parameters.
     Since some recruitment parameters are complex and are defined with relatively complex
@@ -444,15 +439,15 @@ Prolific
     .. _json-config-disclaimer:
 
     .. caution::
+
         While it is technically possible to specify other recruitment values this way
         (for example, ``{"title": "My Experiment Title"}``), we recommend that you stick to the standard
         ``key = value`` format of ``config.txt`` whenever possible, and leave ``prolific_recruitment_config``
         for complex requirements which can't be configured in this simpler way.
 
-``prolific_reward_cents`` *int* |dlgr-icon|
-    Base compensation to pay your participants, in cents
+.. note::
 
-    Prolific will use the currency of your researcher account, and convert automatically
+    Prolific will use the currency of your researcher account and convert automatically
     to the participant's currency.
 
 

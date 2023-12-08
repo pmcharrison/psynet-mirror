@@ -1382,6 +1382,9 @@
                 psynet.processingResponse = false;
 
                 psynet.submitResponse = async function (onRejection) {
+                    if (psynet.stageResponse) {
+                        psynet.stageResponse();
+                    }
                     if (typeof retrieveResponse == "undefined") {
                         await psynet.nextPage();
                     } else {
@@ -1454,7 +1457,7 @@
                             window.location = "/timeline?unique_id=" + psynet.uniqueId;
                         } else {
                             psynet.page = response.page;
-                            psynet.registerEvent("pageUpdated");
+                            psynet.trial.registerEvent("pageUpdated");
                         }
                         passedValidation = true;
                     } else if (response.submission === "rejected") {

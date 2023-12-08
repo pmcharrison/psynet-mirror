@@ -6,7 +6,7 @@ from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.bot import Bot
 from psynet.consent import CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -30,7 +30,6 @@ GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 NUM_ITERATIONS_PER_CHAIN = (
     2  # In a real experiment we'd make this something like DIMENSIONS * 2
 )
@@ -105,7 +104,7 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio Gibbs sampling demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(

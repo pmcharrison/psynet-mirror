@@ -211,6 +211,10 @@ class WaitPage(Page):
     def get_bot_response(self, experiment, bot):
         return None
 
+    def on_complete(self, experiment, participant):
+        participant.total_wait_page_time += self.wait_time
+        super().on_complete(experiment, participant)
+
 
 def wait_while(
     condition,
@@ -278,9 +282,13 @@ def wait_while(
     else:
         logic = join(CodeBlock(log), _wait_page)
 
+    label = "wait_while"
+    if log_message:
+        label += log_message
+
     return join(
         while_loop(
-            "wait_while",
+            label,
             condition,
             logic=logic,
             expected_repetitions=expected_repetitions,

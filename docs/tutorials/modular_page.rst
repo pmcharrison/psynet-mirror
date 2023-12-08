@@ -21,6 +21,12 @@ The following subclasses of :class:`~psynet.modular_page.Prompt` exist:
 
 * :class:`~psynet.modular_page.ColorPrompt`
 
+* :class:`~psynet.modular_page.VideoPrompt`
+
+* :class:`~psynet.graphic.GraphicPrompt`
+
+
+
 Controls
 --------
 
@@ -79,6 +85,8 @@ Audio/Video controls
 .. image:: ../_static/images/video_slider_control.png
   :width: 580
   :alt: VideoSliderControl
+
+* :class:`~psynet.graphic.GraphicControl`
 
 Option controls
 ~~~~~~~~~~~~~~~
@@ -142,6 +150,8 @@ Other controls
 .. image:: ../_static/images/text_control.png
   :width: 800
   :alt: TextControl
+
+* :class:`~psynet.modular_page.SurveyJSControl`
 
 
 API
