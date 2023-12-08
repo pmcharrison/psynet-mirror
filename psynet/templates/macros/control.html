@@ -368,7 +368,7 @@
 
 {% macro image_media_slider(params) %}
     <style>
-        #slider-stimulus-show {
+        #slider-current-stimulus {
             min-width: {{ params.media_width }};
             min-height: {{ params.media_height }};
         }
@@ -396,7 +396,7 @@
         {% endif %}
 
         const show = document.createElement("img");
-        show.id = 'slider-stimulus-show';
+        show.id = 'slider-current-stimulus';
         show.style.display = 'none'
         mediaDiv.prepend(show);
 
@@ -428,7 +428,7 @@
 
 {% macro html_media_slider(params) %}
     <style>
-        #slider-stimulus-show {
+        #slider-current-stimulus {
             min-width: {{ params.media_width }};
             min-height: {{ params.media_height }};
         }
@@ -456,7 +456,7 @@
         {% endif %}
 
         const show = document.createElement("div");
-        show.id = 'slider-stimulus-show';
+        show.id = 'slider-current-stimulus';
         mediaDiv.prepend(show);
 
         playMedia = function () {
@@ -465,7 +465,7 @@
 
             disableSlider();
             psynet.log.debug('Showing HTML with ID = ' + id);
-            var show = document.getElementById('slider-stimulus-show');
+            var show = document.getElementById('slider-current-stimulus');
             // get image, parse source text, and insert text into html
             show.innerHTML = html.player.innerHTML;
             show.style.margin='auto'
