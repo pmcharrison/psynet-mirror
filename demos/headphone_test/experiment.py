@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 import psynet.experiment
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage, VolumeCalibration
@@ -11,7 +11,7 @@ from psynet.timeline import Timeline
 
 class Exp(psynet.experiment.Experiment):
     label = "Headphone test demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),
@@ -23,10 +23,9 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 2
 
-    def test_run_bots(self, bots):
-        bots[0].var.is_good_bot = True
-        bots[1].var.is_good_bot = False
-        super().test_run_bots(bots)
+    def run_bot(self, bot):
+        bot.var.is_good_bot = bot.id == 1
+        super().run_bot(bot)
 
     def test_check_bot(self, bot: Bot, **kwargs):
         from psynet.prescreen import AntiphaseHeadphoneTrial, HugginsHeadphoneTrial

@@ -3,7 +3,7 @@ import numpy as np
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
@@ -48,7 +48,6 @@ GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 AUDIO_DURATION = 0.75
 
 RATE_MODE = "select"  # 'rate' or 'select'
@@ -239,7 +238,7 @@ def make_trial_maker(rate_mode):
 
 class Exp(psynet.experiment.Experiment):
     label = "Robot Voice demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(

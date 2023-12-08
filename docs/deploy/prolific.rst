@@ -60,18 +60,12 @@ as expressed in your fundamental currency unit.
 
 In practice PsyNet pays participants through a combination of base payment and bonus.
 The base payment is fixed, and is ideally small.
-It is set via the config parameter ``prolific_reward_cents``.
+It is set via the config parameter ``base_payment``.
 The bonus is dynamic, and increases
 depending on how far the participant makes it through the experiment.
 The value of this progress-related bonus is determined by multiplying the ``time_estimate``
 for the part for the experiment they completed by the ``wage_per_hour`` (converting from seconds to hours as required).
 The bonus may also include a portion corresponding to performance rewards.
-
-.. warning::
-
-    Set the Prolific base payment via the ``prolific_reward_cents`` parameter,
-    not the ``base_payment`` parameter! The latter currently only applies to the
-    Mechanical Turk Recruiter, due to an oversight in Dallinger. We hope to fix this soon.
 
 PsyNet therefore pays people primarily through the bonus mechanism. This is at odds to how
 Prolific is currently designed, in that Prolific assumes that the primary payment will come from the
@@ -131,7 +125,7 @@ In summary, your config.txt might look something like this:
     recruiter = prolific
     auto_recruit = false
     wage_per_hour = 10
-    prolific_reward_cents = 50
+    base_payment = 0.5
     prolific_estimated_completion_minutes = 3
 
 

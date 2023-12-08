@@ -909,6 +909,9 @@ class Page(Elt):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
+    def on_complete(self, experiment, participant):
+        pass
+
     @log_time_taken
     def process_response(
         self,
@@ -981,6 +984,8 @@ class Page(Elt):
         participant.browser_platform = metadata.get(
             "platform", "Browser platform info could not be retrieved."
         )
+
+        self.on_complete(experiment=experiment, participant=participant)
 
         db.session.commit()
         return resp
@@ -1143,6 +1148,7 @@ class Page(Elt):
             **self.template_arg,
             "init_js_vars": Markup(dict_to_js_vars(js_vars)),
             "js_vars": js_vars,
+            "page": self,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "time_reward": "%.2f" % participant.time_credit.get_time_reward(),

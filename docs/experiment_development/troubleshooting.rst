@@ -6,6 +6,51 @@ Troubleshooting
 ===============
 
 
+Docker unauthorized
+^^^^^^^^^^^^^^^^^^^
+
+Suppose you see an error message like this when trying to run an experiment using Docker:
+
+.. code:: bash
+
+     => ERROR [internal] load metadata for registry.gitlab.com/psynetdev/psynet:v10.4.0
+     => [auth] psynetdev/psynet:pull token for registry.gitlab.com
+    ------
+     > [internal] load metadata for registry.gitlab.com/psynetdev/psynet:v10.4.0:
+    ------
+    Dockerfile:1
+    --------------------
+       1 | >>> # syntax = docker/dockerfile:1.2
+       2 |     #
+       3 |     # Note - the syntax of this Dockerfile differs in several ways from the sample Dockerfile
+    --------------------
+    ERROR: failed to solve: failed to authorize: failed to fetch oauth token: unexpected status: 401 Unauthorized
+
+This normally means you have out-of-date credentials in your Docker client. Try running the following:
+
+.. code:: bash
+    
+    docker login registry.gitlab.com
+
+
+Docker no space left on device
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Docker unauthorized
+^^^^^^^^^^^^^^^^^^^
+
+Suppose you see an error message like this when trying to run an experiment using Docker:
+
+.. code:: bash
+
+    ERROR: failed to solve: failed to copy: write /var/lib/docker/buildkit/content/ingest/ae8153b11f4d4f00d8b937b5de83ad657bae8a815251f89f9476de4147382577/data: no space left on device
+
+This means too many old Docker images have accumulated on your system. This can be fixed by running the following command:
+    
+.. code:: bash
+
+    docker system prune
+
 Database connection refused
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -89,3 +134,44 @@ and you are using MacOS, then you may be able to fix your problem by running the
 .. code:: bash
 
     brew services restart redis
+
+
+Postgres stops working after a Homebrew upgrade
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+If you find that Postgres stops working after upgrading via Homebrew,
+you might need to delete your local Postgres files and try again.
+This can be done as follows
+(these instructions are from `Moncef Belyamani's tutorial <https://www.moncefbelyamani.com/how-to-upgrade-postgresql-with-homebrew/>`_):
+
+.. code-block:: bash
+
+   brew remove --force postgresql
+
+Or if you had previously a versioned form of Postgres, for example Postgres 14:
+
+.. code-block:: bash
+
+   brew remove --force postgresql@14
+
+Delete the Postgres folders:
+
+.. code-block:: bash
+
+   rm -rf /usr/local/var/postgres/
+   rm -rf /usr/local/var/postgresql@14/
+
+Or if you're on an Apple Silicon Mac:
+
+.. code-block:: bash
+
+   rm -rf /opt/homebrew/var/postgres
+   rm -rf /opt/homebrew/var/postgresql@14
+
+Finally you can reinstall Postgres:
+
+.. code-block:: bash
+
+   brew install postgresql@14
+   brew services start postgresql@14

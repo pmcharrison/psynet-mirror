@@ -15,11 +15,9 @@ In particular, deploying experiments from a local Docker installation is not ver
 and may not work out-of-the box for all machines. We're keen to hear your experiences though as they will
 help us to resolve these issues.
 
-A second issue is that running code in Docker can be slower than running it natively. In particular, we are aware
-that Dockerized PsyNet runs rather slowly on Apple Silicon (M1/M2) Macs, due to the need for these platforms
-to emulate Intel processing. If you experience problems on such hardware, you should consider following the
-alternative installation approach. Docker also incurs additional RAM overhead, so you might want to avoid it
-if your computer doesn't have much RAM.
+A second issue is that running code in Docker can be slower than running it natively.
+This is partly because Docker incurs an extra resource overhead (becaues it is virtualizing an additional operating system)
+and partly because building images can be time-consuming, especially with a slow internet connection.
 
 An alternative approach is to use the so-called **developer** route. This involves installing various
 related services (e.g. Heroku, Redis, Postgres), which makes the installation process relatively involved.

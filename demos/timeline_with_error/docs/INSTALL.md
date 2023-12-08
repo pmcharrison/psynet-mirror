@@ -64,6 +64,11 @@ If you do see such a tab, do the following:
 
 3. Tick the box that says 'Allow privileged port mapping'.
 
+If you are on a Mac that uses Apple Silicon (i.e. most new Macs since 2021...?)
+then you should go to the General tab and tick the box that says
+'Use Rosetta for x86/amd64 emulation on Apple Silicon'.
+If you don't tick this box PsyNet will run very slowly.
+
 
 ### Installing PyCharm
 

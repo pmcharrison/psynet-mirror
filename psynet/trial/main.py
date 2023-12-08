@@ -353,6 +353,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def fail(self, reason=None):
         if not self.failed:
+            logger.info(f"Failing trial (id: {self.id}, reason: {reason})")
             super().fail(reason=reason)
 
     @property
@@ -1881,6 +1882,10 @@ class TrialMaker(Module):
                 f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
             )
 
+    @classmethod
+    def extra_files(cls):
+        return []
+
 
 class NetworkTrialMakerState(TrialMakerState):
     pass
@@ -2584,6 +2589,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     def fail(self, reason=None):
         if not self.failed:
+            logger.info(f"Failing network (id: {self.id}, reason: {reason})")
             super().fail(reason=reason)
 
     # vars = Column(PythonObject)
@@ -2800,6 +2806,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     def fail(self, reason=None):
         if not self.failed:
+            logger.info(f"Failing trial node (id: {self.id}, reason: {reason})")
             super().fail(reason=reason)
 
     def add_default_network(self):
