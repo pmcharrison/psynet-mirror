@@ -40,13 +40,16 @@ class CustomTrial(HtmlGibbsTrial):
     time_estimate = 5.0
     prompt_above_media = False
     continuous_updates = False
-    disable_slider_on_change = 6.0
+    disable_slider_on_change = 5.0
 
     def get_prompt(self, experiment, participant):
         return Markup(
             "<center>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible.</center>"
+            "as possible.</center></br>"
+            "In each trial of this experiment, you use the slider to choose between different dynamic svg images. "
+            "In this case, every svg image contains a colored square changing into white and going back to its original color over a duration of five seconds."
+            "The slider is disabled for five seconds when the slider value is changed. For the next button to be activated, twelve seconds need to be passed and minimally one interaction with the slider is required. "
         )
 
 

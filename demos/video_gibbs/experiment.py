@@ -49,6 +49,7 @@ class CustomTrial(VideoGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
+    minimal_interactions = 3
     minimal_time = 3.0
     time_estimate = 5.0
     disable_slider_on_change = "while_playing"
@@ -57,7 +58,11 @@ class CustomTrial(VideoGibbsTrial):
         return Prompt(
             "Adjust the slider so that the video is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible.",
+            "as possible.</br></br>"
+            "In each trial of this experiment, you use the slider to choose between different videoclips. "
+            "In this case, every video contains an alternation between two colored squares. Each of the squares is presented twice. "
+            "How long each of the colored squares is presented is also varying."
+            "The slider is disabled as long as a video is playing. The next button is activated the earliest after three seconds and minimally three interactions with the slider are required.",
             text_align="center",
         )
 

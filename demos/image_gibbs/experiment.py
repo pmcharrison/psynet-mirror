@@ -41,7 +41,7 @@ class CustomTrial(ImageGibbsTrial):
     autoplay = AUTOPLAY
     debug = DEBUG
     minimal_time = 3.0
-    minimal_interactions = 0
+    minimal_interactions = 1
     time_estimate = 5.0
     continuous_updates = True
     disable_slider_on_change = "never"
@@ -52,7 +52,10 @@ class CustomTrial(ImageGibbsTrial):
         return Markup(
             "<center>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible.</center>"
+            "as possible.</center></br>"
+            "In each trial of this experiment, you use the slider to choose between different images. "
+            "In this case, every image contains a colored square."
+            "The slider is never disabled and the image is continuously updated on a slider change. For the next button to be activated, three seconds need to be passed and minimally one interaction with the slider is required. "
         )
 
 
