@@ -355,10 +355,8 @@
 
         onSliderEvent = function (eventType) {
             slider.media = findClosestMedia(slider);
-            if (eventType == "initialise") {
-                if (autoplay) {
-                    playMedia();
-                }
+            if (eventType == "initialise" && autoplay) {
+                playMedia();
             } else if (eventType == "sliderChanged") {
                 playMedia();
             }
@@ -418,10 +416,8 @@
 
         onSliderEvent = function (eventType) {
             slider.media = findClosestMedia(slider);
-            if (eventType == "initialise") {
-                if (autoplay) {
-                    playMedia();
-                }
+            if (eventType == "initialise" && autoplay) {
+                playMedia();
             } else if (eventType == "sliderChanged") {
                 playMedia();
             }
@@ -468,7 +464,7 @@
             var html = psynet.html[id];
 
             disableSlider();
-            psynet.log.debug('Showing html with ID = ' + id);
+            psynet.log.debug('Showing HTML with ID = ' + id);
             var show = document.getElementById('slider-stimulus-show');
             // get image, parse source text, and insert text into html
             show.innerHTML = html.player.innerHTML;
@@ -479,10 +475,8 @@
 
         onSliderEvent = function (eventType) {
             slider.media = findClosestMedia(slider);
-            if (eventType == "initialise") {
-                if (autoplay) {
-                    playMedia();
-                }
+            if (eventType == "initialise" && autoplay) {
+                playMedia();
             } else if (eventType == "sliderChanged") {
                 playMedia();
             }
@@ -547,10 +541,8 @@
 
         onSliderEvent = function (eventType) {
             slider.media = findClosestMedia(slider);
-            if (eventType == "initialise") {
-                if (autoplay) {
-                    playMedia();
-                }
+            if (eventType == "initialise" && autoplay) {
+                playMedia();
             } else if (eventType == "sliderChanged") {
                 playMedia();
             }
