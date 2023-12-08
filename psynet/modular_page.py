@@ -2617,10 +2617,10 @@ class HtmlSliderControl(MediaSliderControl):
         If `True`, the prompt is displayed above the image. Default: `False`.
 
     media_width:
-        CSS width specification for the html container.
+        CSS width specification for the HTML container.
 
     media_height:
-        CSS height specification for the html container.
+        CSS height specification for the HTML container.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider

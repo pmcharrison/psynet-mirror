@@ -1153,7 +1153,7 @@
                         );
                         const uint8arr = new Uint8Array(data)
                         var dec = new TextDecoder()
-                        player.innerHTML = dec.decode(uint8arr).toLowerCase().replace(' ', '');
+                        player.innerHTML = dec.decode(uint8arr);
                      }
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.player = player;

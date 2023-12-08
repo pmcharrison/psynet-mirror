@@ -335,7 +335,7 @@ class MediaSpec:
             }
 
     html: dict
-        An analogously structured dictionary of html stimuli (e.g., svg stimuli).
+        An analogously structured dictionary of HTML stimuli (e.g., SVG stimuli).
 
     image: dict
         An analogously structured dictionary of image stimuli.

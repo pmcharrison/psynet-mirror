@@ -47,8 +47,8 @@ class CustomTrial(HtmlGibbsTrial):
             "<center>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
             "as possible.</center></br>"
-            "In each trial of this experiment, you use the slider to choose between different dynamic svg images. "
-            "In this case, every svg image contains a colored square changing into white and going back to its original color over a duration of five seconds."
+            "In each trial of this experiment, you use the slider to choose between different dynamic SVG images. "
+            "In this case, every SVG image contains a colored square changing into white and going back to its original color over a duration of five seconds."
             "The slider is disabled for five seconds when the slider value is changed. For the next button to be activated, twelve seconds need to be passed and minimally one interaction with the slider is required. "
         )
 

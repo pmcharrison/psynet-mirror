@@ -475,7 +475,6 @@ class AudioGibbsTrialMaker(MediaGibbsTrialMaker):
 
 class ImageGibbsNetwork(MediaGibbsNetwork):
     modality = "image"
-    pass
 
 
 class ImageGibbsTrial(MediaGibbsTrial):
@@ -535,7 +534,6 @@ class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
 
 class HtmlGibbsNetwork(MediaGibbsNetwork):
     modality = "html"
-    pass
 
 
 class HtmlGibbsTrial(MediaGibbsTrial):
@@ -595,7 +593,6 @@ class HtmlGibbsTrialMaker(MediaGibbsTrialMaker):
 
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
-    pass
 
 
 class VideoGibbsTrial(MediaGibbsTrial):
