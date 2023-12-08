@@ -95,6 +95,9 @@ class Prompt:
         text_align: str = "left",
         buttons: Optional[List] = None,
     ):
+        if isinstance(text, str):
+            text = tags.p(text)
+
         self.text = text
         self.text_align = text_align
 
