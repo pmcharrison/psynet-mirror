@@ -95,11 +95,13 @@ class Prompt:
         text_align: str = "left",
         buttons: Optional[List] = None,
     ):
-        if isinstance(text, str):
-            text = tags.p(text)
-
         self.text = text
         self.text_align = text_align
+
+        if isinstance(text, str):
+            self.text_html = tags.p(text)
+        else:
+            self.text_html = text
 
         if buttons is None:
             buttons = []
