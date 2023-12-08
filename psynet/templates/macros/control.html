@@ -392,9 +392,6 @@
         var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        if (psynet.trialProgress.stages.length === 0) {
-            $('#trial-progress-caption').hide();
-        }
         const mediaDiv = document.getElementById('slider-media');
         {% if params.js_vars.prompt_above_media == false %}
             $('#main-body').prepend(mediaDiv);
@@ -457,9 +454,6 @@
         var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        if (psynet.trialProgress.stages.length === 0) {
-            $('#trial-progress-caption').hide();
-        }
         const mediaDiv = document.getElementById('slider-media');
         {% if params.js_vars.prompt_above_media == false %}
             $('#main-body').prepend(mediaDiv);
@@ -524,9 +518,6 @@
         var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        if (psynet.trialProgress.stages.length === 0) {
-            $('#trial-progress-caption').hide();
-        }
         const mediaDiv = document.getElementById('slider-media');
         {% if params.js_vars.prompt_above_media == false %}
             $('#main-body').prepend(mediaDiv);

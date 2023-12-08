@@ -497,6 +497,7 @@ class ProgressDisplay(dict):
         stages: List,
         start="trialStart",
         show_bar: bool = True,
+        show_caption: bool = True,
         **kwargs,
     ):
         self.consolidate_stages(stages)
@@ -510,6 +511,7 @@ class ProgressDisplay(dict):
         self["duration"] = _duration
         self["start"] = start
         self["show_bar"] = show_bar
+        self["show_caption"] = show_caption
         self["stages"] = stages
 
         self.validate()
@@ -803,7 +805,9 @@ class Page(Elt):
         }
 
         if progress_display is None:
-            progress_display = ProgressDisplay(stages=[], show_bar=False)
+            progress_display = ProgressDisplay(
+                stages=[], show_bar=False, show_caption=False
+            )
         self.progress_display = progress_display
 
         self._bot_response = bot_response
