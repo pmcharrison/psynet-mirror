@@ -1,4 +1,3 @@
-
 The following installation instructions apply to **Ubuntu 20.04 LTS (Focal Fossa)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 .. note::
@@ -20,9 +19,8 @@ Update and install required system packages
 Add your SSH key to GitLab
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To authenticate to PsyNet's GitLab repository you need to create a (free)
-GitLab account, generate an SSH key (if you don't have one already),
-and upload it to GitLab.
+If you want to be able to contribute to PsyNet in the future 
+you will need to generate an SSH key (if you don't have one already) and upload it to GitLab.
 
 To generate an SSH key:
 
@@ -222,7 +220,7 @@ Install PsyNet
 .. code-block:: bash
 
    cd
-   git clone git@gitlab.com:PsyNetDev/psynet
+   git clone https://gitlab.com/PsyNetDev/PsyNet
    cd psynet
    pip install --editable .
 
