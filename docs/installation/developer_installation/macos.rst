@@ -9,9 +9,8 @@ We recommend that you update MacOS to the latest version before installing PsyNe
 Add your SSH key to GitLab
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To authenticate to PsyNet's GitLab repository you need to create a (free)
-GitLab account, generate an SSH key (if you don't have one already),
-and upload it to GitLab.
+If you want to be able to contribute to PsyNet in the future 
+you will need to generate an SSH key (if you don't have one already) and upload it to GitLab.
 
 To generate an SSH key:
 
@@ -225,7 +224,7 @@ Install PsyNet
 .. code-block:: bash
 
    cd
-   git clone git@gitlab.com:PsyNetDev/PsyNet
+   git clone https://gitlab.com/PsyNetDev/PsyNet
    cd PsyNet
 
 By default Git will check out the latest version of the master branch.

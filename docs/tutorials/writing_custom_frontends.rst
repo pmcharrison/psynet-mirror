@@ -195,8 +195,4 @@ In some cases we might want to postprocess this response in Python before we sav
     def format_answer(self, raw_answer, **kwargs):
         return raw_answer.capitalize()
 
-The ``raw_answer`` argument here corresponds to the data that was passed to ``psynet.nextPage``. In this example, this data will be a string, corresponding to the contents of the textbox; however, more complex forms of data are supported, for example lists and dictionaries.
-
-.. rubric:: Footnotes
-
-.. [#] It would be better practice to call this function getData rather than get_data, actually.
+The ``raw_answer`` argument here corresponds to the data that was saved in ``psynet.stageResponse``. In this example, this data will be a string, corresponding to the contents of the textbox; however, more complex forms of data are supported, for example lists and dictionaries.
