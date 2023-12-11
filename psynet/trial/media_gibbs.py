@@ -458,19 +458,6 @@ class AudioGibbsTrial(MediaGibbsTrial):
             time_estimate=self.time_estimate,
         )
 
-    @property
-    def media(self):
-        slider_stimuli = self.slider_stimuli
-        return MediaSpec(
-            audio={
-                "slider_stimuli": {
-                    "url": slider_stimuli["url"],
-                    "ids": [x["id"] for x in slider_stimuli["all"]],
-                    "type": "batch",
-                }
-            }
-        )
-
 
 class AudioGibbsNode(MediaGibbsNode):
     pass
