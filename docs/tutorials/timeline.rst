@@ -3,8 +3,8 @@ Timeline
 ========
 
 The timeline determines the sequential logic of the experiment.
-A timeline comprises a series of *events* that are ordinarily
-presented sequentially. There are three main kinds of events:
+A timeline comprises a series of *elements* that are ordinarily
+presented sequentially. There are three main kinds of elements:
 
 * `Pages`_
 * `Page makers`_
@@ -18,7 +18,7 @@ when the participant's web page loads.
 for example to assign the participant to a group or to save the participant's data.
 
 All these events are defined as ``psynet`` classes inheriting from
-`Event`, the generic event object.
+`Elt`, the generic element object.
 Pages correspond to the `Page` class;
 page makers correspond to the `PageMaker` class;
 code blocks correspond to the `CodeBlock` class.
@@ -183,7 +183,7 @@ the following control constructs for this purpose:
 * :func:`~psynet.timeline.while_loop`
 
 Note that these constructs are functions, not classes:
-when called, they resolve to a sequence of events
+when called, they resolve to a sequence of elements
 that performs the desired logic.
 
 Time estimate
@@ -201,12 +201,12 @@ the participant's progress through the experiment and to determine the participa
 final payment.
 
 
-Combining events
+Combining elements
 ----------------
 
 The ``Experiment`` class expects us to provide an object of
 class :class:`psynet.timeline.Timeline` in the ``timeline`` slot.
-This ``Timeline`` object expects either events or lists of events
+This ``Timeline`` object expects either elements or lists of elements
 as its input; it will concatenate them together into one big list.
 Following this method, here's a complete definition of a simple experiment:
 
@@ -268,12 +268,12 @@ It is generally wise to build up the test logic in small pieces. For example:
     timeline = Timeline(intro, test, SuccessfulEndPage())
 
 Here we used the :func:`psynet.timeline.join` function to join
-two events into a list (more than two events can also be joined).
-When its arguments are all events, the ``join`` function behaves like a Python list constructor;
-when the arguments also include lists of events, the ``join`` function
+two elements into a list (more than two elements can also be joined).
+When its arguments are all elements, the ``join`` function behaves like a Python list constructor;
+when the arguments also include lists of elements, the ``join`` function
 merges these lists. This makes it helpful for combining timeline logic,
-where different bits of logic often correspond either to events or
-lists of events.
+where different bits of logic often correspond either to elements or
+lists of elements.
 
 Further reading
 ---------------
