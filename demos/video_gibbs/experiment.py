@@ -4,7 +4,7 @@ import psynet.experiment
 import psynet.media
 from psynet.asset import LocalStorage
 from psynet.consent import CAPRecruiterStandardConsent
-from psynet.modular_page import Prompt
+from psynet.modular_page import Markup
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
@@ -56,15 +56,14 @@ class CustomTrial(VideoGibbsTrial):
     media_height = "350px"
 
     def get_prompt(self, experiment, participant):
-        return Prompt(
-            "Adjust the slider so that the video is as "
+        return Markup(
+            "<center>Adjust the slider so that the video is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible.</br></br>"
+            "as possible.</center></br></br>"
             "In each trial of this experiment, you use the slider to choose between different videoclips. "
             "In this case, every video contains an alternation between two colored squares. Each of the squares is presented twice. "
             "How long each of the colored squares is presented is also varying."
             "The slider is disabled as long as a video is playing. The next button is activated the earliest after three seconds and minimally three interactions with the slider are required.",
-            text_align="center",
         )
 
 
