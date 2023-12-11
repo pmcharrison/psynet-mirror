@@ -52,6 +52,8 @@ class CustomTrial(VideoGibbsTrial):
     minimal_time = 3.0
     time_estimate = 5.0
     disable_slider_on_change = "while_playing"
+    media_width = "350px"
+    media_height = "350px"
 
     def get_prompt(self, experiment, participant):
         return Prompt(
