@@ -369,18 +369,19 @@
 {% macro image_media_slider(params) %}
     <style>
         #slider-current-stimulus {
-            min-width: {{ params.media_width }};
-            min-height: {{ params.media_height }};
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
+            margin: auto;
+            display: block;
         }
     </style>
 
     <p class="vspace"></p>
 
     <div id='media-container'>
+        <img id="slider-current-stimulus">
         <p class="vspace"></p>
     </div>
-
-    <p class="vspace"></p>
 
     {{ media_slider(params) }}
 
@@ -395,10 +396,8 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
-        const show = document.createElement("img");
-        show.id = 'slider-current-stimulus';
-        show.style.display = 'none'
-        mediaDiv.prepend(show);
+        const show = document.getElementById("slider-current-stimulus");
+        show.style.visibility = 'hidden';
 
         playMedia = function () {
             var id = slider.media;
@@ -407,10 +406,7 @@
             disableSlider();
             psynet.log.debug('Showing image with ID = ' + id);
             show.setAttribute("src", image.player.src);
-            show.setAttribute("height", `{{ params.media_height }}`);
-            show.setAttribute("width", `{{ params.media_width }}`);
-            show.style.margin='auto'
-            show.style.display='block'
+            show.style.visibility='visible';
             setTimeout(enableSlider, disableDuration * 1000);
         };
 
@@ -431,16 +427,18 @@
         #slider-current-stimulus {
             min-width: {{ params.media_width }};
             min-height: {{ params.media_height }};
+            margin: auto;
+            display: block;
+            text-align: center;
         }
     </style>
 
     <p class="vspace"></p>
 
     <div id='media-container'>
+        <div id="slider-current-stimulus"></div>
         <p class="vspace"></p>
     </div>
-
-    <p class="vspace"></p>
 
     {{ media_slider(params) }}
 
@@ -455,10 +453,6 @@
             $('#main-body').prepend(mediaDiv);
         {% endif %}
 
-        const show = document.createElement("div");
-        show.id = 'slider-current-stimulus';
-        mediaDiv.prepend(show);
-
         playMedia = function () {
             var id = slider.media;
             var html = psynet.html[id];
@@ -468,8 +462,6 @@
             var show = document.getElementById('slider-current-stimulus');
             // get image, parse source text, and insert text into html
             show.innerHTML = html.player.innerHTML;
-            show.style.margin='auto'
-            show.style.textAlign='center'
             setTimeout(enableSlider, disableDuration * 1000);
         };
 
@@ -496,13 +488,12 @@
             min-height: {{ params.media_height }};
         }
     </style>
+
     <p class="vspace"></p>
 
     <div id='media-container'>
         <p class="vspace"></p>
     </div>
-
-    <p class="vspace"></p>
 
     {{ media_slider(params) }}
 

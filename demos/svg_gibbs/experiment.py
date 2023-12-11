@@ -41,6 +41,8 @@ class CustomTrial(HtmlGibbsTrial):
     prompt_above_media = False
     continuous_updates = False
     disable_slider_on_change = 5.0
+    media_width = "250px"
+    media_height = "250px"
 
     def get_prompt(self, experiment, participant):
         return Markup(
