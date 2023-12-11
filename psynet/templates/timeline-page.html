@@ -1270,15 +1270,15 @@
 
                         // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
                         if (mediaType === 'html') {
-                            $('#slider-media').prepend('<div style="display: none" class="html" id="' + stimulusId + '"></div>')
+                            $('#media-container').prepend('<div style="display: none" class="html" id="' + stimulusId + '"></div>')
                         }
 
                         if (mediaType === 'image') {
-                            $('#slider-media').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
+                            $('#media-container').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
                         }
 
                         else if (mediaType === 'video') {
-                            $('#slider-media').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
+                            $('#media-container').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
                         }
 
                         promises.push(createMediaFromBuffer[mediaType](media.buffer, args));

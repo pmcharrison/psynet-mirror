@@ -376,7 +376,7 @@
 
     <p class="vspace"></p>
 
-    <div id='slider-media'>
+    <div id='media-container'>
         <p class="vspace"></p>
     </div>
 
@@ -390,7 +390,7 @@
         var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        const mediaDiv = document.getElementById('slider-media');
+        const mediaDiv = document.getElementById('media-container');
         {% if params.js_vars.prompt_above_media == false %}
             $('#main-body').prepend(mediaDiv);
         {% endif %}
@@ -436,7 +436,7 @@
 
     <p class="vspace"></p>
 
-    <div id='slider-media'>
+    <div id='media-container'>
         <p class="vspace"></p>
     </div>
 
@@ -450,7 +450,7 @@
         var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        const mediaDiv = document.getElementById('slider-media');
+        const mediaDiv = document.getElementById('media-container');
         {% if params.js_vars.prompt_above_media == false %}
             $('#main-body').prepend(mediaDiv);
         {% endif %}
@@ -487,7 +487,7 @@
 
 {% macro video_media_slider(params) %}
     <style>
-        #slider-media {
+        #media-container {
             min-width: {{ params.media_width }};
             min-height: {{ params.media_height }};
         }
@@ -498,7 +498,7 @@
     </style>
     <p class="vspace"></p>
 
-    <div id='slider-media'>
+    <div id='media-container'>
         <p class="vspace"></p>
     </div>
 
@@ -512,7 +512,7 @@
         var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        const mediaDiv = document.getElementById('slider-media');
+        const mediaDiv = document.getElementById('media-container');
         {% if params.js_vars.prompt_above_media == false %}
             $('#main-body').prepend(mediaDiv);
         {% endif %}
