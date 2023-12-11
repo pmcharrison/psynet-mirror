@@ -122,7 +122,7 @@
     </style>
 
     <div id="prompt-video-container">
-        <video id="prompt" style="width: {{ params.width }}" alt="{{ gettext("Video not found")  | replace('"',"'") | safe  }}" controls></video>
+        <video id="prompt" style="width: {{ params.width }}; height: {{ params.height }};" alt="{{ gettext("Video not found") | replace('"',"'") | safe }}" controls></video>
     </div>
 
     <script>
