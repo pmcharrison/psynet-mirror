@@ -13,7 +13,7 @@
             {% set BONUS = "%.2f"|format(bonus) %}
             {% set CURRENCY = config.currency %}
             {% set REWARD = "%.2f"|format(reward) %}
-            {% set REWARD_MIN_BASE_PAYMENT = "%.2f"|format(reward_min_base_payment) %}
+            {% set REWARD_MIN_BASE_PAYMENT = "%.2f"|format([base_payment, reward]|max) %}
             {% if experiment.with_recruiter("hotair") %}
                 {% if reward >= min_accumulated_reward_for_abort %}
                     {% trans name="reward_participant_hotair_success" %}You earned a total payment of <b>{{CURRENCY}}{{REWARD_MIN_BASE_PAYMENT}}</b>.{% endtrans %}

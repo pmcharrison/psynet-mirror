@@ -2340,7 +2340,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         unique_id = request.args.get("unique_id")
         participant = cls.get_participant_from_unique_id(unique_id)
         reward = participant.calculate_reward()
-        reward_min_base_payment = max(participant.base_payment, reward)
 
         return render_template_with_translations(
             "reward_participant.html",
@@ -2351,7 +2350,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             participant=participant,
             reward=round(reward, 2),
-            reward_min_base_payment=reward_min_base_payment,
         )
 
     @classmethod
