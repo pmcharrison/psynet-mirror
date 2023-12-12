@@ -482,7 +482,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "Your recruiter does not support payments below the base payment, "
                 f"but min_accumulated_reward_for_abort ({currency}{min_accumulated_reward_for_abort}) "
                 f"is less than base payment ({currency}{base_payment}), "
-                "meaning that participants may get paid more than expected if they leave the "
+                "meaning that participants may get paid more than expected if they leave "
                 "the experiment early. Check these values, and if you are sure they are right, "
                 "disable this error message by overriding `Experiment.check_min_accumulated_reward_for_abort` "
                 "with a method that just returns `None`."
@@ -1042,6 +1042,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def recruiter_supports_payments_below_base_payment(self):
+        return getattr(self.recruiter, "supports_payments_below_base_payment", False)
+        # TODO
         return isinstance(self.recruiter, ProlificRecruiter)
 
     @property

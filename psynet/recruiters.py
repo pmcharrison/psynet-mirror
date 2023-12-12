@@ -488,6 +488,10 @@ class ProlificRecruiter(dallinger.recruiters.ProlificRecruiter):
     An improved version of Dallinger's Prolific recruiter.
     """
 
+    @property
+    def supports_payments_below_base_payment(self):
+        return True
+
     def error_page_content(self, _, _p, **kwargs):
         html = tags.div()
         with html:
