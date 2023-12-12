@@ -2896,7 +2896,14 @@ class VideoSliderControl(MediaSliderControl):
         snap_values: Optional[Union[int, list]] = "media_locations",
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
+        **kwargs,
     ):
+        if "url" in kwargs or "file_type" in kwargs:
+            raise ValueError(
+                "VideoSliderControl has now been replaced with FrameSliderControl when it concerns sliding through the frames of a single video,"
+                " please use the latter now. In case you want to slide through a series of videos, you can use VideoSliderControl. In that case, "
+                "please specify slider_media and media_locations rather than url or file_type.",
+            )
         super().__init__(
             start_value=start_value,
             min_value=min_value,
