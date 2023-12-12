@@ -2468,10 +2468,10 @@ class ImageSliderControl(MediaSliderControl):
         If `True`, the prompt is displayed above the image. Default: `False`.
 
     media_width:
-        CSS width specification for the image.
+        CSS width specification for the media container. The image will scale to the width of this container.
 
     media_height:
-        CSS height specification for the image.
+        CSS height specification for the media container.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
@@ -2641,10 +2641,10 @@ class HtmlSliderControl(MediaSliderControl):
         If `True`, the prompt is displayed above the image. Default: `False`.
 
     media_width:
-        CSS width specification for the HTML container.
+        CSS width specification for the media container.
 
     media_height:
-        CSS height specification for the HTML container.
+        CSS height specification for the media container.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
@@ -2820,10 +2820,10 @@ class VideoSliderControl(MediaSliderControl):
         If `True`, the prompt is displayed above the image. Default: `False`.
 
     media_width:
-        CSS width specification for the video.
+        CSS width specification for the media container. The video will scale to the width of this container.
 
     media_height:
-        CSS height specification for the video.
+        CSS height specification for the media container.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider

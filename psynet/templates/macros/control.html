@@ -368,20 +368,22 @@
 
 {% macro image_media_slider(params) %}
     <style>
-        #slider-current-stimulus {
+        #media-container {
             width: {{ params.media_width }};
             height: {{ params.media_height }};
             margin: auto;
+        }
+        #slider-current-stimulus {
+            width: 100%;
             display: block;
         }
     </style>
 
-    <p class="vspace"></p>
-
     <div id='media-container'>
         <img id="slider-current-stimulus">
-        <p class="vspace"></p>
     </div>
+
+    <p class="vspace"></p>
 
     {{ media_slider(params) }}
 
@@ -424,21 +426,23 @@
 
 {% macro html_media_slider(params) %}
     <style>
-        #slider-current-stimulus {
-            min-width: {{ params.media_width }};
-            min-height: {{ params.media_height }};
+        #media-container {
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
             margin: auto;
-            display: block;
             text-align: center;
+        }
+        #slider-current-stimulus {
+            width: 100%;
+            display: block;
         }
     </style>
 
-    <p class="vspace"></p>
-
     <div id='media-container'>
         <div id="slider-current-stimulus"></div>
-        <p class="vspace"></p>
     </div>
+
+    <p class="vspace"></p>
 
     {{ media_slider(params) }}
 
@@ -480,20 +484,20 @@
 {% macro video_media_slider(params) %}
     <style>
         #media-container {
-            min-width: {{ params.media_width }};
-            min-height: {{ params.media_height }};
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
+            margin: auto;
+            text-align: center;
         }
         .video {
-            min-width: {{ params.media_width }};
-            min-height: {{ params.media_height }};
+            width: 100%;
         }
     </style>
 
-    <p class="vspace"></p>
-
     <div id='media-container'>
-        <p class="vspace"></p>
     </div>
+
+    <p class="vspace"></p>
 
     {{ media_slider(params) }}
 
