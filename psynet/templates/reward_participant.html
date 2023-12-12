@@ -30,14 +30,14 @@
                     {{ pgettext("reward_participant_mturk_fail", "You did not complete enough of the experiment to receive a payment, sorry. Please return the HIT.") }}
                 {% endif %}
             {% elif experiment.with_recruiter("prolific") %}
-                {% if reward == base_payment %}
-                    {% trans name="reward_participant_prolific_success_1" %}When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>{{CURRENCY}}{{REWARD}}</b>.{% endtrans %}
-                {% elif reward > base_payment %}
-                    {% trans name="reward_participant_prolific_success_2" %}When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>{{CURRENCY}}{{BASE_PAYMENT}}</b>.{% endtrans %} {% trans name="reward_participant_prolific_success_3" %}You will also receive an additional bonus of <b>{{CURRENCY}}{{BONUS}}</b>.{% endtrans %}
-                {% elif reward < min_accumulated_reward_for_abort %}
+                {% if reward < min_accumulated_reward_for_abort %}
                     {{ pgettext("reward_participant_prolific_fail_1", "You did not complete enough of the experiment to receive a payment, sorry. Please return the study.") }}
-                {% elif min_accumulated_reward_for_abort <= reward < base_payment %}
+                {% elif reward < base_payment %}
                     {% trans name="reward_participant_prolific_fail_2" %}You were unable to complete the experiment, but you will still be paid <b>{{CURRENCY}}{{BASE_PAYMENT}}</b> for the time you put in so far.{% endtrans %} {% trans name="reward_participant_prolific_fail_3" %}When you press <b>Next</b>, we will pay you via the bonus mechanism.{% endtrans %} {% trans name="reward_participant_prolific_fail_4" %}Please then return the study.{% endtrans %}
+                {% elif reward == base_payment %}
+                    {% trans name="reward_participant_prolific_success_1" %}When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>{{CURRENCY}}{{REWARD}}</b>.{% endtrans %}
+                {% else %}
+                    {% trans name="reward_participant_prolific_success_2" %}When you press <b>Next</b>, your submission will be approved and you will receive the full study payment of <b>{{CURRENCY}}{{BASE_PAYMENT}}</b>.{% endtrans %} {% trans name="reward_participant_prolific_success_3" %}You will also receive an additional bonus of <b>{{CURRENCY}}{{BONUS}}</b>.{% endtrans %}
                 {% endif %}
             {% endif %}
         </div>
