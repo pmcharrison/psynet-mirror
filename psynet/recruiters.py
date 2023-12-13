@@ -457,6 +457,16 @@ class LucidRecruiter(BaseLucidRecruiter):
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
 
 
+class HotAirRecruiter(dallinger.recruiters.HotAirRecruiter):
+    """
+    An improved version of Dallinger's HotAir recruiter.
+    """
+
+    @property
+    def supports_payments_below_base_payment(self):
+        return True
+
+
 class MTurkRecruiter(dallinger.recruiters.MTurkRecruiter):
     """
     An improved version of Dallinger's MTurk recruiter.
