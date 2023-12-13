@@ -19,9 +19,6 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def check_min_accumulated_reward_for_abort(self):
-        return None
-
     def with_recruiter(self, nickname):
         # We use this for patching the recruiter while testing the recruiter UI
         if self.var.has("with_recruiter"):

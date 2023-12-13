@@ -20,9 +20,6 @@ class Exp(psynet.experiment.Experiment):
         "show_abort_button": True,
     }
 
-    def check_min_accumulated_reward_for_abort(self):
-        return None
-
     @experiment_route("/custom_route", methods=["POST", "GET"])
     @classmethod
     def custom_route(cls):
