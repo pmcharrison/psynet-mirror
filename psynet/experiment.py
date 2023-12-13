@@ -497,6 +497,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
+        for trialmaker in self.timeline.trial_makers.values():
+            trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
