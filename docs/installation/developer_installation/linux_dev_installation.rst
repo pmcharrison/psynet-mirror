@@ -191,11 +191,16 @@ Install Dallinger
 .. note::
    Make sure you have activated your virtual environment by running `workon psynet`.
 
+Go to https://github.com/Dallinger/Dallinger/releases and make a note of the latest
+released version of Dallinger. In the example below we imagine that this version is
+9.10.0; you should replace 9.10.0 with the version number of the latest release.
+
 .. code-block:: bash
 
    cd
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
+   git checkout v9.10.0
    pip install -r dev-requirements.txt
    pip install --editable '.[data]'
 
