@@ -1549,10 +1549,13 @@ class ModularPage(Page):
     layout
         Determines the layout of elements in the page.
         Should take the form of a list that enumerates the page elements in order of appearance.
+        If left blank, defaults to ``.default_layout``.
 
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
+
+    default_layout = ["prompt", "media", "progress", "control", "buttons"]
 
     def __init__(
         self,
@@ -1568,7 +1571,7 @@ class ModularPage(Page):
         show_start_button: Optional[bool] = False,
         show_next_button: Optional[bool] = None,
         validate: Optional[callable] = None,
-        layout=lambda: ["prompt", "media", "progress", "control", "buttons"],
+        layout=NoArgumentProvided,
         **kwargs,
     ):
         if control is None:
@@ -1613,8 +1616,8 @@ class ModularPage(Page):
 
         self._validate_function = validate
 
-        if callable(layout):
-            layout = layout()
+        if layout == NoArgumentProvided:
+            layout = self.default_layout
 
         self.layout = layout
 

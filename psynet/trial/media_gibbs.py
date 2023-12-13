@@ -20,7 +20,7 @@ from ..modular_page import (
     ModularPage,
     VideoSliderControl,
 )
-from ..timeline import MediaSpec, ProgressDisplay, ProgressStage
+from ..timeline import MediaSpec
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 
@@ -177,6 +177,7 @@ class MediaGibbsTrial(GibbsTrial):
     debug = False
     random_wrap = False
     input_type = "HTML5_range_slider"
+    layout = ModularPage.default_layout
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -475,6 +476,7 @@ class ImageGibbsTrial(MediaGibbsTrial):
     media_width = ""
     media_height = ""
     continuous_updates = False
+    layout = ModularPage.default_layout
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -510,6 +512,7 @@ class ImageGibbsTrial(MediaGibbsTrial):
             ),
             media=self.media,
             time_estimate=self.time_estimate,
+            layout=self.layout,
         )
 
 
@@ -532,6 +535,7 @@ class HtmlGibbsTrial(MediaGibbsTrial):
     media_width = ""
     media_height = ""
     continuous_updates = False
+    layout = ModularPage.default_layout
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -567,14 +571,7 @@ class HtmlGibbsTrial(MediaGibbsTrial):
             ),
             media=self.media,
             time_estimate=self.time_estimate,
-            progress_display=ProgressDisplay(
-                stages=[
-                    ProgressStage(0.75, "Wait a moment...", color="grey"),
-                    ProgressStage(1, "Red!", color="red"),
-                    ProgressStage(1, "Green!", color="green"),
-                    ProgressStage(1, "Blue!", color="blue"),
-                ],
-            ),
+            layout=self.layout,
         )
 
 
@@ -596,6 +593,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
     media_width = ""
     media_height = ""
     disable_slider_on_change = "never"
+    layout = ModularPage.default_layout
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -627,6 +625,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
             ),
             media=self.media,
             time_estimate=self.time_estimate,
+            layout=self.layout,
         )
 
 

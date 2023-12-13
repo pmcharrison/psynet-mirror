@@ -54,6 +54,7 @@ class CustomTrial(VideoGibbsTrial):
     disable_slider_on_change = "while_playing"
     media_width = "250px"
     media_height = "250px"
+    layout = ["media", "prompt", "progress", "control", "buttons"]
 
     def get_prompt(self, experiment, participant):
         return Markup(

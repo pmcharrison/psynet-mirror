@@ -42,6 +42,7 @@ class CustomTrial(HtmlGibbsTrial):
     disable_slider_on_change = 5.0
     media_width = "250px"
     media_height = "250px"
+    layout = ["media", "prompt", "progress", "control", "buttons"]
 
     def get_prompt(self, experiment, participant):
         return Markup(
