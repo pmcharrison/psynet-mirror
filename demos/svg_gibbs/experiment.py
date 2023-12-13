@@ -38,7 +38,6 @@ class CustomTrial(HtmlGibbsTrial):
     minimal_interactions = 1
     minimal_time = 12.0
     time_estimate = 5.0
-    prompt_above_media = False
     continuous_updates = False
     disable_slider_on_change = 5.0
     media_width = "250px"

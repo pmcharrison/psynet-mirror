@@ -20,7 +20,7 @@ from ..modular_page import (
     ModularPage,
     VideoSliderControl,
 )
-from ..timeline import MediaSpec
+from ..timeline import MediaSpec, ProgressDisplay, ProgressStage
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 
@@ -141,9 +141,6 @@ class MediaGibbsTrial(GibbsTrial):
         - ``"never"``: The slider will not be disabled after a value change.
 
         Default: `never`.
-
-    prompt_above_media : bool
-        If `True`, the prompt is displayed above the media. Default: `False`.
 
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
@@ -475,7 +472,6 @@ class ImageGibbsNetwork(MediaGibbsNetwork):
 
 class ImageGibbsTrial(MediaGibbsTrial):
     disable_slider_on_change = "never"
-    prompt_above_media = False
     media_width = ""
     media_height = ""
     continuous_updates = False
@@ -500,7 +496,6 @@ class ImageGibbsTrial(MediaGibbsTrial):
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
                 disable_slider_on_change=self.disable_slider_on_change,
-                prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,
                 media_height=self.media_height,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
@@ -534,7 +529,6 @@ class HtmlGibbsNetwork(MediaGibbsNetwork):
 
 class HtmlGibbsTrial(MediaGibbsTrial):
     disable_slider_on_change = "never"
-    prompt_above_media = False
     media_width = ""
     media_height = ""
     continuous_updates = False
@@ -559,7 +553,6 @@ class HtmlGibbsTrial(MediaGibbsTrial):
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
                 disable_slider_on_change=self.disable_slider_on_change,
-                prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,
                 media_height=self.media_height,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
@@ -574,6 +567,14 @@ class HtmlGibbsTrial(MediaGibbsTrial):
             ),
             media=self.media,
             time_estimate=self.time_estimate,
+            progress_display=ProgressDisplay(
+                stages=[
+                    ProgressStage(0.75, "Wait a moment...", color="grey"),
+                    ProgressStage(1, "Red!", color="red"),
+                    ProgressStage(1, "Green!", color="green"),
+                    ProgressStage(1, "Blue!", color="blue"),
+                ],
+            ),
         )
 
 
@@ -592,7 +593,6 @@ class VideoGibbsNetwork(MediaGibbsNetwork):
 
 
 class VideoGibbsTrial(MediaGibbsTrial):
-    prompt_above_media = False
     media_width = ""
     media_height = ""
     disable_slider_on_change = "never"
@@ -614,7 +614,6 @@ class VideoGibbsTrial(MediaGibbsTrial):
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,
                 disable_slider_on_change=self.disable_slider_on_change,
-                prompt_above_media=self.prompt_above_media,
                 media_width=self.media_width,
                 media_height=self.media_height,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,

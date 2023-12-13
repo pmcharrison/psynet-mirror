@@ -300,6 +300,14 @@
 
 
 {% macro media_slider(params) %}
+    <style>
+        #media-container {
+            width: {{ params.media_width }};
+            height: {{ params.media_height }};
+            margin: auto;
+            text-align: center;
+        }
+    </style>
 
     {{ slider(params) }}
 
@@ -368,20 +376,11 @@
 
 {% macro image_media_slider(params) %}
     <style>
-        #media-container {
-            width: {{ params.media_width }};
-            height: {{ params.media_height }};
-            margin: auto;
-        }
         #slider-current-stimulus {
             width: 100%;
             display: block;
         }
     </style>
-
-    <div id='media-container'>
-        <img id="slider-current-stimulus">
-    </div>
 
     <p class="vspace"></p>
 
@@ -390,13 +389,12 @@
     <script>
         {% autoescape off %}
         var disableDuration = {{ params.js_vars.disable_duration | float }};
-        var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        const mediaDiv = document.getElementById('media-container');
-        {% if params.js_vars.prompt_above_media == false %}
-            $('#main-body').prepend(mediaDiv);
-        {% endif %}
+        const img = document.createElement('img');
+        img.id = "slider-current-stimulus";
+        img.style.visibility = 'hidden';
+        $("#media-container").prepend(img);
 
         const show = document.getElementById("slider-current-stimulus");
         show.style.visibility = 'hidden';
@@ -426,21 +424,11 @@
 
 {% macro html_media_slider(params) %}
     <style>
-        #media-container {
-            width: {{ params.media_width }};
-            height: {{ params.media_height }};
-            margin: auto;
-            text-align: center;
-        }
         #slider-current-stimulus {
             width: 100%;
             display: block;
         }
     </style>
-
-    <div id='media-container'>
-        <div id="slider-current-stimulus"></div>
-    </div>
 
     <p class="vspace"></p>
 
@@ -449,13 +437,11 @@
     <script>
         {% autoescape off %}
         var disableDuration = {{ params.js_vars.disable_duration | float }};
-        var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
 
-        const mediaDiv = document.getElementById('media-container');
-        {% if params.js_vars.prompt_above_media == false %}
-            $('#main-body').prepend(mediaDiv);
-        {% endif %}
+        const stimulus = document.createElement('div');
+        stimulus.id = "slider-current-stimulus";
+        $("#media-container").prepend(stimulus);
 
         playMedia = function () {
             var id = slider.media;
@@ -483,19 +469,10 @@
 
 {% macro video_media_slider(params) %}
     <style>
-        #media-container {
-            width: {{ params.media_width }};
-            height: {{ params.media_height }};
-            margin: auto;
-            text-align: center;
-        }
         .video {
             width: 100%;
         }
     </style>
-
-    <div id='media-container'>
-    </div>
 
     <p class="vspace"></p>
 
@@ -504,13 +481,7 @@
     <script>
         {% autoescape off %}
         var disableDuration = {{ params.js_vars.disable_duration | float }};
-        var promptAboveMedia = {{ params.js_vars.prompt_above_media | lower }};
         {% endautoescape %}
-
-        const mediaDiv = document.getElementById('media-container');
-        {% if params.js_vars.prompt_above_media == false %}
-            $('#main-body').prepend(mediaDiv);
-        {% endif %}
 
         playMedia = function () {
             var id = slider.media;

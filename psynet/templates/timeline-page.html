@@ -40,46 +40,8 @@
 
     <div id="main-body" class="my-5 container" style="clear: both;">
         {% block main_body %}
-
-            {% block above_progress_display %}
-            {% endblock %}
-
-            {% block trial_progress_display %}
-                <style>
-                    #trial-progress-bar {
-                        margin-top: 15px;
-                        margin-bottom: 15px;
-                        display: {% if trial_progress_display_config["show_bar"] %} flex {% else %} none {% endif %};
-                    }
-
-                    #trial-progress-caption {
-                        margin-top: 15px;
-                        margin-bottom: 15px;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        font-weight: bold;
-                        display: {% if trial_progress_display_config["show_caption"] %} flex {% else %} none {% endif %};
-                    }
-
-                    .trial-progress-bar-segment {
-                        -webkit-transition: none;
-                        -moz-transition: none;
-                        -ms-transition: none;
-                        -o-transition: none;
-                        transition: none;
-                    }
-                </style>
-
-                <div id="trial-progress-bar" class="progress"></div>
-                <div id="trial-progress-caption">
-                    <span id="trial-progress-caption-contents">&nbsp;</span>
-                </div>
-            {% endblock %}
-
-            {% block below_progress_display %}
-            {% endblock %}
-
+            {{ media.media_container() }}
+            {{ progress.trial_progress_display(trial_progress_display_config) }}
         {% endblock %}
 
         <span id="psynet-event-listener"></span>

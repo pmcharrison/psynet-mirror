@@ -1546,6 +1546,10 @@ class ModularPage(Page):
         For example, a validation function testing that the answer contains exactly 3 characters might look like this:
         ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
 
+    layout
+        Determines the layout of elements in the page.
+        Should take the form of a list that enumerates the page elements in order of appearance.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1564,6 +1568,7 @@ class ModularPage(Page):
         show_start_button: Optional[bool] = False,
         show_next_button: Optional[bool] = None,
         validate: Optional[callable] = None,
+        layout=lambda: ["prompt", "media", "progress", "control", "buttons"],
         **kwargs,
     ):
         if control is None:
@@ -1608,18 +1613,18 @@ class ModularPage(Page):
 
         self._validate_function = validate
 
+        if callable(layout):
+            layout = layout()
+
+        self.layout = layout
+
         template_str = f"""
         {{% extends "timeline-page.html" %}}
 
         {self.import_templates}
 
-        {{% block above_progress_display %}}
-        {{{{ {self.prompt_macro}(prompt_config) }}}}
-        {{% endblock %}}
-
-        {{% block below_progress_display %}}
-        {{{{ {self.control_macro}(control_config) }}}}
-        {self.render_buttons()}
+        {{% block main_body %}}
+            {self.render_layout()}
         {{% endblock %}}
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
@@ -1646,6 +1651,20 @@ class ModularPage(Page):
             validate=validate,
             **kwargs,
         )
+
+    def get_renderers(self, **kwargs):
+        return {
+            "prompt": "{{ %s(prompt_config) }}" % self.prompt_macro,
+            "media": "{{ media.media_container() }}",
+            "control": "{{ %s(control_config) }}" % self.control_macro,
+            "buttons": self.render_buttons(),
+            "progress": "{{ progress.trial_progress_display(trial_progress_display_config) }}",
+        }
+
+    def render_layout(self, **kwargs):
+        renderers = self.get_renderers()
+
+        return "\n".join([renderers[key] for key in self.layout])
 
     def validate(self, response, **kwargs):
         if self._validate_function is None:
@@ -2464,9 +2483,6 @@ class ImageSliderControl(MediaSliderControl):
 
         Default: `never`.
 
-    prompt_above_media:
-        If `True`, the prompt is displayed above the image. Default: `False`.
-
     media_width:
         CSS width specification for the media container. The image will scale to the width of this container.
 
@@ -2534,7 +2550,6 @@ class ImageSliderControl(MediaSliderControl):
         media_locations: dict,
         autoplay: Optional[bool] = False,
         disable_slider_on_change: Optional[Union[float, str]] = "",
-        prompt_above_media: Optional[bool] = False,
         media_width: Optional[str] = "",
         media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
@@ -2570,9 +2585,7 @@ class ImageSliderControl(MediaSliderControl):
         self.media_width = media_width
         self.media_height = media_height
         self.continuous_updates = continuous_updates
-        self.prompt_above_media = prompt_above_media
         self.js_vars["continuous_updates"] = continuous_updates
-        self.js_vars["prompt_above_media"] = prompt_above_media
 
     macro = "image_media_slider"
 
@@ -2581,7 +2594,6 @@ class ImageSliderControl(MediaSliderControl):
         return {
             **super().metadata,
             "continuous_updates": self.continuous_updates,
-            "prompt_above_media": self.prompt_above_media,
         }
 
 
@@ -2636,9 +2648,6 @@ class HtmlSliderControl(MediaSliderControl):
         - ``"never"``: The slider will not be disabled after a value change.
 
         Default: `never`.
-
-    prompt_above_media:
-        If `True`, the prompt is displayed above the image. Default: `False`.
 
     media_width:
         CSS width specification for the media container.
@@ -2707,7 +2716,6 @@ class HtmlSliderControl(MediaSliderControl):
         media_locations: dict,
         autoplay: Optional[bool] = False,
         disable_slider_on_change: Optional[Union[float, str]] = "",
-        prompt_above_media: Optional[bool] = False,
         media_width: Optional[str] = "",
         media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
@@ -2743,9 +2751,7 @@ class HtmlSliderControl(MediaSliderControl):
         self.media_width = media_width
         self.media_height = media_height
         self.continuous_updates = continuous_updates
-        self.prompt_above_media = prompt_above_media
         self.js_vars["continuous_updates"] = continuous_updates
-        self.js_vars["prompt_above_media"] = prompt_above_media
 
     macro = "html_media_slider"
 
@@ -2754,7 +2760,6 @@ class HtmlSliderControl(MediaSliderControl):
         return {
             **super().metadata,
             "continuous_updates": self.continuous_updates,
-            "prompt_above_media": self.prompt_above_media,
         }
 
 
@@ -2815,9 +2820,6 @@ class VideoSliderControl(MediaSliderControl):
         - ``"never"``: The slider will not be disabled after a value change.
 
         Default: `never`.
-
-    prompt_above_media:
-        If `True`, the prompt is displayed above the image. Default: `False`.
 
     media_width:
         CSS width specification for the media container. The video will scale to the width of this container.
@@ -2884,7 +2886,6 @@ class VideoSliderControl(MediaSliderControl):
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
         disable_slider_on_change: Optional[Union[float, str]] = "never",
-        prompt_above_media: Optional[bool] = False,
         media_width: Optional[str] = "",
         media_height: Optional[str] = "",
         n_steps: Optional[int] = 10000,
@@ -2926,8 +2927,6 @@ class VideoSliderControl(MediaSliderControl):
         )
         self.media_width = media_width
         self.media_height = media_height
-        self.prompt_above_media = prompt_above_media
-        self.js_vars["prompt_above_media"] = prompt_above_media
 
     macro = "video_media_slider"
 
@@ -2938,7 +2937,6 @@ class VideoSliderControl(MediaSliderControl):
             "media_locations": self.media_locations,
             "modality": self.modality,
             "autoplay": self.autoplay,
-            "prompt_above_media": self.prompt_above_media,
         }
 
 
