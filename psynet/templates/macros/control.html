@@ -397,13 +397,13 @@
         $("#media-container").prepend(img);
 
         playMedia = function () {
-            var id = slider.media;
-            var image = psynet.image[id];
+            let id = slider.media;
+            let content = psynet.image[id];
 
             disableSlider();
             psynet.log.debug('Showing image with ID = ' + id);
-            show.setAttribute("src", image.player.src);
-            show.style.visibility='visible';
+            img.setAttribute("src", content.player.src);
+            img.style.visibility='visible';
             setTimeout(enableSlider, disableDuration * 1000);
         };
 
