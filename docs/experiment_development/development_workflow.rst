@@ -255,12 +255,12 @@ Then, whenever you are running PsyNet terminal command, insert ``-dev``, produci
 This invokes Docker in the same way as before, but linking your local PsyNet and Dallinger installations.
 
 If you are not using Docker, then the process is instead to navigate to those folders within your local environment,
-then run ``pip install -e .`` The ``-e`` stands for 'editable'.
+then run ``pip3 install -e .`` The ``-e`` stands for 'editable'.
 
 .. code:: bash
 
     cd ~/PsyNet
-    pip install -e .
+    pip3 install -e .
 
     cd ~/Dallinger
-    pip install -e .
+    pip3 install -e .

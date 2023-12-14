@@ -95,7 +95,7 @@ Commit the changes with
 
 .. note::
 
-    You need to have the `twine` package installed; install/upgrade it with ``python3 -m pip install --upgrade twine`` if you haven't yet)
+    You need to have the `twine` package installed; install/upgrade it with ``python3 -m pip3 install --upgrade twine`` if you haven't yet)
 
 .. code-block:: console
 

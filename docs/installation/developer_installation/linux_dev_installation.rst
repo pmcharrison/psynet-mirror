@@ -201,8 +201,8 @@ released version of Dallinger. In the example below we imagine that this version
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
    git checkout v9.10.0
-   pip install -r dev-requirements.txt
-   pip install --editable '.[data]'
+   pip3 install -r dev-requirements.txt
+   pip3 install --editable '.[data]'
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -227,7 +227,7 @@ Install PsyNet
    cd
    git clone https://gitlab.com/PsyNetDev/PsyNet
    cd psynet
-   pip install --editable .
+   pip3 install --editable .
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -260,7 +260,7 @@ Install additional Python packages
 
 .. code-block:: bash
 
-    pip install -e '.[dev]'
+    pip3 install -e '.[dev]'
 
 Install the Git pre-commit hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -269,7 +269,7 @@ With the virtual environment still activated:
 
 .. code-block:: bash
 
-   pip install pre-commit
+   pip3 install pre-commit
 
 This will install the pre-commit package into the virtual environment. With that in place, each git clone of `psynet` you create will need to have the pre-commit hook installed with:
 
