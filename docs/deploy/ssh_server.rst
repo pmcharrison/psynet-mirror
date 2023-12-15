@@ -345,7 +345,13 @@ Known issues
 ^^^^^^^^^^^^
 
 When many apps are deployed on the same server it is possible that certain apps
-eat up too many database connections. To check the current connections to the database,
+eat up too many database connections. This can manifest as an error like this:
+
+.. code:: bash
+
+    psycopg2.OperationalError: FATAL:  remaining connection slots are reserved for non-replication superuser connections
+
+To check the current connections to the database,
 run this on the remote server:
 
 .. code:: bash
