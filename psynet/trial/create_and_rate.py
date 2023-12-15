@@ -417,5 +417,5 @@ class CreateAndRateTrialMakerMixin(object):
 
     def get_finished_creations(self, node):
         return self.creator_class.query.filter_by(
-            node_id=node.id, failed=False, finalized=True
+            node_id=node.id, failed=False, finalized=True, complete=True
         ).all()
