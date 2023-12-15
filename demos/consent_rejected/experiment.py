@@ -1,7 +1,6 @@
 from typing import List
 
 import requests
-from dallinger.experiment import experiment_route
 
 import psynet.experiment
 from psynet.bot import Bot
@@ -23,11 +22,6 @@ class Exp(psynet.experiment.Experiment):
         "show_abort_button": True,
         "show_reward": False,
     }
-
-    @experiment_route("/custom_route", methods=["POST", "GET"])
-    @classmethod
-    def custom_route(cls):
-        return f"A custom route for {cls.__name__}."
 
     timeline = Timeline(
         MainConsent(),
