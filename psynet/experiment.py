@@ -2315,7 +2315,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     if exp.with_recruiter("prolific"):
                         reward = participant.calculate_reward()
                         if reward < participant.base_payment:
-                            if not participant.status == "aborted":
+                            if not participant.aborted:
                                 exp.recruiter.reward_bonus(
                                     participant,
                                     reward,
