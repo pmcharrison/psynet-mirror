@@ -2308,7 +2308,7 @@ class MediaSliderControl(SliderControl):
                 "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
             )
 
-        if disable_while_playing is True:
+        if disable_while_playing:
             warnings.warn(
                 "disable_while_playing is deprecated, please migrate to disable_slider_on_change.",
                 DeprecationWarning,
