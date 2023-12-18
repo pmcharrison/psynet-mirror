@@ -5,7 +5,7 @@ import subprocess
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-# Bump versions by changing these two lines. setup.py will read them automatically.
+# Bump versions by changing these two lines.
 dallinger_minimum_version = "9.10.0"
 psynet_version = "10.4.0"
 
