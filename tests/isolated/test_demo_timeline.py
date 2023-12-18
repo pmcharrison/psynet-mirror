@@ -227,7 +227,7 @@ class TestExp(object):
                 driver,
                 "main-body",
                 (
-                    "That's the end of the experiment! In addition to your base payment of $0.10, "
+                    "That's the end of the experiment! In addition to your base payment of $0.34, "
                     "you will receive a bonus of $0.36 for the time you spent on the experiment. "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
