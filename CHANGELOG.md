@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [10.4.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.1) Release 2023-12-18
+
+#### Updated
+- Updated `Dallinger` to `v9.11.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.11.0.
+
 # [10.4.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.0) Release 2023-09-24
 
 #### Fixed
