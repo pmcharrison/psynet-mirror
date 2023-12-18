@@ -71,8 +71,6 @@ Homepage = "https://www.psynet.dev/"
 Issues = "https://gitlab.com/PsyNetDev/PsyNet/-/issues"
 Repository = "https://gitlab.com/PsyNetDev/PsyNet/"
 
-[tool.setuptools.packages.find]
-
 [tool.hatch.build.targets.sdist]
 exclude = [
     "/.gitlab",
