@@ -1,7 +1,7 @@
 # Run me as follows: python3 demos/update_demos.py
 #
 # Warning: the chosen constraints will depend on the version of Dallinger that you currently have installed.
-# In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's setup.py.
+# In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's `psynet/version.py`.
 #
 # Warning: this command currently takes several minutes to complete because generating constraints.txt files is slow.
 # We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
