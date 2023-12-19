@@ -1,4 +1,3 @@
-
 The following installation instructions apply to **Ubuntu 20.04 LTS (Focal Fossa)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 .. note::
@@ -20,9 +19,8 @@ Update and install required system packages
 Add your SSH key to GitLab
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To authenticate to PsyNet's GitLab repository you need to create a (free)
-GitLab account, generate an SSH key (if you don't have one already),
-and upload it to GitLab.
+If you want to be able to contribute to PsyNet in the future 
+you will need to generate an SSH key (if you don't have one already) and upload it to GitLab.
 
 To generate an SSH key:
 
@@ -193,13 +191,18 @@ Install Dallinger
 .. note::
    Make sure you have activated your virtual environment by running `workon psynet`.
 
+Go to https://github.com/Dallinger/Dallinger/releases and make a note of the latest
+released version of Dallinger. In the example below we imagine that this version is
+9.10.0; you should replace 9.10.0 with the version number of the latest release.
+
 .. code-block:: bash
 
    cd
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
-   pip install -r dev-requirements.txt
-   pip install --editable '.[data]'
+   git checkout v9.10.0
+   pip3 install -r dev-requirements.txt
+   pip3 install --editable '.[data]'
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,9 +225,9 @@ Install PsyNet
 .. code-block:: bash
 
    cd
-   git clone git@gitlab.com:PsyNetDev/psynet
+   git clone https://gitlab.com/PsyNetDev/PsyNet
    cd psynet
-   pip install --editable .
+   pip3 install --editable .
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -257,7 +260,7 @@ Install additional Python packages
 
 .. code-block:: bash
 
-    pip install -e '.[dev]'
+    pip3 install -e '.[dev]'
 
 Install the Git pre-commit hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -266,7 +269,7 @@ With the virtual environment still activated:
 
 .. code-block:: bash
 
-   pip install pre-commit
+   pip3 install pre-commit
 
 This will install the pre-commit package into the virtual environment. With that in place, each git clone of `psynet` you create will need to have the pre-commit hook installed with:
 
