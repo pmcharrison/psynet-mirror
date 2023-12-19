@@ -9,9 +9,8 @@ We recommend that you update MacOS to the latest version before installing PsyNe
 Add your SSH key to GitLab
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To authenticate to PsyNet's GitLab repository you need to create a (free)
-GitLab account, generate an SSH key (if you don't have one already),
-and upload it to GitLab.
+If you want to be able to contribute to PsyNet in the future 
+you will need to generate an SSH key (if you don't have one already) and upload it to GitLab.
 
 To generate an SSH key:
 
@@ -196,11 +195,16 @@ Install Dallinger
 .. note::
    Make sure you have activated your virtual environment by running `workon psynet`.
 
+Go to https://github.com/Dallinger/Dallinger/releases and make a note of the latest
+released version of Dallinger. In the example below we imagine that this version is
+9.10.0; you should replace 9.10.0 with the version number of the latest release.
+
 .. code-block:: bash
 
    cd
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
+   git checkout v9.10.0
    pip3 install -r dev-requirements.txt
    pip3 install --editable '.[data]'
 
@@ -225,7 +229,7 @@ Install PsyNet
 .. code-block:: bash
 
    cd
-   git clone git@gitlab.com:PsyNetDev/PsyNet
+   git clone https://gitlab.com/PsyNetDev/PsyNet
    cd PsyNet
 
 By default Git will check out the latest version of the master branch.

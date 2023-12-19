@@ -287,6 +287,10 @@ class VideoPrompt(Prompt):
     width
         Width of the video frame to be displayed. Default: "560px".
 
+    height
+        Height of the video frame to be displayed. Default is "auto"
+        whereby the height is automatically adjusted to match the width.
+
     play_window
         An optional two-element list identifying the time window in the video file that
         should be played.
@@ -318,6 +322,7 @@ class VideoPrompt(Prompt):
         text: Union[str, Markup],
         text_align: str = "left",
         width: str = "560px",
+        height: str = "auto",
         play_window: Optional[List] = None,
         controls: bool = False,
         muted: bool = False,
@@ -344,6 +349,7 @@ class VideoPrompt(Prompt):
 
         self.url = url
         self.width = width
+        self.height = height
         self.play_window = play_window
         self.mirrored = mirrored
 
