@@ -293,6 +293,7 @@ class MediaGibbsNode(GibbsNode):
     granularity = 100
     n_jobs = 1
     batch_synthesis = False
+    batch_zipped = False
 
     slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
 
@@ -342,7 +343,8 @@ class MediaGibbsNode(GibbsNode):
             individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
             os.mkdir(individual_stimuli_dir)
 
-            batch_file = f"{uuid4()}.batch"
+            batch_extension = ".zip" if self.batch_zipped else ".batch"
+            batch_file = f"{uuid4()}{batch_extension}"
             batch_path = os.path.join(temp_dir, batch_file)
             active_index = self.active_index
             granularity = self.granularity
