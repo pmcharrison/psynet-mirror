@@ -168,6 +168,7 @@ class TrackJS(SQLBase, SQLMixin):
     ip = Column(String)
     meta = Column(PythonDict, default={})
     page_id = Column(String)
+    hash = Column(String)
     page_uuid = Column(String, nullable=True, default=None)
     participant_id = Column(Integer, nullable=True, default=None)
 
@@ -1086,20 +1087,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return error_response("Data must be a dictionary", simple=True)
 
         # check if data contains required fields
-        required_fields = ["ip", "meta", "pageID"]
+        required_fields = ["ip", "meta", "pageID", "hash"]
         missing_fields = [field for field in required_fields if field not in data]
         if len(missing_fields) > 0:
             return error_response(
                 f"Data must contain the following fields: {missing_fields}", simple=True
             )
 
-        TrackJS.query.filter_by(page_id=data["pageID"], ip=data["ip"]).delete()
+        TrackJS.query.filter_by(
+            page_id=data["pageID"], ip=data["ip"], hash=data["hash"]
+        ).delete()
 
         db.session.add(
             TrackJS(
                 ip=data["ip"],
                 meta=data["meta"],
                 page_id=data["pageID"],
+                hash=data["hash"],
                 participant_id=data.get("participantId", None),
                 page_uuid=data.get("pageUuid", None),
             )

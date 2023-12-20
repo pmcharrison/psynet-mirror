@@ -428,15 +428,7 @@
         Harare: 'Zimbabwe'
     };
     const INITIAL_WAIT = 0, INTERVAL_WAIT = 10000, ONE_SECOND = 1000;
-
-    // TODO
-    // - UUID for timeline pages
-    // - Participant ID for timeline pages
-
-    // Submit activity to endpoint every 3 seconds with IP of user
-
-    // TODO check if JS is enabled, if not manually trigger termination route
-
+    const PAGE_HASH = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     var locationInfo = {};
 
@@ -562,6 +554,7 @@
                 meta: meta,
                 ip: meta.location.ip,
                 pageID: pageID,
+                hash: PAGE_HASH,
             };
             // check if pageUuid is defined
             if (typeof pageUuid !== 'undefined') {
