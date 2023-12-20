@@ -849,8 +849,8 @@
                     return batchdata
                 }
 
-                preloadBatch = async function (batchId, batch, mediaType) {
-                    let data = await unzipBatch(batch.url);
+                let preloadBatch = async function (batchId, batch, mediaType) {
+                    let url = batch.url;
 
                     let args = {
                         batchId: batchId,
@@ -862,8 +862,15 @@
                         initStimulus(id, mediaType);
                     });
 
-                    return processMediaBatch[mediaType](data.buffer, args)
-
+                    let fileExtension = url.substring(url.lastIndexOf(".")+1);
+                    if(fileExtension === "zip") {
+                        let data = await unzipBatch(batch.url);
+                        return processMediaBatch[mediaType](data.buffer, args);
+                    }
+                    else {
+                        return createRequest(url, mediaType, processMediaBatch[mediaType], args);
+                    }
+                    
                 };
 
                 let preloadStimulus = function (stimulusId, url, mediaType) {
