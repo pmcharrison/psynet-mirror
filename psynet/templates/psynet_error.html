@@ -48,6 +48,10 @@
                                 document.getElementById("abort-button-location").textContent = "below";
                                 showAbortButton();
                             }
+
+                            {% if experiment.with_lucid_recruitment() %}
+                                window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=psynet-error")
+                            {% endif %}
                         </script>
                     {% endif %}
                 {% else %}
