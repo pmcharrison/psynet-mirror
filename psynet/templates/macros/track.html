@@ -558,7 +558,6 @@
             xhr.open("POST", "/track", true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             let pageID = window.location.href.replace(window.location.origin, '');
-            // whole source code of the page
             let data = {
                 meta: meta,
                 ip: meta.location.ip,
@@ -566,11 +565,9 @@
             };
             // check if pageUuid is defined
             if (typeof pageUuid !== 'undefined') {
-                pageID += '&page_uuid=' + pageUuid;
                 data.pageUuid = pageUuid;
             }
             if (typeof psynet !== 'undefined') {
-                pageID += '&participant_id=' + psynet.participantId;
                 data.participantId = psynet.participantId;
             }
 

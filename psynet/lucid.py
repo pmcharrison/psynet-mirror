@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 import requests
+from dallinger.config import get_config
 from dallinger.db import session
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
@@ -338,6 +339,17 @@ class LucidService(object):
             .replace("/", "_")
             .replace("=", "")
         )
+
+
+def get_lucid_service(config=None):
+    if config is None:
+        config = get_config()
+    return LucidService(
+        api_key=config.get("lucid_api_key"),
+        sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
+        exp_config=config,
+        recruitment_config=json.loads(config.get("lucid_recruitment_config")),
+    )
 
 
 def get_lucid_rid(rid):

@@ -40,6 +40,7 @@ from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Integer, String, func
 
 from psynet import __version__
+from psynet.lucid import get_lucid_service
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
@@ -2303,6 +2304,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Error terminating participant with RID '{assignment_id}': {e}"
             )
 
+        return render_template_with_translations(
+            "exit_recruiter_lucid.html",
+            external_submit_url=external_submit_url,
+        )
+
+    @experiment_route("/terminate_rid", methods=["GET"])
+    @classmethod
+    def terminate_rid(cls):
+        rid = request.values.get("RID")
+        reason = request.values.get("reason", "no_reason_given")
+        service = get_lucid_service()
+        try:
+            service.terminate_respondent(rid, reason)
+        except Exception:
+            service.send_terminate_request(rid)
+        external_submit_url = None
+        recruiter = get_experiment().recruiter
+        if hasattr(recruiter, "external_submit_url"):
+            external_submit_url = recruiter.external_submit_url(assignment_id=rid)
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,

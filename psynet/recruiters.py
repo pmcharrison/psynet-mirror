@@ -20,7 +20,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
-from .lucid import LucidService
+from .lucid import get_lucid_service
 from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
@@ -158,12 +158,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
-        self.lucidservice = LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            exp_config=self.config,
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        )
+        self.lucidservice = get_lucid_service(self.config)
         self.store = kwargs.get("store", RedisStore())
 
     @property

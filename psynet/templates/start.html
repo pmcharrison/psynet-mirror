@@ -1,4 +1,5 @@
 {% extends "psynet_layout.html" %}
+{% include "macros/track.html" %}
 
 {% block stylesheets %}
     {{ super() }}
@@ -22,11 +23,22 @@
 {% block body %}
     {{super()}}
 
-    <div class="colorfadeanim">
+    {% if experiment.with_lucid_recruitment() %}
+        <noscript>
+        {{ pgettext("start", "You are not using Javascript.") }}
+        {{ pgettext("start", "Please end the experiment:") }}
+        <a href="/terminate_rid?RID={{ request.url.split('?')[1] }}&reason=no-js" class="btn-danger btn-lg">
+            {{ pgettext("start", "End the experiment") }}
+        </a>
+        </noscript>
+    {% else %}
+        <div class="colorfadeanim">
         <p>
             {{ pgettext("start", "Starting experiment...") }}
         </p>
     </div>
+    {% endif %}
+
 {% endblock %}
 
 
@@ -81,7 +93,14 @@
             dallinger.post(url, data).done(function (resp) {
                 window.location = "/timeline?unique_id=" + resp.participant.unique_id;
             }).fail(function(resp) {
-                dallinger.error(resp);
+                let recruiter = dallinger.getUrlParameter('recruiter');
+                // check if recruiter contains word "lucid"
+                if (recruiter.includes("lucid")) {
+                    var rid = dallinger.getUrlParameter('RID');
+                    window.location = "/terminate_rid?RID=" + rid + "&reason=error-creating-participant";
+                } else {
+                    dallinger.error(resp);
+                }
             });
         }
 
