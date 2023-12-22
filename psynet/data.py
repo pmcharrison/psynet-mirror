@@ -28,6 +28,7 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
+from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import deferred
@@ -396,14 +397,8 @@ class SQLMixinDallinger(SharedMixin):
         ):
             polymorphic_identity = cls.polymorphic_identity
         else:
-            # Otherwise, take the polymorphic_identity from the class name
-            if cls.ancestor_has_same_polymorphic_identity(cls.__name__):
-                raise RuntimeError(
-                    f"Two distinct ORM-mapped classes share the same class name: {cls.__name__}. "
-                    "You should either give them different class names or different polymorphic_identity values."
-                )
-            polymorphic_identity = cls.__name__
-
+            # Otherwise, take the polymorphic_identity from the fully qualified class name
+            polymorphic_identity = importable_name(cls)
         x = {"polymorphic_identity": polymorphic_identity}
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.type
