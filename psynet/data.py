@@ -308,6 +308,11 @@ class SQLMixinDallinger(SharedMixin):
         cls.check_validity()
         return self
 
+    def __repr__(self):
+        base_class = get_sql_base_class(self).__name__
+        cls = self.__class__.__name__
+        return "{}-{}-{}".format(base_class, self.id, cls)
+
     @declared_attr
     def vars(cls):
         return deferred(Column(PythonDict, default=lambda: {}, server_default="{}"))
