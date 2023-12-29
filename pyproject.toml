@@ -85,6 +85,18 @@ exclude = [
     "/tests",
 ]
 
+[tool.hatch.build.targets.wheel]
+exclude = [
+    "/.gitlab",
+    "/.postgres_setup.sql",
+    "/.run-ci-tests-locally-v2.sh",
+    "/.run-ci-tests-locally.sh",
+    "/ci",
+    "/demos",
+    "/docs",
+    "/tests",
+]
+
 [tool.black]
 line-length = 88
 target-version = ["py310"]
