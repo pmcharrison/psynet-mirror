@@ -391,10 +391,10 @@
         var disableDuration = {{ params.js_vars.disable_duration | float }};
         {% endautoescape %}
 
-        const img = document.createElement('img');
-        img.id = "slider-current-stimulus";
-        img.style.visibility = 'hidden';
-        $("#media-container").prepend(img);
+        const image = document.createElement('img');
+        image.id = "slider-current-stimulus";
+        image.style.visibility = 'hidden';
+        $("#media-container").prepend(image);
 
         playMedia = function () {
             let id = slider.media;
@@ -402,8 +402,8 @@
 
             disableSlider();
             psynet.log.debug('Showing image with ID = ' + id);
-            img.setAttribute("src", content.player.src);
-            img.style.visibility='visible';
+            image.setAttribute("src", content.player.src);
+            image.style.visibility='visible';
             setTimeout(enableSlider, disableDuration * 1000);
         };
 
