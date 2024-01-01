@@ -140,7 +140,7 @@ class CustomExp(psynet.experiment.Experiment):
             minimal_interactions=3,
             time_estimate=5,
             reverse_scale=True,
-            disable_while_playing=True,
+            disable_slider_on_change="while_playing",
         ),
         new_example(
             Markup(
@@ -179,7 +179,7 @@ class CustomExp(psynet.experiment.Experiment):
             minimal_interactions=3,
             time_estimate=5,
             random_wrap=True,
-            disable_while_playing=True,
+            disable_slider_on_change="while_playing",
         ),
         new_example(
             Markup(
@@ -220,7 +220,7 @@ class CustomExp(psynet.experiment.Experiment):
             time_estimate=5,
             random_wrap=False,
             input_type="circular_slider",
-            disable_while_playing=True,
+            disable_slider_on_change="while_playing",
         ),
         new_example(
             Markup(

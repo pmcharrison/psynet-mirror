@@ -334,6 +334,9 @@ class MediaSpec:
                 }
             }
 
+    html: dict
+        An analogously structured dictionary of HTML stimuli (e.g., SVG stimuli).
+
     image: dict
         An analogously structured dictionary of image stimuli.
 
@@ -341,12 +344,13 @@ class MediaSpec:
         An analogously structured dictionary of video stimuli.
     """
 
-    modalities = ["audio", "image", "video"]
+    modalities = ["audio", "image", "html", "video"]
 
     def __init__(
         self,
         audio: Optional[dict] = None,
         image: Optional[dict] = None,
+        html: Optional[dict] = None,
         video: Optional[dict] = None,
     ):
         from .asset import Asset
@@ -357,10 +361,13 @@ class MediaSpec:
         if image is None:
             image = {}
 
+        if html is None:
+            html = {}
+
         if video is None:
             video = {}
 
-        self.data = {"audio": audio, "image": image, "video": video}
+        self.data = {"audio": audio, "image": image, "html": html, "video": video}
 
         for modality in self.data.values():
             for key, value in modality.items():
@@ -380,6 +387,10 @@ class MediaSpec:
     @property
     def image(self):
         return self.data["image"]
+
+    @property
+    def html(self):
+        return self.data["html"]
 
     @property
     def video(self):
@@ -486,6 +497,7 @@ class ProgressDisplay(dict):
         stages: List,
         start="trialStart",
         show_bar: bool = True,
+        show_caption: bool = True,
         **kwargs,
     ):
         self.consolidate_stages(stages)
@@ -499,6 +511,7 @@ class ProgressDisplay(dict):
         self["duration"] = _duration
         self["start"] = start
         self["show_bar"] = show_bar
+        self["show_caption"] = show_caption
         self["stages"] = stages
 
         self.validate()
@@ -792,7 +805,9 @@ class Page(Elt):
         }
 
         if progress_display is None:
-            progress_display = ProgressDisplay(stages=[], show_bar=False)
+            progress_display = ProgressDisplay(
+                stages=[], show_bar=False, show_caption=False
+            )
         self.progress_display = progress_display
 
         self._bot_response = bot_response

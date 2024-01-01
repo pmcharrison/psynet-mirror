@@ -1,5 +1,5 @@
 # Note: this implementation assumes ffmpeg is installed
-
+import shutil
 import subprocess
 import tempfile
 
@@ -66,6 +66,7 @@ def synth_stimulus(vector, output_path, chain_definition):
 
         repetitions = int(STIM_LEN_S // (dur1 + dur2))
         subprocess.call(
-            f"ffmpeg -stream_loop {repetitions} -i {out_dir}/comb.mp4 -c copy {output_path}",
+            f"ffmpeg -stream_loop {repetitions} -i {out_dir}/comb.mp4 -c copy {output_path}.mp4",
             shell=True,
         )
+        shutil.move(f"{output_path}.mp4", output_path)

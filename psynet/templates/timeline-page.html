@@ -40,45 +40,8 @@
 
     <div id="main-body" class="my-5 container" style="clear: both;">
         {% block main_body %}
-
-            {% block above_progress_display %}
-            {% endblock %}
-
-            {% block trial_progress_display %}
-                <style>
-                    #trial-progress-bar {
-                        margin-top: 15px;
-                        margin-bottom: 15px;
-                        display: {% if trial_progress_display_config["show_bar"] %} flex {% else %} none {% endif %};
-                    }
-
-                    #trial-progress-caption {
-                        margin-top: 15px;
-                        margin-bottom: 15px;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        font-weight: bold;
-                    }
-
-                    .trial-progress-bar-segment {
-                        -webkit-transition: none;
-                        -moz-transition: none;
-                        -ms-transition: none;
-                        -o-transition: none;
-                        transition: none;
-                    }
-                </style>
-
-                <div id="trial-progress-bar" class="progress"></div>
-                <div id="trial-progress-caption">
-                    <span id="trial-progress-caption-contents">&nbsp;</span>
-                </div>
-            {% endblock %}
-
-            {% block below_progress_display %}
-            {% endblock %}
-
+            {{ media.media_container() }}
+            {{ progress.trial_progress_display(trial_progress_display_config) }}
         {% endblock %}
 
         <span id="psynet-event-listener"></span>
@@ -687,7 +650,7 @@
                 psynet.trial.onEvent("responseEnable", psynet.response.enable);
                 psynet.trial.onEvent("submitEnable", psynet.submit.enable);
 
-                psynet.media.types = ["audio", "image", "video"];
+                psynet.media.types = ["audio", "image", "html", "video"];
                 psynet.media.data = {};
 
                 psynet.media.sounds = [];
@@ -910,7 +873,7 @@
                     let request = new XMLHttpRequest();
                     request.open("GET", url, true);
 
-                    if (mediaType == "audio") {
+                    if (mediaType == "audio" || mediaType == "html") {
                         request.responseType = "arraybuffer";
                     } else if (mediaType == "image" || mediaType == "video") {
                         request.responseType = "blob";
@@ -1128,13 +1091,66 @@
                     });
                 };
 
+                function getMimeTypeFromArrayBuffer(arrayBuffer) {
+                    const uint8arr = new Uint8Array(arrayBuffer)
+                    var dec = new TextDecoder()
+                    var text = dec.decode(uint8arr).toLowerCase().replace(' ', '')
+
+                    if (text.includes('<svg')) {
+                        return 'image/svg+xml'
+                    } else {
+                        return null;
+                    }
+                }
+
+                createMediaFromBuffer.html = async function (data, args) {
+                    let stimulusId = args["stimulusId"];
+                    let mediaType = args["mediaType"];
+                    let fileId = args["fileId"];
+
+                    let player = document.getElementById(stimulusId);
+                    if (player != null) {
+                        psynet.log.debug(
+                            "Associating " + mediaType + " '" + stimulusId
+                            + "' with the player of the same name.'"
+                        );
+                        const uint8arr = new Uint8Array(data)
+                        var dec = new TextDecoder()
+                        player.innerHTML = dec.decode(uint8arr);
+                     }
+                    let out = psynet.media.data[mediaType][stimulusId];
+                    out.player = player;
+                    out.innerHTML = player.innerHTML;
+                    // let metadata = await getSvgMetadataFromData(player.innerHTML);
+                    // {#out.url = url;#}
+                    // {#out.width = metadata.width;#}
+                    // {#out.height = metadata.height;#}
+                    // {#out.aspectRatio = out.width / out.height;#}
+                    out.loaded = true;
+
+                    psynet.media.downloadProgress.set(mediaType, fileId, 100);
+                    return true;
+                }
+
                 createMediaFromBuffer.image = async function (data, args) {
                     let stimulusId = args["stimulusId"];
                     let mediaType = args["mediaType"];
                     let fileId = args["fileId"];
-                    let url = URL.createObjectURL(data);
-                    let metadata = await getImageMetadataFromURL(url);
+
+                    let player = document.getElementById(stimulusId);
+                    if (player != null) {
+                        psynet.log.debug(
+                            "Associating " + mediaType + " '" + stimulusId
+                            + "' with the player of the same name.'"
+                        );
+                        mimeType = getMimeTypeFromArrayBuffer(data);
+                        data = new Blob([data], { type: mimeType }) // convert to blob
+                        player.src = URL.createObjectURL(data);
+                     }
                     let out = psynet.media.data[mediaType][stimulusId];
+                    out.player = player;
+                    let url = player.src;
+                    let metadata = await getImageMetadataFromURL(url);
                     out.url = url;
                     out.width = metadata.width;
                     out.height = metadata.height;
@@ -1153,7 +1169,7 @@
                     let player = document.getElementById(stimulusId);
                     if (player != null) {
                         psynet.log.debug(
-                            "Associating video '" + stimulusId
+                            "Associating " + mediaType + " '" + stimulusId
                             + "' with the player of the same name.'"
                         );
                         data = new Blob([data])  // convert to blob
@@ -1214,9 +1230,17 @@
                             fileId: fileId
                         };
 
-                        // In contrast to audio, video is not loaded into the DOM, so we need to create a player
-                        if (mediaType === 'video') {
-                            $('#main-body').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
+                        // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
+                        if (mediaType === 'html') {
+                            $('#media-container').prepend('<div style="display: none" class="html" id="' + stimulusId + '"></div>')
+                        }
+
+                        if (mediaType === 'image') {
+                            $('#media-container').prepend('<img style="display: none" class="image" id="' + stimulusId + '"></img>')
+                        }
+
+                        else if (mediaType === 'video') {
+                            $('#media-container').prepend('<video style="display: none" class="video" id="' + stimulusId + '"></video>')
                         }
 
                         promises.push(createMediaFromBuffer[mediaType](media.buffer, args));
@@ -1231,13 +1255,12 @@
                     return Promise.all(promises);
                 };
 
-                processMediaBatch.audio = function (data, args) { //, ids,) {
-                    return processMediaBatch.extract_stimuli(data, args);
-                };
-
-                processMediaBatch.video = function (data, args) { //, ids,) {
-                    return processMediaBatch.extract_stimuli(data, args);
-                };
+                const SUPPORTED_MODALITIES = ['audio', 'image', 'html', 'video'];
+                SUPPORTED_MODALITIES.forEach(function (modality){
+                    processMediaBatch[modality] = function (data, args) { //, ids,) {
+                        return processMediaBatch.extract_stimuli(data, args);
+                    };
+                })
 
                 let initModal = function () {
                     let modal = document.getElementById("help-modal");
@@ -1609,6 +1632,7 @@
                     psynet.trial.onEvent("pageUpdated", onPageUpdated);
 
                     return {
+                        stages: config.stages,
                         setText: setText,
                         start: start,
                         stop: stop
@@ -1617,6 +1641,7 @@
 
                 psynet.audio = psynet.media.data.audio;
                 psynet.image = psynet.media.data.image;
+                psynet.html = psynet.media.data.html;
                 psynet.video = psynet.media.data.video;
 
                 return psynet
