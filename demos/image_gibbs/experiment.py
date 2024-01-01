@@ -1,16 +1,18 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
+from markupsafe import Markup
+
 import psynet.experiment
 import psynet.media
 from psynet.asset import LocalStorage
-from psynet.consent import CAPRecruiterStandardConsent
-from psynet.modular_page import Markup
+from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
-    VideoGibbsNode,
-    VideoGibbsTrial,
-    VideoGibbsTrialMaker,
+    ImageGibbsNetwork,
+    ImageGibbsNode,
+    ImageGibbsTrial,
+    ImageGibbsTrialMaker,
 )
 from psynet.utils import get_logger
 
@@ -20,18 +22,8 @@ logger = get_logger()
 
 # Custom parameters, change these as you like!
 TARGETS = ["positive", "energetic"]
-DURATION_RANGE = [0.1, 1.5]
 RGB_RANGE = [0, 255]
-VECTOR_RANGES = [
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    RGB_RANGE,
-    DURATION_RANGE,
-    DURATION_RANGE,
-]
+VECTOR_RANGES = [RGB_RANGE, RGB_RANGE, RGB_RANGE]
 DIMENSIONS = len(VECTOR_RANGES)
 GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True
@@ -44,47 +36,52 @@ NUM_CHAINS_PER_PARTICIPANT = 2
 NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(VideoGibbsTrial):
+class CustomTrial(ImageGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
-    minimal_interactions = 3
     minimal_time = 3.0
+    minimal_interactions = 1
     time_estimate = 5.0
-    disable_slider_on_change = "while_playing"
+    continuous_updates = True
+    disable_slider_on_change = "never"
     media_width = "250px"
     media_height = "250px"
     layout = ["media", "prompt", "progress", "control", "buttons"]
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "<center>Adjust the slider so that the video is as "
+            "<center>Adjust the slider so that the image is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible.</center></br></br>"
-            "In each trial of this experiment, you use the slider to choose between different video clips. "
-            "In this case, every video contains an alternation between two colored squares. Each of the squares is "
-            "presented twice. How long each of the colored squares is presented also varies."
-            "The slider is disabled as long as a video is playing. The next button is activated the earliest after "
-            "three seconds and minimally three interactions with the slider are required.",
+            "as possible.</center></br>"
+            "In each trial of this experiment, you use the slider to choose between different images. "
+            "In this case, every image contains a colored square."
+            "The slider is never disabled and the image is continuously updated on a slider change. For the next button to be activated, three seconds need to be passed and minimally one interaction with the slider is required. "
         )
 
 
-class CustomNode(VideoGibbsNode):
+class CustomNode(ImageGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
+    n_jobs = 8  # <--- Parallelize stimulus synthesis into 8 parallel processes at each worker node
 
     def synth_function(self, vector, output_path, chain_definition):
         custom_synth.synth_stimulus(vector, output_path, {})
 
 
-class CustomTrialMaker(VideoGibbsTrialMaker):
-    pass
+class CustomGibbsNetwork(ImageGibbsNetwork):
+    modality = "image"
 
 
-trial_maker = CustomTrialMaker(
-    id_="video_gibbs_demo",
+class CustomGibbsTrialMaker(ImageGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return CustomGibbsNetwork
+
+
+trial_maker = CustomGibbsTrialMaker(
+    id_="image_gibbs_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"
@@ -105,12 +102,12 @@ trial_maker = CustomTrialMaker(
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Video Gibbs sampling demo"
+    label = "Image Gibbs sampling demo"
     asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        CAPRecruiterStandardConsent(),
+        NoConsent(),
         trial_maker,
         SuccessfulEndPage(),
     )

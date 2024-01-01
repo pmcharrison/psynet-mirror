@@ -3,6 +3,7 @@ import json
 import random
 import shutil
 import tempfile
+import warnings
 from typing import Dict, List, Optional, Union
 
 from dominate import tags
@@ -96,6 +97,11 @@ class Prompt:
     ):
         self.text = text
         self.text_align = text_align
+
+        if isinstance(text, str):
+            self.text_html = tags.p(text)
+        else:
+            self.text_html = text
 
         if buttons is None:
             buttons = []
@@ -1546,9 +1552,16 @@ class ModularPage(Page):
         For example, a validation function testing that the answer contains exactly 3 characters might look like this:
         ``lambda answer: "Answer must contain exactly 3 characters!" if len(answer) != 3 else None``.
 
+    layout
+        Determines the layout of elements in the page.
+        Should take the form of a list that enumerates the page elements in order of appearance.
+        If left blank, defaults to ``.default_layout``.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
+
+    default_layout = ["prompt", "media", "progress", "control", "buttons"]
 
     def __init__(
         self,
@@ -1564,6 +1577,7 @@ class ModularPage(Page):
         show_start_button: Optional[bool] = False,
         show_next_button: Optional[bool] = None,
         validate: Optional[callable] = None,
+        layout=NoArgumentProvided,
         **kwargs,
     ):
         if control is None:
@@ -1608,18 +1622,18 @@ class ModularPage(Page):
 
         self._validate_function = validate
 
+        if layout == NoArgumentProvided:
+            layout = self.default_layout
+
+        self.layout = layout
+
         template_str = f"""
         {{% extends "timeline-page.html" %}}
 
         {self.import_templates}
 
-        {{% block above_progress_display %}}
-        {{{{ {self.prompt_macro}(prompt_config) }}}}
-        {{% endblock %}}
-
-        {{% block below_progress_display %}}
-        {{{{ {self.control_macro}(control_config) }}}}
-        {self.render_buttons()}
+        {{% block main_body %}}
+            {self.render_layout()}
         {{% endblock %}}
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
@@ -1646,6 +1660,20 @@ class ModularPage(Page):
             validate=validate,
             **kwargs,
         )
+
+    def get_renderers(self, **kwargs):
+        return {
+            "prompt": "{{ %s(prompt_config) }}" % self.prompt_macro,
+            "media": "{{ media.media_container() }}",
+            "control": "{{ %s(control_config) }}" % self.control_macro,
+            "buttons": self.render_buttons(),
+            "progress": "{{ progress.trial_progress_display(trial_progress_display_config) }}",
+        }
+
+    def render_layout(self, **kwargs):
+        renderers = self.get_renderers()
+
+        return "\n".join([renderers[key] for key in self.layout])
 
     def validate(self, response, **kwargs):
         if self._validate_function is None:
@@ -2105,7 +2133,12 @@ class SliderControl(Control):
         return random.sample(candidates, 1)[0]
 
 
-EXTENSIONS = {"audio": ["mp3", "wav"], "video": ["mp4", "ogg"]}
+EXTENSIONS = {
+    "audio": ["wav", "mp3"],
+    "image": ["jpg", "jpeg", "png", "gif", "svg"],
+    "html": ["svg", "txt"],
+    "video": ["mp4", "ogg"],
+}
 
 
 class MediaSliderControl(SliderControl):
@@ -2126,7 +2159,7 @@ class MediaSliderControl(SliderControl):
         Maximum value of the slider.
 
     slider_media:
-        A dictionary of media assets (video or sound).
+        A dictionary of media assets (image, video, or sound).
         Each item can either be a string,
         corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
         or a dictionary, corresponding to metadata for a batch of media assets.
@@ -2146,16 +2179,28 @@ class MediaSliderControl(SliderControl):
             }
 
     modality:
-        Either ``"audio"`` or ``"video"``; `"image"`` is not implemented yet.
+        Either ``"audio"``,  ``"image"`` or ``"video"``.
 
     media_locations:
         Dictionary with IDs as keys and locations on the slider as values.
 
     autoplay:
-        The media closest to the current slider position is played once the page is loaded. Default: `False`.
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
 
-    disable_while_playing:
-        If `True`, the slider is disabled while the audio is playing. Default: `False`.
+    disable_while_playing : bool
+        If `True`, the slider is disabled while the media is playing. Default: `False`.
+
+        .. deprecated:: 11.0.0
+        Use ``disable_slider_on_change`` instead.
+
+    disable_slider_on_change:
+        - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
+
+        - ``"while_playing"``: The slider will be disabled after a value change, as long as the related media is playing.
+
+        - ``"never"``: The slider will not be disabled after a value change.
+
+        Default: `never`.
 
     n_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
@@ -2188,7 +2233,7 @@ class MediaSliderControl(SliderControl):
         Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
 
     snap_values:
-        - ``"media_locations"``: slider snaps to nearest sound location.
+        - ``"media_locations"``: slider snaps to nearest media location.
 
         - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
 
@@ -2203,6 +2248,11 @@ class MediaSliderControl(SliderControl):
 
     minimal_time:
         Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+
     """
 
     def __init__(
@@ -2215,6 +2265,7 @@ class MediaSliderControl(SliderControl):
         media_locations: dict,
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
+        disable_slider_on_change: Optional[Union[float, str]] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2225,7 +2276,7 @@ class MediaSliderControl(SliderControl):
         minimal_time: Optional[int] = 0,
         minimal_interactions: Optional[int] = 0,
     ):
-        if modality not in ["audio", "video"]:
+        if modality not in EXTENSIONS.keys():
             raise NotImplementedError(f"Modality not implemented: {modality}")
 
         if isinstance(n_steps, str):
@@ -2263,6 +2314,12 @@ class MediaSliderControl(SliderControl):
                 "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
             )
 
+        if disable_while_playing:
+            warnings.warn(
+                "disable_while_playing is deprecated, please migrate to disable_slider_on_change.",
+                DeprecationWarning,
+            )
+
         super().__init__(
             start_value=start_value,
             min_value=min_value,
@@ -2282,12 +2339,30 @@ class MediaSliderControl(SliderControl):
         self.modality = modality
         self.autoplay = autoplay
         self.disable_while_playing = disable_while_playing
+        self.disable_slider_on_change = disable_slider_on_change
         self.snap_values = snap_values
         self.slider_media = slider_media
         self.js_vars["modality"] = modality
         self.js_vars["media_locations"] = media_locations
         self.js_vars["autoplay"] = autoplay
-        self.js_vars["disable_while_playing"] = disable_while_playing
+        self.js_vars["disable_while_playing"] = (
+            True
+            if (
+                disable_while_playing is True
+                or type(disable_slider_on_change) is int
+                or type(disable_slider_on_change) is float
+                or disable_slider_on_change == "while_playing"
+            )
+            else False
+        )
+        self.js_vars["disable_duration"] = (
+            disable_slider_on_change
+            if (
+                type(disable_slider_on_change) is int
+                or type(disable_slider_on_change) is float
+            )
+            else 0
+        )
 
     macro = "media_slider"
 
@@ -2299,6 +2374,7 @@ class MediaSliderControl(SliderControl):
             "modality": self.modality,
             "autoplay": self.autoplay,
             "disable_while_playing": self.disable_while_playing,
+            "disable_slider_on_change": self.disable_slider_on_change,
         }
 
 
@@ -2316,6 +2392,7 @@ class AudioSliderControl(MediaSliderControl):
         sound_locations: dict,
         autoplay: Optional[bool] = False,
         disable_while_playing: Optional[bool] = False,
+        disable_slider_on_change: Optional[Union[float, str]] = "",
         n_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
@@ -2340,6 +2417,7 @@ class AudioSliderControl(MediaSliderControl):
             media_locations=sound_locations,
             autoplay=autoplay,
             disable_while_playing=disable_while_playing,
+            disable_slider_on_change=disable_slider_on_change,
             n_steps=n_steps,
             slider_id=slider_id,
             input_type=input_type,
@@ -2351,7 +2429,7 @@ class AudioSliderControl(MediaSliderControl):
             minimal_time=minimal_time,
         )
 
-    macro = "media_slider"
+    macro = "audio_media_slider"
 
     @property
     def metadata(self):
@@ -2359,7 +2437,515 @@ class AudioSliderControl(MediaSliderControl):
             **super().metadata,
             "sound_locations": self.media_locations,
             "autoplay": self.autoplay,
-            "disable_while_playing": self.disable_while_playing,
+        }
+
+
+class ImageSliderControl(MediaSliderControl):
+    """
+    This control solicits a slider response from the user that results in showing an image.
+    The slider can either be horizontal or circular.
+
+    Parameters
+    ----------
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    slider_media:
+        A dictionary of media assets (image).
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/image/test.png"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid image argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.png',
+                'my_batch': {
+                    'url': '/static/file_concatenated.batch',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    media_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
+
+    disable_slider_on_change:
+        - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
+
+        - ``"while_playing"``: The slider will be disabled after a value change, as long as the related media is playing.
+
+        - ``"never"``: The slider will not be disabled after a value change.
+
+        Default: `never`.
+
+    media_width:
+        CSS width specification for the media container. The image will scale to the width of this container.
+
+    media_height:
+        CSS height specification for the media container.
+
+    n_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"media_locations"``: slider snaps to nearest image location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"media_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_media: dict,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        disable_slider_on_change: Optional[Union[float, str]] = "",
+        media_width: Optional[str] = "",
+        media_height: Optional[str] = "",
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+        continuous_updates: Optional[bool] = False,
+    ):
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=slider_media,
+            modality="image",
+            media_locations=media_locations,
+            autoplay=autoplay,
+            disable_slider_on_change=disable_slider_on_change,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_time=minimal_time,
+            minimal_interactions=minimal_interactions,
+        )
+        self.media_width = media_width
+        self.media_height = media_height
+        self.continuous_updates = continuous_updates
+        self.js_vars["continuous_updates"] = continuous_updates
+
+    macro = "image_media_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "continuous_updates": self.continuous_updates,
+        }
+
+
+class HtmlSliderControl(MediaSliderControl):
+    """
+    This control solicits a slider response from the user that results in showing an HTML element.
+    The slider can either be horizontal or circular.
+
+    Parameters
+    ----------
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    slider_media:
+        A dictionary of media assets (image).
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/image/test.svg"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid image argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.svg',
+                'my_batch': {
+                    'url': '/static/file_concatenated.batch',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    media_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
+
+    disable_slider_on_change:
+        - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
+
+        - ``"while_playing"``: The slider will be disabled after a value change, as long as the related media is playing.
+
+        - ``"never"``: The slider will not be disabled after a value change.
+
+        Default: `never`.
+
+    media_width:
+        CSS width specification for the media container.
+
+    media_height:
+        CSS height specification for the media container.
+
+    n_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"media_locations"``: slider snaps to nearest image location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"media_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_media: dict,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        disable_slider_on_change: Optional[Union[float, str]] = "",
+        media_width: Optional[str] = "",
+        media_height: Optional[str] = "",
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+        continuous_updates: Optional[bool] = False,
+    ):
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=slider_media,
+            modality="image",
+            media_locations=media_locations,
+            autoplay=autoplay,
+            disable_slider_on_change=disable_slider_on_change,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_time=minimal_time,
+            minimal_interactions=minimal_interactions,
+        )
+        self.media_width = media_width
+        self.media_height = media_height
+        self.continuous_updates = continuous_updates
+        self.js_vars["continuous_updates"] = continuous_updates
+
+    macro = "html_media_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "continuous_updates": self.continuous_updates,
+        }
+
+
+class VideoSliderControl(MediaSliderControl):
+    """
+    This control solicits a slider response from the user that results in showing a video.
+    The slider can either be horizontal or circular.
+
+    Parameters
+    ----------
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    slider_media:
+        A dictionary of media assets (video).
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/image/test.mp4"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid image argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.mp4',
+                'my_batch': {
+                    'url': '/static/file_concatenated.mp4',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    media_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The media closest to the current slider position is shown once the page is loaded. Default: `False`.
+
+    disable_while_playing : bool
+        If `True`, the slider is disabled while the media is playing. Default: `False`.
+
+        .. deprecated:: 11.0.0
+        Use ``disable_slider_on_change`` instead.
+
+    disable_slider_on_change:
+        - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
+
+        - ``"while_playing"``: The slider will be disabled after a value change, as long as the related media is playing.
+
+        - ``"never"``: The slider will not be disabled after a value change.
+
+        Default: `never`.
+
+    media_width:
+        CSS width specification for the media container. The video will scale to the width of this container.
+
+    media_height:
+        CSS height specification for the media container.
+
+    n_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"n_media"``: Sets the number of steps to the number of media. This only makes sense
+          if the media locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"media_locations"``: slider snaps to nearest video location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"media_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    """
+
+    def __init__(
+        self,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_media: dict,
+        media_locations: dict,
+        autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
+        disable_slider_on_change: Optional[Union[float, str]] = "never",
+        media_width: Optional[str] = "",
+        media_height: Optional[str] = "",
+        n_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "media_locations",
+        minimal_time: Optional[int] = 0,
+        minimal_interactions: Optional[int] = 0,
+        **kwargs,
+    ):
+        if "url" in kwargs or "file_type" in kwargs:
+            raise ValueError(
+                "VideoSliderControl has now been replaced with FrameSliderControl when it concerns sliding through the frames of a single video,"
+                " please use the latter now. In case you want to slide through a series of videos, you can use VideoSliderControl. In that case, "
+                "please specify slider_media and media_locations rather than url or file_type.",
+            )
+        super().__init__(
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_media=slider_media,
+            modality="video",
+            media_locations=media_locations,
+            autoplay=autoplay,
+            disable_while_playing=disable_while_playing,
+            disable_slider_on_change=disable_slider_on_change,
+            n_steps=n_steps,
+            slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
+            reverse_scale=reverse_scale,
+            directional=directional,
+            snap_values=snap_values,
+            minimal_time=minimal_time,
+            minimal_interactions=minimal_interactions,
+        )
+        self.media_width = media_width
+        self.media_height = media_height
+
+    macro = "video_media_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "media_locations": self.media_locations,
+            "modality": self.modality,
+            "autoplay": self.autoplay,
         }
 
 
@@ -2814,8 +3400,8 @@ class VideoRecordControl(RecordControl):
         )
 
 
-class VideoSliderControl(Control):
-    macro = "video_slider"
+class FrameSliderControl(Control):
+    macro = "frame_slider"
 
     def __init__(
         self,
