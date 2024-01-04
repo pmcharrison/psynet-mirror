@@ -235,10 +235,10 @@ Install PsyNet
 By default Git will check out the latest version of the master branch.
 This is good if you are actively contributing code to PsyNet, but if you are instead just
 designing and deploying experiments you probably want to check out the latest release of PsyNet instead.
-To check out the latest PsyNet release, first go to PsyNet's
-`pyproject.toml <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file
-and look for the version number specified in the line beginning `version = `.
-Suppose this number is `10.4.0`; you can check out this version by writing ``git checkout v10.4.0``.
+To check out the latest PsyNet release, go to PsyNet's
+`release page <https://gitlab.com/PsyNetDev/PsyNet/-/releases>`_
+and make a note of the latest release number.
+Suppose this number is ``10.4.1``; you can check out this version by writing ``git checkout v10.4.1``.
 
 Finally, we can install PsyNet with the following:
 
