@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "10.4.0"
+version = "11.0.0"
 authors = [
-  { name="Peter Harrison", email="pmch2@cam.ac.uk" },
-  { name="Frank Höger", email="frank.hoeger@ae.mpg.de" },
-  { name="Pol van Rijn", email="pol.van-rijn@ae.mpg.de" },
-  { name="Raja Marjieh", email="raja.marjieh@princeton.edu" },
-  { name="Nori Jacoby", email="nori.jacoby@ae.mpg.de" }
+  {name="Peter Harrison", email="pmch2@cam.ac.uk"},
+  {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
+  {name="Pol van Rijn", email="pol.van-rijn@ae.mpg.de"},
+  {name="Raja Marjieh", email="raja.marjieh@princeton.edu"},
+  {name="Nori Jacoby", email="nori.jacoby@ae.mpg.de"}
 ]
 maintainers = [
   {name = "Peter Harrison", email = "pmch2@cam.ac.uk"}
@@ -22,6 +22,7 @@ readme = "README.md"
 requires-python = ">=3.10"  # recommended Python version: 3.11
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
     "Framework :: Flask",
     "Operating System :: OS Independent",
@@ -87,7 +88,7 @@ exclude = [
 
 [tool.black]
 line-length = 88
-target-version = ["py310"]
+target-version = ["py311"]
 include = '\.pyi?$'
 exclude = '''
 /(
