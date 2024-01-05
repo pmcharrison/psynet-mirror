@@ -30,6 +30,7 @@ Participant methods:
 - Removed `prolific_maximum_allowed_minutes` from docs (author: Frank Höger, reviewer: Peter Harrison).
 
 #### Fixed
+- Replaced occurrences of 'from flask import Markup' with 'from markupsafe import Markup' (author: Frank Höger).
 - Fixed wheel build target in pyproject.toml (author: Frank Höger).
 - Fixed bug registering `pageUpdated` event (author: Peter Harrison).
 - Prevent autocomplete on number input fields (author: Frank Höger, reviewer: Peter Harrison).
@@ -62,6 +63,8 @@ Participant methods:
 - Provide a decorator `@expose_to_api` which will register an arbitrary static function under `/api/<name>` (author: Pol van Rijn, reviewer: Peter Harrison).
 
 #### Changed
+- The polymorphic identity column used to distinguish different types of object within a given database table now uses a fully qualified module name to avoid problems (author: Peter Harrison, reviewer: Frank Höger).
+that happened when two classes from different modules used the same name.
 - Changed `VideoPrompt`'s default value for `mirrored` to `False`, and specify `mirrored=True` in all demos currently using `VideoPrompt` (author: Frank Höger, reviewer: Peter Harrison).
 - Revise deprecation statement about `AntiphaseHeadphoneTest` (author: Peter Harrison).
 - Better error messages for when a `wait_while` times out (author: Peter Harrison, reviewer: Pol van Rijn).
@@ -69,9 +72,10 @@ Participant methods:
 - PsyNet demos now source PsyNet from PyPi instead of GitLab, making dependency installation much faster. Adapted 'update demo' logic to reflect those changes (author: Frank Höger, reviewer: Peter Harrison).
 
 #### Updated
+- Updated `Dallinger` to `v9.12.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.12.0.
+- Updated/fixed logic for updating demos (author: Frank Höger)
 - Make `page` accessible within Page Jinja templates (author: Peter Harrison).
 - Auto-update PsyNet Docker image version; updated demos (author: Frank Höger, reviewer: Peter Harrison).
-- Updated `Dallinger` to `v9.12.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.12.0.
 
 #### Removed
 - Removed old references to setup.py (author: Frank Höger).
@@ -88,6 +92,7 @@ Participant methods:
 - Updated documentation for `ModularPage`.
 - Updated documentation for demos.
 - Updated section on writing custom frontends.
+- Updated chapter on making a release.
 - Replaced occurrences of `pip` with `pip3`.
 
 # [10.4.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.1) Release 2023-12-18
