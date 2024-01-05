@@ -23,8 +23,8 @@ class TestExp:
             networks = StaticNetwork.query.filter_by(trial_maker_id="animals").all()
             nodes = StaticNode.query.all()
 
-            assert networks[0].type == "StaticNetwork"
-            assert nodes[0].type == "StaticNode"
+            assert networks[0].type == "psynet.trial.static.StaticNetwork"
+            assert nodes[0].type == "psynet.trial.static.StaticNode"
 
             assert len(networks) == 12
             assert len(nodes) == 12
@@ -36,7 +36,7 @@ class TestExp:
 
             trial = StaticTrial.query.filter_by(id=1).one()
             assert trial.answer == "A little"
-            assert trial.type == "AnimalTrial"
+            assert trial.type == "dallinger_experiment.experiment.AnimalTrial"
 
             assert_text(driver, "trial-position", "Trial 2")
 

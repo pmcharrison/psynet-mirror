@@ -5,11 +5,11 @@ from psynet.trial.chain import ChainNode, ChainTrial
 
 
 class Trial(ChainTrial):
-    polymorphic_identity = "GenericTrial"
+    pass
 
 
 class Node(ChainNode):
-    polymorphic_identity = "GenericNode"
+    pass
 
     def summarize_trials(self, trials: list, experiment, participant):
         return None
