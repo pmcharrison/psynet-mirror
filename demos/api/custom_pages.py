@@ -1,6 +1,6 @@
 import random
 
-from flask import Markup
+from markupsafe import Markup
 
 from psynet.api import expose_to_api
 from psynet.modular_page import ModularPage, Prompt, TextControl

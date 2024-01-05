@@ -2091,7 +2091,7 @@ def _prepare_translation(iso_code):
         marked the strings you want to translate with the _() and _p() function. Here's an example:
         ###################
         import os
-        from flask import Markup
+        from markupsafe import Markup
         from psynet.page import InfoPage
         from psynet.utils import get_translator
         locale = "nl"
