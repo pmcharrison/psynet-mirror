@@ -44,7 +44,11 @@ After all changes to be released have been merged into the ``master`` branch fol
     * `pyproject.toml`
     * `psynet/version.py`
 
-and commit the changes with
+    .. attention::
+
+        In case Dallinger was upgraded in this release via `pyproject.toml`, make sure to also update the Dallinger version in both `psynet/version.py` and `PsyNet/Dockerfile` accordingly.
+
+Commit the changes with
 
 .. code-block:: console
 
