@@ -1,10 +1,94 @@
 # CHANGELOG
 
-#### Added
-- Added JS function ``psynet.stageResponse`` as a mechanism for staging responses in custom controls.
+# [11.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.0.0) Release 2024-01-05
+
+#### Breaking changes
+- Renamed various variables. To update your experiment, do a find-and-replace search for these variables in your experiment code.
+
+Config variables:
+* min_accumulated_bonus_for_abort -> min_accumulated_reward_for_abort
+`show_bonus` -> `show_reward`
+
+Experiment variables:
+* `dynamically_update_progress_bar_and_bonus` -> `dynamically_update_progress_bar_and_reward`
+* `show_bonus` -> `show_reward`
+
+Trial methods:
+* `compute_bonus` -> `compute_performance_reward`
+
+Experiment methods:
+* `estimated_bonus_in_dollars` -> `estimated_reward_in_dollars`
+* `estimated_max_bonus` -> `estimated_max_reward`
+* `get_progress_and_bonus` -> `get_progress_and_reward`
+
+Participant methods:
+* `calculate_bonus` -> `calculate_reward`
+* `get_bonus` -> `get_time_reward`
+* `inc_performance_bonus` -> `inc_performance_reward`
+
+- Removed `prolific_reward_cents` to instead use `base_payment` for Prolific reward (author: Frank Höger, reviewer: Peter Harrison).
+- Removed `prolific_maximum_allowed_minutes` from docs (author: Frank Höger, reviewer: Peter Harrison).
 
 #### Fixed
-- Fixed bug in custom prompts demo and tutorial.
+- Fixed wheel build target in pyproject.toml (author: Frank Höger).
+- Fixed bug registering `pageUpdated` event (author: Peter Harrison).
+- Prevent autocomplete on number input fields (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed bug in custom prompts demo and tutorial (author: Peter Harrison).
+- Fixed bug with experiment label property (it was causing an error message on psynet export (author: Peter Harrison, reviewer: Pol van Rijn).
+- Fixed pre-deploy checks for Heroku-incompatible storage backends (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug in `check_ssh_cache` that was causing `CachedAsset` to fail (author: Peter Harrison, reviewer: Frank Höger).
+- `Unserialize` no longer fails when an SQL object cannot be found in the database, but instead returns `None`. This should make PsyNet more robust to cases where the `export` command is run partly through an experiment (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug where Gibbs networks would skip a dimension on rare event of node duplication (author: Peter Harrison, reviewer: Eline Van Geert).
+- Fixed displayed text in language selection prompt (author: Yoko Urano, reviewer: Pol van Rijn).
+- Fixed a bug where the PsyNet/Dallinger version consistency check was using an incorrect regex (author: Peter Harrison, reviewer: Pol van Rijn).
+- PsyNet Docker images are now built using the Python dependencies specified in Dallinger's requirements.txt, which stops packages from accidentally being upgraded to incompatible versions (author: Peter Harrison, reviewer: Pol van Rijn).
+- Updated Unity demo with new WebGL files to fix an issue where the `page_uuid`s sometimes did not match due to a race condition (authors: Ofer Tchernichovski, Nori Jacoby).
+- Fixed order of function when when updating demos (author: Frank Höger).
+- Fixed bug where trial makers weren't waiting for asynchronous file deposits (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed various minor bugs.
+
+#### Added
+- Added 'Gibbs image' demo (author: Eline Van Geert, reviewer: Peter Harrison).
+- Added `on_first_launch` hook for `TrialMaker`s (author: Pol van Rijn, reviewer: Peter Harrison).
+- Added/updated logging info when the `fail()` method is called on node, trial, network, and participant (author: Frank Höger, reviewer: Peter Harrison).
+- Added optional `height` argument to `VideoPrompt` (author: Frank Höger, reviewer: Peter Harrison).
+- Run the pre-commit tests as part of GitLab CI pipeline (author: Frank Höger, reviewer: Peter Harrison).
+- Add `--real-time` option for running bots (author: Peter Harrison).
+- Added ability to specify extra files in `TrialMaker`s (author: Pol van Rijn, reviewer: Peter Harrison).
+- It is now possible to run multiple bots in parallel through a PsyNet test. Example command: `psynet test local --n-bots 10 --parallel`. (authors: Eline Van Geert and Peter Harrison, reviewer: Peter Harrison)
+- `psynet test` now supports remote deployments. Push your app to the remote server by running `psynet debug ssh --app test` as usual, then test it by running e.g. `psynet test ssh --app test --n-bots 10 --parallel`. (author: Peter Harrison, reviewer: Eline Van Geert)
+- Added additional static audio demo (author: Elif Celen, reviewers: Peter Harrison, Frank Höger).
+- Added JS function `psynet.stageResponse` as a mechanism for staging responses in custom controls (author: Peter Harrison).
+- Provide a decorator `@expose_to_api` which will register an arbitrary static function under `/api/<name>` (author: Pol van Rijn, reviewer: Peter Harrison).
+
+#### Changed
+- Changed `VideoPrompt`'s default value for `mirrored` to `False`, and specify `mirrored=True` in all demos currently using `VideoPrompt` (author: Frank Höger, reviewer: Peter Harrison).
+- Revise deprecation statement about `AntiphaseHeadphoneTest` (author: Peter Harrison).
+- Better error messages for when a `wait_while` times out (author: Peter Harrison, reviewer: Pol van Rijn).
+- Deprecate `DebugStorage`, all usages can be replaced with `LocalStorage` (author: Peter Harrison, reviewer: Frank Höger).
+- PsyNet demos now source PsyNet from PyPi instead of GitLab, making dependency installation much faster. Adapted 'update demo' logic to reflect those changes (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Updated
+- Make `page` accessible within Page Jinja templates (author: Peter Harrison).
+- Auto-update PsyNet Docker image version; updated demos (author: Frank Höger, reviewer: Peter Harrison).
+- Updated `Dallinger` to `v9.12.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.12.0.
+
+#### Removed
+- Removed old references to setup.py (author: Frank Höger).
+- Removed old `LOCAL_S3` code (author: Peter Harrison).
+
+#### Documentation changes
+- Fixed documentation for `choose_participant_group`.
+- Added section for creating new experiments.
+- Added documentation for `start_nodes`.
+- Updated instructions about Python versions.
+- Updated timeline, troubleshooting, and tutorials chapters.
+- Updated installation instructions (incl. those for demos).
+- Updated section on SSH deployment.
+- Updated documentation for `ModularPage`.
+- Updated documentation for demos.
+- Updated section on writing custom frontends.
+- Replaced occurrences of `pip` with `pip3`.
 
 # [10.4.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.1) Release 2023-12-18
 
@@ -19,7 +103,7 @@
 - Fixed `show_footer=False`, which wasn't previously working (author: Peter Harrison, reviewer: Eline van Geert).
 - Fixed bug for duplicate next button in `SurveyJSControl` (author: Peter Harrison).
 - Fixed issues with `jsPsych` page formatting (author: Peter Harrison, reviewer: Eline van Geert).
-- Fixed Heroku deployment from archive, which was previously failing early with a 'Checking the wrong experiment' error. (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed Heroku deployment from archive, which was previously failing early with a 'Checking the wrong experiment' error (author: Peter Harrison, reviewer: Frank Höger).
 - Added a check to prevent cases where PsyNet tests import multiple different experiments in the same session, as this could cause difficult state contamination errors (author: Peter Harrison, reviewer: Frank Höger).
 - Migrated most PsyNet tests into the `isolated` directory to further protect against contamination issues (author: Peter Harrison, reviewer: Frank Höger).
 - Minor fix for dashboard's `GenericTrialNode` display (author: Peter Harrison).
@@ -54,8 +138,6 @@
 - Added warning to `Synchronization` subsection (author: Peter Harrison).
 - Updated `Example experiments` subsection (author: Peter Harrison).
 - Updated `Docker installation` and `Developer installation` subsections (author: Eline Van Geert, reviewer: Peter Harrison).
-
-
 
 # [10.3.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.1) Release 2023-08-25
 

@@ -14,7 +14,7 @@ Let's say you have the following info page in your experiment:
 
 .. code-block:: python
 
-    from flask import Markup
+    from markupsafe import Markup
     from psynet.page import InfoPage
 
     my_info_page = InfoPage(
@@ -37,7 +37,7 @@ You can easily translate it by marking the strings that need to be translated wi
 
     import os
 
-    from flask import Markup
+    from markupsafe import Markup
     from psynet.page import InfoPage
     from psynet.utils import get_translator
 
