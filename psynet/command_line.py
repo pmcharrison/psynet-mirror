@@ -2053,9 +2053,9 @@ def post_update_constraints_():
     import fileinput
 
     with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        version_tag = "PsyNet@v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        psynet_version = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
         for line in file:
-            print(re.sub(version_tag, f"PsyNet@v{__version__}", line), end="")
+            print(re.sub(psynet_version, f"psynet=={__version__}", line), end="")
 
 
 @psynet.command()
