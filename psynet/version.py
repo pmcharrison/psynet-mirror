@@ -6,7 +6,7 @@ from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
 # Bump versions by changing these two lines.
-dallinger_minimum_version = "9.10.0"
+dallinger_minimum_version = "9.12.0"
 psynet_version = "10.4.0"
 
 dallinger_minimum_version_parts = dallinger_minimum_version.split(".")

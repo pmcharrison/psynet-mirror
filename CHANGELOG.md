@@ -71,6 +71,7 @@ Participant methods:
 #### Updated
 - Make `page` accessible within Page Jinja templates (author: Peter Harrison).
 - Auto-update PsyNet Docker image version; updated demos (author: Frank Höger, reviewer: Peter Harrison).
+- Updated `Dallinger` to `v9.12.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.12.0.
 
 #### Removed
 - Removed old references to setup.py (author: Frank Höger).
