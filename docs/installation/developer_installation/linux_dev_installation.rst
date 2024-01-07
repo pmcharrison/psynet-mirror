@@ -89,6 +89,9 @@ Install heroku client
    curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
 
+.. include:: ../setup_virtualenv.rst
+
+
 Dallinger
 ---------
 

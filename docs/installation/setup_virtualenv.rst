@@ -20,7 +20,14 @@ The following code installs ``virtualenvwrapper``:
    echo "source $(which virtualenvwrapper.sh)" >> ~/.zshrc
 
 We recommend using ``virtualenvwrapper`` to create a separate virtual environment for each project you work on.
-If you are using PyCharm, the easiest way to do this is via the PyCharm GUI.
+A project would a be a single experiment implementation, namely a directory containing
+an ``experiment.py`` file as well as various supporting files, such as ``requirements.txt`` and ``constraints.txt``.
+If you are just testing out PsyNet for the first time, we recommend you try out a demo as your first project.
+To open a project in PyCharm (e.g. a demo), click 'Open' in the PyCharm welcome screen,
+then navigate to the directory containing the project, select the project, and click 'Open'.
+Alternatively, if you already have a PyCharm project open, click 'File' > 'Open', find the directory,
+select it, and click 'Open'.
+
 When you open a new project in PyCharm, you should see a dialogue box that says something like
 "File requirements.txt contains project dependencies. Would you like to create a virtual environment using it?".
 In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
