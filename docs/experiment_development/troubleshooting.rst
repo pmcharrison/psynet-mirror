@@ -71,7 +71,7 @@ If you are on a Mac, you can check the status of your database by running this c
     brew services
 
 If you don't see a line with ``postgresql``, you have not installed PostgreSQL.
-Follow the developer installation instructions to do so.
+Follow the virtualenv installation instructions to do so.
 
 If you do see a line with ``postgresql``, it probably has ``error`` written next to it.
 You need to get access to the logs to debug this error.

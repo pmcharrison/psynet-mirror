@@ -1,5 +1,5 @@
-Windows installation
-====================
+Installing PsyNet via Docker (Windows)
+======================================
 
 .. include:: shared_introduction.rst
 
