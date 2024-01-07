@@ -33,3 +33,6 @@ installation processes.
 
     docker_installation/index
     developer_installation/index
+
+If you are interested in contributing to PsyNet, you should also complete
+the `Additional developer installation steps <additional_developer_installation.html>`_.
