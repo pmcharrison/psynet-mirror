@@ -4,7 +4,7 @@ Note: the instructions below correspond to the 'Docker' installation method desc
 [PsyNet documentation website](https://psynetdev.gitlab.io/PsyNet/index.html).
 This method involves the fewest steps, but has been associated with performance issues, especially
 on Apple Silicon devices. If you are planning to develop your own PsyNet experiments,
-you should consider following the 'Developer' installation method instead.
+you should consider following the 'virtualenv' installation method instead.
 
 ## Prerequisites
 

@@ -1,7 +1,7 @@
 # Running instructions
 
 Note: the following instructions assume that you are using the 'Docker' method for running PsyNet.
-If you are instead using the 'Developer' method, please refer to the 
+If you are instead using the 'virtualenv' method, please refer to the 
 [PsyNet documentation website](https://psynetdev.gitlab.io/PsyNet/index.html) for instructions 
 for how to run your experiment.
 

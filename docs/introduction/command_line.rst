@@ -15,7 +15,7 @@ If you are running PsyNet via Docker, you run commands that look like this:
 
     bash docker/psynet debug local
 
-If you are running PsyNet via a local Python environment, you omit the ``bash docker/`` and
+If you are running PsyNet via virtualenv, you omit the ``bash docker/`` and
 just write commands like this:
 
 .. code:: bash
