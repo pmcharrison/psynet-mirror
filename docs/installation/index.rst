@@ -9,8 +9,9 @@ Follow the links below for instructions.
 .. toctree::
     :maxdepth: 1
 
-    docker_installation/index
     virtualenv_installation/index
+    docker_installation/index
+
 
 If you are interested in contributing to PsyNet, you should also complete
 the `Additional developer installation steps <additional_developer_installation.html>`_.
