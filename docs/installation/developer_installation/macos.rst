@@ -89,68 +89,9 @@ inserting your name and email address as appropriate.
    git config --global user.email "you@example.com"
    git config --global user.name "Your Name"
 
-Setup virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You need to use virtual environments to work with PsyNet.
-This can be confusing if you haven't used Python virtual environments before.
-We strongly recommend you take half an hour at this point to read some online tutorials
-about virtual environments and managing them with ``virtualenvwrapper` before continuing.
+.. include:: ../setup_virtualenv.rst
 
-The following code installs ``virtualenvwrapper``:
-
-.. code-block:: bash
-
-   pip3 install virtualenv
-   pip3 install virtualenvwrapper
-   export WORKON_HOME=$HOME/.virtualenvs
-   mkdir -p $WORKON_HOME
-   export VIRTUALENVWRAPPER_PYTHON=$(which python3)
-   source $(which virtualenvwrapper.sh)
-   echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3)" >> ~/.zshrc
-   echo "source $(which virtualenvwrapper.sh)" >> ~/.zshrc
-
-The following code creates a virtual environment called 'psynet' into which we are going to install Psynet.
-
-.. code-block:: bash
-
-   mkvirtualenv psynet --python $(which python3)
-
-This virtual environment will contain your PsyNet installation alongside all the Python dependencies that go
-with it. Virtual environments are useful because they allow you to keep control of the precise Python package
-versions that are required by particular projects.
-
-Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
-make sure you are in the appropriate virtual environment. You do this by writing code like the following
-in your terminal:
-
-.. code-block:: bash
-
-   workon psynet
-
-where in this case ``psynet`` is the name of the virtual environment.
-One workflow is to have just one virtual environment for all of your PsyNet work, called ``psynet`` as above;
-another is to create a separate virtual environment for each experiment you are working on.
-
-To delete a pre-existing virtual environment, use the ``rmvirtualenv`` command like this:
-
-.. code-block:: bash
-
-   rmvirtualenv psynet
-
-To make another virtual environment, use the ``mkvirtualenv`` command like this:
-
-.. code-block:: bash
-
-   mkvirtualenv my-experiment --python $(which python3)
-
-
-Activate virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-   workon psynet
 
 Disable AirPlay
 ~~~~~~~~~~~~~~~
