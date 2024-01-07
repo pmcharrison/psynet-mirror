@@ -1,11 +1,17 @@
-The following installation instructions apply to **Ubuntu 20.04 LTS (Focal Fossa)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
+The following installation instructions are tested with **Ubuntu 20.04 LTS (Focal Fossa)**.
+They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
-.. note::
-   You must have set up your GitLab SSH keys already.
+One-time setup
+--------------
 
+The following steps need to performed each time you setup a new computer
+to run PsyNet experiments.
 
-Prerequisites
--------------
+Check Linux version
+~~~~~~~~~~~~~~~~~~~
+
+The following installation instructions are tested with **Ubuntu 20.04 LTS (Focal Fossa)**.
+You may wish to check that you have an up-to-date version of Linux before proceeding.
 
 Update and install required system packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,7 +95,17 @@ Install heroku client
    curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
 
-.. include:: ../setup_virtualenv.rst
+.. include:: ../download_psynet.rst
+
+.. include:: ../install_virtualenv.rst
+
+
+Setting up a new project
+------------------------
+
+.. include:: ../identifying_a_project.rst
+
+.. include:: ../opening_a_project_with_virtualenv.rst
 
 
 Dallinger

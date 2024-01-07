@@ -1,28 +1,3 @@
-Setup virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You need to use virtual environments to work with PsyNet.
-This can be confusing if you haven't used Python virtual environments before.
-We strongly recommend you take half an hour at this point to read some online tutorials
-about virtual environments and managing them with ``virtualenvwrapper` before continuing.
-
-The following code installs ``virtualenvwrapper``:
-
-.. code-block:: bash
-
-   pip3 install virtualenv
-   pip3 install virtualenvwrapper
-   export WORKON_HOME=$HOME/.virtualenvs
-   mkdir -p $WORKON_HOME
-   export VIRTUALENVWRAPPER_PYTHON=$(which python3)
-   source $(which virtualenvwrapper.sh)
-   echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3)" >> ~/.zshrc
-   echo "source $(which virtualenvwrapper.sh)" >> ~/.zshrc
-
-We recommend using ``virtualenvwrapper`` to create a separate virtual environment for each project you work on.
-A project would a be a single experiment implementation, namely a directory containing
-an ``experiment.py`` file as well as various supporting files, such as ``requirements.txt`` and ``constraints.txt``.
-If you are just testing out PsyNet for the first time, we recommend you try out a demo as your first project.
 To open a project in PyCharm (e.g. a demo), click 'Open' in the PyCharm welcome screen,
 then navigate to the directory containing the project, select the project, and click 'Open'.
 Alternatively, if you already have a PyCharm project open, click 'File' > 'Open', find the directory,
@@ -33,6 +8,13 @@ When you open a new project in PyCharm, you should see a dialogue box that says 
 In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
 with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
 and install all the required packages.
+
+.. info::
+
+    This workflow uses ``virtualenv`` to create an isolated virtual environment for each project.
+    PyCharm remembers which virtual environment to use for each project, and will load it automatically
+    when you open the project.
+
 
 .. info::
 
@@ -54,12 +36,6 @@ Select 'Virtualenv environment', select 'New', make sure that the correct versio
 then press OK. PyCharm will spend some time processing this selection, but then when you open a new terminal tab it should load
 your virtual environment automatically.
 
-If you are not using PyCharm, you can create a virtual environment using the following command:
-
-.. code-block:: bash
-
-   mkvirtualenv my-project --python $(which python3)
-
 Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
 make sure you are in the appropriate virtual environment.
 You can confirm that you are in the correct virtual environment by looking at the start of your terminal prompt.
@@ -68,24 +44,43 @@ If you have only just created your new virtual environment in PyCharm, you might
 a new terminal window for your virtual environment to be loaded.
 Your virtual environment should activate automatically when you open your project in PyCharm;
 if it does not, you can select it by clicking the interpreter box in the bottom right corner of the screen.
-If you are not using PyCharm, you can activate your virtual environment by running the following command
-in your terminal:
+
+Once PyCharm has finished installing the required packages, you should be able to run the experiment
+with the following command:
 
 .. code-block:: bash
 
-   workon my-project
+   psynet debug local
 
-where in this case ``my-project`` is the name of the virtual environment.
 
-To delete a pre-existing virtual environment, use the ``rmvirtualenv`` command like this:
+.. info::
 
-.. code-block:: bash
+    If you are not using PyCharm, you can create a virtual environment using the following command:
 
-   rmvirtualenv psynet
+    .. code-block:: bash
 
-If you experience problems setting up the virtual environment:
+       mkvirtualenv my-project --python $(which python3)
 
-- Check in which directory virtualenvwrapper.sh is installed. This might be a different directory
-  than '~/.local/bin/'. In that case, adapt the code above to source this file accordingly.
-- Check whether the directory where virtualenvwrapper.sh was installed is added to PATH.
-  If not, add the directory to PATH.
+    where in this case ``my-project`` is the name of the virtual environment.
+
+    You can activate your virtual environment by running the following command:
+
+    .. code-block:: bash
+
+       workon my-project
+
+    You can then delete your virtual environment by running the following command:
+
+    .. code-block:: bash
+
+       rmvirtualenv my-project
+
+
+.. info::
+
+    If you experience problems setting up the virtual environment:
+
+    - Check in which directory virtualenvwrapper.sh is installed. This might be a different directory
+      than '~/.local/bin/'. In that case, adapt the code above to source this file accordingly.
+    - Check whether the directory where virtualenvwrapper.sh was installed is added to PATH.
+      If not, add the directory to PATH.

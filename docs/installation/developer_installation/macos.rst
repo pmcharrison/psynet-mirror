@@ -1,10 +1,16 @@
 macOS installation
 ==================
 
-Prerequisites
--------------
+One-time setup
+--------------
 
-We recommend that you update MacOS to the latest version before installing PsyNet.
+The following steps need to performed each time you setup a new computer
+to run PsyNet experiments.
+
+Check MacOS version
+~~~~~~~~~~~~~~~~~~~
+
+We recommend that you update MacOS to the latest version before proceeding.
 
 Install Python
 ~~~~~~~~~~~~~~
@@ -37,8 +43,6 @@ Install Homebrew
 
 Install Google Chrome
 ~~~~~~~~~~~~~~~~~~~~~
-
-You only need to do this if you don't have Google Chrome installed already.
 
 .. code-block:: bash
 
@@ -89,9 +93,9 @@ inserting your name and email address as appropriate.
    git config --global user.email "you@example.com"
    git config --global user.name "Your Name"
 
+.. include:: ../install_virtualenv.rst
 
-.. include:: ../setup_virtualenv.rst
-
+.. include:: ../download_psynet.rst
 
 Disable AirPlay
 ~~~~~~~~~~~~~~~
@@ -99,6 +103,18 @@ Disable AirPlay
 macOS's 'AirPlay Receiver' functionality clashes with the default ports used by Dallinger and PsyNet.
 You should disable this functionality before proceeding. To achieve this, go to System Preferences, then Sharing,
 and then untick the box labeled 'Airplay Receiver'.
+
+
+.. include:: ../setup_virtualenv.rst
+
+
+Setting up a new project
+------------------------
+
+.. include:: ../identifying_a_project.rst
+
+.. include:: ../opening_a_project_with_virtualenv.rst
+
 
 Dallinger
 ---------
