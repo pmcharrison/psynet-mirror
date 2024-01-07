@@ -6,32 +6,6 @@ Prerequisites
 
 We recommend that you update MacOS to the latest version before installing PsyNet.
 
-Add your SSH key to GitLab
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to be able to contribute to PsyNet in the future 
-you will need to generate an SSH key (if you don't have one already) and upload it to GitLab.
-
-To generate an SSH key:
-
-.. code-block:: bash
-
-   ssh-keygen -b 4096 -t rsa
-
-Press Enter to save the key in the default location,
-and Enter again twice to create the key with no passphrase.
-
-Copy the SSH key to the clipboard by running this command:
-
-.. code-block:: bash
-
-   pbcopy < ~/.ssh/id_rsa.pub
-
-Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
-click 'Add new key', paste the key in the 'Key' box,
-remove the Expiration date if you think it's helpful, then click 'Add key'.
-
-
 Install Python
 ~~~~~~~~~~~~~~
 
@@ -53,7 +27,6 @@ At the time of writing this installer can be found by looking under the section
 One installation is complete, try ``python3 --version`` again to ensure
 that the correct version is found. To install old versions you might need to run ``brew uninstall python3``,
 or go to the Applications folder and delete the appropriate version of Python.
-
 
 Install Homebrew
 ~~~~~~~~~~~~~~~~
@@ -281,6 +254,31 @@ Additional developer installation steps
 
 If you are planning to contribute to PsyNet's source code,
 please continue with the remaining installation steps below.
+
+Add your SSH key to GitLab
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't yet have a GitLab user account, please create one via the GitLab website.
+You need to generate an SSH key (if you don't have one already) and upload it to GitLab.
+
+To generate an SSH key:
+
+.. code-block:: bash
+
+   ssh-keygen -b 4096 -t rsa
+
+Press Enter to save the key in the default location,
+and Enter again twice to create the key with no passphrase.
+
+Copy the SSH key to the clipboard by running this command:
+
+.. code-block:: bash
+
+   pbcopy < ~/.ssh/id_rsa.pub
+
+Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
+click 'Add new key', paste the key in the 'Key' box,
+remove the Expiration date if you think it's helpful, then click 'Add key'.
 
 Install ChromeDriver
 ~~~~~~~~~~~~~~~~~~~~
