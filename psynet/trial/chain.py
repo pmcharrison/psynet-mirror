@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import column_property, relationship, subqueryload
 from sqlalchemy.sql.expression import not_, select
 from tqdm import tqdm
 
@@ -1643,6 +1643,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         #
         networks = self.network_class.query.filter_by(
             trial_maker_id=self.id, full=False
+        ).options(
+            subqueryload(self.network_class.head),
         )
 
         # logger.info(
