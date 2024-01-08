@@ -17,6 +17,11 @@ class GMSI(Module):
 
     short_version : bool, optional, default: `False`
         Whether to use the reduced set of 29 questions.
+        The citation for this short version is Lin, H. L., Frieler, K., & Müllensiefen, D. (2021).
+        Development and Validation of Short Forms of the Goldsmiths Musical Sophistication Index in Three Languages.
+        ICMPC/ESCOM 2021.
+        See also https://shiny.gold-msi.org/gmsiconfigurator/.
+
 
     subscales: List, optional, default: `None`
         The subscales to be included in the questionnaire. Possible subscales are `Active Engagement`, `Emotions`, `General`, `Musical Training`, `Perceptual Abilities, `Singing Abilities`, `Absolute Pitch`, `Instrument`, and `Start Age`. If no subscales are provided all subscales are selected. Overrides the `short_version` parameter.
