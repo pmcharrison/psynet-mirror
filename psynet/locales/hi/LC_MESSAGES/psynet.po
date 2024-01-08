@@ -2137,13 +2137,11 @@ msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ल्यूसिड सर्वे सबमिशन"
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the experiment."
 msgstr "कृपया प्रयोग पूरा करने के लिए \"समाप्त करें\" पर क्लिक करें।"
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the study."
@@ -3006,36 +3004,50 @@ msgid "Starting experiment..."
 msgstr "प्रयोग शुरू हो रहा है..."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
 msgstr "ठीक"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
 msgstr "मदद करना!"
 
 #: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Reward"
-msgstr "इनाम"
-
-#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "वर्तमान वेब पेज का लिंक;"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
 msgstr "जांचें कि आपका इंटरनेट कनेक्शन काम कर रहा है।"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
@@ -3045,58 +3057,117 @@ msgstr ""
 "भेजें:"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "किसी समस्या के मामले में, निम्न का प्रयास करें:"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
 msgstr "कृपया पृष्ठ लोड होने तक प्रतीक्षा करें."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
 msgstr "पृष्ठ को पुन: लोड करें।"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "आप जिस समस्या का सामना कर रहे हैं।"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "कुछ सेकंड में पुनः प्रयास करें."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
 msgstr "आपका कार्यकर्ता आईडी;"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
 msgstr "क्या आप तैयार हैं?"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr "जब आप प्रयोग जारी रखने के लिए तैयार हों तो बटन पर क्लिक करें।"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "फिर शुरू करना"
+
+#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "इनाम"
+
+#. ""
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "भुगतान"
+
+#. ""
+#: psynet/templates/timeline-page_BASE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "बक्शीश"
 
 #: psynet/utils.py
 #, fuzzy

@@ -2164,13 +2164,11 @@ msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Pengiriman Survei Lucid"
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the experiment."
 msgstr "Silakan klik \"Selesai\" untuk menyelesaikan percobaan."
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the study."
@@ -3050,36 +3048,50 @@ msgid "Starting experiment..."
 msgstr "Memulai percobaan..."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
 msgstr "OKE."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
 msgstr "Tolong!"
 
 #: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Reward"
-msgstr "Penghargaan"
-
-#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Tautan ke halaman web saat ini;"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
 msgstr "Periksa apakah koneksi internet Anda berfungsi."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
@@ -3089,58 +3101,117 @@ msgstr ""
 "informasi berikut:"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Jika terjadi masalah, cobalah yang berikut ini:"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
 msgstr "Harap tunggu hingga halaman dimuat."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
 msgstr "Muat ulang halaman."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Masalah yang Anda alami."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Coba lagi dalam beberapa detik."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
 msgstr "ID Pekerja Anda;"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
 msgstr "Apakah Anda sudah siap?"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr "Klik tombol apabila Anda sudah siap untuk melanjutkan eksperimen."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Lanjutkan"
+
+#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Penghargaan"
+
+#. ""
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "Pembayaran"
+
+#. ""
+#: psynet/templates/timeline-page_BASE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
 
 #: psynet/utils.py
 #, fuzzy

@@ -2154,13 +2154,11 @@ msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Indsendelse af Lucid Survey"
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the experiment."
 msgstr "Klik på \"Udfør\" for at afslutte eksperimentet."
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the study."
@@ -3029,36 +3027,50 @@ msgid "Starting experiment..."
 msgstr "Begyndende eksperiment..."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
 msgstr "OK"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
 msgstr "Hjælp!"
 
 #: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Reward"
-msgstr "Belønning"
-
-#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "Et link til den aktuelle webside;"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
 msgstr "Kontroller, at din internetforbindelse fungerer."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
@@ -3068,58 +3080,117 @@ msgstr ""
 "oplysninger:"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "Hvis der er et problem, kan du prøve følgende:"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
 msgstr "Vent venligst på, at siden indlæses."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
 msgstr "Genindlæs siden."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Det problem, du oplever."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Prøv igen om et par sekunder."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
 msgstr "Dit arbejder-id;"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
 msgstr "Er du klar?"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr "Klik på knappen, når du er klar til at fortsætte eksperimentet."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Fortsæt"
+
+#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Belønning"
+
+#. ""
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "Betaling"
+
+#. ""
+#: psynet/templates/timeline-page_BASE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "Bonus"
 
 #: psynet/utils.py
 #, fuzzy

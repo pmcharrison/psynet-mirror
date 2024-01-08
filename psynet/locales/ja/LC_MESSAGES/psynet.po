@@ -1914,13 +1914,11 @@ msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ルシードアンケート提出"
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the experiment."
 msgstr "Finish \"をクリックして実験を終了してください。"
 
-#. ""
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
 msgid "Please click \"Finish\" to complete the study."
@@ -2696,36 +2694,50 @@ msgid "Starting experiment..."
 msgstr "実験開始..."
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
 msgstr "OK"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
 msgstr "ヘルプ"
 
 #: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
-msgid "Reward"
-msgstr "報酬"
-
-#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
 msgstr "現在のWebページへのリンクです；"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
 msgstr "インターネット接続が機能していることを確認します。"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
@@ -2733,58 +2745,117 @@ msgid ""
 msgstr "上記で解決しない場合は、以下の情報を記載したメールをお送りください："
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
 msgstr "問題が発生した場合、以下をお試しください："
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
 msgstr "ページが読み込まれるまでお待ちください。"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
 msgstr "ページを再読み込みしてください。"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "あなたが経験している問題。"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "数秒後にもう一度お試しください。"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
 msgstr "あなたのWorker ID；"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
 msgstr "準備はできましたか？"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr "実験を続ける準備ができたらボタンをクリックしてください。"
 
 #: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_BASE_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "レジュメ"
+
+#: psynet/templates/timeline-page.html
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_LOCAL_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "報酬"
+
+#. ""
+#: psynet/templates/timeline-page_BACKUP_11457.html
+#: psynet/templates/timeline-page_REMOTE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Payment"
+msgstr "お支払い"
+
+#. ""
+#: psynet/templates/timeline-page_BASE_11457.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Bonus"
+msgstr "ボーナス"
 
 #: psynet/utils.py
 #, fuzzy
