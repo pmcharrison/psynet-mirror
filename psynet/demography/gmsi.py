@@ -20,7 +20,7 @@ class GMSI(Module):
         The citation for this short version is Lin, H. L., Frieler, K., & Müllensiefen, D. (2021).
         Development and Validation of Short Forms of the Goldsmiths Musical Sophistication Index in Three Languages.
         ICMPC/ESCOM 2021.
-        See also https://shiny.gold-msi.org/gmsiconfigurator/.
+        See also https://shiny.gold-msi.org/gmsiconfigurator/ and https://www.youtube.com/watch?v=x_0DomCP8Rs.
 
 
     subscales: List, optional, default: `None`
