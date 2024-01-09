@@ -837,7 +837,7 @@
 
                 async function unzipBatch(url) {
                     console.log("Zip file: " + url);
-                    var batchdata = (
+                    let batchdata = (
                         fetch(url)
                         .then(response => response.arrayBuffer())
                         .then(data => JSZip.loadAsync(data))
