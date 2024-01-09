@@ -862,8 +862,8 @@
                         initStimulus(id, mediaType);
                     });
 
-                    let fileExtension = url.substring(url.lastIndexOf(".") + 1);
-                    if (fileExtension === "zip") {
+                    let unzip = batch.unzip;
+                    if (unzip) {
                         let data = await unzipBatch(batch.url);
                         return processMediaBatch[mediaType](data.buffer, args);
                     }
