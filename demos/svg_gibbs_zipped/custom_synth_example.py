@@ -4,4 +4,4 @@
 
 from custom_synth_batch import synth_batch
 
-synth_batch([[0, 0, 10], [0, 0, 50], [0, 0, 90]], "test_batch.zip", {})
+synth_batch([[0, 0, 10], [0, 0, 50], [0, 0, 90]], "test.batch", {})

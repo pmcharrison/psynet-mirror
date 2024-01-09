@@ -1,5 +1,4 @@
 import os
-import zipfile
 
 from psynet.media import make_batch_file
 
@@ -44,8 +43,6 @@ def synth_batch(vector, output_path, chain_definition):
     n_stimuli = len(vector)
 
     temp_dir = os.path.dirname(output_path)
-    batch_name = "stim.batch"
-    batch_path = os.path.join(temp_dir, batch_name)
     individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
     if os.path.isdir(individual_stimuli_dir):
         pass
@@ -64,9 +61,4 @@ def synth_batch(vector, output_path, chain_definition):
             file.write(f"{svg}")
             file.flush()
 
-    make_batch_file(paths, batch_path)
-
-    with zipfile.ZipFile(output_path, mode="w") as archive:
-        archive.write(
-            batch_path, arcname=batch_name, compress_type=zipfile.ZIP_DEFLATED
-        )
+    make_batch_file(paths, output_path)
