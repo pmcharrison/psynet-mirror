@@ -1682,6 +1682,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/js-synthesizer",
                 ),
                 (
+                    resources.files("psynet") / "resources/libraries/JSZip",
+                    "/static/scripts/JSZip",
+                ),
+                (
                     resources.files("psynet") / "resources/libraries/Tonejs",
                     "/static/scripts/Tonejs",
                 ),
