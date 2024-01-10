@@ -182,6 +182,7 @@
     {{ super() }}
 
     <script src="/static/scripts/jquery-3.6.0.min.js"></script>
+    <script src="/static/scripts/JSZip/jszip.min.js"></script>
 
     {% for x in js_links %}
         <script src="{{ x }}"></script>
@@ -834,8 +835,23 @@
                     return psynet.utils.isDict(x)
                 };
 
-                let preloadBatch = function (batchId, batch, mediaType) {
+                async function unzipBatch(url) {
+                    console.log("Zip file: " + url);
+                    let batchdata = (
+                        fetch(url)
+                        .then(response => response.arrayBuffer())
+                        .then(data => JSZip.loadAsync(data))
+                        .then(zip => { return zip.file("stim.batch").async("uint8array") })
+                        .then(data => {
+                           return data;
+                        })
+                    )
+                    return batchdata
+                }
+
+                let preloadBatch = async function (batchId, batch, mediaType) {
                     let url = batch.url;
+
                     let args = {
                         batchId: batchId,
                         stimulusIds: batch.ids,
@@ -846,7 +862,15 @@
                         initStimulus(id, mediaType);
                     });
 
-                    return createRequest(url, mediaType, processMediaBatch[mediaType], args);
+                    let unzip = batch.unzip;
+                    if (unzip) {
+                        let data = await unzipBatch(batch.url);
+                        return processMediaBatch[mediaType](data.buffer, args);
+                    }
+                    else {
+                        return createRequest(url, mediaType, processMediaBatch[mediaType], args);
+                    }
+                    
                 };
 
                 let preloadStimulus = function (stimulusId, url, mediaType) {

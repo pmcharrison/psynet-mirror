@@ -4,6 +4,7 @@ import json
 import os
 import random
 import tempfile
+import zipfile
 from uuid import uuid4
 
 from markupsafe import Markup, escape
@@ -250,6 +251,7 @@ class MediaGibbsTrial(GibbsTrial):
                     "url": slider_stimuli["url"],
                     "ids": [x["id"] for x in slider_stimuli["all"]],
                     "type": "batch",
+                    "unzip": self.node.batch_zipped,
                 }
             },
         )
@@ -293,6 +295,7 @@ class MediaGibbsNode(GibbsNode):
     granularity = 100
     n_jobs = 1
     batch_synthesis = False
+    batch_zipped = False
 
     slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
 
@@ -342,7 +345,8 @@ class MediaGibbsNode(GibbsNode):
             individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
             os.mkdir(individual_stimuli_dir)
 
-            batch_file = f"{uuid4()}.batch"
+            batch_name = f"{uuid4()}"
+            batch_file = f"{batch_name}.batch"
             batch_path = os.path.join(temp_dir, batch_file)
             active_index = self.active_index
             granularity = self.granularity
@@ -396,6 +400,19 @@ class MediaGibbsNode(GibbsNode):
                     for _id, _value, _path in zip(ids, values, paths)
                 ]
                 self.make_media_batch_file(stimuli, batch_path)
+
+            if self.batch_zipped:
+                zipped_batch_file = f"{batch_name}.zip"
+                zipped_batch_path = os.path.join(temp_dir, zipped_batch_file)
+
+                with zipfile.ZipFile(zipped_batch_path, mode="w") as archive:
+                    archive.write(
+                        batch_path,
+                        arcname="stim.batch",
+                        compress_type=zipfile.ZIP_DEFLATED,
+                    )
+                batch_path = zipped_batch_path
+
             asset = ExperimentAsset(
                 local_key="slider_stimulus",
                 input_path=batch_path,
