@@ -399,6 +399,7 @@ class MediaGibbsNode(GibbsNode):
                     {"id": _id, "value": _value, "path": _path}
                     for _id, _value, _path in zip(ids, values, paths)
                 ]
+                self.make_media_batch_file(stimuli, batch_path)
 
             if self.batch_zipped:
                 zipped_batch_file = f"{batch_name}.zip"
