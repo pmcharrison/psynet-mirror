@@ -6,5 +6,5 @@ docker run \
   --rm \
   -v "${PWD}":/experiment \
   -e SKIP_DEPENDENCY_CHECK="" \
-  registry.gitlab.com/psynetdev/psynet:v10.4.0 \
+  registry.gitlab.com/psynetdev/psynet:v11.0.0 \
   bash -c "cd /experiment && psynet generate-constraints"

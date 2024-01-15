@@ -80,7 +80,7 @@ To reproduce such errors locally, look at the Jobs list in GitLab and work out
 and (b) what's the number of the test group  you want to reproduce locally 
 (e.g. Job 4/10 is number 4).
 Install the ``pytest-test-groups`` in your local Python environment if you don't have it already
-(``pip install pytest-test-groups``), then run a command like the following:
+(``pip3 install pytest-test-groups``), then run a command like the following:
 
 ::
 

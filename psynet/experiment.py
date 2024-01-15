@@ -525,6 +525,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
+        for trialmaker in self.timeline.trial_makers.values():
+            trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
@@ -1676,6 +1678,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/libraries/js-synthesizer",
                     "/static/scripts/js-synthesizer",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/JSZip",
+                    "/static/scripts/JSZip",
                 ),
                 (
                     resources.files("psynet") / "resources/libraries/Tonejs",

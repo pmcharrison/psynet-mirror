@@ -1292,6 +1292,20 @@ class TrialMaker(Module):
         """
         raise NotImplementedError
 
+    def on_first_launch(self, experiment):
+        """
+        Defines a routine to run when the experiment is launched for the first time.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        """
+        pass
+
     def pre_deploy_routine(self, experiment):
         """
         Defines a routine for setting up the experiment prior to deployment.

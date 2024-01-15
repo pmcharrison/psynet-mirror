@@ -202,7 +202,7 @@ final payment.
 
 
 Combining elements
-----------------
+------------------
 
 The ``Experiment`` class expects us to provide an object of
 class :class:`psynet.timeline.Timeline` in the ``timeline`` slot.

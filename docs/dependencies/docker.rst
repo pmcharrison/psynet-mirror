@@ -23,10 +23,3 @@ self-contained operating systems. Docker brings several key advantages:
   and operating system conditions would often eventually break experiments.
 
 For more information see the `official Docker website <https://www.docker.com/>`_.
-
-.. warning::
-    The Docker workflow for PsyNet is still relatively new and we're still working
-    to document all of its details. It still remains possible to use the previous
-    workflow for PsyNet, which involves maintaining a Python virtual environment
-    and installing various supporting services like Postgres and Redis
-    see (`Developer installation <../installation/developer_installation/index.html>`_).
