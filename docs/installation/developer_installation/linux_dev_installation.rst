@@ -20,9 +20,8 @@ Update and install required system packages
 Add your SSH key to GitLab
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To authenticate to PsyNet's GitLab repository you need to create a (free)
-GitLab account, generate an SSH key (if you don't have one already),
-and upload it to GitLab.
+If you want to be able to contribute to PsyNet in the future 
+you will need to generate an SSH key (if you don't have one already) and upload it to GitLab.
 
 To generate an SSH key:
 
@@ -190,8 +189,6 @@ Dallinger
 Install Dallinger
 ~~~~~~~~~~~~~~~~~
 
-In the example below Dallinger is cloned into the user's home directory, but you can choose a different location to put your installation, like e.g. `~/cap`.
-
 .. note::
    Make sure you have activated your virtual environment by running `workon psynet`.
 
@@ -226,7 +223,7 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
 .. code-block:: bash
 
    cd
-   git clone git@gitlab.com:PsyNetDev/psynet
+   git clone https://gitlab.com/PsyNetDev/PsyNet
    cd psynet
    pip install --editable .
 
