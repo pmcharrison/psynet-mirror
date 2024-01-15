@@ -172,6 +172,7 @@ To make another virtual environment, use the ``mkvirtualenv`` command like this:
 
    mkvirtualenv my-experiment --python $(which python3)
 
+
 Activate virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
