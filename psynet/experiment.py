@@ -2229,15 +2229,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/terminate_participant", methods=["GET"])
     @classmethod
     def terminate_participant(cls):
-        participant_id = request.values.get("participant_id")
-        reason = request.values["reason"]
+        reason = request.values.get("reason", "")
+        assignment_id = request.values.get("assignmentId")
+        if assignment_id is None:
+            assignment_id = request.values.get("RID")
+
+        if assignment_id is None:
+            participant_id = request.values.get("participant_id")
+            participant = get_participant(participant_id)
+            assignment_id = participant.assignment_id
+
+        assert assignment_id is not None, "No assignment ID provided"
+
         external_submit_url = None
 
         try:
-            participant = get_participant(participant_id)
-            assignment_id = participant.assignment_id
             recruiter = get_experiment().recruiter
-            external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(
                     assignment_id=assignment_id

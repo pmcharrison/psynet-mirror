@@ -1855,13 +1855,6 @@
                 for (let i = 0; i < events.length; i++) {
                     window.addEventListener(events[i], resetInactivityTimer);
                 }
-
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    let isValidBrowser = browser.validate();
-                    if (!isValidBrowser) {
-                        terminateParticipant("invalid-browser");
-                    }
-                });
             }
         </script>
     {% endif %}
