@@ -1,12 +1,16 @@
 import json
 import os
+import random
 import re
+from datetime import datetime
 from math import ceil
+from time import sleep
 
 import dallinger.recruiters
 import dominate
 import flask
 import requests
+import sqlalchemy
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
@@ -17,6 +21,9 @@ from dominate import tags
 from dominate.util import raw
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.sql import func
+
+from psynet.participant import Participant
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
@@ -129,6 +136,9 @@ class LucidRID(SQLBase, SQLMixin):
     time_of_death = None
 
     rid = Column(String, ForeignKey("participant.worker_id"), index=True)
+    registered_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
     completed_at = Column(DateTime)
     terminated_at = Column(DateTime)
     termination_reason = Column(String)
@@ -251,6 +261,33 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             "items": [url],
             "message": f"Lucid survey {self.current_survey_number()} created successfully.",
         }
+
+    def check_for_expired_participants(self):
+        logger.info("Checking for expired participants")
+        TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
+
+        unfailed_entrants = LucidRID.query.filter_by(
+            terminated_at=None, completed_at=None
+        ).all()
+        now = datetime.now()
+
+        for entrant in unfailed_entrants:
+            if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
+                try:
+                    Participant.query.filter_by(worker_id=entrant.rid).one()
+                except sqlalchemy.orm.exc.NoResultFound:
+                    logger.info(
+                        f"Terminated expired participant with RID {entrant.rid}"
+                    )
+                    self.terminate_participant(
+                        entrant.rid,
+                        f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
+                    )
+                    # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
+                    sleep(random.randint(1, 30))
+
+    def run_checks(self):
+        self.check_for_expired_participants()
 
     def close_recruitment(self):
         """
