@@ -63,4 +63,4 @@ class TestExp:
             assert round(participant.performance_reward, 2) == 0
             assert round(participant.time_reward(), 2) == 0.15
             assert round(participant.calculate_reward(), 2) == 0.15
-            assert round(participant.status) == "approved"
+            assert participant.status == "approved"
