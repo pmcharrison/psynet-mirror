@@ -224,6 +224,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
+    big_base_payment : `bool`
+        Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
+
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
 
@@ -380,6 +383,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         initial_recruitment_size_experiment_changed = (
             self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
+        )
+
+        config = get_and_load_config()
+        if self.base_payment > 10 and not config.get("big_base_payment"):
+            logger.warning(f"`base_payment` is set to `{self.base_payment}`!")
+        assert self.base_payment <= 20 or config.get("big_base_payment"), (
+            f"Are you sure about setting `base_payment = {self.base_payment}`? "
+            "You probably forgot to divide `base_payment` by 100. "
+            "In the special case you REALLY want to override this behaviour, set `big_base_payment = true`"
         )
 
         assert not (
@@ -972,6 +984,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **super().config_defaults(),
             "host": "0.0.0.0",
             "base_payment": 0.10,
+            "big_base_payment": False,
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
@@ -1726,6 +1739,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def extra_parameters(cls):
         config = get_config()
+        config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
