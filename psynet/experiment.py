@@ -2231,6 +2231,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def terminate_participant(cls):
         reason = request.values.get("reason", "")
         assignment_id = request.values.get("assignmentId")
+        unique_id = request.values.get("unique_id")
         if assignment_id is None:
             assignment_id = request.values.get("RID")
 
@@ -2238,6 +2239,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant_id = request.values.get("participant_id")
             participant = get_participant(participant_id)
             assignment_id = participant.assignment_id
+
+        if assignment_id is None:
+            assignment_id = unique_id.split(":")[1]
 
         assert assignment_id is not None, "No assignment ID provided"
 
