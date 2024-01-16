@@ -121,6 +121,6 @@ class TestExp:
                 driver,
                 "main-body",
                 """
-                Psynet Your reward You earned a total payment of $9.22. Finish
+                PsyNet Your reward You earned a total payment of $9.22. Finish
                 """,
             )

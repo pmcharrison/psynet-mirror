@@ -241,7 +241,7 @@ class TestExp(object):
                 driver,
                 "main-body",
                 """
-                Psynet Your reward You earned a total payment of $0.36. Finish
+                PsyNet Your reward You earned a total payment of $0.36. Finish
                 """,
             )
 

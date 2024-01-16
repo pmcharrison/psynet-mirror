@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
 from psynet.pytest_psynet import (
+    assert_text,
     bot_class,
     next_page,
     path_to_demo,
@@ -38,6 +39,13 @@ class TestExp(object):
             next_page(driver, "next-button")
             next_page(driver, "next-button", finished=True)
             reward_participant_page(driver, "next-button")
+            assert_text(
+                driver,
+                "main-body",
+                """
+                PsyNet Your reward You did not complete enough of the experiment to receive a payment, sorry. Finish
+                """,
+            )
 
             cat = experiment_module.Cat.query.one()
             assert cat.name == "Geoffrey"
