@@ -179,6 +179,17 @@ class LucidService(object):
                     "PreCodes": ["true"],
                 }
             )
+            qualifications.append(
+                {
+                    "Name": "MS_is_tablet",
+                    "QuestionID": 8213,
+                    "LogicalOperator": "NOT",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 1,
+                    "PreCodes": ["true"],
+                }
+            )
 
         if self.exp_config.force_google_chrome:
             qualifications.append(
