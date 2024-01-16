@@ -791,7 +791,7 @@ class PsyNetLogo(SVGLogo):
         id="psynet-logo",
         width="100px",
         height="83px",
-        alt_text="Psynet",
+        alt_text="PsyNet",
         url="https://www.psynet.dev/",
         **kwargs,
     ):
