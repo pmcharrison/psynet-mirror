@@ -237,6 +237,13 @@ class TestExp(object):
 
             next_page(driver, "next-button", finished=True)
             reward_participant_page(driver, "next-button")
+            assert_text(
+                driver,
+                "main-body",
+                """
+                Psynet Your reward You earned a total payment of $0.36. Finish
+                """,
+            )
 
             time.sleep(0.75)
 
