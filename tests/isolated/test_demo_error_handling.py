@@ -22,14 +22,15 @@ def test_empty():
     pass
 
 
+@pytest.mark.skip(
+    reason="This test was disabled on 25 April 2023 because it was flaky, but we will try fixing it in the future."
+)
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo("error_handling")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
-    # To re-enable this test, rename this function to test_exp.
-    # It was disabled on 25 April 2023 because it was flaky, but we will try fixing it in the future.
-    def skip_test_exp(
+    def test_exp(
         self, launched_experiment, debug_server_process, bot_recruits, db_session
     ):  # two_iterations, bot_recruits):
         for i in range(4):
