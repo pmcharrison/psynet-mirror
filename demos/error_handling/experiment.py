@@ -102,7 +102,9 @@ class Exp(psynet.experiment.Experiment):
         for i in range(2):
             page = bot.get_current_page()
             bot.take_page(page)
-        return requests.get("http://localhost:5000/error-page")
+        return requests.post(
+            "http://localhost:5000/error-page", data={"participant_id": bot.id}
+        )
 
     test_n_bots = 4
 
@@ -132,7 +134,11 @@ class Exp(psynet.experiment.Experiment):
                 in str(req.content)
             )
             assert (
-                "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>."
+                "You may be able to abort the experiment using the <strong>Abort experiment</strong> button below."
+                in str(req.content)
+            )
+            assert (
+                "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically shortly."
                 in str(req.content)
             )
             assert (
