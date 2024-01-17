@@ -786,6 +786,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         compensate=True,
         error_type="default",
         request_data="",
+        accumulated_reward="",
         locale=DEFAULT_LOCALE,
     ):
         """Render HTML for error page."""
@@ -829,8 +830,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 worker_id=worker_id,
                 recruiter=recruiter,
                 request_data=request_data,
-                participant_id=participant_id,
+                participant=participant,
                 external_submit_url=external_submit_url,
+                accumulated_reward=accumulated_reward,
             ),
             500,
         )
@@ -2093,6 +2095,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             recruiter=recruiter,
             external_submit_url=external_submit_url,
             compensate=compensate,
+            accumulated_reward="$" + "{:.2f}".format(participant.calculate_reward()),
         )
 
     @experiment_route("/module", methods=["POST"])
@@ -2325,11 +2328,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     locale = None
                 _, _p = get_translator(locale)
 
+                participant_abort_info = participant.abort_info()
+
                 if participant.calculate_reward() >= get_and_load_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
                     template_name = "abort_possible.html"
-                    participant_abort_info = participant.abort_info()
                     exp = get_experiment()
 
                     if exp.with_recruiter("prolific"):

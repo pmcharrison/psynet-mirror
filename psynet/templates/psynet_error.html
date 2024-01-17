@@ -1,7 +1,7 @@
 {% extends "psynet_layout.html" %}
 
 {% block body %}
-    <div class="main_div">
+    <div id="container" class="main_div">
         <div>
             <div class="col-xs-2">
               <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
@@ -18,22 +18,24 @@
                     {% if config.show_abort_button %}
                         {% if compensate == True %}
                             <p id="error-text-main">
-                                {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
-                                {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
+                                {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button below.") }}
+                                {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically shortly.") }}
                                 {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
                                 {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
-                                <p>
-                                    {{ gettext("Error type") }}: {{ error_type }}<br>
-                                    {{ gettext("HIT ID") }}: {{ hit_id }}<br>
-                                    {{ gettext("Assignment ID") }}: {{ assignment_id }}<br>
-                                    {{ gettext("Worker ID") }}: {{ worker_id }}<br>
-                                </p>
-                                <div id="abort-button-location"></div>
                             </p>
-                            <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
+                            <table class="table table-sm table-striped">
+                                <tbody>
+                                    <tr><th>{{ gettext("Error type") }}</th><td>{{ error_type }}</td></tr>
+                                    <tr><th>{{ gettext("Assignment ID") }}</th><td>{{ assignment_id }}</td></tr>
+                                    <tr><th>{{ gettext("HIT ID") }}</th><td>{{ hit_id }}</td></tr>
+                                    <tr><th>{{ gettext("Accumulated reward") }}</th><td>{{ accumulated_reward }}</td></tr>
+                                </tbody>
+                            </table>
+                            <div id="abort-button-location"></div>
+                            <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" onclick="setAborted('{{ assignment_id }}');">
                             {{ gettext("Abort Experiment") }}
                             </button>
-                            <div id="abort-text" style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px; display: none;">
+                            <div id="abort-text" style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
                                 <span class="alert-danger">{{ gettext("Click the above button to be compensated in case of an error.") }}</span>
                             </div>
                             <script>
@@ -69,4 +71,12 @@
             </div>
         </div>
     </div>
+    <script>
+      setAborted = function(assignmentId) {
+        fetch("/set_participant_as_aborted/" + assignmentId)
+          .then(function () {
+            submitAssignment();
+          });
+      }
+    </script>
 {% endblock %}

@@ -160,6 +160,18 @@
                     {% endif %}
                     <button type="button" class="btn btn-light" style="float: right;"
                             id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+                    {% if config.show_abort_button %}
+                        <button type="button" id="abort-button" class="btn btn-danger" style="float: right;" title="{{ gettext("Click the button to be compensated in case of an error.") }}">
+                            {{ gettext("Abort Experiment") }}
+                        </button>
+                        <script>
+                            function abortExperiment(event) {
+                                var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
+                                let windowObjectReference = window.open("/abort/" + "{{ participant.assignment_id }}", "Abort window", windowFeatures);
+                            }
+                            document.getElementById("abort-button").onclick = abortExperiment;
+                        </script>
+                    {% endif %}
                 </div>
         </nav>
         <script>
