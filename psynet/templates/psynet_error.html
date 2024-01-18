@@ -65,7 +65,8 @@
                 url += '&participant_id=' + participant.id;
             }
             window.onbeforeunload = null;
-            window.location.replace(url)
+            // window.location.replace(url)
+            console.log(url)
         {% endif %}
     </script>
 {% endblock %}
