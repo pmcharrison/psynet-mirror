@@ -1,6 +1,7 @@
 import configparser
 import json
 import os
+import random
 import re
 import shutil
 import sys
@@ -2271,6 +2272,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
+
+    @scheduled_task("interval", minutes=1, max_instances=1)
+    def check_for_expired_participants(self):
+        from .recruiters import LucidRID
+
+        exp = get_experiment()
+        if not exp.with_lucid_recruitment():
+            return
+
+        logger.info("Checking for expired participants")
+        TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
+
+        unfailed_entrants = LucidRID.query.filter_by(
+            terminated_at=None, completed_at=None
+        ).all()
+        now = datetime.now()
+
+        for entrant in unfailed_entrants:
+            if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
+                try:
+                    Participant.query.filter_by(worker_id=entrant.rid).one()
+                except sqlalchemy.orm.exc.NoResultFound:
+                    logger.info(
+                        f"Terminated expired participant with RID {entrant.rid}"
+                    )
+                    self.terminate_participant(
+                        entrant.rid,
+                        f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
+                    )
+                    # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
+                    time.sleep(random.randint(1, 30))
 
     @staticmethod
     def get_client_ip_address():

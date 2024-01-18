@@ -1,16 +1,12 @@
 import json
 import os
-import random
 import re
-from datetime import datetime
 from math import ceil
-from time import sleep
 
 import dallinger.recruiters
 import dominate
 import flask
 import requests
-import sqlalchemy
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
@@ -22,8 +18,6 @@ from dominate.util import raw
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
-
-from psynet.participant import Participant
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
@@ -470,34 +464,6 @@ class LucidRecruiter(BaseLucidRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
-
-    def check_for_expired_participants(self):
-        logger.info("Checking for expired participants")
-        TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
-
-        unfailed_entrants = LucidRID.query.filter_by(
-            terminated_at=None, completed_at=None
-        ).all()
-        now = datetime.now()
-
-        for entrant in unfailed_entrants:
-            if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
-                try:
-                    Participant.query.filter_by(worker_id=entrant.rid).one()
-                except sqlalchemy.orm.exc.NoResultFound:
-                    logger.info(
-                        f"Terminated expired participant with RID {entrant.rid}"
-                    )
-                    self.terminate_participant(
-                        entrant.rid,
-                        f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
-                    )
-                    # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
-                    sleep(random.randint(1, 30))
-
-    def run_checks(self):
-        logger.info("Running Lucid checks")
-        self.check_for_expired_participants()
 
 
 class GenericRecruiter(PsyNetRecruiter):
