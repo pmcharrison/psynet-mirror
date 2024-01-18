@@ -2232,19 +2232,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         reason = request.values.get("reason", "")
         assignment_id = request.values.get("assignmentId")
         unique_id = request.values.get("unique_id")
+        participant_id = request.values.get("participant_id")
+        rid = request.values.get("RID")
 
-        if assignment_id is None:
+        if assignment_id is None and unique_id is not None:
             assignment_id = unique_id.split(":")[1]
 
-        if assignment_id is None:
-            assignment_id = request.values.get("RID")
+        if assignment_id is None and rid is not None:
+            assignment_id = rid
 
-        if assignment_id is None:
-            participant_id = request.values.get("participant_id", None)
-            if participant_id is not None:
-                participant_id = int(participant_id)
-                participant = get_participant(participant_id)
-                assignment_id = participant.assignment_id
+        if assignment_id is None and participant_id is not None:
+            participant_id = int(participant_id)
+            participant = get_participant(participant_id)
+            assignment_id = participant.assignment_id
 
         assert assignment_id is not None, "No assignment ID provided"
 
