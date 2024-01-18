@@ -1,4 +1,4 @@
-The first step is to identify which project you want to setup.
+The first step is to identify which project you want to set up.
 A PsyNet project is identified with an 'experiment directory', which is a folder
 containing various standardized files defining an experiment implementation,
 most importantly an ``experiment.py`` file and a ``requirements.txt`` file.

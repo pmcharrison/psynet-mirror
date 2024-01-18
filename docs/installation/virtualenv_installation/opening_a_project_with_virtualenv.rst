@@ -9,14 +9,14 @@ In the dependencies field you should see a path ending in requirements.txt. Repl
 with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
 and install all the required packages.
 
-.. info::
+.. note::
 
     This workflow uses ``virtualenv`` to create an isolated virtual environment for each project.
     PyCharm remembers which virtual environment to use for each project, and will load it automatically
     when you open the project.
 
 
-.. info::
+.. note::
 
     Why do we install from constraints.txt rather than requirements.txt?
     requirements.txt is written manually by the experimenter, and lists all the packages
@@ -45,6 +45,8 @@ a new terminal window for your virtual environment to be loaded.
 Your virtual environment should activate automatically when you open your project in PyCharm;
 if it does not, you can select it by clicking the interpreter box in the bottom right corner of the screen.
 
+
+
 Once PyCharm has finished installing the required packages, you should be able to run the experiment
 with the following command:
 
@@ -53,7 +55,7 @@ with the following command:
    psynet debug local
 
 
-.. info::
+.. note::
 
     If you are not using PyCharm, you can create a virtual environment using the following command:
 
@@ -76,7 +78,7 @@ with the following command:
        rmvirtualenv my-project
 
 
-.. info::
+.. note::
 
     If you experience problems setting up the virtual environment:
 
