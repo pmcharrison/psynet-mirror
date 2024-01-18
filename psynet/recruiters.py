@@ -257,37 +257,15 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             self.lucidservice.log("No survey in progress: Recruitment aborted.")
             return
 
+        lucid_url = (
+            f"https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_id}/quotas"
+        )
+        message = f"Lucid survey {survey_id} created successfully. " f"URL: {lucid_url}"
+
         return {
             "items": [url],
-            "message": f"Lucid survey {self.current_survey_number()} created successfully.",
+            "message": message,
         }
-
-    def check_for_expired_participants(self):
-        logger.info("Checking for expired participants")
-        TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
-
-        unfailed_entrants = LucidRID.query.filter_by(
-            terminated_at=None, completed_at=None
-        ).all()
-        now = datetime.now()
-
-        for entrant in unfailed_entrants:
-            if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
-                try:
-                    Participant.query.filter_by(worker_id=entrant.rid).one()
-                except sqlalchemy.orm.exc.NoResultFound:
-                    logger.info(
-                        f"Terminated expired participant with RID {entrant.rid}"
-                    )
-                    self.terminate_participant(
-                        entrant.rid,
-                        f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
-                    )
-                    # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
-                    sleep(random.randint(1, 30))
-
-    def run_checks(self):
-        self.check_for_expired_participants()
 
     def close_recruitment(self):
         """
@@ -492,6 +470,34 @@ class LucidRecruiter(BaseLucidRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
+
+    def check_for_expired_participants(self):
+        logger.info("Checking for expired participants")
+        TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
+
+        unfailed_entrants = LucidRID.query.filter_by(
+            terminated_at=None, completed_at=None
+        ).all()
+        now = datetime.now()
+
+        for entrant in unfailed_entrants:
+            if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
+                try:
+                    Participant.query.filter_by(worker_id=entrant.rid).one()
+                except sqlalchemy.orm.exc.NoResultFound:
+                    logger.info(
+                        f"Terminated expired participant with RID {entrant.rid}"
+                    )
+                    self.terminate_participant(
+                        entrant.rid,
+                        f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
+                    )
+                    # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
+                    sleep(random.randint(1, 30))
+
+    def run_checks(self):
+        logger.info("Running Lucid checks")
+        self.check_for_expired_participants()
 
 
 class GenericRecruiter(PsyNetRecruiter):
