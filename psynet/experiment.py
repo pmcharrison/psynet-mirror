@@ -2284,17 +2284,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not exp.with_lucid_recruitment():
             return
 
+        logger.info("Is Lucid experiment")
         TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
 
         unfailed_entrants = LucidRID.query.filter_by(
             terminated_at=None, completed_at=None
         ).all()
+        all_entrants = LucidRID.query.all()
+        logger.info(f"Found {len(all_entrants)} entrants")
+        logger.info(f"Found {len(unfailed_entrants)} of which are not failed")
         now = datetime.now()
 
         for entrant in unfailed_entrants:
             if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
                 try:
-                    Participant.query.filter_by(worker_id=entrant.rid).one()
+                    participant = Participant.query.filter_by(
+                        worker_id=entrant.rid
+                    ).one()
+                    logger.info(
+                        f"Found participant {participant.id} with RID {entrant.rid}"
+                    )
                 except sqlalchemy.orm.exc.NoResultFound:
                     logger.info(
                         f"Terminated expired participant with RID {entrant.rid}"
@@ -2303,8 +2312,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         entrant.rid,
                         f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
                     )
+                    logger.info(f"RID {entrant.rid} terminated")
                     # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
-                    time.sleep(random.randint(1, 30))
+                    wait = random.randint(1, 30)
+                    logger.info(f"Wait for {wait} seconds")
+                    time.sleep(wait)
 
     @staticmethod
     def get_client_ip_address():
