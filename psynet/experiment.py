@@ -2280,6 +2280,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         exp = get_experiment()
         logger.info("Checking for expired participants")
+        logger.info(f"Recruiter class: {exp.recruiter.__class__}")
 
         if not exp.with_lucid_recruitment():
             return
