@@ -2279,40 +2279,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .recruiters import LucidRID
 
         exp = get_experiment()
-        logger.info("Checking for expired participants")
-        logger.info(f"Recruiter class: {exp.recruiter.__class__}")
 
         if not exp.with_lucid_recruitment():
             return
 
-        logger.info("Is Lucid experiment")
-        TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
+        TERMINATE_AFTER_MIN = 3  # TODO make this a hyperparam
 
         unfailed_entrants = LucidRID.query.filter_by(
             terminated_at=None, completed_at=None
         ).all()
-        all_entrants = LucidRID.query.all()
-        logger.info(f"Found {len(all_entrants)} entrants")
         logger.info(f"Found {len(unfailed_entrants)} of which are not failed")
         now = datetime.now()
 
         for entrant in unfailed_entrants:
             if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
+                logger.info(
+                    f"Checking if participant with RID {entrant.rid} has passed the consent page within {TERMINATE_AFTER_MIN} minutes."
+                )
+                reason = None
                 try:
                     participant = Participant.query.filter_by(
                         worker_id=entrant.rid
                     ).one()
-                    logger.info(
-                        f"Found participant {participant.id} with RID {entrant.rid}"
-                    )
+                    if len(participant.branch_log) == 0:
+                        reason = f"No activity within {TERMINATE_AFTER_MIN} minutes"
                 except sqlalchemy.orm.exc.NoResultFound:
-                    logger.info(
-                        f"Terminated expired participant with RID {entrant.rid}"
-                    )
-                    exp.recruiter.terminate_participant(
-                        entrant.rid,
-                        f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
-                    )
+                    reason = "No participant found"
+
+                if reason:
+                    exp.recruiter.terminate_participant(entrant.rid, reason)
                     logger.info(f"RID {entrant.rid} terminated")
                     # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
                     wait = random.randint(1, 30)
