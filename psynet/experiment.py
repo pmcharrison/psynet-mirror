@@ -2274,14 +2274,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @scheduled_task("interval", minutes=1, max_instances=1)
-    def check_for_expired_participants(self):
+    @staticmethod
+    def check_for_expired_participants():
         from .recruiters import LucidRID
 
         exp = get_experiment()
+        logger.info("Checking for expired participants")
+
         if not exp.with_lucid_recruitment():
             return
 
-        logger.info("Checking for expired participants")
         TERMINATE_AFTER_MIN = 5  # TODO make this a hyperparam
 
         unfailed_entrants = LucidRID.query.filter_by(
@@ -2297,7 +2299,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     logger.info(
                         f"Terminated expired participant with RID {entrant.rid}"
                     )
-                    self.terminate_participant(
+                    exp.recruiter.terminate_participant(
                         entrant.rid,
                         f"expired no participant found with RID after {TERMINATE_AFTER_MIN} minutes",
                     )
