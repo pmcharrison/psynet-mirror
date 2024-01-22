@@ -302,19 +302,20 @@ class LucidService(object):
                 "Completion canceled. Respondent already completed or terminated survey."
             )
 
-    def set_termination_details(self, rid, reason=None):
+    def set_termination_details(self, rid, reason=None, details=None):
         lucid_rid = get_lucid_rid(rid)
         lucid_rid.terminated_at = datetime.now()
         lucid_rid.termination_reason = reason
+        lucid_rid.termination_details = details
         session.commit()
 
-    def terminate_respondent(self, rid, reason):
+    def terminate_respondent(self, rid, reason, details=None):
         lucid_rid = get_lucid_rid(rid)
 
         if lucid_rid.completed_at is None and lucid_rid.terminated_at is None:
             response = self.send_terminate_request(rid)
             if response.ok:
-                self.set_termination_details(rid, reason)
+                self.set_termination_details(rid, reason, details)
                 session.commit()
                 self.log("Respondent terminated successfully.")
             else:
@@ -349,6 +350,18 @@ class LucidService(object):
             .replace("/", "_")
             .replace("=", "")
         )
+
+    def get_respondents(self, survey_number, days_lookback=60):
+        timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
+        now = datetime.datetime.now()
+
+        entry_date_after = (now - datetime.timedelta(days=days_lookback)).strftime(
+            timestamp_format
+        )
+        url = f"https://api.samplicio.us/demand/v2-beta/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        return response.json()["sessions"]
 
 
 def get_lucid_rid(rid):

@@ -1,12 +1,17 @@
 import json
 import os
+import random
 import re
+import time
+from datetime import datetime, timedelta
 from math import ceil
 
 import dallinger.recruiters
 import dominate
 import flask
+import pandas as pd
 import requests
+import sqlalchemy
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
@@ -15,13 +20,15 @@ from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
-from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
+from .participant import Participant
+from .timeline import Response
 from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
@@ -128,6 +135,8 @@ class LucidRID(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+    vars = None
+    creation_time = None
 
     rid = Column(String, ForeignKey("participant.worker_id"), index=True)
     registered_at = Column(DateTime, server_default=func.now())
@@ -136,6 +145,17 @@ class LucidRID(SQLBase, SQLMixin):
     completed_at = Column(DateTime)
     terminated_at = Column(DateTime)
     termination_reason = Column(String)
+    termination_details = Column(String)
+
+    # Lucid fields
+    lucid_status = Column(String)
+    lucid_status_code = Column(Integer)
+    lucid_entry_date = Column(DateTime)
+    lucid_fulcrum_status = Column(Integer)
+    lucid_last_date = Column(DateTime)
+    lucid_panelist_id = Column(String)
+    lucid_respondent_id = Column(String)
+    lucid_supplier_id = Column(Integer)
 
 
 class LucidRecruiterException(Exception):
@@ -169,6 +189,119 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
         self.store = kwargs.get("store", RedisStore())
+
+    def run_checks(self):
+        logger.info("Running Lucid checks")
+        logger.info("Polling Lucid API to count respondents")
+        survey_number = self.current_survey_number()
+        respondents = pd.DataFrame(self.lucidservice.get_respondents(survey_number))
+        PRESCREENED = "Marketplace codes"
+        COMPLETES = "Returned as Complete"
+        TERMINATED = "Returned as Terminate"
+        UNRETURNED = "Currently in Client Survey or Drop"
+        code2status = {
+            1: UNRETURNED,
+            20: TERMINATED,
+            10: COMPLETES,
+            -1: PRESCREENED,
+        }
+        respondents["status"] = respondents.client_status.apply(
+            lambda x: code2status.get(x, "Unknown")
+        )
+
+        all_entrants = LucidRID.query.all()
+        entrants_dict = {entrant.rid: entrant for entrant in all_entrants}
+
+        for _, row in respondents.iterrows():
+            if row.respondent_id in entrants_dict:
+                entrant = entrants_dict[row.respondent_id]
+                changed = False
+                if entrant.lucid_status != row.status:
+                    entrant.lucid_status = row.status
+                    changed = True
+                if entrant.lucid_status_code != row.client_status:
+                    entrant.lucid_status_code = row.client_status
+                    changed = True
+                if entrant.lucid_last_date != row.last_date:
+                    entrant.lucid_last_date = row.last_date
+                    changed = True
+
+                if changed:
+                    db.session.add(entrant)
+            else:
+                entrant = LucidRID(
+                    rid=row.respondent_id,
+                    lucid_status=row.status,
+                    lucid_status_code=row.client_status,
+                    lucid_entry_date=row.entry_date,
+                    lucid_fulcrum_status=row.fulcrum_status,
+                    lucid_last_date=row.last_date,
+                    lucid_panelist_id=row.panelist_id,
+                    lucid_respondent_id=row.respondent_id,
+                    lucid_supplier_id=row.supplier_id,
+                )
+                db.session.add(entrant)
+        db.session.commit()
+
+        prescreens = respondents.query("status != @PRESCREENED")
+        completes = respondents.query("status == @COMPLETES")
+        logger.info(
+            f"Found {len(respondents)} entrants, {len(prescreens)} prescreens, {len(completes)} completes"
+        )
+        drop_off = respondents.query("status == @UNRETURNED")
+        drop_off_rate = len(drop_off) / len(prescreens)
+        conversion_rate = len(completes) / len(prescreens)
+        logger.info(f"Drop off rate: {drop_off_rate:.2%}")
+        logger.info(f"Conversion rate: {conversion_rate:.2%}")
+
+        unfailed_entrants = LucidRID.query.filter_by(
+            terminated_at=None, completed_at=None
+        ).all()
+        logger.info(f"Found {len(unfailed_entrants)} of which are not failed")
+        now = datetime.now()
+
+        for entrant in unfailed_entrants:
+            if (
+                entrant.registered_at
+                + timedelta(minutes=self.initial_response_within_s)
+                > now
+            ):
+                continue
+            if entrant.completed_at is not None or entrant.terminated_at is not None:
+                continue
+
+            reason = None
+            details = None
+            try:
+                participant = Participant.query.filter_by(worker_id=entrant.rid).one()
+                responses = (
+                    Response.query.filter_by(participant_id=participant.id)
+                    .sort_by(Response.creation_time)
+                    .all()
+                )
+                if len(responses) == 0:
+                    reason = f"Did not receive first response within {self.initial_response_within_s//60} minutes"
+                    details = f"Participant {participant.id} did not accept the consent"
+                else:
+                    last_response = responses[-1]
+                    if now > last_response.creation_time + timedelta(
+                        minutes=self.max_response_time_in_s
+                    ):
+                        reason = (
+                            f"No response {self.max_response_time_in_s//60} minutes"
+                        )
+                        details = f"Participant {participant.id} had {len(responses)} responses"
+
+            except sqlalchemy.orm.exc.NoResultFound:
+                reason = "Never entered the experiment"
+
+            if reason:
+                self.terminate_participant(entrant.rid, reason, details)
+                logger.info(f"RID {entrant.rid} terminated")
+                # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
+                wait = random.randint(1, 15)
+                logger.info(f"Wait for {wait} seconds")
+                time.sleep(wait)
 
     @property
     def survey_number_storage_key(self):
@@ -400,43 +533,42 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, rid, reason):
-        return self.lucidservice.terminate_respondent(rid, reason)
+    def terminate_participant(self, rid, reason, details=None):
+        return self.lucidservice.terminate_respondent(rid, reason, details)
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
 
-    @property
-    def termination_time_in_s(self):
+    def get_config_entry(self, key):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
         )
 
-        return lucid_recruitment_config.get("termination_time_in_s")
+        return lucid_recruitment_config.get(key)
+
+    @property
+    def termination_time_in_s(self):
+        return self.get_config_entry("termination_time_in_s")
 
     @property
     def inactivity_timeout_in_s(self):
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
-
-        return lucid_recruitment_config.get("inactivity_timeout_in_s")
+        return self.get_config_entry("inactivity_timeout_in_s")
 
     @property
     def no_focus_timeout_in_s(self):
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
-
-        return lucid_recruitment_config.get("no_focus_timeout_in_s")
+        return self.get_config_entry("no_focus_timeout_in_s")
 
     @property
     def aggressive_no_focus_timeout_in_s(self):
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
+        return self.get_config_entry("aggressive_no_focus_timeout_in_s")
 
-        return lucid_recruitment_config.get("aggressive_no_focus_timeout_in_s")
+    @property
+    def initial_response_within_s(self):
+        return self.get_config_entry("initial_response_within_s")
+
+    @property
+    def max_response_time_in_s(self):
+        return self.get_config_entry("max_response_time_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

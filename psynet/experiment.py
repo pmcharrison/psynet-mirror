@@ -1,7 +1,6 @@
 import configparser
 import json
 import os
-import random
 import re
 import shutil
 import sys
@@ -2272,47 +2271,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
-
-    @scheduled_task("interval", minutes=1, max_instances=1)
-    @staticmethod
-    def check_for_expired_participants():
-        from .recruiters import LucidRID
-
-        exp = get_experiment()
-
-        if not exp.with_lucid_recruitment():
-            return
-
-        TERMINATE_AFTER_MIN = 3  # TODO make this a hyperparam
-
-        unfailed_entrants = LucidRID.query.filter_by(
-            terminated_at=None, completed_at=None
-        ).all()
-        logger.info(f"Found {len(unfailed_entrants)} of which are not failed")
-        now = datetime.now()
-
-        for entrant in unfailed_entrants:
-            if (now - entrant.creation_time).seconds / 60 > TERMINATE_AFTER_MIN:
-                logger.info(
-                    f"Checking if participant with RID {entrant.rid} has passed the consent page within {TERMINATE_AFTER_MIN} minutes."
-                )
-                reason = None
-                try:
-                    participant = Participant.query.filter_by(
-                        worker_id=entrant.rid
-                    ).one()
-                    if len(participant.branch_log) == 0:
-                        reason = f"No activity within {TERMINATE_AFTER_MIN} minutes"
-                except sqlalchemy.orm.exc.NoResultFound:
-                    reason = "No participant found"
-
-                if reason:
-                    exp.recruiter.terminate_participant(entrant.rid, reason)
-                    logger.info(f"RID {entrant.rid} terminated")
-                    # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
-                    wait = random.randint(1, 30)
-                    logger.info(f"Wait for {wait} seconds")
-                    time.sleep(wait)
 
     @staticmethod
     def get_client_ip_address():
