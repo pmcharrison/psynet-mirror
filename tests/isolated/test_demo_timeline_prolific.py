@@ -1,3 +1,5 @@
+import time
+
 import pytest
 import requests
 from dallinger import db
@@ -189,6 +191,7 @@ class TestExp(object):
 
                 abort_button = driver.find_element(By.ID, "abort-button")
                 abort_button.click()
+                time.sleep(1)
 
                 assert participant.aborted is True
                 assert round(participant.performance_reward, 2) == 0
