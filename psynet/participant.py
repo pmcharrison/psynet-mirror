@@ -586,6 +586,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return {
             "assignment_id": self.assignment_id,
             "hit_id": self.hit_id,
+            "worker_id": self.worker_id,
             "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
