@@ -1823,7 +1823,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
             elif participant_id is not None:
-                participant = cls.get_participant_from_participant_id(participant_id)
+                participant = cls.get_participant_by_id(participant_id)
             elif worker_id is not None:
                 participant = cls.get_participant_from_worker_id(worker_id)
             else:
@@ -1863,7 +1863,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return Participant.query.filter_by(assignment_id=assignment_id).one()
 
     @classmethod
-    def get_participant_from_participant_id(cls, participant_id):
+    def get_participant_by_id(cls, participant_id):
         """
         Get a participant with a specified ``participant_id``.
         Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
@@ -2284,7 +2284,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
     def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(participant_id)
+        participant = cls.get_participant_by_id(participant_id)
         try:
             old_locale = participant.var.locale
         except KeyError:
@@ -2348,7 +2348,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                                         "Thank you for participating! Here is your reward.",
                                     ),
                                 )
-                                participant.status = "aborted"
+                                participant.aborted = True
                                 db.session.commit()
                             else:
                                 template_name = "aborted_already.html"
