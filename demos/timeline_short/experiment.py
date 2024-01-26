@@ -7,7 +7,7 @@ from psynet.timeline import Timeline, switch
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Timeline demo"
+    label = "Short timeline demo"
 
     config = {
         "min_accumulated_reward_for_abort": 0.2,
