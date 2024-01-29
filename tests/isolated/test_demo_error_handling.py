@@ -22,9 +22,6 @@ def test_empty():
     pass
 
 
-@pytest.mark.skip(
-    reason="This test was disabled on 25 April 2023 because it was flaky, but we will try fixing it in the future."
-)
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo("error_handling")], indirect=True
 )
@@ -32,7 +29,7 @@ def test_empty():
 class TestExp(object):
     def test_exp(
         self, launched_experiment, debug_server_process, bot_recruits, db_session
-    ):  # two_iterations, bot_recruits):
+    ):
         for i in range(4):
             url = launched_experiment.recruiter.recruit()[0]
             bot = bot_class()(url)
