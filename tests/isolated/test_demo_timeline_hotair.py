@@ -22,7 +22,7 @@ class TestExp(object):
     def test_exp(
         self, launched_experiment, debug_server_process, bot_recruits, db_session
     ):
-        for i in range(2):
+        for i in range(3):
             url = launched_experiment.recruiter.recruit()[0]
             bot = bot_class()(url)
 
@@ -31,7 +31,7 @@ class TestExp(object):
 
             driver = bot.driver
 
-            # reward >= min_accumulated_reward_for_abort (0.34 >= 0.2)
+            # reward > min_accumulated_reward_for_abort (0.34 > 0.2)
             if bot.participant_id == 1:
                 next_page(driver, "next-button")
 
@@ -50,8 +50,29 @@ class TestExp(object):
                     """,
                 )
 
-            # reward < min_accumulated_reward_for_abort (0.19 < 0.2)
+            # reward == min_accumulated_reward_for_abort (0.2 == 0.2)
             if bot.participant_id == 2:
+                next_page(driver, "next-button")
+
+                participant = Experiment.get_participant_by_id(bot.participant_id)
+
+                participant.performance_reward = -0.14
+                db.session.commit()
+
+                assert round(participant.time_reward(), 2) == 0.34
+                assert round(participant.calculate_reward(), 2) == 0.2
+
+                reward_participant_page(driver, "next-button")
+                assert_text(
+                    driver,
+                    "main-body",
+                    """
+                    PsyNet Your reward You earned a total payment of $0.34. Finish
+                    """,
+                )
+
+            # reward < min_accumulated_reward_for_abort (0.19 < 0.2)
+            if bot.participant_id == 3:
                 next_page(driver, "next-button")
 
                 participant = Experiment.get_participant_by_id(bot.participant_id)
