@@ -31,7 +31,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger>=9.12.0",
+    "dallinger[docker]>=9.12.0",
     "dominate",
     "ipywidgets",
     "joblib",
@@ -40,6 +40,7 @@ dependencies = [
     "polib",
     "praat-parselmouth",
     "progress",
+    "pytest",
     "python-gettext",
     "rpdb",
     "sphinx",
