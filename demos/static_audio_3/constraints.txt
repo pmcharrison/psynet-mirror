@@ -4,12 +4,14 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: d2f9b974c4870820214694d5e5dea770
+# Compiled from a requirement.txt file with md5sum: bb9ef2b044186a3ece254f5b65c2a699
 #
 alabaster==0.7.13
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.12.0/dev-requirements.txt
     #   sphinx
+appnope==0.1.3
+    # via ipython
 apscheduler==3.10.4
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.12.0/dev-requirements.txt
@@ -145,7 +147,6 @@ greenlet==3.0.3
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.12.0/dev-requirements.txt
     #   dallinger
     #   gevent
-    #   sqlalchemy
 gunicorn[gevent]==21.2.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.12.0/dev-requirements.txt
@@ -354,7 +355,7 @@ s3transfer==0.10.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v9.12.0/dev-requirements.txt
     #   boto3
-scipy==1.11.4
+scipy==1.12.0
     # via statsmodels
 selenium==4.16.0
     # via
