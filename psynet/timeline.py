@@ -2000,7 +2000,7 @@ def switch(
     label: str,
     function: Callable,
     branches: dict,
-    fix_time_credit: bool = True,
+    fix_time_credit: bool = False,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2024,8 +2024,8 @@ def switch(
 
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of the branch taken.
-        Defaults to ``True``, so that all participants receive the same credit, corresponding to the
-        branch with the maximum time credit.
+        Defaults to ``False``; if set to ``True``,
+        all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
@@ -2118,7 +2118,7 @@ def conditional(
     condition: Callable,
     logic_if_true,
     logic_if_false=None,
-    fix_time_credit: bool = True,
+    fix_time_credit: bool = False,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2142,9 +2142,9 @@ def conditional(
         An optional elt (or list of elts) to display if ``condition`` returns ``False``.
 
     fix_time_credit:
-        Whether participants should receive the same time credit irrespective of whether
-        ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
-        receive the same credit.
+        Whether participants should receive the same time credit irrespective of the branch taken.
+        Defaults to ``False``; if set to ``True``,
+        all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.

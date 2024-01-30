@@ -213,7 +213,7 @@ class GroupBarrier(Barrier):
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
         on_release: Optional[Callable] = None,
-        fix_time_credit=True,
+        fix_time_credit=False,
     ):
         super().__init__(
             id_=id_,
