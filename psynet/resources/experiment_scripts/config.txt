@@ -4,8 +4,7 @@ description = This experiment requires you to XXX. Please use a Chrome browser i
 contact_email_on_error = XXX@gmail.com
 organization_name = XXX
 
-# If you don't want to use a crowdsourcing platform, set recruiter = generic.
-recruiter = prolific
+recruiter = generic
 currency = $
 wage_per_hour = 12.0
 
