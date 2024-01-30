@@ -17,7 +17,7 @@ def test_config(in_experiment_directory):
     print(lines)
     _recruiter = get_from_config("recruiter")
     print(f"Loading example value from config: {_recruiter}")
-    assert _recruiter == "prolific"
+    assert _recruiter == "generic"
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
