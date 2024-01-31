@@ -26,6 +26,16 @@ from psynet.timeline import (
 )
 
 
+def _enable_logger():
+    import logging
+
+    logging.basicConfig()
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+
+
+enable_logger = CodeBlock(_enable_logger)
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Timeline demo"
     initial_recruitment_size = 1
@@ -46,6 +56,7 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         MainConsent(),
+        enable_logger,
         InfoPage(
             tags.div(
                 tags.h2("Welcome"),
