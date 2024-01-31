@@ -353,6 +353,7 @@ class Trial(SQLMixinDallinger, Info):
 
     def fail(self, reason=None):
         if not self.failed:
+            logger.info(f"Failing trial (id: {self.id}, reason: {reason})")
             super().fail(reason=reason)
 
     @property
@@ -1290,6 +1291,20 @@ class TrialMaker(Module):
         and the second is a status string.
         """
         raise NotImplementedError
+
+    def on_first_launch(self, experiment):
+        """
+        Defines a routine to run when the experiment is launched for the first time.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        """
+        pass
 
     def pre_deploy_routine(self, experiment):
         """
@@ -2588,6 +2603,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     def fail(self, reason=None):
         if not self.failed:
+            logger.info(f"Failing network (id: {self.id}, reason: {reason})")
             super().fail(reason=reason)
 
     # vars = Column(PythonObject)
@@ -2804,6 +2820,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     def fail(self, reason=None):
         if not self.failed:
+            logger.info(f"Failing trial node (id: {self.id}, reason: {reason})")
             super().fail(reason=reason)
 
     def add_default_network(self):

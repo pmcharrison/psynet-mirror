@@ -59,7 +59,7 @@ Select the ``virtualenv`` option, then press OK.
 This will create the new environment, but it won't install any dependencies.
 To install the dependencies, you should open a new terminal, verify you are in the correct virtual environment
 (by confirming that you see ``(<your-project-name)`` prefixed to the terminal prompt)
-then run ``pip install -r constraints.txt``.
+then run ``pip3 install -r constraints.txt``.
 
 Updating PsyNet
 ---------------

@@ -1,7 +1,7 @@
 # Run me as follows: python3 demos/update_demos.py
 #
 # Warning: the chosen constraints will depend on the version of Dallinger that you currently have installed.
-# In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's setup.py.
+# In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's `psynet/version.py`.
 #
 # Warning: this command currently takes several minutes to complete because generating constraints.txt files is slow.
 # We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
@@ -49,9 +49,9 @@ def find_demo_dirs():
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
-        update_psynet_requirement(dir)
         generate_constraints(dir)
         post_update_constraints(dir)
+        update_psynet_requirement(dir)
 
 
 def generate_constraints(dir):
@@ -87,12 +87,14 @@ def update_scripts(dir):
 
 
 # Update PsyNet Docker image version
-with fileinput.FileInput(
-    "psynet/resources/experiment_scripts/Dockerfile", inplace=True
-) as file:
-    version = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
-    for line in file:
-        print(re.sub(version, f"psynet:v{__version__}", line), end="")
+for path in [
+    "psynet/resources/experiment_scripts/Dockerfile",
+    "psynet/resources/experiment_scripts/docker/generate-constraints",
+]:
+    with fileinput.FileInput(path, inplace=True) as file:
+        version_tag = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        for line in file:
+            print(re.sub(version_tag, f"psynet:v{__version__}", line), end="")
 
 # Update demos
 n_jobs = 8

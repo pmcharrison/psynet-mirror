@@ -224,6 +224,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
+    big_base_payment : `bool`
+        Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
+
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
 
@@ -382,6 +385,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
         )
 
+        config = get_and_load_config()
+        if self.base_payment > 10 and not config.get("big_base_payment"):
+            logger.warning(f"`base_payment` is set to `{self.base_payment}`!")
+        assert self.base_payment <= 20 or config.get("big_base_payment"), (
+            f"Are you sure about setting `base_payment = {self.base_payment}`? "
+            "You probably forgot to divide `base_payment` by 100. "
+            "In the special case you REALLY want to override this behaviour, set `big_base_payment = true`"
+        )
+
         assert not (
             initial_recruitment_size_config_changed
             and initial_recruitment_size_experiment_changed
@@ -497,6 +509,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
+        for trialmaker in self.timeline.trial_makers.values():
+            trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
@@ -891,8 +905,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def get_initial_recruitment_size(self):
         return get_and_load_config().get("initial_recruitment_size")
 
-    @property
-    def label(self):
+    @classproperty
+    def label(cls):  # noqa
         return get_and_load_config().get("label")
 
     @property
@@ -970,6 +984,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **super().config_defaults(),
             "host": "0.0.0.0",
             "base_payment": 0.10,
+            "big_base_payment": False,
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
@@ -1254,13 +1269,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
 
     def fail_participant(self, participant):
+        failed_reason = ", ".join(participant.failure_tags)
         logger.info(
-            "Failing participant %i (%i routine(s) found)...",
+            "Failing participant %i (%i routine(s) found, reason: %s)",
             participant.id,
             len(self.participant_fail_routines),
+            failed_reason,
         )
         participant.failed = True
-        participant.failed_reason = ", ".join(participant.failure_tags)
+        participant.failed_reason = failed_reason
         participant.time_of_death = datetime.now()
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
@@ -1678,6 +1695,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/js-synthesizer",
                 ),
                 (
+                    resources.files("psynet") / "resources/libraries/JSZip",
+                    "/static/scripts/JSZip",
+                ),
+                (
                     resources.files("psynet") / "resources/libraries/Tonejs",
                     "/static/scripts/Tonejs",
                 ),
@@ -1718,6 +1739,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def extra_parameters(cls):
         config = get_config()
+        config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)

@@ -14,6 +14,11 @@ If you do see such a tab, do the following:
 2. Tick the box that says 'Allow the default Docker socket to be used'.
 3. Tick the box that says 'Allow privileged port mapping'.
 
+If you are on a Mac that uses Apple Silicon (i.e. most new Macs since 2021...?)
+then you should go to the General tab and tick the box that says
+'Use Rosetta for x86/amd64 emulation on Apple Silicon'.
+If you don't tick this box PsyNet will run very slowly.
+
 Step 2: Install PyCharm
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -169,7 +174,14 @@ interpreter.
 Step 6: Running the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If all has gone well, you should now be able to run the experiment.
+.. warning::
+    **MacOS users only:**
+
+    macOS's 'AirPlay Receiver' functionality clashes with the default ports used by Dallinger and PsyNet.
+    You should disable this functionality before proceeding. To achieve this, go to System Preferences, then Sharing,
+    and then untick the box labeled 'Airplay Receiver'.
+
+You should now be able to run the experiment.
 Try this by running the following command in your PyCharm terminal:
 
 ::

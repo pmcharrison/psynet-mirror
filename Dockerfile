@@ -1,9 +1,9 @@
-FROM ghcr.io/dallinger/dallinger:9.10.0
+FROM ghcr.io/dallinger/dallinger:9.12.0
 # If you want to pin a Dallinger development version, don't do it here!
 # Instead pin it below (see comments)
 #
 # To build locally, run something like this (including the period at the end of the line!):
-# docker build -t registry.gitlab.com/psynetdev/psynet:master .
+# docker build -t registry.gitlab.com/psynetdev/psynet:v10.4.0 .
 
 RUN mkdir /PsyNet
 WORKDIR /PsyNet

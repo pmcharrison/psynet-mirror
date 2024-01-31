@@ -159,11 +159,11 @@ Once we’ve checked out the code locally, we should make sure that our Python i
 
 .. code-block:: console
 
-  # Prior to running pip install, make sure you’re in the right
+  # Prior to running pip3 install, make sure you’re in the right
   # virtual environment, for example by running:
   # workon my-psynet-env
 
-  pip install -e .  # installs PsyNet in local editable mode
+  pip3 install -e .  # installs PsyNet in local editable mode
 
 Step 3: Implementing the feature
 ++++++++++++++++++++++++++++++++

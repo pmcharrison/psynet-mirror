@@ -1711,7 +1711,7 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
     web-based auditory experiments. Attention, perception & psychophysics, 79(7), 2064–2072.
     https://doi.org/10.3758/s13414-017-1361-2
 
-    Deprecated: does not work reliably to detect headphones.
+    Note: we currently recommend using the HugginsHeadphoneTest instead.
     """
 
     def __init__(
