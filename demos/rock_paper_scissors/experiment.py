@@ -9,7 +9,7 @@ from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
-from psynet.timeline import Timeline, join
+from psynet.timeline import CodeBlock, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
 
@@ -103,6 +103,16 @@ class RockPaperScissorsTrial(StaticTrial):
     }
 
 
+def _enable_logger():
+    import logging
+
+    logging.basicConfig()
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+
+
+enable_logger = CodeBlock(_enable_logger)
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Rock paper scissors demo"
 
@@ -110,6 +120,7 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
+        enable_logger,
         SimpleGrouper(
             group_type="rock_paper_scissors",
             group_size=2,
