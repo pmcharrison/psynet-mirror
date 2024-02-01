@@ -15,6 +15,14 @@ and install all the required packages.
     PyCharm remembers which virtual environment to use for each project, and will load it automatically
     when you open the project.
 
+.. note::
+
+    If you are not using PyCharm, you can install the required packages using the following command:
+
+    .. code-block:: bash
+
+       pip install -r constraints.txt
+
 
 .. note::
 
