@@ -44,6 +44,14 @@ Select 'Virtualenv environment', select 'New', make sure that the correct versio
 then press OK. PyCharm will spend some time processing this selection, but then when you open a new terminal tab it should load
 your virtual environment automatically.
 
+If you are working as a PsyNet developer, now is the moment to install PsyNet and Dallinger in development mode.
+To do this, run the following commands (assuming you have installed PsyNet and Dallinger in the default locations):
+
+.. code-block:: bash
+
+   pip install -e ~/PsyNet
+   pip install -e ~/Dallinger
+
 Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
 make sure you are in the appropriate virtual environment.
 You can confirm that you are in the correct virtual environment by looking at the start of your terminal prompt.
@@ -52,8 +60,6 @@ If you have only just created your new virtual environment in PyCharm, you might
 a new terminal window for your virtual environment to be loaded.
 Your virtual environment should activate automatically when you open your project in PyCharm;
 if it does not, you can select it by clicking the interpreter box in the bottom right corner of the screen.
-
-
 
 Once PyCharm has finished installing the required packages, you should be able to run the experiment
 with the following command:

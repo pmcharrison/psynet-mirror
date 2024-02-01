@@ -107,6 +107,9 @@ and then untick the box labeled 'Airplay Receiver'.
 
 .. include:: ../setup_virtualenv.rst
 
+If you are interested in contributing to PsyNet, you should also complete
+the `Additional developer installation steps <additional_developer_installation.html>`_.
+
 
 Setting up a new project
 ------------------------
