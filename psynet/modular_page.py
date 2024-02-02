@@ -2191,7 +2191,8 @@ class MediaSliderControl(SliderControl):
         If `True`, the slider is disabled while the media is playing. Default: `False`.
 
         .. deprecated:: 11.0.0
-        Use ``disable_slider_on_change`` instead.
+
+            Use ``disable_slider_on_change`` instead.
 
     disable_slider_on_change:
         - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
@@ -2819,7 +2820,8 @@ class VideoSliderControl(MediaSliderControl):
         If `True`, the slider is disabled while the media is playing. Default: `False`.
 
         .. deprecated:: 11.0.0
-        Use ``disable_slider_on_change`` instead.
+
+            Use ``disable_slider_on_change`` instead.
 
     disable_slider_on_change:
         - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.

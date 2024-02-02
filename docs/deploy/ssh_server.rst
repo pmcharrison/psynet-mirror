@@ -13,8 +13,7 @@ Setting up the remote server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are several ways to set up your own remote server.
-One way is to rent one via Amazon Web Services (see
-`tutorial <deploy/aws_server_setup>`_).
+One way is to rent one via Amazon Web Services (see :ref:`tutorial <aws_server_setup>`).
 Other comparable recommended companies include Hetzner and Contabo.
 As a very approximate rule of thumb, we recommend 5 GB of RAM for each
 simultaneous experiment you think you will need to host.
@@ -331,7 +330,7 @@ but run it on your local computer, not via your SSH terminal.
 
     psynet export ssh --app your-app-name
 
-For more information, see `Exporting <deploy/export.html>`_.
+For more information, see `Exporting <export.html>`_.
 
 You can then tear down your app via the following command, again run on your local computer:
 

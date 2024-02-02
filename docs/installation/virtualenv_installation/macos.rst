@@ -104,11 +104,8 @@ macOS's 'AirPlay Receiver' functionality clashes with the default ports used by 
 You should disable this functionality before proceeding. To achieve this, go to System Preferences, then Sharing,
 and then untick the box labeled 'Airplay Receiver'.
 
-
-.. include:: ../setup_virtualenv.rst
-
 If you are interested in contributing to PsyNet, you should also complete
-the `Additional developer installation steps <additional_developer_installation.html>`_.
+the :ref:`additional_developer_installation`.
 
 
 Setting up a new project

@@ -1,3 +1,5 @@
+.. _additional_developer_installation:
+
 Additional developer installation steps
 ---------------------------------------
 
@@ -35,14 +37,24 @@ Install ChromeDriver
 
 Needed for running the Selenium tests with headless Chrome.
 
+.. note::
+
+   The version of ChromeDriver *must* match the version of Chrome you have currently installed.
+
+On macOS run this line
+
 .. code-block:: bash
 
-    # Run this line if you are running on MacOS
     brew install chromedriver
 
-    # Run these lines if you are running on Linux or Windows
-    wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip --directory /tmp
-    sudo unzip /tmp/chromedriver_linux64.zip chromedriver -d /usr/local/bin/
+For Linux or Windows
+
+    Navigate to `Chrome for Testing <https://googlechromelabs.github.io/chrome-for-testing/#stable>`_ to find the download link for ChromeDriver corresponding to your Chrome installation. Copy the link and use it to download and then unzip the ChromeDriver executable, e.g. on Linux:
+
+    .. code-block:: bash
+
+        wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chromedriver-linux64.zip --directory /tmp
+        sudo unzip /tmp/chromedriver-linux64.zip chromedriver -d /usr/local/bin/
 
 .. note::
 
@@ -89,7 +101,7 @@ This ensures that the right versions of all the PsyNet dependencies are installe
 (if you just ran ``pip install psynet`` you would get the latest, potentially incompatible versions of the dependencies).
 
 Install PsyNet and Dallinger in editable mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Within the virtual environment you just created, install PsyNet and Dallinger in editable mode:
 

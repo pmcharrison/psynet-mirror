@@ -1,4 +1,4 @@
-The following installation instructions are tested with **Ubuntu 20.04 LTS (Focal Fossa)**.
+The following installation instructions are tested with **Ubuntu 22.04 LTS (Jammy Jellyfish)**.
 They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 One-time setup
@@ -20,7 +20,7 @@ Update and install required system packages
 
    sudo apt update
    sudo apt upgrade
-   sudo apt install vim python3.10-dev python3.10-venv python3-pip redis-server git libenchant1c2a postgresql postgresql-contrib libpq-dev unzip
+   sudo apt install vim python3.11-dev python3.11-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip
 
 Install Python
 ~~~~~~~~~~~~~~
@@ -33,7 +33,7 @@ To see the current version of Python 3 on your system, enter ``python3 --version
 If your current version is lower than the minimum version, you should update your Python
 to the recommended version.
 The easiest way to do this is via the ``apt install`` command above, for example
-``sudo apt install python3.10-dev`` for Python 3.10.
+``sudo apt install python3.11-dev`` for Python 3.11.
 
 Install Docker and Docker plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,7 +100,7 @@ Install heroku client
 .. include:: install_virtualenv.rst
 
 If you are interested in contributing to PsyNet, you should also complete
-the `Additional developer installation steps <additional_developer_installation.html>`_.
+the :ref:`additional_developer_installation`.
 
 
 Setting up a new project
