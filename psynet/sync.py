@@ -6,7 +6,7 @@ from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.page import WaitPage
@@ -105,16 +105,6 @@ class Barrier:
         link.arrival_time = timenow()
         db.session.add(link)
 
-    def get_participant_link(self, participant: Participant):
-        return (
-            db.session.query(ParticipantLinkBarrier)
-            .filter(
-                ~ParticipantLinkBarrier.released,
-                ParticipantLinkBarrier.participant_id == participant.id,
-            )
-            .one_or_none()
-        )
-
     def _get_waiting_participants(self):
         return self.get_waiting_participants(barrier_id=self.id)
 
@@ -136,6 +126,7 @@ class Barrier:
         """
         return (
             db.session.query(Participant)
+            .options(joinedload(Participant.barrier_links))
             .join(ParticipantLinkBarrier)
             .filter(
                 ParticipantLinkBarrier.barrier_id == barrier_id,
@@ -148,7 +139,9 @@ class Barrier:
 
     def release(self, participant: Participant):
         # Note: this currently emits one SQL query per participant; this could be optimized
-        link = self.get_participant_link(participant)
+        link = None
+        if participant.barrier_links:
+            link = participant.barrier_links[0]
         if link is None:
             raise RuntimeError(
                 "Could not find an appropriate barrier link to release the participant from "
