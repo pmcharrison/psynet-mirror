@@ -70,7 +70,7 @@ experiment deployment. To do this you add ``--archive path/to/database.zip`` whe
 .. _estimate:
 
 Estimate maximum reward and completion time (``estimate``)
----------------------------------------------------------
+----------------------------------------------------------
 
 This command examines the timeline, estimates how long the participant will take to complete the experiment,
 and how much they need to be paid as a result.
@@ -107,7 +107,7 @@ append ``--help`` to these commands:
     psynet export ssh --help
     psynet export heroku --help
 
-For more information on PsyNet data export see `Exporting <deploy/export.html>`_.
+For more information on PsyNet data export see `Exporting <../deploy/export.html>`_.
 
 
 .. _generate_constraints:

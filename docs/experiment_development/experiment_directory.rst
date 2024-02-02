@@ -12,7 +12,7 @@ When you are developing a PsyNet experiment it is good practice to use a *versio
 for keeping track of changes to your experiment directory.
 In particular, we advise that you use *Git* because PsyNet itself uses some Git features
 as part of its deployment process. To learn more visit
-`Version control with Git <tutorials/version_control_with_git.html>`_.
+`Version control with Git <../tutorials/version_control_with_git.html>`_.
 
 Your experiment directory contains various important files and directories.
 Let's talk through what these different files and directories do.
@@ -33,12 +33,12 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     If you wanted to bypass PsyNet's asset management system, you could put individual scripts or media files in here,
     and then access them via ``https://your-experiment-url/static/your-file.png``.
     If you are storing large files you may want instead to use PsyNet's asset management system,
-    see `Assets <tutorials/assets>`_ for more details.
+    see `Assets <../tutorials/assets.html>`_ for more details.
 
 -   ``templates`` is used for customising PsyNet’s front-end. It contains
     `Jinja2 templates <https://jinja.palletsprojects.com/en/2.11.x/>`_; Jinja2 is a popular templating library for Python.
     Most experiments do not need to use this folder, but for an example of how to use it, see
-    `Writing custom frontends <tutorials/writing_custom_frontends.html>`_.
+    `Writing custom frontends <../tutorials/writing_custom_frontends.html>`_.
 
 -   ``.gitignore`` controls which files Git tracks. It takes a standard format that comes from Git;
     you can learn more by Googling ``gitignore``. If a file is included within ``.gitignore``, it will not
