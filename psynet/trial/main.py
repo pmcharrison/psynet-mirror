@@ -914,8 +914,6 @@ class Trial(SQLMixinDallinger, Info):
 
             trial.answer = trial.format_answer(answer)
             trial.complete = True
-            trial.response_id = participant.last_response_id
-            trial.time_taken = trial.response.metadata["time_taken"]
 
             if trial_maker:
                 trial_maker.finalize_trial(

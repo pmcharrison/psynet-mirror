@@ -927,6 +927,8 @@ class Page(Elt):
         client_ip_address,
         answer=NoArgumentProvided,
     ):
+        from psynet.trial.main import Trial
+
         if raw_answer == NoArgumentProvided and answer == NoArgumentProvided:
             raise ValueError("At least one of raw_answer and answer must be provided.")
         if blobs is None:
@@ -941,6 +943,13 @@ class Page(Elt):
             client_ip_address=client_ip_address,
         )
         db.session.add(resp)
+
+        trial = participant.current_trial
+
+        if isinstance(trial, Trial):
+            trial.response = resp
+            trial.time_taken = resp.metadata["time_taken"]
+
         db.session.commit()
 
         if answer == NoArgumentProvided:
