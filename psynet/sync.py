@@ -110,6 +110,7 @@ class Barrier:
             db.session.query(ParticipantLinkBarrier)
             .filter(
                 ~ParticipantLinkBarrier.released,
+                ParticipantLinkBarrier.barrier_id == self.id,
                 ParticipantLinkBarrier.participant_id == participant.id,
             )
             .one_or_none()
