@@ -512,6 +512,7 @@ class ChainNode(TrialNode):
 
     key = Column(String, index=True)
     degree = Column(Integer)
+    target_n_trials = Column(Integer)
     child_id = Column(Integer, ForeignKey("node.id"), index=True)
     parent_id = Column(Integer, ForeignKey("node.id"), index=True)
     seed = Column(PythonObject, default=lambda: {})
@@ -608,6 +609,10 @@ class ChainNode(TrialNode):
             parent.child = self
             self.parent = parent
 
+    def set_network(self, network):
+        super().set_network(network)
+        self.target_n_trials = network.trials_per_node
+
     def create_initial_seed(self, experiment, participant):
         raise NotImplementedError
 
@@ -690,20 +695,6 @@ class ChainNode(TrialNode):
     def var(self):
         return VarStore(self)
 
-    @hybrid_property
-    def target_n_trials(self):
-        return self.network.trials_per_node
-
-    @target_n_trials.expression
-    def target_n_trials(cls):
-        # Does this produce a correlated subquery? Is it problematic for performance?
-        # (https://docs.sqlalchemy.org/en/14/orm/extensions/hybrid.html#correlated-subquery-relationship-hybrid)
-        return (
-            select(ChainNetwork.trials_per_node)
-            .where(ChainNetwork.id == cls.network_id)
-            .scalar_subquery()
-        )
-
     # @property
     # def ready_to_spawn(self):
     #     return self.reached_target_n_trials
@@ -716,22 +707,17 @@ class ChainNode(TrialNode):
             if (t.complete and t.finalized and not t.is_repeat_trial)
         ]
 
-    @hybrid_property
-    def n_completed_and_processed_trials(self):
-        return len(self.completed_and_processed_trials)
-
-    @n_completed_and_processed_trials.expression
-    def n_completed_and_processed_trials(cls):
-        return (
-            select(func.count(Trial.id))
-            .where(
-                Trial.node_id == cls.id,
-                Trial.complete,
-                Trial.finalized,
-                ~Trial.is_repeat_trial,
-            )
-            .scalar_subquery()
+    n_completed_and_processed_trials = column_property(
+        select(func.count(Trial.id))
+        .where(
+            Trial.node_id == TrialNode.id,
+            Trial.complete,
+            Trial.finalized,
+            ~Trial.failed,
+            ~Trial.is_repeat_trial,
         )
+        .scalar_subquery()
+    )
 
     # column_property(
     #     # select(Trial.node_id, Trial.complete, Trial.finalized, Trial.is_repeat_trial)

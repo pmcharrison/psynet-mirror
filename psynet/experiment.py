@@ -38,6 +38,7 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from psynet import __version__
 
@@ -909,10 +910,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         db.session.commit()
 
+        # This query could be further optimized by identifying which network classes are present in the table
+        # and making queries specific to these. This would allow subclass-specific attributes to be loaded
+        # in the initial query rather than being lazily loaded.
         networks = (
             ChainNetwork.query.filter_by(ready_to_spawn=True)
             .with_for_update()
             .populate_existing()
+            .options(joinedload(ChainNetwork.head, innerjoin=True))
             .all()
         )
         if len(networks) > 0:
