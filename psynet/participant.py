@@ -297,13 +297,16 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                 "Use participant.active_sync_groups[group_type] to access the SyncGroup you need."
             )
 
-    @property
-    def active_barriers(self):
-        return {
-            barrier_link.barrier_id: barrier_link
-            for barrier_link in self.barrier_links
-            if not barrier_link.released
-        }
+    active_barriers = relationship(
+        "ParticipantLinkBarrier",
+        collection_class=attribute_mapped_collection("barrier_id"),
+        cascade="all, delete-orphan",
+        primaryjoin=(
+            "and_(psynet.participant.Participant.id==remote(ParticipantLinkBarrier.participant_id), "
+            "ParticipantLinkBarrier.released==False)"
+        ),
+        lazy="selectin",
+    )
 
     errors = relationship("ErrorRecord")
     # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")
