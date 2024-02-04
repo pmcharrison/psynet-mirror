@@ -2160,7 +2160,7 @@ class NetworkTrialMaker(TrialMaker):
 
         networks = (
             ChainNetwork.query.filter_by(ready_to_spawn=True)
-            .with_for_update(of=AsyncProcess)
+            .with_for_update(of=ChainNetwork)
             .populate_existing()
             .all()
         )
