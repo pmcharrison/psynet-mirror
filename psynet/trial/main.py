@@ -745,12 +745,6 @@ class Trial(SQLMixinDallinger, Info):
 
         db.session.commit()
 
-        if self.trial_maker:
-            from psynet.experiment import get_experiment
-
-            experiment = get_experiment()
-            self.trial_maker._grow_network(self.network, experiment)
-
     @classmethod
     def cue(cls, definition, assets=None):
         """
