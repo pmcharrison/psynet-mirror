@@ -970,7 +970,6 @@ class Page(Elt):
         db.session.commit()
 
         if self.save_answer:
-            participant.last_response_id = resp.id
             if len(participant.answer_accumulators) > 0:
                 page_label = self.label
                 accumulator = participant.answer_accumulators[-1]
@@ -1717,7 +1716,7 @@ class Response(_Response):
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
-        backref="all_responses",
+        back_populates="all_responses",
         foreign_keys=[participant_id],
     )
 

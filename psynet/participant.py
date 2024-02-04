@@ -164,10 +164,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     for_loops = Column(PythonObject, default=lambda: {})
     failure_tags = Column(PythonList, default=lambda: [])
 
-    # Ideally we wold make this a foreign key but this creates a circular dependency
-    # when importing CSVs
-    last_response_id = Column(Integer)
-
     base_payment = Column(Float)
     performance_reward = Column(Float)
     unpaid_bonus = Column(Float)
@@ -185,6 +181,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
     trial_status = Column(String)
 
+    all_responses = relationship("psynet.timeline.Response")
+
     # @property
     # def current_trial(self):
     #     if self.in_module and hasattr(self.module_state, "current_trial"):
@@ -196,9 +194,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def last_response(self):
-        from psynet.timeline import Response
-
-        return Response.query.filter_by(id=self.last_response_id).one()
+        return self.response
 
     # all_trials = relationship("psynet.trial.main.Trial")
 
