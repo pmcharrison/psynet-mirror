@@ -2147,35 +2147,10 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
-    @classmethod
-    @log_time_taken
-    def grow_all_networks(cls, experiment):
-        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
-        # cover other types of networks in the future.
-        from psynet.trial.chain import ChainNetwork
-
-        db.session.commit()  # Introduced to try and avoid deadlocks we were seeing
-
-        networks = (
-            ChainNetwork.query.filter_by(ready_to_spawn=True)
-            .with_for_update(of=ChainNetwork)
-            .populate_existing()
-            .all()
-        )
-        if len(networks) > 0:
-            logger.info("Growing %i networks...", len(networks))
-            for n in networks:
-                n.grow(experiment=experiment)
-            db.session.commit()
-        # networks = ChainTrialNetwork.query.filter_by(trial_maker_id=self.id)
-        # for network in networks:
-        #     self.grow_network(network, experiment)
-
     @log_time_taken
     def prepare_trial(self, experiment, participant: Participant):
         logger.info("Preparing trial for participant %i.", participant.id)
 
-        self.grow_all_networks(experiment)
         networks = self.find_networks(participant=participant, experiment=experiment)
 
         if networks in ["wait", "exit"]:

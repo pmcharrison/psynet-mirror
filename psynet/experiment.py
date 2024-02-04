@@ -540,7 +540,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
-        self.grow_all_networks()
 
     def load_deployment_config(self):
         config = get_config()
@@ -901,6 +900,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
+    @scheduled_task("interval", seconds=2, max_instances=1)
+    @staticmethod
+    def grow_networks():
+        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
+        # cover other types of networks in the future.
+        from psynet.trial.chain import ChainNetwork
+
+        db.session.commit()
+
+        networks = (
+            ChainNetwork.query.filter_by(ready_to_spawn=True)
+            .with_for_update()
+            .populate_existing()
+            .all()
+        )
+        if len(networks) > 0:
+            logger.info("Growing %i networks...", len(networks))
+            exp = get_experiment()
+            for n in networks:
+                n.grow(experiment=exp)
+            logger.info("Finished growing networks.")
+
+        db.session.commit()
+
     @property
     def base_payment(self):
         return get_config().get("base_payment")
@@ -1215,11 +1238,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @property
     def deployment_id(self):
         return deployment_info.read("deployment_id")
-
-    def grow_all_networks(self):
-        from .trial.main import NetworkTrialMaker
-
-        NetworkTrialMaker.grow_all_networks(experiment=self)
 
     @classmethod
     def create_database_snapshot(cls):
