@@ -2816,6 +2816,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
 
 class GenericTrialNetwork(TrialNetwork):
+    trials_per_node = None
+
     def __init__(self, module_id, experiment):
         super().__init__(
             trial_maker_id=None,
