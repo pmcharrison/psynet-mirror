@@ -593,6 +593,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 def get_participant(participant_id: int):
     """
     Returns the participant with a given ID.
+    Warning: we recommend just using SQLAlchemy directly instead of using this function.
+    When doing so, use ``with_for_update().populate_existing()`` if you plan to update
+    this Participant object, that way the database row will be locked appropriately.
 
     Parameters
     ----------

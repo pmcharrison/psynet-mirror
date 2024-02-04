@@ -2396,9 +2396,14 @@ class Module:
     def end(self, participant):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
         # defined a recursive module (or is reusing module ID)
-        state = self.state_class.query.filter_by(
-            module_id=self.id, participant_id=participant.id, finished=False
-        ).one()
+        state = (
+            self.state_class.query.filter_by(
+                module_id=self.id, participant_id=participant.id, finished=False
+            )
+            .with_for_update(of=self.state_class)
+            .populate_existing()
+            .one()
+        )
         state.finish()
         db.session.commit()
         participant.refresh_module_state()

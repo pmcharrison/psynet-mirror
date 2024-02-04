@@ -51,7 +51,7 @@ from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
-from .participant import Participant, get_participant
+from .participant import Participant
 from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -556,7 +556,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _nodes_on_deploy(self):
         from .trial.main import TrialNode
 
-        for node in TrialNode.query.filter_by(_on_deploy_called=False).all():
+        db.session.commit()
+
+        for node in (
+            TrialNode.query.filter_by(_on_deploy_called=False)
+            .with_for_update(of=TrialNode)
+            .populate_existing()
+            .all()
+        ):
             node.on_deploy()
 
         db.session.commit()
@@ -1507,7 +1514,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
-        participant = get_participant(participant_id)
+        participant = (
+            Participant.query.with_for_update(of=Participant)
+            .populate_existing()
+            .get(participant_id)
+        )
 
         if page_uuid != participant.page_uuid:
             raise RuntimeError(
@@ -2192,7 +2203,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_node(node_id):
         from dallinger.models import Node
 
-        node = Node.query.filter_by(id=node_id).one()
+        node = Node.query.with_for_update(of=Node).populate_existing().get(node_id)
         node.fail(reason="http_fail_route_called")
         db.session.commit()
         return success_response()
@@ -2202,7 +2213,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_info(info_id):
         from dallinger.models import Info
 
-        info = Info.query.filter_by(id=info_id).one()
+        info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
         db.session.commit()
         return success_response()
@@ -2213,7 +2224,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         from .trial.main import TrialNetwork
 
-        network = TrialNetwork.query.filter_by(id=network_id).one()
+        network = (
+            TrialNetwork.query.with_for_update(of=TrialNetwork)
+            .populate_existing()
+            .get(network_id)
+        )
         trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
         trial_maker._grow_network(network, experiment=exp)
         db.session.commit()
@@ -2227,7 +2242,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def call_async_post_grow_network(network_id):
         from .trial.main import TrialNetwork
 
-        network = TrialNetwork.query.filter_by(id=network_id).one()
+        network = (
+            TrialNetwork.query.with_for_update(of=TrialNetwork)
+            .populate_existing()
+            .get(network_id)
+        )
         trial_maker = get_trial_maker(network.trial_maker_id)
 
         WorkerAsyncProcess(
@@ -2248,7 +2267,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url = None
 
         try:
-            participant = get_participant(participant_id)
+            participant = (
+                Participant.query.with_for_update(of=Participant)
+                .populate_existing()
+                .get(participant_id)
+            )
             assignment_id = participant.assignment_id
             recruiter = get_experiment().recruiter
             external_submit_url = None
@@ -2261,6 +2284,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 logger.info(
                     f"Terminating participant with RID {assignment_id} with reason '{reason}'"
                 )
+            db.session.commit()
 
         except Exception as e:
             logger.error(
@@ -2538,7 +2562,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
     def get_progress_and_reward(cls):
-        participant = get_participant(request.args.get("participantId"))
+        participant_id = request.args.get("participantId")
+        participant = Participant.query.get(participant_id)
         progress_percentage = round(participant.progress * 100)
         min_pct = 5
         max_pct = 99

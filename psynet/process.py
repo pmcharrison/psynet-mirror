@@ -230,7 +230,11 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         experiment = get_experiment()
 
-        process = AsyncProcess.query.filter_by(id=process_id).one()
+        process = (
+            AsyncProcess.query.with_for_update(of=AsyncProcess)
+            .populate_existing()
+            .get(process_id)
+        )
 
         try:
             function = process.function

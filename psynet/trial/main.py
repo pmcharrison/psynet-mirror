@@ -1508,6 +1508,8 @@ class TrialMaker(Module):
         trials_to_fail = (
             self.trial_class.query.filter_by(complete=False, failed=False)
             .filter(self.trial_class.creation_time < time_threshold)
+            .with_for_update(of=self.trial_class)
+            .populate_existing()
             .all()
         )
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
@@ -1638,8 +1640,9 @@ class TrialMaker(Module):
 
     def fail_participant_trials(self, participant, reason=None):
         trials_to_fail = (
-            db.session.query(Trial)
-            .filter_by(participant_id=participant.id, failed=False)
+            Trial.query.filter_by(participant_id=participant.id, failed=False)
+            .with_for_update(of=Trial)
+            .populate_existing()
             .join(TrialNetwork)
             .filter_by(trial_maker_id=self.id)
         )
@@ -2155,7 +2158,12 @@ class NetworkTrialMaker(TrialMaker):
 
         db.session.commit()  # Introduced to try and avoid deadlocks we were seeing
 
-        networks = ChainNetwork.query.filter_by(ready_to_spawn=True).all()
+        networks = (
+            ChainNetwork.query.filter_by(ready_to_spawn=True)
+            .with_for_update(of=AsyncProcess)
+            .populate_existing()
+            .all()
+        )
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
             for n in networks:
@@ -2677,11 +2685,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
 
-    trial_maker_id = Column(String)
-    module_id = Column(String)
-    _on_create_called = Column(Boolean, default=False)
-    _on_deploy_called = Column(Boolean, default=False)
-    ready_for_trials = Column(Boolean, default=False)
+    trial_maker_id = Column(String, index=True)
+    module_id = Column(String, index=True)
+    _on_create_called = Column(Boolean, default=False, index=True)
+    _on_deploy_called = Column(Boolean, default=False, index=True)
+    ready_for_trials = Column(Boolean, default=False, index=True)
 
     # network = relationship(
     #     "psynet.trial.main.TrialNetwork",
