@@ -946,12 +946,6 @@ class Page(Elt):
 
         trial = participant.current_trial
 
-        if isinstance(trial, Trial):
-            trial.response = resp
-            trial.time_taken = resp.metadata["time_taken"]
-
-        db.session.commit()
-
         if answer == NoArgumentProvided:
             answer = self.format_answer(
                 raw_answer,
@@ -976,7 +970,9 @@ class Page(Elt):
         resp.answer = answer
         resp.metadata = combined_metadata
 
-        db.session.commit()
+        if isinstance(trial, Trial):
+            trial.response = resp
+            trial.time_taken = resp.metadata["time_taken"]
 
         if self.save_answer:
             if len(participant.answer_accumulators) > 0:
