@@ -929,6 +929,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         db.session.commit()
 
+    @scheduled_task("interval", seconds=1, max_instances=1)
+    @staticmethod
+    def check_barriers():
+        from .sync import ParticipantLinkBarrier
+
+        exp = get_experiment()
+        timeline = exp.timeline
+
+        db.session.commit()
+
+        barrier_links = (
+            ParticipantLinkBarrier.query.join(Participant)
+            .filter(
+                ~ParticipantLinkBarrier.released,
+                ~Participant.failed,
+                Participant.status == "working",
+            )
+            .distinct(ParticipantLinkBarrier.barrier_id)
+            .all()
+        )
+
+        for link in barrier_links:
+            elt = timeline.get_current_elt(exp, link.participant)
+            barrier = elt.links["barrier"]
+            barrier.process_potential_releases()
+
+        db.session.commit()
+
     @property
     def base_payment(self):
         return get_config().get("base_payment")

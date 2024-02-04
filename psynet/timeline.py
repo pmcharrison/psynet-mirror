@@ -170,6 +170,9 @@ class Elt:
     id = None
     created_within_page_maker = False
 
+    def __init__(self):
+        self.links = {}
+
     def consume(self, experiment, participant):
         raise NotImplementedError
 
@@ -203,6 +206,7 @@ class CodeBlock(Elt):
     """
 
     def __init__(self, function):
+        super().__init__()
         self.function = function
 
     def consume(self, experiment, participant):
@@ -220,6 +224,7 @@ class CodeBlock(Elt):
 
 class FixTime(Elt):
     def __init__(self, time_estimate: float):
+        super().__init__()
         self.time_estimate = time_estimate
         self.expected_repetitions = 1
 
@@ -243,6 +248,7 @@ class EndFixTime(FixTime):
 
 class GoTo(Elt):
     def __init__(self, target):
+        super().__init__()
         self.target = target
 
     def get_target(self, experiment, participant):
@@ -269,6 +275,7 @@ class ReactiveGoTo(GoTo):
         targets,  # dict of possible target elements
     ):
         # pylint: disable=super-init-not-called
+        super().__init__(target=None)
         self.function = function
         self.targets = targets
         self.check_args()
@@ -748,6 +755,8 @@ class Page(Elt):
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
     ):
+        super().__init__()
+
         if template_arg is None:
             template_arg = {}
         if js_vars is None:
@@ -1248,6 +1257,8 @@ class PageMaker(Elt):
         accumulate_answers: bool = False,
         label: str = "page_maker",
     ):
+        super().__init__()
+
         self.function = function
         self.time_estimate = time_estimate
         self.accumulate_answers = accumulate_answers
@@ -1295,6 +1306,7 @@ class PageMaker(Elt):
         for i, elt in enumerate(res):
             elt.id = position + [i]
             elt.created_within_page_maker = True
+            elt.links = {**self.links, **elt.links}
         return res
 
     def impute_time_estimates(self, elts):
@@ -2102,6 +2114,7 @@ class StartSwitch(ReactiveGoTo):
 
 class EndSwitch(NullElt):
     def __init__(self, label):
+        super().__init__()
         self.label = label
 
 
@@ -2173,6 +2186,7 @@ def conditional(
 
 class ConditionalElt(Elt):
     def __init__(self, label: str):
+        super().__init__()
         self.label = label
 
 
@@ -2626,6 +2640,7 @@ class EndAccumulateAnswers(NullElt):
 
 class DatabaseCheck(NullElt):
     def __init__(self, label, function):
+        super().__init__()
         check_function_args(function, args=[])
         self.label = label
         self.function = function
@@ -2670,6 +2685,7 @@ class PreDeployRoutine(NullElt):
     """
 
     def __init__(self, label, function, args=None):
+        super().__init__()
         if args is None:
             args = {}
         provided_args = list(args.keys())
@@ -2682,6 +2698,7 @@ class PreDeployRoutine(NullElt):
 
 class ParticipantFailRoutine(NullElt):
     def __init__(self, label, function):
+        super().__init__()
         check_function_args(
             function, args=["participant", "experiment"], need_all=False
         )
@@ -2691,6 +2708,7 @@ class ParticipantFailRoutine(NullElt):
 
 class RecruitmentCriterion(NullElt):
     def __init__(self, label, function):
+        super().__init__()
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
@@ -2816,5 +2834,6 @@ def randomize(*, label, logic):
 
 class RegisterTrialMaker(NullElt):
     def __init__(self, trial_maker):
+        super().__init__()
         self.trial_maker_id = trial_maker.id
         self.trial_maker = trial_maker
