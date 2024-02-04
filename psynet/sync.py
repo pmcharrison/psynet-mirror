@@ -105,17 +105,6 @@ class Barrier:
         link.arrival_time = timenow()
         db.session.add(link)
 
-    def get_participant_link(self, participant: Participant):
-        return (
-            db.session.query(ParticipantLinkBarrier)
-            .filter(
-                ~ParticipantLinkBarrier.released,
-                ParticipantLinkBarrier.barrier_id == self.id,
-                ParticipantLinkBarrier.participant_id == participant.id,
-            )
-            .one_or_none()
-        )
-
     def _get_waiting_participants(self):
         return self.get_waiting_participants(barrier_id=self.id)
 
@@ -148,8 +137,7 @@ class Barrier:
         )
 
     def release(self, participant: Participant):
-        # Note: this currently emits one SQL query per participant; this could be optimized
-        link = self.get_participant_link(participant)
+        link = participant.active_barriers.get(self.id, None)
         if link is None:
             raise RuntimeError(
                 "Could not find an appropriate barrier link to release the participant from "
