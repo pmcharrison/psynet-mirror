@@ -2264,10 +2264,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def grow_network(cls, network_id):
         exp = get_experiment()
-        from .trial.main import TrialNetwork
+        from .trial.main import TrialNetwork, TrialNode
 
         network = (
-            TrialNetwork.query.with_for_update(of=TrialNetwork)
+            TrialNetwork.query.with_for_update(of=[TrialNetwork, TrialNode])
             .populate_existing()
             .get(network_id)
         )
