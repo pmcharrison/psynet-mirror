@@ -1830,15 +1830,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id = request.args.get("participant_id", default=None)
         worker_id = request.args.get("worker_id", default=None)
 
+        query = Participant.query.with_for_update(of=Participant).populate_existing()
+
         try:
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                query = query.filter_by(assignment_id=assignment_id)
             elif participant_id is not None:
-                participant = cls.get_participant_from_participant_id(participant_id)
+                participant_id = int(participant_id)
+                query = query.filter_by(id=participant_id)
             elif worker_id is not None:
-                participant = cls.get_participant_from_worker_id(worker_id)
+                query = query.filter_by(worker_id=worker_id)
             else:
                 message = "Please select a participant."
+            participant = query.one()
         except ValueError:
             message = "Invalid ID."
         except sqlalchemy.orm.exc.NoResultFound:
@@ -1853,84 +1857,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             message=message,
             app_base_url=get_base_url(),
         )
-
-    @classmethod
-    def get_participant_from_assignment_id(cls, assignment_id):
-        """
-        Get a participant with a specified ``assignment_id``.
-        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
-        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
-
-        Parameters
-        ----------
-        assignment_id :
-            ID of the participant to retrieve.
-
-        Returns
-        -------
-
-        The corresponding participant object.
-        """
-        return Participant.query.filter_by(assignment_id=assignment_id).one()
-
-    @classmethod
-    def get_participant_from_participant_id(cls, participant_id):
-        """
-        Get a participant with a specified ``participant_id``.
-        Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
-        a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
-        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
-
-        Parameters
-        ----------
-        participant_id :
-            ID of the participant to retrieve.
-
-        Returns
-        -------
-
-        The corresponding participant object.
-        """
-        _id = int(participant_id)
-        return Participant.query.filter_by(id=_id).one()
-
-    @classmethod
-    def get_participant_from_worker_id(cls, worker_id):
-        """
-        Get a participant with a specified ``worker_id``.
-        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
-        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
-
-        Parameters
-        ----------
-        worker_id :
-            ID of the participant to retrieve.
-
-        Returns
-        -------
-
-        The corresponding participant object.
-        """
-        return Participant.query.filter_by(worker_id=worker_id).one()
-
-    @classmethod
-    def get_participant_from_unique_id(cls, unique_id):
-        """
-        Get a participant with a specified ``unique_id``.
-        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
-        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
-
-        Parameters
-        ----------
-        unique_id :
-            Unique ID of the participant to retrieve.
-
-        Returns
-        -------
-
-        The corresponding participant object.
-        """
-        return Participant.query.filter_by(unique_id=unique_id).one()
 
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
