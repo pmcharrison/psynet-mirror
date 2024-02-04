@@ -586,7 +586,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
 
-def get_participant(participant_id: int):
+def get_participant(participant_id: int, for_update: bool = False) -> Participant:
     """
     Returns the participant with a given ID.
     Warning: we recommend just using SQLAlchemy directly instead of using this function.
@@ -599,13 +599,21 @@ def get_participant(participant_id: int):
     participant_id
         ID of the participant to get.
 
+    for_update
+        Set to ``True`` if you plan to update this Participant object.
+        The Participant object will be locked for update in the database
+        and only released at the end of the transaction.
+
     Returns
     -------
 
     :class:`psynet.participant.Participant`
         The requested participant.
     """
-    return Participant.query.filter_by(id=participant_id).one()
+    query = Participant.query.filter_by(id=participant_id)
+    if for_update:
+        query = query.with_for_update(of=Participant).populate_existing()
+    return query.one()
 
 
 class TimeCreditStore:

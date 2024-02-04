@@ -1832,11 +1832,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         try:
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant = cls.get_participant_from_assignment_id(
+                    assignment_id, for_update=False
+                )
             elif participant_id is not None:
-                participant = cls.get_participant_from_participant_id(participant_id)
+                participant = cls.get_participant_from_participant_id(
+                    int(participant_id), for_update=False
+                )
             elif worker_id is not None:
-                participant = cls.get_participant_from_worker_id(worker_id)
+                participant = cls.get_participant_from_worker_id(
+                    worker_id, for_update=False
+                )
             else:
                 message = "Please select a participant."
         except ValueError:
@@ -1855,7 +1861,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def get_participant_from_assignment_id(cls, assignment_id):
+    def get_participant_from_assignment_id(
+        cls, assignment_id: str, for_update: bool = False
+    ):
         """
         Get a participant with a specified ``assignment_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1866,15 +1874,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(assignment_id=assignment_id).one()
+        query = Participant.query.filter_by(assignment_id=assignment_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_participant_id(cls, participant_id):
+    def get_participant_from_participant_id(
+        cls, participant_id: int, for_update: bool = False
+    ):
         """
         Get a participant with a specified ``participant_id``.
         Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
@@ -1886,16 +1904,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        _id = int(participant_id)
-        return Participant.query.filter_by(id=_id).one()
+        participant_id = int(participant_id)
+        query = Participant.query.filter_by(id=participant_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_worker_id(cls, worker_id):
+    def get_participant_from_worker_id(cls, worker_id: str, for_update: bool = False):
         """
         Get a participant with a specified ``worker_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1906,15 +1932,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(worker_id=worker_id).one()
+        query = Participant.query.filter_by(worker_id=worker_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_unique_id(cls, unique_id):
+    def get_participant_from_unique_id(cls, unique_id: str, for_update: bool = False):
         """
         Get a participant with a specified ``unique_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1925,12 +1959,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         unique_id :
             Unique ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(unique_id=unique_id).one()
+        query = Participant.query.filter_by(unique_id=unique_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
@@ -2306,7 +2348,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
     def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(participant_id)
+        participant = cls.get_participant_from_participant_id(
+            participant_id, for_update=True
+        )
         try:
             old_locale = participant.var.locale
         except KeyError:
@@ -2326,7 +2370,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
-        participant = cls.get_participant_from_assignment_id(assignment_id)
+        participant = cls.get_participant_from_assignment_id(
+            assignment_id, for_update=True
+        )
         participant.aborted = True
         if participant.module_state:
             participant.module_state.abort()
@@ -2342,7 +2388,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant = None
             participant_abort_info = None
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant = cls.get_participant_from_assignment_id(
+                    assignment_id, for_update=False
+                )
                 if participant.calculate_reward() >= get_and_load_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
@@ -2366,7 +2414,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
@@ -2616,7 +2664,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
     def http_log(cls, level, unique_id):
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         try:
             cls.check_unique_id(participant, unique_id)
         except cls.UniqueIdError as e:
@@ -2654,7 +2702,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     )
     @classmethod
     def participant_opened_devtools(cls, unique_id):
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
 
         cls.check_unique_id(participant, unique_id)
 
