@@ -11,13 +11,7 @@ from sqlalchemy import Column, Integer
 
 from .participant import Participant
 from .timeline import EndPage, Page
-from .utils import (
-    NoArgumentProvided,
-    get_logger,
-    log_time_taken,
-    time_logger,
-    wait_until,
-)
+from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
 
@@ -122,13 +116,11 @@ class Bot(Participant):
 
             page = self.get_current_page()
             if render_pages:
-                with time_logger("timeline_route"):
-                    req = requests.get(
-                        f"http://localhost:5000/timeline?unique_id={self.unique_id}"
-                    )
+                req = requests.get(
+                    f"http://localhost:5000/timeline?unique_id={self.unique_id}"
+                )
                 assert req.status_code == 200
-            with time_logger("take_page"):
-                sleep_time = self.take_page(page, time_factor)["sleep_time"]
+            sleep_time = self.take_page(page, time_factor)["sleep_time"]
             db.session.commit()
 
             page_time_finished = time.monotonic()
@@ -177,8 +169,7 @@ class Bot(Participant):
         start_time = time.monotonic()
 
         if page is None:
-            with time_logger("get_current_page"):
-                page = self.get_current_page()
+            page = self.get_current_page()
 
         bot = self
         experiment = self.experiment
@@ -199,16 +190,15 @@ class Bot(Participant):
 
         if not isinstance(page, EndPage):
             try:
-                with time_logger("process_response"):
-                    experiment.process_response(
-                        participant_id=self.id,
-                        raw_answer=response.raw_answer,
-                        blobs=response.blobs,
-                        metadata=response.metadata,
-                        page_uuid=self.page_uuid,
-                        client_ip_address=response.client_ip_address,
-                        answer=response.answer,
-                    )
+                experiment.process_response(
+                    participant_id=self.id,
+                    raw_answer=response.raw_answer,
+                    blobs=response.blobs,
+                    metadata=response.metadata,
+                    page_uuid=self.page_uuid,
+                    client_ip_address=response.client_ip_address,
+                    answer=response.answer,
+                )
             except RuntimeError as err:
                 if "Working outside of request context" in str(err):
                     err.args = (

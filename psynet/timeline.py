@@ -37,7 +37,6 @@ from .utils import (
     pretty_format_seconds,
     render_string_with_translations,
     serialise,
-    time_logger,
     unserialise_datetime,
 )
 
@@ -210,16 +209,14 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        with time_logger("CodeBlock pre-commit"):
-            db.session.commit()
+        db.session.commit()
         call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
         )
-        with time_logger("CodeBlock post-commit"):
-            db.session.commit()
+        db.session.commit()
 
 
 class FixTime(Elt):
@@ -1588,28 +1585,25 @@ class Timeline:
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            with time_logger("advance_page"):
-                with time_logger("advance_page update participant elt_id"):
-                    participant.elt_id[-1] += 1
+            participant.elt_id[-1] += 1
 
-                try:
-                    new_elt = self.get_current_elt(experiment, participant)
-                except PageMakerFinishedError:
-                    participant.elt_id = participant.elt_id[:-1]
-                    participant.elt_id_max = participant.elt_id_max[:-1]
-                    continue
-                if isinstance(new_elt, PageMaker):
-                    participant.elt_id.append(-1)
-                    continue
+            try:
+                new_elt = self.get_current_elt(experiment, participant)
+            except PageMakerFinishedError:
+                participant.elt_id = participant.elt_id[:-1]
+                participant.elt_id_max = participant.elt_id_max[:-1]
+                continue
+            if isinstance(new_elt, PageMaker):
+                participant.elt_id.append(-1)
+                continue
 
-                with time_logger(f"consuming elt {new_elt.id} ({type(new_elt)})"):
-                    new_elt.consume(experiment, participant)
+            new_elt.consume(experiment, participant)
 
-                # with time_logger("advance_page commit"):
-                #     db.session.commit()
+            # with time_logger("advance_page commit"):
+            #     db.session.commit()
 
-                if isinstance(new_elt, Page):
-                    finished = True
+            if isinstance(new_elt, Page):
+                finished = True
 
     def estimated_max_reward(self, wage_per_hour):
         return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
