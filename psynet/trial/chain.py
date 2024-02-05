@@ -1804,9 +1804,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant = None
         if network.ready_to_spawn:
             head = network.head
-            with time_logger("create seed", indent=4):
+            with time_logger("create seed"):
                 seed = head.create_seed(experiment, participant)
-            with time_logger("create node", indent=4):
+            with time_logger("create node"):
                 node = self.node_class(
                     seed=seed,
                     parent=head,
@@ -1815,14 +1815,14 @@ class ChainTrialMaker(NetworkTrialMaker):
                     propagate_failure=self.propagate_failure,
                     participant=participant,
                 )
-            with time_logger("add node to DB", indent=4):
+            with time_logger("add node to DB"):
                 db.session.add(node)
                 network.add_node(node)
                 db.session.commit()
-            with time_logger("creation checks", indent=4):
+            with time_logger("creation checks"):
                 node.check_on_create()
                 node.check_on_deploy()
-            with time_logger("final commit", indent=4):
+            with time_logger("final commit"):
                 db.session.commit()
             return True
         return False

@@ -1570,39 +1570,22 @@ def is_method_overridden(obj, ancestor: Type, method: str):
     return getattr(obj.__class__, method) != getattr(ancestor, method)
 
 
-time_logger_stack = []
-
-
 @contextlib.contextmanager
-def time_logger(label, threshold=0.01, indent=0.05):
-    indent = len(time_logger_stack) * 4
-    time_logger_stack.append(label)
+def time_logger(label, threshold=0.01):
     log = {
         "time_started": time.monotonic(),
         "time_finished": None,
         "time_taken": None,
     }
-    if threshold == 0:
-        logger.debug(
-            "%s<-- START:                %s -->",
-            " " * indent,
-            label,
-        )
     yield log
     log["time_finished"] = time.monotonic()
     log["time_taken"] = log["time_finished"] - log["time_started"]
     if log["time_taken"] > threshold:
-        # stack = " stack-> ".join(time_logger_stack)
-        # if isinstance(time_logger_stack[-1], CodeBlock):
-        #     stack = stack + " " + inspect.getsource(time_logger_stack[-1].function)
-        logger.debug(
-            # "%.3f s: %s", log["time_taken"], stack
-            "%s<-- FINISH after %.3f s: %s -->",
-            " " * indent,
-            log["time_taken"],
+        logger.info(
+            "Task '%s' took %.3f s",
             label,
-        ),  # log["time_taken"], label)
-    time_logger_stack.pop()
+            log["time_taken"],
+        )
 
 
 @contextlib.contextmanager

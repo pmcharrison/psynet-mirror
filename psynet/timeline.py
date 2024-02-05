@@ -210,7 +210,7 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        with time_logger("CodeBlock pre-commit", indent=2):
+        with time_logger("CodeBlock pre-commit"):
             db.session.commit()
         call_function_with_context(
             self.function,
@@ -218,7 +218,7 @@ class CodeBlock(Elt):
             experiment=experiment,
             participant=participant,
         )
-        with time_logger("CodeBlock post-commit", indent=2):
+        with time_logger("CodeBlock post-commit"):
             db.session.commit()
 
 
@@ -1588,7 +1588,7 @@ class Timeline:
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            with time_logger("advance_page", indent=8):
+            with time_logger("advance_page"):
                 with time_logger("advance_page update participant elt_id"):
                     participant.elt_id[-1] += 1
 
