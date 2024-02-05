@@ -161,6 +161,10 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
+
+        logger.info("Bot 1: %s", pages[0].content)
+        logger.info("Bot 2: %s", pages[1].content)
+
         assert (
             pages[0].content == "You chose scissors, your partner chose paper. You won!"
         )
