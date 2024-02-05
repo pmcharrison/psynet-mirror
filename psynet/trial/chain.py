@@ -969,8 +969,13 @@ class ChainTrial(Trial):
         return to_fail
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "ChainTrialMaker":
         return self.node.trial_maker
+
+    def on_finalized(self):
+        super().on_finalized()
+        if self.trial_maker.chain_type == "within":
+            self.trial_maker.call_grow_network(network=self.network)
 
 
 class ChainTrialMakerState(NetworkTrialMakerState):
@@ -1518,7 +1523,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             network = self.create_network(
                 experiment, participant, id_within_participant=i, start_node=nodes[i]
             )
-            # self._grow_network(network, experiment)  # not necessary any more!
+            # self.call_grow_network(network, experiment)  # not necessary any more!
             networks.append(network)
             if node:
                 node.check_on_deploy()

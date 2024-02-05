@@ -2286,8 +2286,11 @@ class NetworkTrialMaker(TrialMaker):
         db.session.commit()
         return trial
 
-    def _grow_network(self, network, experiment):
+    def call_grow_network(self, network):
         # pylint: disable=no-member
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
         grown = self.grow_network(network, experiment)
         assert isinstance(grown, bool)
         if grown:
@@ -2556,7 +2559,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     def grow(self, experiment):
         if self.trial_maker:
-            self.trial_maker._grow_network(self, experiment=experiment)
+            self.trial_maker.call_grow_network(self)
 
     @property
     def trial_maker(self):
