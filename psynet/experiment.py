@@ -934,9 +934,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def check_barriers():
         from .sync import ParticipantLinkBarrier
 
-        exp = get_experiment()
-        timeline = exp.timeline
-
         db.session.commit()
 
         barrier_links = (
@@ -951,8 +948,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         for link in barrier_links:
-            elt = timeline.get_current_elt(exp, link.participant)
-            barrier = elt.links["barrier"]
+            barrier = link.get_barrier()
             barrier.process_potential_releases()
 
         db.session.commit()

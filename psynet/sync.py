@@ -577,6 +577,23 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     departure_time = Column(DateTime)
     released = Column(Boolean, default=False)
 
+    def get_barrier(self):
+        from .experiment import get_experiment
+
+        exp = get_experiment()
+        timeline = exp.timeline
+
+        elt = timeline.get_current_elt(exp, self.participant)
+
+        try:
+            barrier = elt.links["barrier"]
+            assert barrier.id == self.barrier_id
+            return barrier
+        except (KeyError, AssertionError):
+            raise RuntimeError(
+                "The barrier can only be retrieved if the participant is currently at the barrier."
+            )
+
     def release(self):
         self.departure_time = timenow()
         self.released = True
