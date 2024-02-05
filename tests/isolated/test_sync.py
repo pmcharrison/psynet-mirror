@@ -71,6 +71,8 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper.receive_participant(participants[2])
     db.session.commit()
 
+    grouper.process_potential_releases()
+
     assert grouper.can_participant_exit(participants[0])
     assert len(grouper.get_waiting_participants()) == 0
 
