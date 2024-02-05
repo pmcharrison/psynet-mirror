@@ -904,6 +904,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @scheduled_task("interval", seconds=2, max_instances=1)
     @log_time_taken
     @staticmethod
+    def _grow_networks():
+        exp = get_experiment()
+        exp.grow_networks()
+
+    @staticmethod
     def grow_networks():
         # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
         # cover other types of networks in the future.
@@ -932,6 +937,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", seconds=1, max_instances=1)
     @log_time_taken
+    @staticmethod
+    def _check_barriers():
+        exp = get_experiment()
+        exp.check_barriers()
+
     @staticmethod
     def check_barriers():
         from .sync import ParticipantLinkBarrier
