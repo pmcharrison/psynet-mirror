@@ -1602,9 +1602,7 @@ class Timeline:
                     participant.elt_id.append(-1)
                     continue
 
-                with time_logger(
-                    f"consuming elt {new_elt.id} ({type(new_elt)})", indent=12
-                ):
+                with time_logger(f"consuming elt {new_elt.id} ({type(new_elt)})"):
                     new_elt.consume(experiment, participant)
 
                 # with time_logger("advance_page commit"):
