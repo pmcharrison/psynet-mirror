@@ -1117,8 +1117,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
 
     @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
-    @with_transaction
     @staticmethod
+    @with_transaction
     def custom_route(endpoint):
         from psynet.api import EXPOSED_FUNCTIONS
 
@@ -2061,8 +2061,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/ad", methods=["GET"])
     @nocache
-    @with_transaction
     @staticmethod
+    @with_transaction
     def advertisement():
         from dallinger.experiment_server.experiment_server import prepare_advertisement
 
@@ -2076,8 +2076,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return Experiment.pre_timeline_error_page(e, request)
 
     @experiment_route("/consent")
-    @with_transaction
     @staticmethod
+    @with_transaction
     def consent():
         config = get_config()
 
@@ -2103,8 +2103,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return Experiment.pre_timeline_error_page(e, request)
 
     @experiment_route("/start", methods=["GET"])
-    @with_transaction
     @staticmethod
+    @with_transaction
     def route_start():
         try:
             return render_template_with_translations("start.html")
@@ -2133,8 +2133,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return exp.deployment_id
 
     @experiment_route("/dashboard/export", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def export(cls):
         from .command_line import export__local
 
@@ -2148,8 +2148,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
-    @with_transaction
     @staticmethod
+    @with_transaction
     def get_participant_info_for_debug_mode():
         config = get_config()
         if not config.get("mode") == "debug":
@@ -2168,7 +2168,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/fast-function-asset", methods=["GET"])
-    @with_transaction
     @staticmethod
     def get_fast_function_asset():
         id = request.args.get("id")
@@ -2189,7 +2188,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @with_transaction
-    @classmethod
     def render_error(cls):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
@@ -2219,24 +2217,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @experiment_route("/module", methods=["POST"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def get_module_details_as_rendered_html(cls):
         exp = get_experiment()
         module = exp.timeline.get_module(request.values["moduleId"])
         return module.visualize()
 
     @experiment_route("/module/tooltip", methods=["POST"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def get_module_tooltip_as_rendered_html(cls):
         exp = get_experiment()
         module = exp.timeline.get_module(request.values["moduleId"])
         return module.visualize_tooltip()
 
     @experiment_route("/module/progress_info", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def get_progress_info(cls):
         exp = get_experiment()
         module_ids = request.args.getlist("module_ids[]")
@@ -2286,8 +2284,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return counts
 
     @experiment_route("/module/update_spending_limits", methods=["POST"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def update_spending_limits(cls):
         hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
         soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
@@ -2304,8 +2302,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response()
 
     @experiment_route("/debugger/<password>", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def route_debugger(cls, password):
         exp = get_experiment()
         if password == "my-secure-password-195762":
@@ -2315,8 +2313,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return error_response()
 
     @experiment_route("/node/<int:node_id>/fail", methods=["GET", "POST"])
-    @with_transaction
     @staticmethod
+    @with_transaction
     def fail_node(node_id):
         from dallinger.models import Node
 
@@ -2326,8 +2324,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response()
 
     @experiment_route("/info/<int:info_id>/fail", methods=["GET", "POST"])
-    @with_transaction
     @staticmethod
+    @with_transaction
     def fail_info(info_id):
         from dallinger.models import Info
 
@@ -2337,8 +2335,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response()
 
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def grow_network(cls, network_id):
         exp = get_experiment()
         from .trial.main import TrialNetwork, TrialNode
@@ -2357,8 +2355,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         "/network/<int:network_id>/call_async_post_grow_network",
         methods=["GET", "POST"],
     )
-    @with_transaction
     @staticmethod
+    @with_transaction
     def call_async_post_grow_network(network_id):
         from .trial.main import TrialNetwork
 
@@ -2380,8 +2378,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     # Lucid recruitment specific route
     @experiment_route("/terminate_participant", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def terminate_participant(cls):
         participant_id = request.values.get("participant_id")
         reason = request.values["reason"]
@@ -2425,8 +2423,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def route_set_locale_participant(cls, participant_id):
         participant = cls.get_participant_from_participant_id(
             participant_id, for_update=True
@@ -2448,8 +2446,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response()
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
@@ -2462,8 +2460,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response()
 
     @experiment_route("/abort/<assignment_id>", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def route_abort(cls, assignment_id):
         try:
             template_name = "abort_not_possible.html"
@@ -2492,8 +2490,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @experiment_route("/timeline", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
@@ -2691,8 +2689,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return True
 
     @experiment_route("/timeline/progress_and_reward", methods=["GET"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def get_progress_and_reward(cls):
         participant_id = request.args.get("participantId")
         participant = Participant.query.get(participant_id)
@@ -2719,8 +2717,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return data
 
     @experiment_route("/response", methods=["POST"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def route_response(cls):
         exp = get_experiment()
         json_data = json.loads(request.values["json"])
@@ -2747,8 +2745,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return res
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
-    @with_transaction
     @classmethod
+    @with_transaction
     def http_log(cls, level, unique_id):
         participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         try:
@@ -2786,8 +2784,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         "/participant_opened_devtools/<unique_id>",
         methods=["POST"],
     )
-    @with_transaction
     @classmethod
+    @with_transaction
     def participant_opened_devtools(cls, unique_id):
         participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
 
