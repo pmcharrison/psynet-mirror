@@ -2432,10 +2432,9 @@ _test_options["real_time"] = click.option(
     help="Instead of running each bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
 )
 
-_test_options["pdb"] = click.option(
-    "--pdb",
-    is_flag=True,
-    help="Drop into pdb on test failure.",
+_test_options["pytest_args"] = click.argument(
+    "pytest_args",
+    nargs=-1,
 )
 
 
@@ -2446,7 +2445,7 @@ _test_options["pdb"] = click.option(
 @_test_options["serial"]
 @_test_options["stagger"]
 @_test_options["real_time"]
-@_test_options["pdb"]
+@_test_options["pytest_args"]
 def test__local(
     existing=False,
     n_bots=None,
@@ -2454,10 +2453,11 @@ def test__local(
     serial=None,
     stagger=None,
     real_time=None,
-    pdb=None,
+    pytest_args=[],
 ):
     """
-    Test the experiment locally.
+    Test the experiment locally. Additional parameters to pass to pytest (for instance --pdb)
+    can be added after the -- flag.
     """
     assert not (parallel and serial)
 
@@ -2485,10 +2485,7 @@ def test__local(
     else:
         import pytest
 
-        pytest_argv = ["test.py"]
-        if pdb:
-            pytest_argv.append("--pdb")
-        pytest.main(pytest_argv)
+        pytest.main(["test.py"] + list(pytest_args))
 
 
 @test.command("ssh")
