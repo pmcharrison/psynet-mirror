@@ -281,7 +281,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     # Inheriting from ``SQLBase`` and ``SQLMixin`` means that the ``Asset`` object is stored in the database.
@@ -615,7 +614,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             return self
 
         finally:
-            db.session.commit()
+            pass
 
     def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         """
@@ -919,7 +918,6 @@ class ManagedAsset(Asset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     input_path = Column(String)
@@ -1007,8 +1005,6 @@ class ManagedAsset(Asset):
             self.deposit_time_sec = time_end - time_start
         else:
             self.deposited = True
-
-        db.session.commit()
 
     def prepare_input(self):
         pass
@@ -1217,7 +1213,6 @@ class ExperimentAsset(ManagedAsset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     def generate_host_path(self):
@@ -1419,7 +1414,6 @@ class CachedAsset(ManagedAsset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     used_cache = Column(Boolean)
@@ -1774,7 +1768,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     secret = Column(String)

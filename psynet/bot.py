@@ -212,8 +212,6 @@ class Bot(Participant):
 
         self.page_count += 1
 
-        db.session.commit()
-
         end_time = time.monotonic()
         processing_time = end_time - start_time - sleep_time
 

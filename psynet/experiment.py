@@ -495,6 +495,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
 
+    @with_transaction
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
         self.compile_psynet_translations_if_necessary()
