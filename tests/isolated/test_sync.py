@@ -46,12 +46,12 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper = SimpleGrouper(group_type="main", group_size=3)
     participants = [new_participant(exp) for _ in range(6)]
 
-    assert len(grouper._get_waiting_participants()) == 0
+    assert len(grouper.get_waiting_participants()) == 0
 
     grouper.receive_participant(participants[0])
     db.session.commit()
 
-    assert len(grouper._get_waiting_participants()) == 1
+    assert len(grouper.get_waiting_participants()) == 1
     assert "main_grouper" in participants[0].active_barriers
     assert "main_grouper" not in participants[1].active_barriers
     assert not grouper.can_participant_exit(participants[0])
@@ -62,7 +62,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper.receive_participant(participants[1])
     db.session.commit()
 
-    assert len(grouper._get_waiting_participants()) == 2
+    assert len(grouper.get_waiting_participants()) == 2
     assert not grouper.can_participant_exit(participants[0])
 
     for participant in participants:
@@ -72,7 +72,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     db.session.commit()
 
     assert grouper.can_participant_exit(participants[0])
-    assert len(grouper._get_waiting_participants()) == 0
+    assert len(grouper.get_waiting_participants()) == 0
 
     for participant in participants[:3]:
         group = participant.sync_group

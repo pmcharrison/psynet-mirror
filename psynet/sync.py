@@ -9,6 +9,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.field import PythonClass
 from psynet.page import WaitPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock
@@ -107,12 +108,19 @@ class Barrier:
         return elts
 
     def receive_participant(self, participant: Participant):
-        link = ParticipantLinkBarrier(participant=participant, barrier_id=self.id)
+        link = ParticipantLinkBarrier(
+            participant=participant, barrier_id=self.id, barrier_class=self.__class__
+        )
         link.arrival_time = timenow()
         db.session.add(link)
 
+    def get_waiting_participants(self, for_update: bool = False):
+        return self.get_waiting_participants_from_barrier_id(
+            self.id, for_update=for_update
+        )
+
     @classmethod
-    def get_waiting_participants(
+    def get_waiting_participants_from_barrier_id(
         cls, barrier_id: str, for_update: bool = False
     ) -> List[Participant]:
         """
@@ -169,7 +177,7 @@ class Barrier:
     def process_potential_releases(self):
         db.session.commit()
 
-        waiting_participants = self.get_waiting_participants(self.id, for_update=True)
+        waiting_participants = self.get_waiting_participants(for_update=True)
         waiting_participants.sort(key=lambda p: p.id)
 
         logger.info(
@@ -565,6 +573,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     __tablename__ = "participant_link_barrier"
 
     barrier_id = Column(String, index=True)
+    barrier_class = Column(PythonClass)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
@@ -598,8 +607,10 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         self.departure_time = timenow()
         self.released = True
 
-    def get_waiting_participants(self):
-        return Barrier.get_waiting_participants(self.barrier_id)
+    def get_waiting_participants(self, for_update: bool = False):
+        return self.barrier_class.get_waiting_participants_from_barrier_id(
+            self.barrier_id, for_update=for_update
+        )
 
 
 Participant.sync_group_links = relationship(
