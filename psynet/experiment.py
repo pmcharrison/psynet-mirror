@@ -902,6 +902,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             recruiter.run_checks()
 
     @scheduled_task("interval", seconds=2, max_instances=1)
+    @log_time_taken
     @staticmethod
     def grow_networks():
         # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
@@ -930,6 +931,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
 
     @scheduled_task("interval", seconds=1, max_instances=1)
+    @log_time_taken
     @staticmethod
     def check_barriers():
         from .sync import ParticipantLinkBarrier
