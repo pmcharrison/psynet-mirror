@@ -745,12 +745,6 @@ class Trial(SQLMixinDallinger, Info):
 
         db.session.commit()
 
-        if self.trial_maker:
-            from psynet.experiment import get_experiment
-
-            experiment = get_experiment()
-            self.trial_maker._grow_network(self.network, experiment)
-
     @classmethod
     def cue(cls, definition, assets=None):
         """
@@ -914,8 +908,6 @@ class Trial(SQLMixinDallinger, Info):
 
             trial.answer = trial.format_answer(answer)
             trial.complete = True
-            trial.response_id = participant.last_response_id
-            trial.time_taken = trial.response.metadata["time_taken"]
 
             if trial_maker:
                 trial_maker.finalize_trial(
@@ -1508,6 +1500,8 @@ class TrialMaker(Module):
         trials_to_fail = (
             self.trial_class.query.filter_by(complete=False, failed=False)
             .filter(self.trial_class.creation_time < time_threshold)
+            .with_for_update(of=self.trial_class)
+            .populate_existing()
             .all()
         )
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
@@ -1638,8 +1632,9 @@ class TrialMaker(Module):
 
     def fail_participant_trials(self, participant, reason=None):
         trials_to_fail = (
-            db.session.query(Trial)
-            .filter_by(participant_id=participant.id, failed=False)
+            Trial.query.filter_by(participant_id=participant.id, failed=False)
+            .with_for_update(of=Trial)
+            .populate_existing()
             .join(TrialNetwork)
             .filter_by(trial_maker_id=self.id)
         )
@@ -2146,30 +2141,10 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
-    @classmethod
-    @log_time_taken
-    def grow_all_networks(cls, experiment):
-        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
-        # cover other types of networks in the future.
-        from psynet.trial.chain import ChainNetwork
-
-        db.session.commit()  # Introduced to try and avoid deadlocks we were seeing
-
-        networks = ChainNetwork.query.filter_by(ready_to_spawn=True).all()
-        if len(networks) > 0:
-            logger.info("Growing %i networks...", len(networks))
-            for n in networks:
-                n.grow(experiment=experiment)
-            db.session.commit()
-        # networks = ChainTrialNetwork.query.filter_by(trial_maker_id=self.id)
-        # for network in networks:
-        #     self.grow_network(network, experiment)
-
     @log_time_taken
     def prepare_trial(self, experiment, participant: Participant):
         logger.info("Preparing trial for participant %i.", participant.id)
 
-        self.grow_all_networks(experiment)
         networks = self.find_networks(participant=participant, experiment=experiment)
 
         if networks in ["wait", "exit"]:
@@ -2311,8 +2286,11 @@ class NetworkTrialMaker(TrialMaker):
         db.session.commit()
         return trial
 
-    def _grow_network(self, network, experiment):
+    def call_grow_network(self, network):
         # pylint: disable=no-member
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
         grown = self.grow_network(network, experiment)
         assert isinstance(grown, bool)
         if grown:
@@ -2581,7 +2559,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     def grow(self, experiment):
         if self.trial_maker:
-            self.trial_maker._grow_network(self, experiment=experiment)
+            self.trial_maker.call_grow_network(self)
 
     @property
     def trial_maker(self):
@@ -2677,11 +2655,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
 
-    trial_maker_id = Column(String)
-    module_id = Column(String)
-    _on_create_called = Column(Boolean, default=False)
-    _on_deploy_called = Column(Boolean, default=False)
-    ready_for_trials = Column(Boolean, default=False)
+    trial_maker_id = Column(String, index=True)
+    module_id = Column(String, index=True)
+    _on_create_called = Column(Boolean, default=False, index=True)
+    _on_deploy_called = Column(Boolean, default=False, index=True)
+    ready_for_trials = Column(Boolean, default=False, index=True)
 
     # network = relationship(
     #     "psynet.trial.main.TrialNetwork",
@@ -2835,6 +2813,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
 
 class GenericTrialNetwork(TrialNetwork):
+    trials_per_node = None
+
     def __init__(self, module_id, experiment):
         super().__init__(
             trial_maker_id=None,
