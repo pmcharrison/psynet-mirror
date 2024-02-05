@@ -38,6 +38,7 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from psynet import __version__
 
@@ -51,7 +52,7 @@ from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
-from .participant import Participant, get_participant
+from .participant import Participant
 from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -540,7 +541,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
-        self.grow_all_networks()
 
     def load_deployment_config(self):
         config = get_config()
@@ -556,7 +556,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _nodes_on_deploy(self):
         from .trial.main import TrialNode
 
-        for node in TrialNode.query.filter_by(_on_deploy_called=False).all():
+        db.session.commit()
+
+        for node in (
+            TrialNode.query.filter_by(_on_deploy_called=False)
+            .with_for_update(of=TrialNode)
+            .populate_existing()
+            .all()
+        ):
             node.on_deploy()
 
         db.session.commit()
@@ -894,6 +901,70 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
+    @scheduled_task("interval", seconds=2, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    def _grow_networks():
+        exp = get_experiment()
+        exp.grow_networks()
+
+    @staticmethod
+    def grow_networks():
+        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
+        # cover other types of networks in the future.
+        from psynet.trial.chain import ChainNetwork
+
+        db.session.commit()
+
+        # This query could be further optimized by identifying which network classes are present in the table
+        # and making queries specific to these. This would allow subclass-specific attributes to be loaded
+        # in the initial query rather than being lazily loaded.
+        networks = (
+            ChainNetwork.query.filter_by(ready_to_spawn=True)
+            .with_for_update()
+            .populate_existing()
+            .options(joinedload(ChainNetwork.head, innerjoin=True))
+            .all()
+        )
+        if len(networks) > 0:
+            logger.info("Growing %i networks...", len(networks))
+            exp = get_experiment()
+            for n in networks:
+                n.grow(experiment=exp)
+            logger.info("Finished growing networks.")
+
+        db.session.commit()
+
+    @scheduled_task("interval", seconds=1, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    def _check_barriers():
+        exp = get_experiment()
+        exp.check_barriers()
+
+    @staticmethod
+    def check_barriers():
+        from .sync import ParticipantLinkBarrier
+
+        db.session.commit()
+
+        barrier_links = (
+            ParticipantLinkBarrier.query.join(Participant)
+            .filter(
+                ~ParticipantLinkBarrier.released,
+                ~Participant.failed,
+                Participant.status == "working",
+            )
+            .distinct(ParticipantLinkBarrier.barrier_id)
+            .all()
+        )
+
+        for link in barrier_links:
+            barrier = link.get_barrier()
+            barrier.process_potential_releases()
+
+        db.session.commit()
+
     @property
     def base_payment(self):
         return get_config().get("base_payment")
@@ -1209,11 +1280,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def deployment_id(self):
         return deployment_info.read("deployment_id")
 
-    def grow_all_networks(self):
-        from .trial.main import NetworkTrialMaker
-
-        NetworkTrialMaker.grow_all_networks(experiment=self)
-
     @classmethod
     def create_database_snapshot(cls):
         logger.info("Creating a database snapshot...")
@@ -1507,7 +1573,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
-        participant = get_participant(participant_id)
+        participant = (
+            Participant.query.with_for_update(of=Participant)
+            .populate_existing()
+            .get(participant_id)
+        )
 
         if page_uuid != participant.page_uuid:
             raise RuntimeError(
@@ -1821,11 +1891,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         try:
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant = cls.get_participant_from_assignment_id(
+                    assignment_id, for_update=False
+                )
             elif participant_id is not None:
-                participant = cls.get_participant_from_participant_id(participant_id)
+                participant = cls.get_participant_from_participant_id(
+                    int(participant_id), for_update=False
+                )
             elif worker_id is not None:
-                participant = cls.get_participant_from_worker_id(worker_id)
+                participant = cls.get_participant_from_worker_id(
+                    worker_id, for_update=False
+                )
             else:
                 message = "Please select a participant."
         except ValueError:
@@ -1844,7 +1920,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def get_participant_from_assignment_id(cls, assignment_id):
+    def get_participant_from_assignment_id(
+        cls, assignment_id: str, for_update: bool = False
+    ):
         """
         Get a participant with a specified ``assignment_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1855,15 +1933,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(assignment_id=assignment_id).one()
+        query = Participant.query.filter_by(assignment_id=assignment_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_participant_id(cls, participant_id):
+    def get_participant_from_participant_id(
+        cls, participant_id: int, for_update: bool = False
+    ):
         """
         Get a participant with a specified ``participant_id``.
         Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
@@ -1875,16 +1963,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        _id = int(participant_id)
-        return Participant.query.filter_by(id=_id).one()
+        participant_id = int(participant_id)
+        query = Participant.query.filter_by(id=participant_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_worker_id(cls, worker_id):
+    def get_participant_from_worker_id(cls, worker_id: str, for_update: bool = False):
         """
         Get a participant with a specified ``worker_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1895,15 +1991,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(worker_id=worker_id).one()
+        query = Participant.query.filter_by(worker_id=worker_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_unique_id(cls, unique_id):
+    def get_participant_from_unique_id(cls, unique_id: str, for_update: bool = False):
         """
         Get a participant with a specified ``unique_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1914,12 +2018,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         unique_id :
             Unique ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(unique_id=unique_id).one()
+        query = Participant.query.filter_by(unique_id=unique_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
@@ -2192,7 +2304,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_node(node_id):
         from dallinger.models import Node
 
-        node = Node.query.filter_by(id=node_id).one()
+        node = Node.query.with_for_update(of=Node).populate_existing().get(node_id)
         node.fail(reason="http_fail_route_called")
         db.session.commit()
         return success_response()
@@ -2202,7 +2314,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_info(info_id):
         from dallinger.models import Info
 
-        info = Info.query.filter_by(id=info_id).one()
+        info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
         db.session.commit()
         return success_response()
@@ -2211,11 +2323,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def grow_network(cls, network_id):
         exp = get_experiment()
-        from .trial.main import TrialNetwork
+        from .trial.main import TrialNetwork, TrialNode
 
-        network = TrialNetwork.query.filter_by(id=network_id).one()
+        network = (
+            TrialNetwork.query.with_for_update(of=[TrialNetwork, TrialNode])
+            .populate_existing()
+            .get(network_id)
+        )
         trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
-        trial_maker._grow_network(network, experiment=exp)
+        trial_maker.call_grow_network(network)
         db.session.commit()
         return success_response()
 
@@ -2227,7 +2343,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def call_async_post_grow_network(network_id):
         from .trial.main import TrialNetwork
 
-        network = TrialNetwork.query.filter_by(id=network_id).one()
+        network = (
+            TrialNetwork.query.with_for_update(of=TrialNetwork)
+            .populate_existing()
+            .get(network_id)
+        )
         trial_maker = get_trial_maker(network.trial_maker_id)
 
         WorkerAsyncProcess(
@@ -2248,7 +2368,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url = None
 
         try:
-            participant = get_participant(participant_id)
+            participant = (
+                Participant.query.with_for_update(of=Participant)
+                .populate_existing()
+                .get(participant_id)
+            )
             assignment_id = participant.assignment_id
             recruiter = get_experiment().recruiter
             external_submit_url = None
@@ -2261,6 +2385,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 logger.info(
                     f"Terminating participant with RID {assignment_id} with reason '{reason}'"
                 )
+            db.session.commit()
 
         except Exception as e:
             logger.error(
@@ -2282,7 +2407,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
     def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(participant_id)
+        participant = cls.get_participant_from_participant_id(
+            participant_id, for_update=True
+        )
         try:
             old_locale = participant.var.locale
         except KeyError:
@@ -2302,7 +2429,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
-        participant = cls.get_participant_from_assignment_id(assignment_id)
+        participant = cls.get_participant_from_assignment_id(
+            assignment_id, for_update=True
+        )
         participant.aborted = True
         if participant.module_state:
             participant.module_state.abort()
@@ -2318,7 +2447,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant = None
             participant_abort_info = None
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant = cls.get_participant_from_assignment_id(
+                    assignment_id, for_update=False
+                )
                 if participant.calculate_reward() >= get_and_load_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
@@ -2342,7 +2473,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
@@ -2538,7 +2669,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
     def get_progress_and_reward(cls):
-        participant = get_participant(request.args.get("participantId"))
+        participant_id = request.args.get("participantId")
+        participant = Participant.query.get(participant_id)
         progress_percentage = round(participant.progress * 100)
         min_pct = 5
         max_pct = 99
@@ -2591,7 +2723,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
     def http_log(cls, level, unique_id):
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         try:
             cls.check_unique_id(participant, unique_id)
         except cls.UniqueIdError as e:
@@ -2629,7 +2761,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     )
     @classmethod
     def participant_opened_devtools(cls, unique_id):
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
 
         cls.check_unique_id(participant, unique_id)
 

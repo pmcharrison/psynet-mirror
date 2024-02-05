@@ -6,13 +6,16 @@ from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.field import PythonClass
 from psynet.page import WaitPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock
-from psynet.utils import call_function
+from psynet.utils import call_function, get_logger
+
+logger = get_logger()
 
 
 class Barrier:
@@ -86,7 +89,7 @@ class Barrier:
     def resolve(self):
         from psynet.timeline import join, while_loop
 
-        return join(
+        elts = join(
             CodeBlock(lambda participant: self.receive_participant(participant)),
             while_loop(
                 label=f"barrier:{self.id}",
@@ -99,27 +102,27 @@ class Barrier:
                 fix_time_credit=self.fix_time_credit,
             ),
         )
+        for elt in elts:
+            elt.links["barrier"] = self
+
+        return elts
 
     def receive_participant(self, participant: Participant):
-        link = ParticipantLinkBarrier(participant=participant, barrier_id=self.id)
+        link = ParticipantLinkBarrier(
+            participant=participant, barrier_id=self.id, barrier_class=self.__class__
+        )
         link.arrival_time = timenow()
         db.session.add(link)
 
-    def get_participant_link(self, participant: Participant):
-        return (
-            db.session.query(ParticipantLinkBarrier)
-            .filter(
-                ~ParticipantLinkBarrier.released,
-                ParticipantLinkBarrier.participant_id == participant.id,
-            )
-            .one_or_none()
+    def get_waiting_participants(self, for_update: bool = False):
+        return self.get_waiting_participants_from_barrier_id(
+            self.id, for_update=for_update
         )
 
-    def _get_waiting_participants(self):
-        return self.get_waiting_participants(barrier_id=self.id)
-
     @classmethod
-    def get_waiting_participants(cls, barrier_id: str) -> List[Participant]:
+    def get_waiting_participants_from_barrier_id(
+        cls, barrier_id: str, for_update: bool = False
+    ) -> List[Participant]:
         """
         Gets the participants currently waiting at a barrier.
 
@@ -128,27 +131,38 @@ class Barrier:
         barrier_id
             The ID of the barrier to check.
 
+        for_update
+            Set to ``True`` if you plan to update the resulting participant objects and their barrier links.
+            The objects will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         A list of waiting participants. Note that this only includes currently active participants
         (not participants who failed and left the experiment).
         """
-        return (
-            db.session.query(Participant)
-            .join(ParticipantLinkBarrier)
+        query = (
+            ParticipantLinkBarrier.query.join(Participant)
             .filter(
                 ParticipantLinkBarrier.barrier_id == barrier_id,
                 ~ParticipantLinkBarrier.released,
                 ~Participant.failed,
                 Participant.status == "working",
             )
-            .all()
+            .options(joinedload(ParticipantLinkBarrier.participant, innerjoin=True))
         )
 
+        if for_update:
+            query = query.with_for_update(of=ParticipantLinkBarrier).populate_existing()
+
+        links = query.all()
+        participants = [link.participant for link in links]
+
+        return participants
+
     def release(self, participant: Participant):
-        # Note: this currently emits one SQL query per participant; this could be optimized
-        link = self.get_participant_link(participant)
+        link = participant.active_barriers.get(self.id, None)
         if link is None:
             raise RuntimeError(
                 "Could not find an appropriate barrier link to release the participant from "
@@ -157,16 +171,35 @@ class Barrier:
         link.release()
 
     def can_participant_exit(self, participant: "Participant"):
-        self.process_potential_releases()
         barrier_is_active = self.id in participant.active_barriers
         return not barrier_is_active
 
     def process_potential_releases(self):
-        waiting_participants = self._get_waiting_participants()
-        participants_to_release = self.choose_who_to_release(waiting_participants)
+        db.session.commit()
 
-        for participant in participants_to_release:
-            self.release(participant)
+        waiting_participants = self.get_waiting_participants(for_update=True)
+        waiting_participants.sort(key=lambda p: p.id)
+
+        logger.info(
+            "Barrier '%s' currently has %i participant(s) waiting (ids = %s)",
+            self.id,
+            len(waiting_participants),
+            ", ".join([str(p.id) for p in waiting_participants]),
+        )
+
+        participants_to_release = self.choose_who_to_release(waiting_participants)
+        participants_to_release.sort(key=lambda p: p.id)
+
+        if len(participants_to_release) > 0:
+            logger.info(
+                "Barrier '%s' is releasing %i participant(s) (ids = %s)",
+                self.id,
+                len(participants_to_release),
+                ", ".join([str(p.id) for p in participants_to_release]),
+            )
+
+            for participant in participants_to_release:
+                self.release(participant)
 
         db.session.commit()
 
@@ -366,8 +399,6 @@ class Grouper(Barrier):
                 for _participant in _group.participants:
                     participants_to_release.append(_participant)
 
-            db.session.commit()
-
         return participants_to_release
 
     def select_leader(self, participants: List[Participant]) -> Participant:
@@ -542,6 +573,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     __tablename__ = "participant_link_barrier"
 
     barrier_id = Column(String, index=True)
+    barrier_class = Column(PythonClass)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
@@ -554,12 +586,31 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     departure_time = Column(DateTime)
     released = Column(Boolean, default=False)
 
+    def get_barrier(self):
+        from .experiment import get_experiment
+
+        exp = get_experiment()
+        timeline = exp.timeline
+
+        elt = timeline.get_current_elt(exp, self.participant)
+
+        try:
+            barrier = elt.links["barrier"]
+            assert barrier.id == self.barrier_id
+            return barrier
+        except (KeyError, AssertionError):
+            raise RuntimeError(
+                "The barrier can only be retrieved if the participant is currently at the barrier."
+            )
+
     def release(self):
         self.departure_time = timenow()
         self.released = True
 
-    def get_waiting_participants(self):
-        return Barrier.get_waiting_participants(self.barrier_id)
+    def get_waiting_participants(self, for_update: bool = False):
+        return self.barrier_class.get_waiting_participants_from_barrier_id(
+            self.barrier_id, for_update=for_update
+        )
 
 
 Participant.sync_group_links = relationship(
