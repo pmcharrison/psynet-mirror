@@ -185,10 +185,16 @@ class Exp(psynet.experiment.Experiment):
         assert (
             pages[0].content
             == "You chose scissors, your partner chose scissors. You drew."
+        ), (
+            "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
+            "further debugging."
         )
         assert (
             pages[1].content
             == "You chose scissors, your partner chose scissors. You drew."
+        ), (
+            "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
+            "further debugging."
         )
 
         bots[0].take_page()
