@@ -974,7 +974,7 @@ class ChainTrial(Trial):
 
     def on_finalized(self):
         super().on_finalized()
-        if self.trial_maker.chain_type == "within":
+        if self.trial_maker and self.trial_maker.chain_type == "within":
             self.trial_maker.call_grow_network(network=self.network)
 
 
