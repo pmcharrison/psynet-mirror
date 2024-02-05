@@ -378,7 +378,6 @@ class Trial(SQLMixinDallinger, Info):
 
     @property
     def awaiting_asset_deposit(self):
-        db.session.commit()
         for asset in self.assets.values():
             if (
                 isinstance(asset.parent, Trial)
@@ -447,7 +446,6 @@ class Trial(SQLMixinDallinger, Info):
                 self.definition = definition
 
             db.session.add(self)
-            db.session.commit()
 
             self._finalize_assets()
 
@@ -603,7 +601,6 @@ class Trial(SQLMixinDallinger, Info):
         return definition
 
     def _finalize_assets(self):
-        db.session.commit()
         assert self.id is not None
         for _, asset in self.assets.items():
             asset.receive_node_definition(self.definition)
