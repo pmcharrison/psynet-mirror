@@ -117,13 +117,14 @@ pg_badger:
     - docker logs dallinger_postgres 2> postgresql.log > /dev/null
     - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v12.4.tar.gz | tar xzf - -C /usr/local
     - (cd /usr/local/pgbadger-*; perl Makefile.PL; make; make install)
-    - pgbadger postgresql.log -o /tmp/pgbadger.html
+    - pgbadger --log-duration postgresql.log -o /tmp/pgbadger.html
     - mkdir public
     - cp /tmp/pgbadger.html "public/${TEST_NAME//\//_}.html"
-    - pgbadger postgresql.log -o /tmp/pgbadger.txt
+    - pgbadger --log-duration postgresql.log -o /tmp/pgbadger.txt
+    - cat /tmp/pgbadger.txt
     - echo "Check the full pgbadger analysis at the following URL:" >> /tmp/pgbadger.txt
     - echo "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/${TEST_NAME//\//_}.html" >> /tmp/pgbadger.txt
-    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" < /tmp/pgbadger.txt > junit.xml
+    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.txt > junit.xml
   artifacts:
     paths:
       - public
