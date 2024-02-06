@@ -9,8 +9,7 @@ import re
 
 import click
 
-JUNIT_TEMPLATE = """
-<?xml version="1.0" encoding="UTF-8"?>
+JUNIT_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="{totaltime}">
     <testsuite name="{suitename}" tests="{totaltests}" errors="0" failures="0" skip="0" time="{totaltime}">
         <system-out>
