@@ -36,7 +36,7 @@ before_script:
 
 
 pg_badger:
-  image: python:3.11.6
+  image: python:3.11.6-alpine
   services: []
   cache:
       key: "$CI_BUILD_REF_NAME"
@@ -68,9 +68,7 @@ pg_badger:
     - pwd
     # - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local > /dev/null
   after_script:
-    - echo "Check the full pgbadger analysis at the following URL:" >> /tmp/pgbadger.txt
-    - echo "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/${TEST_NAME//\//_}.html" >> /tmp/pgbadger.txt
-    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" < /tmp/pgbadger.txt > junit.xml
+    - cat junit_tmp.xml > junit.xml
     - pwd
     # - docker logs dallinger_postgres 2> postgresql.log > /dev/null
     # - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v12.4.tar.gz | tar xzf - -C /usr/local
@@ -96,4 +94,4 @@ pg_badger:
       TEST_NAME: rock_paper_scissors
   parallel:
     matrix:
-      - TEST_NAME: ["rock_paper_scissors"]
+      - TEST_NAME: ["rock_paper_scissors", "slider"]

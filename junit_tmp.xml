@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="3.43">
+    <testsuite name="pgbadger" tests="9194" errors="0" failures="0" skip="0" time="3.43">
+        <system-out>
+            <![CDATA[
+                
+pgBadger :: 
+- Global information ---------------------------------------------------
+Generated on Tue Feb  6 15:43:09 2024
+Log file: postgresql.log
+Parsed 18,501 log entries in 2s
+Log start from 2024-02-06 15:42:21 to 2024-02-06 15:43:01
+- Overall statistics ---------------------------------------------------
+Number of unique normalized queries: 476
+Number of queries: 9,194
+Total query duration: 3s430ms
+First query: 2024-02-06 15:42:38
+Last query: 2024-02-06 15:43:01
+Query peak: 4,003 queries/s at 2024-02-06 15:42:57
+Number of events: 2
+Number of unique normalized events: 2
+- Hourly statistics ----------------------------------------------------
+            ]]>
+        </system-out>
+        <testcase classname="assets" name="pgbadger1" time="3.43" />
+        <testcase classname="assets" name="pgbadger2" time="3.43" />
+        <testcase classname="assets" name="pgbadger3" time="3.43" />
+        <testcase classname="assets" name="pgbadger4" time="3.43" />
+        <testcase classname="assets" name="pgbadger5" time="3.43" />
+        <testcase classname="assets" name="pgbadger" time="3.43" />
+        <testcase classname="assets" name="pgbadger" time="1" />
+        <testcase classname="assets" name="pgbadger" time="1" />
+        <testcase classname="assets" name="pgbadger" time="1" />
+        <testcase classname="assets" name="pgbadger" time="1" />
+        <testcase classname="assets" name="pgbadger" time="1" />
+        <testcase classname="assets" name="pgbadger" time="1" />
+    </testsuite>
+</testsuites>
