@@ -2186,6 +2186,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
+    @classmethod
     @with_transaction
     def render_error(cls):
         request_data = request.form.get("request_data")
