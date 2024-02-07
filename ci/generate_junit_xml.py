@@ -6,14 +6,9 @@ outputs a junit XML file containing that file as summary.
 It uses `click` to get user arguments.
 """
 import json
+import xml.etree.ElementTree as ET
 
 import click
-
-JUNIT_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
-<testsuites time="{totaltime}">
-    {testsuites}
-</testsuites>
-"""
 
 
 @click.command()
@@ -23,22 +18,29 @@ JUNIT_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 def main(classname, testname, pgbadger_file):
     text = pgbadger_file.read()
     data = json.loads(text)
-    testsuites = []
+    total_duration = data["database_info"]["postgres"]["unknown"]["duration"]
+    testsuites = ET.Element("testsuites", {
+        "time": str(total_duration),
+    })
     for query, info in data['normalyzed_info']['postgres'].items():
         count = info["count"]
-        testsuites.append(f'<testsuite name="{query}" tests="{count}" errors="0" failures="0" skip="0" time="{info["duration"]}">')
+        testsuite = ET.SubElement(testsuites, "testsuite", {
+            "name": query,
+            "tests": str(count),
+            "errors": "0",
+            "failures": "0",
+            "skipped": "0",
+            "time": str(info["duration"])
+        })
         for i, sample_duration in enumerate(info["samples"].keys()):
-            testsuites.append(f'<testcase classname="{classname}" name="{query}-{i}" time="{sample_duration}" />')
-        testsuites.append('<testsuite/>')
-
-    junit_xml = JUNIT_TEMPLATE.format(
-        suitename='pgbadger',
-        classname=classname,
-        testname=testname,
-        totaltime=data["database_info"]["postgres"]["unknown"]["duration"],
-        testsuites='\n'.join(testsuites),
-    )
-    click.get_text_stream('stdout').write(junit_xml)
+            ET.SubElement(testsuite, "testcase", {
+                "classname": classname,
+                "name": f'{query}-{i}',
+                "time": str(sample_duration)
+            })
+    xml_str = ET.tostring(testsuites, encoding="unicode", method="xml")
+    click.get_text_stream('stdout').write('<?xml version="1.0" encoding="UTF-8"?>\n')
+    click.get_text_stream('stdout').write(xml_str)
 
 
 if __name__ == '__main__':
