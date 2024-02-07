@@ -10,7 +10,9 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    and_,
     func,
+    or_,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -104,9 +106,6 @@ class ChainNetwork(TrialNetwork):
     target_n_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
-
-    awaiting_async_process : bool
-        Whether the network is currently waiting for an asynchronous process to complete.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -795,12 +794,6 @@ ChainNetwork.n_viable_trials_at_head = column_property(
     .scalar_subquery()
 )
 
-ChainNetwork.head_is_awaiting_async_process = column_property(
-    select(TrialNode.awaiting_async_process)
-    .where(TrialNode.id == ChainNetwork.head_id)
-    .scalar_subquery()
-)
-
 
 UniqueConstraint(ChainNode.module_id, ChainNode.key)
 
@@ -901,10 +894,6 @@ class ChainTrial(Trial):
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
         Stored in ``details`` in the database.
-
-    awaiting_async_process : bool
-        Whether the trial is waiting for some asynchronous process
-        to complete (e.g. to synthesise audiovisual material).
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -1480,10 +1469,23 @@ class ChainTrialMaker(NetworkTrialMaker):
         return None
 
     def all_participant_networks_ready(self, participant):
-        networks = self.network_class.query.filter_by(
-            participant_id=participant.id, trial_maker_id=self.id
-        ).all()
-        return all([not x.awaiting_async_process for x in networks])
+        cls = self.network_class
+        return (
+            cls.query.join(self.node_class, cls.head_id == self.node_class.id)
+            .filter(
+                cls.participant_id == participant.id,
+                cls.trial_maker_id == self.id,
+                or_(
+                    and_(
+                        cls.async_post_grow_network_requested,
+                        not_(cls.async_post_grow_network_complete),
+                    ),
+                    not_(self.node_class.ready_for_trials),
+                ),
+            )
+            .count()
+            == 0
+        )
 
     @property
     def n_trials_still_required(self):
@@ -1668,7 +1670,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         def has_pending_process(network):
             return (
-                network.awaiting_async_process or network.head_is_awaiting_async_process
+                network.async_post_grow_network_requested
+                and not network.async_post_grow_network_complete
             )
 
         networks_without_pending_processes = [

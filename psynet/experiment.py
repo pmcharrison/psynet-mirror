@@ -54,7 +54,6 @@ from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant
-from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,
@@ -2358,7 +2357,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     @with_transaction
     def call_async_post_grow_network(network_id):
-        from .trial.main import TrialNetwork
+        from .trial.main import NetworkTrialMaker, TrialNetwork
 
         network = (
             TrialNetwork.query.with_for_update(of=TrialNetwork)
@@ -2366,14 +2365,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .get(network_id)
         )
         trial_maker = get_trial_maker(network.trial_maker_id)
-
-        WorkerAsyncProcess(
-            network.async_post_grow_network,
-            label="post_grow_network",
-            timeout=trial_maker.async_timeout_sec,
-            network=network,
-        )
-        db.session.commit()
+        assert isinstance(trial_maker, NetworkTrialMaker)
+        trial_maker.queue_async_post_grow_network(network)
         return success_response()
 
     # Lucid recruitment specific route

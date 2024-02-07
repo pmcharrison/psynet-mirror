@@ -15,10 +15,10 @@ import boto3
 import paramiko
 import requests
 from dallinger import db
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import column_property, deferred, relationship
+from sqlalchemy.orm import deferred, relationship
 from tqdm import tqdm
 
 from psynet.timeline import NullElt
@@ -27,7 +27,7 @@ from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject  # , register_extra_var
 from .media import get_aws_credentials
-from .process import AsyncProcess, LocalAsyncProcess
+from .process import LocalAsyncProcess
 from .utils import (
     cache,
     classproperty,
@@ -232,9 +232,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -327,11 +324,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     node_definition = Column(PythonObject)
 
     async_processes = relationship("AsyncProcess")
-    awaiting_async_process = column_property(
-        select(AsyncProcess.asset_id, AsyncProcess.pending)
-        .where(AsyncProcess.asset_id == id, AsyncProcess.pending)
-        .exists()
-    )
 
     participant_links = relationship(
         "AssetParticipant",
@@ -869,9 +861,6 @@ class ManagedAsset(Asset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -1164,9 +1153,6 @@ class ExperimentAsset(ManagedAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -1364,9 +1350,6 @@ class CachedAsset(ManagedAsset):
 
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
-
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
 
     participant :
         If the parent is a ``Participant``, returns that participant.
@@ -1719,9 +1702,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -1961,9 +1941,6 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -2105,9 +2082,6 @@ class ExternalAsset(Asset):
 
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
-
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
 
     participant :
         If the parent is a ``Participant``, returns that participant.

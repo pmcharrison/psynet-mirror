@@ -16,16 +16,14 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     desc,
-    select,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .process import AsyncProcess
 from .utils import get_logger, organize_by_key
 
 logger = get_logger()
@@ -253,14 +251,13 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     #     from psynet.trial.main import Trial
     #     self.current_trial_id = trial.id if isinstance(trial, Trial) else None
 
-    awaiting_async_process = column_property(
-        select(AsyncProcess.participant_id, AsyncProcess.pending)
-        .where(
-            AsyncProcess.participant_id == dallinger.models.Participant.id,
-            AsyncProcess.pending,
+    @property
+    def any_unfinalized_trials(self):
+        from .trial.main import Trial
+
+        return (
+            Trial.query.filter_by(participant_id=self.id, finalized=False).count() > 0
         )
-        .exists()
-    )
 
     asset_links = relationship(
         "AssetParticipant",

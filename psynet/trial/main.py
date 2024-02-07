@@ -26,10 +26,10 @@ from ..data import SQLMixinDallinger
 from ..error import (  # noqa  # Importing the error module is important to ensure sqlalchemy is happy
     ErrorRecord,
 )
-from ..field import PythonDict, PythonObject, VarStore, register_extra_var
+from ..field import PythonDict, PythonObject, VarStore
 from ..page import InfoPage, UnsuccessfulEndPage, WaitPage, wait_while
 from ..participant import Participant
-from ..process import AsyncProcess, WorkerAsyncProcess
+from ..process import WorkerAsyncProcess
 from ..sync import GroupBarrier, SyncGroup
 from ..timeline import (
     CodeBlock,
@@ -178,10 +178,6 @@ class Trial(SQLMixinDallinger, Info):
         If the trial is a repeat trial, this attribute corresponds to the ID
         of the trial from which that repeat trial was cloned.
 
-    awaiting_async_process : bool
-        Whether the trial is waiting for some asynchronous process
-        to complete (e.g. to synthesise audiovisual material).
-
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
@@ -273,6 +269,8 @@ class Trial(SQLMixinDallinger, Info):
     time_credit_before_trial = Column(Float)
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
+    async_post_trial_requested = Column(Boolean, default=False, index=True)
+    async_post_trial_complete = Column(Boolean, default=False, index=True)
 
     node = relationship(
         "TrialNode", foreign_keys=[node_id], back_populates="all_trials"
@@ -289,12 +287,6 @@ class Trial(SQLMixinDallinger, Info):
     response = relationship("psynet.timeline.Response")
 
     async_processes = relationship("AsyncProcess")
-    awaiting_async_process = column_property(
-        select(AsyncProcess.trial_id, AsyncProcess.pending)
-        .where(AsyncProcess.trial_id == Info.id, AsyncProcess.pending)
-        .exists()
-    )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     asset_links = relationship(
         "AssetTrial",
@@ -361,20 +353,7 @@ class Trial(SQLMixinDallinger, Info):
         """
         Determines whether a trial is ready to give feedback to the participant.
         """
-        if not self.complete:
-            return False
-        if self.wait_for_feedback:
-            if self.awaiting_async_process:
-                logger.info(
-                    "Waiting for async process to complete for trial %i", self.id
-                )
-                return False
-            if self.awaiting_asset_deposit:
-                logger.info(
-                    "Waiting for asset deposit to complete for trial %i", self.id
-                )
-                return False
-        return True
+        return self.complete and (self.finalized or not self.wait_for_feedback)
 
     @property
     def awaiting_asset_deposit(self):
@@ -418,6 +397,8 @@ class Trial(SQLMixinDallinger, Info):
         self.time_taken = None
         self.trial_maker_id = node.trial_maker_id
         self.module_state = participant.module_state
+        self.async_post_trial_requested = False
+        self.async_post_trial_complete = False
         # self.module_id = node.module_id
 
         if assets is None:
@@ -675,6 +656,7 @@ class Trial(SQLMixinDallinger, Info):
         dallinger.experiment.load()
         db.session.commit()
         self.async_post_trial()
+        self.async_post_trial_complete = True
         self.check_if_can_mark_as_finalized()
 
     def fail_async_processes(self, reason):
@@ -701,9 +683,9 @@ class Trial(SQLMixinDallinger, Info):
             logger.info(
                 "Cannot mark as finalized yet because the trial is awaiting an asset deposit."
             )
-        elif self.awaiting_async_process:
+        elif self.async_post_trial_requested and not self.async_post_trial_complete:
             logger.info(
-                "Cannot mark as finalized yet because the trial is awaiting an async process."
+                "Cannot mark as finalized yet because the trial is awaiting async_post_trial."
             )
         else:
             self.finalized = True
@@ -727,14 +709,18 @@ class Trial(SQLMixinDallinger, Info):
             logger.info(
                 "All conditions seem to be satisfied, calling call_async_post_trial if it hasn't been called already."
             )
-            WorkerAsyncProcess(
-                self.call_async_post_trial,
-                label="post_trial",
-                timeout=self.trial_maker.async_timeout_sec,
-                trial=self,
-                unique=True,
-                unique_violation_raises_error=False,  # Pass silently if the process has already been started
-            )
+            self.queue_async_post_trial()
+
+    def queue_async_post_trial(self):
+        self.async_post_trial_requested = True
+        WorkerAsyncProcess(
+            self.call_async_post_trial,
+            label="post_trial",
+            timeout=self.trial_maker.async_timeout_sec,
+            trial=self,
+            unique=True,
+            unique_violation_raises_error=False,  # Pass silently if the process has already been started
+        )
 
     def on_finalized(self):
         self.score = self.score_answer(answer=self.answer, definition=self.definition)
@@ -1686,9 +1672,9 @@ class TrialMaker(Module):
         if type == "end" and self.end_performance_check_waits:
             return join(
                 wait_while(
-                    self.any_pending_async_trials,
+                    lambda participant: participant.any_unfinalized_trials,
                     expected_wait=5,
-                    log_message="Waiting for pending async trials.",
+                    log_message="Waiting for remaining trials to finalize.",
                 ),
                 logic,
             )
@@ -1703,12 +1689,6 @@ class TrialMaker(Module):
             .all()
         )
         return [record[0] for record in records]
-
-    def any_pending_async_trials(self, participant):
-        trials = self.get_participant_trials(participant)
-        return any(
-            [t.awaiting_async_process or t.awaiting_asset_deposit for t in trials]
-        )
 
     def get_participant_trials(self, participant):
         """
@@ -2303,12 +2283,15 @@ class NetworkTrialMaker(TrialMaker):
         elif not is_method_overridden(network, TrialNetwork, "async_post_grow_network"):
             return
         else:
-            WorkerAsyncProcess(
-                network.async_post_grow_network,
-                label="post_grow_network",
-                timeout=self.async_timeout_sec,
-                network=network,
-            )
+            self.queue_async_post_grow_network(network)
+
+    def queue_async_post_grow_network(self, network):
+        WorkerAsyncProcess(
+            network.call_async_post_grow_network,
+            label="post_grow_network",
+            timeout=self.async_timeout_sec,
+            network=network,
+        )
 
     @property
     def network_query(self):
@@ -2466,9 +2449,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
         Left empty by default, but can be set by custom ``__init__`` functions.
         Stored as the field ``property2`` in the database.
 
-    awaiting_async_process : bool
-        Whether the network is currently closed and waiting for an asynchronous process to complete.
-
     participant : Optional[Participant]
         Returns the network's :class:`~psynet.participant.Participant`,
         or ``None`` if none can be found.
@@ -2513,6 +2493,9 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(Participant, foreign_keys=[participant_id])
+
+    async_post_grow_network_requested = Column(Boolean, default=False, index=True)
+    async_post_grow_network_complete = Column(Boolean, default=False, index=True)
 
     id_within_participant = Column(Integer)
 
@@ -2587,15 +2570,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     def var(self):
         return VarStore(self)
 
-    awaiting_async_process = column_property(
-        select(AsyncProcess.network_id, AsyncProcess.pending)
-        .where(
-            AsyncProcess.network_id == dallinger.models.Network.id, AsyncProcess.pending
-        )
-        .exists()
-    )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
-
     ####
 
     def __init__(
@@ -2626,6 +2600,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         # Currently this function is redundant, but it's there in case we want to
         # add wrapping logic one day.
         self.async_post_grow_network()
+        self.async_post_grow_network_complete = True
 
 
 # This column_property has to be defined outside the class main definition because of a quirk with
@@ -2665,13 +2640,6 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     # )
 
     async_processes = relationship("AsyncProcess")
-
-    awaiting_async_process = column_property(
-        select(AsyncProcess.node_id, AsyncProcess.pending)
-        .where(AsyncProcess.node_id == dallinger.models.Node.id, AsyncProcess.pending)
-        .exists()
-    )
-    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     asset_links = relationship(
         "AssetNode",

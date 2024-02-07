@@ -32,10 +32,10 @@ class TestProcesses:
         assert not process.pending
 
     def test_awaiting_async_process_participant(self, participant):
-        assert not participant.awaiting_async_process
+        assert len(participant.async_processes) == 0
         LocalAsyncProcess(sleep_for_1s, participant=participant)
         db.session.refresh(participant)
-        assert participant.awaiting_async_process
+        assert len(participant.async_processes) == 1
 
 
 @pytest.mark.parametrize(
@@ -50,21 +50,22 @@ class TestProcesses2:
         db.session.commit()
         owners = [trial, participant]
         for o in owners:
-            assert not o.awaiting_async_process
+            assert len(o.async_processes) == 0
 
         process = LocalAsyncProcess(sleep_for_1s, trial=trial)
 
+        db.session.commit()
+
         for o in owners:
-            db.session.refresh(o)
-            assert o.awaiting_async_process
+            assert len(o.async_processes) == 1
 
         time.sleep(1.5)
 
-        db.session.refresh(process)
+        db.session.commit()
 
         for o in owners:
-            db.session.refresh(o)
-            assert not o.awaiting_async_process
+            for p in o.async_processes:
+                assert p.finished
 
         assert abs(process.time_taken - 1) < 0.5
 
