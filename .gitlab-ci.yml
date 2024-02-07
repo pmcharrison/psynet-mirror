@@ -45,15 +45,15 @@ tests:
   parallel: 10
   stage: test
   script:
+    - mkdir public
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
+      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY -v "$PWD/public:/public"
       $DOCKER_LOCAL_TAG bash -c
-      "pytest  --junitxml=junit.xml --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
+      "pytest  --junitxml=/public/junit.xml --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
-    - mkdir public && cp junit.xml public/
   artifacts:
     reports:
       junit: junit.xml
