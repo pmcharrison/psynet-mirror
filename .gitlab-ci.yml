@@ -124,16 +124,13 @@ pg_badger:
     - cat /tmp/pgbadger.txt
     - pgbadger --log-duration public/postgresql.log -o /tmp/pgbadger.json
     - cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/
-    - echo "Check the full pgbadger analysis at the following URL:" >> /tmp/pgbadger.txt
-    - echo "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/${TEST_NAME//\//_}.html" >> /tmp/pgbadger.txt
-    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.txt > junit.xml
-    - cp junit.xml public/
+    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
   artifacts:
     paths:
       - public
     expire_in: 1 week
     reports:
-      junit: junit.xml
+      junit: public/junit.xml
   environment:
       name: PgBadger-$CI_COMMIT_BRANCH-$TEST_NAME
       url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/$TEST_NAME.html"
