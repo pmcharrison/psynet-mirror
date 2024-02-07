@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ExampleTestSuite" tests="3" errors="1" failures="1" skipped="0" time="123.456">
+<testsuites time="6000">
+<testsuite name="ExampleTestSuite" tests="3" errors="1" failures="1" skipped="0" time="600">
   <properties>
     <property name="os.name" value="Linux"/>
     <property name="java.version" value="11"/>
   </properties>
-  <testcase classname="ExampleTestClass" name="testSuccess" time="30.123"/>
-  <testcase classname="ExampleTestClass" name="testFailure" time="45.678">
+  <testcase classname="ExampleTestClass" name="testSuccess" time="10"/>
+  <testcase classname="ExampleTestClass" name="testFailure" time="100">
     <failure message="expected:&lt;true&gt; but was:&lt;false&gt;">Assertion failed</failure>
   </testcase>
-  <testcase classname="ExampleTestClass" name="testError" time="47.655">
+  <testcase classname="ExampleTestClass" name="testError" time="200">
     <error message="NullPointerException">java.lang.NullPointerException</error>
   </testcase>
   <system-out><![CDATA[Some system output log]]></system-out>
   <system-err><![CDATA[Some error output log]]></system-err>
 </testsuite>
+</testsuites>
