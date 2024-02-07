@@ -19,26 +19,23 @@ def main(classname, testname, pgbadger_file):
     text = pgbadger_file.read()
     data = json.loads(text)
     total_duration = data["database_info"]["postgres"]["unknown"]["duration"]
-    testsuites = ET.Element("testsuites", {
-        "time": str(total_duration),
+    testsuite = ET.Element("testsuite", {
+        "name": "pgbadger - " + testname,
+        "tests": str(len(data['normalyzed_info']['postgres'])),
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "time": str(total_duration)
     })
+
     for query, info in data['normalyzed_info']['postgres'].items():
         count = info["count"]
-        testsuite = ET.SubElement(testsuites, "testsuite", {
-            "name": query,
-            "tests": str(count),
-            "errors": "0",
-            "failures": "0",
-            "skipped": "0",
+        ET.SubElement(testsuite, "testcase", {
+            "classname": classname,
+            "name": f'[{count}X] {query}',
             "time": str(info["duration"])
         })
-        for i, sample_duration in enumerate(info["samples"].keys()):
-            ET.SubElement(testsuite, "testcase", {
-                "classname": classname,
-                "name": f'{query}-{i}',
-                "time": str(sample_duration)
-            })
-    xml_str = ET.tostring(testsuites, encoding="unicode", method="xml")
+    xml_str = ET.tostring(testsuite, encoding="unicode", method="xml")
     click.get_text_stream('stdout').write('<?xml version="1.0" encoding="UTF-8"?>\n')
     click.get_text_stream('stdout').write(xml_str)
 
