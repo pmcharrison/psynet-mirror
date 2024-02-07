@@ -1471,7 +1471,8 @@ class ChainTrialMaker(NetworkTrialMaker):
     def all_participant_networks_ready(self, participant):
         cls = self.network_class
         return (
-            cls.query.join(self.node_class, cls.head_id == self.node_class.id)
+            db.session.query(func.count(cls.id))
+            .join(self.node_class, cls.head_id == self.node_class.id)
             .filter(
                 cls.participant_id == participant.id,
                 cls.trial_maker_id == self.id,
@@ -1483,7 +1484,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                     not_(self.node_class.ready_for_trials),
                 ),
             )
-            .count()
+            .scalar()
             == 0
         )
 
