@@ -15,4 +15,10 @@
   <system-out><![CDATA[Some system output log]]></system-out>
   <system-err><![CDATA[Some error output log]]></system-err>
 </testsuite>
+<testsuite name="suite2" tests="2" errors="0" failures="0" skipped="0" time="45">
+    <testcase classname="ExampleTestClass" name="testSuccess-1" time="10"/>
+    <testcase classname="ExampleTestClass" name="testSuccess-2" time="20"/>
+    <testcase classname="ExampleTestClass" name="testSuccess-3" time="30"/>
+</testsuite>
+  
 </testsuites>
