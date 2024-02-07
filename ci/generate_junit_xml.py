@@ -10,6 +10,8 @@ import xml.etree.ElementTree as ET
 
 import click
 
+MILLION = 1_000_000
+
 
 @click.command()
 @click.option('--classname', default='', help='The classname of the test')
@@ -18,7 +20,7 @@ import click
 def main(classname, testname, pgbadger_file):
     text = pgbadger_file.read()
     data = json.loads(text)
-    total_duration = data["database_info"]["postgres"]["unknown"]["duration"]
+    total_duration = data["database_info"]["postgres"]["unknown"]["duration"] / MILLION
     testsuite = ET.Element("testsuite", {
         "name": "pgbadger - " + testname,
         "tests": str(len(data['normalyzed_info']['postgres'])),
@@ -33,7 +35,7 @@ def main(classname, testname, pgbadger_file):
         ET.SubElement(testsuite, "testcase", {
             "classname": classname,
             "name": f'[{count}X] {query}',
-            "time": str(info["duration"])
+            "time": str(info["duration"] / MILLION)
         })
     xml_str = ET.tostring(testsuite, encoding="unicode", method="xml")
     click.get_text_stream('stdout').write('<?xml version="1.0" encoding="UTF-8"?>\n')
