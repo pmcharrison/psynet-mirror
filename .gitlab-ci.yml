@@ -45,7 +45,6 @@ tests:
   parallel: 10
   stage: test
   script:
-    - mkdir public
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
@@ -54,6 +53,9 @@ tests:
       $DOCKER_LOCAL_TAG bash -c
       "pytest  --junitxml=/public/junit.xml --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
+    # The docker containers are running in a different host, where the directory $PWD/public
+    # now contains the file we're interested in. We cat it to take it out of its container.
+    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c 'cat /public/junit.xml' > junit.xml
   artifacts:
     reports:
       junit: junit.xml
