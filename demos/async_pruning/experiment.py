@@ -220,7 +220,7 @@ class Exp(psynet.experiment.Experiment):
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
 
-    @scheduled_task("interval", minutes=0.1, max_instances=1)
+    @scheduled_task("interval", seconds=2.0, max_instances=1)
     @staticmethod
     def add_random_var_to_trials():
         trials = CustomTrial.query.all()

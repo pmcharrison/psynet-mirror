@@ -31,7 +31,7 @@ class TestProcesses:
         assert not process.finished
         assert not process.pending
 
-    def test_awaiting_async_process_participant(self, participant):
+    def test_async_process_participant(self, participant):
         assert len(participant.async_processes) == 0
         LocalAsyncProcess(sleep_for_1s, participant=participant)
         db.session.refresh(participant)
@@ -43,7 +43,7 @@ class TestProcesses:
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses2:
-    def test_awaiting_async_process_trial(self, trial, node, network, participant):
+    def test_async_process_trial(self, trial, node, network, participant):
         # When a trial spawns an async process, this async process also is 'owned'
         # by the participant. The trial's node and network do not count as owners
         # of the process, however.

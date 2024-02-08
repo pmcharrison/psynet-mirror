@@ -1475,8 +1475,8 @@ class ChainTrialMaker(NetworkTrialMaker):
                 cls.participant_id == participant.id,
                 cls.trial_maker_id == self.id,
                 or_(
-                    cls.async_post_grow_network_awaiting,
-                    self.node_class.async_on_deploy_awaiting,
+                    cls.async_post_grow_network_pending,
+                    self.node_class.async_on_deploy_pending,
                 ),
             )
             .scalar()
@@ -1666,8 +1666,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         def has_pending_process(network):
             return (
-                network.async_post_grow_network_awaiting
-                or network.head.async_on_deploy_awaiting
+                network.async_post_grow_network_pending
+                or network.head.async_on_deploy_pending
             )
 
         networks_without_pending_processes = [

@@ -251,14 +251,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     #     from psynet.trial.main import Trial
     #     self.current_trial_id = trial.id if isinstance(trial, Trial) else None
 
-    @property
-    def any_unfinalized_trials(self):
-        from .trial.main import Trial
-
-        return (
-            Trial.query.filter_by(participant_id=self.id, finalized=False).count() > 0
-        )
-
     asset_links = relationship(
         "AssetParticipant",
         collection_class=attribute_mapped_collection("local_key"),

@@ -33,7 +33,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from psynet import field
 
-from ..asset import AssetNetwork, AssetNode, AssetTrial
+from ..asset import Asset, AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
 from ..error import (  # noqa  # Importing the error module is important to ensure sqlalchemy is happy
     ErrorRecord,
@@ -281,12 +281,13 @@ class Trial(SQLMixinDallinger, Info):
     time_credit_before_trial = Column(Float)
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
+
     async_post_trial_required = Column(Boolean, default=False, index=True)
     async_post_trial_requested = Column(Boolean, default=False, index=True)
     async_post_trial_complete = Column(Boolean, default=False, index=True)
     async_post_trial_failed = Column(Boolean, default=False, index=True)
 
-    async_post_trial_awaiting = column_property(
+    async_post_trial_pending = column_property(
         and_(
             async_post_trial_requested,
             not_(
@@ -379,18 +380,23 @@ class Trial(SQLMixinDallinger, Info):
         """
         Determines whether a trial is ready to give feedback to the participant.
         """
-        return self.complete and (self.finalized or not self.wait_for_feedback)
+        if not self.complete:
+            return False
+        elif not self.wait_for_feedback:
+            return True
+        else:
+            return not (self.asset_deposit_pending or self.async_post_trial_pending)
 
-    @property
-    def awaiting_asset_deposit(self):
-        for asset in self.assets.values():
-            if (
-                isinstance(asset.parent, Trial)
-                and asset.parent.id == self.id
-                and not asset.deposited
-            ):
-                return True
-        return False
+    # @property
+    # def asset_deposit_pending(self):
+    #     for asset in self.assets.values():
+    #         if (
+    #             isinstance(asset.parent, Trial)
+    #             and asset.parent.id == self.id
+    #             and not asset.deposited
+    #         ):
+    #             return True
+    #     return False
 
     #################
 
@@ -713,7 +719,7 @@ class Trial(SQLMixinDallinger, Info):
     def check_if_can_mark_as_finalized(self):
         if self.failed:
             logger.info("Cannot mark as finalized because the trial is failed.")
-        elif self.awaiting_asset_deposit:
+        elif self.asset_deposit_pending:
             logger.info(
                 "Cannot mark as finalized yet because the trial is awaiting an asset deposit."
             )
@@ -733,7 +739,7 @@ class Trial(SQLMixinDallinger, Info):
             logger.info(
                 "run_async_post_trial is False, so we won't run async_post_trial."
             )
-        elif self.awaiting_asset_deposit:
+        elif self.asset_deposit_pending:
             logger.info(
                 "The trial is awaiting an asset deposit, so we won't run async_post_trial."
             )
@@ -975,6 +981,16 @@ class Trial(SQLMixinDallinger, Info):
             fix_time_credit=False,
             log_chosen_branch=False,
         )
+
+
+Trial.asset_deposit_pending = column_property(
+    select(Asset.id)
+    .where(
+        Asset.trial_id == Trial.id,
+        ~Asset.deposited,
+    )
+    .exists()
+)
 
 
 class TrialMakerState(ModuleState):
@@ -1703,11 +1719,23 @@ class TrialMaker(Module):
         )
 
         if type == "end" and self.end_performance_check_waits:
+
+            def any_trials_awaiting_processing(participant):
+                return (
+                    db.session.query(func.count(Trial.id))
+                    .filter(
+                        Trial.id == participant.id,
+                        Trial.async_post_trial_pending,
+                        Trial.asset_deposit_pending,
+                    )
+                    .scalar()
+                ) > 0
+
             return join(
                 wait_while(
-                    lambda participant: participant.any_unfinalized_trials,
+                    lambda participant: any_trials_awaiting_processing(participant),
                     expected_wait=5,
-                    log_message="Waiting for remaining trials to finalize.",
+                    log_message="Waiting for remaining trials that are awaiting further processing.",
                 ),
                 logic,
             )
@@ -2532,7 +2560,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
     async_post_grow_network_complete = Column(Boolean, default=False, index=True)
     async_post_grow_network_failed = Column(Boolean, default=False, index=True)
 
-    async_post_grow_network_awaiting = column_property(
+    async_post_grow_network_pending = column_property(
         and_(
             async_post_grow_network_requested,
             not_(
@@ -2691,7 +2719,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     async_on_deploy_complete = Column(Boolean, default=False, index=True)
     async_on_deploy_failed = Column(Boolean, default=False, index=True)
 
-    async_on_deploy_awaiting = column_property(
+    async_on_deploy_pending = column_property(
         and_(
             async_on_deploy_requested,
             not_(

@@ -588,6 +588,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.parent:
                 _local_key = self.local_key if self.local_key else f"asset_{self.id}"
                 self.parent.assets[_local_key] = self
+                self.parent.asset_deposit_pending = True
 
                 ancestors = self.get_ancestors()
                 self.network_id = ancestors["network"]
