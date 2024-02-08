@@ -1,9 +1,7 @@
 import datetime
 import inspect
-import os
 import threading
 import time
-import warnings
 
 import dallinger.db
 import sqlalchemy
@@ -259,27 +257,13 @@ class AsyncProcess(SQLBase, SQLMixin):
                 arguments["self"].check_if_can_mark_as_finalized()
 
         except Exception as err:
-            try:
-                process.fail(f"Exception in asynchronous process: {repr(err)}")
-            except Exception:
-                process.failed = True
-                try:
-                    experiment.handle_error(err, process=process)
-                except Exception:
-                    warnings.warn(
-                        "An error occurred in an asynchronous process, but the error handling code also failed."
-                    )
-
-            if os.getenv("PASSTHROUGH_ERRORS"):
-                raise
-
+            process.pending = False
+            process.fail(f"Exception in asynchronous process: {repr(err)}")
             if not isinstance(err, experiment.HandledError):
                 experiment.handle_error(err, process=process)
 
         finally:
-            process.pending = False
             db.session.commit()
-            db.session.close()
 
     @classmethod
     def preprocess_args(cls, arguments):

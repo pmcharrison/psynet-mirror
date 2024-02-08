@@ -2578,7 +2578,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         context = cls.serialize_error_context(**kwargs)
         print("\n")
         logger.error(
-            "err-%s:%s",
+            "EXPERIMENT ERROR - err-%s:%s",
             token,
             context,
             exc_info=True,

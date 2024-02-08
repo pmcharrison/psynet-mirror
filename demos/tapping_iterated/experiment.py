@@ -81,16 +81,6 @@ def as_native_type(x):
 
 class CustomTrialAnalysis(AudioImitationChainTrial):
     def analyze_recording(self, audio_file: str, output_plot: str):
-        logger.info("Analysis of trial {}".format(self.id))
-        logger.info(
-            "async_on_deploy_requested: {}".format(
-                self.origin.async_on_deploy_requested
-            )
-        )
-        logger.info(
-            "async_on_deploy_pending: {}".format(self.origin.async_on_deploy_pending)
-        )
-
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "Participant {}".format(self.participant_id)
         output, analysis, is_failed, output_iteration = analysis_itap.do_analysis(
@@ -176,8 +166,6 @@ class CustomNode(AudioImitationChainNode):
         return [mean(x) for x in zip(*new_rhythm)]
 
     def synthesize_target(self, output_file):
-        logger.info("Synthesizing target for node {}".format(self.id))
-        assert False, "Testing that errors are reported properly"
         random_seed = self.definition
         stim_onsets = make_stim_onsets_from_ioi_seed(random_seed, config.REPEATS)
         stim, stim_onset_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
@@ -269,7 +257,5 @@ class Exp(psynet.experiment.Experiment):
         assert img is not None
         assert Asset.query.filter_by(url=img).count() == 1
 
-        trials = CustomTrial.query.filter_by(participant_id=bot.participant_id).all()
+        trials = CustomTrial.query.filter_by(participant_id=bot.id).all()
         assert len(trials) == NUM_TRIALS_PARTICIPANT
-        for t in trials:
-            assert not t.failed

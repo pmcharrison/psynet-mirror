@@ -740,8 +740,10 @@ class ChainNode(TrialNode):
     #     return len(self.completed_and_processed_trials) >= self.target_n_trials
 
     def fail(self, reason=None):
-        if self.network.head.id == self.id:
+        if self.network.head == self:
             self.network.head = self.parent
+        if self.degree == 0:
+            self.network.fail(reason=f"Start node failed (reason: {reason})")
         super().fail(reason)
 
     @property
@@ -1463,6 +1465,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 negate(self.all_participant_networks_ready),
                 expected_wait=5.0,
                 log_message="Waiting for participant networks to be ready.",
+                max_wait_time=1000000,
             )
         return None
 
@@ -1625,7 +1628,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         #
         #
         networks = self.network_class.query.filter_by(
-            trial_maker_id=self.id, full=False
+            trial_maker_id=self.id, full=False, failed=False
         ).options(
             subqueryload(self.network_class.head),
         )

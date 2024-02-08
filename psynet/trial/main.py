@@ -2828,6 +2828,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.async_on_deploy()
         except Exception:
             self.async_on_deploy_failed = True
+            db.session.commit()
             raise
         self.async_on_deploy_complete = True
 
