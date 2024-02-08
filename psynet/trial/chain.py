@@ -1476,11 +1476,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 cls.trial_maker_id == self.id,
                 or_(
                     cls.async_post_grow_network_awaiting,
-                    # and_(
-                    #     cls.async_post_grow_network_requested,
-                    #     not_(cls.async_post_grow_network_complete),
-                    # ),
-                    self.node_class.async_post_deploy_awaiting,
+                    self.node_class.async_on_deploy_awaiting,
                 ),
             )
             .scalar()

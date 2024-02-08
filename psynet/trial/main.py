@@ -12,10 +12,21 @@ from dallinger import db
 from dallinger.models import Info, Network
 from dominate import tags
 from markupsafe import Markup
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    and_,
+    func,
+    not_,
+    or_,
+    select,
+)
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -270,15 +281,22 @@ class Trial(SQLMixinDallinger, Info):
     time_credit_before_trial = Column(Float)
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
+    async_post_trial_required = Column(Boolean, default=False, index=True)
     async_post_trial_requested = Column(Boolean, default=False, index=True)
     async_post_trial_complete = Column(Boolean, default=False, index=True)
     async_post_trial_failed = Column(Boolean, default=False, index=True)
 
-    @hybrid_property
-    def async_post_trial_awaiting(self):
-        return self.async_post_trial_requested and not (
-            self.async_post_trial_complete or self.async_post_trial_failed
+    async_post_trial_awaiting = column_property(
+        and_(
+            async_post_trial_requested,
+            not_(
+                or_(
+                    async_post_trial_complete,
+                    async_post_trial_failed,
+                )
+            ),
         )
+    )
 
     node = relationship(
         "TrialNode", foreign_keys=[node_id], back_populates="all_trials"
@@ -405,8 +423,13 @@ class Trial(SQLMixinDallinger, Info):
         self.time_taken = None
         self.trial_maker_id = node.trial_maker_id
         self.module_state = participant.module_state
+
+        self.async_post_trial_required = is_method_overridden(
+            self, Trial, "async_post_trial"
+        )
         self.async_post_trial_requested = False
         self.async_post_trial_complete = False
+        self.async_post_trial_failed = False
         # self.module_id = node.module_id
 
         if assets is None:
@@ -2504,15 +2527,22 @@ class TrialNetwork(SQLMixinDallinger, Network):
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(Participant, foreign_keys=[participant_id])
 
+    async_post_grow_network_required = Column(Boolean, default=False, index=True)
     async_post_grow_network_requested = Column(Boolean, default=False, index=True)
     async_post_grow_network_complete = Column(Boolean, default=False, index=True)
     async_post_grow_network_failed = Column(Boolean, default=False, index=True)
 
-    @hybrid_property
-    def async_post_grow_network_awaiting(self):
-        return self.async_post_grow_network_requested and not (
-            self.async_post_grow_network_complete or self.async_post_grow_network_failed
+    async_post_grow_network_awaiting = column_property(
+        and_(
+            async_post_grow_network_requested,
+            not_(
+                or_(
+                    async_post_grow_network_complete,
+                    async_post_grow_network_failed,
+                )
+            ),
         )
+    )
 
     id_within_participant = Column(Integer)
 
@@ -2604,6 +2634,13 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
         self.module_id = module_id
 
+        self.async_post_grow_network_required = is_method_overridden(
+            self, TrialNetwork, "async_post_grow_network"
+        )
+        self.async_post_grow_network_requested = False
+        self.async_post_grow_network_complete = False
+        self.async_post_grow_network_failed = False
+
     run_async_post_grow_network = None
 
     def async_post_grow_network(self):
@@ -2654,11 +2691,19 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     async_on_deploy_complete = Column(Boolean, default=False, index=True)
     async_on_deploy_failed = Column(Boolean, default=False, index=True)
 
-    @hybrid_property
-    def async_on_deploy_awaiting(self):
-        return self.async_on_deploy_requested and not (
-            self.async_on_deploy_complete or self.async_on_deploy_failed
+    async_on_deploy_awaiting = column_property(
+        and_(
+            async_on_deploy_requested,
+            not_(
+                or_(
+                    async_on_deploy_complete,
+                    async_on_deploy_failed,
+                )
+            ),
         )
+    )
+
+    # participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
 
     # network = relationship(
     #     "psynet.trial.main.TrialNetwork",
@@ -2727,6 +2772,9 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         self.async_on_deploy_required = is_method_overridden(
             self, TrialNode, "async_on_deploy"
         )
+        self.async_on_deploy_requested = False
+        self.async_on_deploy_complete = False
+        self.async_on_deploy_failed = False
 
     def check_on_deploy(self):
         from psynet.experiment import in_deployment_package
