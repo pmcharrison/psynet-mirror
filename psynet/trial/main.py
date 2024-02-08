@@ -1724,9 +1724,8 @@ class TrialMaker(Module):
                 return (
                     db.session.query(func.count(Trial.id))
                     .filter(
-                        Trial.id == participant.id,
-                        Trial.async_post_trial_pending,
-                        Trial.asset_deposit_pending,
+                        Trial.participant_id == participant.id,
+                        Trial.async_post_trial_pending | Trial.asset_deposit_pending,
                     )
                     .scalar()
                 ) > 0
