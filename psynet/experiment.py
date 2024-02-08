@@ -560,12 +560,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
 
         for node in (
-            TrialNode.query.filter_by(_on_deploy_called=False)
+            TrialNode.query.filter_by(
+                async_on_deploy_required=True, async_on_deploy_requested=False
+            )
             .with_for_update(of=TrialNode)
             .populate_existing()
             .all()
         ):
-            node.on_deploy()
+            node.check_on_deploy()
 
         db.session.commit()
 

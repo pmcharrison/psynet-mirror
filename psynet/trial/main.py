@@ -15,6 +15,7 @@ from markupsafe import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -794,7 +795,6 @@ class Trial(SQLMixinDallinger, Info):
             node = GenericTrialNode(module_id, experiment)
             db.session.add(node)
             db.session.commit()
-            node.check_on_create()
             node.check_on_deploy()
             return node
 
@@ -2141,7 +2141,7 @@ class NetworkTrialMaker(TrialMaker):
             node = self.find_node(
                 network=network, participant=participant, experiment=experiment
             )
-            if node is not None and node.ready_for_trials:
+            if node is not None:
                 logger.info(
                     "Selected node %i from network %i to give to participant %i.",
                     node.id,
@@ -2496,6 +2496,14 @@ class TrialNetwork(SQLMixinDallinger, Network):
     async_post_grow_network_requested = Column(Boolean, default=False, index=True)
     async_post_grow_network_complete = Column(Boolean, default=False, index=True)
 
+    @hybrid_property
+    def async_post_grow_network_awaiting(self):
+        return (
+            self.async_post_grow_network_requested
+            and not self.async_post_grow_network_complete
+        )
+        # awaiting_async_post_grow_network = async_post_grow_network_requested and not_(async_post_grow_network_complete)
+
     id_within_participant = Column(Integer)
 
     all_trials = relationship("psynet.trial.main.Trial")
@@ -2628,9 +2636,14 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     trial_maker_id = Column(String, index=True)
     module_id = Column(String, index=True)
-    _on_create_called = Column(Boolean, default=False, index=True)
-    _on_deploy_called = Column(Boolean, default=False, index=True)
-    ready_for_trials = Column(Boolean, default=False, index=True)
+
+    async_on_deploy_required = Column(Boolean, default=False, index=True)
+    async_on_deploy_requested = Column(Boolean, default=False, index=True)
+    async_on_deploy_complete = Column(Boolean, default=False, index=True)
+
+    @hybrid_property
+    def async_on_deploy_awaiting(self):
+        return self.async_on_deploy_requested and not self.async_on_deploy_complete
 
     # network = relationship(
     #     "psynet.trial.main.TrialNetwork",
@@ -2696,43 +2709,34 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.participant = participant
             self.participant_id = participant.id
 
-    def check_on_create(self):
-        if not self._on_create_called:
-            self.on_create()
-            self._on_create_called = True
+        self.async_on_deploy_required = is_method_overridden(
+            self, TrialNode, "async_on_deploy"
+        )
 
     def check_on_deploy(self):
         from psynet.experiment import in_deployment_package
 
-        if in_deployment_package() and not self._on_deploy_called:
-            self.on_deploy()
-            self._on_deploy_called = True
+        if (
+            in_deployment_package()
+            and self.async_on_deploy_required
+            and not (self.async_on_deploy_requested or self.async_on_deploy_complete)
+        ):
+            self.queue_async_on_deploy()
+            self.async_on_deploy_requested = True
 
-    def on_create(self):
-        """
-        To be called when the instance is added to the database. Can be overridden with custom logic.
-        Note: this function is called both on nodes that are created on the remote server
-        and on nodes that are initialized on the local machine when preparing for deployment
-        (e.g. the nodes in a static experiment). Synthesizing stimuli in dynamic experiments
-        (e.g. iterated reproduction) is best done by overriding the async_on_deploy function instead,
-        which only runs on the remote server.
-        """
-        pass
-
-    def on_deploy(self):
+    def queue_async_on_deploy(self):
         if is_method_overridden(self, TrialNode, "async_on_deploy"):
             WorkerAsyncProcess(
-                function=self._async_on_deploy,
+                function=self.call_async_on_deploy,
                 node=self,
                 timeout=self.trial_maker.async_timeout_sec,
                 unique=True,
             )
-        else:
-            self.ready_for_trials = True
+            self.async_on_deploy_requested = True
 
-    def _async_on_deploy(self):
+    def call_async_on_deploy(self):
         self.async_on_deploy()
-        self.ready_for_trials = True
+        self.async_on_deploy_complete = True
 
     def async_on_deploy(self):
         """

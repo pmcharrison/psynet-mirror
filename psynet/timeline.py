@@ -2387,7 +2387,6 @@ class Module:
                 node.add_default_network()
         db.session.commit()
         for node in self.nodes:
-            node.check_on_create()
             node.check_on_deploy()
         db.session.commit()
 

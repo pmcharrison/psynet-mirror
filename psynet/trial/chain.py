@@ -10,7 +10,6 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
-    and_,
     func,
     or_,
 )
@@ -206,7 +205,6 @@ class ChainNetwork(TrialNetwork):
         db.session.add(start_node)
         self.add_node(start_node)
         # db.session.commit()
-        start_node.check_on_create()
         start_node.check_on_deploy()
         # db.session.commit()
 
@@ -1477,11 +1475,12 @@ class ChainTrialMaker(NetworkTrialMaker):
                 cls.participant_id == participant.id,
                 cls.trial_maker_id == self.id,
                 or_(
-                    and_(
-                        cls.async_post_grow_network_requested,
-                        not_(cls.async_post_grow_network_complete),
-                    ),
-                    not_(self.node_class.ready_for_trials),
+                    cls.async_post_grow_network_awaiting,
+                    # and_(
+                    #     cls.async_post_grow_network_requested,
+                    #     not_(cls.async_post_grow_network_complete),
+                    # ),
+                    self.node_class.async_post_deploy_awaiting,
                 ),
             )
             .scalar()
@@ -1671,8 +1670,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         def has_pending_process(network):
             return (
-                network.async_post_grow_network_requested
-                and not network.async_post_grow_network_complete
+                network.async_post_grow_network_awaiting
+                or network.head.async_on_deploy_awaiting
             )
 
         networks_without_pending_processes = [
@@ -1814,7 +1813,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             db.session.add(node)
             network.add_node(node)
             db.session.commit()
-            node.check_on_create()
             node.check_on_deploy()
             db.session.commit()
             return True
