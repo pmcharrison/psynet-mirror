@@ -582,7 +582,6 @@ class Trial(SQLMixinDallinger, Info):
         return definition
 
     def _finalize_assets(self):
-        assert self.id is not None
         for _, asset in self.assets.items():
             asset.receive_node_definition(self.definition)
             if not asset.deposited:
