@@ -2812,7 +2812,6 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             and not (self.async_on_deploy_requested or self.async_on_deploy_complete)
         ):
             self.queue_async_on_deploy()
-            self.async_on_deploy_requested = True
 
     def queue_async_on_deploy(self):
         if is_method_overridden(self, TrialNode, "async_on_deploy"):
