@@ -225,17 +225,12 @@ class Exp(psynet.experiment.Experiment):
     def add_random_var_to_trials():
         trials = CustomTrial.query.all()
         for t in trials:
-            if not t.async_post_trial_requested and not t.failed:
-                # Often it's wise to make sure that the trial isn't already waiting
-                # for a pre-existing asynchronous process to complete.
-                # One might implement more complex checks here, for example only running the
-                # task for trials that have already received a response from the participant.
-                WorkerAsyncProcess(
-                    function=t.expensive_computation,
-                    arguments={
-                        "seed": random.randint(0, 10),
-                    },
-                )
+            WorkerAsyncProcess(
+                function=t.expensive_computation,
+                arguments={
+                    "seed": random.randint(0, 10),
+                },
+            )
 
     def test_check_bot(self, bot: Bot, **kwargs):
         trials = bot.all_trials
