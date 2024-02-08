@@ -223,14 +223,17 @@ class Exp(psynet.experiment.Experiment):
     @scheduled_task("interval", seconds=2.0, max_instances=1)
     @staticmethod
     def add_random_var_to_trials():
-        trials = CustomTrial.query.all()
-        for t in trials:
-            WorkerAsyncProcess(
-                function=t.expensive_computation,
-                arguments={
-                    "seed": random.randint(0, 10),
-                },
-            )
+        from psynet.experiment import is_experiment_launched
+
+        if is_experiment_launched(0):
+            trials = CustomTrial.query.for_update().populate_existing().all()
+            for t in trials:
+                WorkerAsyncProcess(
+                    function=t.expensive_computation,
+                    arguments={
+                        "seed": random.randint(0, 10),
+                    },
+                )
 
     def test_check_bot(self, bot: Bot, **kwargs):
         trials = bot.all_trials
