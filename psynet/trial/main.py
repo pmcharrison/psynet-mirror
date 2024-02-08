@@ -272,6 +272,13 @@ class Trial(SQLMixinDallinger, Info):
     time_credit_from_trial = Column(Float)
     async_post_trial_requested = Column(Boolean, default=False, index=True)
     async_post_trial_complete = Column(Boolean, default=False, index=True)
+    async_post_trial_failed = Column(Boolean, default=False, index=True)
+
+    @hybrid_property
+    def async_post_trial_awaiting(self):
+        return self.async_post_trial_requested and not (
+            self.async_post_trial_complete or self.async_post_trial_failed
+        )
 
     node = relationship(
         "TrialNode", foreign_keys=[node_id], back_populates="all_trials"
@@ -655,7 +662,11 @@ class Trial(SQLMixinDallinger, Info):
     def call_async_post_trial(self):
         dallinger.experiment.load()
         db.session.commit()
-        self.async_post_trial()
+        try:
+            self.async_post_trial()
+        except Exception:
+            self.async_post_trial_failed = True
+            raise
         self.async_post_trial_complete = True
         self.check_if_can_mark_as_finalized()
 
@@ -2495,14 +2506,13 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     async_post_grow_network_requested = Column(Boolean, default=False, index=True)
     async_post_grow_network_complete = Column(Boolean, default=False, index=True)
+    async_post_grow_network_failed = Column(Boolean, default=False, index=True)
 
     @hybrid_property
     def async_post_grow_network_awaiting(self):
-        return (
-            self.async_post_grow_network_requested
-            and not self.async_post_grow_network_complete
+        return self.async_post_grow_network_requested and not (
+            self.async_post_grow_network_complete or self.async_post_grow_network_failed
         )
-        # awaiting_async_post_grow_network = async_post_grow_network_requested and not_(async_post_grow_network_complete)
 
     id_within_participant = Column(Integer)
 
@@ -2604,9 +2614,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
         """
 
     def call_async_post_grow_network(self):
-        # Currently this function is redundant, but it's there in case we want to
-        # add wrapping logic one day.
-        self.async_post_grow_network()
+        try:
+            self.async_post_grow_network()
+        except Exception:
+            self.async_post_grow_network_failed = True
+            raise
         self.async_post_grow_network_complete = True
 
 
@@ -2640,10 +2652,13 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     async_on_deploy_required = Column(Boolean, default=False, index=True)
     async_on_deploy_requested = Column(Boolean, default=False, index=True)
     async_on_deploy_complete = Column(Boolean, default=False, index=True)
+    async_on_deploy_failed = Column(Boolean, default=False, index=True)
 
     @hybrid_property
     def async_on_deploy_awaiting(self):
-        return self.async_on_deploy_requested and not self.async_on_deploy_complete
+        return self.async_on_deploy_requested and not (
+            self.async_on_deploy_complete or self.async_on_deploy_failed
+        )
 
     # network = relationship(
     #     "psynet.trial.main.TrialNetwork",
@@ -2735,7 +2750,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.async_on_deploy_requested = True
 
     def call_async_on_deploy(self):
-        self.async_on_deploy()
+        try:
+            self.async_on_deploy()
+        except Exception:
+            self.async_on_deploy_failed = True
+            raise
         self.async_on_deploy_complete = True
 
     def async_on_deploy(self):
