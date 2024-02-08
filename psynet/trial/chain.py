@@ -1665,9 +1665,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             return TypeError("custom_network_filter must return a list of networks")
 
         def has_pending_process(network):
-            return (
-                network.async_post_grow_network_pending
-                or network.head.async_on_deploy_pending
+            return network.async_post_grow_network_pending or (
+                network.head and network.head.async_on_deploy_pending
             )
 
         networks_without_pending_processes = [
@@ -1691,7 +1690,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = networks_without_pending_processes
 
         networks_with_head_space = [
-            n for n in networks if n.n_viable_trials_at_head < self.trials_per_node
+            n
+            for n in networks
+            if n.head and n.n_viable_trials_at_head < self.trials_per_node
         ]
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
