@@ -166,6 +166,9 @@ class CustomNode(AudioImitationChainNode):
         return [mean(x) for x in zip(*new_rhythm)]
 
     def synthesize_target(self, output_file):
+        import time
+
+        time.sleep(600)
         random_seed = self.definition
         stim_onsets = make_stim_onsets_from_ioi_seed(random_seed, config.REPEATS)
         stim, stim_onset_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
@@ -256,3 +259,8 @@ class Exp(psynet.experiment.Experiment):
         img = re.search(r'img src="(.*\.png)"', trial_1_html).group(1)
         assert img is not None
         assert Asset.query.filter_by(url=img).count() == 1
+
+        trials = CustomTrial.query.filter_by(participant_id=bot.participant_id).all()
+        assert len(trials) == NUM_TRIALS_PARTICIPANT
+        for t in trials:
+            assert not t.failed
