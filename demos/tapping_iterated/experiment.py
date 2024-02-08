@@ -81,6 +81,15 @@ def as_native_type(x):
 
 class CustomTrialAnalysis(AudioImitationChainTrial):
     def analyze_recording(self, audio_file: str, output_plot: str):
+        logger.info("Analyzing recording for trial %s", self.id)
+        logger.info(
+            "self.origin.async_on_deploy_requested: %s",
+            self.origin.async_post_deploy_requested,
+        )
+        logger.info(
+            "self.origin.async_on_deploy_complete: %s",
+            self.origin.async_on_deploy_complete,
+        )
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "Participant {}".format(self.participant_id)
         output, analysis, is_failed, output_iteration = analysis_itap.do_analysis(
@@ -166,6 +175,7 @@ class CustomNode(AudioImitationChainNode):
         return [mean(x) for x in zip(*new_rhythm)]
 
     def synthesize_target(self, output_file):
+        logger.info("Synthesizing target for node %s", self.id)
         random_seed = self.definition
         stim_onsets = make_stim_onsets_from_ioi_seed(random_seed, config.REPEATS)
         stim, stim_onset_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
