@@ -3,6 +3,7 @@ import inspect
 import os
 import threading
 import time
+import warnings
 
 import dallinger.db
 import sqlalchemy
@@ -262,7 +263,12 @@ class AsyncProcess(SQLBase, SQLMixin):
                 process.fail(f"Exception in asynchronous process: {repr(err)}")
             except Exception:
                 process.failed = True
-                experiment.handle_error(err, process=process)
+                try:
+                    experiment.handle_error(err, process=process)
+                except Exception:
+                    warnings.warn(
+                        "An error occurred in an asynchronous process, but the error handling code also failed."
+                    )
 
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
