@@ -175,8 +175,6 @@ class Barrier:
         return not barrier_is_active
 
     def process_potential_releases(self):
-        db.session.commit()
-
         waiting_participants = self.get_waiting_participants(for_update=True)
         waiting_participants.sort(key=lambda p: p.id)
 
@@ -200,8 +198,6 @@ class Barrier:
 
             for participant in participants_to_release:
                 self.release(participant)
-
-        db.session.commit()
 
 
 class GroupBarrier(Barrier):
