@@ -907,6 +907,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @scheduled_task("interval", seconds=2, max_instances=1)
     @log_time_taken
     @staticmethod
+    @with_transaction
     def _grow_networks():
         exp = get_experiment()
         exp.grow_networks()
@@ -916,8 +917,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
         # cover other types of networks in the future.
         from psynet.trial.chain import ChainNetwork
-
-        db.session.commit()
 
         # This query could be further optimized by identifying which network classes are present in the table
         # and making queries specific to these. This would allow subclass-specific attributes to be loaded
@@ -936,11 +935,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 n.grow(experiment=exp)
             logger.info("Finished growing networks.")
 
-        db.session.commit()
-
     @scheduled_task("interval", seconds=1, max_instances=1)
     @log_time_taken
     @staticmethod
+    @with_transaction
     def _check_barriers():
         exp = get_experiment()
         exp.check_barriers()
@@ -948,8 +946,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def check_barriers():
         from .sync import ParticipantLinkBarrier
-
-        db.session.commit()
 
         barrier_links = (
             ParticipantLinkBarrier.query.join(Participant)
@@ -965,8 +961,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for link in barrier_links:
             barrier = link.get_barrier()
             barrier.process_potential_releases()
-
-        db.session.commit()
 
     @property
     def base_payment(self):
