@@ -1612,7 +1612,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 validation, FailedValidation
             )
             if not response.successful_validation:
-                db.session.commit()
                 return self.response_rejected(message=validation.message)
             participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
@@ -2298,7 +2297,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Experiment variable 'soft_max_experiment_payment set' set to {soft_max_experiment_payment}."
         )
-        db.session.commit()
         return success_response()
 
     @experiment_route("/debugger/<password>", methods=["GET"])
@@ -2320,7 +2318,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         node = Node.query.with_for_update(of=Node).populate_existing().get(node_id)
         node.fail(reason="http_fail_route_called")
-        db.session.commit()
         return success_response()
 
     @experiment_route("/info/<int:info_id>/fail", methods=["GET", "POST"])
@@ -2331,7 +2328,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
-        db.session.commit()
         return success_response()
 
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
@@ -2348,7 +2344,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
         trial_maker.call_grow_network(network)
-        db.session.commit()
         return success_response()
 
     @experiment_route(
@@ -2397,7 +2392,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 logger.info(
                     f"Terminating participant with RID {assignment_id} with reason '{reason}'"
                 )
-            db.session.commit()
 
         except Exception as e:
             logger.error(
@@ -2433,7 +2427,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert len(new_locale) == 2, "Locale must be a two-letter code"
         new_locale = new_locale.lower()
         participant.var.set("locale", new_locale)
-        db.session.commit()
         logger.info(
             f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
         )
@@ -2449,7 +2442,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.aborted = True
         if participant.module_state:
             participant.module_state.abort()
-        db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
 
@@ -2659,7 +2651,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         page = experiment.timeline.get_current_elt(experiment, participant)
         page.pre_render()
-        db.session.commit()
 
         return page
 
@@ -2726,7 +2717,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         metadata = get_arg_from_dict(json_data, "metadata")
         client_ip_address = cls.get_client_ip_address()
 
-        res = exp.process_response(
+        return exp.process_response(
             participant_id,
             raw_answer,
             blobs,
@@ -2734,9 +2725,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
         )
-
-        db.session.commit()
-        return res
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
