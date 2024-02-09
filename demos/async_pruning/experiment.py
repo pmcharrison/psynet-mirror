@@ -226,7 +226,7 @@ class Exp(psynet.experiment.Experiment):
         from psynet.experiment import is_experiment_launched
 
         if is_experiment_launched():
-            trials = CustomTrial.query.for_update().populate_existing().all()
+            trials = CustomTrial.query.with_for_update().populate_existing().all()
             for t in trials:
                 WorkerAsyncProcess(
                     function=t.expensive_computation,
