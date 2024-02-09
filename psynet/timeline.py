@@ -999,7 +999,6 @@ class Page(Elt):
 
         self.on_complete(experiment=experiment, participant=participant)
 
-        db.session.commit()
         return resp
 
     def _find_answer_label(self, page_label, accumulator):
@@ -1596,9 +1595,6 @@ class Timeline:
                 continue
 
             new_elt.consume(experiment, participant)
-
-            # with time_logger("advance_page commit"):
-            #     db.session.commit()
 
             if isinstance(new_elt, Page):
                 finished = True

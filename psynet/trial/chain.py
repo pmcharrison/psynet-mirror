@@ -178,7 +178,6 @@ class ChainNetwork(TrialNetwork):
     ):
         super().__init__(trial_maker_id, experiment)
         db.session.add(self)
-        # db.session.commit()
 
         if participant is not None:
             self.id_within_participant = id_within_participant
@@ -204,13 +203,9 @@ class ChainNetwork(TrialNetwork):
 
         db.session.add(start_node)
         self.add_node(start_node)
-        # db.session.commit()
         start_node.check_on_deploy()
-        # db.session.commit()
 
         self.validate()
-
-        # db.session.commit()
 
     def validate(self):
         """
@@ -1523,8 +1518,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             if node:
                 node.check_on_deploy()
 
-        db.session.commit()
-
         return networks
 
     def create_networks_across(self, experiment):
@@ -1547,12 +1540,10 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
-        db.session.commit()
 
         for node in tqdm(nodes, desc="Staging assets"):
             if node is not None:
                 node.stage_assets(experiment)
-        db.session.commit()
 
     def create_network(
         self, experiment, participant=None, id_within_participant=None, start_node=None
