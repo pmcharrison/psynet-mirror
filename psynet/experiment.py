@@ -922,7 +922,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # and making queries specific to these. This would allow subclass-specific attributes to be loaded
         # in the initial query rather than being lazily loaded.
         networks = (
-            ChainNetwork.query.filter_by(ready_to_spawn=True)
+            ChainNetwork.query.filter(
+                ChainNetwork.ready_to_spawn,
+                ChainNetwork.chain_type
+                != "within",  # participants are responsible for growing within-networks
+            )
             .with_for_update()
             .populate_existing()
             .options(joinedload(ChainNetwork.head, innerjoin=True))
