@@ -9,6 +9,7 @@ from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
+from .db import with_transaction
 from .participant import Participant
 from .timeline import EndPage, Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
@@ -169,6 +170,10 @@ class Bot(Participant):
 
         return stats
 
+    # In a real launched experiment, taking a page involves a single HTTP request that is wrapped in a transaction.
+    # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
+    # participant.
+    @with_transaction
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
 
