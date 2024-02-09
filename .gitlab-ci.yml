@@ -54,6 +54,18 @@ tests:
       "pytest -s --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
 
+# We use the -s flag in pytest to disable output capture, so that all print output is shown in the GitLab CI logs.
+# Ideally we would capture output and only print it when the test fails, but we've found that the output capture
+# misses output from background processes which makes things difficult to debug.
+# One solution to this would be to try and work out exactly what is going on with the stdout handling,
+# and why it works locally but fails on the CI. Another solution might be refactor the code to get rid of
+# the hierarchical calling of pytest, and instead run all the tests in a single pytest session.
+# The latter would require fixing some earlier experienced problems with SQLAlchemy getting confused when we try to
+# import different experiments in the same session. SQLAlchemy's confusions seem to occur when we have multiple
+# classes in different experiments with the same name, for example CustomTrial. It's not clear how we could work around
+# this, other than making sure that all the classes have distinct names, but this is a bit awkward given the large
+# number of demos.
+
 deploy_docker:
   stage: deploy
   script:
