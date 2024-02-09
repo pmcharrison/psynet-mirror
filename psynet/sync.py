@@ -529,13 +529,6 @@ class SyncGroup(SQLBase, SQLMixin):
         cascade="all",
     )
 
-    def add_participant(self, participant: Participant):
-        link = ParticipantLinkSyncGroup(
-            participant=participant,
-            sync_group=self,
-        )
-        db.session.add(link)
-
     @classmethod
     def get_active_group(
         cls,
