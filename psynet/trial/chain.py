@@ -1541,9 +1541,16 @@ class ChainTrialMaker(NetworkTrialMaker):
         for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
 
+        # We need to commit here so that the nodes get their IDs before we stage assets;
+        # node IDs are used to construct stimulus keys in some cases.
+        db.session.commit()
+
         for node in tqdm(nodes, desc="Staging assets"):
             if node is not None:
                 node.stage_assets(experiment)
+
+        # Might as well commit here also to make sure everything is good.
+        db.session.commit()
 
     def create_network(
         self, experiment, participant=None, id_within_participant=None, start_node=None
