@@ -2399,18 +2399,24 @@ class Module:
     def end(self, participant):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
         # defined a recursive module (or is reusing module ID)
-        state = (
-            self.state_class.query.filter_by(
-                module_id=self.id, participant_id=participant.id, finished=False
+        state = [
+            _state
+            for _state in participant.module_states[self.id]
+            if not _state.finished
+        ]
+
+        if len(state) == 0:
+            raise RuntimeError(
+                f"Participant had no unfinished module states with id = '{self.id}'."
             )
-            .with_for_update(of=self.state_class)
-            .populate_existing()
-            .one()
-        )
+        elif len(state) > 1:
+            raise RuntimeError(
+                f"Participant had multiple unfinished module states with id = '{self.id}'."
+            )
+
+        state = state[0]
         state.finish()
-        db.session.commit()
         participant.refresh_module_state()
-        db.session.commit()
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
