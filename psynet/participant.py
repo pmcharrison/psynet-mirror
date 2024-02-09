@@ -415,12 +415,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.total_wait_page_time = 0.0
 
         db.session.add(self)
-        db.session.commit()
 
         self.initialize(
             experiment
         )  # Hook for custom subclasses to provide further initialization
-        db.session.commit()
 
     def initialize(self, experiment):
         pass
