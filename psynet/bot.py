@@ -115,6 +115,12 @@ class Bot(Participant):
             page_time_started = time.monotonic()
 
             page = self.get_current_page()
+
+            # This commit is necessary because get_current_page can make changes to the participant
+            # (e.g. advancing them to the next page in the timeline). We need to commit so that the
+            # server (as accessed via the HTTP request) has access to this information too.
+            db.session.commit()
+
             if render_pages:
                 req = requests.get(
                     f"http://localhost:5000/timeline?unique_id={self.unique_id}"

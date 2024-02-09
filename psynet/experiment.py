@@ -2717,7 +2717,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         metadata = get_arg_from_dict(json_data, "metadata")
         client_ip_address = cls.get_client_ip_address()
 
-        return exp.process_response(
+        res = exp.process_response(
             participant_id,
             raw_answer,
             blobs,
@@ -2725,6 +2725,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
         )
+
+        return res
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
