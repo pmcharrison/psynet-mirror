@@ -109,10 +109,12 @@ class Barrier:
 
     def receive_participant(self, participant: Participant):
         link = ParticipantLinkBarrier(
-            participant=participant, barrier_id=self.id, barrier_class=self.__class__
+            participant=participant,
+            barrier_id=self.id,
+            barrier_class=self.__class__,
+            arrival_time=timenow(),
         )
-        link.arrival_time = timenow()
-        db.session.add(link)
+        participant.active_barriers[self.id] = link
 
     def get_waiting_participants(self, for_update: bool = False):
         return self.get_waiting_participants_from_barrier_id(
