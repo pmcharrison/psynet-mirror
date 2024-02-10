@@ -15,6 +15,7 @@ from dallinger.config import get_config
 from dominate import tags
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -2233,17 +2234,22 @@ class ModuleState(SQLBase, SQLMixin):
     finished = Column(Boolean, default=False)
     aborted = Column(Boolean, default=False)
 
-    assets = relationship(
-        # We see assets that belong to that module,
-        # and either belong to that participant, or belong to no other participants
-        "psynet.asset.Asset",
-        primaryjoin=(
-            "and_(foreign(ModuleState.module_id)==remote(psynet.asset.Asset.module_id), "
-            "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
-            "psynet.asset.Asset.participant_id.is_(None)))"
-        ),
-        uselist=True,
-        collection_class=attribute_mapped_collection("key_within_module"),
+    asset_links = relationship(
+        "AssetModuleState",
+        collection_class=attribute_mapped_collection("local_key"),
+        cascade="all, delete-orphan",
+    )
+
+    @staticmethod
+    def _create_asset_module_state(local_key, asset):
+        from psynet.asset import AssetModuleState
+
+        return AssetModuleState(local_key=local_key, asset=asset)
+
+    assets = association_proxy(
+        "asset_links",
+        "asset",
+        creator=lambda k, v: _create_asset_module_state(local_key=k, asset=v),  # noqa
     )
 
     nodes = relationship(
@@ -2371,7 +2377,6 @@ class Module:
             for asset in assets_to_deposit:
                 # TODO - parallelize this deposit, see code in Experiment class
                 asset.deposit()
-            db.session.commit()
 
     def nodes_register_in_db(self):
         for node in self.nodes:

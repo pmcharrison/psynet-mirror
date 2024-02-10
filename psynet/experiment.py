@@ -38,7 +38,7 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
 
@@ -449,6 +449,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         self.process_timeline()
+
+    @property
+    def global_assets(self):
+        return self.experiment_config.global_assets
 
     def translation_checks_needed(self, locales_dir):
         return (
@@ -983,14 +987,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def var(self):
-        if self.experiment_config_exists:
+        try:
             return self.experiment_config.var
-        else:
+        except sqlalchemy.orm.exc.NoResultFound:
             return ImmutableVarStore(self.variables_initial_values)
+
+    # We persist _experiment_config to avoid garbage collection and hence support database updates
+    _experiment_config = None
 
     @property
     def experiment_config(self):
-        return ExperimentConfig.query.one()
+        self._experiment_config = ExperimentConfig.query.get(1)
+        return self._experiment_config
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
@@ -1354,11 +1362,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 len(self.participant_fail_routines),
                 routine.label,
             )
-            call_function(
+            call_function_with_context(
                 routine.function,
                 participant=participant,
                 experiment=self,
-                assets=self.assets,
             )
 
     @property
@@ -2810,6 +2817,8 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+
+    global_assets = relationship("Asset")
 
 
 def _patch_dallinger_models():

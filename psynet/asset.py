@@ -306,7 +306,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     key_within_experiment = Column(String, index=True)  # , onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
 
+    is_global = Column(Integer, ForeignKey("experiment.id"), index=True)
+
     parent = deferred(Column(PythonObject))
+    module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     trial_id = Column(Integer, ForeignKey("info.id"), index=True)
     node_id = Column(Integer, ForeignKey("node.id"), index=True)
@@ -324,6 +327,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     node_definition = Column(PythonObject)
 
     async_processes = relationship("AsyncProcess")
+
+    module_state_links = relationship(
+        "AssetModuleState",
+        order_by="AssetModuleState.creation_time",
+    )
+    module_states = association_proxy("module_state_links", "module_state")
 
     participant_links = relationship(
         "AssetParticipant",
@@ -456,6 +465,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.parent:
                 self.module_id = self.parent.module_id
 
+        if self.participant:
+            if self.participant.module_state:
+                self.module_state = self.participant.module_state
+
         self.personal = personal
 
         super().__init__(
@@ -477,6 +490,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         if self.key_within_experiment is None:
             self.key_within_experiment = self.generate_key_within_experiment()
+
+        if not self.local_key and self.key_within_module:
+            self.local_key = self.key_within_module
 
         self.host_path = self.generate_host_path()
         self.export_path = self.generate_export_path()
@@ -586,7 +602,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             db.session.add(self)
 
             if self.parent:
-                _local_key = self.local_key if self.local_key else f"asset_{self.id}"
+                assert self.local_key
+                _local_key = self.local_key
                 self.parent.assets[_local_key] = self
                 self.parent.asset_deposit_pending = True
 
@@ -595,6 +612,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.node_id = ancestors["node"]
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
+
+            if not self.participant_id:
+                from .experiment import get_experiment
+
+                exp = get_experiment()
+                exp.global_assets.append(self)
 
             # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
             # which may rely on the asset being in its complete state. Any information that may be needed
@@ -700,6 +723,18 @@ class AssetLink:
     def __init__(self, local_key, asset):
         self.local_key = local_key
         self.asset = asset
+
+
+@register_table
+class AssetModuleState(AssetLink, SQLBase, SQLMixin):
+    __tablename__ = "asset_module_state"
+
+    module_state_id = Column(Integer, ForeignKey("module_state.id"), primary_key=True)
+    module_state = relationship(
+        "psynet.timeline.ModuleState", back_populates="asset_links"
+    )
+
+    asset = relationship("Asset", back_populates="module_state_links")
 
 
 @register_table

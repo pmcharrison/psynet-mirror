@@ -87,6 +87,7 @@ def call_function(function, *args, **kwargs):
 
 
 def call_function_with_context(function, *args, **kwargs):
+    from psynet.participant import Participant
     from psynet.trial.main import Trial
 
     participant = kwargs.get("participant", NoArgumentProvided)
@@ -97,10 +98,32 @@ def call_function_with_context(function, *args, **kwargs):
 
     requested = get_args(function)
 
-    if participant != NoArgumentProvided and participant.module_state:
-        if "assets" in requested and assets == NoArgumentProvided:
-            assets = participant.module_state.assets
+    if experiment == NoArgumentProvided:
+        experiment = get_experiment()
 
+    if "assets" in requested and assets == NoArgumentProvided:
+        assets = {}
+        for asset in experiment.global_assets:
+            if asset.module_id is None:
+                assets[asset.local_key] = asset
+            elif participant != NoArgumentProvided:
+                assert isinstance(participant, Participant)
+                if (
+                    participant.module_state
+                    and asset.module_id == participant.module_state.module_id
+                ):
+                    assets[asset.local_key] = asset
+
+        if participant != NoArgumentProvided:
+            assert isinstance(participant, Participant)
+
+            if participant.module_state:
+                assets = {
+                    **assets,
+                    **participant.module_state.assets,
+                }
+
+    if participant != NoArgumentProvided and participant.module_state:
         if "nodes" in requested and nodes == NoArgumentProvided:
             nodes = participant.module_state.nodes
 
