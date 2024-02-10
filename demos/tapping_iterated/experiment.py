@@ -81,15 +81,6 @@ def as_native_type(x):
 
 class CustomTrialAnalysis(AudioImitationChainTrial):
     def analyze_recording(self, audio_file: str, output_plot: str):
-        logger.info("Analyzing recording for trial %s", self.id)
-        logger.info(
-            "self.origin.async_on_deploy_requested: %s",
-            self.origin.async_post_deploy_requested,
-        )
-        logger.info(
-            "self.origin.async_on_deploy_complete: %s",
-            self.origin.async_on_deploy_complete,
-        )
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "Participant {}".format(self.participant_id)
         output, analysis, is_failed, output_iteration = analysis_itap.do_analysis(
