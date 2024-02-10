@@ -987,9 +987,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def var(self):
-        try:
+        if self.experiment_config:
             return self.experiment_config.var
-        except sqlalchemy.orm.exc.NoResultFound:
+        else:
             return ImmutableVarStore(self.variables_initial_values)
 
     # We persist _experiment_config to avoid garbage collection and hence support database updates
@@ -1031,12 +1031,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def estimated_completion_time(cls, wage_per_hour):
         return cls.timeline.estimated_completion_time(wage_per_hour)
 
-    @property
-    def experiment_config_exists(self):
-        return ExperimentConfig.query.count() > 0
-
     def setup_experiment_config(self):
-        if not self.experiment_config_exists:
+        if self.experiment_config is None:
             logger.info("Setting up ExperimentConfig.")
             network = ExperimentConfig()
             db.session.add(network)
