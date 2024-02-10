@@ -2336,11 +2336,7 @@ class AssetStorage:
         asset = db.session.merge(asset)
         self._receive_deposit(asset, host_path)
         asset.deposited = True
-
-        db.session.commit()
-
         asset.after_deposit()
-        db.session.commit()
 
         if delete_input:
             asset.delete_input()

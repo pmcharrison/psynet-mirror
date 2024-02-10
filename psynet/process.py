@@ -75,8 +75,6 @@ class AsyncProcess(SQLBase, SQLMixin):
         unique=False,
         unique_violation_raises_error=False,
     ):
-        db.session.commit()
-
         if label is None:
             label = function.__name__
 
@@ -150,7 +148,6 @@ class AsyncProcess(SQLBase, SQLMixin):
                 raise
 
         self.launch()
-        db.session.commit()
 
     def check_function(self, function):
         from .serialize import serialize, unserialize

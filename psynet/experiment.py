@@ -2780,7 +2780,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         cls.check_unique_id(participant, unique_id)
 
         participant.var.opened_devtools = True
-        db.session.commit()
 
         return success_response()
 

@@ -2850,7 +2850,6 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         )
         db.session.add(network)
         self.set_network(network)
-        db.session.commit()
 
 
 class GenericTrialNetwork(TrialNetwork):
