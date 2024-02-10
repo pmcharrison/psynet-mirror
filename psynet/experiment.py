@@ -568,12 +568,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
 
         for node in (
-            TrialNode.query.filter_by(
-                async_on_deploy_required=True, async_on_deploy_requested=False
-            )
-            .with_for_update(of=TrialNode)
-            .populate_existing()
-            .all()
+            TrialNode.query.with_for_update(of=TrialNode).populate_existing().all()
         ):
             node.check_on_deploy()
 
