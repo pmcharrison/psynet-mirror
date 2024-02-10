@@ -894,6 +894,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
+    @with_transaction
     def check_database():
         exp = get_experiment()
         for c in exp.database_checks:
@@ -901,6 +902,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
+    @with_transaction
     def run_recruiter_checks():
         exp = get_experiment()
         recruiter = exp.recruiter

@@ -801,7 +801,6 @@ class Trial(SQLMixinDallinger, Info):
             )
             db.session.add(trial)
             participant.current_trial = trial
-            db.session.commit()
 
             if assets:
                 trial.add_assets(assets)
@@ -821,7 +820,6 @@ class Trial(SQLMixinDallinger, Info):
         except NoResultFound:
             node = GenericTrialNode(module_id, experiment)
             db.session.add(node)
-            db.session.commit()
             node.check_on_deploy()
             return node
 
@@ -926,13 +924,7 @@ class Trial(SQLMixinDallinger, Info):
                     participant=participant,
                 )
 
-            db.session.commit()
-
-            logger.info(
-                "Calling check_if_can_run_async_post_trial as part of _finalize_trial."
-            )
             trial.check_if_can_run_async_post_trial()
-
             trial.check_if_can_mark_as_finalized()
 
         return CodeBlock(f)
@@ -1362,7 +1354,6 @@ class TrialMaker(Module):
         # pylint: disable=no-member
         self.check_old_trials()
         WorkerAsyncProcess.check_timeouts()
-        db.session.commit()
 
     def selected_recruit_criterion(self, experiment):
         if self.recruit_mode not in self.recruit_criteria:
@@ -1531,7 +1522,6 @@ class TrialMaker(Module):
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
             trial.fail(reason="response_timeout")
-        db.session.commit()
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -1801,7 +1791,6 @@ class TrialMaker(Module):
             )
             participant.module_state.repeat_trial_index += 1
             db.session.add(trial)
-            # db.session.commit()
         except IndexError:
             trial = None
             trial_status = "exit"
@@ -2312,7 +2301,6 @@ class NetworkTrialMaker(TrialMaker):
         trial._initial_assets = dict(trial.assets)
         db.session.add(trial)
         participant.module_state.n_created_trials += 1
-        db.session.commit()
         return trial
 
     def call_grow_network(self, network):
@@ -2324,7 +2312,6 @@ class NetworkTrialMaker(TrialMaker):
         assert isinstance(grown, bool)
         if grown:
             self._check_run_async_post_grow_network(network)
-            db.session.commit()
 
     def _check_run_async_post_grow_network(self, network):
         if (
@@ -2615,8 +2602,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
-        db.session.commit()
-        self.full = len(self.alive_nodes) > (self.max_size or 0)
+        raise RuntimeError("This should not be called directly.")
 
     def add_node(self, node):
         """
