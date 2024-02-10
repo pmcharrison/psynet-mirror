@@ -616,7 +616,6 @@ class Trial(SQLMixinDallinger, Info):
             asset.receive_node_definition(self.definition)
             if not asset.deposited:
                 asset.deposit()
-        db.session.commit()
 
     def show_trial(self, experiment, participant):
         """
@@ -682,8 +681,6 @@ class Trial(SQLMixinDallinger, Info):
         return raw_answer
 
     def call_async_post_trial(self):
-        dallinger.experiment.load()
-        db.session.commit()
         try:
             self.async_post_trial()
         except Exception:
@@ -722,12 +719,10 @@ class Trial(SQLMixinDallinger, Info):
             )
         else:
             self.finalized = True
-            db.session.commit()
             self.on_finalized()
 
     def check_if_can_run_async_post_trial(self):
         logger.info("Checking if can run async_post_trial.")
-        db.session.commit()
         if self.run_async_post_trial is not None and not self.run_async_post_trial:
             logger.info(
                 "run_async_post_trial is False, so we won't run async_post_trial."
@@ -758,8 +753,6 @@ class Trial(SQLMixinDallinger, Info):
     def on_finalized(self):
         self.score = self.score_answer(answer=self.answer, definition=self.definition)
         self._allocate_performance_reward()
-
-        db.session.commit()
 
     @classmethod
     def cue(cls, definition, assets=None):
