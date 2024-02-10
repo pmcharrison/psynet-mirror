@@ -2218,6 +2218,7 @@ class ModuleState(SQLBase, SQLMixin):
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
         backref=backref("_module_states", post_update=True, lazy="selectin"),
+        post_update=True,
     )
     # current_trial = Column(
     #     PythonObject
