@@ -429,6 +429,7 @@ class Trial(SQLMixinDallinger, Info):
         self.time_taken = None
         self.trial_maker_id = node.trial_maker_id
         self.module_state = participant.module_state
+        self.vars = {}
 
         self.async_post_trial_required = is_method_overridden(
             self, Trial, "async_post_trial"
