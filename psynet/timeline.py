@@ -2391,7 +2391,6 @@ class Module:
 
     def start(self, participant):
         participant.start_module(self)
-        db.session.commit()
 
     def end(self, participant):
         participant.end_module(self)

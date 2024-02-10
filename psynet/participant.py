@@ -377,7 +377,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def start_module(self, module):
         state = module.state_class(module, self)
         state.start()
-        self._module_states.append(state)
         self.module_state = state
 
     def end_module(self, module):
