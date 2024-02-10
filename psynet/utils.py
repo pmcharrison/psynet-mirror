@@ -125,7 +125,13 @@ def call_function_with_context(function, *args, **kwargs):
 
     if participant != NoArgumentProvided and participant.module_state:
         if "nodes" in requested and nodes == NoArgumentProvided:
-            nodes = participant.module_state.nodes
+            nodes = []
+            for node in experiment.global_nodes:
+                if node.module_id is None:
+                    nodes.append(node)
+                elif node.module_id == participant.module_state.module_id:
+                    nodes.append(node)
+            nodes += participant.module_state.nodes
 
     if "trial_maker" in requested and trial_maker == NoArgumentProvided:
         if (

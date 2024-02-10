@@ -2705,6 +2705,10 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     trial_maker_id = Column(String, index=True)
     module_id = Column(String, index=True)
+    module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)
+    is_global = Column(Integer, ForeignKey("experiment.id"), index=True)
+
+    on_deploy_complete = Column(Boolean, default=False, index=True)
 
     async_on_deploy_required = Column(Boolean, default=False, index=True)
     async_on_deploy_requested = Column(Boolean, default=False, index=True)
@@ -2731,6 +2735,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     #     back_populates="all_nodes",
     # )
 
+    module_state = relationship("ModuleState")
     async_processes = relationship("AsyncProcess")
 
     asset_links = relationship(
@@ -2788,7 +2793,9 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         if participant is not None:
             self.participant = participant
             self.participant_id = participant.id
+            self.module_state = participant.module_state
 
+        self.on_deploy_complete = False
         self.async_on_deploy_required = is_method_overridden(
             self, TrialNode, "async_on_deploy"
         )
@@ -2797,7 +2804,14 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         self.async_on_deploy_failed = False
 
     def check_on_deploy(self):
-        from psynet.experiment import in_deployment_package
+        from psynet.experiment import get_experiment, in_deployment_package
+
+        if self.on_deploy_complete:
+            return
+
+        exp = get_experiment()
+        if self not in exp.global_nodes:
+            exp.global_nodes.append(self)
 
         if (
             in_deployment_package()
@@ -2805,6 +2819,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             and not (self.async_on_deploy_requested or self.async_on_deploy_complete)
         ):
             self.queue_async_on_deploy()
+
+        self.on_deploy_complete = True
 
     def queue_async_on_deploy(self):
         if is_method_overridden(self, TrialNode, "async_on_deploy"):

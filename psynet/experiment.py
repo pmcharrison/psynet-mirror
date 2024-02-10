@@ -454,6 +454,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def global_assets(self):
         return self.experiment_config.global_assets
 
+    @property
+    def global_nodes(self):
+        return self.experiment_config.global_nodes
+
     def translation_checks_needed(self, locales_dir):
         return (
             os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
@@ -2815,6 +2819,7 @@ class ExperimentConfig(SQLBase, SQLMixin):
     time_of_death = None
 
     global_assets = relationship("Asset")
+    global_nodes = relationship("psynet.trial.main.TrialNode")
 
 
 def _patch_dallinger_models():
