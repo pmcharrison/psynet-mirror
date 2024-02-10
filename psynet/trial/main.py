@@ -992,8 +992,13 @@ class TrialMakerState(ModuleState):
     performance_check = Column(PythonDict)
     trials_to_repeat = Column(PythonObject)
     repeat_trial_index = Column(Integer)
-    n_created_trials = Column(Integer, default=0, server_default="0")
-    n_completed_trials = Column(Integer, default=0, server_default="0")
+    n_created_trials = Column(Integer)
+    n_completed_trials = Column(Integer)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_created_trials = 0
+        self.n_completed_trials = 0
 
 
 class TrialMaker(Module):
@@ -2679,25 +2684,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
         self.async_post_grow_network_complete = True
 
 
-# This column_property has to be defined outside the class main definition because of a quirk with
-# SQLAlchemy. From the documentation:
-#
-# > If import issues prevent the column_property() from being defined inline with the class, it can be assigned to the
-# > class after both are configured. When using mappings that make use of a declarative_base() base class,
-# > this attribute assignment has the effect of calling Mapper.add_property() to add an additional property after the
-# > fact.
-TrialMakerState.n_completed_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.module_state_id == TrialMakerState.id,
-        Trial.complete,
-        ~Trial.is_repeat_trial,
-        ~Trial.failed,
-    )
-    .scalar_subquery()
-)
-
-
 class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
@@ -2806,31 +2792,28 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def check_on_deploy(self):
         from psynet.experiment import get_experiment, in_deployment_package
 
-        if self.on_deploy_complete:
+        if not in_deployment_package() or self.on_deploy_complete:
             return
 
         exp = get_experiment()
         if self not in exp.global_nodes:
             exp.global_nodes.append(self)
 
-        if (
-            in_deployment_package()
-            and self.async_on_deploy_required
-            and not (self.async_on_deploy_requested or self.async_on_deploy_complete)
+        if self.async_on_deploy_required and not (
+            self.async_on_deploy_requested or self.async_on_deploy_complete
         ):
             self.queue_async_on_deploy()
 
         self.on_deploy_complete = True
 
     def queue_async_on_deploy(self):
-        if is_method_overridden(self, TrialNode, "async_on_deploy"):
-            WorkerAsyncProcess(
-                function=self.call_async_on_deploy,
-                node=self,
-                timeout=self.trial_maker.async_timeout_sec,
-                unique=True,
-            )
-            self.async_on_deploy_requested = True
+        WorkerAsyncProcess(
+            function=self.call_async_on_deploy,
+            node=self,
+            timeout=self.trial_maker.async_timeout_sec,
+            unique=True,
+        )
+        self.async_on_deploy_requested = True
 
     def call_async_on_deploy(self):
         try:
