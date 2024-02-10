@@ -359,17 +359,29 @@ class ChainNetwork(TrialNetwork):
         else:
             return self.target_n_trials - self.n_completed_trials
 
-    # @hybrid_property
-    # def ready_to_spawn(self):
-    #     return self.head.ready_to_spawn
-    #
-    # @ready_to_spawn.expression
-    # def ready_to_spawn(cls):
-    #     return (
-    #         select(ChainNode.ready_to_spawn)
-    #         .where(ChainNode.id == cls.head_id)
-    #         .scalar_subquery()
-    #     )
+    @hybrid_property
+    def ready_to_spawn(self):
+        return self.head.ready_to_spawn
+
+    @ready_to_spawn.expression
+    def ready_to_spawn(cls):
+        return (
+            select(ChainNode.ready_to_spawn)
+            .where(ChainNode.id == cls.head_id)
+            .scalar_subquery()
+        )
+
+    @hybrid_property
+    def n_viable_trials_at_head(self):
+        return self.head.n_viable_trials
+
+    @n_viable_trials_at_head.expression
+    def n_viable_trials_at_head(cls):
+        return (
+            select(ChainNode.n_viable_trials)
+            .where(ChainNode.id == cls.head_id)
+            .scalar_subquery()
+        )
 
 
 class ChainNode(TrialNode):
@@ -693,23 +705,23 @@ class ChainNode(TrialNode):
             if (t.complete and t.finalized and not t.is_repeat_trial)
         ]
 
-    n_completed_and_processed_trials = column_property(
-        select(func.count(Trial.id))
-        .where(
-            Trial.node_id == TrialNode.id,
-            Trial.complete,
-            Trial.finalized,
-            ~Trial.failed,
-            ~Trial.is_repeat_trial,
-        )
-        .scalar_subquery()
-    )
+    @hybrid_property
+    def n_completed_and_processed_trials(self):
+        return len(self.completed_and_processed_trials)
 
-    # column_property(
-    #     # select(Trial.node_id, Trial.complete, Trial.finalized, Trial.is_repeat_trial)
-    #     select(func.count(Trial.id))
-    #     .where(Trial.node_id == TrialNode.id, Trial.complete, Trial.finalized, ~ Trial.is_repeat_trial)
-    # )
+    @n_completed_and_processed_trials.expression
+    def n_completed_and_processed_trials(cls):
+        return (
+            select(func.count(Trial.id))
+            .where(
+                Trial.node_id == TrialNode.id,
+                Trial.complete,
+                Trial.finalized,
+                ~Trial.failed,
+                ~Trial.is_repeat_trial,
+            )
+            .scalar_subquery()
+        )
 
     @hybrid_property
     def reached_target_n_trials(self):
@@ -730,9 +742,6 @@ class ChainNode(TrialNode):
     @property
     def viable_trials(self):
         return [t for t in self.alive_trials if not t.is_repeat_trial]
-
-    # def reached_target_n_trials(self):
-    #     return len(self.completed_and_processed_trials) >= self.target_n_trials
 
     def fail(self, reason=None):
         if self.network.head == self:
@@ -774,18 +783,6 @@ TrialNode.n_viable_trials = column_property(
         ~Trial.is_repeat_trial,
         ~Trial.failed,
     )
-    .scalar_subquery()
-)
-
-ChainNetwork.ready_to_spawn = column_property(
-    select(ChainNode.ready_to_spawn)
-    .where(ChainNode.id == ChainNetwork.head_id)
-    .scalar_subquery()
-)
-
-ChainNetwork.n_viable_trials_at_head = column_property(
-    select(TrialNode.n_viable_trials)
-    .where(TrialNode.id == ChainNetwork.head_id)
     .scalar_subquery()
 )
 
