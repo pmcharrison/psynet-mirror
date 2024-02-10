@@ -77,8 +77,10 @@ def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     return f"{trial_maker_id}__{x}"
 
 
-# Patch the missing foreign_keys argument for the Info.origin relationship
-Info.origin = relationship("dallinger.models.Node", foreign_keys=[Info.origin_id])
+# Patch the relationship from Dallinger
+Info.origin = relationship(
+    "dallinger.models.Node", foreign_keys=[Info.origin_id], post_update=True
+)
 
 
 class Trial(SQLMixinDallinger, Info):
@@ -300,7 +302,10 @@ class Trial(SQLMixinDallinger, Info):
     )
 
     node = relationship(
-        "TrialNode", foreign_keys=[node_id], back_populates="all_trials"
+        "TrialNode",
+        foreign_keys=[node_id],
+        back_populates="all_trials",
+        post_update=True,
     )
     participant = relationship(
         "psynet.participant.Participant",
@@ -2531,7 +2536,9 @@ class TrialNetwork(SQLMixinDallinger, Network):
     participant_group = Column(String)
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
-    participant = relationship(Participant, foreign_keys=[participant_id])
+    participant = relationship(
+        Participant, foreign_keys=[participant_id], post_update=True
+    )
 
     async_post_grow_network_required = Column(Boolean, default=False, index=True)
     async_post_grow_network_requested = Column(Boolean, default=False, index=True)
