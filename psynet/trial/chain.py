@@ -1572,7 +1572,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         start_node.set_network(network)
-        # db.session.commit()  # TODO - remove this for efficiency?
         return network
 
     @log_time_taken
@@ -1592,7 +1591,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         """
         participant.module_state  # type: ChainTrialMakerState
 
-        db.session.commit()
         logger.info(
             "Looking for networks for participant %i.",
             participant.id,
