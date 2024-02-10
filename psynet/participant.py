@@ -374,6 +374,32 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if log.finished
         ]
 
+    def start_module(self, module):
+        state = module.state_class(module, self)
+        state.start()
+        self._module_states.append(state)
+        self.module_state = state
+
+    def end_module(self, module):
+        # This should only fail (delivering multiple logs) if the experimenter has perversely
+        # defined a recursive module (or is reusing module ID)
+        state = [
+            _state for _state in self.module_states[module.id] if not _state.finished
+        ]
+
+        if len(state) == 0:
+            raise RuntimeError(
+                f"Participant had no unfinished module states with id = '{module.id}'."
+            )
+        elif len(state) > 1:
+            raise RuntimeError(
+                f"Participant had multiple unfinished module states with id = '{module.id}'."
+            )
+
+        state = state[0]
+        state.finish()
+        self.refresh_module_state()
+
     def refresh_module_state(self):
         if len(self._module_states) == 0:
             self.module_state = None
