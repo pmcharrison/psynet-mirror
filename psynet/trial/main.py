@@ -508,9 +508,6 @@ class Trial(SQLMixinDallinger, Info):
             self.add_asset(local_key, asset)
 
     def add_asset(self, local_key, asset):
-        db.session.add(self)
-        db.session.commit()
-
         if not asset.parent:
             asset.parent = self
 
@@ -518,11 +515,7 @@ class Trial(SQLMixinDallinger, Info):
         asset.local_key = local_key
         asset.set_keys()
 
-        db.session.add(asset)
-
         self.assets[local_key] = asset
-
-        db.session.commit()
 
         if not asset.deposited:
             asset.deposit()
