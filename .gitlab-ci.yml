@@ -45,27 +45,31 @@ tests:
   parallel: 10
   stage: test
   script:
+    # We use the -s flag in pytest to disable output capture, so that all print output is shown in the GitLab CI logs.
+    # Ideally we would capture output and only print it when the test fails, but we've found that the output capture
+    # misses output from background processes which makes things difficult to debug.
+    # One solution to this would be to try and work out exactly what is going on with the stdout handling,
+    # and why it works locally but fails on the CI. Another solution might be refactor the code to get rid of
+    # the hierarchical calling of pytest, and instead run all the tests in a single pytest session.
+    # The latter would require fixing some earlier experienced problems with SQLAlchemy getting confused when we try to
+    # import different experiments in the same session. SQLAlchemy's confusions seem to occur when we have multiple
+    # classes in different experiments with the same name, for example CustomTrial. It's not clear how we could work around
+    # this, other than making sure that all the classes have distinct names, but this is a bit awkward given the large
+    # number of demos.
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
+      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY -v "$PWD/public:/public"
       $DOCKER_LOCAL_TAG bash -c
-      "pytest -s --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
+      "pytest -s --junitxml=/public/junit.xml --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
       --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
-
-# We use the -s flag in pytest to disable output capture, so that all print output is shown in the GitLab CI logs.
-# Ideally we would capture output and only print it when the test fails, but we've found that the output capture
-# misses output from background processes which makes things difficult to debug.
-# One solution to this would be to try and work out exactly what is going on with the stdout handling,
-# and why it works locally but fails on the CI. Another solution might be refactor the code to get rid of
-# the hierarchical calling of pytest, and instead run all the tests in a single pytest session.
-# The latter would require fixing some earlier experienced problems with SQLAlchemy getting confused when we try to
-# import different experiments in the same session. SQLAlchemy's confusions seem to occur when we have multiple
-# classes in different experiments with the same name, for example CustomTrial. It's not clear how we could work around
-# this, other than making sure that all the classes have distinct names, but this is a bit awkward given the large
-# number of demos.
-
+    # The docker containers are running in a different host, where the directory $PWD/public
+    # now contains the file we're interested in. We cat it to take it out of its container.
+    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c 'cat /public/junit.xml' > junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
 deploy_docker:
   stage: deploy
   script:
@@ -94,3 +98,61 @@ pages:
     - public
   only:
     - master
+
+
+pg_badger:
+  image: python:3.11.6
+  services:
+    - docker:25.0.2-dind
+    - redis:latest
+  cache:
+      key: "$CI_BUILD_REF_NAME"
+      paths:
+      - venv/
+  before_script:
+    - echo Install Heroku CLI and docker
+    - curl https://cli-assets.heroku.com/install.sh | sh
+    - curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xzf - -C /usr/local
+    - ln -s /usr/local/docker/docker /usr/local/bin/
+    - echo "Starting postgresql server with aggressive logging enabled (via docker)"
+    - docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:12 postgres -c log_statement=all -c log_min_messages=DEBUG1 -c log_duration=on
+    - echo Create a virtualenv and install psynet there
+    - pip install --upgrade pip virtualenv
+    - virtualenv venv -ppython3
+    - . venv/bin/activate
+    - pip install -e .[dev] pytest
+    - |
+      until docker exec -i dallinger_postgres pg_isready; do
+        echo "Waiting for PostgreSQL to become ready..."
+        sleep 1
+      done
+  script:
+    - cd "demos/$TEST_NAME"
+    - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local > /dev/null
+  after_script:
+    - mkdir public
+    - docker logs dallinger_postgres 2> public/postgresql.log > /dev/null
+    - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v12.4.tar.gz | tar xzf - -C /usr/local
+    - (cd /usr/local/pgbadger-*; perl Makefile.PL; make; make install; cpan JSON::XS)
+    - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.html
+    - cp /tmp/pgbadger.html "public/${TEST_NAME//\//_}.html"
+    - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.txt
+    - cat /tmp/pgbadger.txt
+    - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.json
+    - cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/
+    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+    reports:
+      junit: public/junit.xml
+  environment:
+      name: PgBadger-$CI_COMMIT_BRANCH-$TEST_NAME
+      url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/$TEST_NAME.html"
+  variables:
+      PUBLIC_URL: "/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public"
+      TEST_NAME: rock_paper_scissors
+  parallel:
+    matrix:
+      - TEST_NAME: ["rock_paper_scissors", "create_and_rate/basic", "accumulate_answers", "api", "assets"]
