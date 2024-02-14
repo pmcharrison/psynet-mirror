@@ -256,9 +256,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
-        self.lucidservice = get_lucid_service(
-            self.config, json.loads(self.config.get("lucid_recruitment_config"))
-        )
+        recruitment_config = json.loads(self.config.get("lucid_recruitment_config"))
+
+        self.lucidservice = get_lucid_service(self.config, recruitment_config)
         self.store = kwargs.get("store", RedisStore())
 
     @classmethod
@@ -444,10 +444,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         experiment = get_experiment()
         wage_per_hour = get_and_load_config().get("wage_per_hour")
+        estimated_duration = experiment.estimated_completion_time(wage_per_hour)
         create_survey_request_params = {
-            "bid_length_of_interview": ceil(
-                experiment.estimated_completion_time(wage_per_hour) / 60
-            ),
+            "bid_length_of_interview": ceil(estimated_duration / 60),
             "live_url": self.ad_url.replace("http://", "https://"),
             "name": self.config.get("title"),
             "quota": n,
@@ -456,6 +455,11 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 2,
             ),
         }
+
+        if "termination_time_in_s" not in self.lucidservice.recruitment_config:
+            self.lucidservice.recruitment_config["termination_time_in_s"] = (
+                estimated_duration * 3
+            )
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_number(survey_info["SurveyNumber"])
@@ -997,20 +1001,14 @@ def get_lucid_settings(
     with open(lucid_recruitment_config_path, "r") as f:
         lucid_recruitment_config = json.load(f)
 
-    if termination_time_in_s is None:
-        from .experiment import get_and_load_config, get_experiment
-
-        experiment = get_experiment()
-        config = get_and_load_config()
-        wage_per_hour = config.get("wage_per_hour")
-        estimated_time = experiment.estimated_completion_time(wage_per_hour)
-        termination_time_in_s = estimated_time * 3
+    if termination_time_in_s is not None:
+        lucid_recruitment_config["termination_time_in_s"] = termination_time_in_s
 
     lucid_recruitment_config["survey"]["BidIncidence"] = bid_incidence
     lucid_recruitment_config["survey"]["CollectsPII"] = collects_pii
     lucid_recruitment_config["inactivity_timeout_in_s"] = inactivity_timeout_in_s
     lucid_recruitment_config["no_focus_timeout_in_s"] = no_focus_timeout_in_s
-    lucid_recruitment_config["termination_time_in_s"] = termination_time_in_s
+
     lucid_recruitment_config[
         "aggressive_no_focus_timeout_in_s"
     ] = aggressive_no_focus_timeout_in_s
