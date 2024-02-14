@@ -27,6 +27,7 @@ class LucidService(object):
         exp_config,
         recruitment_config,
         max_wait_secs=0,
+        default_locale="eng_gb",
     ):
         self.api_key = api_key
         self.sha1_hashing_key = sha1_hashing_key
@@ -38,6 +39,7 @@ class LucidService(object):
             "Authorization": api_key,
             "Accept": "text/plain",
         }
+        self.default_locale = default_locale
 
     @property
     def request_base_url_v1(self):
