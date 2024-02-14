@@ -803,12 +803,6 @@ class Page(Elt):
         self.session_id = session_id
         self.save_answer = save_answer
         self.start_trial_automatically = start_trial_automatically
-        if show_termination_button is None:
-            from .experiment import get_experiment
-            from .recruiters import LucidRecruiter
-
-            exp = get_experiment()
-            show_termination_button = isinstance(exp.recruiter, LucidRecruiter)
         self.show_termination_button = show_termination_button
         self.aggressive_termination_on_no_focus = aggressive_termination_on_no_focus
 
