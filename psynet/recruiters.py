@@ -94,7 +94,6 @@ class BaseCapRecruiter(PsyNetRecruiter):
 
 
 class CapRecruiter(BaseCapRecruiter):
-
     """
     The production cap-recruiter.
 
@@ -105,7 +104,6 @@ class CapRecruiter(BaseCapRecruiter):
 
 
 class StagingCapRecruiter(BaseCapRecruiter):
-
     """
     The staging cap-recruiter.
 
@@ -116,7 +114,6 @@ class StagingCapRecruiter(BaseCapRecruiter):
 
 
 class DevCapRecruiter(BaseCapRecruiter):
-
     """
     The development cap-recruiter.
 
@@ -150,12 +147,33 @@ class LucidRID(SQLBase, SQLMixin):
     # Lucid fields
     lucid_status = Column(String)
     lucid_status_code = Column(Integer)
-    lucid_entry_date = Column(DateTime)
     lucid_fulcrum_status = Column(Integer)
+    lucid_market_place_code = Column(String)
+    lucid_entry_date = Column(DateTime)
     lucid_last_date = Column(DateTime)
     lucid_panelist_id = Column(String)
     lucid_respondent_id = Column(String)
     lucid_supplier_id = Column(Integer)
+
+    # to dict
+    def to_dict(self):
+        return {
+            "rid": self.rid,
+            "registered_at": self.registered_at,
+            "updated_at": self.updated_at,
+            "completed_at": self.completed_at,
+            "terminated_at": self.terminated_at,
+            "termination_reason": self.termination_reason,
+            "termination_details": self.termination_details,
+            "lucid_status": self.lucid_status,
+            "lucid_status_code": self.lucid_status_code,
+            "lucid_entry_date": self.lucid_entry_date,
+            "lucid_fulcrum_status": self.lucid_fulcrum_status,
+            "lucid_last_date": self.lucid_last_date,
+            "lucid_panelist_id": self.lucid_panelist_id,
+            "lucid_respondent_id": self.lucid_respondent_id,
+            "lucid_supplier_id": self.lucid_supplier_id,
+        }
 
 
 class LucidRecruiterException(Exception):
@@ -163,6 +181,61 @@ class LucidRecruiterException(Exception):
 
 
 class BaseLucidRecruiter(PsyNetRecruiter):
+    PRESCREENED = "Marketplace codes"
+    COMPLETED = "Returned as Complete"
+    TERMINATED = "Returned as Terminate"
+    UNRETURNED = "Currently in Client Survey or Drop"
+    client_codes = {
+        1: UNRETURNED,
+        20: TERMINATED,
+        10: COMPLETED,
+        -1: PRESCREENED,
+    }
+
+    marketplace_codes = {
+        -6: "Sent to Marketplace Intermediate",
+        -5: "Sent to External Intermediate",
+        -1: "Error",
+        1: "In Screener",
+        3: "In Client Survey",
+        21: "Industry Lockout",
+        23: "Standard Qualification",
+        24: "Custom Qualification",
+        120: "Pre-Client Survey Opt Out",
+        122: "Return to Marketplace Opt Out",
+        123: "Max Client Survey Entries",
+        124: "Max Time in Router",
+        125: "Max Time in Router Warning Opt Out",
+        126: "Max Answer Limit",
+        30: "Quality Term: Unique IP",
+        31: "Quality Term: RelevantID Duplicate",
+        32: "Quality Term: Invalid Traffic",
+        35: "Quality Term: Supplier PID Duplicate",
+        36: "Quality Term: Cookie Duplicate",
+        37: "Quality Term: GEO IP Mismatch",
+        38: "Quality Term: RelevantID** Fraud Profile",
+        131: "Quality Term: Supplier Encryption Failure",
+        132: "Quality Term: Blocked PID",
+        133: "Quality Term: Blocked IP",
+        134: "Quality Term: Max Completes per Day Terminate",
+        138: "Quality Term: Survey Group Cookie Duplicate",
+        139: "Quality Term: Survey Group Supplier PID Duplicate",
+        230: "Quality Term: Survey Group Unique IP",
+        234: "OFAC Term: Blocked Country IP",
+        236: "Privacy Term: No Privacy Consent",
+        237: "Privacy Term: Minimum Age",
+        238: "Quality Term: Found on Deny List",
+        240: "Quality Term: Invalid Browser",
+        241: "Quality Term: Respondent Threshold Limit",
+        242: "Quality Term: Respondent Quality Score",
+        243: "Quality Term: Marketplace Signature Check",
+        40: "Overquota: Quota Full",
+        41: "Overquota: Supplier Allocation",
+        42: "Overquota: Survey Closed for Entry",
+        50: "Financial Term: CPI Below Supplier’s Rate Card",
+        98: "Exit: End of Router",
+    }
+
     """
     The LucidRecruiter base class
     """
@@ -190,23 +263,46 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         )
         self.store = kwargs.get("store", RedisStore())
 
+    @classmethod
+    def get_recruiter_metrics(cls, respondents):
+        PRESCREENED_CODE = cls.PRESCREENED  # noqa: F841
+        COMPLETED_CODE = cls.COMPLETED  # noqa: F841
+        UNRETURNED_CODE = cls.UNRETURNED  # noqa: F841
+        prescreens = respondents.query("status != @PRESCREENED_CODE")
+        completes = respondents.query("status == @COMPLETED_CODE")
+        drop_off = respondents.query("status == @UNRETURNED_CODE")
+        drop_off_rate = len(drop_off) / len(prescreens)
+        conversion_rate = len(completes) / len(prescreens)
+
+        pattern = (
+            "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification"
+        )
+        returned_because_of_qualifications = respondents.market_place_code.str.contains(
+            pattern, regex=True
+        ).sum()
+
+        incidence_rate = len(completes) / (
+            len(completes) + returned_because_of_qualifications
+        )
+        return {
+            "drop_off_rate": drop_off_rate,
+            "conversion_rate": conversion_rate,
+            "incidence_rate": incidence_rate,
+            "n_entrants": len(respondents),
+            "n_prescreens": len(prescreens),
+            "n_completes": len(completes),
+        }
+
     def run_checks(self):
-        logger.info("Running Lucid checks")
         logger.info("Polling Lucid API to count respondents")
         survey_number = self.current_survey_number()
         respondents = pd.DataFrame(self.lucidservice.get_respondents(survey_number))
-        PRESCREENED = "Marketplace codes"
-        COMPLETES = "Returned as Complete"
-        TERMINATED = "Returned as Terminate"
-        UNRETURNED = "Currently in Client Survey or Drop"
-        code2status = {
-            1: UNRETURNED,
-            20: TERMINATED,
-            10: COMPLETES,
-            -1: PRESCREENED,
-        }
+
         respondents["status"] = respondents.client_status.apply(
-            lambda x: code2status.get(x, "Unknown")
+            lambda x: self.client_codes.get(x, "Unknown")
+        )
+        respondents["market_place_code"] = respondents.fulcrum_status.apply(
+            lambda x: self.marketplace_codes.get(x, "Unknown")
         )
 
         all_entrants = LucidRID.query.all()
@@ -216,16 +312,17 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             if row.respondent_id in entrants_dict:
                 entrant = entrants_dict[row.respondent_id]
                 changed = False
-                if entrant.lucid_status != row.status:
-                    entrant.lucid_status = row.status
-                    changed = True
-                if entrant.lucid_status_code != row.client_status:
-                    entrant.lucid_status_code = row.client_status
-                    changed = True
-                if entrant.lucid_last_date != row.last_date:
-                    entrant.lucid_last_date = row.last_date
-                    changed = True
-
+                fields_to_update = {
+                    "lucid_status": "status",
+                    "lucid_status_code": "client_status",
+                    "lucid_fulcrum_status": "fulcrum_status",
+                    "lucid_market_place_code": "market_place_code",
+                    "lucid_last_date": "last_date",
+                }
+                for field, api_field in fields_to_update.items():
+                    if getattr(entrant, field) != row[api_field]:
+                        setattr(entrant, field, row[api_field])
+                        changed = True
                 if changed:
                     db.session.add(entrant)
             else:
@@ -233,8 +330,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                     rid=row.respondent_id,
                     lucid_status=row.status,
                     lucid_status_code=row.client_status,
-                    lucid_entry_date=row.entry_date,
                     lucid_fulcrum_status=row.fulcrum_status,
+                    lucid_market_place_code=row.market_place_code,
+                    lucid_entry_date=row.entry_date,
                     lucid_last_date=row.last_date,
                     lucid_panelist_id=row.panelist_id,
                     lucid_respondent_id=row.respondent_id,
@@ -243,16 +341,13 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 db.session.add(entrant)
         db.session.commit()
 
-        prescreens = respondents.query("status != @PRESCREENED")
-        completes = respondents.query("status == @COMPLETES")
+        metrics = self.get_recruiter_metrics(respondents)
         logger.info(
-            f"Found {len(respondents)} entrants, {len(prescreens)} prescreens, {len(completes)} completes"
+            f"Found {metrics['n_entrants']} entrants, {metrics['n_prescreens']} prescreens, {metrics['n_completes']} completes"
         )
-        drop_off = respondents.query("status == @UNRETURNED")
-        drop_off_rate = len(drop_off) / len(prescreens)
-        conversion_rate = len(completes) / len(prescreens)
-        logger.info(f"Drop off rate: {drop_off_rate:.2%}")
-        logger.info(f"Conversion rate: {conversion_rate:.2%}")
+
+        logger.info(f"Drop off rate: {metrics['drop_off_rate']:.2%}")
+        logger.info(f"Conversion rate: {metrics['conversion_rate']:.2%}")
 
         unfailed_entrants = LucidRID.query.filter_by(
             terminated_at=None, completed_at=None
@@ -266,8 +361,13 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 + timedelta(minutes=self.initial_response_within_s)
                 > now
             ):
+                # skip entrants that have not been registered long enough
                 continue
-            if entrant.completed_at is not None or entrant.terminated_at is not None:
+            if entrant.completed_at is not None:
+                # skip completed entrants
+                continue
+            if entrant.terminated_at is not None:
+                # skip terminated entrants
                 continue
 
             reason = None
@@ -280,17 +380,17 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                     .all()
                 )
                 if len(responses) == 0:
-                    reason = f"Did not receive first response within {self.initial_response_within_s//60} minutes"
+                    reason = f"Did not receive first response within {self.initial_response_within_s // 60} minutes"
                     details = f"Participant {participant.id} did not accept the consent"
-                else:
-                    last_response = responses[-1]
-                    if now > last_response.creation_time + timedelta(
-                        minutes=self.max_response_time_in_s
-                    ):
-                        reason = (
-                            f"No response {self.max_response_time_in_s//60} minutes"
-                        )
-                        details = f"Participant {participant.id} had {len(responses)} responses"
+                # else:
+                #     last_response = responses[-1]
+                #     if now > last_response.creation_time + timedelta(
+                #         minutes=self.max_response_time_in_s
+                #     ):
+                #         reason = (
+                #             f"No response {self.max_response_time_in_s//60} minutes"
+                #         )
+                #         details = f"Participant {participant.id} had {len(responses)} responses"
 
             except sqlalchemy.orm.exc.NoResultFound:
                 reason = "Never entered the experiment"
