@@ -26,7 +26,8 @@ from sqlalchemy.sql import func
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
-from .lucid import LucidService
+from .log import bold, red
+from .lucid import get_lucid_service
 from .participant import Participant
 from .timeline import Response
 from .utils import get_logger, render_template_with_translations
@@ -255,11 +256,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
-        self.lucidservice = LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            exp_config=self.config,
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
+        self.lucidservice = get_lucid_service(
+            self.config, json.loads(self.config.get("lucid_recruitment_config"))
         )
         self.store = kwargs.get("store", RedisStore())
 
@@ -696,6 +694,337 @@ class LucidRecruiter(BaseLucidRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
+
+
+def get_lucid_country_language_id(country_tag, language_tag, service=None):
+    assert len(country_tag) == 2, "Country tag must be 2 characters long."
+    assert country_tag.isupper(), "Country tag must be uppercase."
+    assert len(language_tag) == 3, "Language tag must be 3 characters long."
+    assert language_tag.isupper(), "Language tag must be uppercase."
+
+    if service is None:
+        service = get_lucid_service()
+    lookup = service.get_lucid_country_language_lookup()
+    selection = lookup.query(
+        "country_tag == @country_tag and language_tag == @language_tag"
+    )
+    if len(selection) == 0:
+        pd.set_option("display.max_rows", None)
+        raise ValueError(
+            f"Could not find country language ID for {country_tag} and {language_tag}. Pick from these:\n{lookup}"
+        )
+    return selection.iloc[0]["Id"]
+
+
+CUSTOM_QUALIFICATIONS_LUCID = {
+    "COUNTRY_OF_BIRTH": 190400,
+    "NATIONALITY": 190399,
+    "TIMEOUT": 191148,
+    "MONOLINGUALISM": 190398,
+    "FIRST_LANGUAGE": 190401,
+    "HEADPHONE": 199614,
+    "MICROPHONE": 199615,
+}
+
+
+def create_lucid_recruitment_config(
+    language_tag,
+    country_tag,
+    question_answer_dict,
+    use_headphones: bool,
+    use_microphone: bool,
+    config_path=None,
+    allow_mobile_devices: bool = None,
+    force_google_chrome: bool = None,
+    unique_ip: bool = True,
+    unique_pid: bool = True,
+    industry_id: int = 30,
+    study_type_id: int = 1,
+    debug: bool = True,
+):
+    """
+    Create a Lucid recruitment config.
+    Parameters
+    ----------
+    language_tag: str, 3-letter lanugage name, NOT an ISO language tag, if you specify a wrong language tag, the Lucid
+    API will tell you which ones are available.
+    country_tag: str, 2-letter country code, NOT an ISO country code, if you specify a wrong country tag, the Lucid API
+    will tell you which ones are available.
+    question_answer_dict: dict, a dictionary with question names as keys and a list of allowed answers as values. The
+    question names must occur in CUSTOM_QUALIFICATIONS_LUCID.
+    use_headphones: bool, whether the participant must use headphones
+    use_microphone: bool, whether the participant must use a microphone
+    config_path: str, default None, if None, it will return the config as a dictionary, if a path is specified, it will
+    allow_mobile_devices: bool, default None, if None, it will be taken from the config file
+    force_google_chrome: bool, default None, if None, it will be taken from the config file
+    unique_ip: bool, default True, whether the participant must have a unique IP
+    unique_pid: bool, default True, whether the participant must have a unique PID
+    industry_id: int, default 30, which is the default for "Other", pick from:
+    {
+     '1': 'Automotive',
+     '2': 'Beauty/Cosmetics',
+     '3': 'Beverages - Alcoholic',
+     '4': 'Beverages - Non Alcoholic',
+     '5': 'Education',
+     '6': 'Electronics/Computer/Software',
+     '7': 'Entertainment (Movies, Music, TV, etc)',
+     '8': 'Fashion/Clothing',
+     '9': 'Financial Services/Insurance',
+     '10': 'Food/Snacks',
+     '11': 'Gambling/Lottery',
+     '12': 'Healthcare/Pharmaceuticals',
+     '13': 'Home (Utilities, Appliances, ...)',
+     '14': 'Home Entertainment (DVD, VHS)',
+     '15': 'Home Improvement/Real Estate/Construction',
+     '16': 'IT (Servers, Databases, etc)',
+     '17': 'Personal Care/Toiletries',
+     '18': 'Pets',
+     '19': 'Politics',
+     '20': 'Publishing (Newspaper, Magazines, Books)',
+     '21': 'Restaurants',
+     '22': 'Sports',
+     '23': 'Telecommunications (phone, cell phone, cable)',
+     '24': 'Tobacco (Smokers)',
+     '25': 'Toys',
+     '26': 'Transportation/Shipping',
+     '27': 'Travel',
+     '28': 'Video Games',
+     '29': 'Websites/Internet/E-Commerce',
+     '30': 'Other',
+     '31': 'Sensitive Content',
+     '32': 'Explicit Content'
+    }
+    study_type_id: int, default 1, which is the default for "Adhoc", pick from:
+    {
+     '1': 'Adhoc',
+     '2': 'Diary',
+     '5': 'IHUT',
+     '8': 'Community Build',
+     '9': 'Face to Face',
+     '11': 'Recruit - Panel',
+     '13': 'Tracking - Monthly',
+     '14': 'Tracking - Quarterly',
+     '15': 'Tracking - Weekly',
+     '16': 'Wave Study',
+     '17': 'Qualitative Screening',
+     '18': 'Internal Use',
+     '21': 'Incidence Check',
+     '22': 'Recontact',
+     '23': 'Ad Effectiveness Research',
+     '24': 'Proof Exposed',
+     '25': 'Proof Control'
+     }
+    debug: bool, default True, whether to print debug information, i.e. see the translations of the qualifications
+
+    Returns
+    -------
+
+    """
+    from .experiment import get_and_load_config
+
+    logger = get_logger()
+    config = get_and_load_config()
+    service = get_lucid_service(config=config)
+    country_language_id = get_lucid_country_language_id(
+        country_tag, language_tag, service=service
+    )
+
+    qualifications = []
+
+    if allow_mobile_devices is None:
+        allow_mobile_devices = config.get("allow_mobile_devices")
+
+    if allow_mobile_devices:
+        qualifications.append(
+            {
+                "Name": "MS_is_mobile",
+                "QuestionID": 8214,
+                "LogicalOperator": "NOT",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": True,
+                "Order": 1,
+                "PreCodes": ["true"],
+            }
+        )
+        qualifications.append(
+            {
+                "Name": "MS_is_tablet",
+                "QuestionID": 8213,
+                "LogicalOperator": "NOT",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": True,
+                "Order": 1,
+                "PreCodes": ["true"],
+            }
+        )
+
+    if force_google_chrome is None:
+        force_google_chrome = config.get("force_google_chrome")
+
+    if force_google_chrome:
+        qualifications.append(
+            {
+                "Name": "MS_browser_type_Non_Wurfl",
+                "QuestionID": 1035,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": True,
+                "Order": 2,
+                "PreCodes": ["Chrome"],
+            }
+        )
+
+    question_answer_dict["TIMEOUT"] = ["Agree"]
+    if use_headphones:
+        question_answer_dict["HEADPHONE"] = ["Yes, I can play audio"]
+    if use_microphone:
+        question_answer_dict["MICROPHONE"] = ["Yes, I can record audio"]
+
+    for question_name, options in question_answer_dict.items():
+        if question_name not in CUSTOM_QUALIFICATIONS_LUCID:
+            raise ValueError(f"Unknown question {question_name}.")
+        question_id = CUSTOM_QUALIFICATIONS_LUCID[question_name]
+        english_option_df = service.get_answer_options(question_id)
+        option_df = english_option_df.query("text in @options")
+        assert (
+            len(option_df) > 0
+        ), f"Question {question_name} does not have specified options: {options}. Make sure to pick from: {english_option_df.text.tolist()}."
+        precodes = option_df.precode.tolist()
+        qualifications.append(
+            {
+                "Name": question_name,
+                "QuestionID": question_id,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": len(options),
+                "IsActive": True,
+                "PreCodes": precodes,
+            }
+        )
+
+        foreign_locale = f"{language_tag}_{country_tag}"
+        try:
+            foreign_option_df = service.get_answer_options(question_id, foreign_locale)
+        except AssertionError:
+            raise AssertionError(
+                bold(
+                    red(f"Could not find question {question_name} in {foreign_locale}.")
+                )
+                + " "
+                + "Make sure it exists: https://www.samplicio.us/fulcrum/Questions.aspx"
+            )
+
+        foreign_selected_option_df = foreign_option_df.query("precode in @precodes")
+        english_selected_option_df = english_option_df.query("precode in @precodes")
+        assert len(foreign_selected_option_df) == len(
+            english_selected_option_df
+        ), f"Foreign options for question {question_name} do not match English options. English: {english_selected_option_df.text.tolist()} -> Foreign: {foreign_selected_option_df.text.tolist()}"
+        foreign_question = service.get_question_name(question_id, foreign_locale)
+
+        english_question = service.get_question_name(question_id)
+        if debug:
+            logger.info(
+                bold(
+                    f"Question {question_name} ({question_id}): {service.default_locale.upper()} -> {foreign_locale.upper()}"
+                )
+            )
+            print(
+                bold("English")
+                + f": '{english_question}' => {english_selected_option_df.text.tolist()}"
+            )
+            print(
+                bold("Foreign")
+                + f": '{foreign_question}' => {foreign_selected_option_df.text.tolist()}"
+            )
+    lucid_recruitment_config = {
+        "survey": {
+            "CountryLanguageID": country_language_id,
+            # Following API documentation: To ensure Suppliers have access to the Survey when it is set live,
+            # set the following parameters:
+            # FulcrumExchangeAllocation: 0
+            # FulcrumExchangeHedgeAccess: true
+            "FulcrumExchangeAllocation": 0,
+            "FulcrumExchangeHedgeAccess": True,
+            "IndustryID": industry_id,
+            "StudyTypeID": study_type_id,
+            "UniqueIPAddress": unique_ip,
+            "UniquePID": unique_pid,
+        },
+        "qualifications": qualifications,
+        "country": country_tag,
+        "language": language_tag,
+    }
+    if config_path is not None:
+        with open(config_path, "w") as f:
+            json.dump(lucid_recruitment_config, f, indent=4)
+    else:
+        return lucid_recruitment_config
+
+
+def get_lucid_settings(
+    lucid_recruitment_config_path,
+    bid_incidence=66,
+    collects_pii=False,
+    termination_time_in_s: int = None,
+    inactivity_timeout_in_s=120,
+    no_focus_timeout_in_s=60,
+    aggressive_no_focus_timeout_in_s=3,
+):
+    """
+    Parameters
+    ----------
+    lucid_recruitment_config_path: str, path to the Lucid recruitment config.
+    bid_incidence: int, default 66, the bid incidence. Bid incidence is the number of completes/(number of completes +
+    participants who did not pass the qualifications). It is a percentage, so if you expect 66% of the participants to
+    pass the qualifications, set it to 66. Set it to a realistic value, but as high as possible.
+    collects_pii: bool, default False, whether the survey collects personally identifiable information.
+
+    termination_time_in_s: int, maximal time a participant can spend on the experiment. If this time is exceeded,
+    the participant is terminated via the front-end. The default is 3x the estimated duration.
+
+    inactivity_timeout_in_s: int, default 120, the inactivity timeout in seconds. If the participant is inactive for
+    this amount of time, the participant is terminated via the front-end. Inactive means that the participant does not
+    interact with the page (i.e., no ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"]).
+
+    no_focus_timeout_in_s: int, default 60, the no focus timeout in seconds. If the participant moves the mouse outside
+    the window or opens another tab, the participant is terminated via the front-end after this amount of time.
+
+    aggressive_termination_on_no_focus: int, default 3, this the same setting as `no_focus_timeout_in_s`, but it is
+    only used for aggressive in the consent page, since many participants are lost there.
+
+
+    """
+
+    with open(lucid_recruitment_config_path, "r") as f:
+        lucid_recruitment_config = json.load(f)
+
+    if termination_time_in_s is None:
+        from .experiment import get_and_load_config, get_experiment
+
+        experiment = get_experiment()
+        config = get_and_load_config()
+        wage_per_hour = config.get("wage_per_hour")
+        estimated_time = experiment.estimated_completion_time(wage_per_hour)
+        termination_time_in_s = estimated_time * 3
+
+    lucid_recruitment_config["survey"]["BidIncidence"] = bid_incidence
+    lucid_recruitment_config["survey"]["CollectsPII"] = collects_pii
+    lucid_recruitment_config["inactivity_timeout_in_s"] = inactivity_timeout_in_s
+    lucid_recruitment_config["no_focus_timeout_in_s"] = no_focus_timeout_in_s
+    lucid_recruitment_config["termination_time_in_s"] = termination_time_in_s
+    lucid_recruitment_config[
+        "aggressive_no_focus_timeout_in_s"
+    ] = aggressive_no_focus_timeout_in_s
+
+    lucid_recruitment_config = json.dumps(lucid_recruitment_config)
+
+    settings = {
+        "recruiter": "LucidRecruiter",
+        "lucid_recruitment_config": lucid_recruitment_config,
+        "currency": "EUR",
+        "show_reward": False,
+        "show_abort_button": False,
+    }
+    return settings
 
 
 class GenericRecruiter(PsyNetRecruiter):
