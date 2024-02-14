@@ -426,12 +426,6 @@ msgstr "เกิดข้อผิดพลาด คุณจึงไม่�
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "กำลังเปลี่ยนเส้นทาง..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "โปรดอ้างอิงข้อมูลต่อไปนี้ด้วย:"
@@ -482,12 +476,6 @@ msgstr "คุณต้องเลือกคำตอบ!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "จดเลขไว้ในภาพ"
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "จดเลขไว้ในภาพ"
@@ -529,17 +517,6 @@ msgstr "กำลังเปลี่ยนเส้นทางไปยัง
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"คุณต้องสะสมโบนัส <strong>อย่างน้อย "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> "
-"จึงจะสามารถชดเชยได้"
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -564,20 +541,8 @@ msgstr "ไม่สามารถยกเลิกการทดสอบไ
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "ดูข้อมูลด้านล่างเกี่ยวกับโบนัสสะสมในปัจจุบันของคุณ"
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "ดูข้อมูลด้านล่างเกี่ยวกับรางวัลสะสมของคุณในปัจจุบัน"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "โบนัสสะสม"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -705,33 +670,6 @@ msgstr "ยกเลิกการทดลอง"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "คลิกปุ่มด้านบนเพื่อรับการชดเชยในกรณีที่เกิดข้อผิดพลาด"
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"คุณจะเห็นหน้าขอความยินยอมตั้งแต่หนึ่งหน้าขึ้นไปและมีมากถึง\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> เพื่ออ่านและยอมรับ/ปฏิเสธ"
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "หากเบราว์เซอร์ของคุณเข้ากันไม่ได้ เราจำเป็นต้องปฏิเสธแบบสำรวจ"
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "ตอนนี้เรากำลังทดสอบความเข้ากันได้ของเบราว์เซอร์ของคุณ"
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "หากต้องการดำเนินการต่อ ให้คลิกปุ่มด้านล่าง"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1502,24 +1440,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "ความปลอดภัย"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "โปรดเปิดใช้งาน Javascript จากนั้นรีเฟรชหน้านี้"
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "การศึกษาจะไม่ทำงานจนกว่าจะเปิดใช้งาน Javascript บนเบราว์เซอร์ของคุณ"
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "คำเตือน: Javascript ไม่ทำงานบนเบราว์เซอร์ของคุณ"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2115,23 +2035,11 @@ msgid ""
 msgstr ""
 "การศึกษานี้เป็นไปโดยสมัครใจ คุณจะไม่ได้รับค่าตอบแทนเป็นเงินสำหรับการเข้าร่วม"
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "ข้อผิดพลาด!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "การส่งแบบสำรวจที่ชัดเจน"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "หากต้องการกรอกแบบสำรวจ Lucid ให้คลิกปุ่มด้านล่าง"
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2158,30 +2066,6 @@ msgstr "เสร็จ"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "โปรดคลิก \"เสร็จสิ้น\" เพื่อเสร็จสิ้น HIT"
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"นอกเหนือจากการชำระเงินฐานของคุณเป็น "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> แล้ว คุณจะได้รับโบนัส "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> สำหรับ เวลาที่คุณใช้ในการทดสอบ"
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"นอกเหนือจากการชำระเงินฐานของคุณเป็น "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> แล้ว คุณจะได้รับรางวัล "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> สำหรับ เวลาที่คุณใช้ในการทดสอบ"
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2417,12 +2301,6 @@ msgstr "คุณไม่สามารถเข้าร่วมการท
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "คุณต้องใช้ Google Chrome เพื่อเข้าร่วมการทดสอบ"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "คุณต้องใช้โหมดไม่ระบุตัวตนเพื่อเข้าร่วมการทดสอบ"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2909,12 +2787,6 @@ msgstr "ตกลง"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "โบนัส"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "ช่วย!"
 
@@ -2961,6 +2833,13 @@ msgctxt "timeline_problem"
 msgid "Reload the page."
 msgstr "โหลดหน้านี้ซ้ำ"
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Terminate using this button!"
+msgstr "ยุติการใช้ปุ่มนี้!"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2996,22 +2875,6 @@ msgstr "คลิกปุ่มเมื่อคุณพร้อมที่
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "ประวัติย่อ"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "น่าเสียดายที่พฤติกรรมนี้ไม่ได้รับการสนับสนุนในขณะนี้"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"ID ผู้เข้าร่วมของคุณไม่ได้กำหนด "
-"อาจเป็นเพราะคุณเปลี่ยนเบราว์เซอร์ระหว่างการทดสอบ"
 
 #: psynet/utils.py
 #, fuzzy

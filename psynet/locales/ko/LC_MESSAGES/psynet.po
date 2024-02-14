@@ -422,12 +422,6 @@ msgstr "오류가 발생하여 계속하실 수 없습니다, 죄송합니다!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "리디렉션..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "또한 다음 정보를 인용해 주세요:"
@@ -474,12 +468,6 @@ msgstr "답을 선택해야 합니다!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "이미지에 숫자를 적습니다."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "이미지에 숫자를 적습니다."
@@ -520,16 +508,6 @@ msgstr "루시드 마켓플레이스로 리디렉션..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"보상을 받으려면 보너스를 <strong>최소 %(CURRENCY)s %(MIN_ACCUMULATED_REWARD_FOR_ABORT)s "
-"만큼 </strong> 적립해야 합니다."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -553,20 +531,8 @@ msgstr "현재 실험자가 실험 중단을 허용하지 않아 실험을 중�
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "현재 누적된 보너스는 아래 정보를 참조하세요."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "현재 누적된 보상에 대한 정보는 아래를 참조하세요."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "누적 보너스"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -690,33 +656,6 @@ msgstr "실험 중단"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "오류 발생 시 보상을 받으려면 위의 버튼을 클릭하세요."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"또한 하나 이상의 동의 페이지가 표시되며 최대 <strong>%(TERMINATION_TIME)s</strong> 까지 동의 페이지를 "
-"읽고 동의/거부할 수 있습니다."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "브라우저가 호환되지 않는 경우 설문조사를 거부할 수 있습니다."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "이제 브라우저의 호환성을 테스트하겠습니다."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "계속하려면 아래 버튼을 클릭하세요."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1424,24 +1363,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "보안"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "자바스크립트를 활성화한 후 이 페이지를 새로고침해 주세요."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "브라우저에서 자바스크립트를 활성화하지 않으면 이 연구가 작동하지 않습니다."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "경고: 브라우저에서 자바스크립트가 작동하지 않습니다."
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -1990,23 +1911,11 @@ msgid ""
 "compensation for participation."
 msgstr "이 연구는 전적으로 자발적인 참여로 이루어지며, 참여에 대한 금전적 보상은 제공되지 않습니다."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "오류가 발생했습니다!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "루시드 설문조사 제출"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "루시드 설문조사를 완료하려면 아래 버튼을 클릭하세요."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2033,28 +1942,6 @@ msgstr "완료"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "\"마침\"을 클릭하여 HIT를 완료하세요."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"기본 지급액인 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>에 더해, 실험에 소요한 시간에 대한 "
-"보너스로 <strong>%(CURRENCY)s%(TIME_REWARD)s</strong>을 받게 됩니다."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"기본 지불금인 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>에 더해, 실험에 소요한 시간에 대한 "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>의 보상을 받게 됩니다."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2288,12 +2175,6 @@ msgstr "모바일 기기에서는 실험에 참여할 수 없습니다."
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "실험에 참여하려면 구글 크롬을 사용해야 합니다."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "실험에 참여하려면 시크릿 모드를 사용해야 합니다."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2736,12 +2617,6 @@ msgstr "확인"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "보너스"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "도와주세요!"
 
@@ -2788,6 +2663,13 @@ msgctxt "timeline_problem"
 msgid "Reload the page."
 msgstr "페이지를 새로고침합니다."
 
+#. ""
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Terminate using this button!"
+msgstr "이 버튼을 사용하여 종료하세요!"
+
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
@@ -2823,20 +2705,6 @@ msgstr "실험을 계속할 준비가 되면 버튼을 클릭합니다."
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "재개"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "안타깝게도 이 동작은 현재 지원되지 않습니다."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr "테스트 중에 브라우저를 전환했기 때문에 참가자 ID가 정의되지 않은 경우."
 
 #: psynet/utils.py
 #, fuzzy
