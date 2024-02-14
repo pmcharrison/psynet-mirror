@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+import pandas as pd
 import requests
 from dallinger.db import session
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
@@ -167,58 +168,7 @@ class LucidService(object):
 
     def add_qualifications_to_survey(self, survey_number):
         """Add platform and browser specific qualifications to a survey."""
-        qualifications = []
-
-        if not self.exp_config.allow_mobile_devices:
-            qualifications.append(
-                {
-                    "Name": "MS_is_mobile",
-                    "QuestionID": 8214,
-                    "LogicalOperator": "NOT",
-                    "NumberOfRequiredConditions": 0,
-                    "IsActive": True,
-                    "Order": 1,
-                    "PreCodes": ["true"],
-                }
-            )
-            qualifications.append(
-                {
-                    "Name": "MS_is_tablet",
-                    "QuestionID": 8213,
-                    "LogicalOperator": "NOT",
-                    "NumberOfRequiredConditions": 0,
-                    "IsActive": True,
-                    "Order": 1,
-                    "PreCodes": ["true"],
-                }
-            )
-
-        if self.exp_config.force_google_chrome:
-            qualifications.append(
-                {
-                    "Name": "MS_browser_type_Non_Wurfl",
-                    "QuestionID": 1035,
-                    "LogicalOperator": "OR",
-                    "NumberOfRequiredConditions": 0,
-                    "IsActive": True,
-                    "Order": 2,
-                    "PreCodes": ["Chrome"],
-                }
-            )
-
-        if self.recruitment_config["qualifications"].get("headphones"):
-            qualifications.append(
-                {
-                    "Name": "headphones",
-                    "QuestionID": 149326,
-                    "LogicalOperator": "OR",
-                    "NumberOfRequiredConditions": 1,
-                    "IsActive": True,
-                    "Order": 3,
-                    "PreCodes": ["1"],
-                }
-            )
-
+        qualifications = self.recruitment_config["qualifications"]
         for qualification in qualifications:
             request_data = json.dumps(qualification)
             response = requests.post(
@@ -229,7 +179,7 @@ class LucidService(object):
 
             if not response.ok:
                 raise LucidServiceException(
-                    "LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                    f"LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
                 )
 
         if qualifications:
@@ -364,6 +314,58 @@ class LucidService(object):
         response = requests.get(url, headers=self.headers)
         assert response.ok
         return response.json()["sessions"]
+
+    def get_lucid_country_language_lookup(self):
+        url = "https://api.samplicio.us/Lookup/v1/BasicLookups/BundledLookups/CountryLanguages"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        lookup = pd.DataFrame(response.json()["AllCountryLanguages"])
+        codes = lookup.Code.apply(lambda x: x.split("-"))
+        names = lookup.Name.apply(lambda x: x.split("-"))
+        lookup["language_tag"] = codes.apply(lambda x: x[0].strip())
+        lookup["country_tag"] = codes.apply(lambda x: x[1].strip())
+        lookup["language_name"] = names.apply(lambda x: x[0].strip())
+        lookup["country_name"] = names.apply(lambda x: x[1].strip())
+        return lookup[
+            ["language_tag", "country_tag", "language_name", "country_name", "Id"]
+        ]
+
+    def _get_question_field(self, question_id, field, locale=None):
+        if locale is None:
+            locale = self.default_locale
+        url = f"https://api.samplicio.us/demand/v2-beta/questions?id={question_id}&locale={locale}&fields={field}"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        result = response.json()["result"]
+        assert (
+            len(result) > 0
+        ), f"No question with id {question_id} found for locale {locale}."
+        return result
+
+    def get_answer_options(self, question_id, locale=None):
+        field = "question_options"
+        result = self._get_question_field(question_id, field, locale)
+        return pd.DataFrame(result[0][field])
+
+    def get_question_name(self, question_id, locale=None):
+        field = "question_text"
+        result = self._get_question_field(question_id, field, locale)
+        return result[0][field]
+
+
+def get_lucid_service(config=None, recruitment_config=None):
+    from .experiment import get_and_load_config
+
+    if config is None:
+        config = get_and_load_config()
+    if recruitment_config is None:
+        recruitment_config = {}
+    return LucidService(
+        api_key=config.get("lucid_api_key"),
+        sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
+        exp_config=config,
+        recruitment_config=recruitment_config,
+    )
 
 
 def get_lucid_rid(rid):
