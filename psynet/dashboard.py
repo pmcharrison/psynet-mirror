@@ -111,7 +111,7 @@ def get_count_items(series):
 
 def report_lucid(experiment):
     title = "Lucid"
-    if experiment.recruiter.nickname != "lucid":
+    if not issubclass(experiment.recruiter.__class__, BaseLucidRecruiter):
         return render_template(
             TEMPLATE_NAME,
             title=title,
