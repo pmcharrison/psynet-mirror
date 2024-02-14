@@ -673,7 +673,8 @@ class Page(Elt):
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
     show_termination_button:
-        If ``True``, a button is displayed allowing the participant to terminate the experiment, Default ``False``.
+        If ``True``, a button is displayed allowing the participant to terminate the experiment, Default ``False``
+        except for Lucid recruiter where it is ``True``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
@@ -743,7 +744,7 @@ class Page(Elt):
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
-        show_termination_button: bool = False,
+        show_termination_button: bool = None,
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
@@ -796,6 +797,12 @@ class Page(Elt):
         self.session_id = session_id
         self.save_answer = save_answer
         self.start_trial_automatically = start_trial_automatically
+        if show_termination_button is None:
+            from .experiment import get_experiment
+            from .recruiters import LucidRecruiter
+
+            exp = get_experiment()
+            show_termination_button = isinstance(exp.recruiter, LucidRecruiter)
         self.show_termination_button = show_termination_button
         self.aggressive_termination_on_no_focus = aggressive_termination_on_no_focus
 
