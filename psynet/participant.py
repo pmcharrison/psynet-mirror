@@ -164,10 +164,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     for_loops = Column(PythonObject, default=lambda: {})
     failure_tags = Column(PythonList, default=lambda: [])
 
-    # Ideally we wold make this a foreign key but this creates a circular dependency
-    # when importing CSVs
-    last_response_id = Column(Integer)
-
     base_payment = Column(Float)
     performance_reward = Column(Float)
     unpaid_bonus = Column(Float)
@@ -185,6 +181,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
     trial_status = Column(String)
 
+    all_responses = relationship("psynet.timeline.Response")
+
     # @property
     # def current_trial(self):
     #     if self.in_module and hasattr(self.module_state, "current_trial"):
@@ -196,9 +194,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def last_response(self):
-        from psynet.timeline import Response
-
-        return Response.query.filter_by(id=self.last_response_id).one()
+        return self.response
 
     # all_trials = relationship("psynet.trial.main.Trial")
 
@@ -301,13 +297,16 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                 "Use participant.active_sync_groups[group_type] to access the SyncGroup you need."
             )
 
-    @property
-    def active_barriers(self):
-        return {
-            barrier_link.barrier_id: barrier_link
-            for barrier_link in self.barrier_links
-            if not barrier_link.released
-        }
+    active_barriers = relationship(
+        "ParticipantLinkBarrier",
+        collection_class=attribute_mapped_collection("barrier_id"),
+        cascade="all, delete-orphan",
+        primaryjoin=(
+            "and_(psynet.participant.Participant.id==remote(ParticipantLinkBarrier.participant_id), "
+            "ParticipantLinkBarrier.released==False)"
+        ),
+        lazy="selectin",
+    )
 
     errors = relationship("ErrorRecord")
     # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")
@@ -590,9 +589,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
 
-def get_participant(participant_id: int):
+def get_participant(participant_id: int, for_update: bool = False) -> Participant:
     """
     Returns the participant with a given ID.
+    Warning: we recommend just using SQLAlchemy directly instead of using this function.
+    When doing so, use ``with_for_update().populate_existing()`` if you plan to update
+    this Participant object, that way the database row will be locked appropriately.
 
     Parameters
     ----------
@@ -600,13 +602,21 @@ def get_participant(participant_id: int):
     participant_id
         ID of the participant to get.
 
+    for_update
+        Set to ``True`` if you plan to update this Participant object.
+        The Participant object will be locked for update in the database
+        and only released at the end of the transaction.
+
     Returns
     -------
 
     :class:`psynet.participant.Participant`
         The requested participant.
     """
-    return Participant.query.filter_by(id=participant_id).one()
+    query = Participant.query.filter_by(id=participant_id)
+    if for_update:
+        query = query.with_for_update(of=Participant).populate_existing()
+    return query.one()
 
 
 class TimeCreditStore:

@@ -182,7 +182,7 @@ This macro has several important components.
 
 * First, there is a ``textarea`` element, a standard HTML element corresponding to a text box that can be filled in by the user. This textbox has a customizable background color determined by the value of ``config.color``.
 
-* Second, a function is defined called ``psynet.stageResponse`` [#]_. This function is written in Javascript,
+* Second, a function is defined called ``psynet.stageResponse``. This function is written in Javascript,
   and extracts the current contents of the textbox as a string (e.g., ‘Hello’).
   It then saves this string to ``psynet.response.staged.rawAnswer``.
   This 'stages' the answer, so that when the page is exited (by clicking the 'Next' button) this answer

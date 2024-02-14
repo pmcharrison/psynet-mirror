@@ -278,4 +278,4 @@ lists of elements.
 Further reading
 ---------------
 
-- `Timeline exercises <../exercises/timeline.html>`_
+- `Timeline exercises <../learning/exercises/timeline.html>`_

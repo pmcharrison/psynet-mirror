@@ -37,7 +37,6 @@ from .utils import (
     pretty_format_seconds,
     render_string_with_translations,
     serialise,
-    time_logger,
     unserialise_datetime,
 )
 
@@ -170,6 +169,9 @@ class Elt:
     id = None
     created_within_page_maker = False
 
+    def __init__(self):
+        self.links = {}
+
     def consume(self, experiment, participant):
         raise NotImplementedError
 
@@ -203,23 +205,23 @@ class CodeBlock(Elt):
     """
 
     def __init__(self, function):
+        super().__init__()
         self.function = function
 
     def consume(self, experiment, participant):
-        with time_logger("CodeBlock pre-commit", indent=2):
-            db.session.commit()
+        db.session.commit()
         call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
         )
-        with time_logger("CodeBlock post-commit", indent=2):
-            db.session.commit()
+        db.session.commit()
 
 
 class FixTime(Elt):
     def __init__(self, time_estimate: float):
+        super().__init__()
         self.time_estimate = time_estimate
         self.expected_repetitions = 1
 
@@ -243,6 +245,7 @@ class EndFixTime(FixTime):
 
 class GoTo(Elt):
     def __init__(self, target):
+        super().__init__()
         self.target = target
 
     def get_target(self, experiment, participant):
@@ -269,6 +272,7 @@ class ReactiveGoTo(GoTo):
         targets,  # dict of possible target elements
     ):
         # pylint: disable=super-init-not-called
+        super().__init__(target=None)
         self.function = function
         self.targets = targets
         self.check_args()
@@ -749,6 +753,8 @@ class Page(Elt):
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
     ):
+        super().__init__()
+
         if template_arg is None:
             template_arg = {}
         if js_vars is None:
@@ -934,6 +940,8 @@ class Page(Elt):
         client_ip_address,
         answer=NoArgumentProvided,
     ):
+        from psynet.trial.main import Trial
+
         if raw_answer == NoArgumentProvided and answer == NoArgumentProvided:
             raise ValueError("At least one of raw_answer and answer must be provided.")
         if blobs is None:
@@ -948,7 +956,8 @@ class Page(Elt):
             client_ip_address=client_ip_address,
         )
         db.session.add(resp)
-        db.session.commit()
+
+        trial = participant.current_trial
 
         if answer == NoArgumentProvided:
             answer = self.format_answer(
@@ -974,10 +983,11 @@ class Page(Elt):
         resp.answer = answer
         resp.metadata = combined_metadata
 
-        db.session.commit()
+        if isinstance(trial, Trial):
+            trial.response = resp
+            trial.time_taken = resp.metadata["time_taken"]
 
         if self.save_answer:
-            participant.last_response_id = resp.id
             if len(participant.answer_accumulators) > 0:
                 page_label = self.label
                 accumulator = participant.answer_accumulators[-1]
@@ -1251,6 +1261,8 @@ class PageMaker(Elt):
         accumulate_answers: bool = False,
         label: str = "page_maker",
     ):
+        super().__init__()
+
         self.function = function
         self.time_estimate = time_estimate
         self.accumulate_answers = accumulate_answers
@@ -1298,6 +1310,7 @@ class PageMaker(Elt):
         for i, elt in enumerate(res):
             elt.id = position + [i]
             elt.created_within_page_maker = True
+            elt.links = {**self.links, **elt.links}
         return res
 
     def impute_time_estimates(self, elts):
@@ -1579,30 +1592,25 @@ class Timeline:
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            with time_logger("advance_page", indent=8):
-                with time_logger("advance_page update participant elt_id"):
-                    participant.elt_id[-1] += 1
+            participant.elt_id[-1] += 1
 
-                try:
-                    new_elt = self.get_current_elt(experiment, participant)
-                except PageMakerFinishedError:
-                    participant.elt_id = participant.elt_id[:-1]
-                    participant.elt_id_max = participant.elt_id_max[:-1]
-                    continue
-                if isinstance(new_elt, PageMaker):
-                    participant.elt_id.append(-1)
-                    continue
+            try:
+                new_elt = self.get_current_elt(experiment, participant)
+            except PageMakerFinishedError:
+                participant.elt_id = participant.elt_id[:-1]
+                participant.elt_id_max = participant.elt_id_max[:-1]
+                continue
+            if isinstance(new_elt, PageMaker):
+                participant.elt_id.append(-1)
+                continue
 
-                with time_logger(
-                    f"consuming elt {new_elt.id} ({type(new_elt)})", indent=12
-                ):
-                    new_elt.consume(experiment, participant)
+            new_elt.consume(experiment, participant)
 
-                # with time_logger("advance_page commit"):
-                #     db.session.commit()
+            # with time_logger("advance_page commit"):
+            #     db.session.commit()
 
-                if isinstance(new_elt, Page):
-                    finished = True
+            if isinstance(new_elt, Page):
+                finished = True
 
     def estimated_max_reward(self, wage_per_hour):
         return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
@@ -1724,7 +1732,7 @@ class Response(_Response):
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
-        backref="all_responses",
+        back_populates="all_responses",
         foreign_keys=[participant_id],
     )
 
@@ -2007,7 +2015,7 @@ def switch(
     label: str,
     function: Callable,
     branches: dict,
-    fix_time_credit: bool = True,
+    fix_time_credit: bool = False,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2031,8 +2039,8 @@ def switch(
 
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of the branch taken.
-        Defaults to ``True``, so that all participants receive the same credit, corresponding to the
-        branch with the maximum time credit.
+        Defaults to ``False``; if set to ``True``,
+        all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
@@ -2105,6 +2113,7 @@ class StartSwitch(ReactiveGoTo):
 
 class EndSwitch(NullElt):
     def __init__(self, label):
+        super().__init__()
         self.label = label
 
 
@@ -2125,7 +2134,7 @@ def conditional(
     condition: Callable,
     logic_if_true,
     logic_if_false=None,
-    fix_time_credit: bool = True,
+    fix_time_credit: bool = False,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2149,9 +2158,9 @@ def conditional(
         An optional elt (or list of elts) to display if ``condition`` returns ``False``.
 
     fix_time_credit:
-        Whether participants should receive the same time credit irrespective of whether
-        ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
-        receive the same credit.
+        Whether participants should receive the same time credit irrespective of the branch taken.
+        Defaults to ``False``; if set to ``True``,
+        all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
@@ -2176,6 +2185,7 @@ def conditional(
 
 class ConditionalElt(Elt):
     def __init__(self, label: str):
+        super().__init__()
         self.label = label
 
 
@@ -2403,9 +2413,14 @@ class Module:
     def end(self, participant):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
         # defined a recursive module (or is reusing module ID)
-        state = self.state_class.query.filter_by(
-            module_id=self.id, participant_id=participant.id, finished=False
-        ).one()
+        state = (
+            self.state_class.query.filter_by(
+                module_id=self.id, participant_id=participant.id, finished=False
+            )
+            .with_for_update(of=self.state_class)
+            .populate_existing()
+            .one()
+        )
         state.finish()
         db.session.commit()
         participant.refresh_module_state()
@@ -2624,6 +2639,7 @@ class EndAccumulateAnswers(NullElt):
 
 class DatabaseCheck(NullElt):
     def __init__(self, label, function):
+        super().__init__()
         check_function_args(function, args=[])
         self.label = label
         self.function = function
@@ -2668,6 +2684,7 @@ class PreDeployRoutine(NullElt):
     """
 
     def __init__(self, label, function, args=None):
+        super().__init__()
         if args is None:
             args = {}
         provided_args = list(args.keys())
@@ -2680,6 +2697,7 @@ class PreDeployRoutine(NullElt):
 
 class ParticipantFailRoutine(NullElt):
     def __init__(self, label, function):
+        super().__init__()
         check_function_args(
             function, args=["participant", "experiment"], need_all=False
         )
@@ -2689,6 +2707,7 @@ class ParticipantFailRoutine(NullElt):
 
 class RecruitmentCriterion(NullElt):
     def __init__(self, label, function):
+        super().__init__()
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
@@ -2814,5 +2833,6 @@ def randomize(*, label, logic):
 
 class RegisterTrialMaker(NullElt):
     def __init__(self, trial_maker):
+        super().__init__()
         self.trial_maker_id = trial_maker.id
         self.trial_maker = trial_maker

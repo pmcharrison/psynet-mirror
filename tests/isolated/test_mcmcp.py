@@ -7,13 +7,17 @@ from psynet.trial.main import TrialNetwork
 
 def make_mcmcp_node(cls, experiment):
     seed = {"age": 55}
+    network = TrialNetwork(
+        trial_maker_id="mcmcp",
+        experiment=experiment,
+    )
+    network.trials_per_node = (
+        3  # This is a hack but it's a simple way to make the tests work
+    )
     return cls(
         seed=seed,
         degree=1,
-        network=TrialNetwork(
-            trial_maker_id="mcmcp",
-            experiment=experiment,
-        ),
+        network=network,
         experiment=experiment,
         propagate_failure=False,
         participant=None,

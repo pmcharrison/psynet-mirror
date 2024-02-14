@@ -9,14 +9,22 @@ In the dependencies field you should see a path ending in requirements.txt. Repl
 with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
 and install all the required packages.
 
-.. info::
+.. note::
 
     This workflow uses ``virtualenv`` to create an isolated virtual environment for each project.
     PyCharm remembers which virtual environment to use for each project, and will load it automatically
     when you open the project.
 
+.. note::
 
-.. info::
+    If you are not using PyCharm, you can install the required packages using the following command:
+
+    .. code-block:: bash
+
+       pip install -r constraints.txt
+
+
+.. note::
 
     Why do we install from constraints.txt rather than requirements.txt?
     requirements.txt is written manually by the experimenter, and lists all the packages
@@ -36,6 +44,14 @@ Select 'Virtualenv environment', select 'New', make sure that the correct versio
 then press OK. PyCharm will spend some time processing this selection, but then when you open a new terminal tab it should load
 your virtual environment automatically.
 
+If you are working as a PsyNet developer, now is the moment to install PsyNet and Dallinger in development mode.
+To do this, run the following commands (assuming you have installed PsyNet and Dallinger in the default locations):
+
+.. code-block:: bash
+
+   pip install -e ~/PsyNet
+   pip install -e ~/Dallinger
+
 Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
 make sure you are in the appropriate virtual environment.
 You can confirm that you are in the correct virtual environment by looking at the start of your terminal prompt.
@@ -53,7 +69,7 @@ with the following command:
    psynet debug local
 
 
-.. info::
+.. note::
 
     If you are not using PyCharm, you can create a virtual environment using the following command:
 
@@ -76,7 +92,7 @@ with the following command:
        rmvirtualenv my-project
 
 
-.. info::
+.. note::
 
     If you experience problems setting up the virtual environment:
 

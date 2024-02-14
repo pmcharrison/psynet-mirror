@@ -16,7 +16,7 @@ Version control
 It's important to have some system for tracking changes to your code over time.
 We recommend using Git alongside some Git host such as GitHub or GitLab.
 There are lots of good Git tutorials available online;
-see `version control with Git <tutorials/version_control_with_git.html>`_
+see `version control with Git <../tutorials/version_control_with_git.html>`_
 for a PsyNet-oriented introduction to Git.
 
 
@@ -39,7 +39,7 @@ by clicking on the File navigator on the left side of the screen.
 You will be able to interact with a bash console by clicking on the ``Terminal`` tab on the bottom of the screen,
 and with a Python console by clicking on the ``Python Console`` tab on the bottom of the screen.
 When you are writing PsyNet commands, you will probably be interacting directly with the ``Terminal`` tab.
-See `Command line <introduction/command_line.html>`_ for an overview of PsyNet commands.
+See `Command line <../introduction/command_line.html>`_ for an overview of PsyNet commands.
 
 
 Local debug mode
