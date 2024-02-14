@@ -323,10 +323,17 @@ def debug_experiment(
     if not config.ready:
         config.load()
 
+    config.set("dashboard_user", "test_admin")
+    config.set("dashboard_password", "test_password")
+
     p = pexpect.spawn(
         "psynet",
         ["debug", "local", "--legacy", "--no-browsers"],
-        env=env,
+        env={
+            **env,
+            "dashboard_user": "test_admin",
+            "dashboard_password": "test_password",
+        },
         encoding="utf-8",
     )
     patch_pexpect_error_reporter(p)
