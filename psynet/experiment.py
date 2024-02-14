@@ -46,7 +46,6 @@ from . import deployment_info
 from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .bot import Bot
 from .command_line import export_launch_data, log
-from .dashboard import report_lucid
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
@@ -1883,6 +1882,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @dashboard_tab("Lucid", after_route="monitoring")
     @classmethod
     def lucid(cls):
+        from .dashboard import report_lucid
+
         return report_lucid(cls)
 
     @dashboard_tab("Participant", after_route="monitoring")
