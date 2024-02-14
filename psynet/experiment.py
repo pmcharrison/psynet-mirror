@@ -45,6 +45,7 @@ from . import deployment_info
 from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .bot import Bot
 from .command_line import export_launch_data, log
+from .dashboard import report_lucid
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .error import ErrorRecord
 from .field import ImmutableVarStore
@@ -1794,6 +1795,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             timeline_modules=json.dumps(module_info, default=serialise),
             currency=config.currency,
         )
+
+    @dashboard_tab("Lucid", after_route="monitoring")
+    @classmethod
+    def lucid(cls):
+        return report_lucid(cls)
 
     @dashboard_tab("Participant", after_route="monitoring")
     @classmethod
