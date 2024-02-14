@@ -1,15 +1,18 @@
 import json
 from datetime import datetime
+from typing import List
 
 import pandas as pd
 import requests
 from dallinger.db import session
+from markupsafe import Markup
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.participant import Participant
 
 from . import deployment_info
-from .utils import get_logger
+from .modular_page import Control, ModularPage
+from .utils import get_logger, md5_object
 
 logger = get_logger()
 
@@ -383,6 +386,78 @@ def get_lucid_rid(rid):
         )
 
     return lucid_rid
+
+
+class LucidTerminateControl(Control):
+    """
+    This control presents a list of buttons. If the participant clicks a not allowed button, the experiment is
+    terminated. This can be used for screening within the experiment.
+
+    """
+
+    macro = "terminate_control"
+
+    def __init__(
+        self,
+        choices: List[str],
+        allowed: List[str],
+        label: str,
+        css_class_per_option: List[str],
+        arrange_vertically: bool = True,
+    ):
+        super().__init__()
+        assert all([choice in choices for choice in allowed])
+        self.items = [
+            {
+                "label": choice,
+                "allowed": choice in allowed,
+                "id": md5_object(choice),
+                "class": css_class_per_option[i],
+            }
+            for i, choice in enumerate(choices)
+        ]
+        self.label = label
+        self.arrange_vertically = arrange_vertically
+
+    @property
+    def metadata(self):
+        return self.__dict__
+
+
+class LucidScreeningQuestion(ModularPage):
+    def __init__(
+        self,
+        label,
+        question,
+        options,
+        allowed,
+        time_estimate,
+        arrange_vertically=False,
+        base_css_class="btn btn-primary btn-lg mx-2",
+        css_class_per_option=None,
+    ):
+        self.question = question
+        self.options = options
+        self.allowed = allowed
+        if css_class_per_option is None:
+            css_class_per_option = [base_css_class] * len(options)
+        assert len(css_class_per_option) == len(options)
+        css_class_per_option = [
+            base_css_class + " " + style for style in css_class_per_option
+        ]
+        super().__init__(
+            label=label,
+            prompt=Markup(question),
+            control=LucidTerminateControl(
+                choices=options,
+                allowed=allowed,
+                label=label,
+                arrange_vertically=arrange_vertically,
+                css_class_per_option=css_class_per_option,
+            ),
+            time_estimate=time_estimate,
+            show_next_button=False,
+        )
 
 
 COUNTRY_TAG2NAME = {
