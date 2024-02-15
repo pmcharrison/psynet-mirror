@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 import pandas as pd
@@ -308,9 +308,9 @@ class LucidService(object):
 
     def get_respondents(self, survey_number, days_lookback=60):
         timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
-        now = datetime.datetime.now()
+        now = datetime.now()
 
-        entry_date_after = (now - datetime.timedelta(days=days_lookback)).strftime(
+        entry_date_after = (now - timedelta(days=days_lookback)).strftime(
             timestamp_format
         )
         url = f"https://api.samplicio.us/demand/v2-beta/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
