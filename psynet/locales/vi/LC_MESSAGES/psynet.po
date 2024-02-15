@@ -2938,8 +2938,8 @@ msgstr "Tải lại trang."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Chấm dứt bằng nút này!"
+msgid "Terminate the experiment early"
+msgstr "Kết thúc thử nghiệm sớm"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

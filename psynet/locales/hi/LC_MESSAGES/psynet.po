@@ -2931,8 +2931,8 @@ msgstr "पृष्ठ को पुन: लोड करें।"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "इस बटन का उपयोग करके समाप्त करें!"
+msgid "Terminate the experiment early"
+msgstr "प्रयोग जल्दी समाप्त करें"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

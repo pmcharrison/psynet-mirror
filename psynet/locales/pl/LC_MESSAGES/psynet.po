@@ -2976,8 +2976,8 @@ msgstr "Proszę ponownie załadować stronę."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Proszę zakończyć za pomocą tego przycisku!"
+msgid "Terminate the experiment early"
+msgstr "Wcześniejsze zakończenie eksperymentu"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

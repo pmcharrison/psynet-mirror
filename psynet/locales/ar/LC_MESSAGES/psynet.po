@@ -2832,8 +2832,8 @@ msgstr "خذ المخاطر. لا شيء يمكن أن يحل محل التجر�
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "إنهاء باستخدام هذا الزر!"
+msgid "Terminate the experiment early"
+msgstr "إنهاء التجربة في وقت مبكر"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

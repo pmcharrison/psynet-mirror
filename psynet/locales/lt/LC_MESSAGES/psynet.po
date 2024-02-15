@@ -2929,8 +2929,8 @@ msgstr "Iš naujo įkelkite puslapį."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Nutraukti naudojant šį mygtuką!"
+msgid "Terminate the experiment early"
+msgstr "Ankstyvas eksperimento nutraukimas"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

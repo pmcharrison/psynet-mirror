@@ -2666,8 +2666,8 @@ msgstr "Herlaad de pagina."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Beëindig met deze knop!"
+msgid "Terminate the experiment early"
+msgstr "Het experiment vroegtijdig beëindigen"
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"

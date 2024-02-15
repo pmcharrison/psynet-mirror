@@ -2795,8 +2795,8 @@ msgstr "טען מחדש את הדף."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "סיים באמצעות הכפתור הזה!"
+msgid "Terminate the experiment early"
+msgstr "סיים את הניסוי מוקדם"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -2962,8 +2962,8 @@ msgstr "Recarregue a página."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Termine com este botão!"
+msgid "Terminate the experiment early"
+msgstr "Termine a experiência mais cedo"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

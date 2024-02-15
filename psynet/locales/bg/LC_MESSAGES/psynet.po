@@ -2956,8 +2956,8 @@ msgstr "Презаредете страницата."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Прекратяване чрез този бутон!"
+msgid "Terminate the experiment early"
+msgstr "Предсрочно прекратяване на експеримента"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

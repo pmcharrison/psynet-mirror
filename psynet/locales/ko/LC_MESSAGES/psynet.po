@@ -2667,8 +2667,8 @@ msgstr "페이지를 새로고침합니다."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "이 버튼을 사용하여 종료하세요!"
+msgid "Terminate the experiment early"
+msgstr "실험 조기 종료"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -2910,8 +2910,8 @@ msgstr "Ponovno naložite stran."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Prekinitev s tem gumbom!"
+msgid "Terminate the experiment early"
+msgstr "Predčasna prekinitev poskusa"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

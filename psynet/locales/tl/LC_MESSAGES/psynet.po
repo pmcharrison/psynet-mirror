@@ -3018,8 +3018,8 @@ msgstr "I-reload ang page."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Tapusin gamit ang button na ito!"
+msgid "Terminate the experiment early"
+msgstr "Itigil ang eksperimento nang maaga"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

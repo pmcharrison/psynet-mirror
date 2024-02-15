@@ -2229,7 +2229,7 @@ msgstr ""
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
+msgid "Terminate the experiment early"
 msgstr ""
 
 #: psynet/templates/timeline-page.html

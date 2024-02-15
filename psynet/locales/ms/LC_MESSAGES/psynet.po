@@ -2974,8 +2974,8 @@ msgstr "Muat semula halaman."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Tamatkan menggunakan butang ini!"
+msgid "Terminate the experiment early"
+msgstr "Tamatkan percubaan lebih awal"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

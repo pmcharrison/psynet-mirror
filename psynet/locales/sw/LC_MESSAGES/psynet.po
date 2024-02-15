@@ -2909,8 +2909,8 @@ msgstr "Pakia upya ukurasa."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Sitisha kwa kutumia kitufe hiki!"
+msgid "Terminate the experiment early"
+msgstr "Sitisha jaribio mapema"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

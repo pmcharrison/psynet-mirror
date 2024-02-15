@@ -2915,8 +2915,8 @@ msgstr "Ponovno učitajte stranicu."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Prekini pomoću ovog gumba!"
+msgid "Terminate the experiment early"
+msgstr "Prijevremeno prekinuti eksperiment"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

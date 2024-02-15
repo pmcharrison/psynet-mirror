@@ -3009,8 +3009,8 @@ msgstr "Επαναφορτώστε τη σελίδα."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Τερματίστε χρησιμοποιώντας αυτό το κουμπί!"
+msgid "Terminate the experiment early"
+msgstr "Τερματισμός του πειράματος νωρίς"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -2837,8 +2837,8 @@ msgstr "โหลดหน้านี้ซ้ำ"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "ยุติการใช้ปุ่มนี้!"
+msgid "Terminate the experiment early"
+msgstr "ยุติการทดสอบก่อนกำหนด"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

@@ -2633,8 +2633,8 @@ msgstr "ページを再読み込みしてください。"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "このボタンで終了します！"
+msgid "Terminate the experiment early"
+msgstr "実験の早期終了"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

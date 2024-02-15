@@ -2924,8 +2924,8 @@ msgstr "Перазагрузіце старонку."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Спыніць з дапамогай гэтай кнопкі!"
+msgid "Terminate the experiment early"
+msgstr "Спыніце эксперымент датэрмінова"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

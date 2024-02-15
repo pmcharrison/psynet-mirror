@@ -2310,8 +2310,8 @@ msgstr "重新加载页面。"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "使用此按钮终止！"
+msgid "Terminate the experiment early"
+msgstr "提前终止实验"
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"

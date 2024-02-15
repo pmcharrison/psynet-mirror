@@ -2949,8 +2949,8 @@ msgstr "Töltse újra az oldalt."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Fejezze be ezzel a gombbal!"
+msgid "Terminate the experiment early"
+msgstr "A kísérlet korai befejezése"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

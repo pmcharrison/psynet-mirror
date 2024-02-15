@@ -2915,8 +2915,8 @@ msgstr "Lataa sivu uudelleen."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Lopeta käyttämällä tätä painiketta!"
+msgid "Terminate the experiment early"
+msgstr "Lopeta koe ennenaikaisesti"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

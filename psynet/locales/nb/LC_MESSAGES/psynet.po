@@ -2928,8 +2928,8 @@ msgstr "Last inn siden på nytt."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
-msgid "Terminate using this button!"
-msgstr "Avslutt ved hjelp av denne knappen!"
+msgid "Terminate the experiment early"
+msgstr "Avslutte eksperimentet tidlig"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
