@@ -30,13 +30,6 @@
         </div>
     {% endblock %}
 
-    {% if show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
-        <div class="center_div" style="margin-top: 7px;">
-            <button id="terminate-button" class="btn btn-dark" style="float: left; margin: 0px 0px 30px 7px;">
-                {{ pgettext("timeline_problem", "Terminate using this button!") }}
-            </button>
-        </div>
-    {% endif %}
 
     <div id="main-body" class="my-5 container" style="clear: both;">
         {% block main_body %}
@@ -160,6 +153,12 @@
                     {% endif %}
                     <button type="button" class="btn btn-light"
                             id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+
+                    {% if show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
+                        <button id="terminate-button" class="btn btn-danger">
+                            {{ pgettext("timeline_problem", "Terminate using this button!") }}
+                        </button>
+                    {% endif %}
                 </div>
         </nav>
         <script>
