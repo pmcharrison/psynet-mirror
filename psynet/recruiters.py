@@ -456,11 +456,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             ),
         }
 
-        if "termination_time_in_s" not in self.lucidservice.recruitment_config:
-            self.lucidservice.recruitment_config["termination_time_in_s"] = (
-                estimated_duration * 3
-            )
-
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_number(survey_info["SurveyNumber"])
 
@@ -966,9 +961,9 @@ def create_lucid_recruitment_config(
 
 def get_lucid_settings(
     lucid_recruitment_config_path,
+    termination_time_in_s: int,
     bid_incidence=66,
     collects_pii=False,
-    termination_time_in_s: int = None,
     inactivity_timeout_in_s=120,
     no_focus_timeout_in_s=60,
     aggressive_no_focus_timeout_in_s=3,
@@ -977,23 +972,25 @@ def get_lucid_settings(
     Parameters
     ----------
     lucid_recruitment_config_path: str, path to the Lucid recruitment config.
-    bid_incidence: int, default 66, the bid incidence. Bid incidence is the number of completes/(number of completes +
-    participants who did not pass the qualifications). It is a percentage, so if you expect 66% of the participants to
-    pass the qualifications, set it to 66. Set it to a realistic value, but as high as possible.
-    collects_pii: bool, default False, whether the survey collects personally identifiable information.
 
     termination_time_in_s: int, maximal time a participant can spend on the experiment. If this time is exceeded,
-    the participant is terminated via the front-end. The default is 3x the estimated duration.
+        the participant is terminated via the front-end.
+
+    bid_incidence: int, default 66, the bid incidence. Bid incidence is the number of completes/(number of completes +
+        participants who did not pass the qualifications). It is a percentage, so if you expect 66% of the participants
+        to pass the qualifications, set it to 66. Set it to a realistic value, but as high as possible.
+
+    collects_pii: bool, default False, whether the survey collects personally identifiable information.
 
     inactivity_timeout_in_s: int, default 120, the inactivity timeout in seconds. If the participant is inactive for
-    this amount of time, the participant is terminated via the front-end. Inactive means that the participant does not
-    interact with the page (i.e., no ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"]).
+        this amount of time, the participant is terminated via the front-end. Inactive means that the participant does
+        not interact with the page (i.e., no ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"]).
 
     no_focus_timeout_in_s: int, default 60, the no focus timeout in seconds. If the participant moves the mouse outside
-    the window or opens another tab, the participant is terminated via the front-end after this amount of time.
+        the window or opens another tab, the participant is terminated via the front-end after this amount of time.
 
     aggressive_termination_on_no_focus: int, default 3, this the same setting as `no_focus_timeout_in_s`, but it is
-    only used for aggressive in the consent page, since many participants are lost there.
+        only used for aggressive in the consent page, since many participants are lost there.
 
 
     """
