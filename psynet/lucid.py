@@ -12,7 +12,7 @@ from psynet.participant import Participant
 
 from . import deployment_info
 from .modular_page import Control, ModularPage
-from .utils import get_logger, md5_object
+from .utils import get_logger
 
 logger = get_logger()
 
@@ -400,23 +400,30 @@ class LucidTerminateControl(Control):
     def __init__(
         self,
         choices: List[str],
+        labels: List[str],
         allowed: List[str],
-        label: str,
+        page_label: str,
         css_class_per_option: List[str],
         arrange_vertically: bool = True,
     ):
         super().__init__()
         assert all([choice in choices for choice in allowed])
+        assert all(
+            [
+                all([char.islower() or char == "-" for char in choice])
+                for choice in choices
+            ]
+        ), "All choices must be lowercase letters. Special characters are not allowed except '-'."
         self.items = [
             {
-                "label": choice,
+                "label": labels[i],
                 "allowed": choice in allowed,
-                "id": md5_object(choice),
+                "id": choice,
                 "class": css_class_per_option[i],
             }
             for i, choice in enumerate(choices)
         ]
-        self.label = label
+        self.label = page_label
         self.arrange_vertically = arrange_vertically
 
     @property
@@ -429,19 +436,18 @@ class LucidScreeningQuestion(ModularPage):
         self,
         label,
         question,
-        options,
+        choices,
+        labels,
         allowed,
         time_estimate,
         arrange_vertically=False,
         base_css_class="btn btn-primary btn-lg mx-2",
         css_class_per_option=None,
     ):
-        self.question = question
-        self.options = options
-        self.allowed = allowed
+        assert len(choices) == len(labels)
         if css_class_per_option is None:
-            css_class_per_option = [base_css_class] * len(options)
-        assert len(css_class_per_option) == len(options)
+            css_class_per_option = [base_css_class] * len(choices)
+        assert len(css_class_per_option) == len(choices)
         css_class_per_option = [
             base_css_class + " " + style for style in css_class_per_option
         ]
@@ -449,14 +455,16 @@ class LucidScreeningQuestion(ModularPage):
             label=label,
             prompt=Markup(question),
             control=LucidTerminateControl(
-                choices=options,
+                choices=choices,
+                labels=labels,
                 allowed=allowed,
-                label=label,
+                page_label=label,
                 arrange_vertically=arrange_vertically,
                 css_class_per_option=css_class_per_option,
             ),
             time_estimate=time_estimate,
             show_next_button=False,
+            show_termination_button=False,
         )
 
 

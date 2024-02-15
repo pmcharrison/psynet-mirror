@@ -1728,7 +1728,7 @@
             if (allowed) {
                 psynet.nextPage(button.innerHTML.trim());
             } else {
-                terminateParticipant("{{ params.label }}")
+                terminateParticipant("{{ params.label }}_" + id)
             }
         };
     </script>
