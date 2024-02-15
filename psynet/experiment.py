@@ -1885,7 +1885,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def lucid(cls):
         from .dashboard import report_lucid
 
-        return report_lucid(cls)
+        return report_lucid()
 
     @dashboard_tab("Participant", after_route="monitoring")
     @classmethod

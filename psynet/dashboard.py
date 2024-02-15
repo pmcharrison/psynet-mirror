@@ -109,7 +109,10 @@ def get_count_items(series):
     return items
 
 
-def report_lucid(experiment):
+def report_lucid():
+    from psynet.experiment import get_experiment
+
+    experiment = get_experiment()
     title = "Lucid"
     if not issubclass(experiment.recruiter.__class__, BaseLucidRecruiter):
         return render_template(
@@ -122,6 +125,17 @@ def report_lucid(experiment):
             """,
         )
     all_entrants = LucidRID.query.all()
+
+    if len(all_entrants) == 0:
+        return render_template(
+            TEMPLATE_NAME,
+            title=title,
+            html="""
+                <div class="alert alert-primary" role="alert">
+                    No participants entered the experiment.
+                </div>
+            """,
+        )
 
     entry_df = pd.DataFrame([entrant.to_dict() for entrant in all_entrants])
     entry_df.entry_date = pd.to_datetime(entry_df.entry_date, format="mixed")
