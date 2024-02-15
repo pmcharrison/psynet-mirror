@@ -898,6 +898,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def run_recruiter_checks():
         exp = get_experiment()
         recruiter = exp.recruiter
+        logger.info("Running recruiter checks...")
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
