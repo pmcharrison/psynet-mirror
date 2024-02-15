@@ -39,6 +39,7 @@ def create_accordion(items, id):
 
 def make_card(title, body, items):
     out = f"""
+    <div class="col-4">
     <div class="card mb-2" style="width: 100%;">
         <div class="card-body">
             <h5 class="card-title">{title}</h5>
@@ -51,6 +52,7 @@ def make_card(title, body, items):
 
     out += """
         </ul>
+    </div>
     </div>
     """
     return out
@@ -70,11 +72,13 @@ def make_status_card(title, body, status="info"):
     if bg != "":
         bg = f"{bg} text-white"
     return f"""
+    <div class="col-4">
     <div class="card mb-2 {bg}" style="width: 100%;">
         <div class="card-body">
             <h5 class="card-title">{title}</h5>
             <p class="card-text">{body}</p>
         </div>
+    </div>
     </div>
     """
 
@@ -109,6 +113,15 @@ def get_count_items(series):
     return items
 
 
+def get_entrant_psynet_status(entrant):
+    if not pd.isna(entrant.terminated_at):
+        return "Terminated"
+    elif not pd.isna(entrant.completed_at):
+        return "Completed"
+    else:
+        return "Working"
+
+
 def report_lucid():
     from psynet.experiment import get_experiment
 
@@ -138,19 +151,56 @@ def report_lucid():
         )
 
     entry_df = pd.DataFrame([entrant.to_dict() for entrant in all_entrants])
-    entry_df.entry_date = pd.to_datetime(entry_df.entry_date, format="mixed")
-    entry_df.last_date = pd.to_datetime(entry_df.last_date, format="mixed")
-    entry_df["duration"] = entry_df.last_date - entry_df.entry_date
+    entry_df.lucid_entry_date = pd.to_datetime(
+        entry_df.lucid_entry_date, format="mixed"
+    )
+    entry_df.lucid_last_date = pd.to_datetime(entry_df.lucid_last_date, format="mixed")
+    entry_df["duration"] = entry_df.lucid_last_date - entry_df.lucid_entry_date
 
     # Status; used in pandas query, linter does not recognize it
     completed_status = BaseLucidRecruiter.COMPLETED  # noqa: F841
     terminated_status = BaseLucidRecruiter.TERMINATED  # noqa: F841
     prescreened_status = BaseLucidRecruiter.PRESCREENED  # noqa: F841
 
-    total_entrants = len(entry_df)
-    total_after_prescreen = len(entry_df.query("status != @prescreened_status"))
+    body = """
+        <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+        <div class="row mb-2" data-masonry='{"percentPosition": true }'>
+        """
 
-    total_completes = len(entry_df.query("status == @completed_status"))
+    entry_df["psynet_status"] = entry_df.apply(get_entrant_psynet_status, axis=1)
+
+    entrant_info = [
+        {
+            "status": "Working",
+            "n": entry_df.query("psynet_status == 'Working'").shape[0],
+            "color": "blue",
+        },
+        {
+            "status": "Terminated",
+            "n": entry_df.query("psynet_status == 'Terminated'").shape[0],
+            "color": "red",
+        },
+        {
+            "status": "Completed",
+            "n": entry_df.query("psynet_status == 'Completed'").shape[0],
+            "color": "green",
+        },
+    ]
+    status_items = []
+    for entrant in entrant_info:
+        status_items.append(
+            render_msg(entrant["status"], entrant["n"], "", entrant["color"])
+        )
+    body += make_card(
+        "PsyNet status", "Inferred status from Participant RID table.", status_items
+    )
+
+    lucid_entry_df = entry_df.loc[~pd.isna(entry_df.lucid_status)]
+    total_entrants = len(lucid_entry_df)
+    total_after_prescreen = len(
+        lucid_entry_df.query("lucid_status != @prescreened_status")
+    )
+    total_completes = len(lucid_entry_df.query("lucid_status == @completed_status"))
 
     # Entrant breakdown
     entrant_info = [
@@ -175,70 +225,68 @@ def report_lucid():
         status_items.append(
             render_msg(entrant["status"], entrant["n"], "", entrant["color"])
         )
-    entrant_breakdown = make_card(
-        "Entrant breakdown", "Respondent activity", status_items
-    )
+
+    body += make_card("Lucid status", "Respondent activity from Lucid.", status_items)
 
     # Client code breakdown (after prescreen):
-    client_code_breakdown = make_card(
-        "Client codes", "", get_count_items(entry_df.status)
+    terminated_df = entry_df.query("lucid_status == @terminated_status")
+    n_lucid_terminated = len(terminated_df)
+    n_psynet_terminated = len(entry_df.query("psynet_status == 'Terminated'"))
+    client_code_body = "Client codes are more detailed status codes for all participants who passed the initial qualifications."
+    if n_lucid_terminated != n_psynet_terminated:
+        client_code_body += f"<br><span style='font-weight:bold; color:red'>Detected a mismatch in terminated participants in Psynet (n = {n_psynet_terminated}) and Lucid (n = {n_lucid_terminated}).</span>"
+
+    completes_df = entry_df.query("lucid_status == @completed_status")
+    n_lucid_completed = len(completes_df)
+    n_psynet_completed = len(entry_df.query("psynet_status == 'Completed'"))
+    if n_lucid_completed != n_psynet_completed:
+        client_code_body += f"<br><span style='font-weight:bold; color:red'>Detected a mismatch in completed participants in Psynet (n = {n_psynet_completed}) and Lucid (n = {n_lucid_completed}).</span>"
+
+    body += make_card(
+        "Lucid client codes", client_code_body, get_count_items(entry_df.lucid_status)
     )
 
     # Market place codes
-    marketplace_code_breakdown = make_card(
-        "Marketplace codes",
-        "Lucid marketplace codes for respondents",
-        get_count_items(entry_df.market_place_code),
+    body += make_card(
+        "Lucid marketplace codes",
+        "Lucid market place codes for respondents.",
+        get_count_items(entry_df.lucid_market_place_code),
     )
 
     # filter entries where termination_reason is not None
-    terminated_breakdown = make_card(
-        "Termination",
-        "Reasons why participants were terminated in psynet",
+    body += make_card(
+        "Termination reasons",
+        "Reasons why participants were terminated from PsyNet.",
         get_count_items(entry_df.termination_reason),
     )
 
-    body = f"""
-    <div class="row mb-2">
-        <div class="col">
-        {entrant_breakdown}
-        </div>
-        <div class="col">
-        {client_code_breakdown}
-        </div>
-        <div class="col">
-        {marketplace_code_breakdown}
-        </div>
-        <div class="col">
-        {terminated_breakdown}
-        </div>
-    </div>
-    """
-
     if entry_df.shape[0] > 0:
-        body += """<div class="row mb-2">"""
         metrics = BaseLucidRecruiter.get_recruiter_metrics(entry_df)
 
         conversion_rate = metrics["conversion_rate"]
-        body += make_status_card(
-            f"Conversion rate: {int(conversion_rate * 100)}%",
-            "Percentage of completes of total people who passed the qualifications. Should be more than 10%.",
-            "success" if conversion_rate > 0.1 else "danger",
-        )
+        if conversion_rate is not None:
+            body += make_status_card(
+                f"Conversion rate: {int(conversion_rate * 100)}%",
+                "Percentage of completes of total people who passed the qualifications. Should be more than 10%.",
+                "success" if conversion_rate > 0.1 else "danger",
+            )
 
         dropoff_rate = metrics["drop_off_rate"]
-        body += make_status_card(
-            f"Dropoff rate: {int(dropoff_rate * 100)}%",
-            "Percentage of participants not returned to the market place who passed the qualifications. Should be less than 20%.",
-            "success" if dropoff_rate < 0.2 else "danger",
-        )
+        if dropoff_rate is not None:
+            body += make_status_card(
+                f"Dropoff rate: {int(dropoff_rate * 100)}%",
+                "Percentage of participants not returned to the market place who passed the qualifications. Should be less than 20%.",
+                "success" if dropoff_rate < 0.2 else "danger",
+            )
 
         config = get_and_load_config()
         lucid_recruitment_config = json.loads(config.get("lucid_recruitment_config"))
         bid_incidence = lucid_recruitment_config["survey"]["BidIncidence"]
         incidence_rate = metrics["incidence_rate"]
 
-        if incidence_rate > bid_incidence / 100:
+        if incidence_rate is None:
+            pass
+        elif incidence_rate > bid_incidence / 100:
             body += make_status_card(
                 f"Incidence rate: {int(incidence_rate * 100)}%",
                 f"Percentage of screened out based on (custom) qualifications divided by total completes + screened out participants. Currently set to: {bid_incidence} %; consider reducing it to increase reach.",
@@ -256,7 +304,7 @@ def report_lucid():
         set_completion_loi = ceil(
             experiment.estimated_completion_time(wage_per_hour) / 60
         )
-        completes_df = entry_df.query("status == @completed_status")
+
         if len(completes_df) > 0:
             completion_loi = int(
                 (completes_df.duration.dt.total_seconds() / 60).median().round()
@@ -271,8 +319,6 @@ def report_lucid():
                 body += make_status_card(title, body, "danger")
             else:
                 body += make_status_card(title, body, "success")
-
-        terminated_df = entry_df.query("status == @terminated_status")
 
         if len(terminated_df) > 0:
             termination_loi = int(
@@ -289,7 +335,7 @@ def report_lucid():
 
         cpi = experiment.estimated_max_reward(wage_per_hour)
         pattern = "Error|In Screener"
-        platform_faults = entry_df.market_place_code.str.contains(
+        platform_faults = entry_df.lucid_market_place_code.str.contains(
             pattern, regex=True
         ).sum()
         estimated_epc = round(
@@ -301,6 +347,7 @@ def report_lucid():
             f"Earnings per click. It's not entirely clear how it is calculated. It's basically the number of completes divided by the number of entrants multiplied by the CPI ({round(cpi, 2)} €). Make sure the value is high enough.",
             "info",
         )
+    body += "</div>"
 
     return render_template(
         TEMPLATE_NAME,

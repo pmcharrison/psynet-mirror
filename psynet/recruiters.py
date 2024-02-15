@@ -168,8 +168,9 @@ class LucidRID(SQLBase, SQLMixin):
             "termination_details": self.termination_details,
             "lucid_status": self.lucid_status,
             "lucid_status_code": self.lucid_status_code,
-            "lucid_entry_date": self.lucid_entry_date,
             "lucid_fulcrum_status": self.lucid_fulcrum_status,
+            "lucid_market_place_code": self.lucid_market_place_code,
+            "lucid_entry_date": self.lucid_entry_date,
             "lucid_last_date": self.lucid_last_date,
             "lucid_panelist_id": self.lucid_panelist_id,
             "lucid_respondent_id": self.lucid_respondent_id,
@@ -193,7 +194,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         -1: PRESCREENED,
     }
 
-    marketplace_codes = {
+    market_place_codes = {
         -6: "Sent to Marketplace Intermediate",
         -5: "Sent to External Intermediate",
         -1: "Error",
@@ -262,90 +263,96 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         self.store = kwargs.get("store", RedisStore())
 
     @classmethod
-    def get_recruiter_metrics(cls, respondents):
+    def get_recruiter_metrics(cls, entry_df):
         PRESCREENED_CODE = cls.PRESCREENED  # noqa: F841
         COMPLETED_CODE = cls.COMPLETED  # noqa: F841
         UNRETURNED_CODE = cls.UNRETURNED  # noqa: F841
-        prescreens = respondents.query("status != @PRESCREENED_CODE")
-        completes = respondents.query("status == @COMPLETED_CODE")
-        drop_off = respondents.query("status == @UNRETURNED_CODE")
-        drop_off_rate = len(drop_off) / len(prescreens)
-        conversion_rate = len(completes) / len(prescreens)
+        prescreens = entry_df.query("lucid_status != @PRESCREENED_CODE")
+        completes = entry_df.query("lucid_status == @COMPLETED_CODE")
+        drop_off = entry_df.query("lucid_status == @UNRETURNED_CODE")
+        drop_off_rate = len(drop_off) / len(prescreens) if len(prescreens) > 0 else None
+        conversion_rate = (
+            len(completes) / len(prescreens) if len(prescreens) > 0 else None
+        )
 
         pattern = (
             "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification"
         )
-        returned_because_of_qualifications = respondents.market_place_code.str.contains(
-            pattern, regex=True
-        ).sum()
-
-        incidence_rate = len(completes) / (
-            len(completes) + returned_because_of_qualifications
+        returned_because_of_qualifications = (
+            entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
         )
+
+        potential = len(completes) + returned_because_of_qualifications
+        incidence_rate = len(completes) / potential if potential > 0 else None
         return {
             "drop_off_rate": drop_off_rate,
             "conversion_rate": conversion_rate,
             "incidence_rate": incidence_rate,
-            "n_entrants": len(respondents),
+            "n_entrants": len(entry_df),
             "n_prescreens": len(prescreens),
             "n_completes": len(completes),
         }
 
     def run_checks(self):
-        logger.info("Polling Lucid API to count respondents")
+        logger.info("Polling Lucid API to count entry_df")
         survey_number = self.current_survey_number()
         respondents = pd.DataFrame(self.lucidservice.get_respondents(survey_number))
+        if len(respondents) > 0:
+            respondents["status"] = respondents.client_status.apply(
+                lambda x: self.client_codes.get(x, "Unknown")
+            )
+            respondents["market_place_code"] = respondents.fulcrum_status.apply(
+                lambda x: self.market_place_codes.get(x, "Unknown")
+            )
 
-        respondents["status"] = respondents.client_status.apply(
-            lambda x: self.client_codes.get(x, "Unknown")
-        )
-        respondents["market_place_code"] = respondents.fulcrum_status.apply(
-            lambda x: self.marketplace_codes.get(x, "Unknown")
-        )
+            all_entrants = LucidRID.query.all()
+            entrants_dict = {entrant.rid: entrant for entrant in all_entrants}
 
-        all_entrants = LucidRID.query.all()
-        entrants_dict = {entrant.rid: entrant for entrant in all_entrants}
+            lucid_entrants = []
 
-        for _, row in respondents.iterrows():
-            if row.respondent_id in entrants_dict:
-                entrant = entrants_dict[row.respondent_id]
-                changed = False
-                fields_to_update = {
-                    "lucid_status": "status",
-                    "lucid_status_code": "client_status",
-                    "lucid_fulcrum_status": "fulcrum_status",
-                    "lucid_market_place_code": "market_place_code",
-                    "lucid_last_date": "last_date",
-                }
-                for field, api_field in fields_to_update.items():
-                    if getattr(entrant, field) != row[api_field]:
-                        setattr(entrant, field, row[api_field])
-                        changed = True
-                if changed:
+            for _, row in respondents.iterrows():
+                if row.respondent_id in entrants_dict:
+                    entrant = entrants_dict[row.respondent_id]
+                    changed = False
+                    fields_to_update = {
+                        "lucid_status": "status",
+                        "lucid_status_code": "client_status",
+                        "lucid_fulcrum_status": "fulcrum_status",
+                        "lucid_market_place_code": "market_place_code",
+                        "lucid_last_date": "last_date",
+                    }
+                    for field, api_field in fields_to_update.items():
+                        if getattr(entrant, field) != row[api_field]:
+                            setattr(entrant, field, row[api_field])
+                            changed = True
+                    if changed:
+                        db.session.add(entrant)
+                else:
+                    entrant = LucidRID(
+                        rid=row.respondent_id,
+                        lucid_status=row.status,
+                        lucid_status_code=row.client_status,
+                        lucid_fulcrum_status=row.fulcrum_status,
+                        lucid_market_place_code=row.market_place_code,
+                        lucid_entry_date=row.entry_date,
+                        lucid_last_date=row.last_date,
+                        lucid_panelist_id=row.panelist_id,
+                        lucid_respondent_id=row.respondent_id,
+                        lucid_supplier_id=row.supplier_id,
+                    )
                     db.session.add(entrant)
-            else:
-                entrant = LucidRID(
-                    rid=row.respondent_id,
-                    lucid_status=row.status,
-                    lucid_status_code=row.client_status,
-                    lucid_fulcrum_status=row.fulcrum_status,
-                    lucid_market_place_code=row.market_place_code,
-                    lucid_entry_date=row.entry_date,
-                    lucid_last_date=row.last_date,
-                    lucid_panelist_id=row.panelist_id,
-                    lucid_respondent_id=row.respondent_id,
-                    lucid_supplier_id=row.supplier_id,
-                )
-                db.session.add(entrant)
-        db.session.commit()
+                lucid_entrants.append(entrant)
+            db.session.commit()
 
-        metrics = self.get_recruiter_metrics(respondents)
-        logger.info(
-            f"Found {metrics['n_entrants']} entrants, {metrics['n_prescreens']} prescreens, {metrics['n_completes']} completes"
-        )
+            entry_df = pd.DataFrame([entrant.to_dict() for entrant in lucid_entrants])
+            metrics = self.get_recruiter_metrics(entry_df)
+            logger.info(
+                f"Found {metrics['n_entrants']} entrants, {metrics['n_prescreens']} prescreens, {metrics['n_completes']} completes"
+            )
 
-        logger.info(f"Drop off rate: {metrics['drop_off_rate']:.2%}")
-        logger.info(f"Conversion rate: {metrics['conversion_rate']:.2%}")
+            logger.info(f"Drop off rate: {metrics['drop_off_rate']:.2%}")
+            logger.info(f"Conversion rate: {metrics['conversion_rate']:.2%}")
+            logger.info(f"Incidence rate: {metrics['incidence_rate']:.2%}")
 
         unfailed_entrants = LucidRID.query.filter_by(
             terminated_at=None, completed_at=None
@@ -374,7 +381,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 participant = Participant.query.filter_by(worker_id=entrant.rid).one()
                 responses = (
                     Response.query.filter_by(participant_id=participant.id)
-                    .sort_by(Response.creation_time)
+                    .order_by(Response.creation_time)
                     .all()
                 )
                 if len(responses) == 0:
@@ -463,16 +470,19 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         # when a survey is created (Age, Gender, Zip, Ethnicity, Hispanic, Standard HHI US).
         # We update the qualifications in this case to remove these constraints on the participants.
         # See https://developer.lucidhq.com/#post-create-a-survey
+        survey_number = self.current_survey_number()
         if self.lucidservice.recruitment_config["survey"]["CountryLanguageID"] == 9:
-            self.lucidservice.remove_default_qualifications_from_survey(
-                self.current_survey_number()
-            )
+            self.lucidservice.remove_default_qualifications_from_survey(survey_number)
 
-        self.lucidservice.add_qualifications_to_survey(self.current_survey_number())
+        self.lucidservice.add_qualifications_to_survey(survey_number)
 
         url = survey_info["ClientSurveyLiveURL"]
-        self.lucidservice.log("Done creating Lucid project and survey.")
-        self.lucidservice.log("----------")
+        self.lucidservice.log(
+            f"Done creating Lucid project and survey: {survey_number}."
+        )
+        self.lucidservice.log(
+            f"Lucid reports: https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/reports"
+        )
         self.lucidservice.log("---------> " + url)
         self.lucidservice.log("----------")
 
@@ -568,10 +578,18 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         if participant is not None and participant.progress == 1:
             self.complete_participant(participant.assignment_id)
         else:
-            self.terminate_participant(
-                participant.assignment_id,
-                "Termination in 'reward_bonus' as 'participant.progress' was < 1",
+            responses = (
+                Response.query.filter_by(participant_id=participant.id)
+                .order_by(Response.creation_time)
+                .all()
             )
+            if responses[-1].answer == {"lucid_consent": False}:
+                reason = "Consent rejected"
+            else:
+                reason = (
+                    "Termination in 'reward_bonus' as 'participant.progress' was < 1"
+                )
+            self.terminate_participant(participant.assignment_id, reason)
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
@@ -663,9 +681,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def initial_response_within_s(self):
         return self.get_config_entry("initial_response_within_s")
 
-    @property
-    def max_response_time_in_s(self):
-        return self.get_config_entry("max_response_time_in_s")
+    # @property
+    # def max_response_time_in_s(self):
+    #     return self.get_config_entry("max_response_time_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
@@ -967,6 +985,8 @@ def get_lucid_settings(
     inactivity_timeout_in_s=120,
     no_focus_timeout_in_s=60,
     aggressive_no_focus_timeout_in_s=3,
+    initial_response_within_s=180,
+    debug_recruiter=False,
 ):
     """
     Parameters
@@ -992,6 +1012,10 @@ def get_lucid_settings(
     aggressive_termination_on_no_focus: int, default 3, this the same setting as `no_focus_timeout_in_s`, but it is
         only used for aggressive in the consent page, since many participants are lost there.
 
+    initial_response_within_s: int, default 180 seconds (3 minutes). If the participant does not proceed to the consent
+        within this time, the participant is terminated via the backend-end.
+
+    debug_recruiter: bool, default False, whether to use the development recruiter. This is useful for local testing.
 
     """
 
@@ -1005,10 +1029,10 @@ def get_lucid_settings(
     lucid_recruitment_config["survey"]["CollectsPII"] = collects_pii
     lucid_recruitment_config["inactivity_timeout_in_s"] = inactivity_timeout_in_s
     lucid_recruitment_config["no_focus_timeout_in_s"] = no_focus_timeout_in_s
-
     lucid_recruitment_config[
         "aggressive_no_focus_timeout_in_s"
     ] = aggressive_no_focus_timeout_in_s
+    lucid_recruitment_config["initial_response_within_s"] = initial_response_within_s
 
     lucid_recruitment_config = json.dumps(lucid_recruitment_config)
 
@@ -1019,6 +1043,8 @@ def get_lucid_settings(
         "show_reward": False,
         "show_abort_button": False,
     }
+    if debug_recruiter:
+        settings["debug_recruiter"] = "DevLucidRecruiter"
     return settings
 
 
