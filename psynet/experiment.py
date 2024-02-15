@@ -102,7 +102,6 @@ logger = get_logger()
 
 database_template_path = ".deploy/database_template.zip"
 
-
 DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
 
@@ -2385,18 +2384,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if assignment_id is None and participant_id is not None:
             participant_id = int(participant_id)
-
-        assert assignment_id is not None, "No assignment ID provided"
-
-        external_submit_url = None
-
-        try:
             participant = (
                 Participant.query.with_for_update(of=Participant)
                 .populate_existing()
                 .get(participant_id)
             )
             assignment_id = participant.assignment_id
+
+        assert assignment_id is not None, "No assignment ID provided"
+
+        external_submit_url = None
+
+        try:
             recruiter = get_experiment().recruiter
             if hasattr(recruiter, "external_submit_url"):
                 external_submit_url = recruiter.external_submit_url(
