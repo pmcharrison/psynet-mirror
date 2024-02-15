@@ -190,7 +190,7 @@ class LucidService(object):
 
     def can_be_terminated(self, lucid_rid):
         if (
-            datetime.now() - lucid_rid.creation_time
+            datetime.now() - lucid_rid.registered_at
         ).seconds <= self.recruitment_config["termination_time_in_s"]:
             return False
 
@@ -211,7 +211,7 @@ class LucidService(object):
         else:
             time_until_termination_in_s = (
                 termination_time_in_s
-                - (datetime.now() - lucid_rid.creation_time).seconds
+                - (datetime.now() - lucid_rid.registered_at).seconds
             )
             return time_until_termination_in_s
 
