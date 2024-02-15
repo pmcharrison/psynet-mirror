@@ -91,12 +91,17 @@ class LucidService(object):
         )
         response_data = response.json()
 
+        if "Survey" not in response_data:
+            raise LucidServiceException(
+                f"LUCID: Survey was missing in response data from request to create survey. Full response data: {response_data}"
+            )
+
         if (
             "SurveySID" not in response_data["Survey"]
             or "SurveyNumber" not in response_data["Survey"]
         ):
             raise LucidServiceException(
-                "LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey."
+                f"LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey. Full response data: {response_data}"
             )
         self.log(
             f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
