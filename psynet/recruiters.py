@@ -270,10 +270,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         prescreens = entry_df.query("lucid_status != @PRESCREENED_CODE")
         completes = entry_df.query("lucid_status == @COMPLETED_CODE")
         drop_off = entry_df.query("lucid_status == @UNRETURNED_CODE")
-        drop_off_rate = len(drop_off) / len(prescreens) if len(prescreens) > 0 else None
-        conversion_rate = (
-            len(completes) / len(prescreens) if len(prescreens) > 0 else None
-        )
+        drop_off_rate = len(drop_off) / len(prescreens) if len(prescreens) > 0 else 0
+        conversion_rate = len(completes) / len(prescreens) if len(prescreens) > 0 else 0
 
         pattern = (
             "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification"
@@ -283,7 +281,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         )
 
         potential = len(completes) + returned_because_of_qualifications
-        incidence_rate = len(completes) / potential if potential > 0 else None
+        incidence_rate = len(completes) / potential if potential > 0 else 0
         return {
             "drop_off_rate": drop_off_rate,
             "conversion_rate": conversion_rate,
