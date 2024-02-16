@@ -363,7 +363,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         for entrant in unfailed_entrants:
             if (
                 entrant.registered_at
-                + timedelta(minutes=self.initial_response_within_s)
+                + timedelta(seconds=self.initial_response_within_s)
                 > now
             ):
                 # skip entrants that have not been registered long enough
