@@ -398,7 +398,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 #         details = f"Participant {participant.id} had {len(responses)} responses"
 
             except sqlalchemy.orm.exc.NoResultFound:
-                reason = "Never entered the experiment"
+                # Do not terminate participants who did not pass the qualifications
+                if entrant.lucid_status != self.PRESCREENED:
+                    reason = "Never entered the experiment"
 
             if reason:
                 self.terminate_participant(entrant.rid, reason, details)
