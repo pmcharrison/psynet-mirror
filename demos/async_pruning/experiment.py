@@ -8,6 +8,7 @@
 
 import random
 import time
+from datetime import datetime
 from typing import List, Union
 
 from markupsafe import Markup
@@ -15,6 +16,8 @@ from markupsafe import Markup
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
+from psynet.db import with_transaction
+from psynet.error import ErrorRecord
 from psynet.experiment import scheduled_task
 from psynet.modular_page import Prompt, SliderControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
@@ -93,7 +96,7 @@ class CustomNetwork(GibbsNetwork):
         )
         if self.n_alive_nodes > 1:
             if self.head.id % 3 == 0:
-                assert False
+                assert False, "Intentional failure in async_post_grow_network"
             elif self.head.id % 4 == 0:
                 import time
 
@@ -137,7 +140,7 @@ class CustomTrial(GibbsTrial):
     def async_post_trial(self):
         logger.info("Running custom async post trial (id = %i)", self.id)
         if self.id % 3 == 0:
-            assert False
+            assert False, "Intentional failure in async_post_trial"
         elif self.id % 4 == 0:
             import time
 
@@ -220,16 +223,15 @@ class Exp(psynet.experiment.Experiment):
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
 
-    @scheduled_task("interval", minutes=0.1, max_instances=1)
+    @scheduled_task("interval", seconds=2.0, max_instances=1)
     @staticmethod
+    @with_transaction
     def add_random_var_to_trials():
-        trials = CustomTrial.query.all()
-        for t in trials:
-            if not t.awaiting_async_process and not t.failed:
-                # Often it's wise to make sure that the trial isn't already waiting
-                # for a pre-existing asynchronous process to complete.
-                # One might implement more complex checks here, for example only running the
-                # task for trials that have already received a response from the participant.
+        from psynet.experiment import is_experiment_launched
+
+        if is_experiment_launched():
+            trials = CustomTrial.query.with_for_update().populate_existing().all()
+            for t in trials:
                 WorkerAsyncProcess(
                     function=t.expensive_computation,
                     arguments={
@@ -264,3 +266,19 @@ class Exp(psynet.experiment.Experiment):
 
         for _process in expensive_computations:
             assert not _process.failed
+
+        # These typically happen in AsyncProcess.call_function; the Redis job fails to find any database row
+        # corresponding to the process to be run.
+        n_no_result_found_errors = ErrorRecord.query.filter_by(
+            kind="NoResultFound"
+        ).count()
+        assert n_no_result_found_errors == 0
+
+        # These are processes that failed to start properly, typically with a NoResultFound error.
+        abortive_processes = [
+            p
+            for p in expensive_computations
+            if (datetime.now() - p.creation_time).total_seconds() > 2.5
+            and not p.time_started
+        ]
+        assert len(abortive_processes) == 0

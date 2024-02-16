@@ -35,6 +35,10 @@ class TestExp:
             pt = Participant.query.filter_by(id=participant + 1).one()
             time.sleep(1)
 
+            trials = pt.all_trials
+            trials.sort(key=lambda t: t.id)
+            assert trials[0].finalized
+
             async_processes = AsyncProcess.query.all()
             assert len(async_processes) > 0
 

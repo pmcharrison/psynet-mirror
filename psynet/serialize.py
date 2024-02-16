@@ -188,9 +188,17 @@ class SQLHandler(jsonpickle.handlers.BaseHandler):
     The SQLHandler class
     """
 
-    def flatten(self, obj, state):
+    def get_primary_keys(self, obj):
         primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
-        primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
+        return {key: getattr(obj, key) for key in primary_key_cols}
+
+    def flatten(self, obj, state):
+        primary_keys = self.get_primary_keys(obj)
+        if any(key is None for key in primary_keys.values()):
+            raise ValueError(
+                f"Cannot serialize {obj}. It has a `None` value for one of its primary keys: {primary_keys}. "
+                "It might be possible to solve this problem by introducing a `db.session.flush()` call before pickling."
+            )
         state["identifiers"] = primary_keys
         return state
 

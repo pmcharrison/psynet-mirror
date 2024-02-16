@@ -42,6 +42,7 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
         """
         for participant in participants:
             participant.status = "abandoned"
+            # We preserve this commit just in case Dallinger removes the external commit in the future
             session.commit()
 
     def recruit(self, n=1):

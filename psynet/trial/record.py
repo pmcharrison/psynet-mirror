@@ -2,7 +2,6 @@ import os
 import tempfile
 
 import dominate.tags as tags
-from dallinger import db
 
 from ..asset import ExperimentAsset
 from ..field import claim_var
@@ -78,20 +77,21 @@ class RecordTrial:
         pass
 
     def async_post_trial(self):
-        from ..utils import wait_until
-
-        def is_recording_deposited():
-            db.session.commit()
-            return self.recording.deposited
-
-        wait_until(
-            condition=is_recording_deposited,
-            max_wait=45,
-            poll_interval=1.0,
-            error_message="Waited too long for the asset deposit to complete.",
-        )
-
-        logger.info("Asset deposit is complete, ready to continue with the analysis.")
+        # This code shouldn't be necessary because async_post_trial is only called
+        # once the asset has been deposited.
+        #
+        # from ..utils import wait_until
+        # def is_recording_deposited():
+        #     db.session.commit()
+        #     return self.recording.deposited
+        #
+        # wait_until(
+        #     condition=is_recording_deposited,
+        #     max_wait=45,
+        #     poll_interval=1.0,
+        #     error_message="Waited too long for the asset deposit to complete.",
+        # )
+        # logger.info("Asset deposit is complete, ready to continue with the analysis.")
         logger.info("Analyzing recording for trial %i...", self.id)
         with tempfile.NamedTemporaryFile() as temp_recording:
             with tempfile.NamedTemporaryFile(delete=False) as temp_plot:
@@ -100,7 +100,6 @@ class RecordTrial:
                 self.analysis = self.analyze_recording(
                     temp_recording.name, temp_plot.name
                 )
-                db.session.commit()
                 if not (
                     "no_plot_generated" in self.analysis
                     and self.analysis["no_plot_generated"]
@@ -115,8 +114,6 @@ class RecordTrial:
                     raise KeyError(
                         "The recording analysis failed to contain a 'failed' attribute."
                     )
-                finally:
-                    db.session.commit()
 
     def upload_plot(self, local_path, async_):
         asset = RecordingAnalysisPlot(

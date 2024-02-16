@@ -53,7 +53,7 @@ class TestExpWithExport:
         import time
 
         time.sleep(1)
-        for _ in range(4):
+        for _ in range(6):
             bot = Bot()
             bot.take_experiment()
 
@@ -72,7 +72,7 @@ class TestExport:
         participants_file = os.path.join(data_dir, "Bot.csv")
         participants = pandas.read_csv(participants_file)
         nrow = participants.shape[0]
-        assert nrow == 4
+        assert nrow == 6
 
     def test_networks_and_trials_files(self, data_dir):
         networks_file = os.path.join(data_dir, "CustomNetwork.csv")
@@ -118,7 +118,7 @@ class TestExport:
         coins_file = os.path.join(data_dir, "Coin.csv")
         coins = pandas.read_csv(coins_file)
         nrow = coins.shape[0]
-        assert nrow == 4
+        assert nrow == 6
 
     # test_coins_file(data_dir)
 
@@ -170,19 +170,19 @@ class TestExport:
         df = pandas.read_csv(os.path.join(data_dir, "Response.csv"))
 
         df_ = df.query("question == 'liked_experiment'")
-        assert df_.shape[0] == 4
-        assert list(df_.participant_id) == [1, 2, 3, 4]
-        assert list(df_.answer) == ["I'm a bot so I don't really have feelings..."] * 4
+        assert df_.shape[0] == 6
+        assert list(df_.participant_id) == [1, 2, 3, 4, 5, 6]
+        assert list(df_.answer) == ["I'm a bot so I don't really have feelings..."] * 6
 
         df_ = df.query("question == 'find_experiment_difficult'")
-        assert df_.shape[0] == 4
-        assert list(df_.participant_id) == [1, 2, 3, 4]
-        assert list(df_.answer) == ["I'm a bot so I found it pretty easy..."] * 4
+        assert df_.shape[0] == 6
+        assert list(df_.participant_id) == [1, 2, 3, 4, 5, 6]
+        assert list(df_.answer) == ["I'm a bot so I found it pretty easy..."] * 6
 
         df_ = df.query("question == 'encountered_technical_problems'")
-        assert df_.shape[0] == 4
-        assert list(df_.participant_id) == [1, 2, 3, 4]
-        assert list(df_.answer) == ["No technical problems."] * 4
+        assert df_.shape[0] == 6
+        assert list(df_.participant_id) == [1, 2, 3, 4, 5, 6]
+        assert list(df_.answer) == ["No technical problems."] * 6
 
     # test_experiment_feedback(data_dir)
 
@@ -216,18 +216,18 @@ def test_populate_db_from_zip_file(database_zip_file, coin_class):
 
     trials = Trial.query.all()
     assert len(trials) > 15
-    assert all(t.participant_id in [1, 2, 3, 4] for t in trials)
+    assert all(t.participant_id in [1, 2, 3, 4, 5, 6] for t in trials)
 
     participants = Participant.query.all()
-    assert len(participants) == 4
-    assert sorted([p.id for p in participants]) == [1, 2, 3, 4]
+    assert len(participants) == 6
+    assert sorted([p.id for p in participants]) == [1, 2, 3, 4, 5, 6]
 
     responses = Response.query.all()
     assert len(responses) > 15
-    assert all(r.participant_id in [1, 2, 3, 4] for r in responses)
+    assert all(r.participant_id in [1, 2, 3, 4, 5, 6] for r in responses)
 
     coins = coin_class.query.all()
-    assert len(coins) == 4
-    assert all(c.participant_id in [1, 2, 3, 4] for c in coins)
+    assert len(coins) == 6
+    assert all(c.participant_id in [1, 2, 3, 4, 5, 6] for c in coins)
 
     # test_populate_db_from_zip_file(database_zip_file, coin_class)

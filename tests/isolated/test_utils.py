@@ -10,7 +10,10 @@ from psynet.timeline import Module
 from psynet.utils import (
     DuplicateKeyError,
     corr,
+    get_psynet_root,
     linspace,
+    list_demo_dirs,
+    list_isolated_tests,
     make_parents,
     merge_dicts,
     organize_by_key,
@@ -133,3 +136,23 @@ def test_organize_by_key():
 
 def get_datetime(str):
     return datetime.strptime(str, "%Y-%m-%d %H:%M:%S.%f")
+
+
+def test_demo_dirs():
+    psynet_root = get_psynet_root()
+    dirs = list_demo_dirs()
+    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
+    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() in dirs
+
+    dirs = list_demo_dirs(for_ci_tests=True)
+    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
+    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() not in dirs
+
+
+def test_isolated_tests():
+    psynet_root = get_psynet_root()
+    tests = list_isolated_tests()
+
+    assert (
+        psynet_root.joinpath("tests/isolated/test_demo_timeline.py").__str__() in tests
+    )
