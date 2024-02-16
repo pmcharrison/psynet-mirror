@@ -113,10 +113,15 @@ class CustomTrial(CustomTrialAnalysis):
     time_estimate = TIME_ESTIMATE_PER_TRIAL
 
     def show_trial(self, experiment, participant):
+        assert not self.origin.failed
+        assert self.origin.async_on_deploy_requested
+        assert self.origin.async_on_deploy_complete
+
         info_stimulus = self.origin.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec"]
         trial_number = self.position + 1
         n_trials = self.trial_maker.expected_trials_per_participant
+
         return ModularPage(
             "tapping_page",
             AudioPrompt(
@@ -166,6 +171,7 @@ class CustomNode(AudioImitationChainNode):
         return [mean(x) for x in zip(*new_rhythm)]
 
     def synthesize_target(self, output_file):
+        logger.info("Synthesizing target for node %s", self.id)
         random_seed = self.definition
         stim_onsets = make_stim_onsets_from_ioi_seed(random_seed, config.REPEATS)
         stim, stim_onset_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
@@ -251,8 +257,16 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         trial_1_html = str(self.node_visualization_html("Info", 1))
+
         assert "response-visualization" in trial_1_html
         assert "visualize-audio-response" in trial_1_html
         img = re.search(r'img src="(.*\.png)"', trial_1_html).group(1)
         assert img is not None
         assert Asset.query.filter_by(url=img).count() == 1
+
+        trials = CustomTrial.query.filter_by(participant_id=bot.id).all()
+        assert len(trials) == NUM_TRIALS_PARTICIPANT
+
+        for t in trials:
+            if t.failed:
+                assert t.failed_reason == "analysis"

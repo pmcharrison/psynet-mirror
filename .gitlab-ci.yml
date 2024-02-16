@@ -50,9 +50,8 @@ tests:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      $DOCKER_LOCAL_TAG bash -c
-      "pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX
-      --test-group-random-seed=12345 --ignore=tests/local_only --ignore=tests/isolated --chrome tests"
+      -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
 
 deploy_docker:
   stage: deploy

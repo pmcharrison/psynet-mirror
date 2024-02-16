@@ -1,20 +1,30 @@
 import datetime
 import inspect
-import os
 import threading
 import time
 
 import dallinger.db
-import sqlalchemy
 from dallinger import db
 from dallinger.db import redis_conn
 from jsonpickle.util import importable_name
 from rq import Queue
 from rq.job import Job
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    event,
+)
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import deferred, relationship
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_exponential
 
 from .data import SQLBase, SQLMixin, register_table
+from .db import with_transaction
 from .field import PythonDict, PythonObject
 from .utils import call_function, classproperty, get_logger
 
@@ -62,6 +72,27 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     errors = relationship("ErrorRecord")
 
+    launch_queue = []
+
+    def add_to_launch_queue(self):
+        self.launch_queue.append(self.get_launch_spec())
+
+    def get_launch_spec(self) -> dict:
+        db.session.flush([self])
+        return {
+            "obj": self,
+            "class": self.__class__,
+            "id": self.id,
+        }
+
+    @classmethod
+    def launch_all(cls):
+        while cls.launch_queue:
+            process = cls.launch_queue.pop(0)
+            assert process["obj"].id is not None
+            logger.info("Launching async process %s...", process["id"])
+            process["class"].launch(process)
+
     def __init__(
         self,
         function,
@@ -74,15 +105,14 @@ class AsyncProcess(SQLBase, SQLMixin):
         asset=None,
         label=None,
         unique=False,
-        unique_violation_raises_error=False,
     ):
-        db.session.commit()
-
         if label is None:
             label = function.__name__
 
         if arguments is None:
             arguments = {}
+
+        db.session.flush()
 
         if inspect.ismethod(function):
             method_name = function.__name__
@@ -134,24 +164,8 @@ class AsyncProcess(SQLBase, SQLMixin):
             else:
                 self._unique_key = unique
 
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError as err:
-            if "duplicate key value" in str(err):
-                if unique_violation_raises_error:
-                    raise RuntimeError(
-                        "An asynchronous process has already been triggered with the following specification: "
-                        f"{self._unique_key}"
-                    )
-                else:
-                    db.session.rollback()
-                    return
-            else:
-                raise
-
-        self.launch()
-        db.session.commit()
+        db.session.add(self)
+        self.add_to_launch_queue()
 
     def check_function(self, function):
         from .serialize import serialize, unserialize
@@ -206,7 +220,8 @@ class AsyncProcess(SQLBase, SQLMixin):
         candidates = [self.trial, self.node]
         return [lambda obj=obj: [obj] for obj in candidates if obj is not None]
 
-    def launch(self):
+    @classmethod
+    def launch(cls, process: dict):
         raise NotImplementedError
 
     @classproperty
@@ -218,25 +233,40 @@ class AsyncProcess(SQLBase, SQLMixin):
         cls.call_function(process_id)
 
     @classmethod
+    @retry(
+        retry=retry_if_exception_type(NoResultFound),
+        wait=wait_exponential(multiplier=0.1, min=0.01),
+        stop=stop_after_delay(4),
+    )
+    # The process gets launched when SQLAlchemy's after_commit event is triggered. This tells us when the COMMIT
+    # has been issued to the database, but it does not guarantee that the commit has finished execution.
+    # This is why we add some retry logic to ensure that the process is available in the database before continuing.
+    def get_process(cls, process_id: int):
+        return (
+            AsyncProcess.query.filter_by(id=process_id)
+            .with_for_update(of=AsyncProcess)
+            .populate_existing()
+            .one()
+        )
+
+    @classmethod
+    @with_transaction
     def call_function(cls, process_id):
         """
         Calls the defining function of a given process
         """
         # cls.log(f"Calling function for process_id: {process_id}")
         print("\n")
-        logger.info(f"Calling function for process_id: {process_id}")
+        logger.info(f"Calling function for process_id {process_id}...")
 
-        from psynet.experiment import get_experiment
-
-        experiment = get_experiment()
-
-        process = (
-            AsyncProcess.query.with_for_update(of=AsyncProcess)
-            .populate_existing()
-            .get(process_id)
-        )
+        process = None
 
         try:
+            from psynet.experiment import get_experiment
+
+            experiment = get_experiment()
+
+            process = cls.get_process(process_id)
             function = process.function
 
             arguments = cls.preprocess_args(process.arguments)
@@ -258,20 +288,15 @@ class AsyncProcess(SQLBase, SQLMixin):
                 arguments["self"].check_if_can_mark_as_finalized()
 
         except Exception as err:
-            if os.getenv("PASSTHROUGH_ERRORS"):
-                raise
             if not isinstance(err, experiment.HandledError):
                 experiment.handle_error(err, process=process)
-            try:
+
+            if process:
+                process.pending = False
                 process.fail(f"Exception in asynchronous process: {repr(err)}")
-            except Exception:
-                experiment.handle_error(err, process=process)
-                process.failed = True
-            db.session.commit()
+
         finally:
-            process.pending = False
             db.session.commit()
-            db.session.close()
 
     @classmethod
     def preprocess_args(cls, arguments):
@@ -299,16 +324,21 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     @classmethod
     def log_to_redis(cls, msg):
-        return
         cls.redis_queue.enqueue_call(
             func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
         )
 
 
+@event.listens_for(db.session, "after_commit")
+def receive_after_commit(session):
+    AsyncProcess.launch_all()
+
+
 class LocalAsyncProcess(AsyncProcess):
-    def launch(self):
+    @classmethod
+    def launch(cls, process: dict):
         thr = threading.Thread(
-            target=self.thread_function, kwargs={"process_id": self.id}
+            target=cls.thread_function, kwargs={"process_id": process["id"]}
         )
         thr.start()
 
@@ -356,6 +386,11 @@ class WorkerAsyncProcess(AsyncProcess):
     timeout_scheduled_for = Column(DateTime)
     cancelled = Column(Boolean, default=False)
 
+    def get_launch_spec(self) -> dict:
+        spec = super().get_launch_spec()
+        spec["timeout"] = self.timeout
+        return spec
+
     def __init__(
         self,
         function,
@@ -367,7 +402,6 @@ class WorkerAsyncProcess(AsyncProcess):
         asset=None,
         label=None,
         unique=False,
-        unique_violation_raises_error=False,
         timeout=None,  # <-- new argument for this class
     ):
         self.timeout = timeout
@@ -386,17 +420,18 @@ class WorkerAsyncProcess(AsyncProcess):
             asset=asset,
             label=label,
             unique=unique,
-            unique_violation_raises_error=unique_violation_raises_error,
         )
 
-    def launch(self):
-        self.redis_job_id = self.redis_queue.enqueue_call(
-            func=self.call_function_with_logger,
+    @classmethod
+    def launch(cls, process: dict):
+        # Previously we took the id of the enqueue_call and saved that in Process.redis_job_id,
+        # but this is not possible now that the Process object is not accessible.
+        cls.redis_queue.enqueue_call(
+            func=cls.call_function_with_logger,
             args=(),
-            kwargs=dict(process_id=self.id),
-            timeout=self.timeout,
-        ).id
-        db.session.commit()
+            kwargs=dict(process_id=process["id"]),
+            timeout=process["timeout"],
+        )
 
     @classmethod
     def check_timeouts(cls):
