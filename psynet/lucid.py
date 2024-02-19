@@ -311,13 +311,13 @@ class LucidService(object):
             .replace("=", "")
         )
 
-    def get_respondents(self, survey_number, days_lookback=60):
+    def _lookback_timestamp(self, days_lookback):
         timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
         now = datetime.now()
+        return (now - timedelta(days=days_lookback)).strftime(timestamp_format)
 
-        entry_date_after = (now - timedelta(days=days_lookback)).strftime(
-            timestamp_format
-        )
+    def get_respondents(self, survey_number, days_lookback=60):
+        entry_date_after = self._lookback_timestamp(days_lookback)
         url = f"https://api.samplicio.us/demand/v2-beta/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
@@ -360,26 +360,28 @@ class LucidService(object):
         result = self._get_question_field(question_id, field, locale)
         return result[0][field]
 
-    def get_summary(self, survey_number):
-        url = "https://api.samplicio.us/v1/reports/surveys/financesummary.json"
-        data = json.dumps({"survey_ids": [str(survey_number)]})
-        response = requests.post(
-            url,
-            data=data,
-            headers={
-                **self.headers,
-                "Content-type": "application/json",
-                "Accept": "text/plain",
-            },
-        )
+    def get_summary(self, survey_number, days_lookback=60):
+        entry_date_after = self._lookback_timestamp(days_lookback)
+        url = f"https://api.samplicio.us/demand/v2-beta/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
+        response = requests.get(url, headers=self.headers)
         assert response.ok
-        summary = response.json()["summary"]
+        stats = response.json()
+
+        url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_number}&fields=last_complete_date,status"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        survey_status = response.json()["result"]
+
         return {
-            "total_cost": summary["total_cost"],
-            "currency": summary["currency"],
-            "sample_cost": summary["sample_cost"],
-            "buyer_fees": summary["buyer_fees"],
-            "completes": summary["completes"],
+            "cost": stats["statistics"]["cost"],
+            "currency": stats["statistics"]["currency_code"],
+            "exchange_rate": stats["statistics"]["exchange_rate"],
+            "epc": stats["earnings_per_click"],
+            "completion_loi": stats["median_length_of_interview"],
+            "termination_loi": stats["system_conversion"],
+            "system_conversion": stats["system_conversion"],
+            "status": survey_status["status"],
+            "last_complete_date": survey_status["last_complete_date"],
         }
 
 
