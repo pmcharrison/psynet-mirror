@@ -217,9 +217,11 @@ def report_lucid():
         entry_df.lucid_entry_date, format="mixed"
     )
     entry_df.lucid_last_date = pd.to_datetime(entry_df.lucid_last_date, format="mixed")
-    entry_df["lucid_duration"] = (
-        entry_df.apply(compute_lucid_duration, axis=1)
-    ).dt.total_seconds() / 60
+    if len(entry_df) > 0:
+        entry_df["lucid_duration"] = entry_df.apply(compute_lucid_duration, axis=1)
+        entry_df["lucid_duration"] = entry_df.lucid_duration.apply(
+            lambda t: t.total_seconds() / 60 if not pd.isna(t) else t
+        )
 
     def get_psynet_finished(row):
         if not pd.isna(row.terminated_at):
@@ -230,9 +232,11 @@ def report_lucid():
             return None
 
     entry_df["psynet_finished"] = entry_df.apply(get_psynet_finished, axis=1)
-    entry_df["psynet_duration"] = (
-        entry_df.psynet_finished - entry_df.registered_at
-    ).dt.total_seconds() / 60
+    if len(entry_df) > 0:
+        entry_df["psynet_duration"] = entry_df.psynet_finished - entry_df.registered_at
+        entry_df["psynet_duration"] = entry_df.psynet_duration.apply(
+            lambda t: t.total_seconds() / 60 if not pd.isna(t) else t
+        )
 
     # Status; used in pandas query, linter does not recognize it
     completed_status = BaseLucidRecruiter.COMPLETED  # noqa: F841
@@ -244,10 +248,13 @@ def report_lucid():
         <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
         """
     survey_number = experiment.recruiter.current_survey_number()
+    survey_sid = experiment.recruiter.current_survey_sid()
     title += f" (Survey {survey_number})"
 
     body += f"""
         <a class="btn btn-primary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/reports" target="_blank">Reports</a>
+        <a class="btn btn-success" role="button" href="https://www.samplicio.us/fulcrum/SurveyQualifications.aspx?SID={survey_sid}" target="_blank">Qualifications</a>
+        <a class="btn btn-danger" role="button" href="https://www.samplicio.us/fulcrum/Reconciliations.aspx?SurveySID={survey_sid}" target="_blank">Reconciliations</a>
         <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/quotas" target="_blank">Quota</a>
         <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/details" target="_blank">Details</a>
     """

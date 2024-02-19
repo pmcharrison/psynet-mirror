@@ -408,10 +408,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 logger.info(f"Wait for {wait} seconds")
                 time.sleep(wait)
 
-    @property
-    def survey_number_storage_key(self):
+    def get_survey_storage_key(self, name):
         experiment_id = self.config.get("id")
-        return "{}:{}".format(self.__class__.__name__, experiment_id)
+        return f"{self.__class__.__name__}:{experiment_id}:{name}"
 
     @property
     def in_progress(self):
@@ -437,7 +436,14 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         Return the survey number associated with the active experiment ID
         if any such survey exists.
         """
-        return self.store.get(self.survey_number_storage_key)
+        return self.store.get(self.get_survey_storage_key("survey_number"))
+
+    def current_survey_sid(self):
+        """
+        Return the survey SID associated with the active experiment ID
+        if any such survey exists.
+        """
+        return self.store.get(self.get_survey_storage_key("survey_sid"))
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
@@ -465,6 +471,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_number(survey_info["SurveyNumber"])
+        self._record_survey_sid(survey_info["SurveySID"])
 
         # Lucid Marketplace automatically adds 6 qualifications to US studies
         # when a survey is created (Age, Gender, Zip, Ethnicity, Hispanic, Standard HHI US).
@@ -592,7 +599,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             self.terminate_participant(participant.assignment_id, reason)
 
     def _record_current_survey_number(self, survey_number):
-        self.store.set(self.survey_number_storage_key, survey_number)
+        self.store.set(self.get_survey_storage_key("survey_number"), survey_number)
+
+    def _record_survey_sid(self, survey_sid):
+        self.store.set(self.get_survey_storage_key("survey_sid"), survey_sid)
 
     def external_submit_url(self, participant=None, assignment_id=None):
         if participant is None and assignment_id is None:
