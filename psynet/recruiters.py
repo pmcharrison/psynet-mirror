@@ -271,9 +271,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         drop_off_rate = len(drop_off) / len(prescreens) if len(prescreens) > 0 else 0
         conversion_rate = len(completes) / len(prescreens) if len(prescreens) > 0 else 0
 
-        pattern = (
-            "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification"
-        )
+        pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
         returned_because_of_qualifications = (
             entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
         )
