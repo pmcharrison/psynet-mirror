@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from math import ceil
 
 import pandas as pd
@@ -6,7 +7,7 @@ from flask import render_template
 
 from psynet.experiment import get_and_load_config
 from psynet.participant import Participant
-from psynet.recruiters import BaseLucidRecruiter, LucidRID
+from psynet.recruiters import BaseLucidRecruiter, LucidRID, LucidStatus
 from psynet.timeline import Response
 
 TEMPLATE_NAME = "dashboard_custom.html"
@@ -151,7 +152,6 @@ def make_response_histogram(
                 return '<div class="container">' + title + table + "<div>";
             })
         """
-    return make_histogram(id_name, type2color, data, margin, n_bins, tooltip)
     height = 500
     return make_histogram(id_name, type2color, data, margin, n_bins, tooltip, height)
 
@@ -296,6 +296,32 @@ def prepare_reconciliations(rids: [str], filename: str):
     """
 
 
+def copy_to_clipboard(text: str):
+    return f"""
+    <script>
+    function copyToClipboard() {{
+      const el = document.createElement('textarea');
+      el.value = `{text}`;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }}
+    </script>
+    <br>
+    <a class="btn btn-primary mt-2" onclick="copyToClipboard()">Copy compensation command</a>
+    """
+
+
+def get_psynet_finished(row):
+    if not pd.isna(row.terminated_at):
+        return row.terminated_at
+    elif not pd.isna(row.completed_at):
+        return row.completed_at
+    else:
+        return None
+
+
 def report_lucid():
     from psynet.experiment import get_experiment
 
@@ -317,18 +343,107 @@ def report_lucid():
     survey_sid = experiment.recruiter.current_survey_sid()
     title += f" (Survey {survey_number})"
 
-    buttons = f"""
+    header = f"""
+        <div class='mb-2'>
             <a class="btn btn-primary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/reports" target="_blank">Reports</a>
             <a class="btn btn-success" role="button" href="https://www.samplicio.us/fulcrum/SurveyQualifications.aspx?SID={survey_sid}" target="_blank">Qualifications</a>
             <a class="btn btn-danger" role="button" href="https://www.samplicio.us/fulcrum/Reconciliations.aspx?SurveySID={survey_sid}" target="_blank">Reconciliations</a>
             <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/quotas" target="_blank">Quota</a>
             <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/details" target="_blank">Details</a>
+        </div>
         """
+    query = LucidStatus.query.order_by(LucidStatus.id.desc())
+    earnings_per_click = 0
+    completion_loi = 0
+    termination_loi = 0
+    conversion_rate = 0
+    dropoff_rate = 0
+    incidence_rate = 0
+    if query.count() > 0:
+        last_status = query.first()
+
+        # Set params
+        earnings_per_click = last_status.earnings_per_click
+        completion_loi = last_status.completion_loi
+        termination_loi = last_status.termination_loi
+        conversion_rate = last_status.conversion_rate
+        dropoff_rate = last_status.drop_off_rate
+        incidence_rate = last_status.incidence_rate
+
+        status_name = last_status.status
+
+        last_api_call = int(
+            (datetime.now() - pd.to_datetime(last_status.creation_time)).seconds / 60
+        )
+        selectpicker = "<select id='status' name='status'>"
+        for status in BaseLucidRecruiter.survey_codes:
+            if status == "archived":
+                background = "rgb(166, 172, 179)"
+            elif status == "awarded":
+                background = "rgb(255, 204, 93)"
+            elif status == "live":
+                background = "rgb(4, 191, 129)"
+            elif status == "paused":
+                background = "blue"
+            elif status == "pending":
+                background = "rgb(250, 62, 100)"
+            else:
+                background = "black"
+            content = f"""<span style="background:{background}" class="badge rounded-pill">{status.capitalize()}</span>"""
+            selectpicker += f"<option value='{status}' {'selected' if status == status_name else ''}  data-content='{content}'>{status}</option>"
+        if status_name not in BaseLucidRecruiter.survey_codes:
+            selectpicker += (
+                f"<option value='{status_name}' selected >{status_name}</option>"
+            )
+        selectpicker += "</select>"
+
+        cost_summary = (
+            f"<strong>Cost</strong>: {last_status.cost} {last_status.currency}</br>"
+        )
+        if last_status.cost > 0:
+            cost_summary += f"<strong>Payment per hour</strong>: {last_status.payment_per_hour}</br>"
+            cost_summary += f"<strong>Cost per complete</strong>: {last_status.cost_per_survey}</br>"
+
+        header += f"""
+        <div class="alert alert-primary" role="alert">
+            Last API call: {last_api_call} minutes ago.
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <strong>Status</strong>: {selectpicker}</br>
+            </div>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+            <script>
+            selectpicker = $('#status').selectpicker();
+            document.getElementById('status').addEventListener('change', function(e) {{
+                fetch(window.location.origin + '/change_lucid_status?status=' + e.target.value, {{
+                    method: 'GET',
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    agent: null,
+                    headers: {{
+                        "Content-Type": "text/plain",
+                        'Authorization': 'Basic ' + btoa('username:password'),
+                    }},
+                }})
+            }})
+            </script>
+            <div class="col-4">
+            <strong>Cost</strong>: {last_status.cost} {last_status.currency}</br>
+            </div>
+        """
+        if last_status.last_complete_date:
+            header += f"<div class='col-4'><strong>Last complete date</strong>: {last_status.last_complete_date}</div>"
+        header += "</div>"
     if len(all_entrants) == 0:
         return render_template(
             TEMPLATE_NAME,
             title=title,
-            html=f"""{buttons}
+            html=f"""{header}
                 <div class="alert alert-primary" role="alert">
                     No participants entered the experiment.
                 </div>
@@ -353,14 +468,6 @@ def report_lucid():
             lambda t: t.total_seconds() / 60 if not pd.isna(t) else t
         )
 
-    def get_psynet_finished(row):
-        if not pd.isna(row.terminated_at):
-            return row.terminated_at
-        elif not pd.isna(row.completed_at):
-            return row.completed_at
-        else:
-            return None
-
     entry_df["psynet_finished"] = entry_df.apply(get_psynet_finished, axis=1)
     if len(entry_df) > 0:
         entry_df["psynet_duration"] = entry_df.psynet_finished - entry_df.registered_at
@@ -376,7 +483,7 @@ def report_lucid():
 
     body = f"""
         <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
-        {buttons}
+        {header}
         """
 
     entry_df["psynet_status"] = entry_df.apply(get_entrant_psynet_status, axis=1)
@@ -520,12 +627,11 @@ def report_lucid():
     n_psynet_completed = len(psynet_completes_df)
     if n_lucid_completed != n_psynet_completed:
         lucid_complete_rids = psynet_completes_df.rid.to_list()
+        cmd = f"cap lucid compensate {survey_number} {','.join(lucid_complete_rids)}"
         items[3] += (
             "<br><span class='text-danger'>Detected a mismatch in completed participants in Psynet (n = "
             + f"{n_psynet_completed}) and Lucid (n = {n_lucid_completed}).</span>"
-            + prepare_reconciliations(
-                lucid_complete_rids, f"{survey_number}-reconciliations.txt"
-            )
+            + copy_to_clipboard(cmd)
         )
 
     lucid_client_codes = make_card(
@@ -551,16 +657,16 @@ def report_lucid():
     )
 
     if entry_df.shape[0] > 0:
-        metrics = BaseLucidRecruiter.get_recruiter_metrics(entry_df)
+        # metrics = BaseLucidRecruiter.get_recruiter_metrics(entry_df)
 
-        conversion_rate = metrics["conversion_rate"]
+        # conversion_rate = metrics["conversion_rate"]
         lucid_conversion_rate = make_status_card(
             f"Conversion rate: {int(conversion_rate * 100)}%",
             "Percentage of completes of total people who passed the qualifications. Should be more than 10%.",
             "success" if conversion_rate > 0.1 else "danger",
         )
 
-        dropoff_rate = metrics["drop_off_rate"]
+        # dropoff_rate = metrics["drop_off_rate"]
         lucid_dropoff_rate = make_status_card(
             f"Dropoff rate: {int(dropoff_rate * 100)}%",
             "Percentage of participants not returned to the market place who passed the qualifications. Should be less than 20%.",
@@ -570,7 +676,7 @@ def report_lucid():
         config = get_and_load_config()
         lucid_recruitment_config = json.loads(config.get("lucid_recruitment_config"))
         bid_incidence = lucid_recruitment_config["survey"]["BidIncidence"]
-        incidence_rate = metrics["incidence_rate"]
+        # incidence_rate = metrics["incidence_rate"]
 
         if incidence_rate >= bid_incidence / 100:
             lucid_incidence_rate = make_status_card(
@@ -591,25 +697,22 @@ def report_lucid():
         )
 
         if len(completes_df) > 0:
-            completion_loi = int(
-                completes_df.dropna(subset=["psynet_duration"])
-                .psynet_duration.median()
-                .round()
-            )
+            # completion_loi = int(
+            #     completes_df.dropna(subset=["psynet_duration"])
+            #     .psynet_duration.median()
+            #     .round()
+            # )
             completion_title = f"Completion LOI: {completion_loi} minutes"
             text = f"Expected: {set_completion_loi} minutes."
 
             data = []
             for _, row in completes_df.iterrows():
-                participant_id = (
-                    row.participant_id
-                    if not pd.isna(row.participant_id)
-                    else "Not registered"
-                )
                 data.append(
                     {
                         "rid": row.rid,
-                        "pid": participant_id,
+                        "pid": row.participant_id
+                        if not pd.isna(row.participant_id)
+                        else "Not registered",
                         "reason": row.termination_reason
                         if not pd.isna(row.termination_reason)
                         else "n/a",
@@ -653,7 +756,7 @@ def report_lucid():
             )
 
         if len(terminated_df) > 0:
-            lucid_termination_loi = int(terminated_df.lucid_duration.median().round())
+            termination_loi = int(terminated_df.lucid_duration.median().round())
 
             psynet_termination_loi = int(
                 psynet_terminated_df.psynet_duration.median().round()
@@ -664,7 +767,7 @@ def report_lucid():
                     data.append(
                         {
                             "rid": row.rid,
-                            "pid": participant_id
+                            "pid": row.participant_id
                             if not pd.isna(row.participant_id)
                             else "Not registered",
                             "reason": row.termination_reason
@@ -691,7 +794,7 @@ def report_lucid():
             #         data.append(
             #             {
             #                 "rid": row.rid,
-            #                 "pid": participant_id,
+            #                 "pid": row.participant_id,
             #                 "reason": row.termination_reason
             #                 if not pd.isna(row.termination_reason)
             #                 else "n/a",
@@ -711,10 +814,10 @@ def report_lucid():
             #             }
             #         )
 
-            bad_loi = lucid_termination_loi > 1
+            bad_loi = termination_loi > 1
             histogram = make_loi_histogram("termination_loi", data)
-            lucid_termination_loi = make_status_card(
-                title=f"Termination LOI: {lucid_termination_loi} minutes",
+            termination_loi = make_status_card(
+                title=f"Termination LOI: {termination_loi} minutes",
                 body=(
                     "Median time from entry to termination. "
                     + "Should be a minute or less. "
@@ -733,7 +836,7 @@ def report_lucid():
             scatter_plot = make_loi_scatterplot(
                 "scatterplot", data, "LOI (Lucid)", "LOI (PsyNet)"
             )
-            lucid_termination_loi += make_status_card(
+            termination_loi += make_status_card(
                 title="Termination LOI: PsyNet vs Lucid",
                 body="Comparison of termination LOI between  PsyNet vs Lucid."
                 + scatter_plot,
@@ -742,7 +845,7 @@ def report_lucid():
             )
 
         else:
-            lucid_termination_loi = make_status_card(
+            termination_loi = make_status_card(
                 "Termination LOI", "No terminated participants yet.", "info"
             )
 
@@ -799,18 +902,18 @@ def report_lucid():
             col="col-12",
         )
 
-        cpi = experiment.estimated_max_reward(wage_per_hour)
-        pattern = "Error|In Screener"
-        platform_faults = entry_df.lucid_market_place_code.str.contains(
-            pattern, regex=True
-        ).sum()
-        estimated_epc = round(
-            cpi * metrics["n_completes"] / (metrics["n_entrants"] - platform_faults), 2
-        )
+        # cpi = experiment.estimated_max_reward(wage_per_hour)
+        # pattern = "Error|In Screener"
+        # platform_faults = entry_df.lucid_market_place_code.str.contains(
+        #     pattern, regex=True
+        # ).sum()
+        # estimated_epc = round(
+        #     cpi * metrics["n_completes"] / (metrics["n_entrants"] - platform_faults), 2
+        # )
 
         lucid_epc = make_status_card(
-            f"Estimated EPC: {estimated_epc} €",
-            f"Earnings per click. It's not entirely clear how it is calculated. It's basically the number of completes divided by the number of entrants multiplied by the CPI ({round(cpi, 2)} €). Make sure the value is high enough.",
+            f"EPC: {earnings_per_click} €",
+            "Earnings per click = (CPI * completes) / system entrants. Make sure the value is high enough.",
             "info",
         )
 
@@ -824,15 +927,14 @@ def report_lucid():
             + "</div>"
         )
 
+        body += "<h3>Timing</h3>"
+        body += responses_per_participant
         body += (
-            "<h3>Timing</h3>"
             """<div class="row mb-2" data-masonry='{"percentPosition": true }'>"""
             + lucid_completion_loi
-            + lucid_termination_loi
+            + termination_loi
             + "</div>"
         )
-
-        body += responses_per_participant
 
     return render_template(
         TEMPLATE_NAME,
