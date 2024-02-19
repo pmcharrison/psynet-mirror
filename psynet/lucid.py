@@ -360,6 +360,28 @@ class LucidService(object):
         result = self._get_question_field(question_id, field, locale)
         return result[0][field]
 
+    def get_summary(self, survey_number):
+        url = "https://api.samplicio.us/v1/reports/surveys/financesummary.json"
+        data = json.dumps({"survey_ids": [str(survey_number)]})
+        response = requests.post(
+            url,
+            data=data,
+            headers={
+                **self.headers,
+                "Content-type": "application/json",
+                "Accept": "text/plain",
+            },
+        )
+        assert response.ok
+        summary = response.json()["summary"]
+        return {
+            "total_cost": summary["total_cost"],
+            "currency": summary["currency"],
+            "sample_cost": summary["sample_cost"],
+            "buyer_fees": summary["buyer_fees"],
+            "completes": summary["completes"],
+        }
+
 
 def get_lucid_service(config=None, recruitment_config=None):
     from .experiment import get_and_load_config
