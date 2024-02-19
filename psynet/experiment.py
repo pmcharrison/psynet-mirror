@@ -1781,6 +1781,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/abc-js",
                 ),
                 (
+                    resources.files("psynet") / "resources/libraries/d3",
+                    "/static/scripts/d3",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/scripts/prepare_docker_image.sh",
                     "prepare_docker_image.sh",

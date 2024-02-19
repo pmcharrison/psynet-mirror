@@ -1,8 +1,12 @@
 {% extends "base/dashboard.html" %}
 {% block scripts %}
-    {#    Custom scripts#}
+    <script src="/static/scripts/d3/d3.v4.js"></script>
+    <script src="/static/scripts/d3/d3-tip.min.js"></script>
+    <script src="/static/scripts/d3/visualizations.js"></script>
 {% endblock %}
 {% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/scripts/d3/d3-tip.css">
 
 {% endblock %}
 {% block body %}
