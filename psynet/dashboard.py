@@ -7,6 +7,7 @@ from flask import render_template
 from psynet.experiment import get_and_load_config
 from psynet.participant import Participant
 from psynet.recruiters import BaseLucidRecruiter, LucidRID
+from psynet.timeline import Response
 
 TEMPLATE_NAME = "dashboard_custom.html"
 
@@ -61,7 +62,7 @@ def make_card(title, body, items):
 
 def _prepare_viz(cmd, id_name):
     return f"""
-    <div id="{id_name}"></div>
+    <div style="min-height: 200px" id="{id_name}"></div>
     <script>
     document.addEventListener("DOMContentLoaded", function(e)  {{
         {cmd}
@@ -71,30 +72,118 @@ def _prepare_viz(cmd, id_name):
 
 
 def make_histogram(
-    id_name, type2color: dict, data: list, margin: dict = None, n_bins=40
+    id_name,
+    type2color: dict,
+    data: list,
+    margin: dict = None,
+    n_bins=40,
+    tooltip="null",
 ):
     if margin is None:
         margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
     assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
     return _prepare_viz(
-        f"""histogram("{id_name}", {data}, {margin}, {n_bins}, {type2color});""",
+        f"""histogram("{id_name}", {data}, {margin}, {n_bins}, {type2color}, {tooltip});""",
         id_name,
     )
+
+
+def make_loi_histogram(id_name, data: list, margin: dict = None, n_bins=40):
+    type2color = {"Lucid": "black"}
+    tooltip = """
+    d3.tip().attr('class', 'd3-tip')
+        .html(function (d) {
+            let type = d[0].type;
+            let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
+            // button to close
+            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+            let table = '<table class="table table-striped">';
+            table += '<tr>';
+            table += '<th>Participant ID</th>';
+            table += '<th>RID</th>';
+            table += '<th>Reason</th>';
+            table += '<th>PsyNet duration</th>';
+            table += '<th>Lucid duration</th>';
+            table += '<th>Client code</th>';
+            table += '</tr>';
+            d.forEach(function (bin) {
+                table += '<tr>';
+                table += `<td>${bin.pid}</td>`;
+                table += `<td>${bin.rid}</td>`;
+                table += `<td>${bin.reason}</td>`;
+                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
+                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
+                table += `<td>${bin.code}</td>`;
+                table += '</tr>';
+            });
+            table += '</table>';
+            return title + table;
+        })
+    """
+    return make_histogram(id_name, type2color, data, margin, n_bins, tooltip)
+
+
+def make_response_histogram(
+    id_name, type2color: dict, data: list, margin: dict = None, n_bins=40
+):
+    tooltip = """
+        d3.tip().attr('class', 'd3-tip')
+            .html(function (d) {
+                let type = d[0].type;
+                let title = `<h5>${d.length} participants (${type}) did ${(d.x0).toFixed(0)} pages`;
+                // button to close
+                title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+                let table = '<table class="table table-striped">';
+                table += '<tr>';
+                table += '<th>Participant ID</th>';
+                table += '<th>RID</th>';
+                table += '<th>Reason</th>';
+                table += '</tr>';
+                d.forEach(function (bin) {
+                    table += '<tr>';
+                    table += `<td>${bin.participant_id}</td>`;
+                    table += `<td>${bin.rid}</td>`;
+                    table += `<td>${bin.reason}</td>`;
+                    table += '</tr>';
+                });
+                table += '</table>';
+                return title + table;
+            })
+        """
+    return make_histogram(id_name, type2color, data, margin, n_bins, tooltip)
 
 
 def make_scatterplot(
-    id_name, data: list, x_label: str, y_label: str, margin: dict = None
+    id_name,
+    data: list,
+    x_label: str,
+    y_label: str,
+    margin: dict = None,
+    tooltip: str = "null",
 ):
     if margin is None:
         margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
     assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
+
     return _prepare_viz(
-        f"""scatter("{id_name}", {data}, {margin}, "{x_label}", "{y_label}");""",
+        f"""scatter("{id_name}", {data}, {margin}, "{x_label}", "{y_label}", {tooltip});""",
         id_name,
     )
 
 
-def make_status_card(title, body, status="info", border=False):
+def make_loi_scatterplot(
+    id_name, data: list, x_label: str, y_label: str, margin: dict = None
+):
+    tooltip = """
+    d3.tip().attr('class', 'd3-tip')
+        .html(function (d) {
+            return `Participant ${d.pid} (${d.rid}): ${d.reason}`;
+        })
+    """
+    return make_scatterplot(id_name, data, x_label, y_label, margin, tooltip)
+
+
+def make_status_card(title, body, status="info", border=False, col="col-4"):
     if status == "success":
         bg = "bg-success"
     elif status == "danger":
@@ -111,7 +200,7 @@ def make_status_card(title, body, status="info", border=False):
     if border:
         bg = f" border-{status} text-{status}"
     return f"""
-    <div class="col-4">
+    <div class="{col}">
     <div class="card mb-2 {bg}" style="width: 100%;">
         <div class="card-body">
             <h5 class="card-title">{title}</h5>
@@ -175,10 +264,33 @@ def entrant_info_to_status_items(entrant_info):
 def compute_lucid_duration(row):
     if not pd.isna(row.lucid_entry_date):
         return row.lucid_last_date - row.lucid_entry_date
-    elif row.registered_at > row.lucid_last_date:
-        return row.registered_at - row.lucid_last_date
+    # elif row.registered_at > row.lucid_last_date:
+    #     return row.registered_at - row.lucid_last_date
     else:
         return pd.NaT
+
+
+def prepare_reconciliations(rids: [str], filename: str):
+    return f"""
+    <script>
+    function getReconciliations() {{
+      const content = {rids}.join('\\n');
+      const file = new File([content], '{filename}', {{
+          type: 'text/plain',
+      }})
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(file)
+      link.href = url
+      link.download = file.name
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    }}
+    </script>
+    <br>
+    <a class="btn btn-primary mt-2" onclick="getReconciliations()">Download reconciliations</a>
+    """
 
 
 def report_lucid():
@@ -197,15 +309,23 @@ def report_lucid():
             """,
         )
     all_entrants = LucidRID.query.all()
-    rid2participant_id = {
-        participant.worker_id: participant.id for participant in Participant.query.all()
-    }
 
+    survey_number = experiment.recruiter.current_survey_number()
+    survey_sid = experiment.recruiter.current_survey_sid()
+    title += f" (Survey {survey_number})"
+
+    buttons = f"""
+            <a class="btn btn-primary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/reports" target="_blank">Reports</a>
+            <a class="btn btn-success" role="button" href="https://www.samplicio.us/fulcrum/SurveyQualifications.aspx?SID={survey_sid}" target="_blank">Qualifications</a>
+            <a class="btn btn-danger" role="button" href="https://www.samplicio.us/fulcrum/Reconciliations.aspx?SurveySID={survey_sid}" target="_blank">Reconciliations</a>
+            <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/quotas" target="_blank">Quota</a>
+            <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/details" target="_blank">Details</a>
+        """
     if len(all_entrants) == 0:
         return render_template(
             TEMPLATE_NAME,
             title=title,
-            html="""
+            html=f"""{buttons}
                 <div class="alert alert-primary" role="alert">
                     No participants entered the experiment.
                 </div>
@@ -213,6 +333,13 @@ def report_lucid():
         )
 
     entry_df = pd.DataFrame([entrant.to_dict() for entrant in all_entrants])
+    participants = pd.DataFrame(
+        [
+            {"participant_id": participant.id, "rid": participant.worker_id}
+            for participant in Participant.query.all()
+        ]
+    )
+    entry_df = entry_df.merge(participants, left_on="rid", right_on="rid", how="left")
     entry_df.lucid_entry_date = pd.to_datetime(
         entry_df.lucid_entry_date, format="mixed"
     )
@@ -244,20 +371,10 @@ def report_lucid():
     prescreened_status = BaseLucidRecruiter.PRESCREENED  # noqa: F841
     in_survey_status = BaseLucidRecruiter.UNRETURNED  # noqa: F841
 
-    body = """
+    body = f"""
         <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+        {buttons}
         """
-    survey_number = experiment.recruiter.current_survey_number()
-    survey_sid = experiment.recruiter.current_survey_sid()
-    title += f" (Survey {survey_number})"
-
-    body += f"""
-        <a class="btn btn-primary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/reports" target="_blank">Reports</a>
-        <a class="btn btn-success" role="button" href="https://www.samplicio.us/fulcrum/SurveyQualifications.aspx?SID={survey_sid}" target="_blank">Qualifications</a>
-        <a class="btn btn-danger" role="button" href="https://www.samplicio.us/fulcrum/Reconciliations.aspx?SurveySID={survey_sid}" target="_blank">Reconciliations</a>
-        <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/quotas" target="_blank">Quota</a>
-        <a class="btn btn-secondary" role="button" href="https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/details" target="_blank">Details</a>
-    """
 
     entry_df["psynet_status"] = entry_df.apply(get_entrant_psynet_status, axis=1)
 
@@ -383,22 +500,30 @@ def report_lucid():
     n_psynet_working = len(entry_df.query("psynet_status == 'Working'"))
     n_lucid_working = len(lucid_entry_df.query("lucid_status == @in_survey_status"))
     if n_lucid_working != n_psynet_working:
-        items[
-            1
-        ] += f"<br><span class='text-danger'>Detected a mismatch in working participants in Psynet (n = {n_psynet_working}) and Lucid (n = {n_lucid_working}).</span>"
+        items[1] += (
+            "<br><span class='text-danger'>Detected a mismatch in working participants in Psynet (n = "
+            f"{n_psynet_working}) and Lucid (n = {n_lucid_working}).</span>"
+        )
 
     if n_lucid_terminated != n_psynet_terminated:
-        items[
-            2
-        ] += f"<br><span class='text-danger'>Detected a mismatch in terminated participants in Psynet (n = {n_psynet_terminated}) and Lucid (n = {n_lucid_terminated}).</span>"
+        items[2] += (
+            "<br><span class='text-danger'>Detected a mismatch in terminated participants in Psynet (n = "
+            f"{n_psynet_terminated}) and Lucid (n = {n_lucid_terminated}).</span>"
+        )
 
     completes_df = entry_df.query("lucid_status == @completed_status")
     n_lucid_completed = len(completes_df)
-    n_psynet_completed = len(entry_df.query("psynet_status == 'Completed'"))
+    psynet_completes_df = entry_df.query("psynet_status == 'Completed'")
+    n_psynet_completed = len(psynet_completes_df)
     if n_lucid_completed != n_psynet_completed:
-        items[
-            3
-        ] += f"<br><span class='text-danger'>Detected a mismatch in completed participants in Psynet (n = {n_psynet_completed}) and Lucid (n = {n_lucid_completed}).</span>"
+        lucid_complete_rids = psynet_completes_df.rid.to_list()
+        items[3] += (
+            "<br><span class='text-danger'>Detected a mismatch in completed participants in Psynet (n = "
+            + f"{n_psynet_completed}) and Lucid (n = {n_lucid_completed}).</span>"
+            + prepare_reconciliations(
+                lucid_complete_rids, f"{survey_number}-reconciliations.txt"
+            )
+        )
 
     lucid_client_codes = make_card(
         title="Client codes",
@@ -464,14 +589,20 @@ def report_lucid():
 
         if len(completes_df) > 0:
             completion_loi = int(
-                (completes_df.lucid_duration.dt.total_seconds() / 60).median().round()
+                completes_df.dropna(subset=["psynet_duration"])
+                .psynet_duration.median()
+                .round()
             )
-            title = f"Completion LOI: {completion_loi} minutes"
+            completion_title = f"Completion LOI: {completion_loi} minutes"
             text = f"Expected: {set_completion_loi} minutes."
 
             data = []
             for _, row in completes_df.iterrows():
-                participant_id = rid2participant_id.get(row.rid, "Not registered")
+                participant_id = (
+                    row.participant_id
+                    if not pd.isna(row.participant_id)
+                    else "Not registered"
+                )
                 data.append(
                     {
                         "rid": row.rid,
@@ -489,19 +620,22 @@ def report_lucid():
                         if not pd.isna(row.lucid_status)
                         else "n/a",
                         "type": "Lucid",
-                        "value": row.lucid_duration
+                        "value": row.psynet_duration
                         if not pd.isna(row.lucid_status)
                         else "n/a",
                     }
                 )
-            type2color = {"Lucid": "black"}
-            histogram = make_histogram("termination_loi", type2color, data)
+            histogram = make_loi_histogram("completion_loi", data)
             if completion_loi < set_completion_loi:
-                text += "Consider reducing the expected completion time." + histogram
-                lucid_completion_loi = make_status_card(title, text, "warning", True)
+                text += " Consider reducing the expected completion time." + histogram
+                lucid_completion_loi = make_status_card(
+                    completion_title, text, "warning", True
+                )
             elif completion_loi > set_completion_loi:
-                text += "Consider increasing the expected completion time." + histogram
-                lucid_completion_loi = make_status_card(title, text, "danger", True)
+                text += " Consider increasing the expected completion time." + histogram
+                lucid_completion_loi = make_status_card(
+                    completion_title, text, "danger", True
+                )
             else:
                 lucid_completion_loi = make_status_card(
                     title, text + histogram, "success", True
@@ -523,12 +657,13 @@ def report_lucid():
             )
             data = []
             for _, row in terminated_df.iterrows():
-                participant_id = rid2participant_id.get(row.rid, "Not registered")
                 if not pd.isna(row.lucid_duration):
                     data.append(
                         {
                             "rid": row.rid,
-                            "pid": participant_id,
+                            "pid": participant_id
+                            if not pd.isna(row.participant_id)
+                            else "Not registered",
                             "reason": row.termination_reason
                             if not pd.isna(row.termination_reason)
                             else "n/a",
@@ -549,7 +684,6 @@ def report_lucid():
                     )
             #
             # for _, row in psynet_terminated_df.iterrows():
-            #     participant_id = rid2participant_id.get(row.rid, "Not registered")
             #     if not pd.isna(row.psynet_duration):
             #         data.append(
             #             {
@@ -575,8 +709,7 @@ def report_lucid():
             #         )
 
             bad_loi = lucid_termination_loi > 1
-            type2color = {"Lucid": "black"}
-            histogram = make_histogram("termination_loi", type2color, data)
+            histogram = make_loi_histogram("termination_loi", data)
             lucid_termination_loi = make_status_card(
                 title=f"Termination LOI: {lucid_termination_loi} minutes",
                 body=(
@@ -594,7 +727,7 @@ def report_lucid():
             data = [
                 {**d, "x": d["lucid_duration"], "y": d["psynet_duration"]} for d in data
             ]
-            scatter_plot = make_scatterplot(
+            scatter_plot = make_loi_scatterplot(
                 "scatterplot", data, "LOI (Lucid)", "LOI (PsyNet)"
             )
             lucid_termination_loi += make_status_card(
@@ -609,6 +742,59 @@ def report_lucid():
             lucid_termination_loi = make_status_card(
                 "Termination LOI", "No terminated participants yet.", "info"
             )
+
+        responses = Response.query.filter_by(failed=False).all()
+        response_df = pd.DataFrame(
+            [
+                {
+                    "question": response.question,
+                    "participant_id": response.participant_id,
+                    "answer": response.answer,
+                }
+                for response in responses
+            ]
+        )
+        answer_counts = (
+            response_df.groupby("participant_id").answer.count().reset_index()
+        )
+        answer_counts = answer_counts.merge(entry_df, on="participant_id", how="left")
+        answer_counts["reason"] = answer_counts.termination_reason.apply(
+            lambda r: r if not pd.isna(r) else "n/a"
+        )
+        answer_counts["value"] = answer_counts.answer
+        answer_counts["type"] = answer_counts.psynet_status
+        relevant_cols = ["value", "type", "participant_id", "rid", "reason"]
+        answer_counts = answer_counts[relevant_cols]
+        rids = answer_counts.rid.to_list()  # noqa: F841
+
+        missing = terminated_df.query("rid not in @rids")[["rid", "termination_reason"]]
+        missing = missing.merge(participants, on="rid", how="left")
+        missing["participant_id"] = missing.participant_id.apply(
+            lambda x: x if not pd.isna(x) else "Not registered"
+        )
+        missing["reason"] = missing.termination_reason.apply(
+            lambda r: r if not pd.isna(r) else "n/a"
+        )
+        missing["value"] = 0
+        missing["type"] = "Terminated"
+
+        missing = missing[relevant_cols]
+        answer_counts = pd.concat([answer_counts, missing])
+        type2color = {"Completed": "green", "Terminated": "red", "Working": "blue"}
+
+        n_bins = answer_counts.value.max()
+
+        hist_plot = make_response_histogram(
+            "answer_count",
+            type2color,
+            answer_counts.to_dict(orient="records"),
+            n_bins=n_bins,
+        )
+        responses_per_participant = make_status_card(
+            title="Responses per participant",
+            body="Comparison of termination LOI between  PsyNet vs Lucid." + hist_plot,
+            col="col-12",
+        )
 
         cpi = experiment.estimated_max_reward(wage_per_hour)
         pattern = "Error|In Screener"
@@ -642,6 +828,8 @@ def report_lucid():
             + lucid_termination_loi
             + "</div>"
         )
+
+        body += responses_per_participant
 
     return render_template(
         TEMPLATE_NAME,
