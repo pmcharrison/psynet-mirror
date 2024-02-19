@@ -59,185 +59,38 @@ def make_card(title, body, items):
     return out
 
 
-def make_histogram(id_name, colors: list, data: list, margin: dict = None, n_bins=20):
+def _prepare_viz(cmd, id_name):
+    return f"""
+    <div id="{id_name}"></div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function(e)  {{
+        {cmd}
+    }});
+    </script>
+    """
+
+
+def make_histogram(
+    id_name, type2color: dict, data: list, margin: dict = None, n_bins=40
+):
     if margin is None:
         margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
     assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
-    return (
-        f"""
-        <script src="https://d3js.org/d3.v4.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/d3-tip@0.9.1/dist/index.min.js"></script>
-        <div id="{id_name}"></div>"""
-        + """
-        <style>
-        .tooltip {
-            position: absolute;
-            text-align: center;
-            padding: 5px;
-            background: #fff;
-            border: 1px solid #ddd;
-            pointer-events: none;
-            color: white;
-        }
-        </style>
-        <script>
-        const tooltip = d3.tip().attr('class', 'tooltip')
-            .html(function (d) {
-                type = d[0].type
-                color = COLORS[uniqueTypes.indexOf(type)]
-                title = '<h5 style="color:' + color + '">Bin: [' + (d.x0).toFixed(2) + '-' + d.x1.toFixed(2) + '], count: ' + d.length + ' (' + type + ')';
-                // button to close
-                title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="tooltip.hide()"></button></h5>'
-                table = '<table class="table table-striped">'
-                table += '<tr>'
-                table += '<th>Participant ID</th>'
-                table += '<th>RID</th>'
-                table += '<th>Reason</th>'
-                table += '<th>PsyNet duration</th>'
-                table += '<th>Lucid duration</th>'
-                table += '<th>Client code</th>'
-                table += '</tr>'
-                d.forEach(function (bin) {
-                    table += '<tr>'
-                    table += '<td>' + bin.pid + '</td>'
-                    table += '<td>' + bin.rid + '</td>'
-                    table += '<td>' + bin.reason + '</td>'
-                    table += '<td>' + toTwoDecimals(bin.psynet_duration) + '</td>'
-                    table += '<td>' + toTwoDecimals(bin.lucid_duration) + '</td>'
-                    table += '<td>' + bin.code + '</td>'
-                    table += '</tr>'
-                })
-                table += '</table>'
-                return title + table
-            });
-        let hold = false;
-        """
-        + f"""
-        // set the dimensions and margins of the graph
-        const COLORS = {colors};
-        let data = {data};
-        let nBins = {n_bins};
-        var container = document.getElementById('{id_name}');
-        var width = container.clientWidth;
-        var margin = {margin},
-            width = width - margin.left - margin.right,
-            height = width - margin.top - margin.bottom;
-        // append the svg object to the body of the page
-        var svg = d3.select("#{id_name}")
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-        """
-        + """
-        function toTwoDecimals(float_or_string) {
-            if (typeof float_or_string === 'string') {
-                return float_or_string
-            } else {
-                return float_or_string.toFixed(2)
-            }
-        }
-        // get the data
-        data = data.map(function (d) {
-            d['value'] = parseFloat(d['value'])
-            return d
-        });
-        xMin = d3.min(data, function (d) {
-            return +d.value;
-        });
-        xMax = d3.max(data, function (d) {
-            return +d.value;
-        });
-        // X axis: scale and draw:
-        var x = d3.scaleLinear()
-            .domain([xMin, xMax])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
-            .range([0, width]);
-        uniqueTypes = [...new Set(data.map(d => d.type))]
-        console.log(uniqueTypes)
-        svg.append("g")
-            .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x));
-        // set the parameters for the histogram
-        var histogram = d3.histogram()
-            .value(function (d) {
-                return +d.value;
-            })   // I need to give the vector of value
-            .domain(x.domain())  // then the domain of the graphic
-            .thresholds(x.ticks(nBins)); // then the numbers of bins
-        // And apply twice this function to data to get the bins.
-        var allBins = [];
-        for (var i = 0; i < uniqueTypes.length; i++) {
-            var bins = histogram(data.filter(function (d) {
-                return d.type === uniqueTypes[i]
-            }));
-            allBins.push(bins)
-        }
-        maxY = d3.max(allBins, function (bins) {
-            return d3.max(bins, function (bin) {
-                return bin.length
-            })
-        })
-        // Y axis: scale and draw:
-        var y = d3.scaleLinear()
-            .range([height, 0]);
-        y.domain([0, maxY]);   // d3.hist has to be called before the Y axis obviously
-        svg.append("g")
-            .call(d3.axisLeft(y));
-        nGroups = uniqueTypes.length
-        // grouped histogram with different colors
-        allBins.forEach(function (bins, i) {
-            svg.selectAll("rect" + i)
-                .data(bins)
-                .enter()
-                .append("rect")
-                .attr("x", function (d) {
-                    return  i * ((x(d.x1) - x(d.x0)) / nGroups)
-                })
-                .attr("transform", function (d) {
-                    return "translate(" + x(d.x0) + "," + y(d.length) + ")";
-                })
-                .attr("width", function (d) {
-                    return (x(d.x1) - x(d.x0))/nGroups
-                })
-                .attr("height", function (d) {
-                    return height - y(d.length);
-                })
-                .style("fill", COLORS[i])
-                .style("opacity", 0.6)
-                .on('mouseover', function (d) {
-                    d3.select(this).style('opacity', 1)
-                })
-                .on('mouseout', function (d) {
-                    d3.select(this).style('opacity', 0.6)
-                })
-                .on('click', function (d) {
-                    if (hold) {
-                        hold = false;
-                        tooltip.hide(d, this)
-                    } else {
-                        hold = true;
-                        tooltip.show(d, this)
-                    }
-                })
-        })
-        svg.call(tooltip);
-        uniqueTypes.forEach(function (type, i) {
-            svg.append("circle")
-                .attr("cx", width - 30)
-                .attr("cy", i * 20)
-                .attr("r", 6)
-                .style("fill", COLORS[i])
-            svg.append("text")
-                .attr("x", width - 20)
-                .attr("y", i * 20)
-                .text(type)
-                .style("font-size", "10px")
-                .attr("alignment-baseline", "middle")
-        })
-        </script>
-        """
+    return _prepare_viz(
+        f"""histogram("{id_name}", {data}, {margin}, {n_bins}, {type2color});""",
+        id_name,
+    )
+
+
+def make_scatterplot(
+    id_name, data: list, x_label: str, y_label: str, margin: dict = None
+):
+    if margin is None:
+        margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
+    assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
+    return _prepare_viz(
+        f"""scatter("{id_name}", {data}, {margin}, "{x_label}", "{y_label}");""",
+        id_name,
     )
 
 
@@ -430,11 +283,7 @@ def report_lucid():
         title="Status", body="Inferred status from Participant RID table.", items=items
     )
     psynet_terminated_df = entry_df.query("psynet_status == 'Terminated'")
-    import pydevd_pycharm
 
-    pydevd_pycharm.settrace(
-        "localhost", port=1234, stdoutToServer=True, stderrToServer=True
-    )
     n_psynet_terminated = len(psynet_terminated_df)
 
     psynet_termination_reason = make_card(
@@ -612,14 +461,48 @@ def report_lucid():
             )
             title = f"Completion LOI: {completion_loi} minutes"
             text = f"Expected: {set_completion_loi} minutes."
+
+            data = []
+            for _, row in completes_df.iterrows():
+                participant_id = rid2participant_id.get(row.rid, "Not registered")
+                data.append(
+                    {
+                        "rid": row.rid,
+                        "pid": participant_id,
+                        "reason": row.termination_reason
+                        if not pd.isna(row.termination_reason)
+                        else "n/a",
+                        "lucid_duration": row.lucid_duration
+                        if not pd.isna(row.lucid_duration)
+                        else "n/a",
+                        "psynet_duration": row.psynet_duration
+                        if not pd.isna(row.psynet_duration)
+                        else "n/a",
+                        "code": row.lucid_status
+                        if not pd.isna(row.lucid_status)
+                        else "n/a",
+                        "type": "Lucid",
+                        "value": row.lucid_duration
+                        if not pd.isna(row.lucid_status)
+                        else "n/a",
+                    }
+                )
+            type2color = {"Lucid": "black"}
+            histogram = make_histogram("termination_loi", type2color, data)
             if completion_loi < set_completion_loi:
-                text += "Consider reducing the expected completion time."
+                text += "Consider reducing the expected completion time." + histogram
                 lucid_completion_loi = make_status_card(title, text, "warning", True)
             elif completion_loi > set_completion_loi:
-                text += "Consider increasing the expected completion time."
+                text += "Consider increasing the expected completion time." + histogram
                 lucid_completion_loi = make_status_card(title, text, "danger", True)
             else:
-                lucid_completion_loi = make_status_card(title, text, "success", True)
+                lucid_completion_loi = make_status_card(
+                    title, text + histogram, "success", True
+                )
+
+            data = [
+                {**d, "x": d["lucid_duration"], "y": d["psynet_duration"]} for d in data
+            ]
         else:
             lucid_completion_loi = make_status_card(
                 "Completion LOI", "No completes yet.", "info"
@@ -657,48 +540,64 @@ def report_lucid():
                             else "n/a",
                         }
                     )
+            #
+            # for _, row in psynet_terminated_df.iterrows():
+            #     participant_id = rid2participant_id.get(row.rid, "Not registered")
+            #     if not pd.isna(row.psynet_duration):
+            #         data.append(
+            #             {
+            #                 "rid": row.rid,
+            #                 "pid": participant_id,
+            #                 "reason": row.termination_reason
+            #                 if not pd.isna(row.termination_reason)
+            #                 else "n/a",
+            #                 "lucid_duration": row.lucid_duration
+            #                 if not pd.isna(row.lucid_duration)
+            #                 else "n/a",
+            #                 "psynet_duration": row.psynet_duration
+            #                 if not pd.isna(row.psynet_duration)
+            #                 else "n/a",
+            #                 "code": row.lucid_status
+            #                 if not pd.isna(row.lucid_status)
+            #                 else "n/a",
+            #                 "type": "PsyNet",
+            #                 "value": row.psynet_duration
+            #                 if not pd.isna(row.lucid_status)
+            #                 else "n/a",
+            #             }
+            #         )
 
-            for _, row in psynet_terminated_df.iterrows():
-                participant_id = rid2participant_id.get(row.rid, "Not registered")
-                if not pd.isna(row.psynet_duration):
-                    data.append(
-                        {
-                            "rid": row.rid,
-                            "pid": participant_id,
-                            "reason": row.termination_reason
-                            if not pd.isna(row.termination_reason)
-                            else "n/a",
-                            "lucid_duration": row.lucid_duration
-                            if not pd.isna(row.lucid_duration)
-                            else "n/a",
-                            "psynet_duration": row.psynet_duration
-                            if not pd.isna(row.psynet_duration)
-                            else "n/a",
-                            "code": row.lucid_status
-                            if not pd.isna(row.lucid_status)
-                            else "n/a",
-                            "type": "PsyNet",
-                            "value": row.psynet_duration
-                            if not pd.isna(row.lucid_status)
-                            else "n/a",
-                        }
-                    )
-
-            colors = ["#ff7f0e", "#2ca02c"]
-            histogram = make_histogram("termination_loi", colors, data)
+            bad_loi = lucid_termination_loi > 1
+            type2color = {"Lucid": "black"}
+            histogram = make_histogram("termination_loi", type2color, data)
             lucid_termination_loi = make_status_card(
                 title=f"Termination LOI: {lucid_termination_loi} minutes",
                 body=(
-                    "Time from entry to termination. "
+                    "Median time from entry to termination. "
                     + "Should be a minute or less. "
                     + "Expected: "
                     + str(psynet_termination_loi)
                     + " minutes."
                     + histogram
                 ),
-                status="success" if lucid_termination_loi < 1 else "danger",
+                status="danger" if bad_loi else "success",
                 border=True,
             )
+
+            data = [
+                {**d, "x": d["lucid_duration"], "y": d["psynet_duration"]} for d in data
+            ]
+            scatter_plot = make_scatterplot(
+                "scatterplot", data, "LOI (Lucid)", "LOI (PsyNet)"
+            )
+            lucid_termination_loi += make_status_card(
+                title="Termination LOI: PsyNet vs Lucid",
+                body="Comparison of termination LOI between  PsyNet vs Lucid."
+                + scatter_plot,
+                status="danger" if bad_loi else "success",
+                border=True,
+            )
+
         else:
             lucid_termination_loi = make_status_card(
                 "Termination LOI", "No terminated participants yet.", "info"
