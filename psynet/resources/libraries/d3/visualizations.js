@@ -11,12 +11,7 @@ function toTwoDecimals(float_or_string) {
     }
 }
 
-function scatter(containerId, data, margin, xLabel, yLabel) {
-    // TODO make more general
-    let tooltip = d3.tip().attr('class', 'd3-tip')
-        .html(function (d) {
-            return `Participant ${d.pid} (${d.rid}): ${d.reason}`;
-        });
+function scatter(containerId, data, margin, xLabel, yLabel, tooltip=null) {
     let hold = false;
     var container = document.getElementById(containerId);
     var width = container.clientWidth;
@@ -47,9 +42,6 @@ function scatter(containerId, data, margin, xLabel, yLabel) {
     xMax = 1.1 * xMax;
     yMax = 1.1 * yMax;
 
-    xMax = Math.max(xMax, yMax);
-    yMax = xMax;
-
     var x = d3.scaleLinear()
         .domain([0, xMax])
         .range([0, width]);
@@ -67,6 +59,19 @@ function scatter(containerId, data, margin, xLabel, yLabel) {
 
     svg.append("g")
         .call(d3.axisLeft(y));
+
+    // add x = y line
+    let totalMin = Math.min(xMin, yMin);
+    let totalMax = Math.max(xMax, yMax);
+    svg.append("line")
+        .attr("x1", x(0))
+        .attr("y1", y(0))
+        .attr("x2", x(totalMax))
+        .attr("y2", y(totalMax))
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "5,5");
+
 
 
     // axis labels
@@ -105,50 +110,26 @@ function scatter(containerId, data, margin, xLabel, yLabel) {
         })
         .style("opacity", 0.5)
         .on('mouseover', function (d) {
-            tooltip.show(d, this);
+            if (tooltip !== null) {
+                tooltip.show(d, this);
+            }
         })
         .on('mouseout', function (d) {
-            tooltip.hide(d, this);
+            if (tooltip !== null) {
+                tooltip.hide(d, this);
+            }
         });
 
-    svg.call(tooltip);
+    if (tooltip !== null) {
+        svg.call(tooltip);
+    }
 }
 
 function hideTooltips() {
     d3.selectAll('.d3-tip').style('opacity', 0);
 }
 
-function histogram(containerId, data, margin, nBins, type2color) {
-    let tooltip = d3.tip().attr('class', 'd3-tip');
-    tooltip
-        .html(function (d) {
-            let type = d[0].type;
-            let color = type2color[type];
-            let title = `<h5 style="color:${color}">Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
-            // button to close
-            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
-            let table = '<table class="table table-striped">';
-            table += '<tr>';
-            table += '<th>Participant ID</th>';
-            table += '<th>RID</th>';
-            table += '<th>Reason</th>';
-            table += '<th>PsyNet duration</th>';
-            table += '<th>Lucid duration</th>';
-            table += '<th>Client code</th>';
-            table += '</tr>';
-            d.forEach(function (bin) {
-                table += '<tr>';
-                table += `<td>${bin.pid}</td>`;
-                table += `<td>${bin.rid}</td>`;
-                table += `<td>${bin.reason}</td>`;
-                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
-                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
-                table += `<td>${bin.code}</td>`;
-                table += '</tr>';
-            });
-            table += '</table>';
-            return title + table;
-        });
+function histogram(containerId, data, margin, nBins, type2color, tooltip=null) {
     let hold = false;
 
     // set the dimensions and margins of the graph
@@ -246,14 +227,20 @@ function histogram(containerId, data, margin, nBins, type2color) {
             .on('click', function (d) {
                 if (hold) {
                     hold = false;
-                    tooltip.hide(d, this);
+                    if (tooltip !== null) {
+                        tooltip.hide(d, this);
+                    }
                 } else {
                     hold = true;
-                    tooltip.show(d, this);
+                    if (tooltip !== null) {
+                        tooltip.show(d, this);
+                    }
                 }
             });
     });
-    svg.call(tooltip);
+    if (tooltip !== null) {
+        svg.call(tooltip);
+    }
     if (uniqueTypes.length > 1) {
         uniqueTypes.forEach(function (type, i) {
             svg.append("circle")
