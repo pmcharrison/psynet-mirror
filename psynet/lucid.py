@@ -316,7 +316,7 @@ class LucidService(object):
         now = datetime.now()
         return (now - timedelta(days=days_lookback)).strftime(timestamp_format)
 
-    def get_respondents(self, survey_number, days_lookback=60):
+    def get_submissions(self, survey_number, days_lookback=60):
         entry_date_after = self._lookback_timestamp(days_lookback)
         url = f"https://api.samplicio.us/demand/v2-beta/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
@@ -360,6 +360,42 @@ class LucidService(object):
         result = self._get_question_field(question_id, field, locale)
         return result[0][field]
 
+    default_fields = [
+        "create_date",
+        "name",
+        "status",
+        "total_completes",
+        "expected_completes",
+        "total_screens",
+        "locale",
+    ]
+
+    def list_studies(
+        self, allowed_statuses=None, n=200, fields=None, order_by="create_date"
+    ):
+        url = "https://api.samplicio.us/demand/v2-beta/surveys"
+        if fields is None:
+            fields = self.default_fields
+        fields_str = ",".join(fields)
+        url += f"?fields={fields_str}&page_size={n}&order_by={order_by}"
+        if allowed_statuses is not None:
+            url += f"&status={','.join(allowed_statuses)}"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        return response.json()["result"]
+
+    def _get_survey_fields(self, survey_id, fields):
+        fields_str = ",".join(fields)
+        url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_id}&fields={fields_str}"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        result = response.json()["result"]
+        assert len(result) > 0, f"No survey with id {survey_id} found."
+        return [result[0][field] for field in fields]
+
+    def get_survey_status(self, survey_number):
+        return self._get_survey_fields(survey_number, ["status"])[0]
+
     def get_summary(self, survey_number, days_lookback=60):
         entry_date_after = self._lookback_timestamp(days_lookback)
         url = f"https://api.samplicio.us/demand/v2-beta/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
@@ -367,10 +403,9 @@ class LucidService(object):
         assert response.ok
         stats = response.json()["statistics"]
 
-        url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_number}&fields=last_complete_date,status"
-        response = requests.get(url, headers=self.headers)
-        assert response.ok
-        survey_status = response.json()["result"][0]
+        status, last_complete_date = self._get_survey_fields(
+            survey_number, ["status", "last_complete_date"]
+        )
 
         cost = stats["cost"]
 
@@ -382,9 +417,59 @@ class LucidService(object):
             "completion_loi": stats["median_length_of_interview"],
             "termination_loi": stats["system_conversion"],
             "system_conversion": stats["system_conversion"],
-            "status": survey_status["status"],
-            "last_complete_date": survey_status["last_complete_date"],
+            "status": status,
+            "last_complete_date": last_complete_date,
         }
+
+    def change_status(self, survey_number, new_status):
+        """
+        Change the status of a survey.
+        The status can be one of the following:
+        - awarded (created and only available within your account to adjust)
+        - live (available for Suppliers to send respondents to)
+        - pending (pausing the Survey in order_by to fix or adjust the Survey or pause the influx of fielding)
+        - paused (the Survey is paused and not available for Suppliers to send respondents to)
+        - complete (the Survey is finished fielding)
+        - archived (Survey deleted)
+        Parameters
+        ----------
+        survey_number: int
+        new_status: str
+
+        Returns
+        -------
+
+        """
+        from psynet.recruiters import BaseLucidRecruiter
+
+        assert new_status in BaseLucidRecruiter.survey_codes
+
+        url = f"https://api.samplicio.us/demand/v2-beta/surveys/{survey_number}"
+        data = json.dumps({"status": new_status})
+        headers = {
+            **self.headers,
+            "Content-type": "application/json",
+            "Accept": "text/plain",
+        }
+        response = requests.patch(url, data=data, headers=headers)
+        assert response.ok
+        logger.info(f"Experiment {survey_number} is set to status: {new_status}")
+        return response.json()
+
+    def reconcile(self, survey_number, rid: List[str]):
+        assert (
+            self.get_survey_status(survey_number) == "complete"
+        ), "Survey must be complete to reconcile."
+        url = f"https://api.samplicio.us/Demand/v1/Surveys/Reconcile/{survey_number}"
+        data = json.dumps({"ResponseIDs": rid})
+        headers = {
+            **self.headers,
+            "Content-type": "application/json",
+            "Accept": "text/plain",
+        }
+        response = requests.post(url, data=data, headers=headers)
+        assert response.ok
+        return response.json()
 
 
 def get_lucid_service(config=None, recruitment_config=None):
