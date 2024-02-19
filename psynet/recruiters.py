@@ -18,7 +18,7 @@ from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
 
@@ -176,6 +176,53 @@ class LucidRID(SQLBase, SQLMixin):
         }
 
 
+@register_table
+class LucidStatus(SQLBase, SQLMixin):
+    __tablename__ = "lucid_status"
+
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+    vars = None
+
+    status = Column(String)
+    cost = Column(Float)
+    currency = Column(String)
+    exchange_rate = Column(Float)
+    cost_per_survey = Column(Float)
+    payment_per_hour = Column(Float)
+    earnings_per_click = Column(Float)
+    system_conversion = Column(Integer)
+    completion_loi = Column(Integer)
+    termination_loi = Column(Integer)
+    last_complete_date = Column(DateTime)
+
+    n_entrants = Column(Integer)
+    n_completes = Column(Integer)
+    n_prescreens = Column(Integer)
+    drop_off_rate = Column(Float)
+    conversion_rate = Column(Float)
+    incidence_rate = Column(Float)
+
+    def to_dict(self):
+        return {
+            "buyer_fees": self.buyer_fees,
+            "sample_cost": self.sample_cost,
+            "total_cost": self.total_cost,
+            "currency": self.currency,
+            "payment_per_hour": self.payment_per_hour,
+            "n_entrants": self.n_entrants,
+            "n_completes": self.n_completes,
+            "n_prescreens": self.n_prescreens,
+            "drop_off_rate": self.drop_off_rate,
+            "conversion_rate": self.conversion_rate,
+            "incidence_rate": self.incidence_rate,
+            "completion_loi": self.completion_loi,
+            "termination_loi": self.termination_loi,
+        }
+
+
 class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
@@ -291,7 +338,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         logger.info("Polling Lucid API to count entry_df")
         survey_number = self.current_survey_number()
         respondents = pd.DataFrame(self.lucidservice.get_respondents(survey_number))
+
         if len(respondents) > 0:
+            summary = self.lucidservice.get_summary(survey_number)
+
             respondents["status"] = respondents.client_status.apply(
                 lambda x: self.client_codes.get(x, "Unknown")
             )
@@ -336,7 +386,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                     )
                     db.session.add(entrant)
                 lucid_entrants.append(entrant)
-            db.session.commit()
 
             entry_df = pd.DataFrame([entrant.to_dict() for entrant in lucid_entrants])
             metrics = self.get_recruiter_metrics(entry_df)
@@ -344,9 +393,40 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 f"Found {metrics['n_entrants']} entrants, {metrics['n_prescreens']} prescreens, {metrics['n_completes']} completes"
             )
 
+            cost = summary["cost"]
+            currency = summary["currency"]
+            completion_loi = summary["completion_loi"]
+            cost_per_survey = cost / metrics["completes"]
+            payment_per_hour = completion_loi / 60 * cost_per_survey
+
+            logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
             logger.info(f"Drop off rate: {metrics['drop_off_rate']:.2%}")
             logger.info(f"Conversion rate: {metrics['conversion_rate']:.2%}")
             logger.info(f"Incidence rate: {metrics['incidence_rate']:.2%}")
+
+            status_entry = LucidStatus(
+                # From the summary
+                status=summary["status"],
+                cost=cost,
+                currency=currency,
+                exchange_rate=summary["exchange_rate"],
+                cost_per_survey=cost_per_survey,
+                payment_per_hour=payment_per_hour,
+                earnings_per_click=summary["epc"],
+                system_conversion=summary["system_conversion"],
+                completion_loi=completion_loi,
+                termination_loi=summary["termination_loi"],
+                last_complete_date=summary["last_complete_date"],
+                # From the metrics
+                n_entrants=metrics["n_entrants"],
+                n_completes=metrics["completes"],
+                n_prescreens=metrics["n_prescreens"],
+                drop_off_rate=metrics["drop_off_rate"],
+                conversion_rate=metrics["conversion_rate"],
+                incidence_rate=metrics["incidence_rate"],
+            )
+            db.session.add(status_entry)
+            db.session.commit()
 
         unfailed_entrants = LucidRID.query.filter_by(
             terminated_at=None, completed_at=None
