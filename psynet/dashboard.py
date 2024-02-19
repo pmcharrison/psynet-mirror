@@ -78,12 +78,13 @@ def make_histogram(
     margin: dict = None,
     n_bins=40,
     tooltip="null",
+    height="null",
 ):
     if margin is None:
         margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
     assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
     return _prepare_viz(
-        f"""histogram("{id_name}", {data}, {margin}, {n_bins}, {type2color}, {tooltip});""",
+        f"""histogram("{id_name}", {data}, {margin}, {n_bins}, {type2color}, {tooltip}, {height});""",
         id_name,
     )
 
@@ -91,7 +92,7 @@ def make_histogram(
 def make_loi_histogram(id_name, data: list, margin: dict = None, n_bins=40):
     type2color = {"Lucid": "black"}
     tooltip = """
-    d3.tip().attr('class', 'd3-tip')
+    d3.tip().attr('class', 'd3-tip fullscreen')
         .html(function (d) {
             let type = d[0].type;
             let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
@@ -117,7 +118,7 @@ def make_loi_histogram(id_name, data: list, margin: dict = None, n_bins=40):
                 table += '</tr>';
             });
             table += '</table>';
-            return title + table;
+            return '<div class="container">' + title + table + "</div>";
         })
     """
     return make_histogram(id_name, type2color, data, margin, n_bins, tooltip)
@@ -127,7 +128,7 @@ def make_response_histogram(
     id_name, type2color: dict, data: list, margin: dict = None, n_bins=40
 ):
     tooltip = """
-        d3.tip().attr('class', 'd3-tip')
+        d3.tip().attr('class', 'd3-tip fullscreen')
             .html(function (d) {
                 let type = d[0].type;
                 let title = `<h5>${d.length} participants (${type}) did ${(d.x0).toFixed(0)} pages`;
@@ -147,10 +148,12 @@ def make_response_histogram(
                     table += '</tr>';
                 });
                 table += '</table>';
-                return title + table;
+                return '<div class="container">' + title + table + "<div>";
             })
         """
     return make_histogram(id_name, type2color, data, margin, n_bins, tooltip)
+    height = 500
+    return make_histogram(id_name, type2color, data, margin, n_bins, tooltip, height)
 
 
 def make_scatterplot(

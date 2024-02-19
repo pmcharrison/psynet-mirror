@@ -129,14 +129,14 @@ function hideTooltips() {
     d3.selectAll('.d3-tip').style('opacity', 0);
 }
 
-function histogram(containerId, data, margin, nBins, type2color, tooltip=null) {
-    let hold = false;
-
+function histogram(containerId, data, margin, nBins, type2color, tooltip=null, height=null) {
     // set the dimensions and margins of the graph
     var container = document.getElementById(containerId);
     var width = container.clientWidth;
-    var width = width - margin.left - margin.right,
+    width = width - margin.left - margin.right;
+    if (height === null) {
         height = width - margin.top - margin.bottom;
+    }
 
     // append the svg object to the body of the page
     var svg = d3.select("#" + containerId)
@@ -225,16 +225,8 @@ function histogram(containerId, data, margin, nBins, type2color, tooltip=null) {
                 d3.select(this).style('opacity', 0.6);
             })
             .on('click', function (d) {
-                if (hold) {
-                    hold = false;
-                    if (tooltip !== null) {
-                        tooltip.hide(d, this);
-                    }
-                } else {
-                    hold = true;
-                    if (tooltip !== null) {
-                        tooltip.show(d, this);
-                    }
+                if (tooltip !== null) {
+                    tooltip.show(d, this);
                 }
             });
     });
