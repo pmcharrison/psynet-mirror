@@ -1,8 +1,6 @@
 import json
 import os
-import random
 import re
-import time
 from datetime import datetime, timedelta
 from math import ceil
 
@@ -403,10 +401,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             if reason:
                 self.terminate_participant(entrant.rid, reason, details)
                 logger.info(f"RID {entrant.rid} terminated")
-                # sleep to avoid hitting the Lucid API rate limit, min 1 second, max 30 seconds
-                wait = random.randint(1, 15)
-                logger.info(f"Wait for {wait} seconds")
-                time.sleep(wait)
 
     def get_survey_storage_key(self, name):
         experiment_id = self.config.get("id")
