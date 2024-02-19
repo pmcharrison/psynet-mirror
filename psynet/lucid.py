@@ -365,17 +365,19 @@ class LucidService(object):
         url = f"https://api.samplicio.us/demand/v2-beta/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
-        stats = response.json()
+        stats = response.json()["statistics"]
 
         url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_number}&fields=last_complete_date,status"
         response = requests.get(url, headers=self.headers)
         assert response.ok
-        survey_status = response.json()["result"]
+        survey_status = response.json()["result"][0]
+
+        cost = stats["cost"]
 
         return {
-            "cost": stats["statistics"]["cost"],
-            "currency": stats["statistics"]["currency_code"],
-            "exchange_rate": stats["statistics"]["exchange_rate"],
+            "cost": cost["amount"],
+            "currency": cost["currency_code"],
+            "exchange_rate": cost["exchange_rate"],
             "epc": stats["earnings_per_click"],
             "completion_loi": stats["median_length_of_interview"],
             "termination_loi": stats["system_conversion"],
