@@ -2422,6 +2422,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             external_submit_url=external_submit_url,
         )
 
+    @experiment_route("/change_lucid_status", methods=["GET"])
+    @classmethod
+    def change_lucid_status(cls):
+        from .lucid import get_lucid_service
+        from .recruiters import LucidStatus
+
+        exp = get_experiment()
+        recruiter = exp.recruiter
+        survey_number = recruiter.current_survey_number()
+        service = get_lucid_service()
+        status = request.values.get("status", "")
+        service.change_status(survey_number, status)
+        LucidStatus.query.order_by(LucidStatus.id.desc()).first().status = status
+        db.session.commit()
+        return success_response()
+
     @staticmethod
     def get_client_ip_address():
         if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
@@ -2911,4 +2927,5 @@ _protected_routes = [
     "/node/<int:node_id>/transmit",
     "/node/<int:node_id>/transformations",
     "/transformation/<int:node_id>/<int:info_in_id>/<int:info_out_id>",
+    "/change_lucid_status",
 ]
