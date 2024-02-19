@@ -207,19 +207,23 @@ class LucidStatus(SQLBase, SQLMixin):
 
     def to_dict(self):
         return {
-            "buyer_fees": self.buyer_fees,
-            "sample_cost": self.sample_cost,
-            "total_cost": self.total_cost,
+            "status": self.status,
+            "cost": self.cost,
             "currency": self.currency,
+            "exchange_rate": self.exchange_rate,
+            "cost_per_survey": self.cost_per_survey,
             "payment_per_hour": self.payment_per_hour,
+            "earnings_per_click": self.earnings_per_click,
+            "system_conversion": self.system_conversion,
+            "completion_loi": self.completion_loi,
+            "termination_loi": self.termination_loi,
+            "last_complete_date": self.last_complete_date,
             "n_entrants": self.n_entrants,
             "n_completes": self.n_completes,
             "n_prescreens": self.n_prescreens,
             "drop_off_rate": self.drop_off_rate,
             "conversion_rate": self.conversion_rate,
             "incidence_rate": self.incidence_rate,
-            "completion_loi": self.completion_loi,
-            "termination_loi": self.termination_loi,
         }
 
 
@@ -232,6 +236,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     COMPLETED = "Returned as Complete"
     TERMINATED = "Returned as Terminate"
     UNRETURNED = "Currently in Client Survey or Drop"
+    survey_codes = ["awarded", "pending", "paused", "live", "complete", "archived"]
     client_codes = {
         1: UNRETURNED,
         20: TERMINATED,
@@ -337,8 +342,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def run_checks(self):
         logger.info("Polling Lucid API to count entry_df")
         survey_number = self.current_survey_number()
-        respondents = pd.DataFrame(self.lucidservice.get_respondents(survey_number))
-
+        respondents = pd.DataFrame(self.lucidservice.get_submissions(survey_number))
         if len(respondents) > 0:
             summary = self.lucidservice.get_summary(survey_number)
 
@@ -396,7 +400,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             cost = summary["cost"]
             currency = summary["currency"]
             completion_loi = summary["completion_loi"]
-            cost_per_survey = cost / metrics["completes"]
+            n_completes = metrics["n_completes"]
+            cost_per_survey = (cost / n_completes) if n_completes > 0 else 0
             payment_per_hour = completion_loi / 60 * cost_per_survey
 
             logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
@@ -419,7 +424,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 last_complete_date=summary["last_complete_date"],
                 # From the metrics
                 n_entrants=metrics["n_entrants"],
-                n_completes=metrics["completes"],
+                n_completes=metrics["n_completes"],
                 n_prescreens=metrics["n_prescreens"],
                 drop_off_rate=metrics["drop_off_rate"],
                 conversion_rate=metrics["conversion_rate"],
@@ -477,8 +482,11 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                     reason = "Never entered the experiment"
 
             if reason:
-                self.terminate_participant(entrant.rid, reason, details)
-                logger.info(f"RID {entrant.rid} terminated")
+                try:
+                    self.terminate_participant(entrant.rid, reason, details)
+                    logger.info(f"RID {entrant.rid} terminated")
+                except Exception as e:
+                    logger.error(f"Error terminating participant {entrant.rid}: {e}")
 
     def get_survey_storage_key(self, name):
         experiment_id = self.config.get("id")
