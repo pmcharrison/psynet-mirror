@@ -225,7 +225,6 @@ class LucidConsent(Module):
             time_estimate: Optional[float] = 30,
         ):
             super().__init__(
-                aggressive_termination_on_no_focus=True,
                 time_estimate=time_estimate,
                 template_str=get_template("consents/lucid_consent.html"),
             )

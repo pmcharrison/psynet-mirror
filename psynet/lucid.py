@@ -448,6 +448,7 @@ class LucidScreeningQuestion(ModularPage):
         arrange_vertically=False,
         base_css_class="btn btn-primary btn-lg mx-2",
         css_class_per_option=None,
+        aggressive_termination_on_no_focus=True,
     ):
         assert len(choices) == len(labels)
         if css_class_per_option is None:
@@ -470,6 +471,7 @@ class LucidScreeningQuestion(ModularPage):
             time_estimate=time_estimate,
             show_next_button=False,
             show_termination_button=False,
+            aggressive_termination_on_no_focus=aggressive_termination_on_no_focus,
         )
 
 
