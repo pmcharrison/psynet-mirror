@@ -847,17 +847,6 @@ def get_lucid_country_language_id(country_tag, language_tag, service=None):
     return selection.iloc[0]["Id"]
 
 
-CUSTOM_QUALIFICATIONS_LUCID = {
-    "COUNTRY_OF_BIRTH": 190400,
-    "NATIONALITY": 190399,
-    "TIMEOUT": 191148,
-    "MONOLINGUALISM": 190398,
-    "FIRST_LANGUAGE": 190401,
-    "HEADPHONE": 199614,
-    "MICROPHONE": 199615,
-}
-
-
 def create_lucid_recruitment_config(
     language_tag,
     country_tag,
@@ -872,6 +861,7 @@ def create_lucid_recruitment_config(
     industry_id: int = 30,
     study_type_id: int = 1,
     debug: bool = True,
+    qualifications_dict=None,
 ):
     """
     Create a Lucid recruitment config.
@@ -956,6 +946,10 @@ def create_lucid_recruitment_config(
     logger = get_logger()
     config = get_and_load_config()
     service = get_lucid_service(config=config)
+
+    if qualifications_dict is None:
+        qualifications_dict = service.get_qualifications_dict()
+
     country_language_id = get_lucid_country_language_id(
         country_tag, language_tag, service=service
     )
@@ -1012,9 +1006,9 @@ def create_lucid_recruitment_config(
         question_answer_dict["MICROPHONE"] = ["Yes, I can record audio"]
 
     for question_name, options in question_answer_dict.items():
-        if question_name not in CUSTOM_QUALIFICATIONS_LUCID:
+        if question_name not in qualifications_dict:
             raise ValueError(f"Unknown question {question_name}.")
-        question_id = CUSTOM_QUALIFICATIONS_LUCID[question_name]
+        question_id = qualifications_dict[question_name]
         english_option_df = service.get_answer_options(question_id)
         option_df = english_option_df.query("text in @options")
         assert (
