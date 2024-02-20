@@ -471,6 +471,22 @@ class LucidService(object):
         assert response.ok
         return response.json()
 
+    def get_questions(self, standard: bool = True, fields: List[str] = None):
+        if fields is None:
+            fields = ["name", "id"]
+        fields = ",".join(fields)
+        class_name = "standard" if standard else "custom"
+        url = f"https://api.samplicio.us/demand/v2-beta/questions?fields={fields}&class={class_name}"
+        response = requests.get(url, headers=self.headers)
+        assert response.ok
+        return response.json()["result"]
+
+    def get_qualifications_dict(self):
+        qualification_list = self.get_questions(standard=False) + self.get_questions(
+            standard=True
+        )
+        return {q["name"]: q["id"] for q in qualification_list}
+
 
 def get_lucid_service(config=None, recruitment_config=None):
     from .experiment import get_and_load_config
