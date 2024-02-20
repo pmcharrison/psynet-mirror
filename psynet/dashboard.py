@@ -470,11 +470,15 @@ def report_lucid():
 
     entry_df["psynet_finished"] = entry_df.apply(get_psynet_finished, axis=1)
     if len(entry_df) > 0:
-        entry_df["psynet_duration"] = entry_df.psynet_finished - entry_df.registered_at
-        entry_df["psynet_duration"] = entry_df.psynet_duration.apply(
-            lambda t: t.total_seconds() / 60 if not pd.isna(t) else t
-        )
-
+        durations = []
+        for _, row in entry_df.iterrows():
+            try:
+                durations.append(
+                    (row.psynet_finished - row.registered_at).total_seconds() / 60
+                )
+            except Exception:
+                durations.append(pd.NaT)
+        entry_df["psynet_duration"] = durations
     # Status; used in pandas query, linter does not recognize it
     completed_status = BaseLucidRecruiter.COMPLETED  # noqa: F841
     terminated_status = BaseLucidRecruiter.TERMINATED  # noqa: F841
