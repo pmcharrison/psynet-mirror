@@ -490,15 +490,6 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 if len(responses) == 0:
                     reason = f"Did not receive first response within {self.initial_response_within_s // 60} minutes"
                     details = f"Participant {participant.id} did not accept the consent"
-                # else:
-                #     last_response = responses[-1]
-                #     if now > last_response.creation_time + timedelta(
-                #         minutes=self.max_response_time_in_s
-                #     ):
-                #         reason = (
-                #             f"No response {self.max_response_time_in_s//60} minutes"
-                #         )
-                #         details = f"Participant {participant.id} had {len(responses)} responses"
 
             except sqlalchemy.orm.exc.NoResultFound:
                 # Do not terminate participants who did not pass the qualifications
