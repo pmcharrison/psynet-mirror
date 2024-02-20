@@ -245,7 +245,7 @@ def get_count_items(series):
 
 
 def get_entrant_psynet_status(entrant):
-    if entrant.lucid_status == BaseLucidRecruiter.PRESCREENED:
+    if entrant.lucid_status == BaseLucidRecruiter.MARKETPLACE_CODE:
         return "Marketplace codes"
     elif not pd.isna(entrant.terminated_at):
         return "Terminated"
@@ -478,8 +478,8 @@ def report_lucid():
     # Status; used in pandas query, linter does not recognize it
     completed_status = BaseLucidRecruiter.COMPLETED  # noqa: F841
     terminated_status = BaseLucidRecruiter.TERMINATED  # noqa: F841
-    prescreened_status = BaseLucidRecruiter.PRESCREENED  # noqa: F841
-    in_survey_status = BaseLucidRecruiter.UNRETURNED  # noqa: F841
+    prescreened_status = BaseLucidRecruiter.MARKETPLACE_CODE  # noqa: F841
+    in_survey_status = BaseLucidRecruiter.IN_SURVEY  # noqa: F841
 
     body = f"""
         <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
@@ -578,8 +578,8 @@ def report_lucid():
     n_lucid_terminated = len(terminated_df)
 
     code_color_dict = {
-        BaseLucidRecruiter.PRESCREENED: "black",
-        BaseLucidRecruiter.UNRETURNED: "black",
+        BaseLucidRecruiter.MARKETPLACE_CODE: "black",
+        BaseLucidRecruiter.IN_SURVEY: "black",
         BaseLucidRecruiter.TERMINATED: "black",
         BaseLucidRecruiter.COMPLETED: "green",
     }

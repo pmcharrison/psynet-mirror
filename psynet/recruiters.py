@@ -232,16 +232,40 @@ class LucidRecruiterException(Exception):
 
 
 class BaseLucidRecruiter(PsyNetRecruiter):
-    PRESCREENED = "Marketplace codes"
+    MARKETPLACE_CODE = "Marketplace codes"
+    IN_SURVEY = "Currently in Client Survey or Drop"
     COMPLETED = "Returned as Complete"
     TERMINATED = "Returned as Terminate"
-    UNRETURNED = "Currently in Client Survey or Drop"
+    SURVEY_CLOSED = "Survey Closed"
     survey_codes = ["awarded", "pending", "paused", "live", "complete", "archived"]
     client_codes = {
-        1: UNRETURNED,
-        20: TERMINATED,
-        10: COMPLETED,
-        -1: PRESCREENED,
+        # See https://support.lucidhq.com/s/article/Client-Response-Codes
+        -1: MARKETPLACE_CODE,
+        1: IN_SURVEY,
+        10: COMPLETED,  # Returned as Complete from PsyNet
+        11: COMPLETED,  # Adjusted Complete
+        20: TERMINATED,  # Terminated from PsyNet
+        26: TERMINATED,  # Adjusted Terminate
+        28: TERMINATED,  # Adjusted Terminate
+        30: TERMINATED,  # Quality termination
+        33: TERMINATED,  # Speeder
+        34: TERMINATED,  # Open End Terminate
+        35: TERMINATED,  # Encryption Failure
+        38: TERMINATED,  # Adjusted to Terminate
+        134: TERMINATED,  # Encryption Failure at Client Survey
+        135: TERMINATED,  # Encryption Failure at Marketplace Return
+        136: TERMINATED,  # Survey Closed
+        137: TERMINATED,  # Verify Callback Failure
+        233: TERMINATED,  # Invalid Client Response Status
+        235: TERMINATED,  # Secure Client Callback Failure
+        40: TERMINATED,  # Client Survey Quota Full
+        60: TERMINATED,  # Quality Terminate on Pre-Client Intermediary Page
+        62: TERMINATED,  # Declined Routing on Pre-Client Intermediary Page
+        66: TERMINATED,  # Declined Routing on Pre-Client Intermediary Page
+        91: TERMINATED,  # Incorrectly Formatted Redirect
+        110: TERMINATED,  # Used for specific opt-in studies
+        70: COMPLETED,  # Audience: Returned as Complete
+        80: TERMINATED,  # Audience: Returned as Terminate
     }
 
     market_place_codes = {
@@ -314,12 +338,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     @classmethod
     def get_recruiter_metrics(cls, entry_df):
-        PRESCREENED_CODE = cls.PRESCREENED  # noqa: F841
+        MARKETPLACE_CODE = cls.MARKETPLACE_CODE  # noqa: F841
         COMPLETED_CODE = cls.COMPLETED  # noqa: F841
-        UNRETURNED_CODE = cls.UNRETURNED  # noqa: F841
-        prescreens = entry_df.query("lucid_status != @PRESCREENED_CODE")
+        IN_SURVEY_CODE = cls.IN_SURVEY  # noqa: F841
+        prescreens = entry_df.query("lucid_status != @MARKETPLACE_CODE")
         completes = entry_df.query("lucid_status == @COMPLETED_CODE")
-        drop_off = entry_df.query("lucid_status == @UNRETURNED_CODE")
+        drop_off = entry_df.query("lucid_status == @IN_SURVEY_CODE")
         drop_off_rate = len(drop_off) / len(prescreens) if len(prescreens) > 0 else 0
         conversion_rate = len(completes) / len(prescreens) if len(prescreens) > 0 else 0
 
@@ -478,7 +502,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
             except sqlalchemy.orm.exc.NoResultFound:
                 # Do not terminate participants who did not pass the qualifications
-                if entrant.lucid_status != self.PRESCREENED:
+                if entrant.lucid_status != self.MARKETPLACE_CODE:
                     reason = "Never entered the experiment"
 
             if reason:
