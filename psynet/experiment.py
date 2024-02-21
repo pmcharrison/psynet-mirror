@@ -1724,6 +1724,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/dashboard_timeline.js",
                 ),
                 (
+                    resources.files("psynet")
+                    / "resources/scripts/d3-visualizations.js",
+                    "/static/scripts/dashboard_timeline.js",
+                ),
+                (
                     resources.files("psynet") / "resources/css/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
                 ),

@@ -11,7 +11,7 @@ function toTwoDecimals(float_or_string) {
     }
 }
 
-function scatter(containerId, data, margin, xLabel, yLabel, tooltip=null) {
+function scatter(containerId, data, margin, xLabel, yLabel, tooltip = null) {
     let hold = false;
     var container = document.getElementById(containerId);
     var width = container.clientWidth;
@@ -25,7 +25,7 @@ function scatter(containerId, data, margin, xLabel, yLabel, tooltip=null) {
         .attr("transform",
             `translate(${margin.left},${margin.top})`);
 
-    let xMin =  d3.min(data, function (d) {
+    let xMin = d3.min(data, function (d) {
         return d.x;
     });
     let xMax = d3.max(data, function (d) {
@@ -45,7 +45,6 @@ function scatter(containerId, data, margin, xLabel, yLabel, tooltip=null) {
     var x = d3.scaleLinear()
         .domain([0, xMax])
         .range([0, width]);
-
 
 
     var y = d3.scaleLinear()
@@ -73,11 +72,10 @@ function scatter(containerId, data, margin, xLabel, yLabel, tooltip=null) {
         .attr("stroke-dasharray", "5,5");
 
 
-
     // axis labels
     svg.append("text")
         .attr("text-anchor", "end")
-        .attr("x", width/2 + margin.left)
+        .attr("x", width / 2 + margin.left)
         .attr("y", height + margin.bottom)
         .style("font-size", "12px")
         .text(xLabel);
@@ -86,10 +84,9 @@ function scatter(containerId, data, margin, xLabel, yLabel, tooltip=null) {
         .attr("text-anchor", "end")
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 10)
-        .attr("x", -height/2 + margin.top)
+        .attr("x", -height / 2 + margin.top)
         .style("font-size", "12px")
         .text(yLabel);
-
 
 
     // Make a scatter plot
@@ -129,7 +126,7 @@ function hideTooltips() {
     d3.selectAll('.d3-tip').style('opacity', 0);
 }
 
-function histogram(containerId, data, margin, nBins, type2color, tooltip=null, height=null) {
+function histogram(containerId, data, margin, nBins, type2color, tooltip = null, height = null) {
     // set the dimensions and margins of the graph
     var container = document.getElementById(containerId);
     var width = container.clientWidth;
@@ -233,6 +230,190 @@ function histogram(containerId, data, margin, nBins, type2color, tooltip=null, h
     if (tooltip !== null) {
         svg.call(tooltip);
     }
+    if (uniqueTypes.length > 1) {
+        uniqueTypes.forEach(function (type, i) {
+            svg.append("circle")
+                .attr("cx", width - 30)
+                .attr("cy", i * 20)
+                .attr("r", 6)
+                .style("fill", type2color[type]);
+            svg.append("text")
+                .attr("x", width - 20)
+                .attr("y", i * 20)
+                .text(type)
+                .style("font-size", "10px")
+                .attr("alignment-baseline", "middle");
+        })
+    }
+}
+
+function linePlot(containerId, data, margin, xLabel, yLabel, tooltip = null, height = null, yLimits = null, type2color = null) {
+    const uniqueTypes = [...new Set(data.map(d => d.type))]
+    if (type2color === null) {
+        type2color = {};
+        uniqueTypes.forEach(function (type, i) {
+            type2color[type] = d3.schemeCategory10[i];
+        });
+    }
+    var container = document.getElementById(containerId);
+    var width = container.clientWidth;
+    width = width - margin.left - margin.right;
+    if (height === null) {
+        height = width - margin.top - margin.bottom;
+    }
+
+    var svg = d3.select(`#${containerId}`)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            `translate(${margin.left},${margin.top})`);
+    let xMin = d3.min(data, function (d) {
+        return d.x;
+    });
+    let xMax = d3.max(data, function (d) {
+        return d.x;
+    });
+    let yMin, yMax;
+    if (yLimits === null) {
+        yMin = d3.min(data, function (d) {
+            return d.y;
+        });
+        yMax = d3.max(data, function (d) {
+            return d.y;
+        });
+    } else {
+        yMin = yLimits[0];
+        yMax = yLimits[1];
+    }
+    var x = d3.scaleLinear()
+        .domain([xMax, xMin])
+        .range([0, width]);
+    var y = d3.scaleLinear()
+        .range([height, 0])
+        .domain([yMin, yMax]);
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x));
+    svg.append("g")
+        .call(d3.axisLeft(y));
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("x", width / 2 + margin.left)
+        .attr("y", height + margin.bottom)
+        .style("font-size", "12px")
+        .text(xLabel);
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 10)
+        .attr("x", -height / 2 + margin.top)
+        .style("font-size", "12px")
+        .text(yLabel);
+
+    // add line
+    var line = d3.line()
+        .x(function (d) {
+            return x(d.x);
+        })
+        .y(function (d) {
+            return y(d.y);
+        });
+    uniqueTypes.forEach(function (type, i) {
+        svg.append("path")
+            .datum(data.filter(function (d) {
+                return d.type === type;
+            }))
+            .attr("fill", "none")
+            .attr("stroke", type2color[type])
+            .attr("stroke-width", 1.5)
+            .attr("d", line);
+    });
+
+    svg.append('g')
+        .attr("id", `selection`)
+
+    svg.append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d) {
+            return x(d.x);
+        })
+        .attr("cy", function (d) {
+            return y(d.y);
+        })
+        .attr("r", 3)
+        .style("fill", function (d){
+            return type2color[d.type];
+        })
+        .on('mouseover', function (d) {
+            // mark current x coordinate with vertical line
+            d3.select(`#selection`).append('line')
+                .attr("x1", x(d.x))
+                .attr("y1", 0)
+                .attr("x2", x(d.x))
+                .attr("y2", height)
+                .attr("stroke", "gray")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "5,5");
+            if (tooltip !== null) {
+                tooltip.show(d, this);
+            }
+        })
+        .on('mouseout', function (d) {
+            d3.select(`#selection`).selectAll('line').remove();
+            if (tooltip !== null) {
+                tooltip.hide(d, this);
+            }
+        });
+
+
+
+    // var line = d3.line()
+    //     .x(function (d) {
+    //         return x(d.x);
+    //     })
+    //     .y(function (d) {
+    //         return y(d.y);
+    //     });
+    // // point plot
+    // data.forEach(function (d) {
+    //     svg.append("circle")
+    //         .attr("cx", x(d.x))
+    //         .attr("cy", y(d.y))
+    //         .attr("r", 3)
+    //         .style("fill", type2color[d.type])
+    //         .on('mouseover', function (d) {
+    //             if (tooltip !== null) {
+    //                 tooltip.show(d, this);
+    //             }
+    //         })
+    //         .on('mouseout', function (d) {
+    //             if (tooltip !== null) {
+    //                 tooltip.hide(d, this);
+    //             }
+    //         });
+    // });
+    //
+    // // line plot
+    // uniqueTypes.forEach(function (type, i) {
+    //     svg.append("path")
+    //         .datum(data.filter(function (d) {
+    //             return d.type === type;
+    //         }))
+    //         .attr("fill", "none")
+    //         .attr("stroke", type2color[type])
+    //         .attr("stroke-width", 1.5)
+    //         .attr("d", line);
+    // });
+
+    if (tooltip !== null) {
+        svg.call(tooltip);
+    }
+
     if (uniqueTypes.length > 1) {
         uniqueTypes.forEach(function (type, i) {
             svg.append("circle")
