@@ -206,6 +206,7 @@ class LucidStatus(SQLBase, SQLMixin):
 
     def to_dict(self):
         return {
+            "timestamp": self.creation_time,
             "status": self.status,
             "cost": self.cost,
             "currency": self.currency,

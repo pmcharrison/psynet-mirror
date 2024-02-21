@@ -247,7 +247,7 @@ function histogram(containerId, data, margin, nBins, type2color, tooltip = null,
     }
 }
 
-function linePlot(containerId, data, margin, xLabel, yLabel, tooltip = null, height = null, yLimits = null, type2color = null) {
+function linePlot(containerId, data, margin, xLabel, yLabel, tooltip = null, height = null, yLimits = null, type2color = null, xDict=null) {
     const uniqueTypes = [...new Set(data.map(d => d.type))]
     if (type2color === null) {
         type2color = {};
@@ -296,6 +296,18 @@ function linePlot(containerId, data, margin, xLabel, yLabel, tooltip = null, hei
     svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x));
+
+    // format x axis text
+    svg.selectAll(".tick text")
+        // change text to date format
+        .text(function (d) {
+            if (xDict !== null) {
+                return xDict[d];
+            }
+            return d;
+        });
+
+
     svg.append("g")
         .call(d3.axisLeft(y));
     svg.append("text")
@@ -416,13 +428,14 @@ function linePlot(containerId, data, margin, xLabel, yLabel, tooltip = null, hei
 
     if (uniqueTypes.length > 1) {
         uniqueTypes.forEach(function (type, i) {
+            let leftPadding = 200;
             svg.append("circle")
-                .attr("cx", width - 30)
+                .attr("cx", width - (leftPadding + 10))
                 .attr("cy", i * 20)
                 .attr("r", 6)
                 .style("fill", type2color[type]);
             svg.append("text")
-                .attr("x", width - 20)
+                .attr("x", width - leftPadding)
                 .attr("y", i * 20)
                 .text(type)
                 .style("font-size", "10px")
