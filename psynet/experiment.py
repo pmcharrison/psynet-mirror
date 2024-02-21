@@ -22,7 +22,9 @@ from typing import List
 import dallinger.experiment
 import dallinger.models
 import flask
+import pandas as pd
 import pexpect
+import psutil
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
@@ -37,8 +39,9 @@ from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
 from dominate import tags
+from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
-from sqlalchemy import func
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
@@ -50,7 +53,7 @@ from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import with_transaction
 from .error import ErrorRecord
-from .field import ImmutableVarStore
+from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
@@ -156,6 +159,56 @@ class ExperimentMeta(type):
                 "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
                 "Please note that this test route is only used if the tests are run in serial mode."
             )
+
+
+@register_table
+class Request(SQLBase, SQLMixin):
+    __tablename__ = "request"
+
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+    vars = None
+
+    id = Column(Integer, primary_key=True)
+    duration = Column(Float)
+    timestamp = Column(DateTime)
+    unique_id = Column(String, ForeignKey("participant.unique_id"))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "duration": self.duration,
+            "timestamp": self.timestamp,
+            "unique_id": self.unique_id,
+        }
+
+
+class ExperimentStatus(SQLBase, SQLMixin):
+    __tablename__ = "experiment_state"
+
+    id = Column(Integer, primary_key=True)
+    cpu_usage = Column(Float)
+    ram_usage = Column(Float)
+    free_disk_space = Column(Float)
+    median_response_time = Column(Float)
+    n_responses = Column(Integer)
+    total_working = Column(Integer)
+    meta = Column(PythonDict, default={})
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "timestamp": self.creation_time,
+            "cpu_usage": self.cpu_usage,
+            "ram_usage": self.ram_usage,
+            "free_disk_space": self.free_disk_space,
+            "median_response_time": self.median_response_time,
+            "n_responses": self.n_responses,
+            "total_working": self.total_working,
+            "meta": self.meta,
+        }
 
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
@@ -554,6 +607,90 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
+
+    @staticmethod
+    def before_request():
+        flask_app_globals.start = time.monotonic()
+
+    @staticmethod
+    def after_request(request, response):
+        diff = time.monotonic() - flask_app_globals.start
+        if "/timeline" in request.path:
+            params = dict(request.args)
+            if "unique_id" in params:
+                db.session.add(
+                    Request(
+                        unique_id=params["unique_id"],
+                        duration=diff,
+                        timestamp=datetime.now(),
+                    )
+                )
+                db.session.commit()
+        return response
+
+    @classmethod
+    def aggregate_responses(cls, lookback):
+        now = datetime.now()
+        lookback = now - pd.Timedelta(lookback)
+        all_requests = Request.query.filter(Request.timestamp > lookback).all()
+        requests_df = pd.DataFrame([request.to_dict() for request in all_requests])
+        summary = {}
+        if len(requests_df) > 0:
+            summary["median_response_time"] = requests_df["duration"].median()
+            summary["n_responses"] = len(requests_df)
+        return summary
+
+    @classmethod
+    def get_recruiter_status(cls):
+        exp = get_experiment()
+        return exp.recruiter.get_status()
+
+    @classmethod
+    def get_app_status(cls):
+        return {
+            "cpu_usage": psutil.cpu_percent(),
+            "ram_usage": psutil.virtual_memory().percent,
+            "free_disk_space": psutil.disk_usage("/").free / (2**30),
+        }
+
+    @classmethod
+    def get_status(cls, lookback="1m"):
+        return {
+            **super().get_status(),
+            **cls.aggregate_responses(lookback=lookback),
+            **cls.get_app_status(),
+            **cls.get_recruiter_status(),
+        }
+
+    @scheduled_task("interval", minutes=1, max_instances=1)
+    @staticmethod
+    def check_experiment_status():
+        exp = get_experiment()
+        experiment_status = exp.get_status(lookback="1m")  # since we poll every minute
+        experiment_status = ExperimentStatus(
+            cpu_usage=experiment_status.get("cpu_usage", None),
+            ram_usage=experiment_status.get("ram_usage", None),
+            free_disk_space=experiment_status.get("free_disk_space", None),
+            median_response_time=experiment_status.get("median_response_time", None),
+            n_responses=experiment_status.get("n_responses", None),
+            total_working=experiment_status.get("total_working", None),
+            meta={
+                key: value
+                for key, value in experiment_status.items()
+                if key
+                not in [
+                    "cpu_usage",
+                    "ram_usage",
+                    "free_disk_space",
+                    "median_response_time",
+                    "n_responses",
+                    "total_working",
+                ]
+            },
+        )
+
+        db.session.add(experiment_status)
+        db.session.commit()
 
     def load_deployment_config(self):
         config = get_config()
@@ -1745,6 +1882,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/dashboard_timeline.js",
                 ),
                 (
+                    resources.files("psynet")
+                    / "resources/scripts/d3-visualizations.js",
+                    "/static/scripts/d3-visualizations.js",
+                ),
+                (
                     resources.files("psynet") / "resources/css/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
                 ),
@@ -1800,6 +1942,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/libraries/abc-js",
                     "/static/scripts/abc-js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/d3",
+                    "/static/scripts/d3",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/jqueryui",
+                    "/static/scripts/jqueryui",
                 ),
                 (
                     resources.files("psynet")
@@ -1899,6 +2049,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             timeline_modules=json.dumps(module_info, default=serialise),
             currency=config.currency,
         )
+
+    @dashboard_tab("Resources", after_route="monitoring")
+    @classmethod
+    def resources(cls):
+        from .dashboard.resources import report_resource_use
+
+        return report_resource_use()
 
     @dashboard_tab("Participant", after_route="monitoring")
     @classmethod
