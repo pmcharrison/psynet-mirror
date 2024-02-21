@@ -11,6 +11,7 @@ from psynet import deployment_info
 from psynet.participant import Participant
 from psynet.utils import get_logger
 
+__module__ = "psynet.lucid"
 logger = get_logger()
 
 

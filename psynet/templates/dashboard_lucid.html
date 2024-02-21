@@ -46,7 +46,7 @@
                target="_blank">Details</a>
         </div>
     {% endif %}
-
+    {% if params.last_status %}
     <div class="alert alert-primary" role="alert">
         Last API call: <span id="time"></span> seconds ago.
     </div>
@@ -72,6 +72,7 @@
             </div>
         {% endif %}
     </div>
+    {% endif %}
     {% if params.display_cards %}
         <h3>PsyNet</h3>
         <div class="row">
@@ -150,46 +151,47 @@
     <div class="row">
         {% if params.lucid_completion_loi %}
             {{ make_status_card({
-        'title': 'Completion LOI',
-        'body': "Comparison of termination LOI between  PsyNet vs Lucid. <div id='completion_loi'></div>",
-        'col': "col-4"
-    }) }}
+        'title': params.lucid_completion_loi.title,
+        'body': params.lucid_completion_loi.body +  "<div id='completion_loi'></div>",
+        'status': params.lucid_completion_loi.status,
+        'col': "col-4",
+        'border': true
+            }) }}
             <script>
+                let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                let n_bins = 40;
+                let type2color = {"Lucid": "black"};
                 document.addEventListener("DOMContentLoaded", function (e) {
                     let tooltip = d3.tip().attr('class', 'd3-tip fullscreen')
-                    .html(function (d) {
-                        let type = d[0].type;
-                        let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
-                        // button to close
-                        title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
-                        let table = '<table class="table table-striped">';
-                        table += '<tr>';
-                        table += '<th>Participant ID</th>';
-                        table += '<th>RID</th>';
-                        table += '<th>Reason</th>';
-                        table += '<th>PsyNet duration</th>';
-                        table += '<th>Lucid duration</th>';
-                        table += '<th>Client code</th>';
-                        table += '</tr>';
-                        d.forEach(function (bin) {
+                        .html(function (d) {
+                            let type = d[0].type;
+                            let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
+                            // button to close
+                            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+                            let table = '<table class="table table-striped">';
                             table += '<tr>';
-                            table += `<td>${bin.pid}</td>`;
-                            table += `<td>${bin.rid}</td>`;
-                            table += `<td>${bin.reason}</td>`;
-                            table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
-                            table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
-                            table += `<td>${bin.code}</td>`;
+                            table += '<th>Participant ID</th>';
+                            table += '<th>RID</th>';
+                            table += '<th>Reason</th>';
+                            table += '<th>PsyNet duration</th>';
+                            table += '<th>Lucid duration</th>';
+                            table += '<th>Client code</th>';
                             table += '</tr>';
+                            d.forEach(function (bin) {
+                                table += '<tr>';
+                                table += `<td>${bin.pid}</td>`;
+                                table += `<td>${bin.rid}</td>`;
+                                table += `<td>${bin.reason}</td>`;
+                                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
+                                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
+                                table += `<td>${bin.code}</td>`;
+                                table += '</tr>';
+                            });
+                            table += '</table>';
+                            return '<div class="container">' + title + table + "</div>";
                         });
-                        table += '</table>';
-                        return '<div class="container">' + title + table + "</div>";
-                    });
                     let responseData = {{ params.lucid_completion_loi.data | safe }};
-                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
-                    let n_bins = {{ params.lucid_completion_loi.n_bins }};
-                    let type2color = {{ params.lucid_completion_loi.type2color | safe }};
-                    let height = 500;
-                    histogram("completion_loi", responseData, margin, n_bins, type2color, tooltip, height);
+                    histogram("completion_loi", responseData, margin, n_bins, type2color, tooltip);
                 });
             </script>
         {% else %}
@@ -200,48 +202,47 @@
     }) }}
         {% endif %}
 
-        {% if params.lucid_termination_loi %}
+        {% if params.lucid_termination_loi and params.lucid_termination_loi.data | length > 0 %}
             {{ make_status_card({
-        'title': 'Termination LOI',
-        'body': "Comparison of termination LOI between  PsyNet vs Lucid. <div id='termination_loi'></div>",
-        'col': "col-4"
+        'title': params.lucid_termination_loi.title,
+        'body': params.lucid_termination_loi.body +  "<div id='termination_loi'></div>",
+        'col': "col-4",
+        'status': params.lucid_termination_loi.status,
+        'border': true
     }) }}
             <script>
                 document.addEventListener("DOMContentLoaded", function (e) {
                     let tooltip = d3.tip().attr('class', 'd3-tip fullscreen')
-                    .html(function (d) {
-                        let type = d[0].type;
-                        let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
-                        // button to close
-                        title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
-                        let table = '<table class="table table-striped">';
-                        table += '<tr>';
-                        table += '<th>Participant ID</th>';
-                        table += '<th>RID</th>';
-                        table += '<th>Reason</th>';
-                        table += '<th>PsyNet duration</th>';
-                        table += '<th>Lucid duration</th>';
-                        table += '<th>Client code</th>';
-                        table += '</tr>';
-                        d.forEach(function (bin) {
+                        .html(function (d) {
+                            let type = d[0].type;
+                            let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
+                            // button to close
+                            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+                            let table = '<table class="table table-striped">';
                             table += '<tr>';
-                            table += `<td>${bin.pid}</td>`;
-                            table += `<td>${bin.rid}</td>`;
-                            table += `<td>${bin.reason}</td>`;
-                            table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
-                            table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
-                            table += `<td>${bin.code}</td>`;
+                            table += '<th>Participant ID</th>';
+                            table += '<th>RID</th>';
+                            table += '<th>Reason</th>';
+                            table += '<th>PsyNet duration</th>';
+                            table += '<th>Lucid duration</th>';
+                            table += '<th>Client code</th>';
                             table += '</tr>';
+                            d.forEach(function (bin) {
+                                table += '<tr>';
+                                table += `<td>${bin.pid}</td>`;
+                                table += `<td>${bin.rid}</td>`;
+                                table += `<td>${bin.reason}</td>`;
+                                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
+                                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
+                                table += `<td>${bin.code}</td>`;
+                                table += '</tr>';
+                            });
+                            table += '</table>';
+                            return '<div class="container">' + title + table + "</div>";
                         });
-                        table += '</table>';
-                        return '<div class="container">' + title + table + "</div>";
-                    });
                     let responseData = {{ params.lucid_termination_loi.data | safe }};
-                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
-                    let n_bins = {{ params.lucid_termination_loi.n_bins }};
-                    let type2color = type2color = {"Lucid": "black"};
-                    let height = 500;
-                    histogram("termination_loi", responseData, margin, n_bins, type2color, tooltip, height);
+
+                    histogram("termination_loi", responseData, margin, n_bins, type2color, tooltip);
                 });
             </script>
         {% else %}
@@ -252,47 +253,40 @@
     }) }}
         {% endif %}
 
-        {% if params.lucid_termination_reason %}
+
+        {% if params.termination_loi_scatter and params.termination_loi_scatter.data | length > 0 %}
             {{ make_status_card({
-        'title': 'Termination reason',
-        'body': "Comparison of termination reason between  PsyNet vs Lucid. <div id='termination_reason'></div>",
-        'col': "col-4"
+        'title': params.termination_loi_scatter.title,
+        'body': params.termination_loi_scatter.body + "<div id='termination_loi_scatter'></div>",
+        'col': "col-4",
+        'status': params.termination_loi_scatter.status,
+        'border': true
     }) }}
             <script>
                 document.addEventListener("DOMContentLoaded", function (e) {
-                    let tooltip = d3.tip()
-                        .attr('class', 'd3-tip fullscreen')
+                    let tooltip = d3.tip().attr('class', 'd3-tip')
                         .html(function (d) {
-                            let type = d[0].type;
-                            let title = `<h5>${d.length} participants (${type}) did ${(d.x0).toFixed(0)} pages`;
-                            // button to close
-                            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
-                            let table = '<table class="table table-striped">';
-                            table += '<tr>';
-                            table += '<th>Participant ID</th>';
-                            table += '<th>RID</th>';
-                            table += '<th>Reason</th>';
-                            table += '</tr>';
-                            d.forEach(function (bin) {
-                                table += '<tr>';
-                                table += `<td>${bin.participant_id}</td>`;
-                                table += `<td>${bin.rid}</td>`;
-                                table += `<td>${bin.reason}</td>`;
-                                table += '</tr>';
-                            });
-                            table += '</table>';
-                            return '<div class="container">' + title + table + "<div>";
-                        })
-                    let responseData = {{ params.lucid_termination_reason.data | safe }};
-                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
-                    let n_bins = {{ params.lucid_termination_reason.n_bins }};
-                    let type2color = {{ params.lucid_termination_reason.type2color | safe }};
-                    let height = 500;
-                    histogram("termination_reason", responseData, margin, n_bins, type2color, tooltip, height);
+                            return `Participant ${d.pid} (${d.rid}): ${d.reason}`;
+                        });
+                    let responseData = {{ params.termination_loi_scatter.data | safe }};
+                    const xLabel = "LOI (Lucid)",
+                        yLabel = "LOI (PsyNet)";
+                    scatter("termination_loi_scatter", responseData, margin, xLabel, yLabel, tooltip);
                 });
             </script>
         {% endif %}
     </div>
+
+    <script>
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+    </script>
 
 
     {{ html | safe }}

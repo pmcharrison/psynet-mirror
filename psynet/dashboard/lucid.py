@@ -17,225 +17,6 @@ def render_msg(title, msg, details, color):
     return f"<span style='color:{color}'><span style='font-weight:bold'>{title}</span>: {msg}</span> {details}"
 
 
-def create_accordion(items, id):
-    out = '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>'
-    out += f'<div class="accordion" id="{id}">'
-    for i, item in enumerate(items.items()):
-        key, value = item
-        out += f"""
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading-{id}-{i}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{id}-{i}" aria-expanded="false" aria-controls="collapse-{id}-{i}">
-                        {key}
-                    </button>
-                </h2>
-                <div id="collapse-{id}-{i}" class="accordion-collapse collapse" aria-labelledby="heading-{id}-{i}" data-bs-parent="#{id}">
-                    <div class="accordion-body">
-                        {value}
-                    </div>
-                </div>
-            </div>
-        """
-    out += "</div>"
-    return out
-
-
-def make_card(title, body, item_list):
-    out = f"""
-    <div class="col-4">
-    <div class="card mb-2" style="width: 100%;">
-        <div class="card-body">
-            <h5 class="card-title">{title}</h5>
-            <p class="card-text">{body}</p>
-        </div>
-        <ul class="list-group list-group-flush">
-    """
-    for item in item_list:
-        out += f"""<li class="list-group-item">{item}</li>"""
-
-    out += """
-        </ul>
-    </div>
-    </div>
-    """
-    return out
-
-
-def _prepare_viz(cmd, id_name):
-    return f"""
-    <div style="min-height: 200px" id="{id_name}"></div>
-    <script>
-    document.addEventListener("DOMContentLoaded", function(e)  {{
-        {cmd}
-    }});
-    </script>
-    """
-
-
-def make_histogram(
-    id_name,
-    type2color: dict,
-    data: list,
-    margin: dict = None,
-    n_bins=40,
-    tooltip="null",
-    height="null",
-):
-    if margin is None:
-        margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
-    assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
-    return _prepare_viz(
-        f"""histogram("{id_name}", {data}, {margin}, {n_bins}, {type2color}, {tooltip}, {height});""",
-        id_name,
-    )
-
-
-def make_loi_histogram(id_name, data: list, margin: dict = None, n_bins=40):
-    type2color = {"Lucid": "black"}
-    tooltip = """
-    d3.tip().attr('class', 'd3-tip fullscreen')
-        .html(function (d) {
-            let type = d[0].type;
-            let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
-            // button to close
-            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
-            let table = '<table class="table table-striped">';
-            table += '<tr>';
-            table += '<th>Participant ID</th>';
-            table += '<th>RID</th>';
-            table += '<th>Reason</th>';
-            table += '<th>PsyNet duration</th>';
-            table += '<th>Lucid duration</th>';
-            table += '<th>Client code</th>';
-            table += '</tr>';
-            d.forEach(function (bin) {
-                table += '<tr>';
-                table += `<td>${bin.pid}</td>`;
-                table += `<td>${bin.rid}</td>`;
-                table += `<td>${bin.reason}</td>`;
-                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
-                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
-                table += `<td>${bin.code}</td>`;
-                table += '</tr>';
-            });
-            table += '</table>';
-            return '<div class="container">' + title + table + "</div>";
-        })
-    """
-    return make_histogram(id_name, type2color, data, margin, n_bins, tooltip)
-
-
-def make_response_histogram(
-    id_name, type2color: dict, data: list, margin: dict = None, n_bins=40
-):
-    tooltip = """
-        d3.tip().attr('class', 'd3-tip fullscreen')
-            .html(function (d) {
-                let type = d[0].type;
-                let title = `<h5>${d.length} participants (${type}) did ${(d.x0).toFixed(0)} pages`;
-                // button to close
-                title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
-                let table = '<table class="table table-striped">';
-                table += '<tr>';
-                table += '<th>Participant ID</th>';
-                table += '<th>RID</th>';
-                table += '<th>Reason</th>';
-                table += '</tr>';
-                d.forEach(function (bin) {
-                    table += '<tr>';
-                    table += `<td>${bin.participant_id}</td>`;
-                    table += `<td>${bin.rid}</td>`;
-                    table += `<td>${bin.reason}</td>`;
-                    table += '</tr>';
-                });
-                table += '</table>';
-                return '<div class="container">' + title + table + "<div>";
-            })
-        """
-    height = 500
-    return make_histogram(id_name, type2color, data, margin, n_bins, tooltip, height)
-
-
-def make_scatterplot(
-    id_name,
-    data: list,
-    x_label: str,
-    y_label: str,
-    margin: dict = None,
-    tooltip: str = "null",
-):
-    if margin is None:
-        margin = {"top": 10, "right": 30, "bottom": 30, "left": 40}
-    assert ["bottom", "left", "right", "top"] == sorted(margin), "Got: " + str(margin)
-
-    return _prepare_viz(
-        f"""scatter("{id_name}", {data}, {margin}, "{x_label}", "{y_label}", {tooltip});""",
-        id_name,
-    )
-
-
-def make_loi_scatterplot(
-    id_name, data: list, x_label: str, y_label: str, margin: dict = None
-):
-    tooltip = """
-    d3.tip().attr('class', 'd3-tip')
-        .html(function (d) {
-            return `Participant ${d.pid} (${d.rid}): ${d.reason}`;
-        })
-    """
-    return make_scatterplot(id_name, data, x_label, y_label, margin, tooltip)
-
-
-def make_status_card(title, body, status="info", border=False, col="col-4"):
-    if status == "success":
-        bg = "bg-success"
-    elif status == "danger":
-        bg = "bg-danger"
-    elif status == "warning":
-        bg = "bg-warning"
-    elif status == "info":
-        bg = ""
-    else:
-        raise ValueError(f"Unknown status: {status}")
-    if bg != "":
-        bg = f"{bg} text-white"
-
-    if border:
-        bg = f" border-{status} text-{status}"
-    return f"""
-    <div class="{col}">
-    <div class="card mb-2 {bg}" style="width: 100%;">
-        <div class="card-body">
-            <h5 class="card-title">{title}</h5>
-            <p class="card-text">{body}</p>
-        </div>
-    </div>
-    </div>
-    """
-
-
-def trialmaker_exists(trialmaker_id):
-    from dallinger.experiment_server.experiment_server import Experiment, session
-
-    exp = Experiment(session)
-    return trialmaker_id in exp.timeline.modules
-
-
-def get_trialmaker(trialmaker_id):
-    from dallinger.experiment_server.experiment_server import Experiment, session
-
-    exp = Experiment(session)
-    return exp.timeline.modules[trialmaker_id]
-
-
-status2color = {
-    "finished": "green",
-    "failed": "red",
-    "rejected": "orange",
-    "working": "blue",
-}
-
-
 def get_count_items(series):
     count = series.value_counts()
     items = []
@@ -267,50 +48,8 @@ def entrant_info_to_status_items(entrant_info):
 def compute_lucid_duration(row):
     if not pd.isna(row.lucid_entry_date):
         return row.lucid_last_date - row.lucid_entry_date
-    # elif row.registered_at > row.lucid_last_date:
-    #     return row.registered_at - row.lucid_last_date
     else:
         return pd.NaT
-
-
-def prepare_reconciliations(rids: [str], filename: str):
-    return f"""
-    <script>
-    function getReconciliations() {{
-      const content = {rids}.join('\\n');
-      const file = new File([content], '{filename}', {{
-          type: 'text/plain',
-      }})
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(file)
-      link.href = url
-      link.download = file.name
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    }}
-    </script>
-    <br>
-    <a class="btn btn-primary mt-2" onclick="getReconciliations()">Download reconciliations</a>
-    """
-
-
-def copy_to_clipboard(text: str):
-    return f"""
-    <script>
-    function copyToClipboard() {{
-      const el = document.createElement('textarea');
-      el.value = `{text}`;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-    }}
-    </script>
-    <br>
-    <a class="btn btn-primary mt-2" onclick="copyToClipboard()">Copy compensation command</a>
-    """
 
 
 def get_psynet_finished(row):
@@ -561,17 +300,17 @@ def report_lucid():
     n_lucid_completed = len(completes_df)
     psynet_completes_df = entry_df.query("psynet_status == 'Completed'")
     n_psynet_completed = len(psynet_completes_df)
-    rids_to_compensate = []
     if n_lucid_completed != n_psynet_completed:
-        rids_to_compensate = psynet_completes_df.rid.to_list()
-    params["rids_to_compensate"] = rids_to_compensate
-    # TODO
-    # cmd = f"cap lucid compensate {params['survey_number']} {','.join(lucid_complete_rids)}"
-    # items[3] += (
-    #     "<br><span class='text-danger'>Detected a mismatch in completed participants in Psynet (n = "
-    #     + f"{n_psynet_completed}) and Lucid (n = {n_lucid_completed}).</span>"
-    #     + copy_to_clipboard(cmd)
-    # )
+        lucid_complete_rids = psynet_completes_df.rid.to_list()
+        cmd = f"psynet lucid compensate {params['survey_number']} {' '.join(lucid_complete_rids)}"
+        button = f"""
+        <a class="btn btn-primary mt-2" onclick="copyToClipboard('{cmd}')">Copy compensation command</a>
+        """
+        items[3] += (
+            "<br><span class='text-danger'>Detected a mismatch in completed participants in Psynet (n = "
+            + f"{n_psynet_completed}) and Lucid (n = {n_lucid_completed}).</span><br>"
+            + button
+        )
 
     params["lucid_client_codes"] = {
         "title": "Client codes",
@@ -655,23 +394,13 @@ def report_lucid():
                         else "n/a",
                     }
                 )
-            histogram = make_loi_histogram("completion_loi", data)
             if completion_loi < set_completion_loi:
-                text += " Consider reducing the expected completion time." + histogram
-                lucid_completion_loi = make_status_card(
-                    completion_title, text, "warning", True
-                )
+                text += " Consider reducing the expected completion time."
                 status = "warning"
             elif completion_loi > set_completion_loi:
-                text += " Consider increasing the expected completion time." + histogram
-                lucid_completion_loi = make_status_card(
-                    completion_title, text, "danger", True
-                )
+                text += " Consider increasing the expected completion time."
                 status = "danger"
             else:
-                lucid_completion_loi = make_status_card(
-                    title, text + histogram, "success", True
-                )
                 status = "success"
             params["lucid_completion_loi"] = {
                 "title": completion_title,
@@ -679,15 +408,10 @@ def report_lucid():
                 "status": status,
                 "border": True,
                 "col": "col-4",
+                "data": data,
             }
-        else:
-            lucid_completion_loi = make_status_card(
-                "Completion LOI", "No completes yet.", "info"
-            )
 
         if len(terminated_df) > 0:
-            # termination_loi = int(terminated_df.lucid_duration.median().round())
-
             psynet_termination_loi = int(
                 psynet_terminated_df.psynet_duration.median().round()
             )
@@ -719,23 +443,8 @@ def report_lucid():
                         }
                     )
 
-            bad_loi = termination_loi > 1
-            histogram = make_loi_histogram("termination_loi", data)
-            termination_loi = make_status_card(
-                title=f"Termination LOI: {termination_loi} minutes",
-                body=(
-                    "Median time from entry to termination. "
-                    + "Should be a minute or less. "
-                    + "Expected: "
-                    + str(psynet_termination_loi)
-                    + " minutes."
-                    + histogram
-                ),
-                status="danger" if bad_loi else "success",
-                border=True,
-            )
-
-            params["termination_loi"] = {
+            status = "danger" if termination_loi > 1 else "success"
+            params["lucid_termination_loi"] = {
                 "title": f"Termination LOI: {termination_loi} minutes",
                 "body": (
                     "Median time from entry to termination. "
@@ -743,38 +452,25 @@ def report_lucid():
                     + "Expected: "
                     + str(psynet_termination_loi)
                     + " minutes."
-                    + histogram
                 ),
-                "status": "danger" if bad_loi else "success",
+                "status": status,
                 "border": True,
                 "col": "col-4",
+                "data": data,
             }
 
             data = [
                 {**d, "x": d["lucid_duration"], "y": d["psynet_duration"]} for d in data
             ]
-            scatter_plot = make_loi_scatterplot(
-                "scatterplot", data, "LOI (Lucid)", "LOI (PsyNet)"
-            )
-            termination_loi += make_status_card(
-                title="Termination LOI: PsyNet vs Lucid",
-                body="Comparison of termination LOI between  PsyNet vs Lucid."
-                + scatter_plot,
-                status="danger" if bad_loi else "success",
-                border=True,
-            )
+
             params["termination_loi_scatter"] = {
                 "title": "Termination LOI: PsyNet vs Lucid",
                 "body": "Comparison of termination LOI between  PsyNet vs Lucid.",
-                "status": "danger" if bad_loi else "success",
+                "status": status,
                 "border": True,
                 "col": "col-4",
+                "data": data,
             }
-
-        else:
-            termination_loi = make_status_card(
-                "Termination LOI", "No terminated participants yet.", "info"
-            )
 
         responses = Response.query.filter_by(failed=False).all()
         if len(responses) > 0:
@@ -833,13 +529,6 @@ def report_lucid():
             "status": "info",
             "col": "col-4",
         }
-
-        body += (
-            """<div class="row mb-2" data-masonry='{"percentPosition": true }'>"""
-            + lucid_completion_loi
-            + termination_loi
-            + "</div>"
-        )
 
     return render_template(
         TEMPLATE_NAME,
