@@ -372,9 +372,10 @@ def report_lucid():
 
         status_name = last_status.status
 
-        last_api_call = int(
-            (datetime.now() - pd.to_datetime(last_status.creation_time)).seconds / 60
-        )
+        last_api_call = (
+            datetime.now() - pd.to_datetime(last_status.creation_time)
+        ).seconds
+
         selectpicker = "<select id='status' name='status'>"
         for status in BaseLucidRecruiter.survey_codes:
             if status == "archived":
@@ -406,9 +407,17 @@ def report_lucid():
 
         header += f"""
         <div class="alert alert-primary" role="alert">
-            Last API call: {last_api_call} minutes ago.
+            Last API call: <span id="time"></span> seconds ago.
         </div>
-        <div class="row">
+        <script>
+            let time = {last_api_call};
+            document.getElementById('time').innerText = time;
+            setInterval(() => {{
+                time += 1;
+                document.getElementById('time').innerText = time;
+            }}, 1000);
+        </script>
+        <div class="row mb-2">
             <div class="col-4">
                 <strong>Status</strong>: {selectpicker}</br>
             </div>
