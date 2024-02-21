@@ -661,16 +661,12 @@ def report_lucid():
     )
 
     if entry_df.shape[0] > 0:
-        # metrics = BaseLucidRecruiter.get_recruiter_metrics(entry_df)
-
-        # conversion_rate = metrics["conversion_rate"]
         lucid_conversion_rate = make_status_card(
             f"Conversion rate: {int(conversion_rate * 100)}%",
             "Percentage of completes of total people who passed the qualifications. Should be more than 10%.",
             "success" if conversion_rate > 0.1 else "danger",
         )
 
-        # dropoff_rate = metrics["drop_off_rate"]
         lucid_dropoff_rate = make_status_card(
             f"Dropoff rate: {int(dropoff_rate * 100)}%",
             "Percentage of participants not returned to the market place who passed the qualifications. Should be less than 20%.",
@@ -680,7 +676,6 @@ def report_lucid():
         config = get_and_load_config()
         lucid_recruitment_config = json.loads(config.get("lucid_recruitment_config"))
         bid_incidence = lucid_recruitment_config["survey"]["BidIncidence"]
-        # incidence_rate = metrics["incidence_rate"]
 
         if incidence_rate >= bid_incidence / 100:
             lucid_incidence_rate = make_status_card(
@@ -701,11 +696,6 @@ def report_lucid():
         )
 
         if len(completes_df) > 0:
-            # completion_loi = int(
-            #     completes_df.dropna(subset=["psynet_duration"])
-            #     .psynet_duration.median()
-            #     .round()
-            # )
             completion_title = f"Completion LOI: {completion_loi} minutes"
             text = f"Expected: {set_completion_loi} minutes."
 
