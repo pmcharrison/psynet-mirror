@@ -853,66 +853,69 @@ def report_lucid():
             )
 
         responses = Response.query.filter_by(failed=False).all()
-        response_df = pd.DataFrame(
-            [
-                {
-                    "question": response.question,
-                    "participant_id": response.participant_id,
-                    "answer": response.answer,
-                }
-                for response in responses
+        if len(responses) > 0:
+            response_df = pd.DataFrame(
+                [
+                    {
+                        "question": response.question,
+                        "participant_id": response.participant_id,
+                        "answer": response.answer,
+                    }
+                    for response in responses
+                ]
+            )
+            answer_counts = (
+                response_df.groupby("participant_id").answer.count().reset_index()
+            )
+            answer_counts = answer_counts.merge(
+                entry_df, on="participant_id", how="left"
+            )
+            answer_counts["reason"] = answer_counts.termination_reason.apply(
+                lambda r: r if not pd.isna(r) else "n/a"
+            )
+            answer_counts["value"] = answer_counts.answer
+            answer_counts["type"] = answer_counts.psynet_status
+            relevant_cols = ["value", "type", "participant_id", "rid", "reason"]
+            answer_counts = answer_counts[relevant_cols]
+            rids = answer_counts.rid.to_list()  # noqa: F841
+
+            missing = terminated_df.query("rid not in @rids")[
+                ["rid", "termination_reason"]
             ]
-        )
-        answer_counts = (
-            response_df.groupby("participant_id").answer.count().reset_index()
-        )
-        answer_counts = answer_counts.merge(entry_df, on="participant_id", how="left")
-        answer_counts["reason"] = answer_counts.termination_reason.apply(
-            lambda r: r if not pd.isna(r) else "n/a"
-        )
-        answer_counts["value"] = answer_counts.answer
-        answer_counts["type"] = answer_counts.psynet_status
-        relevant_cols = ["value", "type", "participant_id", "rid", "reason"]
-        answer_counts = answer_counts[relevant_cols]
-        rids = answer_counts.rid.to_list()  # noqa: F841
+            missing = missing.merge(participants, on="rid", how="left")
+            missing["participant_id"] = missing.participant_id.apply(
+                lambda x: x if not pd.isna(x) else "Not registered"
+            )
+            missing["reason"] = missing.termination_reason.apply(
+                lambda r: r if not pd.isna(r) else "n/a"
+            )
+            missing["value"] = 0
+            missing["type"] = "Terminated"
 
-        missing = terminated_df.query("rid not in @rids")[["rid", "termination_reason"]]
-        missing = missing.merge(participants, on="rid", how="left")
-        missing["participant_id"] = missing.participant_id.apply(
-            lambda x: x if not pd.isna(x) else "Not registered"
-        )
-        missing["reason"] = missing.termination_reason.apply(
-            lambda r: r if not pd.isna(r) else "n/a"
-        )
-        missing["value"] = 0
-        missing["type"] = "Terminated"
+            missing = missing[relevant_cols]
+            answer_counts = pd.concat([answer_counts, missing])
+            type2color = {"Completed": "green", "Terminated": "red", "Working": "blue"}
 
-        missing = missing[relevant_cols]
-        answer_counts = pd.concat([answer_counts, missing])
-        type2color = {"Completed": "green", "Terminated": "red", "Working": "blue"}
+            n_bins = answer_counts.value.max()
 
-        n_bins = answer_counts.value.max()
-
-        hist_plot = make_response_histogram(
-            "answer_count",
-            type2color,
-            answer_counts.to_dict(orient="records"),
-            n_bins=n_bins,
-        )
-        responses_per_participant = make_status_card(
-            title="Responses per participant",
-            body="Comparison of termination LOI between  PsyNet vs Lucid." + hist_plot,
-            col="col-12",
-        )
-
-        # cpi = experiment.estimated_max_reward(wage_per_hour)
-        # pattern = "Error|In Screener"
-        # platform_faults = entry_df.lucid_market_place_code.str.contains(
-        #     pattern, regex=True
-        # ).sum()
-        # estimated_epc = round(
-        #     cpi * metrics["n_completes"] / (metrics["n_entrants"] - platform_faults), 2
-        # )
+            hist_plot = make_response_histogram(
+                "answer_count",
+                type2color,
+                answer_counts.to_dict(orient="records"),
+                n_bins=n_bins,
+            )
+            responses_per_participant = make_status_card(
+                title="Responses per participant",
+                body="Comparison of termination LOI between  PsyNet vs Lucid."
+                + hist_plot,
+                col="col-12",
+            )
+        else:
+            responses_per_participant = make_status_card(
+                "Responses per participant",
+                "No responses yet.",
+                col="col-12",
+            )
 
         lucid_epc = make_status_card(
             f"EPC: {earnings_per_click} €",
