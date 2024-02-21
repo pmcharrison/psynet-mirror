@@ -2932,5 +2932,4 @@ _protected_routes = [
     "/node/<int:node_id>/transmit",
     "/node/<int:node_id>/transformations",
     "/transformation/<int:node_id>/<int:info_in_id>/<int:info_out_id>",
-    "/change_lucid_status",
 ]
