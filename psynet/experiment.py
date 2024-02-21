@@ -2032,7 +2032,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @dashboard_tab("Lucid", after_route="monitoring")
     @classmethod
     def lucid(cls):
-        from .dashboard import report_lucid
+        from .dashboard.lucid import report_lucid
 
         return report_lucid()
 

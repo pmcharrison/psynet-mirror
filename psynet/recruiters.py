@@ -781,6 +781,16 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def initial_response_within_s(self):
         return self.get_config_entry("initial_response_within_s")
 
+    def get_status(self):
+        query = LucidStatus.query.order_by(LucidStatus.id.desc())
+        recruiter_info = super().get_status()
+        if query.count() > 0:
+            recruiter_info = {**recruiter_info, **query.first().to_dict()}
+            recruiter_info["total_working"] = LucidRID.query.filter_by(
+                terminated_at=None, completed_at=None
+            ).count()
+        return recruiter_info
+
     # @property
     # def max_response_time_in_s(self):
     #     return self.get_config_entry("max_response_time_in_s")
