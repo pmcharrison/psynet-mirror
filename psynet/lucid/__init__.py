@@ -400,8 +400,14 @@ class LucidService(object):
         assert response.ok
         stats = response.json()["statistics"]
 
-        status, last_complete_date = self._get_survey_fields(
-            survey_number, ["status", "last_complete_date"]
+        (
+            status,
+            last_complete_date,
+            total_screens,
+            total_completes,
+        ) = self._get_survey_fields(
+            survey_number,
+            ["status", "last_complete_date", "total_screens", "total_completes"],
         )
 
         cost = stats["cost"]
@@ -416,6 +422,9 @@ class LucidService(object):
             "system_conversion": stats["system_conversion"],
             "status": status,
             "last_complete_date": last_complete_date,
+            "total_entrants": stats["total_entrants"],
+            "total_screens": total_screens,
+            "total_completes": total_completes,
         }
 
     def change_status(self, survey_number, new_status):

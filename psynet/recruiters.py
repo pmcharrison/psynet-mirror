@@ -197,9 +197,9 @@ class LucidStatus(SQLBase, SQLMixin):
     termination_loi = Column(Integer)
     last_complete_date = Column(DateTime)
 
-    n_entrants = Column(Integer)
-    n_completes = Column(Integer)
-    n_prescreens = Column(Integer)
+    total_entrants = Column(Integer)
+    total_completes = Column(Integer)
+    total_screens = Column(Integer)
     drop_off_rate = Column(Float)
     conversion_rate = Column(Float)
     incidence_rate = Column(Float)
@@ -217,9 +217,9 @@ class LucidStatus(SQLBase, SQLMixin):
             "completion_loi": self.completion_loi,
             "termination_loi": self.termination_loi,
             "last_complete_date": self.last_complete_date,
-            "n_entrants": self.n_entrants,
-            "n_completes": self.n_completes,
-            "n_prescreens": self.n_prescreens,
+            "total_entrants": self.total_entrants,
+            "total_screens": self.total_screens,
+            "total_completes": self.total_completes,
             "drop_off_rate": self.drop_off_rate,
             "conversion_rate": self.conversion_rate,
             "incidence_rate": self.incidence_rate,
@@ -335,40 +335,26 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         self.lucidservice = get_lucid_service(self.config, recruitment_config)
         self.store = kwargs.get("store", RedisStore())
 
-    @classmethod
-    def get_recruiter_metrics(cls, entry_df):
-        MARKETPLACE_CODE = cls.MARKETPLACE_CODE  # noqa: F841
-        COMPLETED_CODE = cls.COMPLETED  # noqa: F841
-        IN_SURVEY_CODE = cls.IN_SURVEY  # noqa: F841
-        prescreens = entry_df.query("lucid_status != @MARKETPLACE_CODE")
-        completes = entry_df.query("lucid_status == @COMPLETED_CODE")
-        drop_off = entry_df.query("lucid_status == @IN_SURVEY_CODE")
-        drop_off_rate = len(drop_off) / len(prescreens) if len(prescreens) > 0 else 0
-        conversion_rate = len(completes) / len(prescreens) if len(prescreens) > 0 else 0
-
-        pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
-        returned_because_of_qualifications = (
-            entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
-        )
-
-        potential = len(completes) + returned_because_of_qualifications
-        incidence_rate = len(completes) / potential if potential > 0 else 0
-        return {
-            "drop_off_rate": drop_off_rate,
-            "conversion_rate": conversion_rate,
-            "incidence_rate": incidence_rate,
-            "n_entrants": len(entry_df),
-            "n_prescreens": len(prescreens),
-            "n_completes": len(completes),
-        }
-
     def run_checks(self):
         logger.info("Polling Lucid API to count entry_df")
         survey_number = self.current_survey_number()
         respondents = pd.DataFrame(self.lucidservice.get_submissions(survey_number))
-        if len(respondents) > 0:
-            summary = self.lucidservice.get_summary(survey_number)
+        summary = self.lucidservice.get_summary(survey_number)
+        total_completes = summary["total_completes"]
+        logger.info(
+            f"Found {summary['total_entrants']} entrants, {summary['total_screens']} after_screener, {total_completes} completes"
+        )
 
+        cost = summary["cost"]
+        currency = summary["currency"]
+        completion_loi = summary["completion_loi"]
+        cost_per_survey = (cost / total_completes) if total_completes > 0 else 0
+        payment_per_hour = completion_loi / 60 * cost_per_survey
+        drop_off_rate = 0
+        conversion_rate = 0
+        incidence_rate = 0
+
+        if len(respondents) > 0:
             respondents["status"] = respondents.client_status.apply(
                 lambda x: self.client_codes.get(x, "Unknown")
             )
@@ -415,46 +401,55 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 lucid_entrants.append(entrant)
 
             entry_df = pd.DataFrame([entrant.to_dict() for entrant in lucid_entrants])
-            metrics = self.get_recruiter_metrics(entry_df)
-            logger.info(
-                f"Found {metrics['n_entrants']} entrants, {metrics['n_prescreens']} prescreens, {metrics['n_completes']} completes"
+            MARKETPLACE_CODE = self.MARKETPLACE_CODE  # noqa: F841
+            COMPLETED_CODE = self.COMPLETED  # noqa: F841
+            IN_SURVEY_CODE = self.IN_SURVEY  # noqa: F841
+            after_screener = entry_df.query("lucid_status != @MARKETPLACE_CODE")
+            completes = entry_df.query("lucid_status == @COMPLETED_CODE")
+            in_survey = entry_df.query("lucid_status == @IN_SURVEY_CODE")
+            drop_off_rate = (
+                len(in_survey) / len(after_screener) if len(after_screener) > 0 else 0
+            )
+            conversion_rate = (
+                len(completes) / len(after_screener) if len(after_screener) > 0 else 0
             )
 
-            cost = summary["cost"]
-            currency = summary["currency"]
-            completion_loi = summary["completion_loi"]
-            n_completes = metrics["n_completes"]
-            cost_per_survey = (cost / n_completes) if n_completes > 0 else 0
-            payment_per_hour = completion_loi / 60 * cost_per_survey
-
-            logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
-            logger.info(f"Drop off rate: {metrics['drop_off_rate']:.2%}")
-            logger.info(f"Conversion rate: {metrics['conversion_rate']:.2%}")
-            logger.info(f"Incidence rate: {metrics['incidence_rate']:.2%}")
-
-            status_entry = LucidStatus(
-                # From the summary
-                status=summary["status"],
-                cost=cost,
-                currency=currency,
-                exchange_rate=summary["exchange_rate"],
-                cost_per_survey=cost_per_survey,
-                payment_per_hour=payment_per_hour,
-                earnings_per_click=summary["epc"],
-                system_conversion=summary["system_conversion"],
-                completion_loi=completion_loi,
-                termination_loi=summary["termination_loi"],
-                last_complete_date=summary["last_complete_date"],
-                # From the metrics
-                n_entrants=metrics["n_entrants"],
-                n_completes=metrics["n_completes"],
-                n_prescreens=metrics["n_prescreens"],
-                drop_off_rate=metrics["drop_off_rate"],
-                conversion_rate=metrics["conversion_rate"],
-                incidence_rate=metrics["incidence_rate"],
+            pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
+            returned_because_of_qualifications = (
+                entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
             )
-            db.session.add(status_entry)
-            db.session.commit()
+
+            potential = len(completes) + returned_because_of_qualifications
+            incidence_rate = len(completes) / potential if potential > 0 else 0
+
+        logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
+        logger.info(f"Drop off rate: {drop_off_rate:.2%}")
+        logger.info(f"Conversion rate: {conversion_rate:.2%}")
+        logger.info(f"Incidence rate: {conversion_rate:.2%}")
+
+        status_entry = LucidStatus(
+            # From the summary
+            status=summary["status"],
+            cost=cost,
+            currency=currency,
+            exchange_rate=summary["exchange_rate"],
+            cost_per_survey=cost_per_survey,
+            payment_per_hour=payment_per_hour,
+            earnings_per_click=summary["epc"],
+            system_conversion=summary["system_conversion"],
+            completion_loi=completion_loi,
+            termination_loi=summary["termination_loi"],
+            last_complete_date=summary["last_complete_date"],
+            # From the metrics
+            total_entrants=summary["total_entrants"],
+            total_completes=summary["total_completes"],
+            total_screens=summary["total_screens"],
+            drop_off_rate=drop_off_rate,
+            conversion_rate=conversion_rate,
+            incidence_rate=incidence_rate,
+        )
+        db.session.add(status_entry)
+        db.session.commit()
 
         unfailed_entrants = LucidRID.query.filter_by(
             terminated_at=None, completed_at=None
