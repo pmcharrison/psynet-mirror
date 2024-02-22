@@ -191,6 +191,12 @@ class LucidService(object):
         if qualifications:
             self.log("Added qualifications to survey.")
 
+    def get_qualifications(self, survey_number):
+        url = f"https://api.samplicio.us/Demand/v1/SurveyQualifications/BySurveyNumber/{survey_number}"
+        response = requests.get(url, headers=self.headers)
+        assert response.status_code == 200
+        return response.json()["Qualifications"]
+
     def can_be_terminated(self, lucid_rid):
         if (
             datetime.now() - lucid_rid.registered_at
