@@ -5,19 +5,21 @@ TEMPLATE_NAME = "dashboard_resources.html"
 
 
 def parse_label(row):
-    if row.type == "cpu_usage":
-        return f"{row.y_unit} % of total CPU usage"
-    if row.type == "ram_usage":
-        return f"{row.y_unit} % of total RAM"
-    if row.type == "free_disk_space":
-        return f"{int(row.y_unit)} GB free disk space"
-    if row.type == "median_response_time":
-        return f"{round(row.y_unit, 2)} ms median response time within a minute"
-    if row.type == "n_responses":
-        return f"{int(row.y_unit)} page loads within a minute"
-    if row.type == "total_working":
-        return f"{int(row.y_unit)} total working participants"
-    return row.y_unit
+    match row.type:
+        case "cpu_usage":
+            return f"{row.y_unit} % of total CPU usage"
+        case "ram_usage":
+            return f"{row.y_unit} % of total RAM"
+        case "free_disk_space":
+            return f"{int(row.y_unit)} GB free disk space"
+        case "median_response_time":
+            return f"{round(row.y_unit, 2)} ms median response time within a minute"
+        case "n_responses":
+            return f"{int(row.y_unit)} page loads within a minute"
+        case "total_working":
+            return f"{int(row.y_unit)} total working participants"
+        case _:
+            return row.y_unit
 
 
 def report_resource_use():
