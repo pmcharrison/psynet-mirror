@@ -193,7 +193,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
     ram_usage = Column(Float)
     free_disk_space = Column(Float)
     median_response_time = Column(Float)
-    n_responses = Column(Integer)
+    requests_per_minute = Column(Integer)
     total_working = Column(Integer)
     meta = Column(PythonDict, default={})
 
@@ -205,7 +205,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
             "ram_usage": self.ram_usage,
             "free_disk_space": self.free_disk_space,
             "median_response_time": self.median_response_time,
-            "n_responses": self.n_responses,
+            "requests_per_minute": self.requests_per_minute,
             "total_working": self.total_working,
             "meta": self.meta,
         }
@@ -637,7 +637,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         summary = {}
         if len(requests_df) > 0:
             summary["median_response_time"] = requests_df["duration"].median()
-            summary["n_responses"] = len(requests_df)
+            summary["requests_per_minute"] = len(requests_df)
         return summary
 
     @classmethod
@@ -672,7 +672,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ram_usage=experiment_status.get("ram_usage", None),
             free_disk_space=experiment_status.get("free_disk_space", None),
             median_response_time=experiment_status.get("median_response_time", None),
-            n_responses=experiment_status.get("n_responses", None),
+            requests_per_minute=experiment_status.get("requests_per_minute", None),
             total_working=experiment_status.get("total_working", None),
             meta={
                 key: value
@@ -683,7 +683,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "ram_usage",
                     "free_disk_space",
                     "median_response_time",
-                    "n_responses",
+                    "requests_per_minute",
                     "total_working",
                 ]
             },

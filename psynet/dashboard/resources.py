@@ -58,7 +58,7 @@ def parse_label(row):
             return f"{int(row.y_unit)} GB free disk space"
         case "median_response_time":
             return f"{round(row.y_unit, 2)} ms median response time within a minute"
-        case "n_responses":
+        case "requests_per_minute":
             return f"{int(row.y_unit)} page loads within a minute"
         case "total_working":
             return f"{int(row.y_unit)} total working participants"
@@ -74,7 +74,7 @@ def normalize_resource_use(resources_df):
     resources_df["timestamp"] = resources_df.index
     resources_df["free_disk_space"] = 100 - max_100(resources_df["free_disk_space"])
     resources_df["median_response_time"] = max_100(resources_df["median_response_time"])
-    resources_df["n_responses"] = max_100(resources_df["n_responses"])
+    resources_df["requests_per_minute"] = max_100(resources_df["requests_per_minute"])
     resources_df["total_working"] = max_100(resources_df["total_working"])
     return resources_df
 
@@ -106,7 +106,7 @@ def rename_type(norm_resources_df):
             "ram_usage": "RAM usage (%)",
             "free_disk_space": "Used disk space compared to min (%)",
             "median_response_time": "Median page loading time (%)",
-            "n_responses": "Number of page loads",
+            "requests_per_minute": "Number of page loads",
             "total_working": "Total working participants",
         }
     )
