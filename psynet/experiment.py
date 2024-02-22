@@ -610,12 +610,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def before_request():
-        flask_app_globals.start = time.monotonic()
+        flask_app_globals.request_start_time = time.monotonic()
 
     @staticmethod
     def after_request(request, response):
-        diff = time.monotonic() - flask_app_globals.start
-        if "/timeline" in request.path:
+        diff = time.monotonic() - flask_app_globals.request_start_time
+        relevant_endpoints = ["/timeline", "/response"]
+        if any([endpoint in request.path for endpoint in relevant_endpoints]):
             params = dict(request.args)
             if "unique_id" in params:
                 db.session.add(
