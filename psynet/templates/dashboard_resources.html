@@ -33,19 +33,32 @@
         <div id="lineplot"></div>
         <script>
             var data = {{ data | safe }};
+            let x2timestamp = {};
+            data.forEach(function (d) {
+                x2timestamp[d.x] = d.timestamp;
+            });
+            const TWO_HOURS = 120;
+            const max = Object.keys(x2timestamp).length - 1;
+            const value = max > TWO_HOURS ? TWO_HOURS : max;
+            const min = 0;
+            const margin = {"top": 10, "right": 30, "bottom": 30, "left": 40},
+                x_label = "Time",
+                y_label = "Usage",
+                height = 500,
+                yLimits = [0, 150];
 
 
-            document.addEventListener("DOMContentLoaded", function (e) {
+            function draw(start = min, end = max) {
+                $("#lineplot").empty();
+                let filteredData = data.filter(function (d) {
+                    return d.x >= start && d.x <= end;
+                });
                 let type2color = {};
                 const uniqueTypes = [...new Set(data.map(d => d.type))]
                 uniqueTypes.forEach(function (type, i) {
                     type2color[type] = d3.schemeCategory10[i];
                 });
-                let margin = {"top": 10, "right": 30, "bottom": 30, "left": 40},
-                    x_label = "Time",
-                    y_label = "Usage",
-                    height = 500,
-                    yLimits = [0, 150];
+
                 let tooltip = d3.tip().attr('class', 'd3-tip')
                     .html(function (d) {
                         let out = '<strong>' + d.timestamp + '</strong>';
@@ -55,25 +68,10 @@
                         return out;
                     });
 
+                linePlot('lineplot', filteredData, margin, x_label, y_label, tooltip, height, yLimits, type2color, x2timestamp);
+            }
 
-                let x2timestamp = {};
-                data.forEach(function (d) {
-                    x2timestamp[d.x] = d.timestamp;
-                });
-                const TWO_HOURS = 120;
-                let max = Object.keys(x2timestamp).length - 1;
-                let value = max > TWO_HOURS ? TWO_HOURS : max;
-                let min = 0;
-                function draw(start = min, end = max) {
-                    $("#lineplot").empty();
-                    let filteredData = data.filter(function (d) {
-                        return d.x >= start && d.x <= end;
-                    });
-                    linePlot('lineplot', filteredData, margin, x_label, y_label, tooltip, height, yLimits, type2color, x2timestamp);
-                }
-
-                draw();
-
+            function createSlider(){
                 let slider = $("#slider-range");
                 slider.slider({
                     range: true,
@@ -90,8 +88,11 @@
                 });
                 $("#max").text(x2timestamp[min]);
                 $("#min").text(x2timestamp[max]);
+            }
 
-
+            document.addEventListener("DOMContentLoaded", function (e) {
+                draw();
+                createSlider();
             });
         </script>
     {% endif %}
