@@ -382,13 +382,13 @@ class LucidService(object):
         assert response.ok
         return response.json()["result"]
 
-    def _get_survey_fields(self, survey_id, fields):
+    def _get_survey_fields(self, survey_number, fields):
         fields_str = ",".join(fields)
-        url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_id}&fields={fields_str}"
+        url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_number}&fields={fields_str}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
         result = response.json()["result"]
-        assert len(result) > 0, f"No survey with id {survey_id} found."
+        assert len(result) > 0, f"No survey with id {survey_number} found."
         return [result[0][field] for field in fields]
 
     def get_survey_status(self, survey_number):
