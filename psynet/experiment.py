@@ -638,7 +638,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def aggregate_responses(cls, lookback):
         now = datetime.now()
         lookback = now - pd.Timedelta(lookback)
-        all_requests = Request.query.filter(Request.timestamp > lookback).all()
+        all_requests = Request.query.filter(Request.creation_time > lookback).all()
         requests_df = pd.DataFrame([request.to_dict() for request in all_requests])
         summary = {}
         if len(requests_df) > 0:
