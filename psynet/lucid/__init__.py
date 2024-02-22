@@ -1,4 +1,5 @@
 import json
+import os.path
 from datetime import datetime, timedelta
 from typing import List
 
@@ -502,15 +503,30 @@ class LucidService(object):
 
 
 def get_lucid_service(config=None, recruitment_config=None):
-    from psynet.experiment import get_and_load_config
+    if os.path.exists("config.txt"):
+        if config is None:
+            from psynet.experiment import get_and_load_config
 
-    if config is None:
-        config = get_and_load_config()
+            config = get_and_load_config()
+        config_entries = config
+    else:
+        import configparser
+
+        config = configparser.ConfigParser()
+        dallinger_config = os.path.join(os.path.expanduser("~"), ".dallingerconfig")
+        assert os.path.exists(
+            dallinger_config
+        ), f"Could not find Dallinger config file at {dallinger_config}"
+        config.read(dallinger_config)
+        config_entries = {}
+        for section in config.sections():
+            for key, value in config.items(section):
+                config_entries[key] = value
     if recruitment_config is None:
         recruitment_config = {}
     return LucidService(
-        api_key=config.get("lucid_api_key"),
-        sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
+        api_key=config_entries.get("lucid_api_key"),
+        sha1_hashing_key=config_entries.get("lucid_sha1_hashing_key"),
         exp_config=config,
         recruitment_config=recruitment_config,
     )
