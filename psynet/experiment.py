@@ -186,7 +186,7 @@ class Request(SQLBase, SQLMixin):
 
 
 class ExperimentStatus(SQLBase, SQLMixin):
-    __tablename__ = "experiment_state"
+    __tablename__ = "experiment_status"
 
     id = Column(Integer, primary_key=True)
     cpu_usage = Column(Float)
