@@ -60,8 +60,9 @@
                 data.forEach(function (d) {
                     x2timestamp[d.x] = d.timestamp;
                 });
+                const TWO_HOURS = 120;
                 let max = Object.keys(x2timestamp).length - 1;
-                let value = max > 120 ? 120 : max;
+                let value = max > TWO_HOURS ? TWO_HOURS : max;
                 let min = 0;
                 function draw(start = min, end = max) {
                     $("#lineplot").empty();
