@@ -199,7 +199,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
     free_disk_space = Column(Float)
     median_response_time = Column(Float)
     requests_per_minute = Column(Integer)
-    total_working = Column(Integer)
+    n_working_participants = Column(Integer)
     extra_info = Column(PythonDict, default={})
 
     def to_dict(self):
@@ -211,7 +211,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
             "free_disk_space": self.free_disk_space,
             "median_response_time": self.median_response_time,
             "requests_per_minute": self.requests_per_minute,
-            "total_working": self.total_working,
+            "n_working_participants": self.n_working_participants,
             "extra_info": self.extra_info,
         }
 
@@ -679,7 +679,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "free_disk_space",
             "median_response_time",
             "requests_per_minute",
-            "total_working",
+            "n_working_participants",
         ]
         kwargs = {
             param: experiment_status.get(param, None) for param in required_params

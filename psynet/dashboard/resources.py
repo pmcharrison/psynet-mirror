@@ -18,33 +18,25 @@ def report_resource_use():
             </div>
             """,
         )
-    resources_df = pd.DataFrame([row.to_dict() for row in data])
-    resources_df.drop(columns=["extra_info", "id"], inplace=True)
-    resource_df_copy = resources_df.copy()
-    resources_df = normalize_resource_use(resources_df)
+    df_raw_ = pd.DataFrame([row.to_dict() for row in data])
+    df_raw_.drop(columns=["extra_info", "id"], inplace=True)
+    df_raw = df_raw_.copy()
 
-    norm_resources_df = resources_df.melt(
-        id_vars="timestamp", var_name="type", value_name="y"
-    )
-    resources_df = resource_df_copy.melt(
-        id_vars="timestamp", var_name="type", value_name="y"
-    )
-    norm_resources_df["y_unit"] = resources_df["y"]
-    norm_resources_df["x"] = norm_resources_df["timestamp"].astype(int)
-    norm_resources_df["timestamp"] = resources_df["timestamp"]
-    norm_resources_df.dropna(inplace=True)
+    df_normalized = normalize_resource_use(df_raw_)
 
-    norm_resources_df["label"] = norm_resources_df.apply(parse_label, axis=1)
+    df_plot = df_normalized.melt(id_vars="timestamp", var_name="type", value_name="y")
+    df_plot = add_raw_values(df_plot, df_raw)
+    df_plot["label"] = df_plot.apply(parse_label, axis=1)
+    df_plot = parse_time_str(df_plot)
+    df_plot = rename_type(df_plot)
 
-    norm_resources_df = parse_time_str(norm_resources_df)
-
-    norm_resources_df = rename_type(norm_resources_df)
+    data = df_plot.to_dict(orient="records")
 
     return render_template(
         TEMPLATE_NAME,
         title=title,
         html="",
-        data=norm_resources_df.to_dict(orient="records"),
+        data=data,
     )
 
 
@@ -60,7 +52,7 @@ def parse_label(row):
             return f"{round(row.y_unit, 2)} ms median response time within a minute"
         case "requests_per_minute":
             return f"{int(row.y_unit)} page loads within a minute"
-        case "total_working":
+        case "n_working_participants":
             return f"{int(row.y_unit)} total working participants"
         case _:
             return row.y_unit
@@ -75,8 +67,19 @@ def normalize_resource_use(resources_df):
     resources_df["free_disk_space"] = 100 - max_100(resources_df["free_disk_space"])
     resources_df["median_response_time"] = max_100(resources_df["median_response_time"])
     resources_df["requests_per_minute"] = max_100(resources_df["requests_per_minute"])
-    resources_df["total_working"] = max_100(resources_df["total_working"])
+    resources_df["n_working_participants"] = max_100(
+        resources_df["n_working_participants"]
+    )
     return resources_df
+
+
+def add_raw_values(df_plot, df_raw):
+    df_raw_long = df_raw.melt(id_vars="timestamp", var_name="type", value_name="y")
+    df_plot["y_unit"] = df_raw_long["y"]
+    df_plot["x"] = df_plot["timestamp"].astype(int)
+    df_plot["timestamp"] = df_raw_long["timestamp"]
+    df_plot.dropna(inplace=True)
+    return df_plot
 
 
 def parse_time_str(norm_resources_df):
@@ -107,7 +110,7 @@ def rename_type(norm_resources_df):
             "free_disk_space": "Used disk space compared to min (%)",
             "median_response_time": "Median page loading time (%)",
             "requests_per_minute": "Number of page loads",
-            "total_working": "Total working participants",
+            "n_working_participants": "Total working participants",
         }
     )
     return norm_resources_df
