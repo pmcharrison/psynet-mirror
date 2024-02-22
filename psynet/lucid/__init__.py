@@ -501,6 +501,28 @@ class LucidService(object):
         )
         return {q["name"]: q["id"] for q in qualification_list}
 
+    def get_cost(self, survey_number):
+        url = "https://api.samplicio.us/v1/reports/surveys/financesummary.json"
+        data = json.dumps({"survey_ids": [survey_number]})
+        headers = {
+            "Content-type": "application/json",
+            "Accept": "text/plain",
+            **self.headers,
+        }
+        response = requests.post(url, data=data, headers=headers)
+        summary = response.json()["summary"]
+        total_completes = summary["completes"]
+        total_cost = float(summary["total_cost"])
+        cost_per_complete = total_cost / total_completes if total_completes > 0 else 0
+        return {
+            "total": total_cost,
+            "sample": summary["sample_cost"],
+            "fee": summary["buyer_fees"],
+            "currency": summary["currency"],
+            "total_completes": total_completes,
+            "cost_per_complete": cost_per_complete,
+        }
+
 
 def get_lucid_service(config=None, recruitment_config=None):
     if os.path.exists("config.txt"):
