@@ -195,7 +195,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
     median_response_time = Column(Float)
     requests_per_minute = Column(Integer)
     total_working = Column(Integer)
-    meta = Column(PythonDict, default={})
+    extra_info = Column(PythonDict, default={})
 
     def to_dict(self):
         return {
@@ -207,7 +207,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
             "median_response_time": self.median_response_time,
             "requests_per_minute": self.requests_per_minute,
             "total_working": self.total_working,
-            "meta": self.meta,
+            "extra_info": self.extra_info,
         }
 
 
@@ -667,27 +667,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def check_experiment_status():
         exp = get_experiment()
         experiment_status = exp.get_status(lookback="1m")  # since we poll every minute
-        experiment_status = ExperimentStatus(
-            cpu_usage=experiment_status.get("cpu_usage", None),
-            ram_usage=experiment_status.get("ram_usage", None),
-            free_disk_space=experiment_status.get("free_disk_space", None),
-            median_response_time=experiment_status.get("median_response_time", None),
-            requests_per_minute=experiment_status.get("requests_per_minute", None),
-            total_working=experiment_status.get("total_working", None),
-            meta={
-                key: value
-                for key, value in experiment_status.items()
-                if key
-                not in [
-                    "cpu_usage",
-                    "ram_usage",
-                    "free_disk_space",
-                    "median_response_time",
-                    "requests_per_minute",
-                    "total_working",
-                ]
-            },
-        )
+        required_params = [
+            "cpu_usage",
+            "ram_usage",
+            "free_disk_space",
+            "median_response_time",
+            "requests_per_minute",
+            "total_working",
+        ]
+        kwargs = {
+            param: experiment_status.get(param, None) for param in required_params
+        }
+        kwargs["extra_info"] = {
+            key: value
+            for key, value in experiment_status.items()
+            if key not in required_params
+        }
+        experiment_status = ExperimentStatus(**kwargs)
 
         db.session.add(experiment_status)
         db.session.commit()

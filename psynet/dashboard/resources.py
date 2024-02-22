@@ -19,7 +19,7 @@ def report_resource_use():
             """,
         )
     resources_df = pd.DataFrame([row.to_dict() for row in data])
-    resources_df.drop(columns=["meta", "id"], inplace=True)
+    resources_df.drop(columns=["extra_info", "id"], inplace=True)
     resource_df_copy = resources_df.copy()
     resources_df = normalize_resource_use(resources_df)
 
