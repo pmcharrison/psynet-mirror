@@ -37,9 +37,9 @@
             data.forEach(function (d) {
                 x2timestamp[d.x] = d.timestamp;
             });
-            const TWO_HOURS = 120;
+            const plot_time_window = 120;
             const max = Object.keys(x2timestamp).length - 1;
-            const value = max > TWO_HOURS ? TWO_HOURS : max;
+            const value = max > plot_time_window ? plot_time_window : max;
             const min = 0;
             const margin = {"top": 10, "right": 30, "bottom": 30, "left": 40},
                 x_label = "Time",
