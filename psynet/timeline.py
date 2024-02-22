@@ -2804,6 +2804,27 @@ def sequence(
     function: Callable,
     logic: list,
 ):
+    """
+    Administers a sequence of logical units in an order determined by a function.
+    This could be used, for example, to determine the order of a series of questionnaires.
+    See ``randomize`` for a special case where the order is randomized.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    function:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline,
+        returning a list of indices that will be used to determine the order of the sequence.
+
+    logic:
+        A list to be randomized.
+        Each element should be a unit of timeline logic, for example a trial maker
+        or a sequence of Elts created through the join function.
+    """
     assert isinstance(logic, list)
 
     for elt in logic:
@@ -2865,6 +2886,22 @@ def sequence(
 
 
 def randomize(*, label, logic):
+    """
+    Randomizes the order of a series of logical units.
+    This could be used, for example, to randomize the order of a series of questionnaires.
+    Each participant will receive a different random order.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    logic:
+        A list to be randomized.
+        Each element should be a unit of timeline logic, for example a trial maker
+        or a sequence of Elts created through the join function.
+    """
     n = len(logic)
     return sequence(
         label=label,
