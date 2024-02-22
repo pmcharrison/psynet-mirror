@@ -2862,7 +2862,7 @@ def sequence(
         participant.sequences.pop()
         flag_modified(participant, "sequences")
 
-    label = f"sequencer_{label}"
+    label = f"sequence_{label}"
 
     return join(
         CodeBlock(initialize_sequence),
