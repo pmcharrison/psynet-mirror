@@ -1,7 +1,51 @@
 import pandas as pd
 from flask import render_template
 
-TEMPLATE_NAME = "dashboard_resources.html"
+
+def report_resource_use():
+    from psynet.experiment import ExperimentStatus
+
+    TEMPLATE_NAME = "dashboard_resources.html"
+    title = "Resource usage"
+    data = ExperimentStatus.query.order_by(ExperimentStatus.id.desc()).all()
+    if len(data) == 0:
+        return render_template(
+            TEMPLATE_NAME,
+            title=title,
+            html="""
+            <div class="alert alert-danger" role="alert">
+                Wait at least 1 minute to see the first data.
+            </div>
+            """,
+        )
+    resources_df = pd.DataFrame([row.to_dict() for row in data])
+    resources_df.drop(columns=["meta", "id"], inplace=True)
+    resource_df_copy = resources_df.copy()
+    resources_df = normalize_resource_use(resources_df)
+
+    norm_resources_df = resources_df.melt(
+        id_vars="timestamp", var_name="type", value_name="y"
+    )
+    resources_df = resource_df_copy.melt(
+        id_vars="timestamp", var_name="type", value_name="y"
+    )
+    norm_resources_df["y_unit"] = resources_df["y"]
+    norm_resources_df["x"] = norm_resources_df["timestamp"].astype(int)
+    norm_resources_df["timestamp"] = resources_df["timestamp"]
+    norm_resources_df.dropna(inplace=True)
+
+    norm_resources_df["label"] = norm_resources_df.apply(parse_label, axis=1)
+
+    norm_resources_df = parse_time_str(norm_resources_df)
+
+    norm_resources_df = rename_type(norm_resources_df)
+
+    return render_template(
+        TEMPLATE_NAME,
+        title=title,
+        html="",
+        data=norm_resources_df.to_dict(orient="records"),
+    )
 
 
 def parse_label(row):
@@ -67,48 +111,3 @@ def rename_type(norm_resources_df):
         }
     )
     return norm_resources_df
-
-
-def report_resource_use():
-    from psynet.experiment import ExperimentStatus
-
-    title = "Resource usage"
-    data = ExperimentStatus.query.order_by(ExperimentStatus.id.desc()).all()
-    if len(data) == 0:
-        return render_template(
-            TEMPLATE_NAME,
-            title=title,
-            html="""
-            <div class="alert alert-danger" role="alert">
-                Wait at least 1 minute to see the first data.
-            </div>
-            """,
-        )
-    resources_df = pd.DataFrame([row.to_dict() for row in data])
-    resources_df.drop(columns=["meta", "id"], inplace=True)
-    resource_df_copy = resources_df.copy()
-    resources_df = normalize_resource_use(resources_df)
-
-    norm_resources_df = resources_df.melt(
-        id_vars="timestamp", var_name="type", value_name="y"
-    )
-    resources_df = resource_df_copy.melt(
-        id_vars="timestamp", var_name="type", value_name="y"
-    )
-    norm_resources_df["y_unit"] = resources_df["y"]
-    norm_resources_df["x"] = norm_resources_df["timestamp"].astype(int)
-    norm_resources_df["timestamp"] = resources_df["timestamp"]
-    norm_resources_df.dropna(inplace=True)
-
-    norm_resources_df["label"] = norm_resources_df.apply(parse_label, axis=1)
-
-    norm_resources_df = parse_time_str(norm_resources_df)
-
-    norm_resources_df = rename_type(norm_resources_df)
-
-    return render_template(
-        TEMPLATE_NAME,
-        title=title,
-        html="",
-        data=norm_resources_df.to_dict(orient="records"),
-    )
