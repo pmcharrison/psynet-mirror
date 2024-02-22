@@ -24,8 +24,8 @@ def report_resource_use():
     from psynet.experiment import ExperimentStatus
 
     title = "Resource usage"
-    query = ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
-    if query.count() == 0:
+    data = ExperimentStatus.query.order_by(ExperimentStatus.id.desc()).all()
+    if len(data) == 0:
         return render_template(
             TEMPLATE_NAME,
             title=title,
@@ -35,7 +35,6 @@ def report_resource_use():
             </div>
             """,
         )
-    data = query.all()
     resources_df = pd.DataFrame([row.to_dict() for row in data])
     resources_df.drop(columns=["meta", "id"], inplace=True)
     resource_df_copy = resources_df.copy()
