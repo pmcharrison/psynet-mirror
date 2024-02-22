@@ -1290,6 +1290,14 @@ class PageMaker(Elt):
             participant=participant,
         )
         res = join(res)
+
+        for elt in res:
+            if isinstance(elt, StartModule):
+                raise ValueError(
+                    "Sorry, you cannot use modules or trial makers inside the lambda functions of "
+                    "page makers or for loops. These need to be defined upon construction of the timeline."
+                )
+
         self.impute_time_estimates(res)
         self.check_time_estimates(res)
 
@@ -1670,6 +1678,12 @@ class CreditEstimate:
 
             else:
                 pos += 1
+
+
+def estimate_duration(logic):
+    # This join ensures that any modules are resolved into lists of Elts.
+    elts = join(logic)
+    return CreditEstimate(elts).get_max("time")
 
 
 class FailedValidation:
@@ -2784,15 +2798,78 @@ def for_loop(
     )
 
 
-def randomize(*, label, logic):
+def sequence(
+    *,
+    label: str,
+    function: Callable,
+    logic: list,
+):
     assert isinstance(logic, list)
+
+    for elt in logic:
+        if isinstance(elt, (StartModule, StartSwitch)):
+            raise ValueError(
+                f"Saw an unexpected element within `sequence`: f{elt} ."
+                "Perhaps you are misusing the function? "
+                "`logic` should be a list where each element is a unit of timeline to be inserted into a sequence. "
+                "This could be a page, or it could be a module, a trial maker, or something like that. "
+                "Note that you do NOT want to pass the output of `join` directly to `sequence`."
+            )
+
+    sequence_length = len(logic)
+
+    def initialize_sequence(participant, experiment):
+        # sequence = random.sample(range(n), k=n)
+        seq = call_function_with_context(
+            function, participant=participant, experiment=experiment
+        )
+        assert isinstance(seq, list)
+        assert len(seq) == sequence_length
+        participant.sequences.append(seq)
+        flag_modified(participant, "sequences")
+
+    def sequence_is_not_finished(participant):
+        return len(participant.sequences[-1]) > 0
+
+    def get_current_position(participant):
+        return participant.sequences[-1][0]
+
+    def progress_sequence(participant):
+        participant.sequences[-1].pop(0)
+        flag_modified(participant, "sequences")
+
+    def tear_down_sequence(participant):
+        participant.sequences.pop()
+        flag_modified(participant, "sequences")
+
+    label = f"sequencer_{label}"
+
+    return join(
+        CodeBlock(initialize_sequence),
+        while_loop(
+            label=label,
+            condition=sequence_is_not_finished,
+            logic=join(
+                switch(
+                    label=label,
+                    function=get_current_position,
+                    branches={i: logic[i] for i in range(sequence_length)},
+                ),
+                CodeBlock(progress_sequence),
+            ),
+            expected_repetitions=sequence_length,
+            fix_time_credit=False,
+        ),
+        CodeBlock(tear_down_sequence),
+    )
+
+
+def randomize(*, label, logic):
     n = len(logic)
-    total_time = sum(elt.time_estimate for elt in logic)
-    return for_loop(
+    return sequence(
         label=label,
-        iterate_over=lambda: random.sample(range(n), n),
-        logic=lambda i: logic[i],
-        time_estimate_per_iteration=total_time / n,
+        function=lambda participant: random.sample(range(n), k=n),
+        logic=logic,
     )
 
 

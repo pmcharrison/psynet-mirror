@@ -100,7 +100,9 @@ def call_function_with_context(function, *args, **kwargs):
     requested = get_args(function)
 
     if experiment == NoArgumentProvided:
-        experiment = get_experiment()
+        from .experiment import get_experiment as _get_experiment
+
+        experiment = _get_experiment()
 
     if "assets" in requested and assets == NoArgumentProvided:
         assets = {}
