@@ -2840,7 +2840,6 @@ def sequence(
     sequence_length = len(logic)
 
     def initialize_sequence(participant, experiment):
-        # sequence = random.sample(range(n), k=n)
         seq = call_function_with_context(
             function, participant=participant, experiment=experiment
         )
