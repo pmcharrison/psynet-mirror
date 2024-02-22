@@ -41,7 +41,7 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
@@ -172,18 +172,21 @@ class Request(SQLBase, SQLMixin):
     vars = None
 
     id = Column(Integer, primary_key=True)
-    duration = Column(Float)
-    timestamp = Column(DateTime)
     unique_id = Column(String, ForeignKey("participant.unique_id"))
+    duration = Column(Float)
     method = Column(String)
+    endpoint = Column(String)
+    params = Column(PythonDict, default={})
 
     def to_dict(self):
         return {
             "id": self.id,
             "duration": self.duration,
-            "timestamp": self.timestamp,
+            "time": self.creation_time,
             "unique_id": self.unique_id,
             "method": self.method,
+            "endpoint": self.endpoint,
+            "params": self.params,
         }
 
 
@@ -617,19 +620,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def after_request(request, response):
         diff = time.monotonic() - flask_app_globals.request_start_time
-        relevant_endpoints = ["/timeline", "/response"]
-        if any([endpoint in request.path for endpoint in relevant_endpoints]):
+        relevant_endpoints = ["/timeline", "/response", "/ad", "/consent", "/start"]
+        if any([endpoint == request.path for endpoint in relevant_endpoints]):
             params = dict(request.args)
-            if "unique_id" in params:
-                db.session.add(
-                    Request(
-                        unique_id=params["unique_id"],
-                        duration=diff,
-                        timestamp=datetime.now(),
-                        method=request.method,
-                    )
-                )
-                db.session.commit()
+            request_obj = Request(
+                unique_id=params.get("unique_id", None),
+                duration=diff,
+                method=request.method,
+                endpoint=request.path,
+                params=params,
+            )
+            db.session.add(request_obj)
+            db.session.commit()
         return response
 
     @classmethod
