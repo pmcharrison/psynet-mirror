@@ -175,6 +175,7 @@ class Request(SQLBase, SQLMixin):
     duration = Column(Float)
     timestamp = Column(DateTime)
     unique_id = Column(String, ForeignKey("participant.unique_id"))
+    method = Column(String)
 
     def to_dict(self):
         return {
@@ -182,6 +183,7 @@ class Request(SQLBase, SQLMixin):
             "duration": self.duration,
             "timestamp": self.timestamp,
             "unique_id": self.unique_id,
+            "method": self.method,
         }
 
 
@@ -624,6 +626,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         unique_id=params["unique_id"],
                         duration=diff,
                         timestamp=datetime.now(),
+                        method=request.method,
                     )
                 )
                 db.session.commit()
