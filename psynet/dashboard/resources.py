@@ -25,8 +25,8 @@ def report_resource_use():
 
     df_plot = df_normalized.melt(id_vars="timestamp", var_name="type", value_name="y")
     df_plot = add_raw_values(df_plot, df_raw)
-    df_plot["label"] = df_plot.apply(parse_label, axis=1)
-    df_plot = parse_time_str(df_plot)
+    df_plot["label"] = df_plot.apply(format_label, axis=1)
+    df_plot = format_time_str(df_plot)
     df_plot = rename_type(df_plot)
 
     data = df_plot.to_dict(orient="records")
@@ -39,7 +39,7 @@ def report_resource_use():
     )
 
 
-def parse_label(row):
+def format_label(row):
     match row.type:
         case "cpu_usage":
             return f"{row.y_unit} % of total CPU usage"
@@ -82,7 +82,7 @@ def add_raw_values(df_plot, df_raw):
     return df_plot
 
 
-def parse_time_str(norm_resources_df):
+def format_time_str(norm_resources_df):
     now = pd.to_datetime("now")
     earliest = norm_resources_df["timestamp"].min()
 
