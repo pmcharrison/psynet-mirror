@@ -18,11 +18,10 @@ def report_resource_use():
             </div>
             """,
         )
-    df_raw_ = pd.DataFrame([row.to_dict() for row in data])
-    df_raw_.drop(columns=["extra_info", "id"], inplace=True)
-    df_raw = df_raw_.copy()
+    df_raw = pd.DataFrame([row.to_dict() for row in data])
+    df_raw.drop(columns=["extra_info", "id"], inplace=True)
 
-    df_normalized = normalize_resource_use(df_raw_)
+    df_normalized = normalize_resource_use(df_raw)
 
     df_plot = df_normalized.melt(id_vars="timestamp", var_name="type", value_name="y")
     df_plot = add_raw_values(df_plot, df_raw)
@@ -62,7 +61,8 @@ def max_100(x):
     return (x / x.max()) * 100
 
 
-def normalize_resource_use(resources_df):
+def normalize_resource_use(_resources_df):
+    resources_df = _resources_df.copy()
     resources_df["timestamp"] = resources_df.index
     resources_df["free_disk_space"] = 100 - max_100(resources_df["free_disk_space"])
     resources_df["median_response_time"] = max_100(resources_df["median_response_time"])
