@@ -202,6 +202,12 @@ class ExperimentStatus(SQLBase, SQLMixin):
     n_working_participants = Column(Integer)
     extra_info = Column(PythonDict, default={})
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.extra_info = {
+            key: value for key, value in kwargs.items() if key not in self.sql_columns
+        }
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -672,26 +678,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def check_experiment_status():
         exp = get_experiment()
-        experiment_status = exp.get_status(lookback="1m")  # since we poll every minute
-        required_params = [
-            "cpu_usage",
-            "ram_usage",
-            "free_disk_space",
-            "median_response_time",
-            "requests_per_minute",
-            "n_working_participants",
-        ]
-        kwargs = {
-            param: experiment_status.get(param, None) for param in required_params
-        }
-        kwargs["extra_info"] = {
-            key: value
-            for key, value in experiment_status.items()
-            if key not in required_params
-        }
-        experiment_status = ExperimentStatus(**kwargs)
-
-        db.session.add(experiment_status)
+        status_dict = exp.get_status(lookback="1m")  # since we poll every minute
+        status_obj = ExperimentStatus(**status_dict)
+        db.session.add(status_obj)
         db.session.commit()
 
     def load_deployment_config(self):
