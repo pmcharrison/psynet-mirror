@@ -7,7 +7,12 @@ def report_resource_use():
 
     TEMPLATE_NAME = "dashboard_resources.html"
     title = "Resource usage"
-    data = ExperimentStatus.query.order_by(ExperimentStatus.id.desc()).all()
+    max_items = 48 * 60  # 48 hours
+    data = (
+        ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
+        .limit(max_items)
+        .all()
+    )
     if len(data) == 0:
         return render_template(
             TEMPLATE_NAME,
@@ -27,7 +32,7 @@ def report_resource_use():
     df_plot = add_raw_values(df_plot, df_raw)
     df_plot["label"] = df_plot.apply(format_label, axis=1)
     df_plot = format_time_str(df_plot)
-    df_plot = rename_type(df_plot)
+    df_plot["type"] = format_type(df_plot["type"])
 
     data = df_plot.to_dict(orient="records")
 
@@ -102,15 +107,13 @@ def format_time_str(norm_resources_df):
     return norm_resources_df
 
 
-def rename_type(norm_resources_df):
-    norm_resources_df["type"] = norm_resources_df["type"].map(
-        {
-            "cpu_usage": "CPU usage (%)",
-            "ram_usage": "RAM usage (%)",
-            "free_disk_space": "Used disk space compared to min (%)",
-            "median_response_time": "Median page loading time (%)",
-            "requests_per_minute": "Number of page loads",
-            "n_working_participants": "Total working participants",
-        }
-    )
-    return norm_resources_df
+def format_type(type_list: list):
+    replacement_dict = {
+        "cpu_usage": "CPU usage (%)",
+        "ram_usage": "RAM usage (%)",
+        "free_disk_space": "Used disk space compared to min (%)",
+        "median_response_time": "Median page loading time (%)",
+        "requests_per_minute": "Number of page loads",
+        "n_working_participants": "Total working participants",
+    }
+    return [replacement_dict.get(item, item) for item in type_list]
