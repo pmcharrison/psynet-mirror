@@ -979,7 +979,10 @@ class Page(Elt):
 
         if isinstance(trial, Trial):
             trial.response = resp
-            trial.time_taken = resp.metadata["time_taken"]
+            if trial.time_taken is None:
+                trial.time_taken = resp.metadata["time_taken"]
+            else:
+                trial.time_taken += resp.metadata["time_taken"]
 
         if self.save_answer:
             if len(participant.answer_accumulators) > 0:
