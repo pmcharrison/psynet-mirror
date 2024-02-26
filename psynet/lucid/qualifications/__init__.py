@@ -482,7 +482,7 @@ class LucidMicrophoneQualification(LucidTwoForcedChoiceQualification):
             question=_p(
                 "lucid_qualifications_microphone",
                 "To complete this survey, you need a microphone and need to be in a quiet environment. "
-                + "You may not use a wireless microphone (e.g., a headphones). Can you record audio?",
+                + "You may not use a wireless microphone (such as Bluetooth headphones). Can you record audio?",
             ),
             labels=[
                 _p("lucid_qualifications_microphone", "Yes, I have a microphone"),
