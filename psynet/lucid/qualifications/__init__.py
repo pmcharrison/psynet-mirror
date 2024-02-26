@@ -434,10 +434,10 @@ class LucidTimeoutQualification(LucidTwoForcedChoiceQualification):
             label="TIMEOUT",
             question=_p(
                 "lucid_qualifications_timeout",
-                "This survey requires you to stay on the website."
-                "When you switch tabs or leave the window, your participation will be terminated earlier."
+                "This survey requires you to stay on the website. "
+                "When you switch tabs or leave the window, your participation will be terminated earlier. "
                 'If you wish to end the survey earlier, please press the "early termination" button provided on each '
-                "survey page."
+                "survey page. "
                 "Please note that early termination will not result in compensation.",
             ),
             labels=[
