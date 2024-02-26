@@ -1726,7 +1726,7 @@
 
         clickedButton = function(button, id, allowed) {
             if (allowed) {
-                psynet.nextPage(button.innerHTML.trim());
+                psynet.nextPage(id);
             } else {
                 terminateParticipant("{{ params.label }}_" + id)
             }
