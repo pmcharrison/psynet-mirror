@@ -167,6 +167,7 @@ def create_pot(
     if len(pot_entries) > 0:
         pot.extend(pot_entries)
         pot = clean_po(pot, package_name)
+        os.makedirs(os.path.dirname(pot_path), exist_ok=True)
         pot.save(pot_path)
     return len(pot_entries)
 
