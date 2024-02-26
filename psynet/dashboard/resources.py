@@ -7,7 +7,7 @@ def report_resource_use():
 
     TEMPLATE_NAME = "dashboard_resources.html"
     title = "Resource usage"
-    max_items = 48 * 60  # 48 hours
+    max_items = 48 * 60 * 6  # 48 hours
     data = (
         ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
         .limit(max_items)
