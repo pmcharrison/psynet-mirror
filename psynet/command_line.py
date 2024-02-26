@@ -2589,13 +2589,13 @@ def lucid__compensate(ctx, survey_number, rids):
 
 @lucid.command("status")
 @click.argument("survey_number", required=True)
-@click.argument(
-    "status",
-    required=True,
-    choices=["live", "paused", "completed", "archived", "pending"],
-)
+@click.argument("status", required=True)
 @click.pass_context
 def lucid__status(ctx, survey_number, status):
+    available_statuses = ["live", "paused", "completed", "archived", "pending"]
+    assert (
+        status in available_statuses
+    ), f"Invalid status: {status}, pick from: {available_statuses}"
     if status == "completed":
         status = "complete"
     get_lucid_service().change_status(survey_number, status)
