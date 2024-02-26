@@ -176,9 +176,7 @@ class CustomNode(AudioImitationChainNode):
 
     def synthesize_target(self, output_file):
         random_seed = self.definition
-        stim, _, _ = stimulus.make_stim_from_seed(
-            random_seed, repeats=config["repeats"]
-        )
+        stim, _, _ = stimulus.make_stim_from_seed(random_seed, repeats=config.REPEATS)
         self.var.info_stimulus = {
             "duration_rec_sec": len(stim) / config.FS,
             "random_seed": random_seed,

@@ -9,6 +9,7 @@ from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
+from .db import with_transaction
 from .participant import Participant
 from .timeline import EndPage, Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
@@ -115,6 +116,12 @@ class Bot(Participant):
             page_time_started = time.monotonic()
 
             page = self.get_current_page()
+
+            # This commit is necessary because get_current_page can make changes to the participant
+            # (e.g. advancing them to the next page in the timeline). We need to commit so that the
+            # server (as accessed via the HTTP request) has access to this information too.
+            db.session.commit()
+
             if render_pages:
                 req = requests.get(
                     f"http://localhost:5000/timeline?unique_id={self.unique_id}"
@@ -163,6 +170,10 @@ class Bot(Participant):
 
         return stats
 
+    # In a real launched experiment, taking a page involves a single HTTP request that is wrapped in a transaction.
+    # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
+    # participant.
+    @with_transaction
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
 
@@ -211,8 +222,6 @@ class Bot(Participant):
                 raise
 
         self.page_count += 1
-
-        db.session.commit()
 
         end_time = time.monotonic()
         processing_time = end_time - start_time - sleep_time

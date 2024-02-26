@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import gettext
+import glob
 import hashlib
 import importlib
 import importlib.util
@@ -87,6 +88,7 @@ def call_function(function, *args, **kwargs):
 
 
 def call_function_with_context(function, *args, **kwargs):
+    from psynet.participant import Participant
     from psynet.trial.main import Trial
 
     participant = kwargs.get("participant", NoArgumentProvided)
@@ -97,12 +99,40 @@ def call_function_with_context(function, *args, **kwargs):
 
     requested = get_args(function)
 
-    if participant != NoArgumentProvided and participant.module_state:
-        if "assets" in requested and assets == NoArgumentProvided:
-            assets = participant.module_state.assets
+    if experiment == NoArgumentProvided:
+        experiment = get_experiment()
 
+    if "assets" in requested and assets == NoArgumentProvided:
+        assets = {}
+        for asset in experiment.global_assets:
+            if asset.module_id is None:
+                assets[asset.local_key] = asset
+            elif participant != NoArgumentProvided:
+                assert isinstance(participant, Participant)
+                if (
+                    participant.module_state
+                    and asset.module_id == participant.module_state.module_id
+                ):
+                    assets[asset.local_key] = asset
+
+        if participant != NoArgumentProvided:
+            assert isinstance(participant, Participant)
+
+            if participant.module_state:
+                assets = {
+                    **assets,
+                    **participant.module_state.assets,
+                }
+
+    if participant != NoArgumentProvided and participant.module_state:
         if "nodes" in requested and nodes == NoArgumentProvided:
-            nodes = participant.module_state.nodes
+            nodes = []
+            for node in experiment.global_nodes:
+                if node.module_id is None:
+                    nodes.append(node)
+                elif node.module_id == participant.module_state.module_id:
+                    nodes.append(node)
+            nodes += participant.module_state.nodes
 
     if "trial_maker" in requested and trial_maker == NoArgumentProvided:
         if (
@@ -1591,3 +1621,54 @@ def log_level(logger: logging.Logger, level):
     logger.setLevel(level)
     yield
     logger.setLevel(original_level)
+
+
+def get_psynet_root():
+    import psynet
+
+    return Path(psynet.__file__).parent.parent
+
+
+def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+    demo_root = get_psynet_root() / "demos"
+    dirs = sorted(
+        [
+            dir_
+            for dir_, sub_dirs, files in os.walk(demo_root)
+            if (
+                "experiment.py" in files
+                and not dir_.endswith("/develop")
+                and (
+                    not for_ci_tests
+                    or not (
+                        # Skip the recruiter demos because they're not meaningful to run here
+                        "recruiters" in dir_
+                        # Skip the video_gibbs demo because it relies on ffmpeg which is not installed
+                        # in the CI environment
+                        or dir_.endswith("/video_gibbs")
+                    )
+                )
+            )
+        ]
+    )
+
+    if ci_node_total is not None and ci_node_index is not None:
+        dirs = with_parallel_ci(dirs, ci_node_total, ci_node_index)
+
+    return dirs
+
+
+def with_parallel_ci(paths, ci_node_total, ci_node_index):
+    index = ci_node_index - 1  # 1-indexed to 0-indexed
+    assert 0 <= index < ci_node_total
+    return [paths[i] for i in range(len(paths)) if i % ci_node_total == index]
+
+
+def list_isolated_tests(ci_node_total=None, ci_node_index=None):
+    isolated_test_root = get_psynet_root() / "tests" / "isolated"
+    tests = glob.glob(str(isolated_test_root / "*.py"))
+
+    if ci_node_total is not None and ci_node_index is not None:
+        tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
+
+    return tests

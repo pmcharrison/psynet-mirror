@@ -283,8 +283,6 @@ def wait_while(
         logic = join(CodeBlock(log), _wait_page)
 
     label = "wait_while"
-    if log_message:
-        label += log_message
 
     return join(
         while_loop(
