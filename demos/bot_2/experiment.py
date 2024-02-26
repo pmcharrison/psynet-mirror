@@ -145,3 +145,14 @@ class Exp(psynet.experiment.Experiment):
         time.sleep(10)
         all_status = ExperimentStatus.query.all()
         assert len(all_status) > 0
+        from psynet.dashboard.resources import summary_resource_use
+
+        data = summary_resource_use()
+        different_types = [
+            "CPU usage (%)",
+            "Median page loading time (%)",
+            "Number of page loads",
+            "RAM usage (%)",
+            "Used disk space compared to min (%)",
+        ]
+        assert sorted(set([item["type"] for item in data])) == different_types
