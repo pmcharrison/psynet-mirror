@@ -3,16 +3,9 @@ from flask import render_template
 
 
 def report_resource_use():
-    from psynet.experiment import ExperimentStatus
-
     TEMPLATE_NAME = "dashboard_resources.html"
     title = "Resource usage"
-    max_items = 48 * 60 * 6  # 48 hours
-    data = (
-        ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
-        .limit(max_items)
-        .all()
-    )
+    data = summary_resource_use()
     if len(data) == 0:
         return render_template(
             TEMPLATE_NAME,
@@ -23,6 +16,27 @@ def report_resource_use():
             </div>
             """,
         )
+
+    return render_template(
+        TEMPLATE_NAME,
+        title=title,
+        html="",
+        data=data,
+    )
+
+
+def summary_resource_use():
+    from psynet.experiment import ExperimentStatus
+
+    max_items = 48 * 60 * 6  # 48 hours
+    data = (
+        ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
+        .limit(max_items)
+        .all()
+    )
+    if len(data) == 0:
+        return None
+
     df_raw = pd.DataFrame([row.to_dict() for row in data])
     df_raw.drop(columns=["extra_info", "id"], inplace=True)
 
@@ -34,14 +48,7 @@ def report_resource_use():
     df_plot = format_time_str(df_plot)
     df_plot["type"] = format_type(df_plot["type"])
 
-    data = df_plot.to_dict(orient="records")
-
-    return render_template(
-        TEMPLATE_NAME,
-        title=title,
-        html="",
-        data=data,
-    )
+    return df_plot.to_dict(orient="records")
 
 
 def format_label(row):
