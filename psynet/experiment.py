@@ -666,7 +666,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
 
     @classmethod
-    def get_status(cls, lookback="1m"):
+    def get_status(cls, lookback="10s"):
         return {
             **super().get_status(),
             **cls.aggregate_responses(lookback=lookback),
@@ -674,11 +674,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **cls.get_recruiter_status(),
         }
 
-    @scheduled_task("interval", minutes=1, max_instances=1)
+    @scheduled_task("interval", minutes=10 / 60, max_instances=1)
     @staticmethod
     def check_experiment_status():
         exp = get_experiment()
-        status_dict = exp.get_status(lookback="1m")  # since we poll every minute
+        status_dict = exp.get_status(lookback="10s")  # since we poll every minute
         status_obj = ExperimentStatus(**status_dict)
         db.session.add(status_obj)
         db.session.commit()

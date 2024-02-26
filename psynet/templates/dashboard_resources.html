@@ -37,7 +37,7 @@
             data.forEach(function (d) {
                 x2timestamp[d.x] = d.timestamp;
             });
-            const plot_time_window = 120;
+            const plot_time_window = 2 * 60 * 6;  // 2 hours, status polled every 10 seconds
             const max = Object.keys(x2timestamp).length - 1;
             const value = max > plot_time_window ? plot_time_window : max;
             const min = 0;
