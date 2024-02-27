@@ -11,13 +11,17 @@ WORKDIR /PsyNet
 COPY pyproject.toml pyproject.toml
 COPY LICENSE LICENSE
 
-RUN apt update && apt -f -y install curl redis-server unzip libpq-dev gettext
+RUN apt update && apt -f -y install curl redis-server unzip libpq-dev gettext jq
 RUN service redis-server start
 RUN curl https://cli-assets.heroku.com/install.sh | sh
-RUN wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_109.0.5414.74-1_amd64.deb
-RUN wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip
-RUN apt -f -y install ./chrome.deb
-RUN unzip chrome-driver.zip chromedriver -d /usr/local/bin/
+RUN CHROME_VERSION=$(curl https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json | jq .channels.Stable.version | tr -d '"') && \
+    echo Installing Chrome $CHROME_VERSION && \
+    wget -O chrome.deb https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
+    unzip chrome.deb -d /opt/ && \
+    ln -s /opt/chrome-linux64/chrome /usr/local/bin/chrome && \
+    echo Installing ChromeDriver $CHROME_VERSION && \
+    wget -O chrome-driver.zip https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip && \
+    unzip chrome-driver.zip -d /usr/local/bin/
 
 # TODO - Remove melody package and demo from PsyNet
 RUN pip install --upgrade pip

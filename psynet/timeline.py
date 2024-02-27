@@ -15,6 +15,7 @@ from dallinger.config import get_config
 from dominate import tags
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -209,14 +210,12 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        db.session.commit()
         call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
         )
-        db.session.commit()
 
 
 class FixTime(Elt):
@@ -1001,7 +1000,6 @@ class Page(Elt):
 
         self.on_complete(experiment=experiment, participant=participant)
 
-        db.session.commit()
         return resp
 
     def _find_answer_label(self, page_label, accumulator):
@@ -1598,9 +1596,6 @@ class Timeline:
                 continue
 
             new_elt.consume(experiment, participant)
-
-            # with time_logger("advance_page commit"):
-            #     db.session.commit()
 
             if isinstance(new_elt, Page):
                 finished = True
@@ -2223,6 +2218,7 @@ class ModuleState(SQLBase, SQLMixin):
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
         backref=backref("_module_states", post_update=True, lazy="selectin"),
+        post_update=True,
     )
     # current_trial = Column(
     #     PythonObject
@@ -2239,30 +2235,25 @@ class ModuleState(SQLBase, SQLMixin):
     finished = Column(Boolean, default=False)
     aborted = Column(Boolean, default=False)
 
-    assets = relationship(
-        # We see assets that belong to that module,
-        # and either belong to that participant, or belong to no other participants
-        "psynet.asset.Asset",
-        primaryjoin=(
-            "and_(foreign(ModuleState.module_id)==remote(psynet.asset.Asset.module_id), "
-            "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
-            "psynet.asset.Asset.participant_id.is_(None)))"
-        ),
-        uselist=True,
-        collection_class=attribute_mapped_collection("key_within_module"),
+    asset_links = relationship(
+        "AssetModuleState",
+        collection_class=attribute_mapped_collection("local_key"),
+        cascade="all, delete-orphan",
     )
 
-    nodes = relationship(
-        # We see nodes that belong to that module,
-        # and either belong to that participant, or belong to no other participants
-        "psynet.trial.main.TrialNode",
-        primaryjoin=(
-            "and_(foreign(ModuleState.module_id)==remote(psynet.trial.main.TrialNode.module_id), "
-            "or_(ModuleState.participant_id==psynet.trial.main.TrialNode.participant_id, "
-            "psynet.trial.main.TrialNode.participant_id.is_(None)))"
-        ),
-        uselist=True,
+    @staticmethod
+    def _create_asset_module_state(local_key, asset):
+        from psynet.asset import AssetModuleState
+
+        return AssetModuleState(local_key=local_key, asset=asset)
+
+    assets = association_proxy(
+        "asset_links",
+        "asset",
+        creator=lambda k, v: _create_asset_module_state(local_key=k, asset=v),  # noqa
     )
+
+    nodes = relationship("psynet.trial.main.TrialNode")
 
     def __init__(self, module, participant):
         self.module_id = module.id
@@ -2377,7 +2368,6 @@ class Module:
             for asset in assets_to_deposit:
                 # TODO - parallelize this deposit, see code in Experiment class
                 asset.deposit()
-            db.session.commit()
 
     def nodes_register_in_db(self):
         for node in self.nodes:
@@ -2387,7 +2377,6 @@ class Module:
                 node.add_default_network()
         db.session.commit()
         for node in self.nodes:
-            node.check_on_create()
             node.check_on_deploy()
         db.session.commit()
 
@@ -2397,27 +2386,10 @@ class Module:
         db.session.commit()
 
     def start(self, participant):
-        state = self.state_class(self, participant)
-        state.start()
-        participant.module_state = state
-        db.session.add(state)
-        db.session.commit()
+        participant.start_module(self)
 
     def end(self, participant):
-        # This should only fail (delivering multiple logs) if the experimenter has perversely
-        # defined a recursive module (or is reusing module ID)
-        state = (
-            self.state_class.query.filter_by(
-                module_id=self.id, participant_id=participant.id, finished=False
-            )
-            .with_for_update(of=self.state_class)
-            .populate_existing()
-            .one()
-        )
-        state.finish()
-        db.session.commit()
-        participant.refresh_module_state()
-        db.session.commit()
+        participant.end_module(self)
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):

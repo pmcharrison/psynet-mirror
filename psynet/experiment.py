@@ -8,6 +8,7 @@ import tempfile
 import time
 import traceback
 import uuid
+import warnings
 from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
@@ -38,7 +39,7 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
 
@@ -47,13 +48,13 @@ from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
+from .db import with_transaction
 from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant
-from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,
@@ -450,6 +451,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
+    @classproperty
+    def launched(cls):
+        return is_experiment_launched()
+
+    @property
+    def global_assets(self):
+        return self.experiment_config.global_assets
+
+    @property
+    def global_nodes(self):
+        return self.experiment_config.global_nodes
+
     def translation_checks_needed(self, locales_dir):
         return (
             os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
@@ -494,6 +507,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
 
+    @with_transaction
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
         self.compile_psynet_translations_if_necessary()
@@ -503,7 +517,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.on_first_launch()
         self.timeline.verify_consents(self)
         self.on_every_launch()
-        self.var.launch_finished = True
         logger.info("Experiment launch complete!")
         db.session.commit()
         redis_vars.set("launch_finished", True)
@@ -559,12 +572,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
 
         for node in (
-            TrialNode.query.filter_by(_on_deploy_called=False)
-            .with_for_update(of=TrialNode)
-            .populate_existing()
-            .all()
+            TrialNode.query.with_for_update(of=TrialNode).populate_existing().all()
         ):
-            node.on_deploy()
+            node.check_on_deploy()
 
         db.session.commit()
 
@@ -745,7 +755,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.run_bot(bot)
 
     def run_bot(self, bot):
-        time_factor = bool(self.test_real_time)
+        time_factor = float(self.test_real_time)
+        if time_factor > 0:
+            warnings.warn(
+                "Real-time mode doesn't seem to work well at present; take results with a pinch of salt.",
+                DeprecationWarning,
+            )
         bot.take_experiment(render_pages=True, time_factor=time_factor)
 
     def test_check_bots(self, bots: List[Bot]):
@@ -888,14 +903,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
+    @with_transaction
     def check_database():
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         for c in exp.database_checks:
             c.run()
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
+    @with_transaction
     def run_recruiter_checks():
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         recruiter = exp.recruiter
         if hasattr(recruiter, "run_checks"):
@@ -904,7 +925,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @scheduled_task("interval", seconds=2, max_instances=1)
     @log_time_taken
     @staticmethod
+    @with_transaction
     def _grow_networks():
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         exp.grow_networks()
 
@@ -914,13 +938,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # cover other types of networks in the future.
         from psynet.trial.chain import ChainNetwork
 
-        db.session.commit()
-
         # This query could be further optimized by identifying which network classes are present in the table
         # and making queries specific to these. This would allow subclass-specific attributes to be loaded
         # in the initial query rather than being lazily loaded.
         networks = (
-            ChainNetwork.query.filter_by(ready_to_spawn=True)
+            ChainNetwork.query.filter(
+                ChainNetwork.ready_to_spawn,
+                ChainNetwork.chain_type
+                != "within",  # participants are responsible for growing within-networks
+            )
             .with_for_update()
             .populate_existing()
             .options(joinedload(ChainNetwork.head, innerjoin=True))
@@ -933,20 +959,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 n.grow(experiment=exp)
             logger.info("Finished growing networks.")
 
-        db.session.commit()
-
     @scheduled_task("interval", seconds=1, max_instances=1)
     @log_time_taken
     @staticmethod
+    @with_transaction
     def _check_barriers():
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         exp.check_barriers()
 
     @staticmethod
     def check_barriers():
         from .sync import ParticipantLinkBarrier
-
-        db.session.commit()
 
         barrier_links = (
             ParticipantLinkBarrier.query.join(Participant)
@@ -962,8 +987,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for link in barrier_links:
             barrier = link.get_barrier()
             barrier.process_potential_releases()
-
-        db.session.commit()
 
     @property
     def base_payment(self):
@@ -982,14 +1005,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def var(self):
-        if self.experiment_config_exists:
+        if self.experiment_config:
             return self.experiment_config.var
         else:
             return ImmutableVarStore(self.variables_initial_values)
 
+    # We persist _experiment_config to avoid garbage collection and hence support database updates
+    _experiment_config = None
+
     @property
     def experiment_config(self):
-        return ExperimentConfig.query.one()
+        self._experiment_config = ExperimentConfig.query.get(1)
+        return self._experiment_config
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
@@ -1022,12 +1049,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def estimated_completion_time(cls, wage_per_hour):
         return cls.timeline.estimated_completion_time(wage_per_hour)
 
-    @property
-    def experiment_config_exists(self):
-        return ExperimentConfig.query.count() > 0
-
     def setup_experiment_config(self):
-        if not self.experiment_config_exists:
+        if self.experiment_config is None:
             logger.info("Setting up ExperimentConfig.")
             network = ExperimentConfig()
             db.session.add(network)
@@ -1105,7 +1128,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
-            "launch_finished": False,
             "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment_email_sent": False,
             "current_locale": get_language(),
@@ -1116,6 +1138,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
     @staticmethod
+    @with_transaction
     def custom_route(endpoint):
         from psynet.api import EXPOSED_FUNCTIONS
 
@@ -1352,11 +1375,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 len(self.participant_fail_routines),
                 routine.label,
             )
-            call_function(
+            call_function_with_context(
                 routine.function,
                 participant=participant,
                 experiment=self,
-                assets=self.assets,
             )
 
     @property
@@ -1610,7 +1632,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 validation, FailedValidation
             )
             if not response.successful_validation:
-                db.session.commit()
                 return self.response_rejected(message=validation.message)
             participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
@@ -2059,6 +2080,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/ad", methods=["GET"])
     @nocache
     @staticmethod
+    @with_transaction
     def advertisement():
         from dallinger.experiment_server.experiment_server import prepare_advertisement
 
@@ -2073,6 +2095,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/consent")
     @staticmethod
+    @with_transaction
     def consent():
         config = get_config()
 
@@ -2099,6 +2122,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/start", methods=["GET"])
     @staticmethod
+    @with_transaction
     def route_start():
         try:
             return render_template_with_translations("start.html")
@@ -2128,6 +2152,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/dashboard/export", methods=["GET"])
     @classmethod
+    @with_transaction
     def export(cls):
         from .command_line import export__local
 
@@ -2142,6 +2167,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
+    @with_transaction
     def get_participant_info_for_debug_mode():
         config = get_config()
         if not config.get("mode") == "debug":
@@ -2180,6 +2206,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @classmethod
+    @with_transaction
     def render_error(cls):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
@@ -2210,6 +2237,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module", methods=["POST"])
     @classmethod
+    @with_transaction
     def get_module_details_as_rendered_html(cls):
         exp = get_experiment()
         module = exp.timeline.get_module(request.values["moduleId"])
@@ -2217,6 +2245,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
+    @with_transaction
     def get_module_tooltip_as_rendered_html(cls):
         exp = get_experiment()
         module = exp.timeline.get_module(request.values["moduleId"])
@@ -2224,6 +2253,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module/progress_info", methods=["GET"])
     @classmethod
+    @with_transaction
     def get_progress_info(cls):
         exp = get_experiment()
         module_ids = request.args.getlist("module_ids[]")
@@ -2274,6 +2304,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module/update_spending_limits", methods=["POST"])
     @classmethod
+    @with_transaction
     def update_spending_limits(cls):
         hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
         soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
@@ -2286,11 +2317,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Experiment variable 'soft_max_experiment_payment set' set to {soft_max_experiment_payment}."
         )
-        db.session.commit()
         return success_response()
 
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_debugger(cls, password):
         exp = get_experiment()
         if password == "my-secure-password-195762":
@@ -2301,26 +2332,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/node/<int:node_id>/fail", methods=["GET", "POST"])
     @staticmethod
+    @with_transaction
     def fail_node(node_id):
         from dallinger.models import Node
 
         node = Node.query.with_for_update(of=Node).populate_existing().get(node_id)
         node.fail(reason="http_fail_route_called")
-        db.session.commit()
         return success_response()
 
     @experiment_route("/info/<int:info_id>/fail", methods=["GET", "POST"])
     @staticmethod
+    @with_transaction
     def fail_info(info_id):
         from dallinger.models import Info
 
         info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
-        db.session.commit()
         return success_response()
 
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
     @classmethod
+    @with_transaction
     def grow_network(cls, network_id):
         exp = get_experiment()
         from .trial.main import TrialNetwork, TrialNode
@@ -2332,7 +2364,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
         trial_maker.call_grow_network(network)
-        db.session.commit()
         return success_response()
 
     @experiment_route(
@@ -2340,8 +2371,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         methods=["GET", "POST"],
     )
     @staticmethod
+    @with_transaction
     def call_async_post_grow_network(network_id):
-        from .trial.main import TrialNetwork
+        from .trial.main import NetworkTrialMaker, TrialNetwork
 
         network = (
             TrialNetwork.query.with_for_update(of=TrialNetwork)
@@ -2349,19 +2381,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .get(network_id)
         )
         trial_maker = get_trial_maker(network.trial_maker_id)
-
-        WorkerAsyncProcess(
-            network.async_post_grow_network,
-            label="post_grow_network",
-            timeout=trial_maker.async_timeout_sec,
-            network=network,
-        )
-        db.session.commit()
+        assert isinstance(trial_maker, NetworkTrialMaker)
+        trial_maker.queue_async_post_grow_network(network)
         return success_response()
 
     # Lucid recruitment specific route
     @experiment_route("/terminate_participant", methods=["GET"])
     @classmethod
+    @with_transaction
     def terminate_participant(cls):
         participant_id = request.values.get("participant_id")
         reason = request.values["reason"]
@@ -2385,7 +2412,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 logger.info(
                     f"Terminating participant with RID {assignment_id} with reason '{reason}'"
                 )
-            db.session.commit()
 
         except Exception as e:
             logger.error(
@@ -2406,6 +2432,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_set_locale_participant(cls, participant_id):
         participant = cls.get_participant_from_participant_id(
             participant_id, for_update=True
@@ -2420,7 +2447,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert len(new_locale) == 2, "Locale must be a two-letter code"
         new_locale = new_locale.lower()
         participant.var.set("locale", new_locale)
-        db.session.commit()
         logger.info(
             f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
         )
@@ -2428,6 +2454,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
@@ -2435,12 +2462,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.aborted = True
         if participant.module_state:
             participant.module_state.abort()
-        db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
 
     @experiment_route("/abort/<assignment_id>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_abort(cls, assignment_id):
         try:
             template_name = "abort_not_possible.html"
@@ -2470,6 +2497,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
@@ -2560,7 +2588,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         context = cls.serialize_error_context(**kwargs)
         print("\n")
         logger.error(
-            "err-%s:%s",
+            "EXPERIMENT ERROR - err-%s:%s",
             token,
             context,
             exc_info=True,
@@ -2643,7 +2671,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         page = experiment.timeline.get_current_elt(experiment, participant)
         page.pre_render()
-        db.session.commit()
 
         return page
 
@@ -2668,6 +2695,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
+    @with_transaction
     def get_progress_and_reward(cls):
         participant_id = request.args.get("participantId")
         participant = Participant.query.get(participant_id)
@@ -2695,6 +2723,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/response", methods=["POST"])
     @classmethod
+    @with_transaction
     def route_response(cls):
         exp = get_experiment()
         json_data = json.loads(request.values["json"])
@@ -2717,11 +2746,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             client_ip_address,
         )
 
-        db.session.commit()
         return res
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
+    @with_transaction
     def http_log(cls, level, unique_id):
         participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         try:
@@ -2760,13 +2789,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         methods=["POST"],
     )
     @classmethod
+    @with_transaction
     def participant_opened_devtools(cls, unique_id):
         participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
 
         cls.check_unique_id(participant, unique_id)
 
         participant.var.opened_devtools = True
-        db.session.commit()
 
         return success_response()
 
@@ -2800,6 +2829,9 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+
+    global_assets = relationship("Asset")
+    global_nodes = relationship("psynet.trial.main.TrialNode")
 
 
 def _patch_dallinger_models():

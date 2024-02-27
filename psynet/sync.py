@@ -109,10 +109,12 @@ class Barrier:
 
     def receive_participant(self, participant: Participant):
         link = ParticipantLinkBarrier(
-            participant=participant, barrier_id=self.id, barrier_class=self.__class__
+            participant=participant,
+            barrier_id=self.id,
+            barrier_class=self.__class__,
+            arrival_time=timenow(),
         )
-        link.arrival_time = timenow()
-        db.session.add(link)
+        participant.active_barriers[self.id] = link
 
     def get_waiting_participants(self, for_update: bool = False):
         return self.get_waiting_participants_from_barrier_id(
@@ -175,8 +177,6 @@ class Barrier:
         return not barrier_is_active
 
     def process_potential_releases(self):
-        db.session.commit()
-
         waiting_participants = self.get_waiting_participants(for_update=True)
         waiting_participants.sort(key=lambda p: p.id)
 
@@ -200,8 +200,6 @@ class Barrier:
 
             for participant in participants_to_release:
                 self.release(participant)
-
-        db.session.commit()
 
 
 class GroupBarrier(Barrier):
@@ -532,13 +530,6 @@ class SyncGroup(SQLBase, SQLMixin):
         "psynet.participant.Participant",
         cascade="all",
     )
-
-    def add_participant(self, participant: Participant):
-        link = ParticipantLinkSyncGroup(
-            participant=participant,
-            sync_group=self,
-        )
-        db.session.add(link)
 
     @classmethod
     def get_active_group(

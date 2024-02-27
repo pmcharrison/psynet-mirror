@@ -45,6 +45,7 @@ dependencies = [
     "rpdb",
     "sphinx",
     "statsmodels",
+    "tenacity",
     "tqdm",
     "yaspin",
 ]

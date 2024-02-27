@@ -24,6 +24,8 @@ def failing_function():
 class TestProcesses:
     def test_process_that_fails(self):
         process = LocalAsyncProcess(failing_function)
+
+        db.session.commit()
         time.sleep(0.5)
         db.session.commit()
 
@@ -31,11 +33,11 @@ class TestProcesses:
         assert not process.finished
         assert not process.pending
 
-    def test_awaiting_async_process_participant(self, participant):
-        assert not participant.awaiting_async_process
+    def test_async_process_participant(self, participant):
+        assert len(participant.async_processes) == 0
         LocalAsyncProcess(sleep_for_1s, participant=participant)
         db.session.refresh(participant)
-        assert participant.awaiting_async_process
+        assert len(participant.async_processes) == 1
 
 
 @pytest.mark.parametrize(
@@ -43,28 +45,29 @@ class TestProcesses:
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses2:
-    def test_awaiting_async_process_trial(self, trial, node, network, participant):
+    def test_async_process_trial(self, trial, node, network, participant):
         # When a trial spawns an async process, this async process also is 'owned'
         # by the participant. The trial's node and network do not count as owners
         # of the process, however.
         db.session.commit()
         owners = [trial, participant]
         for o in owners:
-            assert not o.awaiting_async_process
+            assert len(o.async_processes) == 0
 
         process = LocalAsyncProcess(sleep_for_1s, trial=trial)
 
+        db.session.commit()
+
         for o in owners:
-            db.session.refresh(o)
-            assert o.awaiting_async_process
+            assert len(o.async_processes) == 1
 
         time.sleep(1.5)
 
-        db.session.refresh(process)
+        db.session.commit()
 
         for o in owners:
-            db.session.refresh(o)
-            assert not o.awaiting_async_process
+            for p in o.async_processes:
+                assert p.finished
 
         assert abs(process.time_taken - 1) < 0.5
 
@@ -113,12 +116,14 @@ class TestProcesses2:
                 ),
             )
 
+            db.session.commit()
+
             with open(file.name, "r") as file_reader:
                 assert file_reader.readline() != message
 
             time.sleep(1.5)
 
-            db.session.refresh(process)
+            db.session.commit()
             assert process.finished
 
             with open(file.name, "r") as file_reader:

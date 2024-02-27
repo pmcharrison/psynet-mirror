@@ -11,7 +11,6 @@
 
 import fileinput
 import os
-import pathlib
 import re
 import shutil
 import subprocess
@@ -21,29 +20,9 @@ from joblib import Parallel, delayed
 
 import psynet.command_line
 from psynet import __version__
-from psynet.utils import working_directory
+from psynet.utils import list_demo_dirs, working_directory
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
-
-
-def find_demo_dirs():
-    """
-    Returns
-    -------
-
-    A list of directory paths for each of the PsyNet demos.
-    These are found by recursively searching in the demos directory
-    for all directories containing an experiment.py file.
-    """
-
-    root_dir = pathlib.Path(__file__).parent.resolve()
-    return sorted(
-        [
-            dir
-            for dir, sub_dirs, files in os.walk(root_dir)
-            if "experiment.py" in files and not dir.endswith("/develop")
-        ]
-    )
 
 
 def update_demo(dir):
@@ -99,5 +78,5 @@ for path in [
 # Update demos
 n_jobs = 8
 Parallel(verbose=10, n_jobs=n_jobs)(
-    delayed(update_demo)(_dir) for _dir in find_demo_dirs()
+    delayed(update_demo)(_dir) for _dir in list_demo_dirs()
 )

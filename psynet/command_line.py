@@ -44,6 +44,8 @@ from .serialize import serialize, unserialize
 from .utils import (
     ISO_639_1_CODES,
     get_args,
+    list_demo_dirs,
+    list_isolated_tests,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -2543,3 +2545,33 @@ def simulate(ctx):
     """
     ctx.invoke(test__local)
     ctx.invoke(export__local)
+
+
+@psynet.command(name="list-demo-dirs")
+@click.option("--for-ci-tests", is_flag=True)
+@click.option("--ci-node-total", default=None, type=int)
+@click.option("--ci-node-index", default=None, type=int)
+def _list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+    """
+    Lists the directories of all the demo experiments that are available.
+    """
+    for directory in list_demo_dirs(
+        for_ci_tests=for_ci_tests,
+        ci_node_total=ci_node_total,
+        ci_node_index=ci_node_index,
+    ):
+        print(directory)
+
+
+@psynet.command(name="list-isolated-tests")
+@click.option("--ci-node-total", default=None, type=int)
+@click.option("--ci-node-index", default=None, type=int)
+def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
+    """
+    Lists the directories of all the demo experiments that are available.
+    """
+    for test_ in list_isolated_tests(
+        ci_node_total=ci_node_total,
+        ci_node_index=ci_node_index,
+    ):
+        print(test_)
