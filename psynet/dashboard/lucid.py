@@ -68,7 +68,7 @@ def report_lucid():
     title = "Lucid"
     body = ""
     params = {
-        "display_cards": True,
+        "display_cards": False,
         "display_status_cards": False,
     }
     if not issubclass(experiment.recruiter.__class__, BaseLucidRecruiter):
@@ -120,7 +120,6 @@ def report_lucid():
         params["last_status"] = last_status
 
     if len(all_entrants) == 0:
-        params["display_cards"] = False
         return render_template(
             TEMPLATE_NAME,
             title=title,
@@ -131,6 +130,8 @@ def report_lucid():
             """,
             params=params,
         )
+    else:
+        params["display_cards"] = True
 
     entry_df = pd.DataFrame([entrant.to_dict() for entrant in all_entrants])
     participants = pd.DataFrame(
