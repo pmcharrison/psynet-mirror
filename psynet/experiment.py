@@ -2389,7 +2389,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
                 compensate = False
                 recruiter.set_termination_details(
-                    participant.assignment_id, "Terminated calling /error-page route"
+                    participant.assignment_id, "error-page_route"
                 )
 
         return cls.error_page(

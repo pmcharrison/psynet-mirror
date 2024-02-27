@@ -484,13 +484,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                     .all()
                 )
                 if len(responses) == 0:
-                    reason = f"Did not receive first response within {self.initial_response_within_s // 60} minutes"
-                    details = f"Participant {participant.id} did not accept the consent"
+                    reason = "first-response-timeout"
 
             except sqlalchemy.orm.exc.NoResultFound:
                 # Do not terminate participants who did not pass the qualifications
                 if entrant.lucid_status != self.MARKETPLACE_CODE:
-                    reason = "Never entered the experiment"
+                    reason = "never-entered-experiment"
 
             if reason:
                 try:
@@ -682,11 +681,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 .all()
             )
             if responses[-1].answer == {"lucid_consent": False}:
-                reason = "Consent rejected"
+                reason = "consent-rejected"
             else:
-                reason = (
-                    "Termination in 'reward_bonus' as 'participant.progress' was < 1"
-                )
+                reason = "participant-did-not-complete"
             self.terminate_participant(participant.assignment_id, reason)
 
     def _record_current_survey_number(self, survey_number):
