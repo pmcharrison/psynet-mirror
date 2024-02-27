@@ -428,7 +428,7 @@ class LucidTwoForcedChoiceQualification(LucidScreeningQuestion):
 
 
 class LucidTimeoutQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=2):
+    def __init__(self, locale, time_estimate=5):
         _, _p = get_translator(locale)
         super().__init__(
             label="TIMEOUT",
@@ -449,7 +449,7 @@ class LucidTimeoutQualification(LucidTwoForcedChoiceQualification):
 
 
 class LucidHeadphoneQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=2, allowed=None):
+    def __init__(self, locale, time_estimate=5, allowed=None):
         if allowed is None:
             allowed = ["yes"]
         _, _p = get_translator(locale)
@@ -473,7 +473,7 @@ class LucidHeadphoneQualification(LucidTwoForcedChoiceQualification):
 
 
 class LucidMicrophoneQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=2, allowed=None):
+    def __init__(self, locale, time_estimate=5, allowed=None):
         if allowed is None:
             allowed = ["yes"]
         _, _p = get_translator(locale)
