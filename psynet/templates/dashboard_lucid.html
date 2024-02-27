@@ -241,7 +241,9 @@
                             return '<div class="container">' + title + table + "</div>";
                         });
                     let responseData = {{ params.lucid_termination_loi.data | safe }};
-
+                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                    let n_bins = 40;
+                    let type2color = {"Lucid": "black"};
                     histogram("termination_loi", responseData, margin, n_bins, type2color, tooltip);
                 });
             </script>
@@ -269,6 +271,7 @@
                             return `Participant ${d.pid} (${d.rid}): ${d.reason}`;
                         });
                     let responseData = {{ params.termination_loi_scatter.data | safe }};
+                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
                     const xLabel = "LOI (Lucid)",
                         yLabel = "LOI (PsyNet)";
                     scatter("termination_loi_scatter", responseData, margin, xLabel, yLabel, tooltip);
