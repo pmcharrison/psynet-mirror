@@ -448,24 +448,42 @@ class LucidTimeoutQualification(LucidTwoForcedChoiceQualification):
         )
 
 
+class LucidAudioQualification(LucidTwoForcedChoiceQualification):
+    def __init__(self, locale, time_estimate=5, allowed=None):
+        if allowed is None:
+            allowed = ["yes"]
+        _, _p = get_translator(locale)
+        super().__init__(
+            label="HAS_AUDIO",
+            question=_p(
+                "lucid_qualifications_audio",
+                "To complete this survey, you will be asked to listen to audio. "
+                "Can you listen to audio on the current device?",
+            ),
+            labels=[
+                _p("lucid_qualifications_audio", "Yes"),
+                _p("lucid_qualifications_audio", "No"),
+            ],
+            allowed=allowed,
+            time_estimate=time_estimate,
+        )
+
+
 class LucidHeadphoneQualification(LucidTwoForcedChoiceQualification):
     def __init__(self, locale, time_estimate=5, allowed=None):
         if allowed is None:
             allowed = ["yes"]
         _, _p = get_translator(locale)
         super().__init__(
-            label="HEADPHONE",
+            label="HAS_HEADPHONE",
             question=_p(
                 "lucid_qualifications_headphone",
-                "To complete this survey, you will be asked to listen to audio using headphones and need to be in a "
-                "quiet environment. Can you listen to audio on the current device?",
+                "To complete this survey, you will be asked to listen to audio using headphones. "
+                "Do you have headphones available?",
             ),
             labels=[
-                _p("lucid_qualifications_headphone", "Yes, I can play audio"),
-                _p(
-                    "lucid_qualifications_headphone",
-                    "No, I cannot play audio on the current device",
-                ),
+                _p("lucid_qualifications_headphone", "Yes"),
+                _p("lucid_qualifications_headphone", "No"),
             ],
             allowed=allowed,
             time_estimate=time_estimate,
@@ -478,15 +496,60 @@ class LucidMicrophoneQualification(LucidTwoForcedChoiceQualification):
             allowed = ["yes"]
         _, _p = get_translator(locale)
         super().__init__(
-            label="MICROPHONE",
+            label="HAS_MICROPHONE",
             question=_p(
                 "lucid_qualifications_microphone",
-                "To complete this survey, you need a microphone and need to be in a quiet environment. "
-                + "You may not use a wireless microphone (such as Bluetooth headphones). Can you record audio?",
+                "To complete this survey, you need a microphone. You may not use a wireless microphone (such as "
+                + "Bluetooth headphones). Do you have a microphone available?",
             ),
             labels=[
-                _p("lucid_qualifications_microphone", "Yes, I have a microphone"),
-                _p("lucid_qualifications_microphone", "No, I do not have a microphone"),
+                _p("lucid_qualifications_microphone", "Yes"),
+                _p("lucid_qualifications_microphone", "No"),
+            ],
+            allowed=allowed,
+            time_estimate=time_estimate,
+        )
+
+
+class LucidInQuietPlaceQualification(LucidTwoForcedChoiceQualification):
+    def __init__(self, locale, time_estimate=5, allowed=None):
+        if allowed is None:
+            allowed = ["yes"]
+        _, _p = get_translator(locale)
+        super().__init__(
+            label="IN_QUIET_PLACE",
+            question=_p(
+                "lucid_qualifications_in_quiet_place",
+                "To complete this survey, you need to be in a quiet place. Ideally, you should be in a room with no "
+                "background noise, and you should not be disturbed by other people or pets. Are you in a quiet place?",
+            ),
+            labels=[
+                _p("lucid_qualifications_in_quiet_place", "Yes"),
+                _p("lucid_qualifications_in_quiet_place", "No"),
+            ],
+            allowed=allowed,
+            time_estimate=time_estimate,
+        )
+
+
+class LucidAllowVoiceRecordingQualification(LucidTwoForcedChoiceQualification):
+    def __init__(self, locale, time_estimate=5, allowed=None):
+        if allowed is None:
+            allowed = ["yes"]
+        _, _p = get_translator(locale)
+        super().__init__(
+            label="ALLOW_VOICE_RECORDING",
+            question=_p(
+                "lucid_qualifications_allow_voice_recording",
+                "In this experiment, you will be asked to record your voice. All the recordings we obtain during this "
+                "research will be kept confidential, and nobody outside the group of researchers will be able to share "
+                "or store them. Your recordings will not be associated with your name or other identifiers in any way. "
+                "Your recordings will not be used to derive your real identity, and they will not be made public. "
+                "Are you willing to record your voice?",
+            ),
+            labels=[
+                _p("lucid_qualifications_allow_voice_recording", "Yes"),
+                _p("lucid_qualifications_allow_voice_recording", "No"),
             ],
             allowed=allowed,
             time_estimate=time_estimate,
