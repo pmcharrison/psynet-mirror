@@ -50,7 +50,7 @@ def summarize_resource_use():
     df_plot = df_normalized.melt(id_vars="timestamp", var_name="type", value_name="y")
     df_plot = add_raw_values(df_plot, df_raw)
     df_plot["label"] = df_plot.apply(format_label, axis=1)
-    df_plot = format_time_str(df_plot)
+    df_plot["timestamp"] = format_time_str(df_plot["timestamp"])
     df_plot["type"] = format_type(df_plot["type"])
 
     return df_plot.to_dict(orient="records")
@@ -99,9 +99,9 @@ def add_raw_values(df_plot, df_raw):
     return df_plot
 
 
-def format_time_str(norm_resources_df):
+def format_time_str(timestamp_series):
     now = pd.to_datetime("now")
-    earliest = norm_resources_df["timestamp"].min()
+    earliest = timestamp_series.min()
 
     if now.day == earliest.day:
         date_format = "%H:%M"
@@ -110,13 +110,10 @@ def format_time_str(norm_resources_df):
     else:
         date_format = "%Y-%m-%d %H:%M"
 
-    norm_resources_df["timestamp"] = [
+    return [
         str(ts)
-        for ts in pd.to_datetime(norm_resources_df["timestamp"], unit="s").dt.strftime(
-            date_format
-        )
+        for ts in pd.to_datetime(timestamp_series, unit="s").dt.strftime(date_format)
     ]
-    return norm_resources_df
 
 
 def format_type(type_list: list):
