@@ -641,7 +641,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return response
 
     @classmethod
-    def aggregate_responses(cls, lookback):
+    def get_request_statistics(cls, lookback):
         now = datetime.now()
         lookback = now - pd.Timedelta(lookback)
         all_requests = Request.query.filter(Request.creation_time > lookback).all()
@@ -669,7 +669,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def get_status(cls, lookback="10s"):
         return {
             **super().get_status(),
-            **cls.aggregate_responses(lookback=lookback),
+            **cls.get_request_statistics(lookback=lookback),
             **cls.get_app_status(),
             **cls.get_recruiter_status(),
         }
