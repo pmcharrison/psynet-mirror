@@ -2619,6 +2619,14 @@ def lucid__compensate(ctx, survey_number, rids):
         )
 
 
+@lucid.command("locale")
+@click.pass_context
+def lucid__locale(ctx):
+    print(
+        get_lucid_service().get_lucid_country_language_lookup().to_markdown(index=False)
+    )
+
+
 @lucid.command("status")
 @click.argument("survey_number", required=True)
 @click.argument("status", required=True)
