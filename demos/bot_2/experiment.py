@@ -145,9 +145,9 @@ class Exp(psynet.experiment.Experiment):
         time.sleep(10)
         all_status = ExperimentStatus.query.all()
         assert len(all_status) > 0
-        from psynet.dashboard.resources import summary_resource_use
+        from psynet.dashboard.resources import summarize_resource_use
 
-        data = summary_resource_use()
+        data = summarize_resource_use()
         different_types = [
             "CPU usage (%)",
             "Median page loading time (%)",

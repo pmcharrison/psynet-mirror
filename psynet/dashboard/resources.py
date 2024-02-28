@@ -5,7 +5,7 @@ from flask import render_template
 def report_resource_use():
     TEMPLATE_NAME = "dashboard_resources.html"
     title = "Resource usage"
-    data = summary_resource_use()
+    data = summarize_resource_use()
     if len(data) == 0:
         return render_template(
             TEMPLATE_NAME,
@@ -25,7 +25,7 @@ def report_resource_use():
     )
 
 
-def summary_resource_use():
+def summarize_resource_use():
     from psynet.experiment import ExperimentStatus
 
     max_items = 48 * 60 * 6  # 48 hours
