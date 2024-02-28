@@ -658,7 +658,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return exp.recruiter.get_status()
 
     @classmethod
-    def get_app_status(cls):
+    def get_hardware_status(cls):
         return {
             "cpu_usage": psutil.cpu_percent(),
             "ram_usage": psutil.virtual_memory().percent,
@@ -670,7 +670,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {
             **super().get_status(),
             **cls.get_request_statistics(lookback=lookback),
-            **cls.get_app_status(),
+            **cls.get_hardware_status(),
             **cls.get_recruiter_status(),
         }
 
