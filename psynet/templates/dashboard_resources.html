@@ -37,13 +37,13 @@
             data.forEach(function (d) {
                 x2timestamp[d.x] = d.timestamp;
             });
-            const plot_time_window = 2 * 60 * 6;  // 2 hours, status polled every 10 seconds
+            const plotTimeWindow = 2 * 60 * 6;  // 2 hours, status polled every 10 seconds
             const max = Object.keys(x2timestamp).length - 1;
-            const value = max > plot_time_window ? plot_time_window : max;
+            const value = max > plotTimeWindow ? plotTimeWindow : max;
             const min = 0;
             const margin = {"top": 10, "right": 30, "bottom": 30, "left": 40},
-                x_label = "Time",
-                y_label = "Usage",
+                xLabel = "Time",
+                yLabel = "Usage",
                 height = 500,
                 yLimits = [0, 150];
 
@@ -68,7 +68,7 @@
                         return out;
                     });
 
-                linePlot('lineplot', filteredData, margin, x_label, y_label, tooltip, height, yLimits, type2color, x2timestamp);
+                linePlot('lineplot', filteredData, margin, xLabel, yLabel, tooltip, height, yLimits, type2color, x2timestamp);
             }
 
             function createSlider(){
