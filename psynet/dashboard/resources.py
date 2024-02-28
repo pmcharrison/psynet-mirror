@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 from flask import render_template
 
@@ -28,12 +30,15 @@ def report_resource_use():
 def summarize_resource_use():
     from psynet.experiment import ExperimentStatus
 
-    max_items = 48 * 60 * 6  # 48 hours
+    window_length = datetime.timedelta(hours=48)
     data = (
         ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
-        .limit(max_items)
+        .filter(
+            ExperimentStatus.creation_time > datetime.datetime.now() - window_length
+        )
         .all()
     )
+
     if len(data) == 0:
         return None
 
