@@ -1350,9 +1350,15 @@ class ColorBlindnessTest(StaticTrialMaker):
                     "label": label,
                     "correct_answer": answer,
                 },
+                # assets={
+                #     "image": ExternalAsset(
+                #         url=f"{media_url}/ishihara-{label}.jpg",
+                #     )
+                # },
                 assets={
+                    # Assuming static files are served directly from the static directory
                     "image": ExternalAsset(
-                        url=f"{media_url}/ishihara-{label}.jpg",
+                        url=f"static/psynet/preescreen/color-blindness-test/ishihara-{label}.jpg",
                     )
                 },
             )
