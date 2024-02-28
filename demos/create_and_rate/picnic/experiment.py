@@ -121,7 +121,7 @@ class RateControl(Control):
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return {
-            f"Rule {i+1}": {"checked": True, "rule": f"Rule {i+1}"}
+            f"Rule {i + 1}": {"checked": True, "rule": f"Rule {i + 1}"}
             for i in range(N_CREATORS + 1)
         }
 

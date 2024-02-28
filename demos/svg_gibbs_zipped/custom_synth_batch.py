@@ -8,10 +8,10 @@ def fill_svg(vector, width=250, height=250):
     svg = (
         f'<?xml version="1.0" encoding="ASCII" standalone="yes"?>'
         f'<svg xmlns="http://www.w3.org/2000/svg" id = "inlineSVG" width="{width}" height="{height}">'
-        f'<rect x="0" y="0" width="{width/3}" height="{height/3}" style="fill:rgb({r},{g},{b});" ></rect>'
-        f'<rect x="{width/2}" y="0" width="{width/3}" height="{height/3}" style="fill:rgb({r},{g},{b});" ></rect>'
-        f'<rect x="0" y="{width/2}" width="{width/3}" height="{height/3}" style="fill:rgb({r},{g},{b});" ></rect>'
-        f'<rect x="{width/2}" y="{width/2}" width="{width/3}" height="{height/3}" style="fill:rgb({r},{g},{b});" ></rect>'
+        f'<rect x="0" y="0" width="{width / 3}" height="{height / 3}" style="fill:rgb({r},{g},{b});" ></rect>'
+        f'<rect x="{width / 2}" y="0" width="{width / 3}" height="{height / 3}" style="fill:rgb({r},{g},{b});" ></rect>'
+        f'<rect x="0" y="{width / 2}" width="{width / 3}" height="{height / 3}" style="fill:rgb({r},{g},{b});" ></rect>'
+        f'<rect x="{width / 2}" y="{width / 2}" width="{width / 3}" height="{height / 3}" style="fill:rgb({r},{g},{b});" ></rect>'
         f"</rect>"
         f"Sorry, your browser does not support inline SVG."
         f"</svg>"

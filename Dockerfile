@@ -1,4 +1,4 @@
-FROM ghcr.io/dallinger/dallinger:9.12.0
+FROM ghcr.io/dallinger/dallinger:10.0.0
 # If you want to pin a Dallinger development version, don't do it here!
 # Instead pin it below (see comments)
 #
@@ -11,7 +11,7 @@ WORKDIR /PsyNet
 COPY pyproject.toml pyproject.toml
 COPY LICENSE LICENSE
 
-RUN apt update && apt -f -y install curl redis-server unzip libpq-dev gettext jq
+RUN apt update && apt -f -y install curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip
 RUN service redis-server start
 RUN curl https://cli-assets.heroku.com/install.sh | sh
 RUN CHROME_VERSION=$(curl https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json | jq .channels.Stable.version | tr -d '"') && \
@@ -19,9 +19,12 @@ RUN CHROME_VERSION=$(curl https://googlechromelabs.github.io/chrome-for-testing/
     wget -O chrome.deb https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
     unzip chrome.deb -d /opt/ && \
     ln -s /opt/chrome-linux64/chrome /usr/local/bin/chrome && \
+    echo "Successfully installed Chrome $(chrome --version)" && \
     echo Installing ChromeDriver $CHROME_VERSION && \
     wget -O chrome-driver.zip https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip && \
-    unzip chrome-driver.zip -d /usr/local/bin/
+    unzip chrome-driver.zip -d /usr/local/bin/ && \
+    ln -s /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    echo "Successfully installed ChromeDriver $(chromedriver --version)"
 
 # TODO - Remove melody package and demo from PsyNet
 RUN pip install --upgrade pip
