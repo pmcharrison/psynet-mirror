@@ -121,7 +121,7 @@ class Exp(psynet.experiment.Experiment):
         self.initial_recruitment_size = 1
 
     @staticmethod
-    @scheduled_task("interval", minutes=10 / 60, max_instances=1)
+    @scheduled_task("interval", seconds=10, max_instances=1)
     def run_bot_participant():
         # Every 10 seconds, runs a bot participant.
         from psynet.experiment import is_experiment_launched

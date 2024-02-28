@@ -674,7 +674,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **cls.get_recruiter_status(),
         }
 
-    @scheduled_task("interval", minutes=10 / 60, max_instances=1)
+    @scheduled_task("interval", seconds=10, max_instances=1)
     @staticmethod
     def check_experiment_status():
         exp = get_experiment()
