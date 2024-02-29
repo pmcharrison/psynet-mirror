@@ -438,7 +438,7 @@ class Trial(SQLMixinDallinger, Info):
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
-        self.parent_trial_id = None if parent_trial is None else parent_trial.id
+        self.parent_trial = parent_trial
         self.repeat_trial_index = repeat_trial_index
         self.n_repeat_trials = n_repeat_trials
         self.score = None
