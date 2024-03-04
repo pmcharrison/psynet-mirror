@@ -105,22 +105,23 @@ def test_check_versions_psynet_pip_install_requirement(mock_get_pip_freeze_requi
 def test_check_versions_psynet_pip_install_commit_hash(mock_get_pip_freeze_requirement):
     mock_get_pip_freeze_requirement.return_value = "psynet==10.0.0"
 
-    with tempfile.TemporaryDirectory() as dir:
-        with working_directory(dir):
-            # Raise an error if commit hash specified and version installed differ
-            with open("requirements.txt", "w") as file:
-                file.write(
-                    "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@a4d0d6153150deaae1b456f7dd5c081c5ef04b1d#egg=psynet\n"
-                )
-                file.flush()
+    for extension in ["", ".git"]:
+        with tempfile.TemporaryDirectory() as dir:
+            with working_directory(dir):
+                # Raise an error if commit hash specified and version installed differ
+                with open("requirements.txt", "w") as file:
+                    file.write(
+                        f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet{extension}@a4d0d6153150deaae1b456f7dd5c081c5ef04b1d#egg=psynet\n"
+                    )
+                    file.flush()
 
-                with pytest.raises(
-                    AssertionError,
-                    match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
-                    "Version installed locally: 10.0.0[\\n\\r\\s]+"
-                    "Version specified in requirements.txt: a4d0d6153150deaae1b456f7dd5c081c5ef04b1d",
-                ):
-                    check_versions()
+                    with pytest.raises(
+                        AssertionError,
+                        match="The PsyNet versions installed on your local computer and specified in requirements.txt do not match.[\\n\\r\\s]+"
+                        "Version installed locally: 10.0.0[\\n\\r\\s]+"
+                        "Version specified in requirements.txt: a4d0d6153150deaae1b456f7dd5c081c5ef04b1d",
+                    ):
+                        check_versions()
 
 
 # Dallinger tests
