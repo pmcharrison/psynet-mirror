@@ -32,7 +32,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger[docker]>=10,<11",
+    "dallinger[docker]>=10.0.1,<11",
     "dominate",
     "ipywidgets",
     "joblib",
