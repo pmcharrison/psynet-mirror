@@ -156,6 +156,7 @@ class TestExport:
             "CustomTrial.csv",
             "ExperimentAsset.csv",
             "ExperimentConfig.csv",
+            "ExperimentStatus.csv",
             "ModuleState.csv",
             # "Notification.csv",  # We don't expect any notifications to be created
             # "Recruitment.csv",  # We don't expect any recruitment

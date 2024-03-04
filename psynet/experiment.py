@@ -190,6 +190,7 @@ class Request(SQLBase, SQLMixin):
         }
 
 
+@register_table
 class ExperimentStatus(SQLBase, SQLMixin):
     __tablename__ = "experiment_status"
 
