@@ -1210,6 +1210,11 @@ class TrialMaker(Module):
                 f"Please rename performance_check_threshold to performance_threshold in trial maker '{id_}'."
             )
 
+        if hasattr(self, "compute_bonus"):
+            raise AttributeError(
+                f"Please rename compute_bonus to compute_performance_reward in trial maker '{id_}'."
+            )
+
         self.trial_class = trial_class
         self.id = id_
         self.expected_trials_per_participant = expected_trials_per_participant
