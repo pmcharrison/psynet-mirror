@@ -1,5 +1,49 @@
 # CHANGELOG
 
+# [11.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.1.0) Release 2024-03-05
+
+#### Fixed
+- Improved efficiency of `find_networks` (loading `network.head` in a subquery as part of the initial networks retrieval) (author: Peter Harrison).
+- Fixed Chrome and ChromeDriver download link in Dockerfile (author: Frank Höger, reviewer: Peter Harrison).
+- PsyNet now throws an error if an experiment still uses the old trial maker method `compute_bonus` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug in version check (previously it would fail when requirements.txt files included `.git` extensions) (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Added
+- Added a `batch_zipped` parameter to `MediaGibbsNode`. If `batch_zipped` is True, the batch file including the media for the Gibbs slider will be saved as a compressed .zip folder including the .batch file. This zipped batch can be beneficial when media to load are heavy files, as only the smaller .zip folder needs to be downloaded on the participant's computer. The .zip folder is then unpacked only there, avoiding the need for downloading the heavy uncompressed batch file. For heavy media files, the zipped batch option will thus decrease page loading times for the MediaGibbs trials. (author: Eline Van Geert, reviewer: Peter Harrison)
+- Added an svg Gibbs demo using a zipped batch file: svg_gibbs_zipped (author: Eline Van Geert, reviewer: Peter Harrison)
+- Added an `unzip` property to media definition in `MediaGibbsTrial` (author: Eline Van Geert, reviewer: Peter Harrison)
+- Added new config variable `big_base_payment` which defaults to `False` (author: Frank Höger, reviewer: Peter Harrison).
+- Added assertion which stops startup of an experiment if `base_payment > 20` and `big_base_payment = true` is NOT set (author: Frank Höger, reviewer: Peter Harrison).
+- Added assertion logging a warning message if `base_payment > 10` (author: Frank Höger, reviewer: Peter Harrison).
+- Added cap-recruiter section to experiment config template (author: Frank Höger, reviewer: Peter Harrison).
+- Added `with_for_update` option to various queries to make sure that appropriate locks are made on queries. This should reduce the number of deadlock errors we observe (author: Peter Harrison).
+- Added missing library licenses (author: Peter Harrison).
+
+#### Changed
+- Changed `preloadBatch` to also work with a zipped batch file (author: Eline Van Geert, reviewer: Peter Harrison)
+- Changed default `fix_time_credit` in `conditional`, `switch`, and `GroupBarrier` constructs to `False`. This means that (unlike before) the time credit will vary according to which branch the participant takes, which we think is more expected behavior. Default `fix_time_credit` remains `True` for `while_loop`, providing a protection against situations where the participant spends infinite time in a loop and gets infinite credit. We may address this behavior differently in the future. (author: Peter Harrison, reviewer: Frank Höger)
+- `grow_networks` now happens in a periodic background process to avoid deadlock errors and improve robustness (author: Peter Harrison).
+- Barrier logic now happens in a periodic background process to avoid deadlock errors and improve robustness (author: Peter Harrison).
+- SQLAlchemy performance improvements (author: Peter Harrison):
+  - Substantial improvements in database usage efficiency, which should manifest in faster page response times. Efficiency of asset usage is now much improved: it is now practical to start an experiment with e.g. 100,000 assets.
+  - PsyNet has now moved on from its 'commit all the time' strategy. Now the strategy is instead to have just one commit at the end of a given HTTP response or at the end of a given asynchronous process.
+  - If a participant waits more than 60 s for PsyNet to prepare their next trial then their session will be terminated
+  under the assumption that some error has occurred. This timeout is customizable via the attribute `TrialMaker.max_time_waiting_for_trial`.
+  - `AsyncProcesses` no longer start immediately, but instead start when the database transaction is committed.
+  - `awaiting_async_process` has been removed.
+  - Eliminated nested pytest calls, which were preventing some important error messages (particularly those in asynchronous processes) from being logged.
+
+#### Updated
+- Updated `Dallinger` to `v10.0.1`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v10.0.1.
+- Updated pyproject.toml (added `dallinger[docker]`, `pytest`)
+- Updated PsyNet to support Python 3.12 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated GitLab CI to use Python 3.12.2 image (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Documentation changes
+- Installation (general, developer, Docker, virtual environment) (author: Peter Harrison).
+- Fix warnings when building documentation (author: Frank Höger, reviewer: Peter Harrison).
+- Fix broken internal links (author: Frank Höger, reviewer: Peter Harrison).
+
 # [11.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.0.0) Release 2024-01-05
 
 #### Breaking changes
