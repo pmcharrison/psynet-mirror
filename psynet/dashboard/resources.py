@@ -32,10 +32,10 @@ def summarize_resource_use():
 
     window_length = datetime.timedelta(hours=48)
     data = (
-        ExperimentStatus.query.order_by(ExperimentStatus.id.desc())
-        .filter(
+        ExperimentStatus.query.filter(
             ExperimentStatus.creation_time > datetime.datetime.now() - window_length
         )
+        .order_by(ExperimentStatus.id.desc())
         .all()
     )
 
