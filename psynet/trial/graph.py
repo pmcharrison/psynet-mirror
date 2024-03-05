@@ -3,6 +3,7 @@
 from typing import List, Optional, Type
 
 from dallinger import db
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from ..field import claim_field
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
@@ -136,7 +137,7 @@ class GraphChainNode(ChainNode):
     #     return self.network.source_seed
 
     @staticmethod
-    def generate_class_seed():
+    def generate_class_seed(vertex=None):
         raise NotImplementedError
 
     def create_definition_from_seed(self, seed, experiment, participant):
@@ -208,7 +209,7 @@ class GraphChainNode(ChainNode):
     vertex_id = claim_field("vertex_id", __extra_vars__, int)
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
 
-    @property
+    @hybrid_property
     def ready_to_spawn(self):
         parents = (
             self.get_parents()
@@ -222,7 +223,7 @@ class GraphChainNode(ChainNode):
         elif len(parents) < len(self.dependent_vertex_ids):
             return False
         else:
-            raise ValueError("Invalid number of parent nodes!")
+            return False
 
     def get_parents(self):
         trial_maker_id = self.network.trial_maker_id
@@ -231,9 +232,16 @@ class GraphChainNode(ChainNode):
         current_layer = [
             n
             for n in nodes
-            if n.network.trial_maker_id == trial_maker_id and n.degree == degree
+            if n.network.trial_maker_id == trial_maker_id
+            and n.degree == degree
+            and not n.failed
         ]
-        parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
+        parents = [
+            n
+            for n in current_layer
+            if n.vertex_id in self.dependent_vertex_ids
+            and ((n.network.head == n) or (n.child))  # remove duplicate racing heads
+        ]
         return parents
 
 
@@ -379,10 +387,11 @@ class GraphChainTrialMaker(ChainTrialMaker):
         participant = None
         head = network.head
         if head.ready_to_spawn:
-            if head.degree > 0:
-                seed_bundle = self.create_seed_bundle(head, experiment, participant)
-            else:
-                seed_bundle = head.create_seed(experiment, participant)
+            # if head.degree > 0:
+            #     seed_bundle = self.create_seed_bundle(head, experiment, participant)
+            # else:
+            #     seed_bundle = head.create_seed(experiment, participant)
+            seed_bundle = self.create_seed_bundle(head, experiment, participant)
             node = self.node_class(
                 seed_bundle,
                 head.degree + 1,
@@ -396,6 +405,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             db.session.add(node)
             network.add_node(node)
             db.session.commit()
+            node.check_on_create()
             node.check_on_deploy()
             db.session.commit()
             return True
@@ -404,6 +414,9 @@ class GraphChainTrialMaker(ChainTrialMaker):
     def create_seed_bundle(self, head, experiment, participant):
         head_seed = head.create_seed(experiment, participant)
         parents = head.get_parents()
+        while len(parents) < len(head.dependent_vertex_ids):
+            parents = head.get_parents()
+        # try:
         bundle = [
             {
                 "vertex_id": head.network.vertex_id,
@@ -420,6 +433,12 @@ class GraphChainTrialMaker(ChainTrialMaker):
             }
             for p in parents
         ]
+        # except:
+        #     import rpdb
+        #     rpdb.set_trace()
+        # if len(bundle) < 5:
+        #     import rpdb
+        #     rpdb.set_trace()
         return bundle
 
     def generate_source_seed_bundles(self):
@@ -428,7 +447,9 @@ class GraphChainTrialMaker(ChainTrialMaker):
         centers = [
             {
                 "vertex_id": v,
-                "content": self.node_class.generate_class_seed(),
+                "content": self.node_class.generate_class_seed(
+                    v
+                ),  # pass vertex id to allow seed customization --> requires updating other examples
                 "is_center": True,
             }
             for v in vertices
