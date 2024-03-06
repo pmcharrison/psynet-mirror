@@ -31,6 +31,7 @@ logger = get_logger()
 # pylint: disable=unused-import
 
 UniqueConstraint(dallinger.models.Participant.worker_id)
+UniqueConstraint(dallinger.models.Participant.unique_id)
 
 
 class Participant(SQLMixinDallinger, dallinger.models.Participant):

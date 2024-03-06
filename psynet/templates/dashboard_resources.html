@@ -1,0 +1,104 @@
+{% extends "base/dashboard.html" %}
+{% block scripts %}
+    <script src="/static/scripts/d3/d3.v4.js"></script>
+    <script src="/static/scripts/d3/d3-tip.min.js"></script>
+    <script src="/static/scripts/d3-visualizations.js"></script>
+    <script src="/static/scripts/jqueryui/jquery-ui.min.js"></script>
+{% endblock %}
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/scripts/d3/d3-tip.css">
+    <link rel="stylesheet" href="/static/scripts/jqueryui/jquery-ui.css">
+
+
+{% endblock %}
+{% block body %}
+    <style>
+
+    </style>
+    <h1>{{ title }}</h1>
+
+    {{ html | safe }}
+    {% if data | length > 0 %}
+        <div class="selector">
+            <div>
+                <div id="slider-range" class="ui-slider ui-corner-all ui-slider-horizontal ui-widget ui-widget-content">
+                    <span tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default"></span>
+                </div>
+                <span id="min"></span>
+                <span class="seperator">-</span>
+                <span id="max"></span>
+            </div>
+        </div>
+        <div id="lineplot"></div>
+        <script>
+            var data = {{ data | safe }};
+            let x2timestamp = {};
+            data.forEach(function (d) {
+                x2timestamp[d.x] = d.timestamp;
+            });
+            const plotTimeWindow = 2 * 60 * 6;  // 2 hours, status polled every 10 seconds
+            const max = Object.keys(x2timestamp).length - 1;
+            const value = max > plotTimeWindow ? plotTimeWindow : max;
+            const min = 0;
+            const margin = {"top": 10, "right": 30, "bottom": 30, "left": 40},
+                xLabel = "Time",
+                yLabel = "Usage",
+                height = 500,
+                yLimits = [0, 150];
+
+
+            function draw(start = min, end = max) {
+                $("#lineplot").empty();
+                let filteredData = data.filter(function (d) {
+                    return d.x >= start && d.x <= end;
+                });
+                let type2color = {};
+                const uniqueTypes = [...new Set(data.map(d => d.type))]
+                uniqueTypes.forEach(function (type, i) {
+                    type2color[type] = d3.schemeCategory10[i];
+                });
+
+                let tooltip = d3.tip().attr('class', 'd3-tip')
+                    .html(function (d) {
+                        let out = '<strong>' + d.timestamp + '</strong>';
+                        let color = d.type in type2color ? type2color[d.type] : 'black';
+                        out += '<br><span style="color:' + color + '; font-weight: bold">' + d.type + '</span> ';
+                        out += d.label;
+                        return out;
+                    });
+
+                linePlot('lineplot', filteredData, margin, xLabel, yLabel, tooltip, height, yLimits, type2color, x2timestamp);
+            }
+
+            function createSlider(){
+                let slider = $("#slider-range");
+                slider.slider({
+                    range: true,
+                    min: -max,
+                    max: min,
+                    values: [-value, -min],
+                    slide: function (event, ui) {
+                        end = -ui.values[0];
+                        start = -ui.values[1];
+                        $("#max").text(x2timestamp[start]);
+                        $("#min").text(x2timestamp[end]);
+                        draw(start, end);
+                    }
+                });
+                $("#max").text(x2timestamp[min]);
+                $("#min").text(x2timestamp[max]);
+            }
+
+            document.addEventListener("DOMContentLoaded", function (e) {
+                draw();
+                createSlider();
+            });
+        </script>
+    {% endif %}
+
+{% endblock %}
+{% block libs %}
+    {{ super() }}
+
+{% endblock %}
