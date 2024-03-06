@@ -1,19 +1,11 @@
 .d3-tip {
     position: absolute;
+    text-align: center;
     padding: 5px;
     background: #fff;
     border: 1px solid #ddd;
     pointer-events: none;
     margin-top: -1em;
-}
-
-.d3-tip.fullscreen {
-    border: none;
-    padding: 6em 0;
-    border-top: 5px solid #ddd;
-    border-bottom: 5px solid #ddd;
-    left:0 !important;
-    right: 0;
 }
 
 /*.d3-tip {*/

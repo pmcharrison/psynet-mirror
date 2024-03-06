@@ -7,7 +7,7 @@ from yaspin import yaspin
 
 # Bump versions by changing these two lines.
 dallinger_minimum_version = "10.0.1"
-psynet_version = "11.0.0"
+psynet_version = "11.1.0"
 
 dallinger_minimum_version_parts = dallinger_minimum_version.split(".")
 dallinger_maximum_major_version = int(dallinger_minimum_version_parts[0]) + 1
@@ -70,10 +70,10 @@ def get_all_version_infos(file_content):
         requirement = requirements[0]
 
         match = re.search(
-            f"/{package_name}@(.*)#egg={package_name}", requirement, re.IGNORECASE
+            f"/{package_name}(?:\\.git)?@([^#]+)(?:#egg={package_name})?",
+            requirement,
+            re.IGNORECASE,
         )
-        if match is None:
-            match = re.search(f"/{package_name}@(.*)", requirement, re.IGNORECASE)
 
         # We either assume PsyNet is specified in the correct requirement syntax
         # or as a standard requirement (e.g. 'psynet==10.0.0')

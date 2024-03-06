@@ -6,6 +6,7 @@
 
 import random
 import re
+import time
 from statistics import mean
 
 import psynet.experiment
@@ -120,9 +121,9 @@ class Exp(psynet.experiment.Experiment):
         self.initial_recruitment_size = 1
 
     @staticmethod
-    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
+    @scheduled_task("interval", seconds=10, max_instances=1)
     def run_bot_participant():
-        # Every 7 seconds, runs a bot participant.
+        # Every 10 seconds, runs a bot participant.
         from psynet.experiment import is_experiment_launched
 
         if is_experiment_launched():
@@ -131,3 +132,27 @@ class Exp(psynet.experiment.Experiment):
 
     def initialize_bot(self, bot):
         bot.var.is_good_participant = random.sample([True, False], 1)[0]
+
+    def test_experiment(self):
+        from psynet.experiment import ExperimentStatus, Request
+
+        super().test_experiment()
+        all_requests = Request.query.all()
+        assert len(all_requests) > 0
+        assert all(
+            [request.duration < 1 for request in all_requests]
+        ), "Some pages took more than 1 second to load."
+        time.sleep(10)
+        all_status = ExperimentStatus.query.all()
+        assert len(all_status) > 0
+        from psynet.dashboard.resources import summarize_resource_use
+
+        data = summarize_resource_use()
+        different_types = [
+            "CPU usage (%)",
+            "Median page loading time (%)",
+            "Number of page loads",
+            "RAM usage (%)",
+            "Used disk space compared to min (%)",
+        ]
+        assert sorted(set([item["type"] for item in data])) == different_types

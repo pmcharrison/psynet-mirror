@@ -382,46 +382,6 @@ function linePlot(containerId, data, margin, xLabel, yLabel, tooltip = null, hei
             }
         });
 
-
-
-    // var line = d3.line()
-    //     .x(function (d) {
-    //         return x(d.x);
-    //     })
-    //     .y(function (d) {
-    //         return y(d.y);
-    //     });
-    // // point plot
-    // data.forEach(function (d) {
-    //     svg.append("circle")
-    //         .attr("cx", x(d.x))
-    //         .attr("cy", y(d.y))
-    //         .attr("r", 3)
-    //         .style("fill", type2color[d.type])
-    //         .on('mouseover', function (d) {
-    //             if (tooltip !== null) {
-    //                 tooltip.show(d, this);
-    //             }
-    //         })
-    //         .on('mouseout', function (d) {
-    //             if (tooltip !== null) {
-    //                 tooltip.hide(d, this);
-    //             }
-    //         });
-    // });
-    //
-    // // line plot
-    // uniqueTypes.forEach(function (type, i) {
-    //     svg.append("path")
-    //         .datum(data.filter(function (d) {
-    //             return d.type === type;
-    //         }))
-    //         .attr("fill", "none")
-    //         .attr("stroke", type2color[type])
-    //         .attr("stroke-width", 1.5)
-    //         .attr("d", line);
-    // });
-
     if (tooltip !== null) {
         svg.call(tooltip);
     }
