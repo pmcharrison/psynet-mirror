@@ -52,7 +52,7 @@ def summarize_resource_use():
     df_plot = add_raw_values(df_plot, df_raw)
     df_plot["label"] = df_plot.apply(format_label, axis=1)
     df_plot["timestamp"] = format_time_str(df_plot["timestamp"])
-    df_plot["type"] = format_type(df_plot["type"])
+    df_plot["type"] = format_unit(df_plot["type"])
 
     return df_plot.to_dict(orient="records")
 
@@ -117,7 +117,7 @@ def format_time_str(timestamp_series):
     ]
 
 
-def format_type(type_list: list):
+def format_unit(type_list: list):
     replacement_dict = {
         "cpu_usage_pct": "CPU usage (%)",
         "ram_usage_pct": "RAM usage (%)",
