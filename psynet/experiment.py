@@ -1720,6 +1720,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
 
+    def with_prolific_recruitment(self):
+        return issubclass(self.recruiter.__class__, ProlificRecruiter)
+
     def process_response(
         self,
         participant_id,
