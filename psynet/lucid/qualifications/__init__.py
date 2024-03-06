@@ -1,23 +1,20 @@
 import json
-import os
 from typing import List
 
 from markupsafe import Markup
 
 from psynet.log import bold, red
 from psynet.lucid import get_lucid_service
-from psynet.lucid.qualifications.questions import get_custom_qualifications
 from psynet.modular_page import Control, ModularPage
 from psynet.recruiters import get_lucid_country_language_id
-from psynet.utils import get_logger, get_translator
+from psynet.timeline import join
+from psynet.utils import get_logger
 
 
 def create_lucid_recruitment_config(
     language_tag,
     country_tag,
     question_answer_dict,
-    use_headphones: bool,
-    use_microphone: bool,
     config_path=None,
     allow_mobile_devices: bool = None,
     force_google_chrome: bool = None,
@@ -27,90 +24,111 @@ def create_lucid_recruitment_config(
     study_type_id: int = 1,
     debug: bool = True,
     qualifications_dict=None,
+    config=None,
+    service=None,
 ):
     """
     Create a Lucid recruitment config.
     Parameters
     ----------
     language_tag: str, 3-letter lanugage name, NOT an ISO language tag, if you specify a wrong language tag, the Lucid
-    API will tell you which ones are available.
+        API will tell you which ones are available.
+
     country_tag: str, 2-letter country code, NOT an ISO country code, if you specify a wrong country tag, the Lucid API
-    will tell you which ones are available.
+        will tell you which ones are available.
+
     question_answer_dict: dict, a dictionary with question names as keys and a list of allowed answers as values. The
-    question names must occur in CUSTOM_QUALIFICATIONS_LUCID.
-    use_headphones: bool, whether the participant must use headphones
-    use_microphone: bool, whether the participant must use a microphone
+        question names must occur in CUSTOM_QUALIFICATIONS_LUCID.
+
     config_path: str, default None, if None, it will return the config as a dictionary, if a path is specified, it will
+
     allow_mobile_devices: bool, default None, if None, it will be taken from the config file
+
     force_google_chrome: bool, default None, if None, it will be taken from the config file
+
     unique_ip: bool, default True, whether the participant must have a unique IP
+
     unique_pid: bool, default True, whether the participant must have a unique PID
+
     industry_id: int, default 30, which is the default for "Other", pick from:
-    {
-     '1': 'Automotive',
-     '2': 'Beauty/Cosmetics',
-     '3': 'Beverages - Alcoholic',
-     '4': 'Beverages - Non Alcoholic',
-     '5': 'Education',
-     '6': 'Electronics/Computer/Software',
-     '7': 'Entertainment (Movies, Music, TV, etc)',
-     '8': 'Fashion/Clothing',
-     '9': 'Financial Services/Insurance',
-     '10': 'Food/Snacks',
-     '11': 'Gambling/Lottery',
-     '12': 'Healthcare/Pharmaceuticals',
-     '13': 'Home (Utilities, Appliances, ...)',
-     '14': 'Home Entertainment (DVD, VHS)',
-     '15': 'Home Improvement/Real Estate/Construction',
-     '16': 'IT (Servers, Databases, etc)',
-     '17': 'Personal Care/Toiletries',
-     '18': 'Pets',
-     '19': 'Politics',
-     '20': 'Publishing (Newspaper, Magazines, Books)',
-     '21': 'Restaurants',
-     '22': 'Sports',
-     '23': 'Telecommunications (phone, cell phone, cable)',
-     '24': 'Tobacco (Smokers)',
-     '25': 'Toys',
-     '26': 'Transportation/Shipping',
-     '27': 'Travel',
-     '28': 'Video Games',
-     '29': 'Websites/Internet/E-Commerce',
-     '30': 'Other',
-     '31': 'Sensitive Content',
-     '32': 'Explicit Content'
-    }
+        {
+         '1': 'Automotive',
+         '2': 'Beauty/Cosmetics',
+         '3': 'Beverages - Alcoholic',
+         '4': 'Beverages - Non Alcoholic',
+         '5': 'Education',
+         '6': 'Electronics/Computer/Software',
+         '7': 'Entertainment (Movies, Music, TV, etc)',
+         '8': 'Fashion/Clothing',
+         '9': 'Financial Services/Insurance',
+         '10': 'Food/Snacks',
+         '11': 'Gambling/Lottery',
+         '12': 'Healthcare/Pharmaceuticals',
+         '13': 'Home (Utilities, Appliances, ...)',
+         '14': 'Home Entertainment (DVD, VHS)',
+         '15': 'Home Improvement/Real Estate/Construction',
+         '16': 'IT (Servers, Databases, etc)',
+         '17': 'Personal Care/Toiletries',
+         '18': 'Pets',
+         '19': 'Politics',
+         '20': 'Publishing (Newspaper, Magazines, Books)',
+         '21': 'Restaurants',
+         '22': 'Sports',
+         '23': 'Telecommunications (phone, cell phone, cable)',
+         '24': 'Tobacco (Smokers)',
+         '25': 'Toys',
+         '26': 'Transportation/Shipping',
+         '27': 'Travel',
+         '28': 'Video Games',
+         '29': 'Websites/Internet/E-Commerce',
+         '30': 'Other',
+         '31': 'Sensitive Content',
+         '32': 'Explicit Content'
+        }
+
     study_type_id: int, default 1, which is the default for "Adhoc", pick from:
-    {
-     '1': 'Adhoc',
-     '2': 'Diary',
-     '5': 'IHUT',
-     '8': 'Community Build',
-     '9': 'Face to Face',
-     '11': 'Recruit - Panel',
-     '13': 'Tracking - Monthly',
-     '14': 'Tracking - Quarterly',
-     '15': 'Tracking - Weekly',
-     '16': 'Wave Study',
-     '17': 'Qualitative Screening',
-     '18': 'Internal Use',
-     '21': 'Incidence Check',
-     '22': 'Recontact',
-     '23': 'Ad Effectiveness Research',
-     '24': 'Proof Exposed',
-     '25': 'Proof Control'
-     }
+        {
+         '1': 'Adhoc',
+         '2': 'Diary',
+         '5': 'IHUT',
+         '8': 'Community Build',
+         '9': 'Face to Face',
+         '11': 'Recruit - Panel',
+         '13': 'Tracking - Monthly',
+         '14': 'Tracking - Quarterly',
+         '15': 'Tracking - Weekly',
+         '16': 'Wave Study',
+         '17': 'Qualitative Screening',
+         '18': 'Internal Use',
+         '21': 'Incidence Check',
+         '22': 'Recontact',
+         '23': 'Ad Effectiveness Research',
+         '24': 'Proof Exposed',
+         '25': 'Proof Control'
+         }
+
     debug: bool, default True, whether to print debug information, i.e. see the translations of the qualifications
+
+    qualification_dict: dict, default None, a dictionary with question names as keys and question ids as values, if None,
+        it will be taken from the service; it takes some time to get the qualifications from the service, so it is better to
+        pass it as an argument if you can't wait
+
+    config: dict, default None, if None, it will be loaded. Pass the config for speed.
+
+    service: LucidService, default None, if None, it will be loaded. Pass the service for speed.
 
     Returns
     -------
 
     """
-    from psynet.experiment import get_and_load_config
 
     logger = get_logger()
-    config = get_and_load_config()
-    service = get_lucid_service(config=config)
+    if config is None:
+        from psynet.experiment import get_and_load_config
+
+        config = get_and_load_config()
+    if service is None:
+        service = get_lucid_service(config=config)
 
     if qualifications_dict is None:
         qualifications_dict = service.get_qualifications_dict()
@@ -165,10 +183,6 @@ def create_lucid_recruitment_config(
         )
 
     question_answer_dict["TIMEOUT"] = ["Agree"]
-    if use_headphones:
-        question_answer_dict["HEADPHONE"] = ["Yes, I can play audio"]
-    if use_microphone:
-        question_answer_dict["MICROPHONE"] = ["Yes, I can record audio"]
 
     for question_name, options in question_answer_dict.items():
         if question_name not in qualifications_dict:
@@ -180,16 +194,6 @@ def create_lucid_recruitment_config(
             len(option_df) > 0
         ), f"Question {question_name} does not have specified options: {options}. Make sure to pick from: {english_option_df.text.tolist()}."
         precodes = option_df.precode.tolist()
-        qualifications.append(
-            {
-                "Name": question_name,
-                "QuestionID": question_id,
-                "LogicalOperator": "OR",
-                "NumberOfRequiredConditions": len(options),
-                "IsActive": True,
-                "PreCodes": precodes,
-            }
-        )
 
         foreign_locale = f"{language_tag}_{country_tag}"
         try:
@@ -211,6 +215,25 @@ def create_lucid_recruitment_config(
         foreign_question = service.get_question_name(question_id, foreign_locale)
 
         english_question = service.get_question_name(question_id)
+
+        qualifications.append(
+            {
+                "Name": question_name,
+                "QuestionID": question_id,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": len(options),
+                "IsActive": True,
+                "PreCodes": precodes,
+                "QuestionText": english_question,
+                "OptionsTextDict": dict(
+                    zip(english_option_df.precode, foreign_option_df.text)
+                ),
+                "QuestionTranslation": foreign_question,
+                "OptionsTranslationDict": dict(
+                    zip(foreign_option_df.precode, foreign_option_df.text)
+                ),
+            }
+        )
         if debug:
             logger.info(
                 bold(
@@ -248,66 +271,6 @@ def create_lucid_recruitment_config(
             json.dump(lucid_recruitment_config, f, indent=4)
     else:
         return lucid_recruitment_config
-
-
-def _lucid_dict_printer(d, indent, base_indent):
-    out = []
-    out.append("{")
-    for key, question_dict in d.items():
-        out.append(f'{indent}"{key}": ' + "{")
-        out.append(f'{indent*2}"question": _p("{key}", "{question_dict["question"]}"),')
-        out.append(f'{indent*2}"options": [')
-        for option in question_dict["options"]:
-            out.append(f'{indent*3}_p("{key}", "{option}"),')
-        out.append(f"{indent*2}],")
-        out.append(f"{indent}}},")
-    out.append("}")
-    return "\n".join([base_indent + line for line in out])
-
-
-def prepare_qualifications():
-    service = get_lucid_service()
-    lookup = service.get_lucid_country_language_lookup()
-    question_dict = {}
-    for _, row in lookup.iterrows():
-        language = row["language_name"]
-        country = row["country_name"]
-        language_tag = row["language_tag"]
-        country_tag = row["country_tag"]
-        suffix = f"{language_tag}_{country_tag}"
-        question_dict[f"BIRTH_{suffix}"] = {
-            "question": f"Were you born in {country}?",
-            "options": [
-                f"Yes, I was born in {country}",
-                "No, I was born in another country",
-            ],
-        }
-        question_dict[f"NATIVE_{suffix}"] = {
-            "question": f"Is your first language {language}?",
-            "options": [
-                f"Yes, {language} is my first language",
-                "No, have a different first language",
-            ],
-        }
-        question_dict[f"NATIONALITY_{suffix}"] = {
-            "question": "What is your nationality?",
-            "options": [f"I am from {country}", "I have a different nationality"],
-        }
-    here = os.path.abspath(os.path.dirname(__file__))
-    indent = "  "
-    with open(f"{here}/questions.py", "w") as f:
-        out = '"""\n'
-        out += "This file is automatically generated by prepare_qualifications()\n"
-        out += '"""\n'
-        out += "from psynet.utils import get_translator\n"
-        out += "\n"
-        out += "def get_custom_qualifications(locale):\n"
-        out += indent + '"""\n'
-        out += indent + "Get custom qualifications for Lucid for a specific locale.\n"
-        out += indent + '"""\n'
-        out += indent + "_, _p = get_translator(locale)\n"
-        out += indent + f"return {_lucid_dict_printer(question_dict, indent, indent)}\n"
-        f.write(out)
 
 
 class LucidTerminateControl(Control):
@@ -427,197 +390,44 @@ class LucidTwoForcedChoiceQualification(LucidScreeningQuestion):
         )
 
 
-class LucidTimeoutQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=5):
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="TIMEOUT",
-            question=_p(
-                "lucid_qualifications_timeout",
-                "This survey requires you to stay on the website. "
-                "When you switch tabs or leave the window, your participation will be terminated earlier. "
-                'If you wish to end the survey earlier, please press the "early termination" button provided on each '
-                "survey page. "
-                "Please note that early termination will not result in compensation.",
-            ),
-            labels=[
-                _p("lucid_qualifications_timeout", "Yes, I agree"),
-                _p("lucid_qualifications_timeout", "No, I do not agree"),
-            ],
-            time_estimate=time_estimate,
+def verify_lucid_qualifications(config_path: str, question_names: List[str] = None):
+    with open(config_path, "r") as f:
+        config = json.load(f)
+
+    name2question = {q["Name"]: q for q in config["qualifications"]}
+
+    if question_names is None:
+        question_names = [
+            name for name in name2question.keys() if not name.startswith("MS_")
+        ]
+
+    unknown_questions = [q for q in question_names if q not in name2question]
+    assert len(unknown_questions) == 0, f"Unknown question names: {unknown_questions}"
+    pages = []
+
+    for question_name in question_names:
+        qualification = name2question[question_name]
+        question = qualification["QuestionTranslation"]
+        option_dict = qualification["OptionsTranslationDict"]
+        assert (
+            len(option_dict) == 2
+        ), f"Question {question_name} must have exactly 2 options."
+
+        choices = ["yes", "no"]
+        allowed_choices = [
+            choices[int(precode) - 1] for precode in qualification["PreCodes"]
+        ]
+        all_options = list(option_dict.values())
+
+        pages.append(
+            LucidTwoForcedChoiceQualification(
+                label=question_name,
+                question=question,
+                labels=all_options,
+                choices=choices,
+                css_class_per_option=["btn-success", "btn-danger"],
+                allowed=allowed_choices,
+                time_estimate=5,
+            )
         )
-
-
-class LucidAudioQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=5, allowed=None):
-        if allowed is None:
-            allowed = ["yes"]
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="HAS_AUDIO",
-            question=_p(
-                "lucid_qualifications_audio",
-                "To complete this survey, you will be asked to listen to audio. "
-                "Can you listen to audio on the current device?",
-            ),
-            labels=[
-                _p("lucid_qualifications_audio", "Yes"),
-                _p("lucid_qualifications_audio", "No"),
-            ],
-            allowed=allowed,
-            time_estimate=time_estimate,
-        )
-
-
-class LucidHeadphoneQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=5, allowed=None):
-        if allowed is None:
-            allowed = ["yes"]
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="HAS_HEADPHONE",
-            question=_p(
-                "lucid_qualifications_headphone",
-                "To complete this survey, you will be asked to listen to audio using headphones. "
-                "Do you have headphones available?",
-            ),
-            labels=[
-                _p("lucid_qualifications_headphone", "Yes"),
-                _p("lucid_qualifications_headphone", "No"),
-            ],
-            allowed=allowed,
-            time_estimate=time_estimate,
-        )
-
-
-class LucidMicrophoneQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=5, allowed=None):
-        if allowed is None:
-            allowed = ["yes"]
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="HAS_MICROPHONE",
-            question=_p(
-                "lucid_qualifications_microphone",
-                "To complete this survey, you need a microphone. You may not use a wireless microphone (such as "
-                + "Bluetooth headphones). Do you have a microphone available?",
-            ),
-            labels=[
-                _p("lucid_qualifications_microphone", "Yes"),
-                _p("lucid_qualifications_microphone", "No"),
-            ],
-            allowed=allowed,
-            time_estimate=time_estimate,
-        )
-
-
-class LucidInQuietPlaceQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=5, allowed=None):
-        if allowed is None:
-            allowed = ["yes"]
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="IN_QUIET_PLACE",
-            question=_p(
-                "lucid_qualifications_in_quiet_place",
-                "To complete this survey, you need to be in a quiet place. Ideally, you should be in a room with no "
-                "background noise, and you should not be disturbed by other people or pets. Are you in a quiet place?",
-            ),
-            labels=[
-                _p("lucid_qualifications_in_quiet_place", "Yes"),
-                _p("lucid_qualifications_in_quiet_place", "No"),
-            ],
-            allowed=allowed,
-            time_estimate=time_estimate,
-        )
-
-
-class LucidAllowVoiceRecordingQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=5, allowed=None):
-        if allowed is None:
-            allowed = ["yes"]
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="ALLOW_VOICE_RECORDING",
-            question=_p(
-                "lucid_qualifications_allow_voice_recording",
-                "In this experiment, you will be asked to record your voice. All the recordings we obtain during this "
-                "research will be kept confidential, and nobody outside the group of researchers will be able to share "
-                "or store them. Your recordings will not be associated with your name or other identifiers in any way. "
-                "Your recordings will not be used to derive your real identity, and they will not be made public. "
-                "Are you willing to record your voice?",
-            ),
-            labels=[
-                _p("lucid_qualifications_allow_voice_recording", "Yes"),
-                _p("lucid_qualifications_allow_voice_recording", "No"),
-            ],
-            allowed=allowed,
-            time_estimate=time_estimate,
-        )
-
-
-class LucidMonolingualismQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, locale, time_estimate=2):
-        _, _p = get_translator(locale)
-        super().__init__(
-            label="MONOLINGUALISM",
-            question=_p(
-                "lucid_qualifications_monolingualism",
-                "Were you raised monolingual?",
-            ),
-            labels=[
-                _p(
-                    "lucid_qualifications_monolingualism",
-                    "I was raised with my native language only",
-                ),
-                _p(
-                    "lucid_qualifications_monolingualism",
-                    "I was raised with two or more languages",
-                ),
-            ],
-            time_estimate=time_estimate,
-        )
-
-
-class LucidLocaleSpecificQualification(LucidTwoForcedChoiceQualification):
-    def __init__(self, question_id, language_tag, country_tag, locale):
-        key = f"{question_id}_{language_tag}_{country_tag}"
-        custom_qualifications_lucid = get_custom_qualifications(locale)
-        assert key in custom_qualifications_lucid, f"Unknown key {key}."
-        question_dict = custom_qualifications_lucid[key]
-        super().__init__(
-            label=key,
-            question=question_dict["question"],
-            labels=question_dict["options"],
-            time_estimate=2,
-        )
-
-
-class LucidNativeQualification(LucidLocaleSpecificQualification):
-    def __init__(self, language_tag, country_tag, locale):
-        super().__init__(
-            question_id="NATIVE",
-            language_tag=language_tag,
-            country_tag=country_tag,
-            locale=locale,
-        )
-
-
-class LucidNationalityQualification(LucidLocaleSpecificQualification):
-    def __init__(self, language_tag, country_tag, locale):
-        super().__init__(
-            question_id="NATIONALITY",
-            language_tag=language_tag,
-            country_tag=country_tag,
-            locale=locale,
-        )
-
-
-class LucidBirthQualification(LucidLocaleSpecificQualification):
-    def __init__(self, language_tag, country_tag, locale):
-        super().__init__(
-            question_id="BIRTH",
-            language_tag=language_tag,
-            country_tag=country_tag,
-            locale=locale,
-        )
+    return join(*pages)
