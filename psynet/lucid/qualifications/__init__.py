@@ -226,7 +226,7 @@ def create_lucid_recruitment_config(
                 "PreCodes": precodes,
                 "QuestionText": english_question,
                 "OptionsTextDict": dict(
-                    zip(english_option_df.precode, foreign_option_df.text)
+                    zip(english_option_df.precode, english_option_df.text)
                 ),
                 "QuestionTranslation": foreign_question,
                 "OptionsTranslationDict": dict(
