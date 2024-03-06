@@ -1,11 +1,10 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-from markupsafe import Markup
-
 import psynet.experiment
 import psynet.media
-from psynet.asset import DebugStorage
+from psynet.asset import LocalStorage
 from psynet.consent import CAPRecruiterStandardConsent
+from psynet.modular_page import Markup
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
@@ -38,7 +37,6 @@ GRANULARITY = 25  # 25 different slider positions
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
 
 NUM_CHAINS_PER_EXPERIMENT = 2
@@ -50,14 +48,24 @@ class CustomTrial(VideoGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
+    minimal_interactions = 3
     minimal_time = 3.0
     time_estimate = 5.0
+    disable_slider_on_change = "while_playing"
+    media_width = "250px"
+    media_height = "250px"
+    layout = ["media", "prompt", "progress", "control", "buttons"]
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "Adjust the slider so that the video is as "
+            "<center>Adjust the slider so that the video is as "
             f"<strong>{self.context['target']}</strong> "
-            "as possible."
+            "as possible.</center></br></br>"
+            "In each trial of this experiment, you use the slider to choose between different video clips. "
+            "In this case, every video contains an alternation between two colored squares. Each of the squares is "
+            "presented twice. How long each of the colored squares is presented also varies."
+            "The slider is disabled as long as a video is playing. The next button is activated the earliest after "
+            "three seconds and minimally three interactions with the slider are required.",
         )
 
 
@@ -90,7 +98,7 @@ trial_maker = CustomTrialMaker(
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_trials",
+    recruit_mode="n_trials",
     target_n_participants=None,
     wait_for_networks=True,
 )
@@ -98,7 +106,7 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Video Gibbs sampling demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(

@@ -7,6 +7,7 @@ import urllib
 import urllib.parse
 import urllib.request
 import uuid
+import warnings
 from functools import cached_property
 from typing import Optional
 
@@ -14,10 +15,10 @@ import boto3
 import paramiko
 import requests
 from dallinger import db
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import column_property, deferred, relationship
+from sqlalchemy.orm import deferred, relationship
 from tqdm import tqdm
 
 from psynet.timeline import NullElt
@@ -26,7 +27,7 @@ from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject  # , register_extra_var
 from .media import get_aws_credentials
-from .process import AsyncProcess, LocalAsyncProcess
+from .process import LocalAsyncProcess
 from .utils import (
     cache,
     classproperty,
@@ -231,9 +232,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -280,7 +278,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     # Inheriting from ``SQLBase`` and ``SQLMixin`` means that the ``Asset`` object is stored in the database.
@@ -309,7 +306,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     key_within_experiment = Column(String, index=True)  # , onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
 
+    is_global = Column(Integer, ForeignKey("experiment.id"), index=True)
+
     parent = deferred(Column(PythonObject))
+    module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     trial_id = Column(Integer, ForeignKey("info.id"), index=True)
     node_id = Column(Integer, ForeignKey("node.id"), index=True)
@@ -327,11 +327,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     node_definition = Column(PythonObject)
 
     async_processes = relationship("AsyncProcess")
-    awaiting_async_process = column_property(
-        select(AsyncProcess.asset_id, AsyncProcess.pending)
-        .where(AsyncProcess.asset_id == id, AsyncProcess.pending)
-        .exists()
+
+    module_state_links = relationship(
+        "AssetModuleState",
+        order_by="AssetModuleState.creation_time",
     )
+    module_states = association_proxy("module_state_links", "module_state")
 
     participant_links = relationship(
         "AssetParticipant",
@@ -464,6 +465,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.parent:
                 self.module_id = self.parent.module_id
 
+        if self.participant:
+            if self.participant.module_state:
+                self.module_state = self.participant.module_state
+
         self.personal = personal
 
         super().__init__(
@@ -485,6 +490,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         if self.key_within_experiment is None:
             self.key_within_experiment = self.generate_key_within_experiment()
+
+        if not self.local_key and self.key_within_module:
+            self.local_key = self.key_within_module
 
         self.host_path = self.generate_host_path()
         self.export_path = self.generate_export_path()
@@ -557,7 +565,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def prepare_for_deployment(self, registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         self.deposit(self.default_storage)
-        db.session.commit()
 
     def deposit(
         self,
@@ -594,7 +601,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             db.session.add(self)
 
             if self.parent:
-                _local_key = self.local_key if self.local_key else f"asset_{self.id}"
+                assert self.local_key
+                _local_key = self.local_key
                 self.parent.assets[_local_key] = self
 
                 ancestors = self.get_ancestors()
@@ -602,6 +610,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.node_id = ancestors["node"]
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
+
+            if not self.participant_id:
+                from .experiment import get_experiment
+
+                exp = get_experiment()
+                exp.global_assets.append(self)
 
             # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
             # which may rely on the asset being in its complete state. Any information that may be needed
@@ -614,7 +628,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             return self
 
         finally:
-            db.session.commit()
+            pass
 
     def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         """
@@ -707,6 +721,18 @@ class AssetLink:
     def __init__(self, local_key, asset):
         self.local_key = local_key
         self.asset = asset
+
+
+@register_table
+class AssetModuleState(AssetLink, SQLBase, SQLMixin):
+    __tablename__ = "asset_module_state"
+
+    module_state_id = Column(Integer, ForeignKey("module_state.id"), primary_key=True)
+    module_state = relationship(
+        "psynet.timeline.ModuleState", back_populates="asset_links"
+    )
+
+    asset = relationship("Asset", back_populates="module_state_links")
 
 
 @register_table
@@ -869,9 +895,6 @@ class ManagedAsset(Asset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -918,7 +941,6 @@ class ManagedAsset(Asset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     input_path = Column(String)
@@ -1006,8 +1028,6 @@ class ManagedAsset(Asset):
             self.deposit_time_sec = time_end - time_start
         else:
             self.deposited = True
-
-        db.session.commit()
 
     def prepare_input(self):
         pass
@@ -1167,9 +1187,6 @@ class ExperimentAsset(ManagedAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -1216,7 +1233,6 @@ class ExperimentAsset(ManagedAsset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     def generate_host_path(self):
@@ -1369,9 +1385,6 @@ class CachedAsset(ManagedAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -1418,7 +1431,6 @@ class CachedAsset(ManagedAsset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     used_cache = Column(Boolean)
@@ -1724,9 +1736,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -1773,7 +1782,6 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     ::
 
         participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     secret = Column(String)
@@ -1967,9 +1975,6 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
 
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
-
     participant :
         If the parent is a ``Participant``, returns that participant.
 
@@ -2111,9 +2116,6 @@ class ExternalAsset(Asset):
 
     async_processes : list
         Lists all async processes that have been created for the asset, including completed ones.
-
-    awaiting_async_process : bool
-        Whether the asset is waiting for an async process to finish.
 
     participant :
         If the parent is a ``Participant``, returns that participant.
@@ -2290,6 +2292,8 @@ class AssetStorage:
     Defines a storage back-end for storing assets.
     """
 
+    heroku_compatible = True
+
     @property
     def experiment(self):
         from .experiment import get_experiment
@@ -2330,11 +2334,7 @@ class AssetStorage:
         asset = db.session.merge(asset)
         self._receive_deposit(asset, host_path)
         asset.deposited = True
-
-        db.session.commit()
-
         asset.after_deposit()
-        db.session.commit()
 
         if delete_input:
             asset.delete_input()
@@ -2484,6 +2484,7 @@ class LocalStorage(AssetStorage):
     """
 
     label = "assets"
+    heroku_compatible = False
 
     def __init__(self, root=None):
         """
@@ -2701,7 +2702,12 @@ class LocalStorage(AssetStorage):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
             return self.check_local_cache(host_path, is_folder)
         elif deployment_info.read("is_ssh_deployment"):
-            return self.check_ssh_cache(host_path, is_folder)
+            return self.check_ssh_cache(
+                host_path,
+                is_folder,
+                ssh_host=deployment_info.read("ssh_host"),
+                ssh_user=deployment_info.read("ssh_user"),
+            )
         else:
             raise RuntimeError(
                 f"Not sure how to check cache given the current run configuration: {deployment_info.read_all()}"
@@ -2714,9 +2720,9 @@ class LocalStorage(AssetStorage):
             or (not is_folder and os.path.isfile(file_system_path))
         )
 
-    def check_ssh_cache(self, host_path: str, is_folder: bool):
-        ssh_host = "musix.mus.cam.ac.uk"  # todo - propagate properly
-        ssh_user = "pmch2"
+    def check_ssh_cache(
+        self, host_path: str, is_folder: bool, ssh_host: str, ssh_user: str
+    ):
         sftp = self.sftp_connection(ssh_host, ssh_user)
 
         # At some point, we need to refactor the logic for get_file_system_path to clarify
@@ -2741,9 +2747,17 @@ class LocalStorage(AssetStorage):
 class DebugStorage(LocalStorage):
     """
     A local storage back-end used for debugging.
+
+    .. deprecated:: 11.0.0
+        Use ``LocalStorage`` instead.
     """
 
-    pass
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "DebugStorage is deprecated, please replace it with LocalStorage.",
+            DeprecationWarning,
+        )
+        super().__init__(*args, **kwargs)
 
 
 # def create_bucket_if_necessary(fun):
@@ -3033,7 +3047,9 @@ class S3Storage(AssetStorage):
         s3_key = os.path.join(self.root, host_path)
 
         if use_cache is None:
-            use_cache = not self.experiment.var.launch_finished
+            from .experiment import is_experiment_launched
+
+            use_cache = is_experiment_launched()
 
         if is_folder:
             return self.check_cache_for_folder(s3_key, use_cache)

@@ -31,7 +31,7 @@ Let’s suppose that we want to address issue #288, ‘Add Node.participant and 
 
 |br|
 
-Step 2: Creating an merge request
+Step 2: Creating a merge request
 +++++++++++++++++++++++++++++++++
 
 GitLab provides a useful button on the issue page for us to click: ‘Create merge request’. Don’t click the button straightaway, but click the arrow on its right instead.
@@ -159,11 +159,11 @@ Once we’ve checked out the code locally, we should make sure that our Python i
 
 .. code-block:: console
 
-  # Prior to running pip install, make sure you’re in the right
+  # Prior to running pip3 install, make sure you’re in the right
   # virtual environment, for example by running:
   # workon my-psynet-env
 
-  pip install -e .  # installs PsyNet in local editable mode
+  pip3 install -e .  # installs PsyNet in local editable mode
 
 Step 3: Implementing the feature
 ++++++++++++++++++++++++++++++++

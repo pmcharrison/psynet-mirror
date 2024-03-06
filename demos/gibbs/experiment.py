@@ -9,7 +9,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.asset import DebugStorage, ExperimentAsset
+from psynet.asset import ExperimentAsset, LocalStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
@@ -248,7 +248,7 @@ def _collect_coin(participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    asset_storage = DebugStorage()
+    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(
@@ -267,13 +267,13 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_n_bots = 4
+    test_n_bots = 6
 
     def test_check_bots(self, bots: List[Bot]):
         time.sleep(2.0)
 
-        assert len([b for b in bots if b.var.participant_group == "A"]) == 2
-        assert len([b for b in bots if b.var.participant_group == "B"]) == 2
+        assert len([b for b in bots if b.var.participant_group == "A"]) == 3
+        assert len([b for b in bots if b.var.participant_group == "B"]) == 3
 
         for b in bots:
             assert len(b.alive_trials) == 7  # 4 normal trials + 3 repeat trials

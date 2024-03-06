@@ -1,10 +1,6 @@
 import os
 import pathlib
 
-import pytest
-
-from psynet.utils import run_subprocess_with_live_output
-
 
 def find_files():
     """
@@ -26,9 +22,11 @@ def find_files():
     )
 
 
-@pytest.mark.parametrize("pytest_script", find_files())
-def test_all_isolated(pytest_script):
-    run_subprocess_with_live_output(f"pytest -x -s --chrome {pytest_script}")
+# We no longer use this logic, and instead run the tests via run-ci-tests.sh
+#
+# @pytest.mark.parametrize("pytest_script", find_files())
+# def test_all_isolated(pytest_script):
+#     run_subprocess_with_live_output(f"pytest -x -s --chrome {pytest_script}")
 
 
 # We run the tests in subprocesses to avoid tests contaminating subsequent tests.

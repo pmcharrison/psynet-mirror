@@ -1,5 +1,6 @@
 import pickle
 import re
+import warnings
 from functools import cached_property
 
 import dominate.tags
@@ -123,7 +124,13 @@ class PsyNetUnpickler(Unpickler):
 
     def load_sql_object(self, cls, obj):
         identifiers = obj["identifiers"]
-        return cls.query.filter_by(**identifiers).one()
+        res = cls.query.filter_by(**identifiers).one_or_none()
+        if res is None:
+            warnings.warn(
+                f"The unserializer failed to find the following object in the database: {obj}. "
+                "Returning `None` instead."
+            )
+        return res
 
     @cached_property
     def experiment(self):
@@ -132,14 +139,13 @@ class PsyNetUnpickler(Unpickler):
         return import_local_experiment()
 
 
-pickler = PsyNetPickler()
-
-
 def serialize(x, **kwargs):
+    pickler = PsyNetPickler()
     return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
+    pickler = PsyNetPickler()
     return pickler.flatten(x)
 
 
@@ -149,8 +155,8 @@ def unserialize(x):
     # producing duplicate mappers for each custom class.
     # import_local_experiment()
     # custom_classes = list(get_custom_sql_classes().values())
-    unpickler = PsyNetUnpickler()
     # return jsonpickle.decode(x, context=unpickler, classes=custom_classes)
+    unpickler = PsyNetUnpickler()
     return jsonpickle.decode(x, context=unpickler)
     # return jsonpickle.decode(x, classes=custom_classes)
 
@@ -182,9 +188,17 @@ class SQLHandler(jsonpickle.handlers.BaseHandler):
     The SQLHandler class
     """
 
-    def flatten(self, obj, state):
+    def get_primary_keys(self, obj):
         primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
-        primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
+        return {key: getattr(obj, key) for key in primary_key_cols}
+
+    def flatten(self, obj, state):
+        primary_keys = self.get_primary_keys(obj)
+        if any(key is None for key in primary_keys.values()):
+            raise ValueError(
+                f"Cannot serialize {obj}. It has a `None` value for one of its primary keys: {primary_keys}. "
+                "It might be possible to solve this problem by introducing a `db.session.flush()` call before pickling."
+            )
         state["identifiers"] = primary_keys
         return state
 

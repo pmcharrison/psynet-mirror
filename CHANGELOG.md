@@ -1,5 +1,149 @@
 # CHANGELOG
 
+# [11.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.1.0) Release 2024-03-05
+
+#### Fixed
+- Improved efficiency of `find_networks` (loading `network.head` in a subquery as part of the initial networks retrieval) (author: Peter Harrison).
+- Fixed Chrome and ChromeDriver download link in Dockerfile (author: Frank Höger, reviewer: Peter Harrison).
+- PsyNet now throws an error if an experiment still uses the old trial maker method `compute_bonus` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug in version check (previously it would fail when requirements.txt files included `.git` extensions) (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Added
+- Added a `batch_zipped` parameter to `MediaGibbsNode`. If `batch_zipped` is True, the batch file including the media for the Gibbs slider will be saved as a compressed .zip folder including the .batch file. This zipped batch can be beneficial when media to load are heavy files, as only the smaller .zip folder needs to be downloaded on the participant's computer. The .zip folder is then unpacked only there, avoiding the need for downloading the heavy uncompressed batch file. For heavy media files, the zipped batch option will thus decrease page loading times for the MediaGibbs trials. (author: Eline Van Geert, reviewer: Peter Harrison)
+- Added an svg Gibbs demo using a zipped batch file: svg_gibbs_zipped (author: Eline Van Geert, reviewer: Peter Harrison)
+- Added an `unzip` property to media definition in `MediaGibbsTrial` (author: Eline Van Geert, reviewer: Peter Harrison)
+- Added new config variable `big_base_payment` which defaults to `False` (author: Frank Höger, reviewer: Peter Harrison).
+- Added assertion which stops startup of an experiment if `base_payment > 20` and `big_base_payment = true` is NOT set (author: Frank Höger, reviewer: Peter Harrison).
+- Added assertion logging a warning message if `base_payment > 10` (author: Frank Höger, reviewer: Peter Harrison).
+- Added cap-recruiter section to experiment config template (author: Frank Höger, reviewer: Peter Harrison).
+- Added `with_for_update` option to various queries to make sure that appropriate locks are made on queries. This should reduce the number of deadlock errors we observe (author: Peter Harrison).
+- Added missing library licenses (author: Peter Harrison).
+
+#### Changed
+- Changed `preloadBatch` to also work with a zipped batch file (author: Eline Van Geert, reviewer: Peter Harrison)
+- Changed default `fix_time_credit` in `conditional`, `switch`, and `GroupBarrier` constructs to `False`. This means that (unlike before) the time credit will vary according to which branch the participant takes, which we think is more expected behavior. Default `fix_time_credit` remains `True` for `while_loop`, providing a protection against situations where the participant spends infinite time in a loop and gets infinite credit. We may address this behavior differently in the future. (author: Peter Harrison, reviewer: Frank Höger)
+- `grow_networks` now happens in a periodic background process to avoid deadlock errors and improve robustness (author: Peter Harrison).
+- Barrier logic now happens in a periodic background process to avoid deadlock errors and improve robustness (author: Peter Harrison).
+- SQLAlchemy performance improvements (author: Peter Harrison):
+  - Substantial improvements in database usage efficiency, which should manifest in faster page response times. Efficiency of asset usage is now much improved: it is now practical to start an experiment with e.g. 100,000 assets.
+  - PsyNet has now moved on from its 'commit all the time' strategy. Now the strategy is instead to have just one commit at the end of a given HTTP response or at the end of a given asynchronous process.
+  - If a participant waits more than 60 s for PsyNet to prepare their next trial then their session will be terminated
+  under the assumption that some error has occurred. This timeout is customizable via the attribute `TrialMaker.max_time_waiting_for_trial`.
+  - `AsyncProcesses` no longer start immediately, but instead start when the database transaction is committed.
+  - `awaiting_async_process` has been removed.
+  - Eliminated nested pytest calls, which were preventing some important error messages (particularly those in asynchronous processes) from being logged.
+
+#### Updated
+- Updated `Dallinger` to `v10.0.1`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v10.0.1.
+- Updated pyproject.toml (added `dallinger[docker]`, `pytest`)
+- Updated PsyNet to support Python 3.12 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated GitLab CI to use Python 3.12.2 image (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Documentation changes
+- Installation (general, developer, Docker, virtual environment) (author: Peter Harrison).
+- Fix warnings when building documentation (author: Frank Höger, reviewer: Peter Harrison).
+- Fix broken internal links (author: Frank Höger, reviewer: Peter Harrison).
+
+# [11.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.0.0) Release 2024-01-05
+
+#### Breaking changes
+- Renamed various variables. To update your experiment, do a find-and-replace search for these variables in your experiment code.
+
+Config variables:
+* min_accumulated_bonus_for_abort -> min_accumulated_reward_for_abort
+`show_bonus` -> `show_reward`
+
+Experiment variables:
+* `dynamically_update_progress_bar_and_bonus` -> `dynamically_update_progress_bar_and_reward`
+* `show_bonus` -> `show_reward`
+
+Trial methods:
+* `compute_bonus` -> `compute_performance_reward`
+
+Experiment methods:
+* `estimated_bonus_in_dollars` -> `estimated_reward_in_dollars`
+* `estimated_max_bonus` -> `estimated_max_reward`
+* `get_progress_and_bonus` -> `get_progress_and_reward`
+
+Participant methods:
+* `calculate_bonus` -> `calculate_reward`
+* `get_bonus` -> `get_time_reward`
+* `inc_performance_bonus` -> `inc_performance_reward`
+
+- Removed `prolific_reward_cents` to instead use `base_payment` for Prolific reward (author: Frank Höger, reviewer: Peter Harrison).
+- Removed `prolific_maximum_allowed_minutes` from docs (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Fixed
+- Replaced occurrences of 'from flask import Markup' with 'from markupsafe import Markup' (author: Frank Höger).
+- Fixed wheel build target in pyproject.toml (author: Frank Höger).
+- Fixed bug registering `pageUpdated` event (author: Peter Harrison).
+- Prevent autocomplete on number input fields (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed bug in custom prompts demo and tutorial (author: Peter Harrison).
+- Fixed bug with experiment label property (it was causing an error message on psynet export (author: Peter Harrison, reviewer: Pol van Rijn).
+- Fixed pre-deploy checks for Heroku-incompatible storage backends (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug in `check_ssh_cache` that was causing `CachedAsset` to fail (author: Peter Harrison, reviewer: Frank Höger).
+- `Unserialize` no longer fails when an SQL object cannot be found in the database, but instead returns `None`. This should make PsyNet more robust to cases where the `export` command is run partly through an experiment (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug where Gibbs networks would skip a dimension on rare event of node duplication (author: Peter Harrison, reviewer: Eline Van Geert).
+- Fixed displayed text in language selection prompt (author: Yoko Urano, reviewer: Pol van Rijn).
+- Fixed a bug where the PsyNet/Dallinger version consistency check was using an incorrect regex (author: Peter Harrison, reviewer: Pol van Rijn).
+- PsyNet Docker images are now built using the Python dependencies specified in Dallinger's requirements.txt, which stops packages from accidentally being upgraded to incompatible versions (author: Peter Harrison, reviewer: Pol van Rijn).
+- Updated Unity demo with new WebGL files to fix an issue where the `page_uuid`s sometimes did not match due to a race condition (authors: Ofer Tchernichovski, Nori Jacoby).
+- Fixed order of function when when updating demos (author: Frank Höger).
+- Fixed bug where trial makers weren't waiting for asynchronous file deposits (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed various minor bugs.
+
+#### Added
+- Added 'Gibbs image' demo (author: Eline Van Geert, reviewer: Peter Harrison).
+- Added `on_first_launch` hook for `TrialMaker`s (author: Pol van Rijn, reviewer: Peter Harrison).
+- Added/updated logging info when the `fail()` method is called on node, trial, network, and participant (author: Frank Höger, reviewer: Peter Harrison).
+- Added optional `height` argument to `VideoPrompt` (author: Frank Höger, reviewer: Peter Harrison).
+- Run the pre-commit tests as part of GitLab CI pipeline (author: Frank Höger, reviewer: Peter Harrison).
+- Add `--real-time` option for running bots (author: Peter Harrison).
+- Added ability to specify extra files in `TrialMaker`s (author: Pol van Rijn, reviewer: Peter Harrison).
+- It is now possible to run multiple bots in parallel through a PsyNet test. Example command: `psynet test local --n-bots 10 --parallel`. (authors: Eline Van Geert and Peter Harrison, reviewer: Peter Harrison)
+- `psynet test` now supports remote deployments. Push your app to the remote server by running `psynet debug ssh --app test` as usual, then test it by running e.g. `psynet test ssh --app test --n-bots 10 --parallel`. (author: Peter Harrison, reviewer: Eline Van Geert)
+- Added additional static audio demo (author: Elif Celen, reviewers: Peter Harrison, Frank Höger).
+- Added JS function `psynet.stageResponse` as a mechanism for staging responses in custom controls (author: Peter Harrison).
+- Provide a decorator `@expose_to_api` which will register an arbitrary static function under `/api/<name>` (author: Pol van Rijn, reviewer: Peter Harrison).
+
+#### Changed
+- The polymorphic identity column used to distinguish different types of object within a given database table now uses a fully qualified module name to avoid problems (author: Peter Harrison, reviewer: Frank Höger).
+that happened when two classes from different modules used the same name.
+- Changed `VideoPrompt`'s default value for `mirrored` to `False`, and specify `mirrored=True` in all demos currently using `VideoPrompt` (author: Frank Höger, reviewer: Peter Harrison).
+- Revise deprecation statement about `AntiphaseHeadphoneTest` (author: Peter Harrison).
+- Better error messages for when a `wait_while` times out (author: Peter Harrison, reviewer: Pol van Rijn).
+- Deprecate `DebugStorage`, all usages can be replaced with `LocalStorage` (author: Peter Harrison, reviewer: Frank Höger).
+- PsyNet demos now source PsyNet from PyPi instead of GitLab, making dependency installation much faster. Adapted 'update demo' logic to reflect those changes (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Updated
+- Updated `Dallinger` to `v9.12.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.12.0.
+- Updated/fixed logic for updating demos (author: Frank Höger)
+- Make `page` accessible within Page Jinja templates (author: Peter Harrison).
+- Auto-update PsyNet Docker image version; updated demos (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Removed
+- Removed old references to setup.py (author: Frank Höger).
+- Removed old `LOCAL_S3` code (author: Peter Harrison).
+
+#### Documentation changes
+- Fixed documentation for `choose_participant_group`.
+- Added section for creating new experiments.
+- Added documentation for `start_nodes`.
+- Updated instructions about Python versions.
+- Updated timeline, troubleshooting, and tutorials chapters.
+- Updated installation instructions (incl. those for demos).
+- Updated section on SSH deployment.
+- Updated documentation for `ModularPage`.
+- Updated documentation for demos.
+- Updated section on writing custom frontends.
+- Updated chapter on making a release.
+- Replaced occurrences of `pip` with `pip3`.
+
+# [10.4.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.1) Release 2023-12-18
+
+#### Updated
+- Updated `Dallinger` to `v9.11.0`. See the complete release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.11.0.
+
 # [10.4.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.4.0) Release 2023-09-24
 
 #### Fixed
@@ -8,7 +152,7 @@
 - Fixed `show_footer=False`, which wasn't previously working (author: Peter Harrison, reviewer: Eline van Geert).
 - Fixed bug for duplicate next button in `SurveyJSControl` (author: Peter Harrison).
 - Fixed issues with `jsPsych` page formatting (author: Peter Harrison, reviewer: Eline van Geert).
-- Fixed Heroku deployment from archive, which was previously failing early with a 'Checking the wrong experiment' error. (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed Heroku deployment from archive, which was previously failing early with a 'Checking the wrong experiment' error (author: Peter Harrison, reviewer: Frank Höger).
 - Added a check to prevent cases where PsyNet tests import multiple different experiments in the same session, as this could cause difficult state contamination errors (author: Peter Harrison, reviewer: Frank Höger).
 - Migrated most PsyNet tests into the `isolated` directory to further protect against contamination issues (author: Peter Harrison, reviewer: Frank Höger).
 - Minor fix for dashboard's `GenericTrialNode` display (author: Peter Harrison).
@@ -43,8 +187,6 @@
 - Added warning to `Synchronization` subsection (author: Peter Harrison).
 - Updated `Example experiments` subsection (author: Peter Harrison).
 - Updated `Docker installation` and `Developer installation` subsections (author: Eline Van Geert, reviewer: Peter Harrison).
-
-
 
 # [10.3.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v10.3.1) Release 2023-08-25
 
@@ -318,9 +460,9 @@ There are various ways to configure bots to take part in a real experiment. One 
 
 ```py
     @staticmethod
-    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
+    @scheduled_task("interval", seconds=5, max_instances=1)
     def run_bot_participant():
-        # Every 7 seconds, runs a bot participant.
+        # Every 5 seconds, runs a bot participant.
         experiment = get_experiment()
         if experiment.var.launched:
             bot = Bot()

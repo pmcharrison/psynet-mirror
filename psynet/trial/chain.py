@@ -11,10 +11,11 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    or_,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import column_property, relationship, subqueryload
 from sqlalchemy.sql.expression import not_, select
 from tqdm import tqdm
 
@@ -22,13 +23,7 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
-from ..utils import (
-    call_function_with_context,
-    get_logger,
-    log_time_taken,
-    negate,
-    time_logger,
-)
+from ..utils import call_function_with_context, get_logger, log_time_taken, negate
 from .main import (
     NetworkTrialMaker,
     NetworkTrialMakerState,
@@ -111,9 +106,6 @@ class ChainNetwork(TrialNetwork):
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
 
-    awaiting_async_process : bool
-        Whether the network is currently waiting for an asynchronous process to complete.
-
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
@@ -149,7 +141,6 @@ class ChainNetwork(TrialNetwork):
     """
 
     # pylint: disable=abstract-method
-    # __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     chain_type = Column(String)
     head_id = Column(Integer, ForeignKey("node.id"))
@@ -158,20 +149,6 @@ class ChainNetwork(TrialNetwork):
     block = Column(String, index=True)
 
     head = relationship("ChainNode", foreign_keys=[head_id], post_update=True)
-
-    # @hybrid_property
-    # def n_viable_trials_at_head(self):
-    #     return self.head.n_viable_trials
-    #
-    # @n_viable_trials_at_head.expression
-    # def n_viable_trials_at_head(cls):
-    #     return
-    #
-    #
-    #     column_property(
-    # ef n_viable_trials_at_head = column_property(
-    #
-    # )
 
     def __init__(
         self,
@@ -186,7 +163,6 @@ class ChainNetwork(TrialNetwork):
     ):
         super().__init__(trial_maker_id, experiment)
         db.session.add(self)
-        # db.session.commit()
 
         if participant is not None:
             self.id_within_participant = id_within_participant
@@ -212,14 +188,9 @@ class ChainNetwork(TrialNetwork):
 
         db.session.add(start_node)
         self.add_node(start_node)
-        # db.session.commit()
-        start_node.check_on_create()
         start_node.check_on_deploy()
-        # db.session.commit()
 
         self.validate()
-
-        # db.session.commit()
 
     def validate(self):
         """
@@ -373,17 +344,29 @@ class ChainNetwork(TrialNetwork):
         else:
             return self.target_n_trials - self.n_completed_trials
 
-    # @hybrid_property
-    # def ready_to_spawn(self):
-    #     return self.head.ready_to_spawn
-    #
-    # @ready_to_spawn.expression
-    # def ready_to_spawn(cls):
-    #     return (
-    #         select(ChainNode.ready_to_spawn)
-    #         .where(ChainNode.id == cls.head_id)
-    #         .scalar_subquery()
-    #     )
+    @hybrid_property
+    def ready_to_spawn(self):
+        return self.head.ready_to_spawn
+
+    @ready_to_spawn.expression
+    def ready_to_spawn(cls):
+        return (
+            select(ChainNode.ready_to_spawn)
+            .where(ChainNode.id == cls.head_id)
+            .scalar_subquery()
+        )
+
+    @hybrid_property
+    def n_viable_trials_at_head(self):
+        return self.head.n_viable_trials
+
+    @n_viable_trials_at_head.expression
+    def n_viable_trials_at_head(cls):
+        return (
+            select(ChainNode.n_viable_trials)
+            .where(ChainNode.id == cls.head_id)
+            .scalar_subquery()
+        )
 
 
 class ChainNode(TrialNode):
@@ -512,6 +495,7 @@ class ChainNode(TrialNode):
 
     key = Column(String, index=True)
     degree = Column(Integer)
+    target_n_trials = Column(Integer)
     child_id = Column(Integer, ForeignKey("node.id"), index=True)
     parent_id = Column(Integer, ForeignKey("node.id"), index=True)
     seed = Column(PythonObject, default=lambda: {})
@@ -575,6 +559,8 @@ class ChainNode(TrialNode):
             else:
                 degree = 0
 
+        self.degree = degree
+
         if module_id is None:
             if parent:
                 module_id = parent.module_id
@@ -595,7 +581,6 @@ class ChainNode(TrialNode):
         self.assets = assets
         self.block = block
         self.participant_group = participant_group
-        self.degree = degree
         self.module_id = module_id
         self.seed = seed
         self.definition = definition
@@ -606,6 +591,10 @@ class ChainNode(TrialNode):
         if parent:
             parent.child = self
             self.parent = parent
+
+    def set_network(self, network):
+        super().set_network(network)
+        self.target_n_trials = network.trials_per_node
 
     def create_initial_seed(self, experiment, participant):
         raise NotImplementedError
@@ -689,20 +678,6 @@ class ChainNode(TrialNode):
     def var(self):
         return VarStore(self)
 
-    @hybrid_property
-    def target_n_trials(self):
-        return self.network.trials_per_node
-
-    @target_n_trials.expression
-    def target_n_trials(cls):
-        # Does this produce a correlated subquery? Is it problematic for performance?
-        # (https://docs.sqlalchemy.org/en/14/orm/extensions/hybrid.html#correlated-subquery-relationship-hybrid)
-        return (
-            select(ChainNetwork.trials_per_node)
-            .where(ChainNetwork.id == cls.network_id)
-            .scalar_subquery()
-        )
-
     # @property
     # def ready_to_spawn(self):
     #     return self.reached_target_n_trials
@@ -724,19 +699,14 @@ class ChainNode(TrialNode):
         return (
             select(func.count(Trial.id))
             .where(
-                Trial.node_id == cls.id,
+                Trial.node_id == TrialNode.id,
                 Trial.complete,
                 Trial.finalized,
+                ~Trial.failed,
                 ~Trial.is_repeat_trial,
             )
             .scalar_subquery()
         )
-
-    # column_property(
-    #     # select(Trial.node_id, Trial.complete, Trial.finalized, Trial.is_repeat_trial)
-    #     select(func.count(Trial.id))
-    #     .where(Trial.node_id == TrialNode.id, Trial.complete, Trial.finalized, ~ Trial.is_repeat_trial)
-    # )
 
     @hybrid_property
     def reached_target_n_trials(self):
@@ -758,12 +728,11 @@ class ChainNode(TrialNode):
     def viable_trials(self):
         return [t for t in self.alive_trials if not t.is_repeat_trial]
 
-    # def reached_target_n_trials(self):
-    #     return len(self.completed_and_processed_trials) >= self.target_n_trials
-
     def fail(self, reason=None):
-        if self.network.head.id == self.id:
+        if self.network.head == self:
             self.network.head = self.parent
+        if self.degree == 0:
+            self.network.fail(reason=f"Start node failed (reason: {reason})")
         super().fail(reason)
 
     @property
@@ -799,24 +768,6 @@ TrialNode.n_viable_trials = column_property(
         ~Trial.is_repeat_trial,
         ~Trial.failed,
     )
-    .scalar_subquery()
-)
-
-ChainNetwork.ready_to_spawn = column_property(
-    select(ChainNode.ready_to_spawn)
-    .where(ChainNode.id == ChainNetwork.head_id)
-    .scalar_subquery()
-)
-
-ChainNetwork.n_viable_trials_at_head = column_property(
-    select(TrialNode.n_viable_trials)
-    .where(TrialNode.id == ChainNetwork.head_id)
-    .scalar_subquery()
-)
-
-ChainNetwork.head_is_awaiting_async_process = column_property(
-    select(TrialNode.awaiting_async_process)
-    .where(TrialNode.id == ChainNetwork.head_id)
     .scalar_subquery()
 )
 
@@ -921,10 +872,6 @@ class ChainTrial(Trial):
         The user should not typically change this directly.
         Stored in ``details`` in the database.
 
-    awaiting_async_process : bool
-        Whether the trial is waiting for some asynchronous process
-        to complete (e.g. to synthesise audiovisual material).
-
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
@@ -982,8 +929,13 @@ class ChainTrial(Trial):
         return to_fail
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "ChainTrialMaker":
         return self.node.trial_maker
+
+    def on_finalized(self):
+        super().on_finalized()
+        if self.trial_maker and self.trial_maker.chain_type == "within":
+            self.trial_maker.call_grow_network(network=self.network)
 
 
 class ChainTrialMakerState(NetworkTrialMakerState):
@@ -1072,10 +1024,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         The class object for the networks used by this maker.
         This should subclass :class:`~psynet.trial.chain.ChainNode`.
 
-    source_class
-        The class object for sources
-        (should subclass :class:`~psynet.trial.chain.ChainSource`).
-
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.chain.ChainTrial`).
@@ -1115,6 +1063,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         Whether trial selection should be actively balanced across chains,
         such that trials are preferentially sourced from chains with
         fewer valid trials.
+
+    start_nodes
+        A list of nodes that are used to initialize the chains.
+        In an across-participant trial maker, this should be a simple list of instances of the class ``node_class``.
+        In a within-participant trial maker, a fresh set of nodes should be created for each new participant.
+        To achieve this, ``start_nodes`` should be a lambda function that returns a list of newly created nodes.
+        This lambda function may accept ``participant`` as one of its arguments.
 
     # balance_strategy
         #   A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
@@ -1487,14 +1442,26 @@ class ChainTrialMaker(NetworkTrialMaker):
                 negate(self.all_participant_networks_ready),
                 expected_wait=5.0,
                 log_message="Waiting for participant networks to be ready.",
+                max_wait_time=self.max_time_waiting_for_trial,
             )
         return None
 
     def all_participant_networks_ready(self, participant):
-        networks = self.network_class.query.filter_by(
-            participant_id=participant.id, trial_maker_id=self.id
-        ).all()
-        return all([not x.awaiting_async_process for x in networks])
+        cls = self.network_class
+        return (
+            db.session.query(func.count(cls.id))
+            .join(self.node_class, cls.head_id == self.node_class.id)
+            .filter(
+                cls.participant_id == participant.id,
+                cls.trial_maker_id == self.id,
+                or_(
+                    cls.async_post_grow_network_pending,
+                    self.node_class.async_on_deploy_pending,
+                ),
+            )
+            .scalar()
+            == 0
+        )
 
     @property
     def n_trials_still_required(self):
@@ -1528,12 +1495,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             network = self.create_network(
                 experiment, participant, id_within_participant=i, start_node=nodes[i]
             )
-            # self._grow_network(network, experiment)  # not necessary any more!
+            # self.call_grow_network(network, experiment)  # not necessary any more!
             networks.append(network)
             if node:
                 node.check_on_deploy()
-
-        db.session.commit()
 
         return networks
 
@@ -1557,12 +1522,12 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
-        db.session.commit()
+
+        db.session.flush()
 
         for node in tqdm(nodes, desc="Staging assets"):
             if node is not None:
                 node.stage_assets(experiment)
-        db.session.commit()
 
     def create_network(
         self, experiment, participant=None, id_within_participant=None, start_node=None
@@ -1584,7 +1549,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         start_node.set_network(network)
-        # db.session.commit()  # TODO - remove this for efficiency?
         return network
 
     @log_time_taken
@@ -1604,7 +1568,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         """
         participant.module_state  # type: ChainTrialMakerState
 
-        db.session.commit()
         logger.info(
             "Looking for networks for participant %i.",
             participant.id,
@@ -1638,7 +1601,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         #
         #
         networks = self.network_class.query.filter_by(
-            trial_maker_id=self.id, full=False
+            trial_maker_id=self.id, full=False, failed=False
+        ).options(
+            subqueryload(self.network_class.head),
         )
 
         # logger.info(
@@ -1676,8 +1641,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             return TypeError("custom_network_filter must return a list of networks")
 
         def has_pending_process(network):
-            return (
-                network.awaiting_async_process or network.head_is_awaiting_async_process
+            return network.async_post_grow_network_pending or (
+                network.head and network.head.async_on_deploy_pending
             )
 
         networks_without_pending_processes = [
@@ -1700,8 +1665,15 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         networks = networks_without_pending_processes
 
+        # find_networks normally takes place in a participant's 'response' call.
+        # This means that the previous trial will exist in the database,
+        # but it might not have been marked as finalized yet.
+        # That's fine if we use `n_viable_trials_at_head` to determine whether there is space,
+        # because this will count that previous trial.
         networks_with_head_space = [
-            n for n in networks if n.n_viable_trials_at_head < self.trials_per_node
+            n
+            for n in networks
+            if n.head and n.n_viable_trials_at_head < self.trials_per_node
         ]
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
@@ -1722,7 +1694,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         random.shuffle(networks)
 
         if self.balance_across_chains:
-            networks.sort(key=lambda network: network.n_completed_trials)
+            # We used to sort by n_completed_trials, but this is likely to be out of date
+            # because the completion of the latest trial might not have been committed yet.
+            networks.sort(key=lambda network: network.n_viable_trials_at_head)
+            networks.sort(key=lambda network: network.head.degree)
 
             # if "across" in self.balance_strategy:
             #     networks.sort(key=lambda network: network.n_completed_trials)
@@ -1807,26 +1782,18 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant = None
         if network.ready_to_spawn:
             head = network.head
-            with time_logger("create seed", indent=4):
-                seed = head.create_seed(experiment, participant)
-            with time_logger("create node", indent=4):
-                node = self.node_class(
-                    seed=seed,
-                    parent=head,
-                    network=network,
-                    experiment=experiment,
-                    propagate_failure=self.propagate_failure,
-                    participant=participant,
-                )
-            with time_logger("add node to DB", indent=4):
-                db.session.add(node)
-                network.add_node(node)
-                db.session.commit()
-            with time_logger("creation checks", indent=4):
-                node.check_on_create()
-                node.check_on_deploy()
-            with time_logger("final commit", indent=4):
-                db.session.commit()
+            seed = head.create_seed(experiment, participant)
+            node = self.node_class(
+                seed=seed,
+                parent=head,
+                network=network,
+                experiment=experiment,
+                propagate_failure=self.propagate_failure,
+                participant=participant,
+            )
+            db.session.add(node)
+            network.add_node(node)
+            node.check_on_deploy()
             return True
         return False
 

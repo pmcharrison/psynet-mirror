@@ -186,7 +186,7 @@ as well as looking through the low-level documentation below.
 Further reading
 ---------------
 
-- `Graphics exercises <../exercises/graphics.html>`_
+- `Graphics exercises <../learning/exercises/graphics.html>`_
 
 
 Low-level documentation

@@ -1,0 +1,31 @@
+{% macro trial_progress_display(config) %}
+    <style>
+        #trial-progress-bar {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            display: {% if config["show_bar"] %} flex {% else %} none {% endif %};
+        }
+
+        #trial-progress-caption {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            display: {% if config["show_caption"] %} flex {% else %} none {% endif %};
+        }
+
+        .trial-progress-bar-segment {
+            -webkit-transition: none;
+            -moz-transition: none;
+            -ms-transition: none;
+            -o-transition: none;
+            transition: none;
+        }
+    </style>
+
+    <div id="trial-progress-bar" class="progress"></div>
+    <div id="trial-progress-caption">
+        <span id="trial-progress-caption-contents">&nbsp;</span>
+    </div>
+{% endmacro %}

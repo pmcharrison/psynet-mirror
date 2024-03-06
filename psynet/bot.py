@@ -1,5 +1,7 @@
 import time
 import uuid
+from datetime import datetime
+from statistics import mean
 from typing import List
 
 import requests
@@ -7,15 +9,10 @@ from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
+from .db import with_transaction
 from .participant import Participant
 from .timeline import EndPage, Page
-from .utils import (
-    NoArgumentProvided,
-    get_logger,
-    log_time_taken,
-    time_logger,
-    wait_until,
-)
+from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
 
@@ -110,59 +107,109 @@ class Bot(Participant):
         # with working_directory(self.experiment.var.server_working_directory):
         # app = util.import_app("dallinger.experiment_server.sockets:app")
         # with app.app_context(), app.test_request_context():
+        n_pages = 0
+
+        page_processing_times = []
+        page_total_times = []
+
         while True:
+            page_time_started = time.monotonic()
+
             page = self.get_current_page()
-            if render_pages:
-                with time_logger("timeline_route"):
-                    req = requests.get(
-                        f"http://localhost:5000/timeline?unique_id={self.unique_id}"
-                    )
-                assert req.status_code == 200
-            with time_logger("take_page"):
-                self.take_page(page, time_factor)
+
+            # This commit is necessary because get_current_page can make changes to the participant
+            # (e.g. advancing them to the next page in the timeline). We need to commit so that the
+            # server (as accessed via the HTTP request) has access to this information too.
             db.session.commit()
+
+            if render_pages:
+                req = requests.get(
+                    f"http://localhost:5000/timeline?unique_id={self.unique_id}"
+                )
+                assert req.status_code == 200
+            sleep_time = self.take_page(page, time_factor)["sleep_time"]
+            db.session.commit()
+
+            page_time_finished = time.monotonic()
+            page_total_time = page_time_finished - page_time_started
+
+            page_total_times.append(page_total_time)
+
+            page_processing_time = page_total_time - sleep_time
+            page_processing_times.append(page_processing_time)
+
+            n_pages += 1
+
             if not self.status == "working":
                 break
+
+        if n_pages > 0:
+            mean_page_processing_time = mean(page_processing_times)
+        else:
+            mean_page_processing_time = None
+
+        total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
+
+        # To do - migrate these metrics to generic Participants (not just bots) so that we can report them
+        # everywhere
+        stats = {
+            "page_count": self.page_count,
+            "progress": self.progress,
+            "mean_page_processing_time": mean_page_processing_time,
+            "total_wait_page_time": self.total_wait_page_time,
+            "total_experiment_time": total_experiment_time,
+        }
+
         logger.info(
-            f"Bot {self.id} has finished the experiment (took {self.page_count} page(s))."
+            f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"progress = {100 * stats['progress']:.0f}%, "
+            f"mean processing time per page = {stats['mean_page_processing_time']:.3f} seconds, "
+            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
+            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
         )
 
+        return stats
+
+    # In a real launched experiment, taking a page involves a single HTTP request that is wrapped in a transaction.
+    # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
+    # participant.
+    @with_transaction
     def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
         from .page import WaitPage
 
+        start_time = time.monotonic()
+
         if page is None:
-            with time_logger("get_current_page"):
-                page = self.get_current_page()
+            page = self.get_current_page()
 
         bot = self
         experiment = self.experiment
         assert isinstance(page, Page)
 
-        time_taken = page.time_estimate * time_factor
+        sleep_time = page.time_estimate * time_factor
 
-        if time_taken == 0 and isinstance(page, WaitPage):
-            time_taken = 0.5
+        if sleep_time == 0 and isinstance(page, WaitPage):
+            sleep_time = 0.5
 
-        if time_taken > 0:
-            time.sleep(time_taken)
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
         response = page.call__bot_response(experiment, bot, response)
 
         if "time_taken" not in response.metadata:
-            response.metadata["time_taken"] = time_taken
+            response.metadata["time_taken"] = sleep_time
 
         if not isinstance(page, EndPage):
             try:
-                with time_logger("process_response"):
-                    experiment.process_response(
-                        participant_id=self.id,
-                        raw_answer=response.raw_answer,
-                        blobs=response.blobs,
-                        metadata=response.metadata,
-                        page_uuid=self.page_uuid,
-                        client_ip_address=response.client_ip_address,
-                        answer=response.answer,
-                    )
+                experiment.process_response(
+                    participant_id=self.id,
+                    raw_answer=response.raw_answer,
+                    blobs=response.blobs,
+                    metadata=response.metadata,
+                    page_uuid=self.page_uuid,
+                    client_ip_address=response.client_ip_address,
+                    answer=response.answer,
+                )
             except RuntimeError as err:
                 if "Working outside of request context" in str(err):
                     err.args = (
@@ -176,7 +223,13 @@ class Bot(Participant):
 
         self.page_count += 1
 
-        db.session.commit()
+        end_time = time.monotonic()
+        processing_time = end_time - start_time - sleep_time
+
+        return {
+            "sleep_time": sleep_time,
+            "processing_time": processing_time,
+        }
 
 
 class BotResponse:

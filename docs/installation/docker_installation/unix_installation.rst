@@ -1,5 +1,5 @@
-macOS/Linux installation
-========================
+Installing PsyNet via Docker (macOS/Linux)
+==========================================
 
 .. include:: shared_introduction.rst
 

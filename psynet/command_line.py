@@ -45,6 +45,8 @@ from .serialize import serialize, unserialize
 from .utils import (
     ISO_639_1_CODES,
     get_args,
+    list_demo_dirs,
+    list_isolated_tests,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -578,6 +580,41 @@ def is_chromedriver_process(process):
         pass
 
 
+###########
+# run bot #
+###########
+
+
+def _run_bot(real_time=False):
+    from .bot import Bot
+    from .experiment import get_experiment
+
+    exp = get_experiment()
+    exp.test_real_time = real_time
+
+    os.environ["PASSTHROUGH_ERRORS"] = "True"
+    os.environ["DEPLOYMENT_PACKAGE"] = "True"
+    bot = Bot()
+    exp.run_bot(bot)
+
+
+@psynet.command()
+@click.option(
+    "--real-time",
+    is_flag=True,
+    help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
+)
+@click.pass_context
+def run_bot(ctx, real_time=False):
+    """
+    Run a bot through the local version of the experiment.
+    Prior to running this command you must spin up a local experiment, for example
+    by running ``psynet debug local``. You can then call ``psynet run-bot``
+    multiple times to simulate multiple bots being run through the experiment.
+    """
+    _run_bot(real_time=real_time)
+
+
 ##############
 # pre deploy #
 ##############
@@ -872,18 +909,17 @@ def docs(force_rebuild):
 def check_prolific_payment(experiment, config):
     from .experiment import get_and_load_config
 
-    cents = config.get("prolific_reward_cents")
+    base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
     wage_per_hour = get_and_load_config().get("wage_per_hour")
     assert (
-        wage_per_hour * minutes / 60 == cents / 100
+        wage_per_hour * minutes / 60 == base_payment
     ), "Wage per hour does not match Prolific reward"
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
-    from .asset import DebugStorage
     from .experiment import get_experiment
 
     exp = get_experiment()
@@ -969,13 +1005,14 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         is_mturk = isinstance(recruiter, MTurkRecruiter)
         is_prolific = isinstance(recruiter, ProlificRecruiter)
 
-        if mode in ["sandbox", "deploy"]:
-            if isinstance(exp.asset_storage, DebugStorage):
+        if heroku:
+            if not exp.asset_storage.heroku_compatible:
                 raise AttributeError(
-                    "You can't deploy an experiment to a remote server with Experiment.asset_storage = DebugStorage(). "
-                    "If you don't need assets in your experiment, you can probably remove the line altogether, "
-                    "or replace DebugStorage with NoStorage. If you do need assets, you should replace DebugStorage "
-                    "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+                    f"You can't deploy an experiment to Heroku with this asset storage back-end ({exp.asset_storage}). "
+                    "The storage back-end is set in your experiment class with a line like `asset_storage = ...`. "
+                    "If you don't need assets in your experiment, you can probably remove the line altogether. "
+                    "If you do need assets, you should replace the current storage option with a "
+                    "Heroku-compatible backend, for example S3Storage('your-bucket', 'your-root')."
                 )
             if is_prolific:
                 check_prolific_payment(exp, config)
@@ -1452,7 +1489,7 @@ def verify_psynet_requirement():
         assert valid, (
             "Incorrect specification for PsyNet in 'requirements.txt'.\n"
             "\nExamples:\n"
-            "* psynet == 10.1.1\n"
+            "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
@@ -1908,16 +1945,14 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version_tag = "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+            version = r"\d+\.\d+\.\d+"
             for line in orig_file:
                 match = re.search(
-                    r"^psynet@git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet@"
-                    + version_tag
-                    + "#egg=psynet$",
+                    r"^psynet(\s?)==(\s?)" + version + "$",
                     line,
                 )
                 if match is not None:
-                    updated_file.write(re.sub(version_tag, f"v{__version__}", line))
+                    updated_file.write(re.sub(version, f"{__version__}", line))
                 else:
                     updated_file.write(line)
             updated_file.close()
@@ -2009,9 +2044,9 @@ def post_update_constraints_():
     import fileinput
 
     with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        version_tag = "PsyNet@v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        psynet_version = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
         for line in file:
-            print(re.sub(version_tag, f"PsyNet@v{__version__}", line), end="")
+            print(re.sub(psynet_version, f"psynet=={__version__}", line), end="")
 
 
 @psynet.command()
@@ -2047,7 +2082,7 @@ def _prepare_translation(iso_code):
         marked the strings you want to translate with the _() and _p() function. Here's an example:
         ###################
         import os
-        from flask import Markup
+        from markupsafe import Markup
         from psynet.page import InfoPage
         from psynet.utils import get_translator
         locale = "nl"
@@ -2340,13 +2375,154 @@ def verify_id(ctx, param, app):
 dallinger.command_line.utils.verify_id = verify_id
 
 
-@psynet.command()
+@psynet.group("test")
 @click.pass_context
 def test(ctx):
+    pass
+
+
+_test_options = {}
+
+_test_options["existing"] = click.option(
+    "--existing",
+    is_flag=True,
+    help="Use this flag if the experiment server is already running",
+)
+
+_test_options["n_bots"] = click.option(
+    "--n-bots",
+    help="Number of bots to use in the test. If not specified, will default to Experiment.test_n_bots.",
+)
+
+_test_options["parallel"] = click.option(
+    "--parallel",
+    is_flag=True,
+    help=(
+        "Forces the tests to be run in parallel, overriding the default specified in the Experiment class. "
+        "Only relevant if the number of bots is greater than 1. Does the opposite of --serial."
+    ),
+)
+
+_test_options["serial"] = click.option(
+    "--serial",
+    is_flag=True,
+    help=(
+        "Forces the tests to be run serially, overriding the default specified in the Experiment class. "
+        "Does the opposite of --parallel."
+    ),
+)
+
+_test_options["stagger"] = click.option(
+    "--stagger",
+    help="Time interval to wait (in seconds) between instantiating each parallel bot.",
+)
+
+_test_options["real_time"] = click.option(
+    "--real-time",
+    is_flag=True,
+    help="Instead of running each bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
+)
+
+
+@test.command("local")
+@_test_options["existing"]
+@_test_options["n_bots"]
+@_test_options["parallel"]
+@_test_options["serial"]
+@_test_options["stagger"]
+@_test_options["real_time"]
+def test__local(
+    existing=False,
+    n_bots=None,
+    parallel=None,
+    serial=None,
+    stagger=None,
+    real_time=None,
+):
     """
-    Runs the experiment's regression test.
+    Test the experiment locally.
     """
-    run_subprocess_with_live_output("pytest test.py")
+    assert not (parallel and serial)
+
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+
+    if n_bots:
+        n_bots = int(n_bots)
+        exp.test_n_bots = n_bots
+
+    if parallel:
+        exp.test_mode = "parallel"
+    elif serial:
+        exp.test_mode = "serial"
+
+    if stagger:
+        exp.test_parallel_stagger_interval_s = float(stagger)
+
+    if real_time:
+        exp.test_real_time = True
+
+    if existing:
+        exp.test_experiment()
+    else:
+        import pytest
+
+        pytest.main(["test.py"])
+
+
+@test.command("ssh")
+@click.option("--app", required=True, help="Name of the experiment app.")
+@server_option
+@_test_options["n_bots"]
+@_test_options["parallel"]
+@_test_options["serial"]
+@_test_options["stagger"]
+@_test_options["real_time"]
+@click.pass_context
+def test__docker_ssh(
+    ctx,
+    app,
+    server,
+    n_bots=None,
+    parallel=None,
+    serial=None,
+    stagger=None,
+    real_time=None,
+):
+    """
+    Runs experiment tests on the remote server.
+    Assumes that the app has already been launched on the remote server using ``psynet debug ssh``.
+
+    Running this command will not reset the database to a vanilla state, but will instead just use the state
+    that exists already. This may cause strange results if the tests are run multiple times.
+
+    Note: this feature is currently experimental and the API is likely to change without warning.
+    """
+    from dallinger.command_line.docker_ssh import Executor
+
+    cmd = "psynet test local --existing"
+
+    if n_bots:
+        cmd += f" --n-bots {n_bots}"
+
+    if parallel:
+        cmd += " --parallel"
+
+    if serial:
+        cmd += " --serial"
+
+    if stagger:
+        cmd += " --stagger"
+
+    if real_time:
+        cmd += " --real-time"
+
+    server_info = CONFIGURED_HOSTS[server]
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+    executor = Executor(ssh_host, user=ssh_user)
+    executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
 
 
 @psynet.command()
@@ -2356,5 +2532,35 @@ def simulate(ctx):
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
     """
-    ctx.invoke(test)
+    ctx.invoke(test__local)
     ctx.invoke(export__local)
+
+
+@psynet.command(name="list-demo-dirs")
+@click.option("--for-ci-tests", is_flag=True)
+@click.option("--ci-node-total", default=None, type=int)
+@click.option("--ci-node-index", default=None, type=int)
+def _list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+    """
+    Lists the directories of all the demo experiments that are available.
+    """
+    for directory in list_demo_dirs(
+        for_ci_tests=for_ci_tests,
+        ci_node_total=ci_node_total,
+        ci_node_index=ci_node_index,
+    ):
+        print(directory)
+
+
+@psynet.command(name="list-isolated-tests")
+@click.option("--ci-node-total", default=None, type=int)
+@click.option("--ci-node-index", default=None, type=int)
+def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
+    """
+    Lists the directories of all the demo experiments that are available.
+    """
+    for test_ in list_isolated_tests(
+        ci_node_total=ci_node_total,
+        ci_node_index=ci_node_index,
+    ):
+        print(test_)

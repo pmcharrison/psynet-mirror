@@ -1,6 +1,8 @@
 import re
 from datetime import datetime
 
+from jsonpickle.unpickler import loadclass
+from jsonpickle.util import importable_name
 from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
@@ -65,6 +67,20 @@ class _PythonList(PythonObject):
 
 
 PythonList = MutableList.as_mutable(_PythonList)
+
+
+class PythonClass(PythonObject):
+    @property
+    def python_type(self):
+        return type
+
+    @classmethod
+    def serialize(cls, value):
+        return importable_name(value)
+
+    @classmethod
+    def unserialize(cls, value):
+        return loadclass(value)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):

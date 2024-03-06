@@ -4,8 +4,7 @@ description = This experiment requires you to XXX. Please use a Chrome browser i
 contact_email_on_error = XXX@gmail.com
 organization_name = XXX
 
-# If you don't want to use a crowdsourcing platform, set recruiter = generic.
-recruiter = prolific
+recruiter = generic
 currency = $
 wage_per_hour = 12.0
 
@@ -18,7 +17,7 @@ auto_recruit = false
 # with bonus for time spent on the task.
 prolific_estimated_completion_minutes = 2
 # 10 dollars an hour -> 16.666666667 cents per minutes
-prolific_reward_cents = 34
+base_payment = 0.34
 
 [Lucid]
 # When recruiting with Lucid below settings need to be applied,
@@ -28,3 +27,13 @@ prolific_reward_cents = 34
 # debug_recruiter = DevLucidRecruiter
 # lucid_recruitment_config = file:./lucid_recruitment_config.json
 # show_reward = false
+
+[CAP-Recruiter]
+# When recruiting with CAP-Recruiter set the following:
+# recruiter = cap-recruiter
+#
+# Alternatively, when using the staging CAP-Recruiter (https://staging-cap-recruiter.ae.mpg.de/) set:
+# recruiter = staging-cap-recruiter
+#
+# For local debug CAP-Recruiter set:
+# debug_recruiter = dev-cap-recruiter

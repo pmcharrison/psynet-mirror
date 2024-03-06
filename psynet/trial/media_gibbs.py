@@ -4,6 +4,7 @@ import json
 import os
 import random
 import tempfile
+import zipfile
 from uuid import uuid4
 
 from markupsafe import Markup, escape
@@ -11,7 +12,15 @@ from markupsafe import Markup, escape
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
-from ..modular_page import MediaSliderControl, ModularPage
+from ..modular_page import (
+    EXTENSIONS,
+    AudioSliderControl,
+    HtmlSliderControl,
+    ImageSliderControl,
+    MediaSliderControl,
+    ModularPage,
+    VideoSliderControl,
+)
 from ..timeline import MediaSpec
 from ..utils import get_logger, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -122,12 +131,29 @@ class MediaGibbsTrial(GibbsTrial):
     disable_while_playing : bool
         If `True`, the slider is disabled while the media is playing. Default: `False`.
 
+        .. deprecated:: 11.0.0
+
+            Use ``disable_slider_on_change`` instead.
+
+    disable_slider_on_change:
+        - ``<float>``: Duration for which the media slider should be disabled after its value changed, in seconds.
+
+        - ``"while_playing"``: The slider will be disabled after a value change, as long as the related media is playing.
+
+        - ``"never"``: The slider will not be disabled after a value change.
+
+        Default: `never`.
+
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
 
     minimal_time : float : default: 3.0
         Minimal amount of time that the user must spend on the page before
         they can proceed to the next trial.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
 
     debug : bool
         If ``True``, then the page displays debugging information about the
@@ -147,11 +173,13 @@ class MediaGibbsTrial(GibbsTrial):
     snap_slider_before_release = False
     autoplay = False
     disable_while_playing = False
+    disable_slider_on_change = "never"
     minimal_interactions = 3
     minimal_time = 3.0
     debug = False
     random_wrap = False
     input_type = "HTML5_range_slider"
+    layout = ModularPage.default_layout
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -171,6 +199,7 @@ class MediaGibbsTrial(GibbsTrial):
                 media_locations=self.media_locations,
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,
+                disable_slider_on_change=self.disable_slider_on_change,
                 n_steps="n_media" if self.snap_slider_before_release else 10000,
                 input_type=self.input_type,
                 random_wrap=self.random_wrap,
@@ -203,6 +232,13 @@ class MediaGibbsTrial(GibbsTrial):
             raise ValueError(
                 "<snap_slider_before_release> can only equal <True> if <granularity> is an integer."
             )
+        if (
+            self.network.modality in ["image", "html"]
+            and self.disable_slider_on_change == "while_playing"
+        ):
+            raise ValueError(
+                f"<disable_slider_on_change> cannot equal <'while_playing'> if the modality is {self.network.modality}."
+            )
 
     @property
     def media(self):
@@ -216,6 +252,7 @@ class MediaGibbsTrial(GibbsTrial):
                     "url": slider_stimuli["url"],
                     "ids": [x["id"] for x in slider_stimuli["all"]],
                     "type": "batch",
+                    "unzip": self.node.batch_zipped,
                 }
             },
         )
@@ -259,6 +296,7 @@ class MediaGibbsNode(GibbsNode):
     granularity = 100
     n_jobs = 1
     batch_synthesis = False
+    batch_zipped = False
 
     slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
 
@@ -292,11 +330,10 @@ class MediaGibbsNode(GibbsNode):
 
     def prepare_stimuli(self, range_to_sample, granularity, output_dir, modality):
         logger.info(modality)
-        assert modality in ["audio", "video"]
-        ext = ".wav" if modality == "audio" else ".mp4"
+        assert modality in EXTENSIONS.keys()
         values = linspace(range_to_sample[0], range_to_sample[1], granularity)
         ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-        files = [f"{_id}{ext}" for _id in ids]
+        files = [f"{_id}" for _id in ids]
         paths = [os.path.join(output_dir, _file) for _file in files]
         stimuli = [
             {"id": _id, "value": _value, "path": _path}
@@ -309,7 +346,8 @@ class MediaGibbsNode(GibbsNode):
             individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
             os.mkdir(individual_stimuli_dir)
 
-            batch_file = f"{uuid4()}.batch"
+            batch_name = f"{uuid4()}"
+            batch_file = f"{batch_name}.batch"
             batch_path = os.path.join(temp_dir, batch_file)
             active_index = self.active_index
             granularity = self.granularity
@@ -363,6 +401,19 @@ class MediaGibbsNode(GibbsNode):
                     for _id, _value, _path in zip(ids, values, paths)
                 ]
                 self.make_media_batch_file(stimuli, batch_path)
+
+            if self.batch_zipped:
+                zipped_batch_file = f"{batch_name}.zip"
+                zipped_batch_path = os.path.join(temp_dir, zipped_batch_file)
+
+                with zipfile.ZipFile(zipped_batch_path, mode="w") as archive:
+                    archive.write(
+                        batch_path,
+                        arcname="stim.batch",
+                        compress_type=zipfile.ZIP_DEFLATED,
+                    )
+                batch_path = zipped_batch_path
+
             asset = ExperimentAsset(
                 local_key="slider_stimulus",
                 input_path=batch_path,
@@ -385,13 +436,215 @@ class MediaGibbsTrialMaker(GibbsTrialMaker):
     pass
 
 
+class AudioGibbsNetwork(MediaGibbsNetwork):
+    modality = "audio"
+    pass
+
+
+class AudioGibbsTrial(MediaGibbsTrial):
+    disable_slider_on_change = "never"
+
+    def show_trial(self, experiment, participant):
+        self._validate()
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            "gibbs_audio_trial",
+            self._get_prompt(experiment, participant),
+            control=AudioSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                audio=self.media.audio,
+                sound_locations=self.media_locations,
+                autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
+                disable_slider_on_change=self.disable_slider_on_change,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+        )
+
+
+class AudioGibbsNode(MediaGibbsNode):
+    pass
+
+
+class AudioGibbsTrialMaker(MediaGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return AudioGibbsNetwork
+
+
+class ImageGibbsNetwork(MediaGibbsNetwork):
+    modality = "image"
+
+
+class ImageGibbsTrial(MediaGibbsTrial):
+    disable_slider_on_change = "never"
+    media_width = ""
+    media_height = ""
+    continuous_updates = False
+    layout = ModularPage.default_layout
+
+    def show_trial(self, experiment, participant):
+        self._validate()
+        if self.continuous_updates and self.disable_slider_on_change != "never":
+            raise ValueError(
+                "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
+            )
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            f"gibbs_{self.network.modality}_trial",
+            self._get_prompt(experiment, participant),
+            control=ImageSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                slider_media=self.media.data[self.network.modality],
+                media_locations=self.media_locations,
+                autoplay=self.autoplay,
+                disable_slider_on_change=self.disable_slider_on_change,
+                media_width=self.media_width,
+                media_height=self.media_height,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+                continuous_updates=self.continuous_updates,
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+            layout=self.layout,
+        )
+
+
+class ImageGibbsNode(MediaGibbsNode):
+    pass
+
+
+class ImageGibbsTrialMaker(MediaGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return ImageGibbsNetwork
+
+
+class HtmlGibbsNetwork(MediaGibbsNetwork):
+    modality = "html"
+
+
+class HtmlGibbsTrial(MediaGibbsTrial):
+    disable_slider_on_change = "never"
+    media_width = ""
+    media_height = ""
+    continuous_updates = False
+    layout = ModularPage.default_layout
+
+    def show_trial(self, experiment, participant):
+        self._validate()
+        if self.continuous_updates and self.disable_slider_on_change != "never":
+            raise ValueError(
+                "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
+            )
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            f"gibbs_{self.network.modality}_trial",
+            self._get_prompt(experiment, participant),
+            control=HtmlSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                slider_media=self.media.data[self.network.modality],
+                media_locations=self.media_locations,
+                autoplay=self.autoplay,
+                disable_slider_on_change=self.disable_slider_on_change,
+                media_width=self.media_width,
+                media_height=self.media_height,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+                continuous_updates=self.continuous_updates,
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+            layout=self.layout,
+        )
+
+
+class HtmlGibbsNode(MediaGibbsNode):
+    pass
+
+
+class HtmlGibbsTrialMaker(MediaGibbsTrialMaker):
+    @property
+    def default_network_class(self):
+        return HtmlGibbsNetwork
+
+
 class VideoGibbsNetwork(MediaGibbsNetwork):
     modality = "video"
-    pass
 
 
 class VideoGibbsTrial(MediaGibbsTrial):
-    pass
+    media_width = ""
+    media_height = ""
+    disable_slider_on_change = "never"
+    layout = ModularPage.default_layout
+
+    def show_trial(self, experiment, participant):
+        self._validate()
+
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+        return ModularPage(
+            f"gibbs_{self.network.modality}_trial",
+            self._get_prompt(experiment, participant),
+            control=VideoSliderControl(
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                slider_media=self.media.data[self.network.modality],
+                media_locations=self.media_locations,
+                autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
+                disable_slider_on_change=self.disable_slider_on_change,
+                media_width=self.media_width,
+                media_height=self.media_height,
+                n_steps="n_media" if self.snap_slider_before_release else 10000,
+                input_type=self.input_type,
+                random_wrap=self.random_wrap,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                snap_values="media_locations" if self.snap_slider else None,
+                minimal_time=self.minimal_time,
+                minimal_interactions=self.minimal_interactions,
+            ),
+            media=self.media,
+            time_estimate=self.time_estimate,
+            layout=self.layout,
+        )
 
 
 class VideoGibbsNode(MediaGibbsNode):

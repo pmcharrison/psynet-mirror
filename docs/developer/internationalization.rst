@@ -65,7 +65,7 @@ In PsyNet we use a wrapper for this:
 
     import os
 
-    from flask import Markup
+    from markupsafe import Markup
     from psynet.page import InfoPage
     from psynet.utils import get_translator
 

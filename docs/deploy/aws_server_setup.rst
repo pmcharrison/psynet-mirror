@@ -1,5 +1,4 @@
-.. _developer:
-.. highlight:: shell
+.. _aws_server_setup:
 
 ========================================
 Setting up an experiment server with AWS

@@ -129,8 +129,9 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 2
+    test_mode = "serial"
 
-    def test_run_bots(self, bots: List[Bot]):
+    def test_serial_run_bots(self, bots: List[Bot]):
         from psynet.page import WaitPage
 
         advance_past_wait_pages(bots)
@@ -160,6 +161,10 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
+
+        logger.info("Bot 1: %s", pages[0].content)
+        logger.info("Bot 2: %s", pages[1].content)
+
         assert (
             pages[0].content == "You chose scissors, your partner chose paper. You won!"
         )
@@ -180,10 +185,16 @@ class Exp(psynet.experiment.Experiment):
         assert (
             pages[0].content
             == "You chose scissors, your partner chose scissors. You drew."
+        ), (
+            "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
+            "further debugging."
         )
         assert (
             pages[1].content
             == "You chose scissors, your partner chose scissors. You drew."
+        ), (
+            "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
+            "further debugging."
         )
 
         bots[0].take_page()

@@ -1,12 +1,14 @@
 import configparser
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
 import time
 import traceback
 import uuid
+import warnings
 from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
@@ -14,11 +16,14 @@ from os.path import exists
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
+from statistics import mean
 from typing import List
 
 import dallinger.experiment
 import dallinger.models
 import flask
+import pandas as pd
+import pexpect
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
@@ -36,22 +41,23 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
-from sqlalchemy import func
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
+from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
+from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
+from .db import with_transaction
 from .error import ErrorRecord
-from .field import ImmutableVarStore
+from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
-from .participant import Participant, get_participant
-from .process import WorkerAsyncProcess
+from .participant import Participant
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,
@@ -142,6 +148,80 @@ class ExperimentMeta(type):
         cls.css = cls.css.copy()
         cls.css_links = cls.css_links.copy()
 
+        if hasattr(cls, "test_create_bots"):
+            raise RuntimeError(
+                "Experiment.test_create_bots has been removed, please do not override it. Instead you should put "
+                "any custom bot initialization code inside test_run_bot (before calling super().test_run_bot())."
+            )
+
+        if hasattr(cls, "test_run_bots"):
+            raise RuntimeError(
+                "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
+                "Please note that this test route is only used if the tests are run in serial mode."
+            )
+
+
+@register_table
+class Request(SQLBase, SQLMixin):
+    __tablename__ = "request"
+
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+    vars = None
+
+    id = Column(Integer, primary_key=True)
+    unique_id = Column(String, ForeignKey("participant.unique_id"))
+    duration = Column(Float)
+    method = Column(String)
+    endpoint = Column(String)
+    params = Column(PythonDict, default={})
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "duration": self.duration,
+            "time": self.creation_time,
+            "unique_id": self.unique_id,
+            "method": self.method,
+            "endpoint": self.endpoint,
+            "params": self.params,
+        }
+
+
+@register_table
+class ExperimentStatus(SQLBase, SQLMixin):
+    __tablename__ = "experiment_status"
+
+    id = Column(Integer, primary_key=True)
+    cpu_usage_pct = Column(Float)
+    ram_usage_pct = Column(Float)
+    free_disk_space_gb = Column(Float)
+    median_response_time = Column(Float)
+    requests_per_minute = Column(Integer)
+    n_working_participants = Column(Integer)
+    extra_info = Column(PythonDict, default={})
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.extra_info = {
+            key: value for key, value in kwargs.items() if key not in self.sql_columns
+        }
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "timestamp": self.creation_time,
+            "cpu_usage_pct": self.cpu_usage_pct,
+            "ram_usage_pct": self.ram_usage_pct,
+            "free_disk_space_gb": self.free_disk_space_gb,
+            "median_response_time": self.median_response_time,
+            "requests_per_minute": self.requests_per_minute,
+            "n_working_participants": self.n_working_participants,
+            "extra_info": self.extra_info,
+        }
+
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # pylint: disable=abstract-method
@@ -210,6 +290,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Guarantees that in an experiment no more is spent than the value assigned.
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
+
+    big_base_payment : `bool`
+        Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
 
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
@@ -369,6 +452,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
         )
 
+        config = get_and_load_config()
+        if self.base_payment > 10 and not config.get("big_base_payment"):
+            logger.warning(f"`base_payment` is set to `{self.base_payment}`!")
+        assert self.base_payment <= 20 or config.get("big_base_payment"), (
+            f"Are you sure about setting `base_payment = {self.base_payment}`? "
+            "You probably forgot to divide `base_payment` by 100. "
+            "In the special case you REALLY want to override this behaviour, set `big_base_payment = true`"
+        )
+
         assert not (
             initial_recruitment_size_config_changed
             and initial_recruitment_size_experiment_changed
@@ -424,6 +516,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
+    @classproperty
+    def launched(cls):
+        return is_experiment_launched()
+
+    @property
+    def global_assets(self):
+        return self.experiment_config.global_assets
+
+    @property
+    def global_nodes(self):
+        return self.experiment_config.global_nodes
+
     def translation_checks_needed(self, locales_dir):
         return (
             os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
@@ -468,6 +572,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
 
+    @with_transaction
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
         self.compile_psynet_translations_if_necessary()
@@ -477,13 +582,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.on_first_launch()
         self.timeline.verify_consents(self)
         self.on_every_launch()
-        self.var.launch_finished = True
         logger.info("Experiment launch complete!")
         db.session.commit()
         redis_vars.set("launch_finished", True)
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
+        for trialmaker in self.timeline.trial_makers.values():
+            trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
@@ -513,20 +619,70 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
-        self.grow_all_networks()
 
     @staticmethod
     def before_request():
-        flask_app_globals.start = time.monotonic()
+        flask_app_globals.request_start_time = time.monotonic()
 
     @staticmethod
     def after_request(request, response):
-        diff = time.monotonic() - flask_app_globals.start
-        if "/timeline" in request.path:
-            logger.info(
-                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Timeline page took {diff} seconds to load"
+        diff = time.monotonic() - flask_app_globals.request_start_time
+        relevant_endpoints = ["/timeline", "/response", "/ad", "/consent", "/start"]
+        if any([endpoint == request.path for endpoint in relevant_endpoints]):
+            params = dict(request.args)
+            request_obj = Request(
+                unique_id=params.get("unique_id", None),
+                duration=diff,
+                method=request.method,
+                endpoint=request.path,
+                params=params,
             )
+            db.session.add(request_obj)
+            db.session.commit()
         return response
+
+    @classmethod
+    def get_request_statistics(cls, lookback):
+        now = datetime.now()
+        lookback = now - pd.Timedelta(lookback)
+        all_requests = Request.query.filter(Request.creation_time > lookback).all()
+        requests_df = pd.DataFrame([request.to_dict() for request in all_requests])
+        summary = {}
+        if len(requests_df) > 0:
+            summary["median_response_time"] = requests_df["duration"].median()
+            summary["requests_per_minute"] = len(requests_df)
+        return summary
+
+    @classmethod
+    def get_recruiter_status(cls):
+        exp = get_experiment()
+        return exp.recruiter.get_status()
+
+    @classmethod
+    def get_hardware_status(cls):
+        return {
+            "cpu_usage_pct": psutil.cpu_percent(),
+            "ram_usage_pct": psutil.virtual_memory().percent,
+            "free_disk_space_gb": psutil.disk_usage("/").free / (2**30),
+        }
+
+    @classmethod
+    def get_status(cls, lookback="10s"):
+        return {
+            **super().get_status(),
+            **cls.get_request_statistics(lookback=lookback),
+            **cls.get_hardware_status(),
+            **cls.get_recruiter_status(),
+        }
+
+    @scheduled_task("interval", seconds=10, max_instances=1)
+    @staticmethod
+    def check_experiment_status():
+        exp = get_experiment()
+        status_dict = exp.get_status(lookback="10s")  # since we poll every minute
+        status_obj = ExperimentStatus(**status_dict)
+        db.session.add(status_obj)
+        db.session.commit()
 
     def load_deployment_config(self):
         config = get_config()
@@ -542,8 +698,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _nodes_on_deploy(self):
         from .trial.main import TrialNode
 
-        for node in TrialNode.query.filter_by(_on_deploy_called=False).all():
-            node.on_deploy()
+        db.session.commit()
+
+        for node in (
+            TrialNode.query.with_for_update(of=TrialNode).populate_existing().all()
+        ):
+            node.check_on_deploy()
 
         db.session.commit()
 
@@ -563,24 +723,174 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         pass
 
     test_n_bots = 1
+    test_mode = "serial"
+    test_real_time = False
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
         os.environ["DEPLOYMENT_PACKAGE"] = "True"
-        bots = self.test_create_bots()
-        self.test_run_bots(bots)
+
+        if self.test_mode == "serial" or self.test_n_bots == 1:
+            self._test_experiment_serial()
+        elif self.test_mode == "parallel":
+            self._test_experiment_parallel()
+        else:
+            raise ValueError(f"Invalid test mode: {self.test_mode}")
+
+    # This is how many seconds to wait between invoking parallel bots
+    test_parallel_stagger_interval_s = 0.1
+
+    def _test_experiment_parallel(self):
+        # Start N subprocesses, and in each one call `psynet run-bot`
+        logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
+
+        n_processes = self.test_n_bots
+
+        processes = []
+        process_ids = list(range(n_processes))
+        bot_ids = [process_id + 1 for process_id in process_ids]
+
+        cmd = "psynet run-bot"
+        if self.test_real_time:
+            cmd += " --real-time"
+
+        for bot_id in bot_ids:
+            if bot_id > 0:
+                time.sleep(self.test_parallel_stagger_interval_s)
+
+            logger.info(f"Creating and running bot {bot_id}...")
+            p = pexpect.spawn(cmd, timeout=None, cwd=None)
+            processes.append(p)
+
+        waiting_for_processes = True
+        finished_processes = set()
+
+        testing_stats = self.TestingStats(self.testing_stat_definitions)
+
+        while waiting_for_processes:
+            for process, process_id, bot_id in zip(processes, process_ids, bot_ids):
+                try:
+                    while True:
+                        output = (
+                            process.read_nonblocking(size=100000, timeout=0)
+                            .decode()
+                            .strip()
+                            .split("\n")
+                        )
+                        for line in output:
+                            line.replace("INFO:root:", "")
+                            logger.info(f"(Bot {bot_id}) " + line)
+
+                            testing_stats.update_from_line(bot_id, line)
+
+                        time.sleep(0.01)
+                except pexpect.TIMEOUT:
+                    pass
+                except pexpect.EOF:
+                    assert process.exitstatus == 0
+                    finished_processes.add(process_id)
+
+            if len(finished_processes) == n_processes:
+                waiting_for_processes = False
+
+        bots = Bot.query.all()
         self.test_check_bots(bots)
 
-    def test_create_bots(self):
-        return [Bot() for _ in range(self.test_n_bots)]
+        testing_stats.report()
 
-    def test_run_bots(self, bots):
+    class TestingStats:
+        def __init__(self, stat_definitions):
+            self.stat_definitions = stat_definitions
+            self.data = {
+                stat_definition.key: {} for stat_definition in stat_definitions
+            }
+
+        def update_from_line(self, bot_id, line):
+            for stat_definition in self.stat_definitions:
+                stat = stat_definition.extract_stat(line)
+                if stat is not None:
+                    self.update_from_stat(stat_definition.key, bot_id, stat)
+
+        def update_from_stat(self, stat_key, bot_id, value):
+            self.data[stat_key][bot_id] = value
+
+        def report(self):
+            logger.info("BOT TESTING STATISTICS:")
+            for stat_definition in self.stat_definitions:
+                values = self.data[stat_definition.key].values()
+                stat_definition.report(values)
+
+    class TestingStatDefinition:
+        def __init__(self, key, label, regex, suffix, decimal_places=3):
+            self.key = key
+            self.label = label
+            self.regex = regex
+            self.suffix = suffix
+            self.decimal_places = decimal_places
+
+        def extract_stat(self, line):
+            match = re.search(self.regex, line)
+            if match:
+                return float(match.group(1))
+
+        def report(self, values):
+            values_not_none = [value for value in values if value is not None]
+
+            if len(values_not_none) > 0:
+                _mean = mean(values_not_none)
+                template = f"Mean %s = %.{self.decimal_places}f%s"
+                logger.info(template % (self.label, _mean, self.suffix))
+            else:
+                logger.info(f"Didn't find any values for {self.label} to report.")
+
+    testing_stat_definitions = [
+        TestingStatDefinition(
+            "progress",
+            label="progress through experiment",
+            regex="progress = ([0-9]*)%",
+            suffix="%",
+            decimal_places=0,
+        ),
+        TestingStatDefinition(
+            "mean_processing_time",
+            label="processing time per page",
+            regex="mean processing time per page = ([0-9]*\\.[0-9]*) seconds",
+            suffix=" seconds",
+        ),
+        TestingStatDefinition(
+            "total_wait_page_time",
+            label="total wait page time per bot",
+            regex="total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
+            suffix=" seconds",
+            decimal_places=2,
+        ),
+        TestingStatDefinition(
+            "total_experiment_time",
+            label="time taken to complete experiment",
+            regex="total experiment time = ([0-9]*\\.[0-9]*) seconds",
+            suffix=" seconds",
+        ),
+    ]
+
+    def _test_experiment_serial(self):
+        logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
+        bots = [Bot() for _ in range(self.test_n_bots)]
+        self.test_serial_run_bots(bots)
+        self.test_check_bots(bots)
+
+    def test_serial_run_bots(self, bots):
         for bot in bots:
             db.session.add(bot)  # Protects against DetachedInstanceErrors
             self.run_bot(bot)
 
     def run_bot(self, bot):
-        bot.take_experiment(render_pages=True)
+        time_factor = float(self.test_real_time)
+        if time_factor > 0:
+            warnings.warn(
+                "Real-time mode doesn't seem to work well at present; take results with a pinch of salt.",
+                DeprecationWarning,
+            )
+        bot.take_experiment(render_pages=True, time_factor=time_factor)
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
@@ -722,28 +1032,90 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
+    @with_transaction
     def check_database():
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         for c in exp.database_checks:
             c.run()
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
-    def check_resources():
-        current_timestamp = datetime.now()
-        free_disk_space = psutil.disk_usage("/").free / (2**30)
-
-        logger.info(
-            f"CPU usage: {psutil.cpu_percent()}%; RAM usage: {psutil.virtual_memory().percent}%; Free disk space: {free_disk_space:.2f} GB [{current_timestamp}]"
-        )
-
-    @scheduled_task("interval", minutes=1, max_instances=1)
-    @staticmethod
+    @with_transaction
     def run_recruiter_checks():
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         recruiter = exp.recruiter
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
+
+    @scheduled_task("interval", seconds=2, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _grow_networks():
+        if not is_experiment_launched():
+            return
+        exp = get_experiment()
+        exp.grow_networks()
+
+    @staticmethod
+    def grow_networks():
+        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
+        # cover other types of networks in the future.
+        from psynet.trial.chain import ChainNetwork
+
+        # This query could be further optimized by identifying which network classes are present in the table
+        # and making queries specific to these. This would allow subclass-specific attributes to be loaded
+        # in the initial query rather than being lazily loaded.
+        networks = (
+            ChainNetwork.query.filter(
+                ChainNetwork.ready_to_spawn,
+                ChainNetwork.chain_type
+                != "within",  # participants are responsible for growing within-networks
+            )
+            .with_for_update()
+            .populate_existing()
+            .options(joinedload(ChainNetwork.head, innerjoin=True))
+            .all()
+        )
+        if len(networks) > 0:
+            logger.info("Growing %i networks...", len(networks))
+            exp = get_experiment()
+            for n in networks:
+                n.grow(experiment=exp)
+            logger.info("Finished growing networks.")
+
+    @scheduled_task("interval", seconds=1, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _check_barriers():
+        if not is_experiment_launched():
+            return
+        exp = get_experiment()
+        exp.check_barriers()
+
+    @staticmethod
+    def check_barriers():
+        from .sync import ParticipantLinkBarrier
+
+        barrier_links = (
+            ParticipantLinkBarrier.query.join(Participant)
+            .filter(
+                ~ParticipantLinkBarrier.released,
+                ~Participant.failed,
+                Participant.status == "working",
+            )
+            .distinct(ParticipantLinkBarrier.barrier_id)
+            .all()
+        )
+
+        for link in barrier_links:
+            barrier = link.get_barrier()
+            barrier.process_potential_releases()
 
     @property
     def base_payment(self):
@@ -756,20 +1128,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def get_initial_recruitment_size(self):
         return get_and_load_config().get("initial_recruitment_size")
 
-    @property
-    def label(self):
+    @classproperty
+    def label(cls):  # noqa
         return get_and_load_config().get("label")
 
     @property
     def var(self):
-        if self.experiment_config_exists:
+        if self.experiment_config:
             return self.experiment_config.var
         else:
             return ImmutableVarStore(self.variables_initial_values)
 
+    # We persist _experiment_config to avoid garbage collection and hence support database updates
+    _experiment_config = None
+
     @property
     def experiment_config(self):
-        return ExperimentConfig.query.one()
+        self._experiment_config = ExperimentConfig.query.get(1)
+        return self._experiment_config
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
@@ -802,12 +1178,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def estimated_completion_time(cls, wage_per_hour):
         return cls.timeline.estimated_completion_time(wage_per_hour)
 
-    @property
-    def experiment_config_exists(self):
-        return ExperimentConfig.query.count() > 0
-
     def setup_experiment_config(self):
-        if not self.experiment_config_exists:
+        if self.experiment_config is None:
             logger.info("Setting up ExperimentConfig.")
             network = ExperimentConfig()
             db.session.add(network)
@@ -835,6 +1207,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **super().config_defaults(),
             "host": "0.0.0.0",
             "base_payment": 0.10,
+            "big_base_payment": False,
             "clock_on": True,
             "duration": 100000000.0,
             "disable_when_duration_exceeded": False,
@@ -884,7 +1257,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
-            "launch_finished": False,
             "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment_email_sent": False,
             "current_locale": get_language(),
@@ -892,6 +1264,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
         }
+
+    @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
+    @staticmethod
+    @with_transaction
+    def custom_route(endpoint):
+        from psynet.api import EXPOSED_FUNCTIONS
+
+        if endpoint not in EXPOSED_FUNCTIONS:
+            return error_response(
+                error_text=f"{endpoint} is not defined. Defined endpoints are: {list(EXPOSED_FUNCTIONS.keys())}",
+                simple=True,
+            )
+
+        if request.method == "POST":
+            data = request.get_json()
+        elif request.method == "GET":
+            data = request.args
+        else:
+            return error_response(
+                error_text=f"Unsupported request method {request.method}", simple=True
+            )
+        function = EXPOSED_FUNCTIONS[endpoint]
+        return function(**data)
 
     @property
     def psynet_logo(self):
@@ -1037,11 +1432,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def deployment_id(self):
         return deployment_info.read("deployment_id")
 
-    def grow_all_networks(self):
-        from .trial.main import NetworkTrialMaker
-
-        NetworkTrialMaker.grow_all_networks(experiment=self)
-
     @classmethod
     def create_database_snapshot(cls):
         logger.info("Creating a database snapshot...")
@@ -1097,13 +1487,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
 
     def fail_participant(self, participant):
+        failed_reason = ", ".join(participant.failure_tags)
         logger.info(
-            "Failing participant %i (%i routine(s) found)...",
+            "Failing participant %i (%i routine(s) found, reason: %s)",
             participant.id,
             len(self.participant_fail_routines),
+            failed_reason,
         )
         participant.failed = True
-        participant.failed_reason = ", ".join(participant.failure_tags)
+        participant.failed_reason = failed_reason
         participant.time_of_death = datetime.now()
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
@@ -1112,11 +1504,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 len(self.participant_fail_routines),
                 routine.label,
             )
-            call_function(
+            call_function_with_context(
                 routine.function,
                 participant=participant,
                 experiment=self,
-                assets=self.assets,
             )
 
     @property
@@ -1333,7 +1724,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
-        participant = get_participant(participant_id)
+        participant = (
+            Participant.query.with_for_update(of=Participant)
+            .populate_existing()
+            .get(participant_id)
+        )
 
         if page_uuid != participant.page_uuid:
             raise RuntimeError(
@@ -1366,7 +1761,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 validation, FailedValidation
             )
             if not response.successful_validation:
-                db.session.commit()
                 return self.response_rejected(message=validation.message)
             participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
@@ -1436,121 +1830,149 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_files(cls):
+        files = []
+        for trialmaker in cls.timeline.trial_makers.values():
+            files.extend(trialmaker.extra_files())
+
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
-        files = [
-            (
-                # Warning: this won't affect templates that already exist in Dallinger
-                resources.files("psynet") / "templates",
-                "/templates",
-            ),
-            (
-                resources.files("psynet") / "resources/favicon.png",
-                "/static/favicon.png",
-            ),
-            (
-                resources.files("psynet") / "resources/favicon.svg",
-                "/static/favicon.svg",
-            ),
-            (
-                resources.files("psynet") / "resources/logo.png",
-                "/static/images/logo.png",
-            ),
-            (
-                resources.files("psynet") / "resources/images/psynet.svg",
-                "/static/images/logo.svg",
-            ),
-            (
-                resources.files("psynet") / "resources/images/princeton-consent.png",
-                "/static/images/princeton-consent.png",
-            ),
-            (
-                resources.files("psynet") / "resources/images/unity_logo.png",
-                "/static/images/unity_logo.png",
-            ),
-            (
-                resources.files("psynet") / "resources/scripts/dashboard_timeline.js",
-                "/static/scripts/dashboard_timeline.js",
-            ),
-            (
-                resources.files("psynet") / "resources/css/bootstrap.min.css",
-                "/static/css/bootstrap.min.css",
-            ),
-            (
-                resources.files("psynet") / "resources/css/consent.css",
-                "/static/css/consent.css",
-            ),
-            (
-                resources.files("psynet") / "resources/css/dashboard_timeline.css",
-                "/static/css/dashboard_timeline.css",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/jQuery/jquery-3.6.0.min.js",
-                "/static/scripts/jquery-3.6.0.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/platform-1.3.6/platform.min.js",
-                "/static/scripts/platform.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
-                "/static/scripts/detectIncognito.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/raphael-2.3.0/raphael.min.js",
-                "/static/scripts/raphael-2.3.0.min.js",
-            ),
-            (
-                resources.files("psynet")
-                / "resources/libraries/jQuery-Knob/js/jquery.knob.js",
-                "/static/scripts/jquery.knob.js",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/js-synthesizer",
-                "/static/scripts/js-synthesizer",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/Tonejs",
-                "/static/scripts/Tonejs",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/survey-jquery",
-                "/static/scripts/survey-jquery",
-            ),
-            (
-                resources.files("psynet") / "resources/libraries/abc-js",
-                "/static/scripts/abc-js",
-            ),
-            (
-                resources.files("psynet") / "resources/scripts/prepare_docker_image.sh",
-                "prepare_docker_image.sh",
-            ),
-            (
-                ".deploy",
-                ".deploy",
-            ),
-            (
-                resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
-                "DEPLOYMENT_PACKAGE",
-            ),
-        ]
-        if isinstance(cls.assets.storage, DebugStorage):
-            _path = f"static/{cls.assets.storage.label}"
-            files.append(
+        files.extend(
+            [
                 (
-                    _path,
-                    _path,
-                )
-            )
+                    # Warning: this won't affect templates that already exist in Dallinger
+                    resources.files("psynet") / "templates",
+                    "/templates",
+                ),
+                (
+                    resources.files("psynet") / "resources/favicon.png",
+                    "/static/favicon.png",
+                ),
+                (
+                    resources.files("psynet") / "resources/favicon.svg",
+                    "/static/favicon.svg",
+                ),
+                (
+                    resources.files("psynet") / "resources/logo.png",
+                    "/static/images/logo.png",
+                ),
+                (
+                    resources.files("psynet") / "resources/images/psynet.svg",
+                    "/static/images/logo.svg",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/images/princeton-consent.png",
+                    "/static/images/princeton-consent.png",
+                ),
+                (
+                    resources.files("psynet") / "resources/images/unity_logo.png",
+                    "/static/images/unity_logo.png",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/dashboard_timeline.js",
+                    "/static/scripts/dashboard_timeline.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/d3-visualizations.js",
+                    "/static/scripts/d3-visualizations.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/bootstrap.min.css",
+                    "/static/css/bootstrap.min.css",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/consent.css",
+                    "/static/css/consent.css",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/dashboard_timeline.css",
+                    "/static/css/dashboard_timeline.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jQuery/jquery-3.6.0.min.js",
+                    "/static/scripts/jquery-3.6.0.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/platform-1.3.6/platform.min.js",
+                    "/static/scripts/platform.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
+                    "/static/scripts/detectIncognito.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/raphael-2.3.0/raphael.min.js",
+                    "/static/scripts/raphael-2.3.0.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jQuery-Knob/js/jquery.knob.js",
+                    "/static/scripts/jquery.knob.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/js-synthesizer",
+                    "/static/scripts/js-synthesizer",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/JSZip",
+                    "/static/scripts/JSZip",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/Tonejs",
+                    "/static/scripts/Tonejs",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/survey-jquery",
+                    "/static/scripts/survey-jquery",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/abc-js",
+                    "/static/scripts/abc-js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/d3",
+                    "/static/scripts/d3",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/jqueryui",
+                    "/static/scripts/jqueryui",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/prepare_docker_image.sh",
+                    "prepare_docker_image.sh",
+                ),
+                (
+                    ".deploy",
+                    ".deploy",
+                ),
+                (
+                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
+                    "DEPLOYMENT_PACKAGE",
+                ),
+            ]
+        )
+        # We don't think this is needed any more but just keeping a note in case we're proved wrong (25 Sep 2023)
+        # if isinstance(cls.assets.storage, DebugStorage):
+        #     _path = f"static/{cls.assets.storage.label}"
+        #     files.append(
+        #         (
+        #             _path,
+        #             _path,
+        #         )
+        #     )
         return files
 
     @classmethod
     def extra_parameters(cls):
         config = get_config()
+        config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
@@ -1620,6 +2042,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             currency=config.currency,
         )
 
+    @dashboard_tab("Resources", after_route="monitoring")
+    @classmethod
+    def resources(cls):
+        from .dashboard.resources import report_resource_use
+
+        return report_resource_use()
+
     @dashboard_tab("Participant", after_route="monitoring")
     @classmethod
     def participant(cls):
@@ -1632,11 +2061,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         try:
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant = cls.get_participant_from_assignment_id(
+                    assignment_id, for_update=False
+                )
             elif participant_id is not None:
-                participant = cls.get_participant_from_participant_id(participant_id)
+                participant = cls.get_participant_from_participant_id(
+                    int(participant_id), for_update=False
+                )
             elif worker_id is not None:
-                participant = cls.get_participant_from_worker_id(worker_id)
+                participant = cls.get_participant_from_worker_id(
+                    worker_id, for_update=False
+                )
             else:
                 message = "Please select a participant."
         except ValueError:
@@ -1655,7 +2090,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def get_participant_from_assignment_id(cls, assignment_id):
+    def get_participant_from_assignment_id(
+        cls, assignment_id: str, for_update: bool = False
+    ):
         """
         Get a participant with a specified ``assignment_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1666,15 +2103,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(assignment_id=assignment_id).one()
+        query = Participant.query.filter_by(assignment_id=assignment_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_participant_id(cls, participant_id):
+    def get_participant_from_participant_id(
+        cls, participant_id: int, for_update: bool = False
+    ):
         """
         Get a participant with a specified ``participant_id``.
         Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
@@ -1686,16 +2133,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        _id = int(participant_id)
-        return Participant.query.filter_by(id=_id).one()
+        participant_id = int(participant_id)
+        query = Participant.query.filter_by(id=participant_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_worker_id(cls, worker_id):
+    def get_participant_from_worker_id(cls, worker_id: str, for_update: bool = False):
         """
         Get a participant with a specified ``worker_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1706,15 +2161,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id :
             ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(worker_id=worker_id).one()
+        query = Participant.query.filter_by(worker_id=worker_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @classmethod
-    def get_participant_from_unique_id(cls, unique_id):
+    def get_participant_from_unique_id(cls, unique_id: str, for_update: bool = False):
         """
         Get a participant with a specified ``unique_id``.
         Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
@@ -1725,12 +2188,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         unique_id :
             Unique ID of the participant to retrieve.
 
+        for_update :
+            Set to ``True`` if you plan to update this Participant object.
+            The Participant object will be locked for update in the database
+            and only released at the end of the transaction.
+
         Returns
         -------
 
         The corresponding participant object.
         """
-        return Participant.query.filter_by(unique_id=unique_id).one()
+        query = Participant.query.filter_by(unique_id=unique_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
 
     @experiment_route("/google3580fca13e19b596.html")
     @staticmethod
@@ -1758,6 +2229,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/ad", methods=["GET"])
     @nocache
     @staticmethod
+    @with_transaction
     def advertisement():
         from dallinger.experiment_server.experiment_server import prepare_advertisement
 
@@ -1772,6 +2244,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/consent")
     @staticmethod
+    @with_transaction
     def consent():
         config = get_config()
 
@@ -1798,6 +2271,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/start", methods=["GET"])
     @staticmethod
+    @with_transaction
     def route_start():
         try:
             return render_template_with_translations("start.html")
@@ -1827,6 +2301,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/dashboard/export", methods=["GET"])
     @classmethod
+    @with_transaction
     def export(cls):
         from .command_line import export__local
 
@@ -1841,6 +2316,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
+    @with_transaction
     def get_participant_info_for_debug_mode():
         config = get_config()
         if not config.get("mode") == "debug":
@@ -1879,6 +2355,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @classmethod
+    @with_transaction
     def render_error(cls):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
@@ -1909,6 +2386,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module", methods=["POST"])
     @classmethod
+    @with_transaction
     def get_module_details_as_rendered_html(cls):
         exp = get_experiment()
         module = exp.timeline.get_module(request.values["moduleId"])
@@ -1916,6 +2394,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
+    @with_transaction
     def get_module_tooltip_as_rendered_html(cls):
         exp = get_experiment()
         module = exp.timeline.get_module(request.values["moduleId"])
@@ -1923,6 +2402,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module/progress_info", methods=["GET"])
     @classmethod
+    @with_transaction
     def get_progress_info(cls):
         exp = get_experiment()
         module_ids = request.args.getlist("module_ids[]")
@@ -1973,6 +2453,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/module/update_spending_limits", methods=["POST"])
     @classmethod
+    @with_transaction
     def update_spending_limits(cls):
         hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
         soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
@@ -1985,11 +2466,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Experiment variable 'soft_max_experiment_payment set' set to {soft_max_experiment_payment}."
         )
-        db.session.commit()
         return success_response()
 
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_debugger(cls, password):
         exp = get_experiment()
         if password == "my-secure-password-195762":
@@ -2000,34 +2481,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/node/<int:node_id>/fail", methods=["GET", "POST"])
     @staticmethod
+    @with_transaction
     def fail_node(node_id):
         from dallinger.models import Node
 
-        node = Node.query.filter_by(id=node_id).one()
+        node = Node.query.with_for_update(of=Node).populate_existing().get(node_id)
         node.fail(reason="http_fail_route_called")
-        db.session.commit()
         return success_response()
 
     @experiment_route("/info/<int:info_id>/fail", methods=["GET", "POST"])
     @staticmethod
+    @with_transaction
     def fail_info(info_id):
         from dallinger.models import Info
 
-        info = Info.query.filter_by(id=info_id).one()
+        info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
-        db.session.commit()
         return success_response()
 
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
     @classmethod
+    @with_transaction
     def grow_network(cls, network_id):
         exp = get_experiment()
-        from .trial.main import TrialNetwork
+        from .trial.main import TrialNetwork, TrialNode
 
-        network = TrialNetwork.query.filter_by(id=network_id).one()
+        network = (
+            TrialNetwork.query.with_for_update(of=[TrialNetwork, TrialNode])
+            .populate_existing()
+            .get(network_id)
+        )
         trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
-        trial_maker._grow_network(network, experiment=exp)
-        db.session.commit()
+        trial_maker.call_grow_network(network)
         return success_response()
 
     @experiment_route(
@@ -2035,31 +2520,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         methods=["GET", "POST"],
     )
     @staticmethod
+    @with_transaction
     def call_async_post_grow_network(network_id):
-        from .trial.main import TrialNetwork
+        from .trial.main import NetworkTrialMaker, TrialNetwork
 
-        network = TrialNetwork.query.filter_by(id=network_id).one()
-        trial_maker = get_trial_maker(network.trial_maker_id)
-
-        WorkerAsyncProcess(
-            network.async_post_grow_network,
-            label="post_grow_network",
-            timeout=trial_maker.async_timeout_sec,
-            network=network,
+        network = (
+            TrialNetwork.query.with_for_update(of=TrialNetwork)
+            .populate_existing()
+            .get(network_id)
         )
-        db.session.commit()
+        trial_maker = get_trial_maker(network.trial_maker_id)
+        assert isinstance(trial_maker, NetworkTrialMaker)
+        trial_maker.queue_async_post_grow_network(network)
         return success_response()
 
     # Lucid recruitment specific route
     @experiment_route("/terminate_participant", methods=["GET"])
     @classmethod
+    @with_transaction
     def terminate_participant(cls):
         participant_id = request.values.get("participant_id")
         reason = request.values["reason"]
         external_submit_url = None
 
         try:
-            participant = get_participant(participant_id)
+            participant = (
+                Participant.query.with_for_update(of=Participant)
+                .populate_existing()
+                .get(participant_id)
+            )
             assignment_id = participant.assignment_id
             recruiter = get_experiment().recruiter
             external_submit_url = None
@@ -2092,8 +2581,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(participant_id)
+        participant = cls.get_participant_from_participant_id(
+            participant_id, for_update=True
+        )
         try:
             old_locale = participant.var.locale
         except KeyError:
@@ -2104,7 +2596,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert len(new_locale) == 2, "Locale must be a two-letter code"
         new_locale = new_locale.lower()
         participant.var.set("locale", new_locale)
-        db.session.commit()
         logger.info(
             f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
         )
@@ -2112,24 +2603,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
-        participant = cls.get_participant_from_assignment_id(assignment_id)
+        participant = cls.get_participant_from_assignment_id(
+            assignment_id, for_update=True
+        )
         participant.aborted = True
         if participant.module_state:
             participant.module_state.abort()
-        db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
 
     @experiment_route("/abort/<assignment_id>", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_abort(cls, assignment_id):
         try:
             template_name = "abort_not_possible.html"
             participant = None
             participant_abort_info = None
             if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant = cls.get_participant_from_assignment_id(
+                    assignment_id, for_update=False
+                )
                 if participant.calculate_reward() >= get_and_load_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
@@ -2150,10 +2646,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
@@ -2240,7 +2737,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         context = cls.serialize_error_context(**kwargs)
         print("\n")
         logger.error(
-            "err-%s:%s",
+            "EXPERIMENT ERROR - err-%s:%s",
             token,
             context,
             exc_info=True,
@@ -2323,7 +2820,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         page = experiment.timeline.get_current_elt(experiment, participant)
         page.pre_render()
-        db.session.commit()
 
         return page
 
@@ -2348,8 +2844,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
+    @with_transaction
     def get_progress_and_reward(cls):
-        participant = get_participant(request.args.get("participantId"))
+        participant_id = request.args.get("participantId")
+        participant = Participant.query.get(participant_id)
         progress_percentage = round(participant.progress * 100)
         min_pct = 5
         max_pct = 99
@@ -2374,6 +2872,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/response", methods=["POST"])
     @classmethod
+    @with_transaction
     def route_response(cls):
         exp = get_experiment()
         json_data = json.loads(request.values["json"])
@@ -2396,13 +2895,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             client_ip_address,
         )
 
-        db.session.commit()
         return res
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
+    @with_transaction
     def http_log(cls, level, unique_id):
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         try:
             cls.check_unique_id(participant, unique_id)
         except cls.UniqueIdError as e:
@@ -2439,13 +2938,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         methods=["POST"],
     )
     @classmethod
+    @with_transaction
     def participant_opened_devtools(cls, unique_id):
-        participant = cls.get_participant_from_unique_id(unique_id)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
 
         cls.check_unique_id(participant, unique_id)
 
         participant.var.opened_devtools = True
-        db.session.commit()
 
         return success_response()
 
@@ -2479,6 +2978,9 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+
+    global_assets = relationship("Asset")
+    global_nodes = relationship("psynet.trial.main.TrialNode")
 
 
 def _patch_dallinger_models():

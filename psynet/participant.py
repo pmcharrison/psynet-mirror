@@ -16,16 +16,14 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     desc,
-    select,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .process import AsyncProcess
 from .utils import get_logger, organize_by_key
 
 logger = get_logger()
@@ -33,6 +31,7 @@ logger = get_logger()
 # pylint: disable=unused-import
 
 UniqueConstraint(dallinger.models.Participant.worker_id)
+UniqueConstraint(dallinger.models.Participant.unique_id)
 
 
 class Participant(SQLMixinDallinger, dallinger.models.Participant):
@@ -151,7 +150,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     # We set the polymorphic_identity manually to differentiate the class
     # from the Dallinger Participant class.
-    polymorphic_identity = "PsyNetParticipant"
     __extra_vars__ = {}
 
     elt_id = Column(PythonList)
@@ -165,13 +163,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     for_loops = Column(PythonObject, default=lambda: {})
     failure_tags = Column(PythonList, default=lambda: [])
 
-    # Ideally we wold make this a foreign key but this creates a circular dependency
-    # when importing CSVs
-    last_response_id = Column(Integer)
-
     base_payment = Column(Float)
     performance_reward = Column(Float)
     unpaid_bonus = Column(Float)
+    total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
@@ -185,6 +180,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
     trial_status = Column(String)
 
+    all_responses = relationship("psynet.timeline.Response")
+
     # @property
     # def current_trial(self):
     #     if self.in_module and hasattr(self.module_state, "current_trial"):
@@ -196,9 +193,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def last_response(self):
-        from psynet.timeline import Response
-
-        return Response.query.filter_by(id=self.last_response_id).one()
+        return self.response
 
     # all_trials = relationship("psynet.trial.main.Trial")
 
@@ -257,15 +252,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     #     from psynet.trial.main import Trial
     #     self.current_trial_id = trial.id if isinstance(trial, Trial) else None
 
-    awaiting_async_process = column_property(
-        select(AsyncProcess.participant_id, AsyncProcess.pending)
-        .where(
-            AsyncProcess.participant_id == dallinger.models.Participant.id,
-            AsyncProcess.pending,
-        )
-        .exists()
-    )
-
     asset_links = relationship(
         "AssetParticipant",
         collection_class=attribute_mapped_collection("local_key"),
@@ -301,13 +287,16 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                 "Use participant.active_sync_groups[group_type] to access the SyncGroup you need."
             )
 
-    @property
-    def active_barriers(self):
-        return {
-            barrier_link.barrier_id: barrier_link
-            for barrier_link in self.barrier_links
-            if not barrier_link.released
-        }
+    active_barriers = relationship(
+        "ParticipantLinkBarrier",
+        collection_class=attribute_mapped_collection("barrier_id"),
+        cascade="all, delete-orphan",
+        primaryjoin=(
+            "and_(psynet.participant.Participant.id==remote(ParticipantLinkBarrier.participant_id), "
+            "ParticipantLinkBarrier.released==False)"
+        ),
+        lazy="selectin",
+    )
 
     errors = relationship("ErrorRecord")
     # _module_states = relationship("ModuleState", foreign_keys=[dallinger.models.Participant.id], lazy="selectin")
@@ -386,6 +375,31 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if log.finished
         ]
 
+    def start_module(self, module):
+        state = module.state_class(module, self)
+        state.start()
+        self.module_state = state
+
+    def end_module(self, module):
+        # This should only fail (delivering multiple logs) if the experimenter has perversely
+        # defined a recursive module (or is reusing module ID)
+        state = [
+            _state for _state in self.module_states[module.id] if not _state.finished
+        ]
+
+        if len(state) == 0:
+            raise RuntimeError(
+                f"Participant had no unfinished module states with id = '{module.id}'."
+            )
+        elif len(state) > 1:
+            raise RuntimeError(
+                f"Participant had multiple unfinished module states with id = '{module.id}'."
+            )
+
+        state = state[0]
+        state.finish()
+        self.refresh_module_state()
+
     def refresh_module_state(self):
         if len(self._module_states) == 0:
             self.module_state = None
@@ -424,14 +438,13 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
         self.branch_log = []
+        self.total_wait_page_time = 0.0
 
         db.session.add(self)
-        db.session.commit()
 
         self.initialize(
             experiment
         )  # Hook for custom subclasses to provide further initialization
-        db.session.commit()
 
     def initialize(self, experiment):
         pass
@@ -589,9 +602,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
 
-def get_participant(participant_id: int):
+def get_participant(participant_id: int, for_update: bool = False) -> Participant:
     """
     Returns the participant with a given ID.
+    Warning: we recommend just using SQLAlchemy directly instead of using this function.
+    When doing so, use ``with_for_update().populate_existing()`` if you plan to update
+    this Participant object, that way the database row will be locked appropriately.
 
     Parameters
     ----------
@@ -599,13 +615,21 @@ def get_participant(participant_id: int):
     participant_id
         ID of the participant to get.
 
+    for_update
+        Set to ``True`` if you plan to update this Participant object.
+        The Participant object will be locked for update in the database
+        and only released at the end of the transaction.
+
     Returns
     -------
 
     :class:`psynet.participant.Participant`
         The requested participant.
     """
-    return Participant.query.filter_by(id=participant_id).one()
+    query = Participant.query.filter_by(id=participant_id)
+    if for_update:
+        query = query.with_for_update(of=Participant).populate_existing()
+    return query.one()
 
 
 class TimeCreditStore:
