@@ -58,11 +58,11 @@ def summarize_resource_use():
 
 def format_label(row):
     match row.type:
-        case "cpu_usage":
+        case "cpu_usage_pct":
             return f"{row.y_unit} % of total CPU usage"
-        case "ram_usage":
+        case "ram_usage_pct":
             return f"{row.y_unit} % of total RAM"
-        case "free_disk_space":
+        case "free_disk_space_gb":
             return f"{int(row.y_unit)} GB free disk space"
         case "median_response_time":
             return f"{round(row.y_unit, 2)} ms median response time within a minute"
@@ -81,7 +81,9 @@ def max_100(x):
 def normalize_resource_use(_resources_df):
     resources_df = _resources_df.copy()
     resources_df["timestamp"] = resources_df.index
-    resources_df["free_disk_space"] = 100 - max_100(resources_df["free_disk_space"])
+    resources_df["free_disk_space_gb"] = 100 - max_100(
+        resources_df["free_disk_space_gb"]
+    )
     resources_df["median_response_time"] = max_100(resources_df["median_response_time"])
     resources_df["requests_per_minute"] = max_100(resources_df["requests_per_minute"])
     resources_df["n_working_participants"] = max_100(
@@ -118,9 +120,9 @@ def format_time_str(timestamp_series):
 
 def format_type(type_list: list):
     replacement_dict = {
-        "cpu_usage": "CPU usage (%)",
-        "ram_usage": "RAM usage (%)",
-        "free_disk_space": "Used disk space compared to min (%)",
+        "cpu_usage_pct": "CPU usage (%)",
+        "ram_usage_pct": "RAM usage (%)",
+        "free_disk_space_gb": "Used disk space compared to min (%)",
         "median_response_time": "Median page loading time (%)",
         "requests_per_minute": "Number of page loads",
         "n_working_participants": "Total working participants",

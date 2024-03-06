@@ -195,9 +195,9 @@ class ExperimentStatus(SQLBase, SQLMixin):
     __tablename__ = "experiment_status"
 
     id = Column(Integer, primary_key=True)
-    cpu_usage = Column(Float)
-    ram_usage = Column(Float)
-    free_disk_space = Column(Float)
+    cpu_usage_pct = Column(Float)
+    ram_usage_pct = Column(Float)
+    free_disk_space_gb = Column(Float)
     median_response_time = Column(Float)
     requests_per_minute = Column(Integer)
     n_working_participants = Column(Integer)
@@ -213,9 +213,9 @@ class ExperimentStatus(SQLBase, SQLMixin):
         return {
             "id": self.id,
             "timestamp": self.creation_time,
-            "cpu_usage": self.cpu_usage,
-            "ram_usage": self.ram_usage,
-            "free_disk_space": self.free_disk_space,
+            "cpu_usage_pct": self.cpu_usage_pct,
+            "ram_usage_pct": self.ram_usage_pct,
+            "free_disk_space_gb": self.free_disk_space_gb,
             "median_response_time": self.median_response_time,
             "requests_per_minute": self.requests_per_minute,
             "n_working_participants": self.n_working_participants,
@@ -661,9 +661,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_hardware_status(cls):
         return {
-            "cpu_usage": psutil.cpu_percent(),
-            "ram_usage": psutil.virtual_memory().percent,
-            "free_disk_space": psutil.disk_usage("/").free / (2**30),
+            "cpu_usage_pct": psutil.cpu_percent(),
+            "ram_usage_pct": psutil.virtual_memory().percent,
+            "free_disk_space_gb": psutil.disk_usage("/").free / (2**30),
         }
 
     @classmethod
