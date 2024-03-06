@@ -43,7 +43,8 @@ def summarize_resource_use():
         return None
 
     df_raw = pd.DataFrame([row.to_dict() for row in data])
-    df_raw.drop(columns=["extra_info", "id"], inplace=True)
+    df_raw["free_disk_space"] = df_raw["free_disk_space_gb"]
+    df_raw.drop(columns=["extra_info", "id", "free_disk_space_gb"], inplace=True)
 
     df_normalized = normalize_resource_use(df_raw)
 
@@ -62,7 +63,7 @@ def format_label(row):
             return f"{row.y_unit} % of total CPU usage"
         case "ram_usage_pct":
             return f"{row.y_unit} % of total RAM"
-        case "free_disk_space_gb":
+        case "free_disk_space":
             return f"{int(row.y_unit)} GB free disk space"
         case "median_response_time":
             return f"{round(row.y_unit, 2)} ms median response time within a minute"
@@ -81,9 +82,7 @@ def max_100(x):
 def normalize_resource_use(_resources_df):
     resources_df = _resources_df.copy()
     resources_df["timestamp"] = resources_df.index
-    resources_df["free_disk_space_gb"] = 100 - max_100(
-        resources_df["free_disk_space_gb"]
-    )
+    resources_df["free_disk_space"] = 100 - max_100(resources_df["free_disk_space"])
     resources_df["median_response_time"] = max_100(resources_df["median_response_time"])
     resources_df["requests_per_minute"] = max_100(resources_df["requests_per_minute"])
     resources_df["n_working_participants"] = max_100(
@@ -122,7 +121,7 @@ def format_type(type_list: list):
     replacement_dict = {
         "cpu_usage_pct": "CPU usage (%)",
         "ram_usage_pct": "RAM usage (%)",
-        "free_disk_space_gb": "Used disk space compared to min (%)",
+        "free_disk_space": "Used disk space compared to min (%)",
         "median_response_time": "Median page loading time (%)",
         "requests_per_minute": "Number of page loads",
         "n_working_participants": "Total working participants",
