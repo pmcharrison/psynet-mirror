@@ -204,7 +204,10 @@ class ExperimentStatus(SQLBase, SQLMixin):
     extra_info = Column(PythonDict, default={})
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        named_arguments = {
+            key: value for key, value in kwargs.items() if key in self.sql_columns
+        }
+        super().__init__(**named_arguments)
         self.extra_info = {
             key: value for key, value in kwargs.items() if key not in self.sql_columns
         }
