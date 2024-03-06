@@ -460,9 +460,9 @@ There are various ways to configure bots to take part in a real experiment. One 
 
 ```py
     @staticmethod
-    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
+    @scheduled_task("interval", seconds=5, max_instances=1)
     def run_bot_participant():
-        # Every 7 seconds, runs a bot participant.
+        # Every 5 seconds, runs a bot participant.
         experiment = get_experiment()
         if experiment.var.launched:
             bot = Bot()
