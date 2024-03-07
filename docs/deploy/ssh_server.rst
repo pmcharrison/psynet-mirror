@@ -347,6 +347,11 @@ This requires a one-time setup where you connect your local database client to t
 We know that this is straightforward using Postico, a free database client for MacOS that we
 recommend for use with PsyNet.
 
+.. note::
+
+    You can only connect to the database once you have deployed at least one experiment to the server,
+    thereby initializing the PostgreSQL instance.
+
 Before you can connect to the database, you need to find what internal IP address the database is running on.
 To do this, SSH to the server and run the following command:
 
