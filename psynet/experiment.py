@@ -42,6 +42,7 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
@@ -2558,7 +2559,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         unique_id = request.values.get("unique_id")
         participant_id = request.values.get("participant_id")
         rid = request.values.get("RID")
-
+        participant = None
         if assignment_id is None and unique_id is not None:
             assignment_id = unique_id.split(":")[1]
 
@@ -2575,6 +2576,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assignment_id = participant.assignment_id
 
         assert assignment_id is not None, "No assignment ID provided"
+
+        if participant is None:
+            try:
+                participant = Participant.query.filter_by(
+                    assignment_id=assignment_id
+                ).one()
+            except NoResultFound:
+                logger.error(
+                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+            except MultipleResultsFound:
+                logger.error(
+                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+
+        if participant is not None:
+            participant.failed = True
+            participant.failed_reason = reason
 
         external_submit_url = None
 
