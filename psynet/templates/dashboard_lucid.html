@@ -100,6 +100,58 @@
         </div>
     {% endif %}
 
+    <h3>Respondents</h3>
+    {% if params.respondents %}
+        {{ make_status_card({
+            'title': 'Respondents',
+            'body': "How many respondents enter over time <div id='respondents'></div>",
+            'col': "col-12"
+        }) }}
+        <script>
+            document.addEventListener("DOMContentLoaded", function (e) {
+                let responseData = {{ params.respondents.data | safe }};
+                let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                let n_bins = {{ params.respondents.n_bins }};
+                let type2color = {{ params.respondents.type2color | safe }};
+                let xDict = {{ params.respondents.x_dict | safe }};
+                let height = 500;
+                let tooltip = d3.tip().attr('class', 'd3-tip')
+                    .html(function (d) {
+                        let start = xDict[d.x0];
+                        let end = xDict[d.x1];
+                        // parse time HH:MM:SS, compute the difference and return it in MM
+                        let start_time = new Date(`2021-01-01 ${start}`);
+                        let end_time = new Date(`2021-01-01 ${end}`);
+                        let diff = (end_time - start_time) / 1000 / 60;
+                        diff = Math.round(diff);
+                        let rangeStr = start + "-" + end;
+                        // histogram over d.group
+                        let groupHistogram = {};
+                        d.forEach(function (bin) {
+                            if (groupHistogram[bin.group]) {
+                                groupHistogram[bin.group] += 1;
+                            } else {
+                                groupHistogram[bin.group] = 1;
+                            }
+                        });
+                        let groupStr = "";
+                        for (let group in groupHistogram) {
+                            let color = type2color[group]
+                            groupStr += `<br><strong style="color: ${color}">${group}</strong>: ${groupHistogram[group]}`;
+                        }
+                        return `<strong>${rangeStr}</strong><br>${diff} minutes<br>total: ${d.length}${groupStr}`;
+                    });
+                histogram("respondents", responseData, margin, n_bins, type2color, tooltip, height, xDict, false);
+            });
+        </script>
+    {% else %}
+        {{ make_status_card({
+            'title': 'Respondents',
+            'body': "No respondents yet for the survey.",
+            'col': "col-12"
+        }) }}
+    {% endif %}
+
     <h3>Timing</h3>
     {% if params.response_per_participant %}
         {{ make_status_card({

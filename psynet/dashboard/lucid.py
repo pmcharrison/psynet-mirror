@@ -144,6 +144,42 @@ def report_lucid():
     entry_df.lucid_entry_date = pd.to_datetime(
         entry_df.lucid_entry_date, format="mixed"
     )
+    entry_df["psynet_status"] = entry_df.apply(get_entrant_psynet_status, axis=1)
+    entry_df["entry_timestamp"] = entry_df.apply(
+        lambda x: x["lucid_entry_date"]
+        if not pd.isna(x["lucid_entry_date"])
+        else x["registered_at"],
+        axis=1,
+    )
+    # to unix timestamp
+    entry_df["entry_timestamp"] = (
+        entry_df["entry_timestamp"] - pd.Timestamp("1970-01-01")
+    ) // pd.Timedelta("1s")
+    x_dict = {
+        i: pd.to_datetime(i, unit="s").strftime("%H:%M:%S")
+        for i in range(
+            entry_df["entry_timestamp"].min(), entry_df["entry_timestamp"].max() + 1
+        )
+    }
+
+    data = pd.DataFrame(
+        {
+            "value": entry_df.entry_timestamp,
+            "type": entry_df.psynet_status,
+        }
+    ).to_dict(orient="records")
+
+    params["respondents"] = {
+        "data": data,
+        "type2color": {
+            "Marketplace codes": "black",
+            "Terminated": "red",
+            "Completed": "green",
+            "Working": "blue",
+        },
+        "n_bins": 100,
+        "x_dict": x_dict,
+    }
     entry_df.lucid_last_date = pd.to_datetime(entry_df.lucid_last_date, format="mixed")
     if len(entry_df) > 0:
         entry_df["lucid_duration"] = entry_df.apply(compute_lucid_duration, axis=1)
@@ -167,8 +203,6 @@ def report_lucid():
     terminated_status = BaseLucidRecruiter.TERMINATED  # noqa: F841
     prescreened_status = BaseLucidRecruiter.MARKETPLACE_CODE  # noqa: F841
     in_survey_status = BaseLucidRecruiter.IN_SURVEY  # noqa: F841
-
-    entry_df["psynet_status"] = entry_df.apply(get_entrant_psynet_status, axis=1)
 
     entrant_info = [
         {
