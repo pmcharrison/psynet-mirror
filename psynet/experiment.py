@@ -1502,6 +1502,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.failed = True
         participant.failed_reason = failed_reason
         participant.time_of_death = datetime.now()
+        participant.status = "returned"
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
                 "Executing fail routine %i/%i ('%s')...",
@@ -2594,6 +2595,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if participant is not None:
             participant.failed = True
             participant.failed_reason = reason
+            participant.status = "returned"
 
         external_submit_url = None
 
