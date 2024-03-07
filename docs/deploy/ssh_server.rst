@@ -339,6 +339,38 @@ You can then tear down your app via the following command, again run on your loc
     psynet destroy ssh --app your-app-name
 
 
+Connecting to the database via SSH
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to connect to the remote server's PostgreSQL database via SSH.
+This requires a one-time setup where you connect your local database client to the remote server.
+We know that this is straightforward using Postico, a free database client for MacOS that we
+recommend for use with PsyNet.
+
+Before you can connect to the database, you need to find what internal IP address the database is running on.
+To do this, SSH to the server and run the following command:
+
+.. code:: bash
+
+    docker inspect \
+        -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' dallinger-postgresql-1
+
+Copy and paste the IP address that is returned.
+
+Now, within Postico (or your alternative client), you should select the option to create a new connection,
+and then fill in the following details:
+
+- Host: the IP address you just copied
+- Port: 5432
+- User: dallinger
+- Password: dallinger
+- Tick 'Connect via SSH tunnel'
+- SSH Host: the (external) IP address of your server, or its domain name
+- SSH User: your username on the server
+- Private key: the path to your private key (e.g. ``~/.ssh/id_rsa``)
+
+You should now be able to connect to the PostgreSQL instance on the remote server.
+This should contain multiple databases, one for each experiment you have deployed.
 
 Known issues
 ^^^^^^^^^^^^
