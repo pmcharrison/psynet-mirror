@@ -2211,10 +2211,17 @@ def _destroy(
     app,
     expire_hit,
     server=None,
+    ask_for_confirmation=True,
 ):
-    if user_confirms(
-        "Would you like to delete the app from the web server?", default=True
-    ):
+    confirmed = (
+        user_confirms(
+            "Would you like to delete the app from the web server?", default=True
+        )
+        if ask_for_confirmation
+        else True
+    )
+
+    if confirmed:
         with yaspin("Destroying app...") as spinner:
             try:
                 kwargs = {"app": app}
@@ -2257,26 +2264,47 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
+@click.argument("apps", required=False, nargs=-1)
 @server_option
 @click.option(
-    "--expire-hit/--no-expire-hit",
+    "--expire-hit",
     flag_value=True,
-    default=None,
+    default=False,
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
-def destroy__docker_ssh(ctx, app, server, expire_hit):
+def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
-    _destroy(
-        ctx,
-        destroy,
-        expire,
-        app=app,
-        expire_hit=expire_hit,
-        server=server,
-    )
+    example_usage = "`psynet destroy ssh <app> <app> [--server <server>]`"
+    if app:
+        assert len(apps) == 0, "You cannot provide both --app and a list of apps."
+        click.echo(f"Consider using the batch syntax: {example_usage}")
+        _destroy(
+            ctx,
+            destroy,
+            expire,
+            app=app,
+            expire_hit=expire_hit,
+            server=server,
+        )
+    if len(apps) > 0:
+        assert app is None, "You cannot provide both --app and a list of apps."
+        confirmation = f"""
+            Are you sure you want to remove {len(apps)} apps on {server} ({apps})?
+            """
+        if click.confirm(confirmation, abort=True):
+            for app in apps:
+                _destroy(
+                    ctx,
+                    destroy,
+                    expire,
+                    app=app,
+                    expire_hit=expire_hit,
+                    server=server,
+                    ask_for_confirmation=False,
+                )
 
 
 # @local.command("experiment-mode")
