@@ -2791,6 +2791,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         token = cls.generate_error_token()
         cls.log_to_stdout(error, token, **kwargs)
         cls.log_to_db(error, token, **kwargs)
+        cls.fail_participant_on_error(error, token, **kwargs)
 
     @classmethod
     def generate_error_token(cls):
@@ -2815,6 +2816,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         record = ErrorRecord(error=error, traceback=trace, token=token, **kwargs)
         db.session.add(record)
         db.session.commit()
+
+    @classmethod
+    def fail_participant_on_error(cls, error, token, **kwargs):
+        participant = kwargs.get("participant", None)
+        if participant is not None:
+            reason = f"{type(error)}: {token} (see ErrorRecord)"
+            participant.failure_tags.append(reason)
+            participant.fail(reason)
 
     @classmethod
     def serialize_error_context(
