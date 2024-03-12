@@ -1683,3 +1683,61 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
 
     return tests
+
+
+# Check TODOs
+class PatternDir:
+    def __init__(self, pattern, glob_dir):
+        self.pattern = pattern
+        self.glob_dir = glob_dir
+
+    def __dict__(self):
+        return {"pattern": self.pattern, "glob_dir": self.glob_dir}
+
+
+def _check_todos(pattern, glob_dir):
+    from glob import iglob
+
+    todo_count = {}
+    for path in list(iglob(glob_dir, recursive=True)):
+        key = (path, pattern)
+        with open(path, "r") as f:
+            line_has_todo = [line.strip().startswith(pattern) for line in f.readlines()]
+            if any(line_has_todo):
+                todo_count[key] = sum(line_has_todo)
+    return todo_count
+
+
+def _aggregate_todos(pattern_dirs: [PatternDir]):
+    todo_count = {}
+    for pattern_dir in pattern_dirs:
+        todo_count.update(_check_todos(**pattern_dir.__dict__()))
+    return todo_count
+
+
+def check_todos_before_deployment():
+    if os.environ.get("SKIP_TODO_CHECK"):
+        print(
+            "SKIP_TODO_CHECK is set so we will not check if there are any TODOs in the experiment folder."
+        )
+        return
+
+    todo_count = _aggregate_todos(
+        [
+            # For now only limit to comments specific to the experiment logic (i.e. Python and JS)
+            PatternDir("# TODO", "**/*.py"),  # Python comments
+            PatternDir("// TODO", "**/*.py"),  # Javascript comment in py files
+            PatternDir("// TODO", "**/*.html"),  # Javascript comment in html files
+            PatternDir("// TODO", "**/*.js"),  # Javascript comment in js files
+        ]
+    )
+    file_names = [key[0] for key in todo_count.keys()]
+    total_todo_count = sum(todo_count.values())
+    n_files = len(set(file_names))
+
+    assert len(todo_count) == 0, (
+        f"You have {total_todo_count} TODOs in {n_files} file(s) in your experiment folder. "
+        "Please fix them or remove them before deploying. "
+        "To view all TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
+        "You can skip this check by writing `export SKIP_TODO_CHECK=1` (without quotes) in your terminal."
+    )
