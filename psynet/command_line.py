@@ -2213,7 +2213,7 @@ def _destroy(
     server=None,
     ask_for_confirmation=True,
 ):
-    confirmed = (
+    delete_app = (
         user_confirms(
             "Would you like to delete the app from the web server?", default=True
         )
@@ -2221,7 +2221,7 @@ def _destroy(
         else True
     )
 
-    if confirmed:
+    if delete_app:
         with yaspin("Destroying app...") as spinner:
             try:
                 kwargs = {"app": app}
