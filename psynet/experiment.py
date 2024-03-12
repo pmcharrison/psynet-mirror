@@ -2821,8 +2821,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_participant_on_error(cls, error, token, **kwargs):
         participant = kwargs.get("participant", None)
         if participant is not None:
-            reason = f"{type(error)}: {token} (see ErrorRecord)"
+            error_type = str(type(error))
+            reason = f"Error {token} (see ErrorRecord)"
+            if error_type != "":
+                reason = f"{type(error)}: {reason}"
             participant.failure_tags.append(reason)
+            participant.failure_tags.append(error_type)
             participant.fail(reason)
 
     @classmethod
