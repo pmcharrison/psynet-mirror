@@ -27,7 +27,6 @@ from dallinger.command_line.docker_ssh import (
 from dallinger.command_line.utils import verify_id
 from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
-from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
@@ -950,8 +949,6 @@ def check_wage_per_hour(experiment, config):
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
-    from dallinger.recruiters import MTurkRecruiter
-
     from .experiment import get_experiment
 
     exp = get_experiment()
@@ -1033,9 +1030,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
         config.set("id", exp.make_uuid(app))
 
-        recruiter = exp.recruiter
-        is_mturk = isinstance(recruiter, MTurkRecruiter)
-        is_prolific = isinstance(recruiter, ProlificRecruiter)
+        is_mturk = config.get("recruiter") == "mturk"
+        is_prolific = config.get("recruiter") == "prolific"
 
         if heroku:
             if not exp.asset_storage.heroku_compatible:
