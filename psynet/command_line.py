@@ -2278,9 +2278,19 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
     from dallinger.command_line.docker_ssh import destroy
 
     example_usage = "`psynet destroy ssh <app> <app> [--server <server>]`"
+    ask_for_confirmation = True
+    if len(apps) > 0:
+        assert app is None, "You cannot provide both --app and a list of apps."
+        batch_delete_app = click.confirm(
+            "Would you like to delete the app from the web server?", abort=True
+        )
+        ask_for_confirmation = not batch_delete_app
     if app:
         assert len(apps) == 0, "You cannot provide both --app and a list of apps."
         click.echo(f"Consider using the batch syntax: {example_usage}")
+        apps = [app]
+
+    for app in apps:
         _destroy(
             ctx,
             destroy,
@@ -2288,23 +2298,8 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
             app=app,
             expire_hit=expire_hit,
             server=server,
+            ask_for_confirmation=ask_for_confirmation,
         )
-    if len(apps) > 0:
-        assert app is None, "You cannot provide both --app and a list of apps."
-        confirmation = f"""
-            Are you sure you want to remove {len(apps)} apps on {server} ({apps})?
-            """
-        if click.confirm(confirmation, abort=True):
-            for app in apps:
-                _destroy(
-                    ctx,
-                    destroy,
-                    expire,
-                    app=app,
-                    expire_hit=expire_hit,
-                    server=server,
-                    ask_for_confirmation=False,
-                )
 
 
 # @local.command("experiment-mode")
