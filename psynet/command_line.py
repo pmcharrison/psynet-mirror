@@ -2284,7 +2284,7 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
         batch_delete_app = click.confirm(
             "Would you like to delete the app from the web server?", abort=True
         )
-        ask_for_confirmation = not batch_delete_app
+        ask_for_confirmation = False
     if app:
         assert len(apps) == 0, "You cannot provide both --app and a list of apps."
         click.echo(f"Consider using the batch syntax: {example_usage}")
