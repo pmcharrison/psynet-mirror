@@ -1223,6 +1223,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "lock_table_when_creating_participant": False,
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
+            "max_wage_per_hour": 18.0,
             "currency": "$",
             "min_accumulated_reward_for_abort": 0.20,
             "show_abort_button": False,
@@ -1991,6 +1992,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("label", unicode)
         config.register("min_browser_version", unicode)
         config.register("wage_per_hour", float)
+        config.register("max_wage_per_hour", float)
         config.register("currency", unicode)
         config.register("min_accumulated_reward_for_abort", float)
         config.register("show_abort_button", bool)
