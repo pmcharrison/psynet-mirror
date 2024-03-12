@@ -961,7 +961,7 @@ def check_todos_before_deployment(experiment, config):
 
 
 def _check_wage_per_hour(wage_per_hour, max_wage_per_hour, currency):
-    assert wage_per_hour < max_wage_per_hour, (
+    assert wage_per_hour <= max_wage_per_hour, (
         f"The wage per hour ({wage_per_hour:.2f} {currency}/h) exceeds the maximum wage per hour "
         f"({max_wage_per_hour:.2f} {currency}/h). This is usually a sign that you are either overpaying or "
         "your time estimate is off. If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
