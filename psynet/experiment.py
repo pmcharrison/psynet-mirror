@@ -2723,6 +2723,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._route_timeline(experiment, participant, mode)
 
     @classmethod
+    def fail_participant_on_error(cls, participant, error):
+        error_type = str(type(error))
+        # convert error type like <class 'Exception'> to 'Exception'
+        error_type = error_type.split("'")[1]
+        participant.failure_tags.append(error_type)
+        participant.fail(error_type)
+
+    @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
             page = cls.get_current_page(experiment, participant)
@@ -2744,6 +2752,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if participant.current_trial
                 else None,
             )
+            cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
 
     @classmethod
@@ -2793,7 +2802,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         token = cls.generate_error_token()
         cls.log_to_stdout(error, token, **kwargs)
         cls.log_to_db(error, token, **kwargs)
-        cls.fail_participant_on_error(error, token, **kwargs)
 
     @classmethod
     def generate_error_token(cls):
@@ -2818,18 +2826,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         record = ErrorRecord(error=error, traceback=trace, token=token, **kwargs)
         db.session.add(record)
         db.session.commit()
-
-    @classmethod
-    def fail_participant_on_error(cls, error, token, **kwargs):
-        participant = kwargs.get("participant", None)
-        if participant is not None:
-            error_type = str(type(error))
-            reason = f"Error {token} (see ErrorRecord)"
-            if error_type != "":
-                reason = f"{type(error)}: {reason}"
-            participant.failure_tags.append(reason)
-            participant.failure_tags.append(error_type)
-            participant.fail(reason)
 
     @classmethod
     def serialize_error_context(
