@@ -2433,10 +2433,8 @@ class NetworkTrialMaker(TrialMaker):
     def performance_check_consistency(
         self, experiment, participant, participant_trials
     ):
-        trials_by_id = {trial.id: trial for trial in participant_trials}
-
         repeat_trials = [t for t in participant_trials if t.is_repeat_trial]
-        parent_trials = [trials_by_id[t.parent_trial_id] for t in repeat_trials]
+        parent_trials = [t.parent_trial for t in repeat_trials]
 
         repeat_trial_answers = [
             self.get_answer_for_consistency_check(t) for t in repeat_trials
@@ -2494,7 +2492,7 @@ class NetworkTrialMaker(TrialMaker):
     def group_trials_by_parent(trials):
         res = {}
         for trial in trials:
-            parent_id = trial.parent_trial_id
+            parent_id = trial.parent_trial.id
             if parent_id not in res:
                 res[parent_id] = []
             res[parent_id].append(trial)
