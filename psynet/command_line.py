@@ -2281,7 +2281,7 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
     ask_for_confirmation = True
     if len(apps) > 0:
         assert app is None, "You cannot provide both --app and a list of apps."
-        batch_delete_app = click.confirm(
+        click.confirm(
             "Would you like to delete the app from the web server?", abort=True
         )
         ask_for_confirmation = False
