@@ -321,7 +321,7 @@ class Trial(SQLMixinDallinger, Info):
         post_update=True,
     )
     parent_trial = relationship(
-        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
+        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id], uselist=False
     )
     response = relationship("psynet.timeline.Response")
 
