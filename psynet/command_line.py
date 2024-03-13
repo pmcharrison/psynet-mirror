@@ -2211,10 +2211,17 @@ def _destroy(
     app,
     expire_hit,
     server=None,
+    ask_for_confirmation=True,
 ):
-    if user_confirms(
-        "Would you like to delete the app from the web server?", default=True
-    ):
+    delete_app = (
+        user_confirms(
+            "Would you like to delete the app from the web server?", default=True
+        )
+        if ask_for_confirmation
+        else True
+    )
+
+    if delete_app:
         with yaspin("Destroying app...") as spinner:
             try:
                 kwargs = {"app": app}
@@ -2257,26 +2264,42 @@ def _destroy(
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
+@click.argument("apps", required=False, nargs=-1)
 @server_option
 @click.option(
-    "--expire-hit/--no-expire-hit",
+    "--expire-hit",
     flag_value=True,
-    default=None,
+    default=False,
     help="Expire any MTurk HITs associated with this experiment.",
 )
 @click.pass_context
-def destroy__docker_ssh(ctx, app, server, expire_hit):
+def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
-    _destroy(
-        ctx,
-        destroy,
-        expire,
-        app=app,
-        expire_hit=expire_hit,
-        server=server,
-    )
+    example_usage = "`psynet destroy ssh <app> <app> [--server <server>]`"
+    ask_for_confirmation = True
+    if len(apps) > 0:
+        assert app is None, "You cannot provide both --app and a list of apps."
+        click.confirm(
+            "Would you like to delete the app from the web server?", abort=True
+        )
+        ask_for_confirmation = False
+    if app:
+        assert len(apps) == 0, "You cannot provide both --app and a list of apps."
+        click.echo(f"Consider using the batch syntax: {example_usage}")
+        apps = [app]
+
+    for app in apps:
+        _destroy(
+            ctx,
+            destroy,
+            expire,
+            app=app,
+            expire_hit=expire_hit,
+            server=server,
+            ask_for_confirmation=ask_for_confirmation,
+        )
 
 
 # @local.command("experiment-mode")
