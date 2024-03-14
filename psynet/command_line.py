@@ -34,7 +34,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.version import check_versions
+from psynet.version import check_dallinger_version, check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -920,6 +920,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
     from .experiment import get_experiment
+
+    check_dallinger_version()
 
     exp = get_experiment()
     exp.check_config()
