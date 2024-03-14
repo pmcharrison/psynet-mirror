@@ -321,7 +321,7 @@ class Trial(SQLMixinDallinger, Info):
         post_update=True,
     )
     parent_trial = relationship(
-        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
+        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id], uselist=False
     )
     response = relationship("psynet.timeline.Response")
 
@@ -438,7 +438,7 @@ class Trial(SQLMixinDallinger, Info):
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
-        self.parent_trial_id = None if parent_trial is None else parent_trial.id
+        self.parent_trial = parent_trial
         self.repeat_trial_index = repeat_trial_index
         self.n_repeat_trials = n_repeat_trials
         self.score = None
@@ -2433,10 +2433,8 @@ class NetworkTrialMaker(TrialMaker):
     def performance_check_consistency(
         self, experiment, participant, participant_trials
     ):
-        trials_by_id = {trial.id: trial for trial in participant_trials}
-
         repeat_trials = [t for t in participant_trials if t.is_repeat_trial]
-        parent_trials = [trials_by_id[t.parent_trial_id] for t in repeat_trials]
+        parent_trials = [t.parent_trial for t in repeat_trials]
 
         repeat_trial_answers = [
             self.get_answer_for_consistency_check(t) for t in repeat_trials
@@ -2494,7 +2492,7 @@ class NetworkTrialMaker(TrialMaker):
     def group_trials_by_parent(trials):
         res = {}
         for trial in trials:
-            parent_id = trial.parent_trial_id
+            parent_id = trial.parent_trial.id
             if parent_id not in res:
                 res[parent_id] = []
             res[parent_id].append(trial)
