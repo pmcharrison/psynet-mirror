@@ -47,6 +47,7 @@ docker run \
   -v ~/.ssh:/root/.ssh \
   --network dallinger \
   -p 5000:5000 \
+  -e SKIP_CHECK_DALLINGER_VERSION \
   -e SKIP_DEPENDENCY_CHECK="" \
   -e DALLINGER_NO_EGG_BUILD=1 \
   -e FLASK_OPTIONS='-h 0.0.0.0' \
