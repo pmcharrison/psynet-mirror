@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Fixed
+- SKIP_CHECK_DALLINGER_VERSION is now propagated properly to Docker containers.
+
 # [11.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.1.0) Release 2024-03-05
 
 #### Fixed
