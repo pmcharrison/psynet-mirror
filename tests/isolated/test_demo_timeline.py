@@ -219,7 +219,11 @@ class TestExp(object):
             )
             next_page(driver, "Red")
 
-            assert_text(driver, "main-body", "Red is a nice color, wait 1s. Next")
+            assert_text(
+                driver,
+                "main-body",
+                "Red is a nice color, wait 1s and have a performance bonus. Next",
+            )
             next_page(driver, "next-button")
 
             # Final page
