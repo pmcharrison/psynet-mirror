@@ -148,7 +148,9 @@ class ChainNetwork(TrialNetwork):
     definition = Column(PythonObject)
     block = Column(String, index=True)
 
-    head = relationship("ChainNode", foreign_keys=[head_id], post_update=True)
+    head = relationship(
+        "ChainNode", foreign_keys=[head_id], post_update=True, lazy="joined"
+    )
 
     def __init__(
         self,
@@ -301,9 +303,10 @@ class ChainNetwork(TrialNetwork):
 
     @property
     def degree(self):
-        if self.n_alive_nodes == 0:
+        if self.head is None:
             return 0
-        return max([node.degree for node in self.alive_nodes])
+        else:
+            return self.head.degree
 
     # @property
     # def head(self):
