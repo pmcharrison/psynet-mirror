@@ -21,6 +21,7 @@ from psynet.timeline import (
     PageMaker,
     Timeline,
     conditional,
+    join,
     switch,
     while_loop,
 )
@@ -205,7 +206,15 @@ class Exp(psynet.experiment.Experiment):
                 "color",
                 lambda participant: participant.answer,
                 branches={
-                    "Red": InfoPage("Red is a nice color, wait 1s.", time_estimate=1),
+                    "Red": join(
+                        InfoPage(
+                            "Red is a nice color, wait 1s and have a performance bonus.",
+                            time_estimate=1,
+                        ),
+                        CodeBlock(
+                            lambda participant: participant.inc_performance_reward(1.0)
+                        ),
+                    ),
                     "Green": InfoPage(
                         "Green is quite a nice color, wait 2s.", time_estimate=2
                     ),
