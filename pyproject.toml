@@ -34,18 +34,14 @@ classifiers = [
 dependencies = [
     "dallinger[docker]>=10.0.1,<11",
     "dominate",
-    "ipywidgets",
     "joblib",
     "jsonpickle",
     "paramiko",
     "polib",
-    "praat-parselmouth",
     "progress",
     "pytest",
     "python-gettext",
     "rpdb",
-    "sphinx",
-    "statsmodels",
     "tenacity",
     "tqdm",
     "yaspin",
@@ -58,6 +54,7 @@ dev = [
     "mock",
     "pre-commit",
     "pybabel",
+    "sphinx",
     "sphinx-autodoc-typehints",
 ]
 
