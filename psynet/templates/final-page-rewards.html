@@ -3,7 +3,7 @@
 {% set TIME_REWARD = "%.2f"|format(participant.time_credit.get_time_reward()) %}
 {% set PERFORMANCE_REWARD = "%.2f"|format(participant.performance_reward) %}
 {% set CURRENCY = config.currency %}
-{% trans name="final-page-rewards" %}You will receive a reward of <strong>{{ CURRENCY }}{{ TIME_REWARD }}</strong> for the time you spent on the experiment. You have also been awarded a performance reward of <strong>{{ CURRENCY }}{{ PERFORMANCE_REWARD }}</strong>!{% endtrans %}
+{% trans name="final-page-rewards" %}You will receive a reward of <strong>{{ CURRENCY }}{{ TIME_REWARD }}</strong> for the time you spent on the experiment.{% endtrans %}
 
 {% if participant.performance_reward > 0.0 %}
     {% trans name="final-page-rewards" %}You have also been awarded a performance reward of <strong>{{ CURRENCY }}{{PERFORMANCE_REWARD}}</strong>!{% endtrans %}
