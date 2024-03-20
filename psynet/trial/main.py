@@ -2,6 +2,7 @@
 
 import datetime
 import random
+import time
 from math import isnan
 from typing import List, Optional, Union
 
@@ -33,6 +34,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from psynet import field
+from psynet.bot import Bot
 
 from ..asset import Asset, AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
@@ -945,6 +947,14 @@ class Trial(SQLMixinDallinger, Info):
                     experiment=experiment,
                     participant=participant,
                 )
+            if isinstance(participant, Bot):
+                sleep_time = trial_maker.get_test_bot_processing_time(
+                    trial, participant, experiment
+                )
+                logger.info(
+                    f"Waiting for {sleep_time} seconds for the bot to process the trial."
+                )
+                time.sleep(sleep_time)
 
             trial.check_if_can_run_async_post_trial()
             trial.check_if_can_mark_as_finalized()
@@ -1633,6 +1643,38 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
         participant.module_state.n_completed_trials += 1
+
+    def get_test_bot_processing_time(self, experiment, participant, trial):
+        # pylint: disable=unused-argument
+        """
+        Defines a simulated processing time for bots. This is particularly helpful
+        to find the optimal number of participants in an experiment which involves
+        heavy post-processing, e.g. GSP with deep learning models or long analysis
+        of audio recordings.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant
+            An instantiation of :class:`psynet.participant.Participant`,
+            corresponding to the current participant.
+
+        trial
+            The trial which is being processed.
+
+
+        Returns
+        -------
+
+        int
+            Estimated processing time in seconds, default is 0.
+
+        """
+        return 0
 
     def performance_check(self, experiment, participant, participant_trials):
         # pylint: disable=unused-argument

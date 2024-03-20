@@ -744,27 +744,43 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
+    # This is the total maximum number of bot, which is useful to test if auto-recruit works, but without having an
+    # a large number of participants
+    test_parallel_max_participants = None
+
+    def get_test_parallel_stagger_interval_s(self):
+        return self.test_parallel_stagger_interval_s
+
+    def _run_bot(self):
+        cmd = "psynet run-bot"
+        if self.test_real_time:
+            cmd += " --real-time"
+        return pexpect.spawn(cmd, timeout=None, cwd=None)
+
     def _test_experiment_parallel(self):
         # Start N subprocesses, and in each one call `psynet run-bot`
         logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
+        test_auto_recruit = self.config.get("auto_recruit")
+        if test_auto_recruit:
+            logger.info(
+                "Auto-recruit is enabled, so we will recruit new bots until the experiment is full."
+            )
 
         n_processes = self.test_n_bots
+        max_participants = self.test_parallel_max_participants
 
         processes = []
         process_ids = list(range(n_processes))
         bot_ids = [process_id + 1 for process_id in process_ids]
 
-        cmd = "psynet run-bot"
-        if self.test_real_time:
-            cmd += " --real-time"
-
         for bot_id in bot_ids:
-            if bot_id > 0:
-                time.sleep(self.test_parallel_stagger_interval_s)
+            if bot_id > 1:
+                wait = self.get_test_parallel_stagger_interval_s()
+                logger.info(f"Waiting {wait} seconds before recruiting another bot.")
+                time.sleep(wait)
 
             logger.info(f"Creating and running bot {bot_id}...")
-            p = pexpect.spawn(cmd, timeout=None, cwd=None)
-            processes.append(p)
+            processes.append(self._run_bot())
 
         waiting_for_processes = True
         finished_processes = set()
@@ -792,7 +808,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     pass
                 except pexpect.EOF:
                     assert process.exitstatus == 0
-                    finished_processes.add(process_id)
+                    if process_id not in finished_processes:
+                        finished_processes.add(process_id)
+                        logger.info(f"Bot {bot_id} is finished")
+
+                        if test_auto_recruit:
+                            if self.need_more_participants:
+                                if (
+                                    max_participants is not None
+                                    and n_processes >= max_participants
+                                ):
+                                    logger.info(
+                                        f"The maximum number of participants ({max_participants}) has been reached ("
+                                        "`Exp.test_parallel_max_participants`). No more bots will be recruited."
+                                    )
+                                else:
+                                    n_processes += 1  # immediately block the bot avoiding exceeding max_participants
+                                    wait = self.get_test_parallel_stagger_interval_s()
+                                    logger.info(
+                                        f"Recruiting another bot in {wait} seconds."
+                                    )
+                                    time.sleep(wait)
+                                    processes.append(self._run_bot())
+                                    process_ids.append(max(process_ids) + 1)
+                                    bot_ids.append(max(bot_ids) + 1)
+                            else:
+                                logger.info("No more bots required.")
 
             if len(finished_processes) == n_processes:
                 waiting_for_processes = False
