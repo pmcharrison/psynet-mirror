@@ -154,11 +154,19 @@ When you're ready to deploy your experiment, give your config one last check, ma
 ``prolific`` recruiter is selected.
 If you need to be connected to a VPN in order to access your server, make sure you are connected to the VPN.
 
-Now you can deploy your app:
+Now you can deploy your app.
+If you do not have a domain name, then PsyNet will automatically use a ``nip.io`` subdomain.
 
 ::
 
     psynet deploy ssh --app your-app-name
+
+If you do have a domain name, you should specify it via the ``--dns-host`` argument.
+For example, Cambridge users might use:
+
+::
+
+    psynet deploy ssh --app your-app-name --dns-host musix.mus.cam.ac.uk
 
 .. note::
 
