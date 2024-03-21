@@ -139,6 +139,13 @@ It's a good idea to test your experiment thoroughly before deploying it. There a
 3. Pilot it on your remote server by setting ``recruiter = generic`` in ``config.txt`` and then running
    ``bash docker/psynet debug ssh --app your-app-name``.
 
+.. warning::
+
+    If you are running automated experiment tests via Docker as instructed above,
+    and you are using an Apple Silicon Mac, then make sure you have selected
+    'Use Rosetta for x86/amd64 emulation on Apple Silicon' under the Docker preferences,
+    otherwise the tests will run very slowly.
+
 
 Deploying your experiment
 -------------------------
