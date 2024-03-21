@@ -152,6 +152,8 @@ Deploying your experiment
 
 When you're ready to deploy your experiment, give your config one last check, making sure that the
 ``prolific`` recruiter is selected.
+If you need to be connected to a VPN in order to access your server, make sure you are connected to the VPN.
+
 Now you can deploy your app:
 
 ::
