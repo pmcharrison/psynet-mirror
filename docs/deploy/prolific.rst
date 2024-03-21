@@ -158,6 +158,15 @@ Now you can deploy your app:
 
     psynet deploy ssh --app your-app-name
 
+.. note::
+
+    Replace ``your-app-name`` with a name of your choice.
+    This name will become part of the URL that participants will visit to take part in your experiment,
+    so make sure it doesn't include any funny characters or spaces.
+    If your server is limited to a specific set of subdomains, your app name will be restricted to one of those subdomains.
+    For example, in Cambridge we use ``psynet-01``, ``psynet-02``, etc. as app names, which then resolve to URLs of the form
+    ``psynet-01.musix.cam.ac.uk``, ``psynet-02.musix.cam.ac.uk``, etc.
+
 If the command runs successfully, it should print a link to your Prolific dashboard.
 PsyNet will have automatically created a 'draft study' for your, populating certain elements such as the
 title, description, and so on. Go through this draft study carefully and make sure that all the details are
