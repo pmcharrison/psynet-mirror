@@ -105,9 +105,9 @@ take on the experiment via Prolific's bonus functionality. You should explain br
 policy will be if the participant doesn't finish the experiment due to a technical error.
 
 .. warning::
-    Some of our participants have been seeing a phishing warning in their Chrome browser when they navigate to our experiment.
-    This error can intimidate participants. However, it disappears if you take the test in an incognito browser.
-    It's a good idea to mention this in the study description so they know not to worry.
+    If you do not use your own domain name (via the ``--dns-host`` argument), then Dallinger automatically
+    uses a ``nip.io`` subdomain. We think this may be causing certain participants to encounter phishing warnings.
+    It seems that this error can be avoided by instructing the participant to take the test in an incognito browser.
 
 You should select the Prolific recruiter by setting the config parameter ``recruiter`` to ``prolific``.
 Also, for most users we recommend setting the ``auto_recruit`` parameter to ``false``, meaning that you will manually
