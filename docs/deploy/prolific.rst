@@ -180,11 +180,27 @@ For example, Cambridge users might use:
 If the command runs successfully, it should print a link to your Prolific dashboard.
 PsyNet will have automatically created a 'draft study' for your, populating certain elements such as the
 title, description, and so on. Go through this draft study carefully and make sure that all the details are
-set appropriately. You will need to set one of the dropdowns to 'Participants will be approved automatically'.
+set appropriately.
+
+There is one item that is labeled something like 'Process submissions',
+where the options are 'Manually review' and 'Approve and pay'.
+Currently we think the best thing is to select 'Approve and pay' but this might change in the future.
+
+Another item asks you how many participants you wish to recruit. This corresponds to the
+``initial_recruitment_size`` parameter in the ``config.txt`` file.
+Even if you plan to recruit a large number of participants, e.g. 100, it's normally best to start with a small number,
+and only increase the number of participants once you're sure that everything is working well.
+We've found in the past that if you give too small a number, however, Prolific deprioritizes your study,
+and recruitment is slow. We recommend starting with something like 10 participants.
 
 You can set particular demographic criteria via the Prolific interface at this point.
 For example, you might choose to select participants from only a certain few countries.
 Advanced users may instead want to control this behavior via PsyNet; see below for instructions.
+
+There is also an option to set a limit on the number of participants that can take the experiment at the same time.
+In theory this would be a great idea for protecting your server from excessive loads.
+However, I have found in practice that recruitment seems strangely slow (or even non-existent) when this is set.
+I would recommend skipping this option for now.
 
 At this point you can preview the study as if you were a Prolific participant. It's a good idea to do this
 and check that everything looks OK.
@@ -196,7 +212,7 @@ Monitor the study by keeping an eye on the following routes:
 
 - The experiment dashboard;
 - The Prolific messages page;
-- The docker-compose logs.
+- The Dozzle logs.
 
 Once you're happy that the experiment is running well, you can increase the number of participants.
 PsyNet seems to cope fine with e.g. 50 participants at a time, but this will depend a bit on the
