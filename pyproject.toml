@@ -38,6 +38,7 @@ dependencies = [
     "jsonpickle",
     "paramiko",
     "polib",
+    "praat-parselmouth",
     "progress",
     "pytest",
     "python-gettext",
