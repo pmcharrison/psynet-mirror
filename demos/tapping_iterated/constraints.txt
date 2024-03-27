@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 0f8731b61b4230f8a48873f57869cddb
+# Compiled from a requirement.txt file with md5sum: a16646de3233dbb33ef11abb03ff94b4
 #
 alabaster==0.7.16
     # via
@@ -129,7 +129,7 @@ cryptography==42.0.5
     #   pyopenssl
 cycler==0.12.1
     # via matplotlib
-dallinger==10.0.1
+dallinger[docker]==10.0.1
     # via psynet
 debugpy==1.8.1
     # via
@@ -143,6 +143,10 @@ defusedxml==0.7.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   nbconvert
+docker==7.0.0
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   dallinger
 docutils==0.20.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -185,7 +189,7 @@ flask-wtf==1.2.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
-fonttools==4.49.0
+fonttools==4.50.0
     # via matplotlib
 fqdn==1.5.1
     # via
@@ -239,6 +243,10 @@ imagesize==1.4.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   sphinx
+iniconfig==2.0.0
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   pytest
 ipykernel==6.29.3
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -387,7 +395,7 @@ markupsafe==2.1.5
     #   wtforms
 matplotlib==3.8.3
     # via
-    #   -r /tmp/tmpjd2ubb1n/requirements.txt
+    #   -r /tmp/tmpj5lznw0q/requirements.txt
     #   repp
     #   reppextension
 matplotlib-inline==0.1.6
@@ -451,6 +459,7 @@ packaging==23.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   build
+    #   docker
     #   gunicorn
     #   ipykernel
     #   jupyter-server
@@ -458,6 +467,7 @@ packaging==23.2
     #   jupyterlab-server
     #   matplotlib
     #   nbconvert
+    #   pytest
     #   qtconsole
     #   qtpy
     #   sphinx
@@ -473,7 +483,9 @@ pandocfilters==1.5.1
 paramiko==3.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   dallinger
     #   psynet
+    #   sshtunnel
 parso==0.8.3
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -495,6 +507,10 @@ platformdirs==4.2.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   jupyter-core
+pluggy==1.4.0
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   pytest
 polib==1.2.0
     # via psynet
 praat-parselmouth==0.4.3
@@ -520,7 +536,7 @@ psycopg2==2.9.9
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==11.1.0
+psynet==11.2.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -551,7 +567,7 @@ pyopenssl==24.0.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
-pyparsing==3.1.1
+pyparsing==3.1.2
     # via matplotlib
 pyproject-hooks==1.0.0
     # via
@@ -562,6 +578,10 @@ pysocks==1.7.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   urllib3
+pytest==8.0.0
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   psynet
 python-dateutil==2.9.0.post0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -622,6 +642,7 @@ requests==2.31.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
+    #   docker
     #   heroku3
     #   jupyterlab-server
     #   sphinx
@@ -735,6 +756,10 @@ sqlalchemy-postgres-copy==0.5.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
+sshtunnel==0.4.0
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   dallinger
 stack-data==0.6.3
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -749,6 +774,7 @@ tenacity==8.2.3
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
+    #   psynet
 termcolor==2.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -835,6 +861,7 @@ urllib3[socks]==1.26.18
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   botocore
     #   dallinger
+    #   docker
     #   requests
     #   selenium
 user-agents==2.2.0
