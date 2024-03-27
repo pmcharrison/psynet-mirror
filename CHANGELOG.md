@@ -1,11 +1,16 @@
 # CHANGELOG
 
+# [11.2.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.1) Release 2024-03-27
+
+#### Fixed
+- Streamlined PsyNet's dependencies to reduce the installation of unnecessary packages (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed broken API documentation in previous v11.1.0 release.
+
 # [11.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.0) Release 2024-03-27
 
 #### Fixed
 - Fixed bug whereby `parent_trial` relationship was not updating properly (author: Peter Harrison).
 - `SKIP_CHECK_DALLINGER_VERSION` is now propagated properly to Docker containers (author: Peter Harrison).
-- Fixed broken API documentation in previous v11.1.0 release.
 
 #### Added
 - Track loading times in new `Request` table (author: Pol van Rijn, reviewer: Peter Harrison).
@@ -16,7 +21,6 @@
 - `psynet destroy ssh` can now receive app arguments to destroy multiple apps at once; by default it's not asking to expire HITs, but it's now an optional parameter (author: Pol van Rijn, reviewer: Peter Harrison).
 
 #### Improved
-- Streamlined PsyNet's dependencies to reduce the installation of unnecessary packages (author: Peter Harrison, reviewer: Frank Höger).
 - Made `network.degree` more efficient (author: Peter Harrison, reviewer: Frank Höger).
 
 #### Documentation changes
