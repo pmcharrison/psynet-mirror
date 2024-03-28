@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 6aa081b805ad7d39e3d37178e1608086
+# Compiled from a requirement.txt file with md5sum: 3051b1ebaea2e0cbff6c45bfdd7510e9
 #
 apscheduler==3.10.4
     # via
@@ -23,6 +23,10 @@ attrs==23.2.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   outcome
     #   trio
+babel==2.14.0
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   psynet
 bcrypt==4.1.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -198,6 +202,7 @@ matplotlib-inline==0.1.6
 numpy==1.26.4
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   pandas
     #   praat-parselmouth
 outcome==1.3.0.post0
     # via
@@ -210,6 +215,10 @@ packaging==23.2
     #   docker
     #   gunicorn
     #   pytest
+pandas==2.2.1
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   psynet
 paramiko==3.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -252,7 +261,7 @@ psycopg2==2.9.9
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==11.2.1
+psynet==11.2.2
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -297,12 +306,14 @@ python-dateutil==2.9.0.post0
     #   botocore
     #   faker
     #   heroku3
+    #   pandas
 python-gettext==5.0
     # via psynet
 pytz==2024.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   apscheduler
+    #   pandas
 redis==5.0.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
@@ -402,6 +413,10 @@ typing-extensions==4.10.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   selenium
+tzdata==2024.1
+    # via
+    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
+    #   pandas
 tzlocal==5.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
