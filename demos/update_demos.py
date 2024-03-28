@@ -28,8 +28,9 @@ skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
+        commit_hash_master = pre_update_constraints(dir)
         generate_constraints(dir)
-        post_update_constraints(dir)
+        post_update_constraints(dir, commit_hash_master)
         update_psynet_requirement(dir)
 
 
@@ -42,9 +43,14 @@ def generate_constraints(dir):
     )
 
 
-def post_update_constraints(dir):
+def pre_update_constraints(dir):
     with working_directory(dir):
-        psynet.command_line.post_update_constraints_()
+        return psynet.command_line.pre_update_constraints_(dir)
+
+
+def post_update_constraints(dir, commit_hash_master):
+    with working_directory(dir):
+        psynet.command_line.post_update_constraints_(commit_hash_master)
 
 
 def update_psynet_requirement(dir):
