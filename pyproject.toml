@@ -32,10 +32,12 @@ classifiers = [
 ]
 
 dependencies = [
+    "babel",
     "dallinger[docker]>=10.0.1,<11",
     "dominate",
     "joblib",
     "jsonpickle",
+    "pandas",
     "paramiko",
     "polib",
     "praat-parselmouth",
