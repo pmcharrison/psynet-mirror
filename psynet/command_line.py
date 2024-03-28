@@ -1,3 +1,4 @@
+import fileinput
 import json
 import logging
 import os
@@ -2051,13 +2052,42 @@ def update_scripts_():
         )
 
 
-def post_update_constraints_():
-    import fileinput
-
-    with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        psynet_version = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+def pre_update_constraints_(dir):
+    commit_hash = (
+        subprocess.check_output(
+            ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
+        )
+        .decode("utf-8")
+        .strip()
+    )
+    with fileinput.FileInput("requirements.txt", inplace=True) as file:
+        psynet_requirement = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
         for line in file:
-            print(re.sub(psynet_version, f"psynet=={__version__}", line), end="")
+            print(
+                re.sub(
+                    psynet_requirement,
+                    f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet",
+                    line,
+                ),
+                end="",
+            )
+    return commit_hash
+
+
+def post_update_constraints_(commit_hash):
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        psynet_requirement = (
+            f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}"
+        )
+        for line in file:
+            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
+
+    with fileinput.FileInput("requirements.txt", inplace=True) as file:
+        psynet_requirement = (
+            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
+        )
+        for line in file:
+            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
 
 
 @psynet.command()
