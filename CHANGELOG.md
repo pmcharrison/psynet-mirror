@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [11.2.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.2) Release 2024-03-28
+
+#### Fixed
+- Re-add `babel` and `pandas` dependencies (author: Frank Höger).
+- Fix the demos/update_demos.py script to take into account dependency changes in pyproject.toml since the last release (author: Frank Höger).
+
 # [11.2.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.1) Release 2024-03-27
 
 #### Fixed
