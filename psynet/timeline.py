@@ -1290,6 +1290,14 @@ class PageMaker(Elt):
             participant=participant,
         )
         res = join(res)
+
+        for elt in res:
+            if isinstance(elt, StartModule):
+                raise ValueError(
+                    "Sorry, you cannot use modules or trial makers inside the lambda functions of "
+                    "page makers or for loops. These need to be defined upon construction of the timeline."
+                )
+
         self.impute_time_estimates(res)
         self.check_time_estimates(res)
 
@@ -1670,6 +1678,12 @@ class CreditEstimate:
 
             else:
                 pos += 1
+
+
+def estimate_duration(logic):
+    # This join ensures that any modules are resolved into lists of Elts.
+    elts = join(logic)
+    return CreditEstimate(elts).get_max("time")
 
 
 class FailedValidation:
@@ -2678,12 +2692,6 @@ class RecruitmentCriterion(NullElt):
         self.function = function
 
 
-def get_trial_maker(trial_maker_id):
-    raise ImportError(
-        "get_trial_maker has moved from psynet.timeline to psynet.experiment, please update your import statements."
-    )
-
-
 FOR_LOOP_STACK_DEPTH = -1
 
 
@@ -2784,15 +2792,114 @@ def for_loop(
     )
 
 
-def randomize(*, label, logic):
+def sequence(
+    *,
+    label: str,
+    function: Callable,
+    logic: list,
+):
+    """
+    Administers a sequence of logical units in an order determined by a function.
+    This could be used, for example, to determine the order of a series of questionnaires.
+    See ``randomize`` for a special case where the order is randomized.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    function:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline,
+        returning a list of indices that will be used to determine the order of the sequence.
+
+    logic:
+        A list of logical units to be administered in the order determined by ``function``.
+        Each element should be a unit of timeline logic, for example a trial maker
+        or a sequence of Elts created through the join function.
+    """
     assert isinstance(logic, list)
+
+    for elt in logic:
+        if isinstance(elt, (StartModule, StartSwitch)):
+            raise ValueError(
+                f"Saw an unexpected element within `sequence`: f{elt} ."
+                "Perhaps you are misusing the function? "
+                "`logic` should be a list where each element is a unit of timeline to be inserted into a sequence. "
+                "This could be a page, or it could be a module, a trial maker, or something like that. "
+                "Note that you do NOT want to pass the output of `join` directly to `sequence`."
+            )
+
+    sequence_length = len(logic)
+
+    def initialize_sequence(participant, experiment):
+        seq = call_function_with_context(
+            function, participant=participant, experiment=experiment
+        )
+        assert isinstance(seq, list)
+        assert len(seq) == sequence_length
+        participant.sequences.append(seq)
+        flag_modified(participant, "sequences")
+
+    def sequence_is_not_finished(participant):
+        return len(participant.sequences[-1]) > 0
+
+    def get_current_position(participant):
+        return participant.sequences[-1][0]
+
+    def progress_sequence(participant):
+        participant.sequences[-1].pop(0)
+        flag_modified(participant, "sequences")
+
+    def tear_down_sequence(participant):
+        participant.sequences.pop()
+        flag_modified(participant, "sequences")
+
+    label = f"sequence_{label}"
+
+    return join(
+        CodeBlock(initialize_sequence),
+        while_loop(
+            label=label,
+            condition=sequence_is_not_finished,
+            logic=join(
+                switch(
+                    label=label,
+                    function=get_current_position,
+                    branches={i: logic[i] for i in range(sequence_length)},
+                ),
+                CodeBlock(progress_sequence),
+            ),
+            expected_repetitions=sequence_length,
+            fix_time_credit=False,
+        ),
+        CodeBlock(tear_down_sequence),
+    )
+
+
+def randomize(*, label, logic):
+    """
+    Randomizes the order of a series of logical units.
+    This could be used, for example, to randomize the order of a series of questionnaires.
+    Each participant will receive a different random order.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    logic:
+        A list to be randomized.
+        Each element should be a unit of timeline logic, for example a trial maker
+        or a sequence of Elts created through the join function.
+    """
     n = len(logic)
-    total_time = sum(elt.time_estimate for elt in logic)
-    return for_loop(
+    return sequence(
         label=label,
-        iterate_over=lambda: random.sample(range(n), n),
-        logic=lambda i: logic[i],
-        time_estimate_per_iteration=total_time / n,
+        function=lambda participant: random.sample(range(n), k=n),
+        logic=logic,
     )
 
 
