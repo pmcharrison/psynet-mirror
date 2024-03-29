@@ -5,101 +5,12 @@ import logging
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
-from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
+from psynet.pytest_psynet import AnimalTrial, ColorTrial, trial_maker_1, trial_maker_2
 from psynet.timeline import Timeline, for_loop, join
-from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
-
-
-nodes_1 = [
-    StaticNode(
-        definition={"animal": animal},
-        block=block,
-    )
-    for animal in ["cats", "dogs", "fish", "ponies"]
-    for block in ["A", "B", "C"]
-]
-
-
-class AnimalTrial(StaticTrial):
-    time_estimate = 3
-
-    def show_trial(self, experiment, participant):
-        animal = self.definition["animal"]
-        return ModularPage(
-            "animal_trial",
-            f"How much do you like {animal}?",
-            PushButtonControl(
-                ["Not at all", "A little", "Very much"],
-            ),
-            time_estimate=self.time_estimate,
-        )
-
-
-nodes_2 = [
-    StaticNode(
-        definition={"color": color},
-        block=block,
-    )
-    for color in ["red", "green", "blue", "orange"]
-    for block in ["A", "B", "C"]
-]
-
-
-class ColorTrial(StaticTrial):
-    time_estimate = 3
-
-    def show_trial(self, experiment, participant):
-        color = self.definition["color"]
-        return ModularPage(
-            "color_trial",
-            f"How much do you like {color}?",
-            PushButtonControl(
-                ["Not at all", "A little", "Very much"],
-            ),
-            time_estimate=self.time_estimate,
-        )
-
-
-trial_maker_1 = StaticTrialMaker(
-    id_="animals",
-    trial_class=AnimalTrial,
-    nodes=nodes_1,
-    expected_trials_per_participant=6,
-    max_trials_per_block=2,
-    allow_repeated_nodes=True,
-    balance_across_nodes=True,
-    check_performance_at_end=False,
-    check_performance_every_trial=False,
-    target_n_participants=1,
-    target_trials_per_node=None,
-    recruit_mode="n_participants",
-    n_repeat_trials=3,
-)
-
-trial_maker_2 = StaticTrialMaker(
-    id_="colors",
-    trial_class=ColorTrial,
-    nodes=nodes_2,
-    expected_trials_per_participant=6,
-    max_trials_per_block=2,
-    allow_repeated_nodes=True,
-    balance_across_nodes=True,
-    check_performance_at_end=False,
-    check_performance_every_trial=False,
-    target_n_participants=1,
-    target_trials_per_node=None,
-    recruit_mode="n_participants",
-    n_repeat_trials=3,
-)
-
-
-##########################################################################################
-# Experiment
-##########################################################################################
 
 
 class Exp(psynet.experiment.Experiment):
