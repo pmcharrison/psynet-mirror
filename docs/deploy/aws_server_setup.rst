@@ -29,7 +29,19 @@ Here is a brief summary of the steps involved:
 
 7. Select 'Ubuntu' as the OS image.
 
-8. Select 't2.large' as the instance type.
+8. Choose an appropriate instance type. Different instance types have different costs 
+   and different performances. The appropriate instance type will depend on your use case.
+   You can explore options online at 
+   https://aws.amazon.com/ec2/instance-types/
+   and 
+   https://aws.amazon.com/ec2/pricing/on-demand/.
+   For prototyping, something like `m7g.large` might work fine (2 vCPU, 8 GB RAM, c. $2/day);
+   for running an experiment with multiple simultaneous participants, it might 
+   be better to go with something larger like `m7g.xlarge` (4 vCPU, 16 GB RAM, c. $4/day).
+   In order to avoid unnecessary costs, we recommend that you 'stop' or 'terminate' your instance
+   when you're not using it. 'Stopping' pauses the instance, but you will still pay a small ongoing fee
+   for storage. 'Terminating' completely deletes the instance and associated data, and eliminates your
+   ongoing fees.
 
 9. Click 'Create key pair' (RSA) and give it a name, e.g. 'test-psynet'.
    When done, a .pem file should be downloaded onto your computer.
