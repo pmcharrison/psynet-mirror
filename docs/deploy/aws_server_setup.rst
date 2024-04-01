@@ -87,12 +87,20 @@ you may have to examine your security group/IP address combination.
     On the AWS online console, navigate to the Route 53 service.
     On the Dashboard you can register a domain name. Note that different domain names
     come with different costs, and that registering a domain name can take from a few minutes to several hours.
-    Suppose we registered a domain name called ``psych-experiments.org``, and the AWS console tells us that
-    the registration is complete. Now go to the 'Hosted zones' page, and select your domain name.
-    We are going to set this up assuming that you want potentially to have multiple servers
-    under the same domain name, for example if you are working in a lab where each researcher
-    has their own server.
-    Let's imagine we are setting up a server for Bob.
+    Before proceeding with the next steps, please wait until the AWS console tells you that the registration
+    is complete.
+
+16. Now we will setup a subdomain to redirect incoming traffic to your EC2 instance.
+    The first part of this subdomain will correspond to your app name; so that we can support multiple apps,
+    we will make this a wildcard, so that any app name is supported.
+    The second part of this subdomain will correspond to a name for your web server.
+    This allows you to have multiple servers under the same domain name.
+
+    In the below we will setup a subdomain for a server called 'bob' under the domain 'psych-experiments.org'.
+    In this scenario 'bob' would be the researcher's name (i.e. it's Bob's server), and 'psych-experiments.org'
+    would be the domain name shared by everyone in the research group of which Bob is a member.
+
+    Go to the 'Hosted zones' page, and select your domain name.
     Click on Create record, then type `*.bob` under record name.
     This means Bob's experiments will have URLs like ``my-fun-app.bob.psych-experiments.org``.
     Set the record type to 'CNAME', and set the value to your instances Public IPv4 DNS
@@ -102,8 +110,7 @@ you may have to examine your security group/IP address combination.
     changes have been enacted.
     In the future you can return to this page to add new servers under different subdomains.
 
-
-16. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
+17. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
     make sure you are on your PsyNet virtual environment on your local computer, 
     and run the following to register the server for PsyNet:
 
@@ -112,6 +119,7 @@ you may have to examine your security group/IP address combination.
     dallinger docker-ssh servers add --host psych-experiments.org --user ubuntu
 
 where the ``host`` argument corresponds to the domain name you just registered.
+Here ``ubuntu`` is the default user for AWS instances, you shouldn't need to change this.
 
 Under the line 'Checking Docker presence', you may see the following:
 
@@ -123,7 +131,7 @@ Under the line 'Checking Docker presence', you may see the following:
 
 This is not a real error, don't worry. The script should proceed by installing Docker, including the Docker Compose plugin.
 
-17. Now go back to your SSH terminal, and run the following:
+18. Now go back to your SSH terminal, and run the following:
 
 ::
 
@@ -133,14 +141,14 @@ This adds your user to the Docker group so that you can run Docker commands with
 Log out of your SSH session with CTRL-D, then open a new SSH session using the same ``ssh`` command as before.
 
 
-18. Then run the following command to open a live log of the web server:
+19. Then run the following command to open a live log of the web server:
 
 ::
 
     docker compose logs -f
 
 
-19. Now you can try launching your own experiment by running the following within an experiment
+20. Now you can try launching your own experiment by running the following within an experiment
     directory:
 
 ::
@@ -150,5 +158,5 @@ Log out of your SSH session with CTRL-D, then open a new SSH session using the s
 where you have placed ``bob.psych-experiments.org`` with the appropriate text corresponding to your own
 research/domain name combination.
 
-20. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server
+21. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server
     you should stop (if you want to use it again in the future) or terminate it (if you're completely done with it).
