@@ -145,6 +145,7 @@ Log out of your SSH session with CTRL-D, then open a new SSH session using the s
 
 ::
 
+    cd ~/dallinger
     docker compose logs -f
 
 
