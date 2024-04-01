@@ -150,7 +150,7 @@ Log out of your SSH session with CTRL-D, then open a new SSH session using the s
 
 
 20. Now you can try launching your own experiment by running the following within an experiment
-    directory:
+    directory, on your local machine (not on the SSH terminal):
 
 ::
 
