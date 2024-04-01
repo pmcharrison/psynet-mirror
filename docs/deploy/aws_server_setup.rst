@@ -83,49 +83,13 @@ this is to be accepted. Type yes and press enter.
 If your login doesn't work (especially if it freezes with no output printed to the terminal), 
 you may have to examine your security group/IP address combination.
 
-15. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
-    make sure you are on your PsyNet virtual environment on your local computer, 
-    and run the following to register the server for PsyNet:
-
-::
-
-    dallinger docker-ssh servers add --host ec2-18-170-115-131.eu-west-2.compute.amazonaws.com --user ubuntu
-
-where the ``host`` argument (beginning with 'ec2') corresponds to your Public IPv4 DNS.
-
-Under the line 'Checking Docker presence', you may see the following:
-
-::
-
-    Error: exit code was not 0 (127)
-
-    bash: line 1: docker: command not found
-
-This is not a real error, don't worry. The script should proceed by installing Docker, including the Docker Compose plugin.
-
-16. Now go back to your SSH terminal, and run the following:
-
-::
-
-    sudo usermod -aG docker ${USER}
-
-This adds your user to the Docker group so that you can run Docker commands without ``sudo``.
-Log out of your SSH session with CTRL-D, then open a new SSH session using the same ``ssh`` command as before.
-
-
-17. Then run the following command to open a live log of the web server:
-
-::
-
-    docker compose logs -f
-
-18. Now we need to set up a DNS record for your experiment server.
+15. Now we need to set up a DNS record for your experiment server.
     On the AWS online console, navigate to the Route 53 service.
     On the Dashboard you can register a domain name. Note that different domain names
-    come with different costs, and that registering a domain name can take from a few minutes to several hours. 
+    come with different costs, and that registering a domain name can take from a few minutes to several hours.
     Suppose we registered a domain name called ``psych-experiments.org``, and the AWS console tells us that
     the registration is complete. Now go to the 'Hosted zones' page, and select your domain name.
-    We are going to set this up assuming that you want potentially to have multiple servers 
+    We are going to set this up assuming that you want potentially to have multiple servers
     under the same domain name, for example if you are working in a lab where each researcher
     has their own server.
     Let's imagine we are setting up a server for Bob.
@@ -138,7 +102,45 @@ Log out of your SSH session with CTRL-D, then open a new SSH session using the s
     changes have been enacted.
     In the future you can return to this page to add new servers under different subdomains.
 
-18. Now you can try launching your own experiment by running the following within an experiment
+
+16. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
+    make sure you are on your PsyNet virtual environment on your local computer, 
+    and run the following to register the server for PsyNet:
+
+::
+
+    dallinger docker-ssh servers add --host psych-experiments.org --user ubuntu
+
+where the ``host`` argument corresponds to the domain name you just registered.
+
+Under the line 'Checking Docker presence', you may see the following:
+
+::
+
+    Error: exit code was not 0 (127)
+
+    bash: line 1: docker: command not found
+
+This is not a real error, don't worry. The script should proceed by installing Docker, including the Docker Compose plugin.
+
+17. Now go back to your SSH terminal, and run the following:
+
+::
+
+    sudo usermod -aG docker ${USER}
+
+This adds your user to the Docker group so that you can run Docker commands without ``sudo``.
+Log out of your SSH session with CTRL-D, then open a new SSH session using the same ``ssh`` command as before.
+
+
+18. Then run the following command to open a live log of the web server:
+
+::
+
+    docker compose logs -f
+
+
+19. Now you can try launching your own experiment by running the following within an experiment
     directory:
 
 ::
@@ -148,5 +150,5 @@ Log out of your SSH session with CTRL-D, then open a new SSH session using the s
 where you have placed ``bob.psych-experiments.org`` with the appropriate text corresponding to your own
 research/domain name combination.
 
-19. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server 
+20. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server
     you should stop (if you want to use it again in the future) or terminate it (if you're completely done with it).
