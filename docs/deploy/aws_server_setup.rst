@@ -131,7 +131,7 @@ you may have to examine your security group/IP address combination.
 
 ::
 
-    dallinger docker-ssh servers add --host psych-experiments.org --user ubuntu
+    dallinger docker-ssh servers add --host bob.psych-experiments.org --user ubuntu
 
 where the ``host`` argument corresponds to the domain name you just registered.
 Here ``ubuntu`` is the default user for AWS instances, you shouldn't need to change this.
