@@ -90,25 +90,40 @@ you may have to examine your security group/IP address combination.
     Before proceeding with the next steps, please wait until the AWS console tells you that the registration
     is complete.
 
-16. Now we will setup a subdomain to redirect incoming traffic to your EC2 instance.
-    The first part of this subdomain will correspond to your app name; so that we can support multiple apps,
-    we will make this a wildcard, so that any app name is supported.
-    The second part of this subdomain will correspond to a name for your web server.
-    This allows you to have multiple servers under the same domain name.
 
+16. Now we will setup a subdomain to redirect incoming traffic to your EC2 instance.
     In the below we will setup a subdomain for a server called 'bob' under the domain 'psych-experiments.org'.
     In this scenario 'bob' would be the researcher's name (i.e. it's Bob's server), and 'psych-experiments.org'
     would be the domain name shared by everyone in the research group of which Bob is a member.
+    Using this approach we can have multiple researchers in the same research group each with their own server.
 
-    Go to the 'Hosted zones' page, and select your domain name.
-    Click on Create record, then type `*.bob` under record name.
-    This means Bob's experiments will have URLs like ``my-fun-app.bob.psych-experiments.org``.
+    First we need to create a subdomain for ``bob.psych-experiments.org``.
+    To do this, go to the 'Hosted zones' page, and select your domain name.
+    Click on Create record, then type `bob` under record name.
     Set the record type to 'CNAME', and set the value to your instances Public IPv4 DNS
     as copied above (it looks something like `ec2-23-54-234-12.eu-west-2.compute.amazonaws.com`).
     Click 'Create records' to finalize.
+
     This change can take up to a minute to enact; you can click 'View status' to confirm that your
     changes have been enacted.
-    In the future you can return to this page to add new servers under different subdomains.
+    Once it is done, you should be able to SSH to your server using the following command
+    (replacing the example with your own domain name as appropriate):
+
+::
+
+    ssh ubuntu@bob.psych-experiments.org
+
+    Now we need to create a wildcard subdomain for the apps you wish to deploy.
+    Your apps will be accessible at URLs like `my-fun-app.bob.psych-experiments.org`.
+    To do this, repeat the same steps for creating a subdomain as before,
+    except instead of typing `bob` under record name,
+    type `*.bob`. As before, you will need to to wait a minute or so for the changes to take effect.
+    To test that this worked, try the following
+    (as before, replacing the example with your own domain name as appropriate):
+
+::
+
+    ssh ubuntu@my-app.bob.psych-experiments.org
 
 17. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
     make sure you are on your PsyNet virtual environment on your local computer, 
