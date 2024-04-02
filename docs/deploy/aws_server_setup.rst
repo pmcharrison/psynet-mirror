@@ -156,16 +156,7 @@ This is not a real error, don't worry. The script should proceed by installing D
 This adds your user to the Docker group so that you can run Docker commands without ``sudo``.
 Log out of your SSH session with CTRL-D, then open a new SSH session using the same ``ssh`` command as before.
 
-
-19. Then run the following command to open a live log of the web server:
-
-::
-
-    cd ~/dallinger
-    docker compose logs -f
-
-
-20. Now you can try launching your own experiment by running the following within an experiment
+19. Now you can try launching your own experiment by running the following within an experiment
     directory, on your local machine (not on the SSH terminal):
 
 ::
@@ -175,5 +166,5 @@ Log out of your SSH session with CTRL-D, then open a new SSH session using the s
 where you have placed ``bob.psych-experiments.org`` with the appropriate text corresponding to your own
 research/domain name combination.
 
-21. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server
+20. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server
     you should stop (if you want to use it again in the future) or terminate it (if you're completely done with it).
