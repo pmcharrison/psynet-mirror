@@ -2090,6 +2090,23 @@ def post_update_constraints_(commit_hash):
             print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
 
 
+def post_update_psynet_requirement_():
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        md5sum_line = (
+            "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
+        )
+        md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
+        for line in file:
+            print(
+                re.sub(
+                    md5sum_line,
+                    f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
+                    line,
+                ),
+                end="",
+            )
+
+
 @psynet.command()
 @click.argument(
     "iso_code",

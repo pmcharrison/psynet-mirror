@@ -32,6 +32,7 @@ def update_demo(dir):
         generate_constraints(dir)
         post_update_constraints(dir, commit_hash_master)
         update_psynet_requirement(dir)
+        post_update_psynet_requirement(dir)
 
 
 def generate_constraints(dir):
@@ -56,6 +57,11 @@ def post_update_constraints(dir, commit_hash_master):
 def update_psynet_requirement(dir):
     with working_directory(dir):
         psynet.command_line.update_psynet_requirement_()
+
+
+def post_update_psynet_requirement(dir):
+    with working_directory(dir):
+        psynet.command_line.post_update_psynet_requirement_()
 
 
 def update_scripts(dir):
