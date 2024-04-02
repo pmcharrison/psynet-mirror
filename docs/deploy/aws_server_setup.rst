@@ -46,12 +46,12 @@ Here is a brief summary of the steps involved:
 
 9. Click 'Create key pair' (RSA) and give it a name, e.g. 'test-psynet'.
    When done, a .pem file should be downloaded onto your computer.
-   Change this files permissions so that it can be used by the SSH client
-   by running ``chmod 400 ~/Downloads/test-psynet.pem``
-   using your own file name as appropriate. 
    Move the file somewhere safe, for example ``~/Documents``.
+   Change this files permissions so that it can be used by the SSH client
+   by running ``chmod 400 ~/Documents/test-psynet.pem``
+   using your own file path as appropriate.
    To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
-   using your own file name as appropriate.
+   using your own file path as appropriate.
 
 10. Click 'Create security group'. You have some decisions here about security.
     Tick all boxes (allow SSH, allow HTTPS, allow HTTP).
