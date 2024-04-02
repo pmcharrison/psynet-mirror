@@ -83,16 +83,17 @@ this is to be accepted. Type yes and press enter.
 If your login doesn't work (especially if it freezes with no output printed to the terminal), 
 you may have to examine your security group/IP address combination.
 
-15. Now we need to set up a DNS record for your experiment server.
+15. If your lab is doing this for the first time, you probably need to acquire a domain name for your
+    experiment server. This is the parent URL that will be used to host your experiments.
+    If your lab already has a domain name, you can skip this step.
     On the AWS online console, navigate to the Route 53 service.
     On the Dashboard you can register a domain name. Note that different domain names
     come with different costs, and that registering a domain name can take from a few minutes to several hours.
     Before proceeding with the next steps, please wait until the AWS console tells you that the registration
     is complete.
 
-
-16. Now we will setup a subdomain to redirect incoming traffic to your EC2 instance.
-    In the below we will setup a subdomain for a server called 'bob' under the domain 'psych-experiments.org'.
+16. We will now set up a subdomain that corresponds to your individual server.
+    In the below we will set up a subdomain for a server called 'bob' under the domain 'psych-experiments.org'.
     In this scenario 'bob' would be the researcher's name (i.e. it's Bob's server), and 'psych-experiments.org'
     would be the domain name shared by everyone in the research group of which Bob is a member.
     Using this approach we can have multiple researchers in the same research group each with their own server.
