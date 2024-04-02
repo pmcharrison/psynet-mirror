@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 6276b6403b5441c11c0669a2355d34a3
+# Compiled from a requirement.txt file with md5sum: 8b72271b36e3d614b0cedd020f47caa1
 #
 anyio==4.3.0
     # via
@@ -473,7 +473,7 @@ pexpect==4.9.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
     #   ipython
-pillow==10.2.0
+pillow==10.3.0
     # via matplotlib
 pip-tools==7.4.0
     # via

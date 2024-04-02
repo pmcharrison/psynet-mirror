@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: cc396b46b058bb43e682a8d4cc23767b
+# Compiled from a requirement.txt file with md5sum: 9ff9705d4ed463758f5071e6b958deed
 #
 anyio==4.3.0
     # via
@@ -381,7 +381,7 @@ markupsafe==2.1.5
     #   wtforms
 matplotlib==3.8.3
     # via
-    #   -r /tmp/tmpylbps89z/requirements.txt
+    #   -r /tmp/tmpse0074gs/requirements.txt
     #   repp
     #   reppextension
 matplotlib-inline==0.1.6
@@ -477,7 +477,7 @@ pexpect==4.9.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.0.1/dev-requirements.txt
     #   dallinger
     #   ipython
-pillow==10.2.0
+pillow==10.3.0
     # via matplotlib
 pip-tools==7.4.0
     # via
