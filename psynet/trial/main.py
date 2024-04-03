@@ -2568,6 +2568,13 @@ class TrialNetwork(SQLMixinDallinger, Network):
     participant = relationship(
         Participant, foreign_keys=[participant_id], post_update=True
     )
+    participants = relationship(
+        Participant,
+        secondary="info",  # The info table is where Trials are stored (for historic reasons)
+        primaryjoin="psynet.trial.main.TrialNetwork.id == psynet.trial.main.Trial.network_id",
+        secondaryjoin="psynet.trial.main.Trial.participant_id == psynet.participant.Participant.id",
+        viewonly=True,
+    )
 
     async_post_grow_network_required = Column(Boolean, default=False, index=True)
     async_post_grow_network_requested = Column(Boolean, default=False, index=True)
