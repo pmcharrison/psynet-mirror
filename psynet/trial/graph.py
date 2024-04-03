@@ -3,7 +3,6 @@
 from typing import List, Optional, Type
 
 from dallinger import db
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from ..field import claim_field
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
@@ -209,7 +208,7 @@ class GraphChainNode(ChainNode):
     vertex_id = claim_field("vertex_id", __extra_vars__, int)
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
 
-    @hybrid_property
+    @property
     def ready_to_spawn(self):
         parents = (
             self.get_parents()
