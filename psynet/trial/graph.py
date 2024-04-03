@@ -69,7 +69,7 @@ class GraphChainTrial(ChainTrial):
     def make_definition(self, experiment, participant):
         """
         (Built-in)
-        In an graph chain, the trial's definition equals the definition of
+        In a graph chain, the trial's definition equals the definition of
         the node that created it.
 
         Parameters
@@ -129,9 +129,6 @@ class GraphChainNode(ChainNode):
             propagate_failure=propagate_failure,
             participant=participant,
         )
-
-    # def create_initial_seed(self, experiment, participant):
-    #     return self.network.source_seed
 
     @staticmethod
     def generate_class_seed(vertex=None):
