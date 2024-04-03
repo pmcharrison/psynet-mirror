@@ -40,7 +40,6 @@ dependencies = [
     "pandas",
     "paramiko",
     "polib",
-    "praat-parselmouth",
     "progress",
     "pytest",
     "python-gettext",
