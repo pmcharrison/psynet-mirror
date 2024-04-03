@@ -6,8 +6,6 @@ from dallinger import db
 
 from ..field import claim_field
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
-
-# from psynet.trial.main import with_trial_maker_namespace
 from .main import with_trial_maker_namespace
 
 
@@ -36,7 +34,7 @@ class GraphChainNetwork(ChainNetwork):
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
     source_seed = claim_field("source_seed", __extra_vars__)
 
-    def __init__(  # overriden
+    def __init__(
         self,
         trial_maker_id: str,
         experiment,
@@ -386,10 +384,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
         participant = None
         head = network.head
         if head.ready_to_spawn:
-            # if head.degree > 0:
-            #     seed_bundle = self.create_seed_bundle(head, experiment, participant)
-            # else:
-            #     seed_bundle = head.create_seed(experiment, participant)
             seed_bundle = self.create_seed_bundle(head, experiment, participant)
             node = self.node_class(
                 seed_bundle,
@@ -415,7 +409,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
         parents = head.get_parents()
         while len(parents) < len(head.dependent_vertex_ids):
             parents = head.get_parents()
-        # try:
         bundle = [
             {
                 "vertex_id": head.network.vertex_id,
