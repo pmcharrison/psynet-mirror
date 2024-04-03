@@ -432,12 +432,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
             }
             for p in parents
         ]
-        # except:
-        #     import rpdb
-        #     rpdb.set_trace()
-        # if len(bundle) < 5:
-        #     import rpdb
-        #     rpdb.set_trace()
         return bundle
 
     def generate_source_seed_bundles(self):
@@ -446,9 +440,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         centers = [
             {
                 "vertex_id": v,
-                "content": self.node_class.generate_class_seed(
-                    v
-                ),  # pass vertex id to allow seed customization --> requires updating other examples
+                "content": self.node_class.generate_class_seed(v),
                 "is_center": True,
             }
             for v in vertices
