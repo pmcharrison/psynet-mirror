@@ -114,13 +114,13 @@ you may have to examine your security group/IP address combination.
 
     ssh ubuntu@bob.psych-experiments.org
 
-    Now we need to create a wildcard subdomain for the apps you wish to deploy.
-    Your apps will be accessible at URLs like `my-fun-app.bob.psych-experiments.org`.
-    To do this, repeat the same steps for creating a subdomain as before,
-    except instead of typing `bob` under record name,
-    type `*.bob`. As before, you will need to to wait a minute or so for the changes to take effect.
-    To test that this worked, try the following
-    (as before, replacing the example with your own domain name as appropriate):
+Now we need to create a wildcard subdomain for the apps you wish to deploy.
+Your apps will be accessible at URLs like `my-fun-app.bob.psych-experiments.org`.
+To do this, repeat the same steps for creating a subdomain as before,
+except instead of typing `bob` under record name,
+type `*.bob`. As before, you will need to to wait a minute or so for the changes to take effect.
+To test that this worked, try the following
+(as before, replacing the example with your own domain name as appropriate):
 
 ::
 
