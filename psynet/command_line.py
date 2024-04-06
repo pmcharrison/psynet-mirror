@@ -905,16 +905,9 @@ def docs(force_rebuild):
 ##############
 
 
-def _check_wage_per_hour(wage_per_hour, max_wage_per_hour, currency):
-    assert wage_per_hour <= max_wage_per_hour, (
-        f"The wage per hour ({wage_per_hour:.2f} {currency}/h) exceeds the maximum wage per hour "
-        f"({max_wage_per_hour:.2f} {currency}/h). This is usually a sign that you are either overpaying or "
-        "your time estimate is off. If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
-        "in your config.txt to a higher value."
-    )
-
-
 def check_prolific_payment(experiment, config):
+    from .utils import _check_wage_per_hour
+
     estimated_completion_minutes = (
         experiment.timeline.estimated_completion_time(None) / 60
     )
@@ -938,17 +931,9 @@ def check_prolific_payment(experiment, config):
     )
 
 
-def check_wage_per_hour(experiment, config):
-    _check_wage_per_hour(
-        wage_per_hour=config.get("wage_per_hour"),
-        max_wage_per_hour=config.get("max_wage_per_hour"),
-        currency=config.get("currency"),
-    )
-
-
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from .experiment import get_experiment
-    from .utils import check_todos_before_deployment
+    from .utils import check_todos_before_deployment, check_wage_per_hour
 
     exp = get_experiment()
     exp.check_config()
