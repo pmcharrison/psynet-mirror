@@ -908,24 +908,32 @@ def docs(force_rebuild):
 def check_prolific_payment(experiment, config):
     from .utils import _check_wage_per_hour
 
-    estimated_completion_minutes = (
+    estimated_completion_time_in_minutes = (
         experiment.timeline.estimated_completion_time(None) / 60
     )
-    minutes = config.get("prolific_estimated_completion_minutes")
+    prolific_estimated_completion_time_in_minutes = config.get(
+        "prolific_estimated_completion_minutes"
+    )
 
-    if int(estimated_completion_minutes) != int(minutes):
+    if int(estimated_completion_time_in_minutes) != int(
+        prolific_estimated_completion_time_in_minutes
+    ):
         click.confirm(
-            f"Estimated completion time from Psynet ({estimated_completion_minutes:.2f} minutes, see `psynet "
-            f"estimate`) does not match Prolific estimated completion time ({minutes:.2f} minutes). "
+            f"Estimated completion time from Psynet ({estimated_completion_time_in_minutes:.2f} minutes, see `psynet "
+            f"estimate`) does not match Prolific estimated completion time ({prolific_estimated_completion_time_in_minutes:.2f} minutes). "
             f"Are you sure you want to continue the deployment? Enter 'y' for yes, 'n' for no.",
             abort=True,
         )
     base_payment = config.get("base_payment")
     wage_per_hour = config.get("wage_per_hour")
-    reward = (estimated_completion_minutes * wage_per_hour) / 60 + base_payment
-    real_wage_per_hour = reward / (estimated_completion_minutes / 60)
+    estimated_reward = (
+        estimated_completion_time_in_minutes * wage_per_hour
+    ) / 60 + base_payment
+    estimated_real_wage_per_hour = estimated_reward / (
+        estimated_completion_time_in_minutes / 60
+    )
     _check_wage_per_hour(
-        wage_per_hour=real_wage_per_hour,
+        wage_per_hour=estimated_real_wage_per_hour,
         max_wage_per_hour=config.get("max_wage_per_hour"),
         currency=config.get("currency"),
     )
