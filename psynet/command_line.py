@@ -915,7 +915,7 @@ def check_prolific_payment(experiment, config):
         "prolific_estimated_completion_minutes"
     )
 
-    if int(estimated_completion_time_in_minutes) != int(
+    if round(estimated_completion_time_in_minutes) != round(
         prolific_estimated_completion_time_in_minutes
     ):
         click.confirm(
