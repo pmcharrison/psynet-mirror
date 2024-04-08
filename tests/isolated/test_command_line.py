@@ -6,9 +6,11 @@ from pathlib import Path
 import click
 import pytest
 from click.testing import CliRunner
+from dallinger.config import get_config
 from mock import patch
 
-from psynet.command_line import _check_constraints
+from psynet.command_line import _check_constraints, check_prolific_payment
+from psynet.experiment import get_experiment
 from psynet.pytest_psynet import path_to_demo
 from psynet.utils import working_directory
 
@@ -309,3 +311,9 @@ def test_check_constraints():
                     constraints.flush()
 
                     _check_constraints()
+
+
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+def test_check_prolific_payment(launched_experiment):
+    r = check_prolific_payment(get_experiment(), get_config())
+    assert r == 4
