@@ -11,6 +11,7 @@ from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.staircase import (
     GeometricStaircaseNode,
+    GeometricStaircaseRun,
     GeometricStaircaseTrial,
     GeometricStaircaseTrialMaker,
 )
@@ -168,27 +169,22 @@ class Exp(psynet.experiment.Experiment):
             "pitch_discrimination"
         ).max_reversals_per_run
 
-        all_trials = bot.all_trials
-
-        runs = [
-            [t for t in all_trials if t.run_number == run_number]
-            for run_number in [0, 1]
-        ]
+        runs = GeometricStaircaseRun.query.filter_by(participant_id=bot.id).all()
 
         for run in runs:
-            assert len(run) > max_reversals_per_run
+            assert len(run.all_trials) > max_reversals_per_run
 
-        for trial in runs[1]:
+        for trial in runs[1].all_trials:
             assert trial.id > max(
-                [t.id for t in runs[0]]
+                [t.id for t in runs[0].all_trials]
             ), "Runs 0 and 1 were unexpectedly mixed"
 
         for run in runs:
-            # n_reversals = sum([trial.reversal for trial in run])
-            # assert n_reversals == max_reversals_per_run
+            n_reversals = sum([node.reversal for node in run.nodes])
+            assert n_reversals == max_reversals_per_run
 
             n = 4
-            last_n_trials = run[-n:]
+            last_n_trials = run.all_trials[-n:]
             last_n_parameters = [
                 trial.definition["parameter"] for trial in last_n_trials
             ]
@@ -197,3 +193,7 @@ class Exp(psynet.experiment.Experiment):
                 assert (
                     bot_threshold * step <= parameter <= bot_threshold / step
                 ), "Procedure did not converge to bot threshold"
+
+            assert (
+                bot_threshold * step <= run.mean_reversal_score <= bot_threshold / step
+            ), f"Mean reversal score seems incorrect: {run.mean_reversal_score}"

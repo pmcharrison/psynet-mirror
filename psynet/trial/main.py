@@ -1713,7 +1713,7 @@ class TrialMaker(Module):
             participant.module_state.performance_check = results
 
             if type == "end":
-                reward = self.compute_performance_reward(**results)
+                reward = call_function(self.compute_performance_reward, **results)
                 participant.module_state.performance_reward = reward
                 participant.inc_performance_reward(reward)
 

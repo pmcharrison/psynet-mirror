@@ -1,10 +1,13 @@
+from statistics import mean
 from typing import Optional, Type, Union
 
-from sqlalchemy import Column, Integer
+from dallinger import db
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
-from psynet.field import PythonObject
-from psynet.trial import ChainNode, ChainTrial
-from psynet.trial.chain import ChainTrialMaker
+from .data import SQLBase, SQLMixin
+from .field import PythonObject
+from .trial.chain import ChainNode, ChainTrial, ChainTrialMaker
 
 
 class GeometricStaircaseNode(ChainNode):
@@ -13,9 +16,12 @@ class GeometricStaircaseNode(ChainNode):
 
     n_consecutive_correct = Column(Integer)
     parameter = Column(PythonObject)
-    run_number = Column(Integer)
+    reversal = Column(Boolean)
+    run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
 
-    def __init__(self, *args, parameter=None, run_number=None, **kwargs):
+    run = relationship("GeometricStaircaseRun", back_populates="nodes")
+
+    def __init__(self, *args, parameter=None, run=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.network:
@@ -23,7 +29,8 @@ class GeometricStaircaseNode(ChainNode):
 
         parent = self.parent
         self.parameter = parameter if parameter is not None else parent.parameter
-        self.run_number = run_number if run_number is not None else parent.run_number
+        self.run = run if run is not None else parent.run
+        self.reversal = False
 
         if self.degree == 0:
             self.n_consecutive_correct = 0
@@ -36,10 +43,12 @@ class GeometricStaircaseNode(ChainNode):
                 if self.n_consecutive_correct == self.k:
                     self.increase_difficulty()
                     self.n_consecutive_correct = 0
+                    self.reversal = True
 
             elif parent.trial.score == 0:
                 self.decrease_difficulty()
                 self.n_consecutive_correct = 0
+                self.reversal = True
 
             else:
                 raise ValueError(f"Unexpected score: {parent.trial.score}")
@@ -59,12 +68,16 @@ class GeometricStaircaseNode(ChainNode):
 
 
 class GeometricStaircaseTrial(ChainTrial):
-    run_number = Column(Integer)
+    run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
+    run = relationship(
+        "GeometricStaircaseRun", back_populates="all_trials", post_update=True
+    )
+
     parameter = Column(PythonObject)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.run_number = self.node.run_number
+        self.run = self.node.run
         self.parameter = self.node.parameter
 
     def make_definition(self, experiment, participant):
@@ -84,6 +97,8 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         max_reversals_per_run: Optional[int] = None,
         mix_runs: bool = False,
         balance_mixed_runs: bool = False,
+        min_passing_score: Optional[float] = None,
+        max_passing_score: Optional[float] = None,
         expected_trials_per_participant: Optional[int] = None,
         target_n_participants: Optional[int] = None,
         recruit_mode: str = "n_participants",
@@ -91,12 +106,14 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
     ):
+        self.start_parameter = start_parameter
         self.n_runs = n_runs
         self.max_trials_per_run = max_trials_per_run
         self.max_reversals_per_run = max_reversals_per_run
         self.mix_runs = mix_runs
         self.balance_mixed_runs = balance_mixed_runs
-        self.start_parameter = start_parameter
+        self.min_passing_score = min_passing_score
+        self.max_passing_score = max_passing_score
 
         if expected_trials_per_participant is None:
             if max_reversals_per_run is None:
@@ -132,29 +149,117 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         else:
             parameter = self.start_parameter
 
-        return [
+        runs = []
+
+        for id_within_participant in range(self.n_runs):
+            run = GeometricStaircaseRun(
+                trial_maker_id=self.id,
+                participant=participant,
+                id_within_participant=id_within_participant,
+                start_parameter=parameter,
+            )
+            db.session.add(run)
+            runs.append(run)
+
+        start_nodes = [
             self.node_class(
                 parameter=parameter,
-                run_number=run_number,
-                block="default" if self.mix_runs else str(run_number),
+                run=run,
+                block="default" if self.mix_runs else str(run.id_within_participant),
             )
-            for run_number in range(self.n_runs)
+            for run in runs
         ]
+
+        return start_nodes
 
     def choose_block_order(self, experiment, participant, blocks):
         return sorted(blocks, key=lambda block: int(block))
 
+    score_method = "mean_reversal_score"
+
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a dict: {"score": float, "passed": bool}"""
-        return {"score": 0.0, "passed": True}
-        # score = 0
-        # failed = False
-        # for trial in participant_trials:
-        #     if trial.answer == "Not at all":
-        #         failed = True
-        #     else:
-        #         score += 1
-        # return {"score": score, "passed": not failed}
+        runs = GeometricStaircaseRun.query.filter_by(
+            participant=participant, trial_maker_id=self.id
+        ).all()
+
+        for run in runs:
+            run.compute_score()
+
+        try:
+            run_scores = [getattr(run, self.score_method) for run in runs]
+        except AttributeError:
+            raise ValueError(f"Unknown score method: {self.score_method}")
+
+        score = self.summarize_scores(run_scores)
+
+        passed = True
+        if self.min_passing_score is not None and score < self.min_passing_score:
+            passed = False
+        if self.max_passing_score is not None and score > self.max_passing_score:
+            passed = False
+
+        return {
+            "score": score,
+            "passed": passed,
+            "min_passing_score": self.min_passing_score,
+            "max_passing_score": self.max_passing_score,
+            "score_method": self.score_method,
+            "run_scores": run_scores,
+        }
+
+    def summarize_scores(self, scores):
+        return mean(scores)
+
+
+class GeometricStaircaseRun(SQLBase, SQLMixin):
+    __tablename__ = "staircase_run"
+    __extra_vars__ = {}
+
+    # Remove default SQL columns
+    failed = None
+    failed_reason = None
+    time_of_death = None
+    property1 = None
+    property2 = None
+    property3 = None
+    property4 = None
+    property5 = None
+
+    trial_maker_id = Column(String)
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
+    id_within_participant = Column(Integer)
+    start_parameter = Column(PythonObject)
+    mean_reversal_score = Column(Float)
+
+    participant = relationship(
+        "psynet.participant.Participant", backref="geometric_staircase_runs"
+    )
+    nodes = relationship("GeometricStaircaseNode")
+    all_trials = relationship("GeometricStaircaseTrial")
+
+    # all_trials = relationship(
+    #     "GeometricStaircaseTrial",
+    #     secondary="node",
+    #     primaryjoin="GeometricStaircaseRun.participant_id == GeometricStaircaseNode.participant_id",
+    #     secondaryjoin="GeometricStaircaseNode.id == GeometricStaircaseTrial.node_id",
+    #     viewonly=True,
+    # )
+
+    exclude_first_reversal = True
+
+    def compute_score(self):
+        self.compute_reversal_score()
+
+    def compute_reversal_score(self):
+        reversals = [node for node in self.nodes if node.reversal]
+        if self.exclude_first_reversal:
+            reversals = reversals[1:]
+        scores = [node.parameter for node in reversals]
+        self.mean_reversal_score = self.summarize_scores(scores)
+
+    def summarize_scores(self, scores):
+        return mean(scores)
 
 
 # To do - implement estimator
