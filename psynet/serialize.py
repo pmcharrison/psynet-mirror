@@ -1,3 +1,4 @@
+import inspect
 import pickle
 import re
 import warnings
@@ -7,6 +8,7 @@ import dominate.tags
 import jsonpickle
 from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 
 from .data import SQLBase
@@ -233,3 +235,29 @@ class DominateHandler(jsonpickle.handlers.BaseHandler):
 
 
 jsonpickle.register(dominate.dom_tag.dom_tag, DominateHandler, base=True)
+
+
+def prepare_function_for_serialization(function, arguments):
+    if inspect.ismethod(function):
+        method_name = function.__name__
+        method_caller = function.__self__
+        function = getattr(method_caller.__class__, method_name)
+        arguments["self"] = method_caller
+
+    check_that_function_can_be_serialized(function)
+
+    return function, arguments
+
+
+def check_that_function_can_be_serialized(function):
+    assert callable(function)
+    if "<locals>" in importable_name(function):
+        raise ValueError(
+            "You cannot serialize a function defined within another function."
+        )
+    if unserialize(serialize(function)) is None:
+        raise ValueError(
+            "The provided function could not be serialized. Make sure that the function is defined at the module "
+            "or class level, rather than being a lambda function or a temporary function defined within "
+            "another function."
+        )

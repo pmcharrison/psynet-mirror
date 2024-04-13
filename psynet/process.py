@@ -1,12 +1,10 @@
 import datetime
-import inspect
 import threading
 import time
 
 import dallinger.db
 from dallinger import db
 from dallinger.db import redis_conn
-from jsonpickle.util import importable_name
 from rq import Queue
 from rq.job import Job
 from sqlalchemy import (
@@ -26,6 +24,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_expo
 from .data import SQLBase, SQLMixin, register_table
 from .db import with_transaction
 from .field import PythonDict, PythonObject
+from .serialize import prepare_function_for_serialization
 from .utils import call_function, classproperty, get_logger
 
 logger = get_logger()
@@ -114,13 +113,7 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         db.session.flush()
 
-        if inspect.ismethod(function):
-            method_name = function.__name__
-            method_caller = function.__self__
-            function = getattr(method_caller.__class__, method_name)
-            arguments["self"] = method_caller
-
-        self.check_function(function)
+        function, arguments = prepare_function_for_serialization(function, arguments)
 
         self.label = label
         self.function = function
@@ -166,27 +159,6 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         db.session.add(self)
         self.add_to_launch_queue()
-
-    def check_function(self, function):
-        from .serialize import serialize, unserialize
-
-        assert callable(function)
-        if "<locals>" in importable_name(function):
-            raise ValueError(
-                "You cannot use a function defined within another function "
-                "in an async process."
-            )
-        if unserialize(serialize(function)) is None:
-            raise ValueError(
-                "The provided function could not be serialized. Make sure that the function is defined at the module "
-                "or class level, rather than being a lambda function or a temporary function defined within "
-                "another function."
-            )
-        if inspect.ismethod(function):
-            raise ValueError(
-                "You cannot pass an instance method to an AsyncProcess. ",
-                "Try writing a class method or a static method instead.",
-            )
 
     def log_time_started(self):
         self.time_started = datetime.datetime.now()
