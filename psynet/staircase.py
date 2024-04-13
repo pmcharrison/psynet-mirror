@@ -1,7 +1,8 @@
 from typing import Optional, Type, Union
 
-from sqlalchemy import Column, Float, Integer
+from sqlalchemy import Column, Integer
 
+from psynet.field import PythonObject
 from psynet.trial import ChainNode, ChainTrial
 from psynet.trial.chain import ChainTrialMaker
 
@@ -11,7 +12,7 @@ class GeometricStaircaseNode(ChainNode):
     k = 2
 
     n_consecutive_correct = Column(Integer)
-    parameter = Column(Float)
+    parameter = Column(PythonObject)
     run_number = Column(Integer)
 
     def __init__(self, *args, parameter=None, run_number=None, **kwargs):
@@ -59,7 +60,7 @@ class GeometricStaircaseNode(ChainNode):
 
 class GeometricStaircaseTrial(ChainTrial):
     run_number = Column(Integer)
-    parameter = Column(Float)
+    parameter = Column(PythonObject)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -161,5 +162,4 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
 # simple version: averaging reversals
 # complex version: use the upndown R package via rpy2
 
-# To do - implement stopping rule
 # To do - implement graph
