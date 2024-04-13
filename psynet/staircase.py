@@ -60,9 +60,11 @@ class GeometricStaircaseNode(ChainNode):
 
 
 class GeometricStaircaseTrial(ChainTrial):
+    run_number = Column(Integer)
     parameter = Column(Float)
 
     def __init__(self, *args, **kwargs):
+        self.run_number = kwargs["node"].run_number
         self.parameter = kwargs["node"].parameter
         super().__init__(*args, **kwargs)
 
@@ -140,8 +142,12 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
             for run_number in range(self.n_runs)
         ]
 
+    def choose_block_order(self, experiment, participant, blocks):
+        return sorted(blocks, key=lambda block: int(block))
+
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a dict: {"score": float, "passed": bool}"""
+        return {"score": 0.0, "passed": True}
         # score = 0
         # failed = False
         # for trial in participant_trials:

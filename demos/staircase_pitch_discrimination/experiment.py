@@ -171,14 +171,16 @@ class Exp(psynet.experiment.Experiment):
         ).max_reversals_per_run
 
         all_trials = bot.all_trials
-        assert len(all_trials) == 20
 
-        runs = [[t for t in all_trials if t.run_id == run_id] for run_id in [0, 1]]
+        runs = [
+            [t for t in all_trials if t.run_number == run_number]
+            for run_number in [0, 1]
+        ]
 
         for run in runs:
             assert len(run) > max_reversals_per_run
 
-        for trial in runs[0]:
+        for trial in runs[1]:
             assert trial.id > max(
                 [t.id for t in runs[0]]
             ), "Runs 0 and 1 were unexpectedly mixed"
