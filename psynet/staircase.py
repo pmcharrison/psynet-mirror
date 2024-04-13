@@ -17,6 +17,7 @@ class GeometricStaircaseNode(ChainNode):
     n_consecutive_correct = Column(Integer)
     parameter = Column(PythonObject)
     reversal = Column(Boolean)
+    n_reversals_so_far = Column(Integer)
     run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
 
     run = relationship("GeometricStaircaseRun", back_populates="nodes")
@@ -34,8 +35,10 @@ class GeometricStaircaseNode(ChainNode):
 
         if self.degree == 0:
             self.n_consecutive_correct = 0
+            self.n_reversals_so_far = 0
         else:
             self.n_consecutive_correct = parent.n_consecutive_correct
+            self.n_reversals_so_far = parent.n_reversals_so_far
 
             if parent.trial.score == 1:
                 self.n_consecutive_correct += 1
@@ -44,14 +47,19 @@ class GeometricStaircaseNode(ChainNode):
                     self.increase_difficulty()
                     self.n_consecutive_correct = 0
                     self.reversal = True
+                    self.n_reversals_so_far += 1
 
             elif parent.trial.score == 0:
                 self.decrease_difficulty()
                 self.n_consecutive_correct = 0
                 self.reversal = True
+                self.n_reversals_so_far += 1
 
             else:
                 raise ValueError(f"Unexpected score: {parent.trial.score}")
+
+        if self.n_reversals_so_far == self.run.max_reversals_per_run:
+            self.network.full = True
 
     @property
     def definition(self):
@@ -157,6 +165,7 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
                 participant=participant,
                 id_within_participant=id_within_participant,
                 start_parameter=parameter,
+                max_reversals_per_run=self.max_reversals_per_run,
             )
             db.session.add(run)
             runs.append(run)
@@ -230,6 +239,7 @@ class GeometricStaircaseRun(SQLBase, SQLMixin):
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     id_within_participant = Column(Integer)
     start_parameter = Column(PythonObject)
+    max_reversals_per_run = Column(Integer)
     mean_reversal_score = Column(Float)
 
     participant = relationship(

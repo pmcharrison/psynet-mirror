@@ -197,3 +197,6 @@ class Exp(psynet.experiment.Experiment):
             assert (
                 bot_threshold * step <= run.mean_reversal_score <= bot_threshold / step
             ), f"Mean reversal score seems incorrect: {run.mean_reversal_score}"
+
+
+# To do - implement early stopping logic for when n_reversals reaches a certain threshold
