@@ -5,6 +5,7 @@ import soundfile as sf
 
 import psynet.experiment
 from psynet.asset import FastFunctionAsset
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -117,9 +118,28 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
             PushButtonControl(
                 choices=["First", "Second"],
                 arrange_vertically=False,
+                bot_response=self.get_bot_response,
             ),
             time_estimate=self.time_estimate,
         )
+
+    bot_threshold = 0.125
+
+    def get_bot_response(self, bot: Bot):
+        # We imagine the bot has the discrimination threshold specified below.
+        # We suppose they always respond correctly if the stimulus parameter is
+        # above the threshold, and always respond incorrectly if it is below.
+        # This is unrealistic (normally they would respond by chance if it is below),
+        # but it allows us to produce a better automated test.
+        bot_threshold = 0.125
+        responds_correctly = self.parameter >= bot_threshold
+        if responds_correctly:
+            return self.definition["correct_answer"]
+        else:
+            if self.definition["correct_answer"] == "First":
+                return "Second"
+            else:
+                return "First"
 
     def score_answer(self, answer, definition):
         return int(answer == definition["correct_answer"])
@@ -150,3 +170,19 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        trials = bot.all_trials
+        assert len(trials) == 20
+
+        step = PitchDiscriminationNode.step
+        bot_threshold = PitchDiscriminationTrial.bot_threshold
+
+        n = 4
+        last_n_trials = trials[-n:]
+        last_n_parameters = [trial.definition["parameter"] for trial in last_n_trials]
+
+        for parameter in last_n_parameters:
+            assert (
+                bot_threshold * step <= parameter <= bot_threshold / step
+            ), "Procedure did not converge to bot threshold"
