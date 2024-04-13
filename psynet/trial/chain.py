@@ -572,21 +572,22 @@ class ChainNode(TrialNode):
             if parent:
                 context = parent.context
 
-        if not definition and not seed and degree == 0:
-            seed = self.create_initial_seed(experiment, participant)
-
-        if not definition:
-            definition = self.create_definition_from_seed(seed, experiment, participant)
-
         if assets is None:
             assets = {}
+
+        if not definition and not self.definition:
+            if not seed and degree == 0:
+                seed = self.create_initial_seed(experiment, participant)
+            definition = self.create_definition_from_seed(seed, experiment, participant)
+
+        if definition:
+            self.definition = definition
 
         self.assets = assets
         self.block = block
         self.participant_group = participant_group
         self.module_id = module_id
         self.seed = seed
-        self.definition = definition
         self.context = context
         self.propagate_failure = propagate_failure
         self._staged_assets = assets
@@ -594,6 +595,9 @@ class ChainNode(TrialNode):
         if parent:
             parent.child = self
             self.parent = parent
+
+    def init_next_node(self, next_node: "ChainNode"):
+        pass
 
     def set_network(self, network):
         super().set_network(network)
@@ -1794,6 +1798,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 propagate_failure=self.propagate_failure,
                 participant=participant,
             )
+            head.init_next_node(node)
             db.session.add(node)
             network.add_node(node)
             node.check_on_deploy()
