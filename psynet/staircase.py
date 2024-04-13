@@ -248,18 +248,13 @@ class GeometricStaircaseRun(SQLBase, SQLMixin):
     nodes = relationship("GeometricStaircaseNode")
     all_trials = relationship("GeometricStaircaseTrial")
 
-    # all_trials = relationship(
-    #     "GeometricStaircaseTrial",
-    #     secondary="node",
-    #     primaryjoin="GeometricStaircaseRun.participant_id == GeometricStaircaseNode.participant_id",
-    #     secondaryjoin="GeometricStaircaseNode.id == GeometricStaircaseTrial.node_id",
-    #     viewonly=True,
-    # )
-
     exclude_first_reversal = True
 
     def compute_score(self):
         self.compute_reversal_score()
+
+        # A possibility for the future:
+        # implement more sophisticated scoring using the upndown R package via rpy2
 
     def compute_reversal_score(self):
         reversals = [node for node in self.nodes if node.reversal]
@@ -270,11 +265,3 @@ class GeometricStaircaseRun(SQLBase, SQLMixin):
 
     def summarize_scores(self, scores):
         return mean(scores)
-
-
-# To do - implement estimator
-# see https://cran.r-project.org/web/packages/upndown/vignettes/upndown_basics.html
-# simple version: averaging reversals
-# complex version: use the upndown R package via rpy2
-
-# To do - implement graph
