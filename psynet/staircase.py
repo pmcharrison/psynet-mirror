@@ -92,7 +92,7 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
     ):
         self.n_runs = n_runs
         self.max_trials_per_run = max_trials_per_run
-        self.max_reversals_per_run = max_reversals_per_run  # TODO
+        self.max_reversals_per_run = max_reversals_per_run
         self.mix_runs = mix_runs
         self.balance_mixed_runs = balance_mixed_runs
         self.start_parameter = start_parameter
