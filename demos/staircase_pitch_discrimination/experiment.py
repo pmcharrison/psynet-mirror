@@ -36,8 +36,6 @@ class PitchDiscriminationNode(GeometricStaircaseNode):
 class PitchDiscriminationTrial(GeometricStaircaseTrial):
     time_estimate = 5
 
-    # Todo - migrate this code to init
-
     def finalize_definition(self, definition, experiment, participant):
         parameter = definition["parameter"]
         correct_answer = random.choice(["First", "Second"])
