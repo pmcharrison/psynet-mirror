@@ -4,7 +4,7 @@ from psynet.trial import ChainNode, ChainTrial
 from psynet.trial.chain import ChainTrialMaker
 
 
-class StaircaseNode(ChainNode):
+class GeometricStaircaseNode(ChainNode):
     # k up 2 down procedure
     k = 2
 
@@ -14,6 +14,8 @@ class StaircaseNode(ChainNode):
     def __init__(self, *args, parameter=None, **kwargs):
         self.parameter = parameter
         super().__init__(*args, **kwargs)
+
+    # todo - migrate this code to init
 
     def init_next_node(self, next_node: ChainNode):
         assert self.network.chain_type == "within"
@@ -52,7 +54,7 @@ class StaircaseNode(ChainNode):
         return {}
 
 
-class StaircaseTrial(ChainTrial):
+class GeometricStaircaseTrial(ChainTrial):
     parameter = Column(Float)
 
     def __init__(self, *args, **kwargs):
@@ -63,5 +65,16 @@ class StaircaseTrial(ChainTrial):
         return {"parameter": self.node.parameter}
 
 
-class StaircaseTrialMaker(ChainTrialMaker):
+class GeometricStaircaseTrialMaker(ChainTrialMaker):
     pass
+
+
+# To do - implement test
+
+# To do - implement estimator
+# see https://cran.r-project.org/web/packages/upndown/vignettes/upndown_basics.html
+# simple version: averaging reversals
+# complex version: use the upndown R package via rpy2
+
+# To do - implement stopping rule
+# To do - implement graph

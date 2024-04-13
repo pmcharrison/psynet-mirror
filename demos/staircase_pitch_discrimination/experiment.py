@@ -8,14 +8,18 @@ from psynet.asset import FastFunctionAsset
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.staircase import StaircaseNode, StaircaseTrial, StaircaseTrialMaker
+from psynet.staircase import (
+    GeometricStaircaseNode,
+    GeometricStaircaseTrial,
+    GeometricStaircaseTrialMaker,
+)
 from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
 logger = get_logger()
 
 
-class PitchDiscriminationNode(StaircaseNode):
+class PitchDiscriminationNode(GeometricStaircaseNode):
     k = 2  # 2 up 1 down procedure
     step = 0.5  # going up one difficulty level means halving the interval
 
@@ -30,14 +34,16 @@ class PitchDiscriminationNode(StaircaseNode):
 
 def nodes():
     return [
-        StaircaseNode(
+        GeometricStaircaseNode(
             parameter=1,  # discrimination interval in semitones
         )
     ]
 
 
-class PitchDiscriminationTrial(StaircaseTrial):
+class PitchDiscriminationTrial(GeometricStaircaseTrial):
     time_estimate = 5
+
+    # Todo - migrate this code to init
 
     def finalize_definition(self, definition, experiment, participant):
         parameter = definition["parameter"]
@@ -131,7 +137,7 @@ class Exp(psynet.experiment.Experiment):
             """,
             time_estimate=5,
         ),
-        StaircaseTrialMaker(
+        GeometricStaircaseTrialMaker(
             id_="pitch_discrimination",
             trial_class=PitchDiscriminationTrial,
             node_class=PitchDiscriminationNode,
