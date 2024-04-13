@@ -599,9 +599,6 @@ class ChainNode(TrialNode):
             parent.child = self
             self.parent = parent
 
-    def init_next_node(self, next_node: "ChainNode"):
-        pass
-
     def set_network(self, network):
         super().set_network(network)
         self.target_n_trials = network.trials_per_node
@@ -1801,7 +1798,6 @@ class ChainTrialMaker(NetworkTrialMaker):
                 propagate_failure=self.propagate_failure,
                 participant=participant,
             )
-            head.init_next_node(node)
             db.session.add(node)
             network.add_node(node)
             node.check_on_deploy()

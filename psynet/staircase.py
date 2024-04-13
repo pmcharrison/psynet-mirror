@@ -15,35 +15,33 @@ class GeometricStaircaseNode(ChainNode):
     run_number = Column(Integer)
 
     def __init__(self, *args, parameter=None, run_number=None, **kwargs):
-        self.parameter = parameter
-        self.run_number = run_number
         super().__init__(*args, **kwargs)
 
-    # todo - migrate this code to init
+        if self.network:
+            assert self.network.chain_type == "within"
 
-    def init_next_node(self, next_node: ChainNode):
-        assert self.network.chain_type == "within"
+        parent = self.parent
+        self.parameter = parameter if parameter is not None else parent.parameter
+        self.run_number = run_number if run_number is not None else parent.run_number
 
         if self.degree == 0:
             self.n_consecutive_correct = 0
-
-        next_node.run_number = self.run_number
-        next_node.parameter = self.parameter
-        next_node.n_consecutive_correct = self.n_consecutive_correct
-
-        if self.trial.score == 1:
-            next_node.n_consecutive_correct += 1
-
-            if next_node.n_consecutive_correct == self.k:
-                next_node.increase_difficulty()
-                next_node.n_consecutive_correct = 0
-
-        elif self.trial.score == 0:
-            next_node.decrease_difficulty()
-            next_node.n_consecutive_correct = 0
-
         else:
-            raise ValueError(f"Unexpected score: {self.trial.score}")
+            self.n_consecutive_correct = parent.n_consecutive_correct
+
+            if parent.trial.score == 1:
+                self.n_consecutive_correct += 1
+
+                if self.n_consecutive_correct == self.k:
+                    self.increase_difficulty()
+                    self.n_consecutive_correct = 0
+
+            elif parent.trial.score == 0:
+                self.decrease_difficulty()
+                self.n_consecutive_correct = 0
+
+            else:
+                raise ValueError(f"Unexpected score: {parent.trial.score}")
 
     @property
     def definition(self):
