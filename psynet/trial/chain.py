@@ -556,6 +556,9 @@ class ChainNode(TrialNode):
             else:
                 block = "default"
 
+        if not isinstance(block, str):
+            raise ValueError(f"block must be a string (got {block}).")
+
         if degree is None:
             if parent:
                 degree = parent.degree + 1

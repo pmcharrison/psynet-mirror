@@ -33,14 +33,6 @@ class PitchDiscriminationNode(GeometricStaircaseNode):
         self.parameter /= self.step
 
 
-def nodes():
-    return [
-        GeometricStaircaseNode(
-            parameter=1,  # discrimination interval in semitones
-        )
-    ]
-
-
 class PitchDiscriminationTrial(GeometricStaircaseTrial):
     time_estimate = 5
 
@@ -161,28 +153,47 @@ class Exp(psynet.experiment.Experiment):
             id_="pitch_discrimination",
             trial_class=PitchDiscriminationTrial,
             node_class=PitchDiscriminationNode,
-            chain_type="within",
+            start_parameter=1.0,
+            n_runs=2,
+            max_trials_per_run=30,
+            max_reversals_per_run=6,
             expected_trials_per_participant=20,
-            max_trials_per_participant=20,
-            max_nodes_per_chain=20,
-            start_nodes=nodes,
             target_n_participants=1,
         ),
         SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        trials = bot.all_trials
-        assert len(trials) == 20
-
         step = PitchDiscriminationNode.step
         bot_threshold = PitchDiscriminationTrial.bot_threshold
+        max_reversals_per_run = self.timeline.get_trial_maker(
+            "pitch_discrimination"
+        ).max_reversals_per_run
 
-        n = 4
-        last_n_trials = trials[-n:]
-        last_n_parameters = [trial.definition["parameter"] for trial in last_n_trials]
+        all_trials = bot.all_trials
+        assert len(all_trials) == 20
 
-        for parameter in last_n_parameters:
-            assert (
-                bot_threshold * step <= parameter <= bot_threshold / step
-            ), "Procedure did not converge to bot threshold"
+        runs = [[t for t in all_trials if t.run_id == run_id] for run_id in [0, 1]]
+
+        for run in runs:
+            assert len(run) > max_reversals_per_run
+
+        for trial in runs[0]:
+            assert trial.id > max(
+                [t.id for t in runs[0]]
+            ), "Runs 0 and 1 were unexpectedly mixed"
+
+        for run in runs:
+            # n_reversals = sum([trial.reversal for trial in run])
+            # assert n_reversals == max_reversals_per_run
+
+            n = 4
+            last_n_trials = run[-n:]
+            last_n_parameters = [
+                trial.definition["parameter"] for trial in last_n_trials
+            ]
+
+            for parameter in last_n_parameters:
+                assert (
+                    bot_threshold * step <= parameter <= bot_threshold / step
+                ), "Procedure did not converge to bot threshold"
