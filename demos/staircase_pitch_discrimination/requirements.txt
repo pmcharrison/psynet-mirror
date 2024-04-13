@@ -1,0 +1,4 @@
+psynet==11.2.2
+librosa
+numpy
+soundfile
