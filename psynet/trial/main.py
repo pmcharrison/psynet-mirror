@@ -483,8 +483,6 @@ class Trial(SQLMixinDallinger, Info):
 
             db.session.add(self)
 
-            self._finalize_assets()
-
     def to_dict(self):
         x = super().to_dict()
         field.json_unpack_field(x, "definition")
@@ -629,7 +627,7 @@ class Trial(SQLMixinDallinger, Info):
         """
         return definition
 
-    def _finalize_assets(self):
+    def finalize_assets(self):
         for _, asset in self.assets.items():
             asset.receive_node_definition(self.definition)
             if not asset.deposited:
@@ -2334,6 +2332,7 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
+        trial.finalize_assets()
         trial._initial_assets = dict(trial.assets)
         db.session.add(trial)
         participant.module_state.n_created_trials += 1
