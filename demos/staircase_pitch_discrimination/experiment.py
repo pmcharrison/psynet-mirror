@@ -1,6 +1,5 @@
 import random
 
-import librosa
 import numpy as np
 import soundfile as sf
 
@@ -93,7 +92,8 @@ class PitchDiscriminationTrial(StaircaseTrial):
         sf.write(path, waveform, 44100)
 
     def make_tone(self, frequency, duration):
-        signal = librosa.tone(frequency, duration=duration, sr=self.sample_rate)
+        n_samples = int(duration * self.sample_rate)
+        signal = np.cos(2 * np.pi * frequency * np.arange(n_samples) / self.sample_rate)
         envelope = np.ones(len(signal))
         n_rise_samples = round(self.rise_time * self.sample_rate)
         envelope[:n_rise_samples] = np.linspace(start=0, stop=1, num=n_rise_samples)
