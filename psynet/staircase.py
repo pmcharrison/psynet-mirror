@@ -62,9 +62,9 @@ class GeometricStaircaseTrial(ChainTrial):
     parameter = Column(Float)
 
     def __init__(self, *args, **kwargs):
-        self.run_number = kwargs["node"].run_number
-        self.parameter = kwargs["node"].parameter
         super().__init__(*args, **kwargs)
+        self.run_number = self.node.run_number
+        self.parameter = self.node.parameter
 
     def make_definition(self, experiment, participant):
         return {"parameter": self.node.parameter}
