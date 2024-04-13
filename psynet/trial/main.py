@@ -2766,6 +2766,16 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     all_trials = relationship("psynet.trial.main.Trial", foreign_keys=[Trial.node_id])
 
     @property
+    def trial(self):
+        alive_trials = self.alive_trials
+        if len(alive_trials) == 0:
+            return None
+        elif len(alive_trials) == 1:
+            return alive_trials[0]
+        else:
+            raise RuntimeError(f"Node {self.id} has multiple trials.")
+
+    @property
     def alive_trials(self):
         return [t for t in self.all_trials if not t.failed]
 
