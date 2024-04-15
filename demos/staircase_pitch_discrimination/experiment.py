@@ -242,7 +242,7 @@ class Exp(psynet.experiment.Experiment):
             ), "chains 0 and 1 were unexpectedly mixed"
 
         for chain in chains:
-            n_reversals = sum([node.reversal for node in chain.nodes])
+            n_reversals = sum([node.reversal for node in chain.all_nodes])
             assert n_reversals == max_reversals_per_chain
 
             n = 4

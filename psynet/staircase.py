@@ -1,8 +1,7 @@
 from statistics import mean
 from typing import Optional, Type, Union
 
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, Float, Integer
 
 from .field import PythonObject
 from .trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
@@ -16,9 +15,6 @@ class GeometricStaircaseNode(ChainNode):
     parameter = Column(PythonObject)
     reversal = Column(Boolean)
     n_reversals_so_far = Column(Integer)
-    run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
-
-    run = relationship("GeometricStaircaseChain", back_populates="nodes")
 
     def __init__(self, *args, parameter=None, run=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,7 +24,6 @@ class GeometricStaircaseNode(ChainNode):
 
         parent = self.parent
         self.parameter = parameter if parameter is not None else parent.parameter
-        self.run = run if run is not None else parent.run
         self.reversal = False
 
         if self.degree == 0:
@@ -56,8 +51,9 @@ class GeometricStaircaseNode(ChainNode):
             else:
                 raise ValueError(f"Unexpected score: {parent.trial.score}")
 
-        if self.n_reversals_so_far == self.run.max_reversals_per_chain:
-            self.network.full = True
+        if self.chain:
+            if self.n_reversals_so_far == self.chain.max_reversals_per_chain:
+                self.chain.full = True
 
     @property
     def definition(self):
@@ -74,16 +70,10 @@ class GeometricStaircaseNode(ChainNode):
 
 
 class GeometricStaircaseTrial(ChainTrial):
-    run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
-    run = relationship(
-        "GeometricStaircaseChain", back_populates="all_trials", post_update=True
-    )
-
     parameter = Column(PythonObject)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.run = self.node.run
         self.parameter = self.node.parameter
 
     def make_definition(self, experiment, participant):
@@ -120,6 +110,7 @@ class GeometricStaircaseChain(ChainNetwork):
 
 
 class GeometricStaircaseTrialMaker(ChainTrialMaker):
+    @property
     def default_network_class(self):
         return GeometricStaircaseChain
 
@@ -129,7 +120,7 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         id_,
         trial_class: Type[GeometricStaircaseTrial],
         node_class: Type[GeometricStaircaseNode],
-        network_class: Type["GeometricStaircaseChain"],
+        network_class: Type["GeometricStaircaseChain"] = None,
         start_nodes: Union[callable, list],
         max_nodes_per_chain: int,
         max_reversals_per_chain: Optional[int] = None,
@@ -174,19 +165,19 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
 
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a dict: {"score": float, "passed": bool}"""
-        runs = GeometricStaircaseChain.query.filter_by(
+        chains = GeometricStaircaseChain.query.filter_by(
             participant=participant, trial_maker_id=self.id
         ).all()
 
-        for run in runs:
-            run.compute_score()
+        for chain in chains:
+            chain.compute_score()
 
         try:
-            run_scores = [getattr(run, self.score_method) for run in runs]
+            chain_scores = [getattr(chain, self.score_method) for chain in chains]
         except AttributeError:
             raise ValueError(f"Unknown score method: {self.score_method}")
 
-        score = self.summarize_scores(run_scores)
+        score = self.summarize_scores(chain_scores)
 
         passed = True
         if self.min_passing_score is not None and score < self.min_passing_score:
@@ -200,7 +191,7 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
             "min_passing_score": self.min_passing_score,
             "max_passing_score": self.max_passing_score,
             "score_method": self.score_method,
-            "run_scores": run_scores,
+            "chain_scores": chain_scores,
         }
 
     def summarize_scores(self, scores):

@@ -526,6 +526,14 @@ class ChainNode(TrialNode):
         post_update=True,
     )
 
+    @property
+    def chain(self):
+        return self.network
+
+    @chain.setter
+    def chain(self, value):
+        self.network = value
+
     def __init__(
         self,
         *,
@@ -912,6 +920,14 @@ class ChainTrial(Trial):
 
     block_position = Column(Integer, index=True)
     block = Column(String, index=True)
+
+    @property
+    def chain(self):
+        return self.network
+
+    @chain.setter
+    def chain(self, value):
+        self.network = value
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
