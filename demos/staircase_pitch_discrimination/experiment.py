@@ -77,6 +77,11 @@ class PitchDiscriminationNode(GeometricStaircaseNode):
 class PitchDiscriminationTrial(GeometricStaircaseTrial):
     time_estimate = 5
 
+    sample_rate = 44100
+    tone_duration = 1.0
+    silence_duration = 0.5
+    rise_time = 0.25
+
     def finalize_definition(self, definition, experiment, participant):
         parameter = definition["parameter"]
         correct_answer = random.choice(["First", "Second"])
@@ -110,11 +115,6 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
         )
 
         return definition
-
-    sample_rate = 44100
-    tone_duration = 1.0
-    silence_duration = 0.5
-    rise_time = 0.25
 
     def synth_stimulus(self, path, frequencies):
         # Synthesize two tones one after the other, each of length 1 second,
