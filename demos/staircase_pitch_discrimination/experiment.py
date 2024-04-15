@@ -219,7 +219,7 @@ class Exp(psynet.experiment.Experiment):
             start_nodes=get_start_nodes,
             max_nodes_per_chain=30,
             max_reversals_per_chain=6,
-            expected_trials_per_participant=n_chains * 20,
+            expected_trials_per_participant=n_chains * 10,
             target_n_participants=1,
         ),
         SuccessfulEndPage(),
