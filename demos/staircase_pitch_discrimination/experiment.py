@@ -10,8 +10,8 @@ from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.staircase import (
+    GeometricStaircaseChain,
     GeometricStaircaseNode,
-    GeometricStaircaseRun,
     GeometricStaircaseTrial,
     GeometricStaircaseTrialMaker,
 )
@@ -19,6 +19,46 @@ from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+
+# Hyperparameters #############################################################
+
+n_chains_per_condition = 2
+
+chain_definitions = [
+    {
+        "tone_duration": duration,
+        "tone_amplitude": amplitude,
+    }
+    for amplitude in [0.5, 1.0]
+    for duration in [0.5, 1.0]
+    for _ in range(n_chains_per_condition)
+]
+
+n_chains = len(chain_definitions)
+
+# #############################################################################
+
+
+def get_start_nodes(participant):
+    return [
+        PitchDiscriminationNode(
+            parameter=1.0,
+            context=chain_definition,
+            # In a future PsyNet version, we would like the user instead to specify a list of chains here;
+            # then we could get rid of the term 'context', as it would be clear that these parameters are scoped
+            # to the chain, not to the node/trial.
+            block=str(i),
+            # Making each chain a separate block means that the participant will experience all trials from one
+            # chain before moving onto the next chain, as is normal in a staircase procedure.
+            # The chains themselves will be administered in a random order.
+            # The order of chains can be customized by overriding GeometricTrialMaker.choose_block_order.
+            #
+            # In a future PsyNet version, we would like to implement this via a TrialMaker argument called
+            # mix_chains, which could be set to False in this case.
+        )
+        for i, chain_definition in enumerate(chain_definitions)
+    ]
 
 
 class PitchDiscriminationNode(GeometricStaircaseNode):
@@ -79,23 +119,34 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
     def synth_stimulus(self, path, frequencies):
         # Synthesize two tones one after the other, each of length 1 second,
         # with the specified frequencies
+        tone_amplitude = self.context["tone_amplitude"]
+        tone_duration = self.context["tone_duration"]
+
         waveform = np.concatenate(
             [
-                self.make_tone(frequencies[0], duration=self.silence_duration),
+                self.make_tone(
+                    frequencies[0], amplitude=tone_amplitude, duration=tone_duration
+                ),
                 self.make_silence(duration=self.silence_duration),
-                self.make_tone(frequencies[1], duration=self.silence_duration),
+                self.make_tone(
+                    frequencies[1], amplitude=tone_amplitude, duration=tone_duration
+                ),
             ]
         )
 
         sf.write(path, waveform, 44100)
 
-    def make_tone(self, frequency, duration):
+    def make_tone(self, frequency, amplitude, duration):
         n_samples = int(duration * self.sample_rate)
         signal = np.cos(2 * np.pi * frequency * np.arange(n_samples) / self.sample_rate)
         envelope = np.ones(len(signal))
         n_rise_samples = round(self.rise_time * self.sample_rate)
-        envelope[:n_rise_samples] = np.linspace(start=0, stop=1, num=n_rise_samples)
-        envelope[-n_rise_samples:] = np.linspace(start=1, stop=0, num=n_rise_samples)
+        envelope[:n_rise_samples] = np.linspace(
+            start=0, stop=amplitude, num=n_rise_samples
+        )
+        envelope[-n_rise_samples:] = np.linspace(
+            start=amplitude, stop=0, num=n_rise_samples
+        )
         return signal * envelope
 
     def make_silence(self, duration):
@@ -114,7 +165,12 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
             time_estimate=self.time_estimate,
         )
 
-    bot_threshold = 0.125
+    bot_thresholds = {
+        (0.5, 0.5): 0.125,
+        (0.5, 1.0): 0.25,
+        (1.0, 0.5): 0.5,
+        (1.0, 1.0): 0.75,
+    }
 
     def get_bot_response(self, bot: Bot):
         # We imagine the bot has the discrimination threshold specified below.
@@ -122,7 +178,11 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
         # above the threshold, and always respond incorrectly if it is below.
         # This is unrealistic (normally they would respond by chance if it is below),
         # but it allows us to produce a better automated test.
-        bot_threshold = 0.125
+
+        bot_threshold = self.bot_thresholds[
+            (self.context["tone_amplitude"], self.context["tone_duration"])
+        ]
+
         responds_correctly = self.parameter >= bot_threshold
         if responds_correctly:
             return self.definition["correct_answer"]
@@ -152,11 +212,14 @@ class Exp(psynet.experiment.Experiment):
             id_="pitch_discrimination",
             trial_class=PitchDiscriminationTrial,
             node_class=PitchDiscriminationNode,
-            start_parameter=1.0,
-            n_runs=2,
-            max_trials_per_run=30,
-            max_reversals_per_run=6,
-            expected_trials_per_participant=20,
+            # The long-term plan is to update this API so that, instead of specifying a list of start_nodes,
+            # we instead specify a list of chains. Each chain can then have its own hyperparameters like
+            # max_trials_per_run, max_reversals_per_chain, etc. We are waiting on some other PsyNet changes before
+            # we can do this though.
+            start_nodes=get_start_nodes,
+            max_nodes_per_chain=30,
+            max_reversals_per_chain=6,
+            expected_trials_per_participant=n_chains * 20,
             target_n_participants=1,
         ),
         SuccessfulEndPage(),
@@ -164,29 +227,34 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         step = PitchDiscriminationNode.step
-        bot_threshold = PitchDiscriminationTrial.bot_threshold
-        max_reversals_per_run = self.timeline.get_trial_maker(
+        max_reversals_per_chain = self.timeline.get_trial_maker(
             "pitch_discrimination"
-        ).max_reversals_per_run
+        ).max_reversals_per_chain
 
-        runs = GeometricStaircaseRun.query.filter_by(participant_id=bot.id).all()
+        chains = GeometricStaircaseChain.query.filter_by(participant_id=bot.id).all()
 
-        for run in runs:
-            assert len(run.all_trials) > max_reversals_per_run
+        for chain in chains:
+            assert len(chain.all_trials) > max_reversals_per_chain
 
-        for trial in runs[1].all_trials:
+        for trial in chains[1].all_trials:
             assert trial.id > max(
-                [t.id for t in runs[0].all_trials]
-            ), "Runs 0 and 1 were unexpectedly mixed"
+                [t.id for t in chains[0].all_trials]
+            ), "chains 0 and 1 were unexpectedly mixed"
 
-        for run in runs:
-            n_reversals = sum([node.reversal for node in run.nodes])
-            assert n_reversals == max_reversals_per_run
+        for chain in chains:
+            n_reversals = sum([node.reversal for node in chain.nodes])
+            assert n_reversals == max_reversals_per_chain
 
             n = 4
-            last_n_trials = run.all_trials[-n:]
+            last_n_trials = chain.all_trials[-n:]
             last_n_parameters = [
                 trial.definition["parameter"] for trial in last_n_trials
+            ]
+
+            tone_amplitude = chain.context["tone_amplitude"]
+            tone_duration = chain.context["tone_duration"]
+            bot_threshold = PitchDiscriminationTrial.bot_thresholds[
+                (tone_amplitude, tone_duration)
             ]
 
             for parameter in last_n_parameters:
@@ -195,8 +263,7 @@ class Exp(psynet.experiment.Experiment):
                 ), "Procedure did not converge to bot threshold"
 
             assert (
-                bot_threshold * step <= run.mean_reversal_score <= bot_threshold / step
-            ), f"Mean reversal score seems incorrect: {run.mean_reversal_score}"
-
-
-# To do - implement early stopping logic for when n_reversals reaches a certain threshold
+                bot_threshold * step
+                <= chain.mean_reversal_score
+                <= bot_threshold / step
+            ), f"Mean reversal score seems incorrect: {chain.mean_reversal_score}"

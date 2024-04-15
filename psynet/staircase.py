@@ -1,13 +1,11 @@
 from statistics import mean
 from typing import Optional, Type, Union
 
-from dallinger import db
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
-from .data import SQLBase, SQLMixin
 from .field import PythonObject
-from .trial.chain import ChainNode, ChainTrial, ChainTrialMaker
+from .trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 
 class GeometricStaircaseNode(ChainNode):
@@ -20,7 +18,7 @@ class GeometricStaircaseNode(ChainNode):
     n_reversals_so_far = Column(Integer)
     run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
 
-    run = relationship("GeometricStaircaseRun", back_populates="nodes")
+    run = relationship("GeometricStaircaseChain", back_populates="nodes")
 
     def __init__(self, *args, parameter=None, run=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,7 +56,7 @@ class GeometricStaircaseNode(ChainNode):
             else:
                 raise ValueError(f"Unexpected score: {parent.trial.score}")
 
-        if self.n_reversals_so_far == self.run.max_reversals_per_run:
+        if self.n_reversals_so_far == self.run.max_reversals_per_chain:
             self.network.full = True
 
     @property
@@ -78,7 +76,7 @@ class GeometricStaircaseNode(ChainNode):
 class GeometricStaircaseTrial(ChainTrial):
     run_id = Column(Integer, ForeignKey("staircase_run.id"), index=True)
     run = relationship(
-        "GeometricStaircaseRun", back_populates="all_trials", post_update=True
+        "GeometricStaircaseChain", back_populates="all_trials", post_update=True
     )
 
     parameter = Column(PythonObject)
@@ -92,19 +90,50 @@ class GeometricStaircaseTrial(ChainTrial):
         return {"parameter": self.node.parameter}
 
 
+class GeometricStaircaseChain(ChainNetwork):
+    start_parameter = Column(PythonObject)
+    max_reversals_per_chain = Column(Integer)
+    mean_reversal_score = Column(Float)
+
+    exclude_first_reversal = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.start_parameter = self.head.parameter
+        self.max_reversals_per_chain = self.trial_maker.max_reversals_per_chain
+
+    def compute_score(self):
+        self.compute_reversal_score()
+
+        # A possibility for the future:
+        # implement more sophisticated scoring using the upndown R package via rpy2
+
+    def compute_reversal_score(self):
+        reversals = [node for node in self.alive_nodes if node.reversal]
+        if self.exclude_first_reversal:
+            reversals = reversals[1:]
+        scores = [node.parameter for node in reversals]
+        self.mean_reversal_score = self.summarize_scores(scores)
+
+    def summarize_scores(self, scores):
+        return mean(scores)
+
+
 class GeometricStaircaseTrialMaker(ChainTrialMaker):
+    def default_network_class(self):
+        return GeometricStaircaseChain
+
     def __init__(
         self,
         *,
         id_,
         trial_class: Type[GeometricStaircaseTrial],
         node_class: Type[GeometricStaircaseNode],
-        start_parameter: Union[int, float, callable],
-        n_runs: int,
-        max_trials_per_run: int,
-        max_reversals_per_run: Optional[int] = None,
-        mix_runs: bool = False,
-        balance_mixed_runs: bool = False,
+        network_class: Type["GeometricStaircaseChain"],
+        start_nodes: Union[callable, list],
+        max_nodes_per_chain: int,
+        max_reversals_per_chain: Optional[int] = None,
+        balance_across_chains: bool = False,
         min_passing_score: Optional[float] = None,
         max_passing_score: Optional[float] = None,
         expected_trials_per_participant: Optional[int] = None,
@@ -114,72 +143,29 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
     ):
-        self.start_parameter = start_parameter
-        self.n_runs = n_runs
-        self.max_trials_per_run = max_trials_per_run
-        self.max_reversals_per_run = max_reversals_per_run
-        self.mix_runs = mix_runs
-        self.balance_mixed_runs = balance_mixed_runs
+        self.max_reversals_per_chain = max_reversals_per_chain
         self.min_passing_score = min_passing_score
         self.max_passing_score = max_passing_score
-
-        if expected_trials_per_participant is None:
-            if max_reversals_per_run is None:
-                expected_trials_per_participant = n_runs * max_trials_per_run
-            else:
-                raise ValueError(
-                    "expected_trials_per_participant needs to be specified."
-                )
 
         super().__init__(
             id_=id_,
             trial_class=trial_class,
             node_class=node_class,
-            network_class=None,
+            network_class=network_class,
             chain_type="within",
             target_n_participants=target_n_participants,
             recruit_mode=recruit_mode,
-            start_nodes=self.get_start_nodes,
+            start_nodes=start_nodes,
             trials_per_node=1,
             expected_trials_per_participant=expected_trials_per_participant,
             assets=assets,
             choose_participant_group=choose_participant_group,
             sync_group_type=sync_group_type,
-            max_nodes_per_chain=max_trials_per_run,
+            max_nodes_per_chain=max_nodes_per_chain,
             check_performance_at_end=True,
             check_performance_every_trial=False,
-            balance_across_chains=balance_mixed_runs,
+            balance_across_chains=balance_across_chains,
         )
-
-    def get_start_nodes(self, participant):
-        if callable(self.start_parameter):
-            parameter = self.start_parameter(participant=participant)
-        else:
-            parameter = self.start_parameter
-
-        runs = []
-
-        for id_within_participant in range(self.n_runs):
-            run = GeometricStaircaseRun(
-                trial_maker_id=self.id,
-                participant=participant,
-                id_within_participant=id_within_participant,
-                start_parameter=parameter,
-                max_reversals_per_run=self.max_reversals_per_run,
-            )
-            db.session.add(run)
-            runs.append(run)
-
-        start_nodes = [
-            self.node_class(
-                parameter=parameter,
-                run=run,
-                block="default" if self.mix_runs else str(run.id_within_participant),
-            )
-            for run in runs
-        ]
-
-        return start_nodes
 
     def choose_block_order(self, experiment, participant, blocks):
         return sorted(blocks, key=lambda block: int(block))
@@ -188,7 +174,7 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
 
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a dict: {"score": float, "passed": bool}"""
-        runs = GeometricStaircaseRun.query.filter_by(
+        runs = GeometricStaircaseChain.query.filter_by(
             participant=participant, trial_maker_id=self.id
         ).all()
 
@@ -216,52 +202,6 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
             "score_method": self.score_method,
             "run_scores": run_scores,
         }
-
-    def summarize_scores(self, scores):
-        return mean(scores)
-
-
-class GeometricStaircaseRun(SQLBase, SQLMixin):
-    __tablename__ = "staircase_run"
-    __extra_vars__ = {}
-
-    # Remove default SQL columns
-    failed = None
-    failed_reason = None
-    time_of_death = None
-    property1 = None
-    property2 = None
-    property3 = None
-    property4 = None
-    property5 = None
-
-    trial_maker_id = Column(String)
-    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
-    id_within_participant = Column(Integer)
-    start_parameter = Column(PythonObject)
-    max_reversals_per_run = Column(Integer)
-    mean_reversal_score = Column(Float)
-
-    participant = relationship(
-        "psynet.participant.Participant", backref="geometric_staircase_runs"
-    )
-    nodes = relationship("GeometricStaircaseNode")
-    all_trials = relationship("GeometricStaircaseTrial")
-
-    exclude_first_reversal = True
-
-    def compute_score(self):
-        self.compute_reversal_score()
-
-        # A possibility for the future:
-        # implement more sophisticated scoring using the upndown R package via rpy2
-
-    def compute_reversal_score(self):
-        reversals = [node for node in self.nodes if node.reversal]
-        if self.exclude_first_reversal:
-            reversals = reversals[1:]
-        scores = [node.parameter for node in reversals]
-        self.mean_reversal_score = self.summarize_scores(scores)
 
     def summarize_scores(self, scores):
         return mean(scores)

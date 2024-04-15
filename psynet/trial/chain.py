@@ -146,6 +146,7 @@ class ChainNetwork(TrialNetwork):
     head_id = Column(Integer, ForeignKey("node.id"))
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)
+    context = Column(PythonObject)
     block = Column(String, index=True)
 
     head = relationship(
@@ -324,6 +325,8 @@ class ChainNetwork(TrialNetwork):
 
     def add_node(self, node):
         node.set_network(self)
+        if node.degree == 0:
+            self.context = node.context
         if node.degree > 0:
             # previous_head = self.get_node_with_degree(node.degree - 1)
             previous_head = self.head
