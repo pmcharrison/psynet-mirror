@@ -143,7 +143,9 @@ class PsyNetUnpickler(Unpickler):
 
 def serialize(x, **kwargs):
     pickler = PsyNetPickler()
-    return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("error", message="jsonpickle cannot pickle")
+        return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
@@ -253,11 +255,5 @@ def check_that_function_can_be_serialized(function):
     assert callable(function)
     if "<locals>" in importable_name(function):
         raise ValueError(
-            "You cannot serialize a function defined within another function."
-        )
-    if unserialize(serialize(function)) is None:
-        raise ValueError(
-            "The provided function could not be serialized. Make sure that the function is defined at the module "
-            "or class level, rather than being a lambda function or a temporary function defined within "
-            "another function."
+            "You cannot serialize a lambda function or a function defined within another function."
         )
