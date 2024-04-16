@@ -16,10 +16,6 @@ from psynet.staircase import (
     GeometricStaircaseTrialMaker,
 )
 from psynet.timeline import Timeline
-from psynet.utils import get_logger
-
-logger = get_logger()
-
 
 # Hyperparameters #############################################################
 
@@ -86,16 +82,15 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
         parameter = definition["parameter"]
         correct_answer = random.choice(["First", "Second"])
         lower_pitch = 60  # MIDI note number
-
         higher_pitch = lower_pitch + parameter
 
-        # The participant is asked, "Which pitch is higher?
+        # "Which pitch is higher?"
         if correct_answer == "First":
             pitches = [higher_pitch, lower_pitch]
         else:
             pitches = [lower_pitch, higher_pitch]
 
-        frequencies = [440 * 2 ** ((pitch - 69) / 12) for pitch in pitches]
+        frequencies = [self.midi_to_freq(pitch) for pitch in pitches]
 
         definition.update(
             {
@@ -116,6 +111,9 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
 
         return definition
 
+    def midi_to_freq(self, midi):
+        return 440 * 2 ** ((midi - 69) / 12)
+
     def synth_stimulus(self, path, frequencies):
         # Synthesize two tones one after the other, each of length 1 second,
         # with the specified frequencies
@@ -134,12 +132,12 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
             ]
         )
 
-        sf.write(path, waveform, 44100)
+        sf.write(path, waveform, self.sample_rate)
 
     def make_tone(self, frequency, amplitude, duration):
         n_samples = int(duration * self.sample_rate)
-        signal = np.cos(2 * np.pi * frequency * np.arange(n_samples) / self.sample_rate)
-        envelope = np.ones(len(signal))
+        signal = np.sin(2 * np.pi * frequency * np.arange(n_samples) / self.sample_rate)
+        envelope = np.ones(len(signal)) * amplitude
         n_rise_samples = round(self.rise_time * self.sample_rate)
         envelope[:n_rise_samples] = np.linspace(
             start=0, stop=amplitude, num=n_rise_samples
@@ -166,6 +164,8 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
         )
 
     bot_thresholds = {
+        # Discrimination thresholds for each condition;
+        # the first value in the tuple is the tone amplitude, the second is the tone duration.
         (0.5, 0.5): 0.125,
         (0.5, 1.0): 0.25,
         (1.0, 0.5): 0.5,
@@ -177,7 +177,7 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
         # We suppose they always respond correctly if the stimulus parameter is
         # above the threshold, and always respond incorrectly if it is below.
         # This is unrealistic (normally they would respond by chance if it is below),
-        # but it allows us to produce a better automated test.
+        # but it allows us to produce a simpler automated test.
 
         bot_threshold = self.bot_thresholds[
             (self.context["tone_amplitude"], self.context["tone_duration"])
