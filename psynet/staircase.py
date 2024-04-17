@@ -158,9 +158,6 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
             balance_across_chains=balance_across_chains,
         )
 
-    def choose_block_order(self, experiment, participant, blocks):
-        return sorted(blocks, key=lambda block: int(block))
-
     score_method = "mean_reversal_score"
 
     def performance_check(self, experiment, participant, participant_trials):
