@@ -9,13 +9,13 @@ from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.staircase import (
+from psynet.timeline import Timeline
+from psynet.trial.staircase import (
     GeometricStaircaseChain,
     GeometricStaircaseNode,
     GeometricStaircaseTrial,
     GeometricStaircaseTrialMaker,
 )
-from psynet.timeline import Timeline
 
 # Overview #####################################################################
 
