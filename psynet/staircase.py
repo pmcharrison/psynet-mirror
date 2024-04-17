@@ -1,68 +1,127 @@
 from statistics import mean
 from typing import Optional, Type, Union
 
-from sqlalchemy import Boolean, Column, Float, Integer
+from sqlalchemy import Boolean, Column, Float, Integer, String
 
 from .field import PythonObject
 from .trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
+from .utils import get_args
+
+# Overview #############################################################################################################
+
+# This module provides classes for implementing a staircase procedure in which the difficulty of a task is adjusted
+# based on the participant's performance. Specifically, a geometric staircase procedure is implemented
+# (also known as a k-up-1-down procedure). In this procedure, the difficulty increases after a certain number of
+# consecutive correct responses, and decreases after an incorrect response. The procedure typically continues until a
+# maximum number of reversals is reached. The mean of the reversals is then used as an estimate of the participant's
+# threshold.
+#
+# See the staircase_pitch_discrimination demo for an example of how to use these classes.
 
 
 class GeometricStaircaseNode(ChainNode):
+    """
+    Attributes
+    ----------
+
+    k : int
+        The number of consecutive correct responses required to increase the difficulty.
+
+    parameter : object
+        The parameter that determines the difficulty of the task.
+
+    reversal : bool
+        Whether the present node constitutes a 'reversal'. A reversal is a node where the difficulty changes direction.
+        More formally, a node is a reversal if its parameter value was originally reached from one direction
+        (e.g. ascending), but the parameter value of the next node changed in the opposite direction (e.g. descending).
+        Reversals are often used for score estimation.
+
+    n_prev_correct : int
+        The number of consecutive correct responses that have already occurred at the same difficulty level
+        in the immediate preceding nodes, not including the present node.
+
+    n_prev_reversals : int
+        The number of reversals that have occurred before (but not including) the present node.
+
+    last_difficulty_change : str
+        The direction of the last difficulty change, potentially including any difficulty change that produced
+        the current node. Can be either "increase" or "decrease".
+    """
+
     # k up 2 down procedure
     k = 2
 
-    n_consecutive_correct = Column(Integer)
     parameter = Column(PythonObject)
     reversal = Column(Boolean)
-    n_reversals_so_far = Column(Integer)
+    n_prev_correct = Column(Integer)
+    n_prev_reversals = Column(Integer)
+    last_difficulty_change = Column(String)
 
-    def __init__(self, *args, parameter=None, run=None, **kwargs):
+    def __init__(self, *args, parameter=None, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.check_methods()
 
         if self.network:
             assert self.network.chain_type == "within"
 
         parent = self.parent
-        self.parameter = parameter if parameter is not None else parent.parameter
-        self.reversal = False
 
         if self.degree == 0:
-            self.n_consecutive_correct = 0
-            self.n_reversals_so_far = 0
+            assert parameter is not None
+            self.parameter = parameter
+            self.last_difficulty_change = None
+            self.n_prev_reversals = 0
+            self.n_prev_correct = 0
         else:
-            self.n_consecutive_correct = parent.n_consecutive_correct
-            self.n_reversals_so_far = parent.n_reversals_so_far
+            assert parent is not None
+            assert parent.trial.score in [0, 1]
+            assert parent.n_prev_correct < self.k
 
             if parent.trial.score == 1:
-                self.n_consecutive_correct += 1
-
-                if self.n_consecutive_correct == self.k:
-                    self.increase_difficulty()
-                    self.n_consecutive_correct = 0
-                    self.reversal = True
-                    self.n_reversals_so_far += 1
-
-            elif parent.trial.score == 0:
-                self.decrease_difficulty()
-                self.n_consecutive_correct = 0
-                self.reversal = True
-                self.n_reversals_so_far += 1
-
+                if parent.n_prev_correct + 1 == self.k:
+                    self.parameter = self.increase_difficulty(parent.parameter)
+                    self.last_difficulty_change = "increase"
+                    self.n_prev_correct = 0
+                else:
+                    self.parameter = parent.parameter
+                    self.last_difficulty_change = parent.last_difficulty_change
+                    self.n_prev_correct = parent.n_prev_correct + 1
             else:
-                raise ValueError(f"Unexpected score: {parent.trial.score}")
+                self.parameter = self.decrease_difficulty(parent.parameter)
+                self.last_difficulty_change = "decrease"
+                self.n_prev_correct = 0
+
+            if (
+                parent.last_difficulty_change is not None
+                and parent.last_difficulty_change != self.last_difficulty_change
+            ):
+                parent.reversal = True
+                self.n_prev_reversals = parent.n_prev_reversals + 1
+            else:
+                parent.reversal = False
+                self.n_prev_reversals = parent.n_prev_reversals
 
         if self.chain:
-            if self.n_reversals_so_far == self.chain.max_reversals_per_chain:
+            if self.n_prev_reversals == self.chain.max_reversals_per_chain:
                 self.chain.full = True
+
+    def check_methods(self):
+        for method in ["increase_difficulty", "decrease_difficulty"]:
+            if not get_args(getattr(self, method)) == ["parameter"]:
+                raise ValueError(
+                    "In the current version of psynet.staircase, the increase_difficulty and decrease_difficulty "
+                    "methods must take exactly one argument (the parameter value to be changed)."
+                )
 
     @property
     def definition(self):
         return {"parameter": self.parameter}
 
-    def increase_difficulty(self):
+    def increase_difficulty(self, parameter):
         raise NotImplementedError()
 
-    def decrease_difficulty(self):
+    def decrease_difficulty(self, parameter):
         raise NotImplementedError()
 
     def create_seed(self, experiment, participant):

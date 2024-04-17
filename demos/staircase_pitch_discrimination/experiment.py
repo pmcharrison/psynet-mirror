@@ -17,10 +17,26 @@ from psynet.staircase import (
 )
 from psynet.timeline import Timeline
 
+# Overview #####################################################################
+
+# This experiment implements is a pitch discrimination task. In each trial, the participant
+# hears two tones, one after the other. They must identify which tone was higher in pitch.
+# The difficulty of the task is adjusted using a 2-up 1-down staircase procedure.
+#
+# The task has two parameters: the amplitude of the tones, and the duration of the tones.
+# The task is administered in a series of chains, each with a different combination of
+# amplitude and duration.
+
 # Hyperparameters #############################################################
 
 n_chains_per_condition = 2
 
+# The experiment has 4 conditions, defined by the following combinations of amplitude and duration:
+# - Amplitude 0.5, duration 0.5
+# - Amplitude 0.5, duration 1.0
+# - Amplitude 1.0, duration 0.5
+# - Amplitude 1.0, duration 1.0
+# Each condition has n_chains_per_condition chains.
 chain_definitions = [
     {
         "tone_duration": duration,
@@ -57,19 +73,27 @@ def get_start_nodes(participant):
     ]
 
 
+# When implementing a staircase procedure, we need to define a subclass of GeometricStaircaseNode.
+# This class will define how the difficulty of the task is adjusted in response to the participant's responses.
 class PitchDiscriminationNode(GeometricStaircaseNode):
-    k = 2  # 2 up 1 down procedure
-    step = 0.5  # going up one difficulty level means halving the interval
+    # The GeometricStaircase implementation supports a k-up, 1-down procedure.
+    # In this case, we are using a 2-up, 1-down procedure.
+    k = 2
 
-    def increase_difficulty(self):
+    # The step parameter determines how much the difficulty level changes after each reversal.
+    step = 0.5
+
+    def increase_difficulty(self, parameter):
         # Smaller pitch differences are harder
-        self.parameter *= self.step
+        return parameter * self.step
 
-    def decrease_difficulty(self):
+    def decrease_difficulty(self, parameter):
         # Larger pitch differences are easier
-        self.parameter /= self.step
+        return parameter / self.step
 
 
+# We also need to define a subclass of GeometricStaircaseTrial.
+# This determines how the task is presented to the participant.
 class PitchDiscriminationTrial(GeometricStaircaseTrial):
     time_estimate = 5
 
@@ -78,6 +102,9 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
     silence_duration = 0.5
     rise_time = 0.25
 
+    # The finalize_definition method is called when the trial is created.
+    # It is used to determine various stimulus parameters, such as the pitches of the tones.
+    # It also cues the creation of any assets (e.g. audio files) that will be needed to present the trial.
     def finalize_definition(self, definition, experiment, participant):
         parameter = definition["parameter"]
         correct_answer = random.choice(["First", "Second"])
@@ -114,6 +141,8 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
     def midi_to_freq(self, midi):
         return 440 * 2 ** ((midi - 69) / 12)
 
+    # For convenience, all values in the `definition` attribute are available as arguments in synth_stimulus.
+    # It's also possible to access arbitrary trial properties via ``self``.
     def synth_stimulus(self, path, frequencies):
         # Synthesize two tones one after the other, each of length 1 second,
         # with the specified frequencies
@@ -217,14 +246,20 @@ class Exp(psynet.experiment.Experiment):
             # max_trials_per_run, max_reversals_per_chain, etc. We are waiting on some other PsyNet changes before
             # we can do this though.
             start_nodes=get_start_nodes,
+            # max_nodes_per_chain determines the maximum number of trials in a chain.
             max_nodes_per_chain=30,
+            # max_reversals_per_chain determines the maximum number of reversals in a chain.
             max_reversals_per_chain=6,
+            # In this case we expect that 6 reversals will take fewer than 20 trials to achieve.
             expected_trials_per_participant=n_chains * 10,
+            # This parameter is used to determine when to stop automatic recruitment (if active).
             target_n_participants=1,
         ),
         SuccessfulEndPage(),
     )
 
+    # This part of the code is optional but good practice.
+    # It defines an automated test that checks that the experiment logic is working properly.
     def test_check_bot(self, bot: Bot, **kwargs):
         step = PitchDiscriminationNode.step
         max_reversals_per_chain = self.timeline.get_trial_maker(
@@ -232,6 +267,7 @@ class Exp(psynet.experiment.Experiment):
         ).max_reversals_per_chain
 
         chains = GeometricStaircaseChain.query.filter_by(participant_id=bot.id).all()
+        chains.sort(key=lambda c: c.head.id)
 
         for chain in chains:
             assert len(chain.all_trials) > max_reversals_per_chain
@@ -242,8 +278,10 @@ class Exp(psynet.experiment.Experiment):
             ), "chains 0 and 1 were unexpectedly mixed"
 
         for chain in chains:
-            n_reversals = sum([node.reversal for node in chain.all_nodes])
-            assert n_reversals == max_reversals_per_chain
+            n_reversals = sum(
+                [node.reversal for node in chain.all_nodes if node.reversal is not None]
+            )
+            assert n_reversals == chain.head.n_prev_reversals == max_reversals_per_chain
 
             n = 4
             last_n_trials = chain.all_trials[-n:]
