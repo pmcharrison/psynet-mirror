@@ -3,9 +3,9 @@ from typing import Optional, Type, Union
 
 from sqlalchemy import Boolean, Column, Float, Integer, String
 
-from .field import PythonObject
-from .trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
-from .utils import get_args
+from ..field import PythonObject
+from ..utils import get_args
+from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 # Overview #############################################################################################################
 
