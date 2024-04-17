@@ -194,6 +194,14 @@ class AudioPrompt(Prompt):
     ):
         from .asset import Asset
 
+        if fade_out > 0.0:
+            warnings.warn(
+                "There is a bug in the underlying implementation of fade_out that causes the audio to stop playing "
+                "prematurely when the audio device has high latency. This applies especially to Bluetooth devices. "
+                "Until this bug is fixed, we recommend avoiding use of this parameter and instead editing the audio "
+                "file itself to include a fade-out at the end."
+            )
+
         if play_window is None:
             play_window = [None, None]
         assert len(play_window) == 2
