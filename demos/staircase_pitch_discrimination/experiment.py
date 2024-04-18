@@ -22,7 +22,9 @@ from psynet.trial.staircase import (
 # This experiment implements is a pitch discrimination task. In each trial, the participant
 # hears two tones, one after the other. They must identify which tone was higher in pitch.
 # The difficulty of the task is adjusted using a 2-up 1-down staircase procedure.
-#
+# In a 2-up 1-down procedure, the difficulty is increased after two correct responses,
+# and conversely decreased after one incorrect response.
+
 # The task has two parameters: the amplitude of the tones, and the duration of the tones.
 # The task is administered in a series of chains, each with a different combination of
 # amplitude and duration.

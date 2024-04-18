@@ -11,7 +11,7 @@ from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 # This module provides classes for implementing a staircase procedure in which the difficulty of a task is adjusted
 # based on the participant's performance. Specifically, a geometric staircase procedure is implemented
-# (also known as a k-up-1-down procedure). In this procedure, the difficulty increases after a certain number of
+# (also known as a k-up-1-down procedure). In this procedure, the difficulty increases after a certain number (k) of
 # consecutive correct responses, and decreases after an incorrect response. The procedure typically continues until a
 # maximum number of reversals is reached. The mean of the reversals is then used as an estimate of the participant's
 # threshold.
