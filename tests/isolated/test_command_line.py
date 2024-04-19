@@ -314,7 +314,7 @@ def test_check_constraints():
 
 
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
-def test_check_prolific_payment(launched_experiment):
+def test_check_prolific_payment_exceed_max_wage_per_hour(launched_experiment):
     with patch("click.confirm"):
         with pytest.raises(
             AssertionError,

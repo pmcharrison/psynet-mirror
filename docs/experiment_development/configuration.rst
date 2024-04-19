@@ -198,6 +198,9 @@ Payment
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
 
+``max_wage_per_hour`` *float* |psynet-icon|
+    The maximum payment in currency the participant gets per hour. Default: ``18.0``.
+
 ``min_accumulated_reward_for_abort`` *float* |psynet-icon|
     The threshold of reward accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
 
