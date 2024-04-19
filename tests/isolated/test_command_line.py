@@ -326,3 +326,18 @@ def test_check_prolific_payment_exceed_max_wage_per_hour(launched_experiment):
             "in your config.txt to a higher value.",
         ):
             check_prolific_payment(get_experiment(), get_config())
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
+def test_check_prolific_payment_not_exceed_max_wage_per_hour(launched_experiment):
+    config = get_config()
+    config.set("wage_per_hour", 1.0)
+    config.set("max_wage_per_hour", 35.0)
+
+    with patch("click.confirm"):
+        try:
+            check_prolific_payment(get_experiment(), get_config())
+        except AssertionError as error:
+            assert False, error
