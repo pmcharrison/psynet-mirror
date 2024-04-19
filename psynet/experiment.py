@@ -325,6 +325,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     wage_per_hour : `float`
         The payment in currency the participant gets per hour. Default: `9.0`.
 
+    max_wage_per_hour : `float`
+        The maximum payment in currency the participant gets per hour. Default: `18.0`.
+
     currency : `str`
         The currency in which the participant gets paid. Default: `$`.
 
