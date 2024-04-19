@@ -313,12 +313,14 @@ def test_check_constraints():
                     _check_constraints()
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 def test_check_prolific_payment_exceed_max_wage_per_hour(launched_experiment):
     with patch("click.confirm"):
         with pytest.raises(
             AssertionError,
-            match="The wage per hour \\(27.11 \\$/h\\) exceeds the maximum wage per hour \\(18.00 \\$/h\\). "
+            match="The wage per hour \\(44.21 \\$/h\\) exceeds the maximum wage per hour \\(18.00 \\$/h\\). "
             "This is usually a sign that you are either overpaying or your time estimate is off. "
             "If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
             "in your config.txt to a higher value.",
