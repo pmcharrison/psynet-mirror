@@ -1666,7 +1666,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
     return tests
 
 
-# Check todos
+# Check TODOs
 class PatternDir:
     def __init__(self, pattern, glob_dir):
         self.pattern = pattern
