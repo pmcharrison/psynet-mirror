@@ -1695,7 +1695,7 @@ def _aggregate_todos(pattern_dirs: [PatternDir]):
     return todo_count
 
 
-def check_todos_before_deployment(experiment, config):
+def check_todos_before_deployment():
     if os.environ.get("SKIP_TODO_CHECK"):
         print(
             "SKIP_TODO_CHECK is set so we will not check if there are any TODOs in the experiment folder."
