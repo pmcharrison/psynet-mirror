@@ -164,8 +164,12 @@ def test_check_todos_before_deployment():
 
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
-            with open("file.py", "w") as file:
+            with open("file1.py", "w") as file:
                 file.write("# TODO line with a Python TODO item\n")
+                file.flush()
+
+            with open("file2.py", "w") as file:
+                file.write("# FIXME line with unrecognized TODO item\n")
                 file.flush()
 
             os.mkdir("subdir")
@@ -177,8 +181,10 @@ def test_check_todos_before_deployment():
                 file.write("// TODO line with JavaScript TODO item in an HTML file\n")
                 file.flush()
 
-            with open("file2.py", "w") as file:
-                file.write("# FIXME line with unrecognized TODO item\n")
+            with open("file.txt", "w") as file:
+                file.write(
+                    "# TODO line with a TODO item with unsupported file extension\n"
+                )
                 file.flush()
 
             with pytest.raises(
