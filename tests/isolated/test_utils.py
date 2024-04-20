@@ -165,31 +165,34 @@ def test_check_todos_before_deployment():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             with open("file1.py", "w") as file:
-                file.write("# TODO line with a Python TODO item\n")
+                file.write("# TODO line with a Python comment TODO item")
                 file.flush()
 
             with open("file2.py", "w") as file:
-                file.write("# FIXME line with unrecognized TODO item\n")
+                file.write("// TODO line with a JavaScript comment TODO item\n")
+                file.write("// TODO line with a second JavaScript comment TODO item")
                 file.flush()
 
             os.mkdir("subdir")
             with open("subdir/file.js", "w") as file:
-                file.write("// TODO line with JavaScript TODO item\n")
+                file.write("// TODO line with a JavaScript comment TODO item")
                 file.flush()
 
             with open("subdir/file.html", "w") as file:
-                file.write("// TODO line with JavaScript TODO item in an HTML file\n")
+                file.write("// TODO line with a JavaScript comment TODO item")
+                file.flush()
+
+            with open("file3.py", "w") as file:
+                file.write("# FIXME line with unrecognized TODO item")
                 file.flush()
 
             with open("file.txt", "w") as file:
-                file.write(
-                    "# TODO line with a TODO item with unsupported file extension\n"
-                )
+                file.write("# TODO line in a file with unsupported file extension")
                 file.flush()
 
             with pytest.raises(
                 AssertionError,
-                match="You have 3 TODOs in 3 files in your experiment folder. "
+                match="You have 5 TODOs in 4 files in your experiment folder. "
                 "Please fix them or remove them before deploying. To view all "
                 "TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
                 "You can skip this check by writing `export SKIP_TODO_CHECK=1` "
