@@ -159,6 +159,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     complete = Column(Boolean, default=False)
     answer = Column(PythonObject)
     answer_accumulators = Column(PythonList)
+    sequences = Column(PythonList)
     branch_log = Column(PythonObject)
     for_loops = Column(PythonObject, default=lambda: {})
     failure_tags = Column(PythonList, default=lambda: [])
@@ -431,6 +432,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.elt_id = [-1]
         self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []
+        self.sequences = []
         self.complete = False
         self.time_credit.initialize(experiment)
         self.performance_reward = 0.0

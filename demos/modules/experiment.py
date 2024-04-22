@@ -5,7 +5,7 @@ import logging
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import CodeBlock, Module, PageMaker, Timeline, for_loop
+from psynet.timeline import CodeBlock, Module, PageMaker, Timeline, for_loop, join
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -14,11 +14,10 @@ logger = logging.getLogger()
 def check_module_b(participant):
     assert not participant.locals.has("animal")
     assert participant.locals.color == "blue"
-    assert participant.module_states["module_a"][0].var.animal == "cat"
+    assert participant.module_states["module_a"].var.animal == "cat"
 
     export = participant.to_dict()
-    assert export["module_a__animal"] == "cat"
-    assert export["module_a__1__animal"] == "dog"
+    assert export["module_a__animal"] == "dog"
 
 
 class Exp(psynet.experiment.Experiment):
@@ -27,20 +26,24 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        for_loop(
-            label="module_a_loop",
-            iterate_over=lambda: ["cat", "dog"],
-            logic=lambda animal: Module(
-                "module_a",
-                CodeBlock(lambda participant: participant.locals.set("animal", animal)),
-                PageMaker(
-                    lambda participant: InfoPage(
-                        f"Animal = {participant.locals.animal}",
+        Module(
+            "module_a",
+            for_loop(
+                label="module_a_loop",
+                iterate_over=lambda: ["cat", "dog"],
+                logic=lambda animal: join(
+                    CodeBlock(
+                        lambda participant: participant.locals.set("animal", animal)
                     ),
-                    time_estimate=5,
+                    PageMaker(
+                        lambda participant: InfoPage(
+                            f"Animal = {participant.locals.animal}",
+                        ),
+                        time_estimate=5,
+                    ),
                 ),
+                time_estimate_per_iteration=5,
             ),
-            time_estimate_per_iteration=5,
         ),
         Module(
             "module_b",
@@ -51,7 +54,6 @@ class Exp(psynet.experiment.Experiment):
                 ),
                 time_estimate=5,
             ),
-            CodeBlock(check_module_b),
         ),
         SuccessfulEndPage(),
     )

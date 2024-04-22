@@ -3,9 +3,9 @@ import os
 import shutil
 import struct
 import tempfile
+import wave
 
 import boto3
-import parselmouth
 from dallinger.config import get_config
 
 from .utils import cache, get_logger
@@ -163,5 +163,15 @@ def make_bucket_public(bucket_name):
 def recode_wav(file_path):
     with tempfile.NamedTemporaryFile() as temp_file:
         shutil.copyfile(file_path, temp_file.name)
-        s = parselmouth.Sound(temp_file.name)
-        s.save(file_path, "WAV")
+
+        with wave.open(temp_file.name, "rb") as in_wave:
+            params = in_wave.getparams()
+
+            with wave.open(file_path, "wb") as out_wave:
+                out_wave.setparams(params)
+
+                chunk_size = 1024
+                data = in_wave.readframes(chunk_size)
+                while data:
+                    out_wave.writeframes(data)
+                    data = in_wave.readframes(chunk_size)

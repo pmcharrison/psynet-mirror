@@ -2610,7 +2610,9 @@ class LocalStorage(AssetStorage):
                 ssh_host = deployment_info.read("ssh_host")
                 ssh_user = deployment_info.read("ssh_user")
 
-                docker_host_path = "/home/" + ssh_user + file_system_path
+                docker_host_path = (
+                    self.ssh_host_home_dir(ssh_host, ssh_user) + file_system_path
+                )
 
                 self._put_file(
                     asset.input_path,
@@ -2661,7 +2663,9 @@ class LocalStorage(AssetStorage):
                 "To export via SSH you need to provide an ssh_host and ssh_user. If you are seeing this error "
                 "it means that probably these values haven't been propagated properly through their caller functions."
             )
-        docker_host_path = "/home/" + ssh_user + asset.var.file_system_path
+        docker_host_path = (
+            self.ssh_host_home_dir(ssh_host, ssh_user) + asset.var.file_system_path
+        )
         sftp = self.sftp_connection(ssh_host, ssh_user)
         paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(
             2, 22
@@ -2732,7 +2736,9 @@ class LocalStorage(AssetStorage):
         # local machine: ~/psynet-data/assets
         #
         # For now we hard-code...
-        file_system_path = "/home/" + ssh_user + self.get_file_system_path(host_path)
+        file_system_path = self.ssh_host_home_dir(
+            ssh_host, ssh_user
+        ) + self.get_file_system_path(host_path)
 
         try:
             if is_folder:
@@ -2742,6 +2748,11 @@ class LocalStorage(AssetStorage):
             return True
         except FileNotFoundError:
             return False
+
+    @cache
+    def ssh_host_home_dir(self, ssh_host, ssh_user):
+        executor = self.ssh_executor(ssh_host, ssh_user)
+        return executor.run("echo $HOME").strip()
 
 
 class DebugStorage(LocalStorage):

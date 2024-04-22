@@ -100,6 +100,8 @@ def call_function_with_context(function, *args, **kwargs):
     requested = get_args(function)
 
     if experiment == NoArgumentProvided:
+        from .experiment import get_experiment
+
         experiment = get_experiment()
 
     if "assets" in requested and assets == NoArgumentProvided:
@@ -1437,6 +1439,8 @@ def get_custom_sql_classes():
     try:
         return f()
     except KeyError:
+        from psynet.experiment import import_local_experiment
+
         import_local_experiment()
         return f()
 
@@ -1505,18 +1509,6 @@ def disable_logger():
     logging.disable(sys.maxsize)
     yield
     logging.disable(logging.NOTSET)
-
-
-def import_local_experiment():
-    raise ImportError(
-        "import_local_experiment has moved from psynet.utils to psynet.experiment, please update your import statements."
-    )
-
-
-def get_experiment():
-    raise ImportError(
-        "get_experiment has moved from psynet.utils to psynet.experiment, please update your import statements."
-    )
 
 
 def clear_all_caches():

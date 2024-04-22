@@ -31,8 +31,10 @@ from .command_line import (
 )
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
+from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .trial.main import TrialNetwork
+from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from .utils import clear_all_caches, wait_until
 
 logger = logging.getLogger(__file__)
@@ -484,3 +486,96 @@ def deployment_id():
 
 def path_to_demo(demo):
     return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()
+
+
+nodes_1 = [
+    StaticNode(
+        definition={"animal": animal},
+        block=block,
+    )
+    for animal in ["cats", "dogs", "fish", "ponies"]
+    for block in ["A", "B", "C"]
+]
+
+
+class AnimalTrial(StaticTrial):
+    """
+    A trial class for use in tests.
+    """
+
+    time_estimate = 3
+
+    def show_trial(self, experiment, participant):
+        animal = self.definition["animal"]
+        return ModularPage(
+            "animal_trial",
+            f"How much do you like {animal}?",
+            PushButtonControl(
+                ["Not at all", "A little", "Very much"],
+            ),
+            time_estimate=self.time_estimate,
+        )
+
+
+nodes_2 = [
+    StaticNode(
+        definition={"color": color},
+        block=block,
+    )
+    for color in ["red", "green", "blue", "orange"]
+    for block in ["A", "B", "C"]
+]
+
+
+class ColorTrial(StaticTrial):
+    """
+    A trial class for use in tests.
+    """
+
+    time_estimate = 3
+
+    def show_trial(self, experiment, participant):
+        color = self.definition["color"]
+        return ModularPage(
+            "color_trial",
+            f"How much do you like {color}?",
+            PushButtonControl(
+                ["Not at all", "A little", "Very much"],
+            ),
+            time_estimate=self.time_estimate,
+        )
+
+
+# A trial maker for use in tests
+trial_maker_1 = StaticTrialMaker(
+    id_="animals",
+    trial_class=AnimalTrial,
+    nodes=nodes_1,
+    expected_trials_per_participant=6,
+    max_trials_per_block=2,
+    allow_repeated_nodes=True,
+    balance_across_nodes=True,
+    check_performance_at_end=False,
+    check_performance_every_trial=False,
+    target_n_participants=1,
+    target_trials_per_node=None,
+    recruit_mode="n_participants",
+    n_repeat_trials=3,
+)
+
+# A trial maker for use in tests
+trial_maker_2 = StaticTrialMaker(
+    id_="colors",
+    trial_class=ColorTrial,
+    nodes=nodes_2,
+    expected_trials_per_participant=6,
+    max_trials_per_block=2,
+    allow_repeated_nodes=True,
+    balance_across_nodes=True,
+    check_performance_at_end=False,
+    check_performance_every_trial=False,
+    target_n_participants=1,
+    target_trials_per_node=None,
+    recruit_mode="n_participants",
+    n_repeat_trials=3,
+)

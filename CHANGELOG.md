@@ -1,5 +1,38 @@
 # CHANGELOG
 
+# [11.2.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.2) Release 2024-03-28
+
+#### Fixed
+- Re-add `babel` and `pandas` dependencies (author: Frank Höger).
+- Fix the demos/update_demos.py script to take into account dependency changes in pyproject.toml since the last release (author: Frank Höger).
+
+# [11.2.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.1) Release 2024-03-27
+
+#### Fixed
+- Streamlined PsyNet's dependencies to reduce the installation of unnecessary packages (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed broken API documentation in previous v11.1.0 release.
+
+# [11.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.2.0) Release 2024-03-27
+
+#### Fixed
+- Fixed bug whereby `parent_trial` relationship was not updating properly (author: Peter Harrison).
+- `SKIP_CHECK_DALLINGER_VERSION` is now propagated properly to Docker containers (author: Peter Harrison).
+
+#### Added
+- Track loading times in new `Request` table (author: Pol van Rijn, reviewer: Peter Harrison).
+- Track experiment status over time (author: Pol van Rijn, reviewer: Peter Harrison).
+- Show change of experiment status over time in the dashboard (author: Pol van Rijn, reviewer: Peter Harrison).
+
+#### Changed
+- `psynet destroy ssh` can now receive app arguments to destroy multiple apps at once; by default it's not asking to expire HITs, but it's now an optional parameter (author: Pol van Rijn, reviewer: Peter Harrison).
+
+#### Improved
+- Made `network.degree` more efficient (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Documentation changes
+- Updated Prolific documentation (author: Peter Harrison).
+- Added section `Connecting to the database via SSH` (author: Peter Harrison).
+
 # [11.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.1.0) Release 2024-03-05
 
 #### Fixed

@@ -142,7 +142,10 @@ class Exp(psynet.experiment.Experiment):
         assert all(
             [request.duration < 1 for request in all_requests]
         ), "Some pages took more than 1 second to load."
-        time.sleep(10)
+
+        # The status reports only get logged every 10 seconds, so we need to wait a bit.
+        time.sleep(12.5)
+
         all_status = ExperimentStatus.query.all()
         assert len(all_status) > 0
         from psynet.dashboard.resources import summarize_resource_use
@@ -155,4 +158,8 @@ class Exp(psynet.experiment.Experiment):
             "RAM usage (%)",
             "Used disk space compared to min (%)",
         ]
-        assert sorted(set([item["type"] for item in data])) == different_types
+
+        reported_types = sorted(set([item["type"] for item in data]))
+        assert (
+            reported_types == different_types
+        ), f"Expected types: {different_types}, but got: {reported_types}"

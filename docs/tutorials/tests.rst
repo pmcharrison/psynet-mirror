@@ -199,7 +199,7 @@ Alternatively, you can set these options when you call ``psynet test``, for exam
 
 .. code-block:: shell
 
-    psynet test --n-bots 5 --parallel
+    psynet test local --n-bots 5 --parallel
 
 
 Testing on remote servers

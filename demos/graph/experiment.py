@@ -272,7 +272,7 @@ class CustomTrial(GraphChainTrial):
 
 class CustomNode(GraphChainNode):
     @staticmethod
-    def generate_class_seed():
+    def generate_class_seed(vertex=None):
         return [
             random.randint(0, len(COLOR_OPTIONS) - 1) for i in range(NECKLACE_LENGTH)
         ]
@@ -441,6 +441,8 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
     )
+
+    test_n_bots = 3
 
     def __init__(self, session=None):
         super().__init__(session)

@@ -1,3 +1,4 @@
+import fileinput
 import json
 import logging
 import os
@@ -27,6 +28,7 @@ from dallinger.command_line.docker_ssh import (
 from dallinger.command_line.utils import verify_id
 from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
+from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
@@ -907,103 +909,20 @@ def docs(force_rebuild):
 ##############
 
 
-def _check_todos(pattern, glob_dir):
-    from glob import iglob
-
-    todo_count = {}
-    for path in list(iglob(glob_dir, recursive=True)):
-        with open(path, "r") as f:
-            line_has_todo = [line.strip().startswith(pattern) for line in f.readlines()]
-            if any(line_has_todo):
-                todo_count[path] = sum(line_has_todo)
-    return todo_count
-
-
-class PatternDir:
-    def __init__(self, pattern, glob_dir):
-        self.pattern = pattern
-        self.glob_dir = glob_dir
-
-    def __dict__(self):
-        return {"pattern": self.pattern, "glob_dir": self.glob_dir}
-
-
-def _aggregate_todos(pattern_dirs: [PatternDir]):
-    todo_count = {}
-    for pattern_dir in pattern_dirs:
-        todo_count.update(_check_todos(**pattern_dir.__dict__()))
-    return todo_count
-
-
-def check_todos_before_deployment(experiment, config):
-    if os.environ.get("SKIP_TODO_CHECK"):
-        print(
-            "SKIP_TODO_CHECK is set so we will not check if there are any TODOs in the experiment folder."
-        )
-        return
-
-    todo_count = _aggregate_todos(
-        [
-            # For now only limit to comments specific to the experiment logic (i.e. Python and JS)
-            PatternDir("# TODO", "**/*.py"),  # Python comments
-            PatternDir("// TODO", "**/*.py"),  # Javascript comment in py files
-            PatternDir("// TODO", "**/*.html"),  # Javascript comment in html files
-            PatternDir("// TODO", "**/*.js"),  # Javascript comment in js files
-        ]
-    )
-    total_todo_count = sum(todo_count.values())
-    n_files = len(todo_count)
-
-    assert len(todo_count) == 0, (
-        f"You have {total_todo_count} TODOs in {n_files} files in your experiment folder. "
-        "Please fix them remove them before deploying. "
-        "To view all TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
-        "You can skip this check by writing `export SKIP_TODO_CHECK=1` (without quotes) in your terminal."
-    )
-
-
-def _check_wage_per_hour(wage_per_hour, max_wage_per_hour, currency):
-    assert wage_per_hour < max_wage_per_hour, (
-        f"The wage per hour ({wage_per_hour:.2f} {currency}/h) exceeds the maximum wage per hour "
-        f"({max_wage_per_hour:.2f} {currency}/h). This is usually a sign that you are either overpaying or "
-        "your time estimate is off. If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
-        "in your config.txt to a higher value."
-    )
-
-
 def check_prolific_payment(experiment, config):
-    estimated_completion_minutes = (
-        experiment.timeline.estimated_completion_time(None) / 60
-    )
-    minutes = config.get("prolific_estimated_completion_minutes")
+    from .experiment import get_and_load_config
 
-    if int(estimated_completion_minutes) != int(minutes):
-        click.confirm(
-            f"Estimated completion time from Psynet ({estimated_completion_minutes:.2f} minutes, see `psynet "
-            f"estimate`) does not match Prolific estimated completion time ({minutes:.2f} minutes). "
-            f"Are you sure you want to continue the deployment?",
-            abort=True,
-        )
     base_payment = config.get("base_payment")
-    wage_per_hour = config.get("wage_per_hour")
-    reward = (estimated_completion_minutes * wage_per_hour) / 60 + base_payment
-    real_wage_per_hour = reward / (estimated_completion_minutes / 60)
-    _check_wage_per_hour(
-        wage_per_hour=real_wage_per_hour,
-        max_wage_per_hour=config.get("max_wage_per_hour"),
-        currency=config.get("currency"),
-    )
-
-
-def check_wage_per_hour(experiment, config):
-    _check_wage_per_hour(
-        wage_per_hour=config.get("wage_per_hour"),
-        max_wage_per_hour=config.get("max_wage_per_hour"),
-        currency=config.get("currency"),
-    )
+    minutes = config.get("prolific_estimated_completion_minutes")
+    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    assert (
+        wage_per_hour * minutes / 60 == base_payment
+    ), "Wage per hour does not match Prolific reward"
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
+    from dallinger.recruiters import MTurkRecruiter
+
     from .experiment import get_experiment
 
     exp = get_experiment()
@@ -1057,7 +976,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         config = get_config()
         if not config.ready:
             config.load()
-        check_todos_before_deployment(exp, config)
+
         if docker:
             if config.get("docker_image_base_name", None) is None:
                 raise click.UsageError(
@@ -1085,8 +1004,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
         config.set("id", exp.make_uuid(app))
 
-        is_mturk = config.get("recruiter") == "mturk"
-        is_prolific = config.get("recruiter") == "prolific"
+        recruiter = exp.recruiter
+        is_mturk = isinstance(recruiter, MTurkRecruiter)
+        is_prolific = isinstance(recruiter, ProlificRecruiter)
 
         if heroku:
             if not exp.asset_storage.heroku_compatible:
@@ -1097,10 +1017,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                     "If you do need assets, you should replace the current storage option with a "
                     "Heroku-compatible backend, for example S3Storage('your-bucket', 'your-root')."
                 )
-        if is_prolific:
-            check_prolific_payment(exp, config)
-
-        check_wage_per_hour(exp, config)
+            if is_prolific:
+                check_prolific_payment(exp, config)
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
@@ -2137,13 +2055,59 @@ def update_scripts_():
         )
 
 
-def post_update_constraints_():
-    import fileinput
-
-    with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        psynet_version = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+def pre_update_constraints_(dir):
+    commit_hash = (
+        subprocess.check_output(
+            ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
+        )
+        .decode("utf-8")
+        .strip()
+    )
+    with fileinput.FileInput("requirements.txt", inplace=True) as file:
+        psynet_requirement = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
         for line in file:
-            print(re.sub(psynet_version, f"psynet=={__version__}", line), end="")
+            print(
+                re.sub(
+                    psynet_requirement,
+                    f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet",
+                    line,
+                ),
+                end="",
+            )
+    return commit_hash
+
+
+def post_update_constraints_(commit_hash):
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        psynet_requirement = (
+            f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}"
+        )
+        for line in file:
+            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
+
+    with fileinput.FileInput("requirements.txt", inplace=True) as file:
+        psynet_requirement = (
+            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
+        )
+        for line in file:
+            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
+
+
+def post_update_psynet_requirement_():
+    with fileinput.FileInput("constraints.txt", inplace=True) as file:
+        md5sum_line = (
+            "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
+        )
+        md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
+        for line in file:
+            print(
+                re.sub(
+                    md5sum_line,
+                    f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
+                    line,
+                ),
+                end="",
+            )
 
 
 @psynet.command()
