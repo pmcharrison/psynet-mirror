@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 import soundfile as sf
+from dominate import tags
 
 import psynet.experiment
 from psynet.asset import FastFunctionAsset
@@ -9,7 +10,7 @@ from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Timeline
+from psynet.timeline import Event, Timeline
 from psynet.trial.staircase import (
     GeometricStaircaseChain,
     GeometricStaircaseNode,
@@ -97,7 +98,10 @@ class PitchDiscriminationNode(GeometricStaircaseNode):
 # We also need to define a subclass of GeometricStaircaseTrial.
 # This determines how the task is presented to the participant.
 class PitchDiscriminationTrial(GeometricStaircaseTrial):
-    time_estimate = 5
+    trial_time_estimate = 5
+    feedback_time_estimate = 0.75
+
+    time_estimate = trial_time_estimate + feedback_time_estimate
 
     sample_rate = 44100
     tone_duration = 1.0
@@ -191,7 +195,27 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
                 arrange_vertically=False,
                 bot_response=self.get_bot_response,
             ),
-            time_estimate=self.time_estimate,
+            time_estimate=self.trial_time_estimate,
+        )
+
+    def show_feedback(self, experiment, participant):
+        if self.score == 1:
+            content = tags.p("Correct!", style="color: green")
+        else:
+            content = tags.p("Incorrect.", style="color: red")
+
+        return ModularPage(
+            "pitch_discrimination_feedback",
+            content,
+            time_estimate=self.feedback_time_estimate,
+            events={
+                "nextPage": Event(
+                    is_triggered_by="submitEnable",
+                    delay=self.feedback_time_estimate,
+                    js="psynet.nextPage()",
+                ),
+            },
+            show_next_button=False,
         )
 
     bot_thresholds = {
