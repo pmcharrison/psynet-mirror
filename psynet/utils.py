@@ -1720,21 +1720,3 @@ def check_todos_before_deployment():
         "To view all TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
         "You can skip this check by writing `export SKIP_TODO_CHECK=1` (without quotes) in your terminal."
     )
-
-
-# Check wage per hour
-def check_wage_per_hour(experiment, config):
-    _check_wage_per_hour(
-        wage_per_hour=config.get("wage_per_hour"),
-        max_wage_per_hour=config.get("max_wage_per_hour"),
-        currency=config.get("currency"),
-    )
-
-
-def _check_wage_per_hour(wage_per_hour, max_wage_per_hour, currency):
-    assert wage_per_hour <= max_wage_per_hour, (
-        f"The wage per hour ({wage_per_hour:.2f} {currency}/h) exceeds the maximum wage per hour "
-        f"({max_wage_per_hour:.2f} {currency}/h). This is usually a sign that you are either overpaying or "
-        "your time estimate is off. If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
-        "in your config.txt to a higher value."
-    )

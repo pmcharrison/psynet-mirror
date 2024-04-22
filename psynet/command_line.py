@@ -906,8 +906,6 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
-    from .utils import _check_wage_per_hour
-
     estimated_completion_time_in_minutes = (
         experiment.timeline.estimated_completion_time(None) / 60
     )
@@ -925,6 +923,8 @@ def check_prolific_payment(experiment, config):
             abort=True,
         )
     base_payment = config.get("base_payment")
+    currency = config.get("currency")
+    max_wage_per_hour = config.get("max_wage_per_hour")
     wage_per_hour = config.get("wage_per_hour")
     estimated_reward = (
         estimated_completion_time_in_minutes * wage_per_hour
@@ -932,16 +932,18 @@ def check_prolific_payment(experiment, config):
     estimated_real_wage_per_hour = estimated_reward / (
         estimated_completion_time_in_minutes / 60
     )
-    _check_wage_per_hour(
-        wage_per_hour=estimated_real_wage_per_hour,
-        max_wage_per_hour=config.get("max_wage_per_hour"),
-        currency=config.get("currency"),
+
+    assert estimated_real_wage_per_hour <= max_wage_per_hour, (
+        f"The estimated wage per hour ({estimated_real_wage_per_hour:.2f} {currency}/h) exceeds the maximum wage per hour "
+        f"({max_wage_per_hour:.2f} {currency}/h). This is usually a sign that you are either overpaying or "
+        "your time estimate is off. If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
+        "in your config.txt to a higher value."
     )
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from .experiment import get_experiment
-    from .utils import check_todos_before_deployment, check_wage_per_hour
+    from .utils import check_todos_before_deployment
 
     exp = get_experiment()
     exp.check_config()
@@ -1026,6 +1028,10 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         is_mturk = config.get("recruiter") == "mturk"
         is_prolific = config.get("recruiter") == "prolific"
 
+        currency = config.get("currency")
+        max_wage_per_hour = config.get("max_wage_per_hour")
+        wage_per_hour = config.get("wage_per_hour")
+
         if heroku:
             if not exp.asset_storage.heroku_compatible:
                 raise AttributeError(
@@ -1038,7 +1044,12 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         if is_prolific:
             check_prolific_payment(exp, config)
 
-        check_wage_per_hour(exp, config)
+        assert wage_per_hour <= max_wage_per_hour, (
+            f"The wage per hour ({wage_per_hour:.2f} {currency}/h) exceeds the maximum wage per hour "
+            f"({max_wage_per_hour:.2f} {currency}/h). This is usually a sign that you are either overpaying or "
+            "your time estimate is off. If you want to proceed anyway, you can do so by setting the `max_wage_per_hour` "
+            "in your config.txt to a higher value."
+        )
 
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
