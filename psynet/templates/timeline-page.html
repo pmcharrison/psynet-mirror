@@ -1773,9 +1773,9 @@
                     NO_FOCUS_TIMEOUT_REASON = "aggressive-" + NO_FOCUS_TIMEOUT_REASON;
                 {% endif %}
                 const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
-                const POLLING_FREQUENCY = 1000;
-                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
-                let clockIntervalID = setInterval(updateClocks, POLLING_FREQUENCY);
+                const POLLING_INTERVAL = 1000;
+                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_INTERVAL);
+                let clockIntervalID = setInterval(updateClocks, POLLING_INTERVAL);
                 let triedToLeave = false;
                 let noFocusSince = 0;
                 let noActivitySince = 0;
@@ -1824,7 +1824,7 @@
                     if (document.hasFocus()) {
                         noFocusSince = 0;
                     } else {
-                        noFocusSince += POLLING_FREQUENCY;
+                        noFocusSince += POLLING_INTERVAL;
                         if (noFocusSince > NO_FOCUS_TIMEOUT) {
                             terminateParticipant(NO_FOCUS_TIMEOUT_REASON + NO_FOCUS_TIMEOUT / 1000 + "s");
                         } else {
@@ -1833,7 +1833,7 @@
                     }
 
                     // No activity
-                    noActivitySince += POLLING_FREQUENCY;
+                    noActivitySince += POLLING_INTERVAL;
                     noActivityTimeout = {{ experiment.recruiter.inactivity_timeout_in_s }} * 1000
                     if (noActivitySince > noActivityTimeout) {
                         terminateParticipant("inactivity-timeout-" + {{ experiment.recruiter.inactivity_timeout_in_s }} + "s");
@@ -1845,7 +1845,7 @@
                         psynet.removeBeforeUnloadEventListener();
                         terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
                     }
-                    secondsLeft -= POLLING_FREQUENCY / 1000;
+                    secondsLeft -= POLLING_INTERVAL / 1000;
                     msg += " Overall timeout: " + secondsLeft + "/" + OVERALL_TIMEOUT + "s";
                 }
 
