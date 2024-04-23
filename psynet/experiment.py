@@ -1888,8 +1888,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/d3-visualizations.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/css/bootstrap.min.css",
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.bundle.min.js",
+                    "/static/scripts/bootstrap.bundle.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.js",
+                    "/static/scripts/bootstrap-select.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.css",
+                    "/static/css/bootstrap-select.min.css",
                 ),
                 (
                     resources.files("psynet") / "resources/css/consent.css",
@@ -1945,12 +1961,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/abc-js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/d3",
-                    "/static/scripts/d3",
+                    resources.files("psynet") / "resources/libraries/d3/d3.v4.js",
+                    "/static/scripts/d3.v4.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/jqueryui",
-                    "/static/scripts/jqueryui",
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.min.js",
+                    "/static/scripts/d3-tip.min.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.css",
+                    "/static/css/d3-tip.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.css",
+                    "/static/css/jquery-ui.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.min.js",
+                    "/static/scripts/jquery-ui.min.js",
                 ),
                 (
                     resources.files("psynet")
