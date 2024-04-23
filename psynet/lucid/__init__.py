@@ -175,7 +175,11 @@ class LucidService(object):
 
     def add_qualifications_to_survey(self, survey_number):
         """Add platform and browser specific qualifications to a survey."""
-        qualifications = self.recruitment_config["qualifications"]
+        qualifications = self.recruitment_config.get("qualifications")
+        if qualifications is None:
+            self.log("No qualifications added to survey.")
+            return
+
         for qualification in qualifications:
             request_data = json.dumps(qualification)
             response = requests.post(
