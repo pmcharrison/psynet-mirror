@@ -1637,7 +1637,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = self.custom_network_filter(
             candidates=networks,
             participant=participant,
-            experiment=experiment,
         )
 
         logger.info("%i remain after applying custom network filters.", len(networks))
@@ -1736,7 +1735,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     def prioritize_networks(self, networks, participant, experiment):
         return networks
 
-    def custom_network_filter(self, candidates, participant, experiment):
+    def custom_network_filter(self, candidates, participant):
         """
         Override this function to define a custom filter for choosing the participant's next network.
 
@@ -1747,9 +1746,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         participant:
             The current participant.
-
-        experiment:
-            The current experiment.
 
         Returns
         -------

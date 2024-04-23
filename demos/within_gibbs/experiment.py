@@ -145,7 +145,7 @@ class CustomTrialMaker(GibbsTrialMaker):
         else:
             return max(0.0, score)
 
-    def custom_network_filter(self, candidates, participant, experiment):
+    def custom_network_filter(self, candidates, participant):
         # As an example, let's make the participant join networks
         # in order of increasing network ID.
         return sorted(candidates, key=lambda x: x.id)
