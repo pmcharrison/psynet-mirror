@@ -943,7 +943,6 @@ def check_prolific_payment(experiment, config):
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from .experiment import get_experiment
-    from .utils import check_todos_before_deployment
 
     exp = get_experiment()
     exp.check_config()
@@ -996,7 +995,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         config = get_config()
         if not config.ready:
             config.load()
-        check_todos_before_deployment()
 
         if docker:
             if config.get("docker_image_base_name", None) is None:
