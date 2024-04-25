@@ -21,10 +21,12 @@ from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 
+import click
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
+from dallinger.command_line import verify_package
 from dallinger.config import get_config
 from flask import url_for
 from flask.globals import current_app, request
@@ -514,6 +516,23 @@ def pretty_log_dict(dict, spaces_for_indentation=0):
         + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
         for key, value in dict.items()
     )
+
+
+def require_exp_directory(f):
+    """Decorator to verify that a command is run inside a valid PsyNet experiment directory."""
+    error_one = "The current directory is not a valid PsyNet experiment."
+    error_two = "There are problems with the current experiment. Please check with `dallinger verify`."
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            if not verify_package(kwargs.get("verbose")):
+                raise click.UsageError(error_one)
+        except ValueError:
+            raise click.UsageError(error_two)
+        return f(*args, **kwargs)
+
+    return wrapper
 
 
 def get_language():

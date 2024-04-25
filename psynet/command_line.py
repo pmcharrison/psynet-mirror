@@ -49,6 +49,7 @@ from .utils import (
     list_isolated_tests,
     make_parents,
     pretty_format_seconds,
+    require_exp_directory,
     run_subprocess_with_live_output,
     working_directory,
 )
@@ -275,6 +276,7 @@ def _db(location, app, server):
 
 @psynet.group("debug")
 @click.pass_context
+@require_exp_directory
 def debug(ctx):
     pass
 
@@ -285,6 +287,7 @@ def debug(ctx):
         ignore_unknown_options=True,
     )
 )
+@require_exp_directory
 def sandbox(*args, **kwargs):
     raise click.ClickException(
         "`psynet sandbox` has been replaced with `psynet debug heroku`, please use the latter."
@@ -605,6 +608,7 @@ def _run_bot(real_time=False):
     help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
 )
 @click.pass_context
+@require_exp_directory
 def run_bot(ctx, real_time=False):
     """
     Run a bot through the local version of the experiment.
@@ -722,6 +726,7 @@ def _forget_tables_defined_in_experiment_directory():
 
 
 @psynet.group("deploy")
+@require_exp_directory
 def deploy():
     pass
 
@@ -1338,6 +1343,7 @@ def _estimate(mode):
     type=click.Choice(["reward", "duration", "both"]),
     help="Type of result. Can be either 'reward', 'duration', or 'both'.",
 )
+@require_exp_directory
 def estimate(mode):
     """
     Estimate the maximum reward for a participant and the time for the experiment to complete, respectively.
@@ -1364,6 +1370,7 @@ def setup_experiment_variables(experiment_class):
 ########################
 @psynet.command()
 @click.pass_context
+@require_exp_directory
 def generate_constraints(ctx):
     """
     Generate the constraints.txt file from requirements.txt.
@@ -1381,6 +1388,7 @@ def generate_constraints(ctx):
 
 
 @psynet.command()
+@require_exp_directory
 def check_constraints():
     "Check whether the experiment contains an appropriate constraints.txt file."
     if os.environ.get("SKIP_DEPENDENCY_CHECK"):
@@ -1561,6 +1569,7 @@ def export_arguments(func):
 
 
 @psynet.group("export")
+@require_exp_directory
 def export():
     pass
 
@@ -1911,6 +1920,7 @@ def rpdb(ip, port):
 ###########
 @psynet.command()
 @click.argument("path")
+@require_exp_directory
 def load(path):
     "Populates the local database with a provided zip file."
     from .experiment import import_local_experiment
@@ -1946,6 +1956,7 @@ def generate_config(ctx):
 
 
 @psynet.command()
+@require_exp_directory
 def update_scripts():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2113,6 +2124,7 @@ def post_update_psynet_requirement_():
     required=True,
     type=click.Choice(ISO_639_1_CODES, case_sensitive=False),
 )
+@require_exp_directory
 def prepare_translation(iso_code):
     """
     To be run in an experiment directory; initializes scripts and help files to their
@@ -2458,6 +2470,7 @@ dallinger.command_line.utils.verify_id = verify_id
 
 @psynet.group("test")
 @click.pass_context
+@require_exp_directory
 def test(ctx):
     pass
 
@@ -2608,6 +2621,7 @@ def test__docker_ssh(
 
 @psynet.command()
 @click.pass_context
+@require_exp_directory
 def simulate(ctx):
     """
     Generates simulated data for an experiment by running the experiment's regression test
