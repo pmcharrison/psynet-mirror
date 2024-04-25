@@ -789,9 +789,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             ).count()
         return recruiter_info
 
-    # @property
-    # def max_response_time_in_s(self):
-    #     return self.get_config_entry("max_response_time_in_s")
+    def change_lucid_status(self, status):
+        survey_number = self.current_survey_number()
+        service = get_lucid_service()
+        service.change_status(survey_number, status)
+        LucidStatus.query.order_by(LucidStatus.id.desc()).first().status = status
+        db.session.commit()
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

@@ -2658,17 +2658,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/change_lucid_status", methods=["GET"])
     @classmethod
     def change_lucid_status(cls):
-        from .lucid import get_lucid_service
-        from .recruiters import LucidStatus
-
-        exp = get_experiment()
-        recruiter = exp.recruiter
-        survey_number = recruiter.current_survey_number()
-        service = get_lucid_service()
-        status = request.values.get("status", "")
-        service.change_status(survey_number, status)
-        LucidStatus.query.order_by(LucidStatus.id.desc()).first().status = status
-        db.session.commit()
+        get_experiment().recruiter.change_lucid_status(request.values.get("status", ""))
         return success_response()
 
     @staticmethod
