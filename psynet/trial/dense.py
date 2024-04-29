@@ -5,7 +5,7 @@ from __future__ import (  # Makes type hints lazy, so that classes can be define
 import random
 from typing import List, Optional
 
-from ..utils import sample_from_surface_of_unit_sphere
+from ..utils import NoArgumentProvided, sample_from_surface_of_unit_sphere
 from .static import StaticNode, StaticTrial, StaticTrialMaker
 
 
@@ -89,6 +89,11 @@ class DenseTrialMaker(StaticTrialMaker):
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.
+
+    max_trials_per_participant
+        Maximum number of trials that each participant may complete;
+        once this number is reached, the participant will move on
+        to the next stage in the timeline.
 
     balance_across_nodes
         If ``True`` (default), active balancing across participants is enabled, meaning that
@@ -176,7 +181,7 @@ class DenseTrialMaker(StaticTrialMaker):
         trial_class,
         conditions: "List[DenseNode]",
         expected_trials_per_participant: int,
-        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_participant: Optional[int] = NoArgumentProvided,
         max_trials_per_block: Optional[int] = None,
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,

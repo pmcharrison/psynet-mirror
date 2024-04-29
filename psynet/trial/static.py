@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
-from ..utils import deep_copy, get_logger
+from ..utils import NoArgumentProvided, deep_copy, get_logger
 from .main import Trial
 
 logger = get_logger()
@@ -110,6 +110,11 @@ class StaticTrialMaker(ChainTrialMaker):
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.static.StaticTrial`).
+
+    max_trials_per_participant
+        Maximum number of trials that each participant may complete;
+        once this number is reached, the participant will move on
+        to the next stage in the timeline.
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
@@ -234,7 +239,7 @@ class StaticTrialMaker(ChainTrialMaker):
         trial_class,
         nodes: List[ChainNode],
         expected_trials_per_participant: int,
-        max_trials_per_participant: int = None,
+        max_trials_per_participant: int = NoArgumentProvided,
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
         target_trials_per_node: Optional[int] = None,
