@@ -96,6 +96,7 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
+    make_parents,
     pretty_log_dict,
     render_template_with_translations,
     serialise,
@@ -1949,6 +1950,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "prepare_docker_image.sh",
                 ),
                 (
+                    "config.txt",
+                    ".config.backup",
+                ),
+                (
                     ".deploy",
                     ".deploy",
                 ),
@@ -2299,19 +2304,58 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         return exp.deployment_id
 
-    @experiment_route("/dashboard/export", methods=["GET"])
+    @experiment_route("/download_source", methods=["GET"])
     @classmethod
+    def download_source(cls):
+        if not authenticate(request.authorization, get_and_load_config()):
+            return jsonify({"message": "Invalid credentials"}), 401
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            label = get_config().get("label")
+            temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
+            shutil.copytree(
+                os.path.join(os.getcwd()),
+                os.path.join(temp_exp_dir),
+                dirs_exist_ok=True,
+                ignore_dangling_symlinks=True,
+                ignore=shutil.ignore_patterns(
+                    ".git",
+                    "__pycache__",
+                    "develop",
+                    "static/assets",
+                    "config.txt",
+                    f"{label}-*",
+                ),
+            )
+            shutil.move(
+                os.path.join(temp_exp_dir, ".config.backup"),
+                os.path.join(temp_exp_dir, "config.txt"),
+            )
+            zip_filepath = shutil.make_archive(f"{label}-source", "zip", tempdir)
+            return send_file(zip_filepath, mimetype="zip")
+
+    @experiment_route("/dashboard/export", methods=["GET"])
     @with_transaction
-    def export(cls):
+    def export():
         from .command_line import export__local
+
+        config = get_and_load_config()
+        if not authenticate(request.authorization, config):
+            return error_response(error_text="Invalid credentials", simple=True)
 
         with tempfile.TemporaryDirectory() as tempdir:
             ctx = Context(export__local)
-            ctx.invoke(export__local, path=tempdir, n_parallel=None)
+            ctx.invoke(
+                export__local,
+                path=tempdir,
+                n_parallel=None,
+                username=config.get("dashboard_user"),
+                password=config.get("dashboard_password"),
+            )
 
-            file_basename = get_config().get("label")
-            zip_filepath = shutil.make_archive(f"{file_basename}-data", "zip", tempdir)
-
+            zip_filepath = shutil.make_archive(
+                f'{get_config().get("label")}-data', "zip", tempdir
+            )
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
@@ -3045,6 +3089,14 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+def authenticate(auth, config):
+    return (
+        auth
+        and auth.username == config.get("dashboard_user")
+        and auth.password == config.get("dashboard_password")
+    )
 
 
 # Dallinger defines various HTTP routes that provide access to database content.
