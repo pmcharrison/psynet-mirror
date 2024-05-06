@@ -43,7 +43,7 @@ class RateTrial(Trial):
             "audio_rating",
             AudioPrompt(
                 self.node.assets["stimulus"],
-                text="How happy is the following word?",
+                text="How much do you like this melody?",
             ),
             PushButtonControl(
                 ["Not at all", "A little", "Very much"],
