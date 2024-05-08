@@ -277,7 +277,7 @@ class Exp(psynet.experiment.Experiment):
             # max_reversals_per_chain determines the maximum number of reversals in a chain.
             max_reversals_per_chain=6,
             # In this case we expect that 6 reversals will take fewer than 20 trials to achieve.
-            expected_trials_per_participant=n_chains * 10,
+            expected_trials_per_participant=n_chains * 14,
             # This parameter is used to determine when to stop automatic recruitment (if active).
             target_n_participants=1,
         ),
