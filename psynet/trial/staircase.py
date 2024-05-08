@@ -26,6 +26,7 @@ class GeometricStaircaseNode(ChainNode):
 
     k : int
         The number of consecutive correct responses required to increase the difficulty.
+        Defaults to 2, which corresponds to a 2-up-1-down procedure.
 
     parameter : object
         The parameter that determines the difficulty of the task.
