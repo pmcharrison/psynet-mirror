@@ -309,6 +309,8 @@ class Exp(psynet.experiment.Experiment):
             )
             assert n_reversals == chain.head.n_prev_reversals == max_reversals_per_chain
 
+            # We expect that the last few trials should be near the threshold.
+            # Here we check the last 4 trials.
             n = 4
             last_n_trials = chain.all_trials[-n:]
             last_n_parameters = [
