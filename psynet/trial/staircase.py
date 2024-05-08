@@ -145,6 +145,8 @@ class GeometricStaircaseChain(ChainNetwork):
     max_reversals_per_chain = Column(Integer)
     mean_reversal_score = Column(Float)
 
+    # By default, the first reversal is excluded from the score calculation.
+    # This can be disabled by setting exclude_first_reversal to False.
     exclude_first_reversal = True
 
     def __init__(self, *args, **kwargs):
