@@ -222,6 +222,9 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
             balance_across_chains=balance_across_chains,
         )
 
+    # The current scoring method is to take the mean of the reversal scores.
+    # In the future we might add support for other scoring methods,
+    # which will be selected by setting the score_method attribute.
     score_method = "mean_reversal_score"
 
     def performance_check(self, experiment, participant, participant_trials):
