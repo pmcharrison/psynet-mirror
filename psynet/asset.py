@@ -1848,6 +1848,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             shutil.copytree(tempdir + "/" + subfolder, path)
 
     def get_url(self):
+        # We need to flush to make sure that self.id is populated
         db.session.flush()
         return f"/fast-function-asset?id={self.id}&secret={self.secret}"
 
