@@ -20,7 +20,7 @@ from psynet.trial.staircase import (
 
 # Overview #####################################################################
 
-# This experiment implements is a pitch discrimination task. In each trial, the participant
+# This experiment implements a pitch discrimination task. In each trial, the participant
 # hears two tones, one after the other. They must identify which tone was higher in pitch.
 # The difficulty of the task is adjusted using a 2-up 1-down staircase procedure.
 # In a 2-up 1-down procedure, the difficulty is increased after two correct responses,
