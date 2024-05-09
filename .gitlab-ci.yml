@@ -25,8 +25,8 @@ variables:
   DOCKER_TLS_CERTDIR: ""
 
 before_script:
-  - export POSTGRES_IP=$(getent hosts postgres  | awk '{ print $1 }')
-  - export REDIS_IP=$(getent hosts redis  | awk '{ print $1 }')
+  - export POSTGRES_IP=$(getent ahostsv4 postgres | awk '{ print $1 }' | tail -n 1)
+  - export REDIS_IP=$(getent ahostsv4 redis | awk '{ print $1 }' | tail -n 1)
   - echo $POSTGRES_IP
   - echo $REDIS_IP
   - docker image prune --all --force
