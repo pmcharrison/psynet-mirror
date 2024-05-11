@@ -1,4 +1,5 @@
 import random
+import warnings
 from typing import Optional, Type
 
 from dallinger import db
@@ -23,7 +24,13 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
-from ..utils import call_function_with_context, get_logger, log_time_taken, negate
+from ..utils import (
+    NoArgumentProvided,
+    call_function_with_context,
+    get_logger,
+    log_time_taken,
+    negate,
+)
 from .main import (
     NetworkTrialMaker,
     NetworkTrialMakerState,
@@ -1197,7 +1204,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         network_class: Type[ChainNetwork] = None,
         chain_type: str,
         expected_trials_per_participant: int,
-        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_participant: Optional[int] = NoArgumentProvided,
         max_trials_per_block: Optional[int] = None,
         max_nodes_per_chain: Optional[int] = None,
         chains_per_participant: Optional[int] = None,
@@ -1220,6 +1227,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
     ):
+        if max_trials_per_participant == NoArgumentProvided:
+            warnings.warn(
+                "It is now requested that you specify `max_trials_per_participant` explicitly. "
+                "Normally you should set this to the maximum number of trials that you "
+                "anticipate the participant being able to take. In rare cases you might want "
+                "to set it to `None`, which allows the participant to continue forever until "
+                "they are stopped by other factors (e.g. no more chains left to participate in).",
+                DeprecationWarning,
+            )
+            max_trials_per_participant = None
+
         if network_class is None:
             network_class = self.default_network_class
 

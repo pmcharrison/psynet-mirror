@@ -64,7 +64,6 @@ def ctx():
     return Context(export__local)
 
 
-# @pytest.mark.usefixtures("db_session")  # Assuming we don't need this
 @pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestAssetExport:

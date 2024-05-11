@@ -6,8 +6,8 @@ from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
 # Bump versions by changing these two lines.
-dallinger_minimum_version = "10.0.1"
-psynet_version = "11.2.2"
+dallinger_minimum_version = "10.1.1"
+psynet_version = "11.3.0"
 
 dallinger_minimum_version_parts = dallinger_minimum_version.split(".")
 dallinger_maximum_major_version = int(dallinger_minimum_version_parts[0]) + 1

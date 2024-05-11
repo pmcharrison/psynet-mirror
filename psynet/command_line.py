@@ -52,6 +52,7 @@ from .utils import (
     list_isolated_tests,
     make_parents,
     pretty_format_seconds,
+    require_exp_directory,
     run_subprocess_with_live_output,
     working_directory,
 )
@@ -278,6 +279,7 @@ def _db(location, app, server):
 
 @psynet.group("debug")
 @click.pass_context
+@require_exp_directory
 def debug(ctx):
     pass
 
@@ -288,6 +290,7 @@ def debug(ctx):
         ignore_unknown_options=True,
     )
 )
+@require_exp_directory
 def sandbox(*args, **kwargs):
     raise click.ClickException(
         "`psynet sandbox` has been replaced with `psynet debug heroku`, please use the latter."
@@ -608,6 +611,7 @@ def _run_bot(real_time=False):
     help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
 )
 @click.pass_context
+@require_exp_directory
 def run_bot(ctx, real_time=False):
     """
     Run a bot through the local version of the experiment.
@@ -725,6 +729,7 @@ def _forget_tables_defined_in_experiment_directory():
 
 
 @psynet.group("deploy")
+@require_exp_directory
 def deploy():
     pass
 
@@ -924,6 +929,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
     from .experiment import get_experiment
+    from .utils import check_todos_before_deployment
 
     exp = get_experiment()
     exp.check_config()
@@ -976,6 +982,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         config = get_config()
         if not config.ready:
             config.load()
+        check_todos_before_deployment()
 
         if docker:
             if config.get("docker_image_base_name", None) is None:
@@ -1341,6 +1348,7 @@ def _estimate(mode):
     type=click.Choice(["reward", "duration", "both"]),
     help="Type of result. Can be either 'reward', 'duration', or 'both'.",
 )
+@require_exp_directory
 def estimate(mode):
     """
     Estimate the maximum reward for a participant and the time for the experiment to complete, respectively.
@@ -1367,6 +1375,7 @@ def setup_experiment_variables(experiment_class):
 ########################
 @psynet.command()
 @click.pass_context
+@require_exp_directory
 def generate_constraints(ctx):
     """
     Generate the constraints.txt file from requirements.txt.
@@ -1384,6 +1393,7 @@ def generate_constraints(ctx):
 
 
 @psynet.command()
+@require_exp_directory
 def check_constraints():
     "Check whether the experiment contains an appropriate constraints.txt file."
     if os.environ.get("SKIP_DEPENDENCY_CHECK"):
@@ -1533,6 +1543,22 @@ def export_arguments(func):
             default=None,
             help="Number of parallel jobs for exporting assets",
         ),
+        click.option(
+            "--no-source",
+            flag_value="no_source",
+            default=False,
+            help="Skip exporting the experiment's source code",
+        ),
+        click.option(
+            "--username",
+            default=None,
+            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+        ),
+        click.option(
+            "--password",
+            default=None,
+            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+        ),
     ]
     for arg in args:
         func = arg(func)
@@ -1564,6 +1590,7 @@ def export_arguments(func):
 
 
 @psynet.group("export")
+@require_exp_directory
 def export():
     pass
 
@@ -1622,9 +1649,12 @@ def export_(
     assets="experiment",
     anonymize="both",
     n_parallel=None,
+    no_source=False,
     docker_ssh=False,
     server=None,
     dns_host=None,
+    username=None,
+    password=None,
 ):
     """
     Export data from an experiment.
@@ -1710,8 +1740,10 @@ def export_(
     else:
         anonymize_modes = ["yes", "no"]
 
+    source_code_exported = False
     for anonymize_mode in anonymize_modes:
         _anonymize = anonymize_mode == "yes"
+        _export_source_code = not (source_code_exported or no_source)
         _export_(
             ctx,
             app,
@@ -1719,11 +1751,16 @@ def export_(
             path,
             assets,
             _anonymize,
+            _export_source_code,
             n_parallel,
             docker_ssh,
             server,
             dns_host,
+            username,
+            password,
         )
+        if _export_source_code:
+            source_code_exported = True
 
 
 def _export_(
@@ -1733,10 +1770,13 @@ def _export_(
     export_path,
     assets,
     anonymize: bool,
+    export_source_code: bool,
     n_parallel=None,
     docker_ssh=False,
     server=None,
     dns_host=None,
+    username=None,
+    password=None,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
@@ -1744,11 +1784,6 @@ def _export_(
     database_zip_path = export_database(
         ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
     )
-
-    # We originally thought code should be exported here. However it makes better sense to
-    # export instead as part of psynet sandbox/deploy. We'll implement this soon.
-    # export_code(export_path, anonymize)
-
     export_data(local, anonymize, database_zip_path, export_path)
 
     if assets != "none":
@@ -1763,7 +1798,88 @@ def _export_(
             server,
         )
 
+    if export_source_code:
+        _export_source_code(app, local, server, export_path, username, password)
+
     log(f"Export complete. You can find your results at: {export_path}")
+
+
+def _export_source_code(app, local, server, export_path, username, password):
+    import requests
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    username = username or config.get("dashboard_user", None)
+    password = password or config.get("dashboard_password", None)
+
+    if not all([username, password]):
+        if not click.confirm(
+            "\nPsyNet failed to find dashboard credentials in your local config files. "
+            "These dashboard credentials are needed to authenticate to the remote server "
+            "in order to download the experiment's source code. "
+            "You can provide these credentials now in a follow-up dialog; you can find these "
+            "credentials printed to your console as part of the experiment deployment command. "
+            "Alternatively, you can choose to skip downloading the source code. "
+            "\nDo you want to proceed with entering username and password now? "
+            "Enter 'y', or 'n' to skip downloading the source code.",
+            default=True,
+            abort=False,
+        ):
+            log("WARNING: Experiment source code could not be downloaded.")
+            return
+
+    log("Downloading source code...")
+    if local:
+        url = "http://localhost:5000"
+    else:
+        url = f"https://{app}.{server}"
+    url += "/download_source"
+    source_code_zip_path = os.path.join(export_path, "source_code.zip")
+
+    while True:
+        if not all([username, password]):
+            username = click.prompt("Enter dashboard username")
+            password = click.prompt("Enter dashboard password", hide_input=True)
+
+        with yaspin(
+            text=f"Requesting source code from {url}", color="green"
+        ) as spinner:
+            response = requests.get(url, auth=(username, password))
+
+        if response.status_code == 200:
+            with open(source_code_zip_path, "wb") as f:
+                f.write(response.content)
+            spinner.ok("✔")
+            log(f"Experiment source code saved to {source_code_zip_path}.")
+            break
+        elif response.status_code == 401:
+            try_again = click.confirm(
+                "Authentication failed.\nPress ENTER to try again or 'n' to skip downloading the source code.",
+                default=True,
+                abort=False,
+            )
+            if not try_again:
+                log("Skipped downloading the source code.")
+                break
+            # Reset the credentials so the user gets another chance to enter them correctly
+            username, password = None, None
+        else:
+            spinner.color = "red"
+            spinner.fail("✘")
+            click.confirm(
+                "Experiment source code could not be downloaded."
+                "\nPress ENTER to continue...",
+                default=True,
+                prompt_suffix="",
+                show_default=False,
+            )
+            message = response.json().get("message")
+            log(
+                f"WARNING: Failed to download the experiment source code: {response.status_code} ({response.reason}). Reason: {message}."
+            )
+            break
 
 
 def export_database(
@@ -1819,27 +1935,6 @@ def export_database(
         spinner.ok("✔")
 
     return database_zip_path
-
-
-# def export_code(export_path, anonymize):
-#     subdir = "anonymous" if anonymize else "regular"
-#
-#     code_zip_path = os.path.join(export_path, subdir, "code.zip")
-#
-#     log(f"Exporting code to {code_zip_path}.")
-#
-#     with tempfile.TemporaryDirectory() as tempdir:
-#         temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
-#         shutil.copytree(os.path.join(os.getcwd()), os.path.join(temp_exp_dir), dirs_exist_ok=True, ignore_dangling_symlinks=True, ignore=lambda src, names: names if src == "develop" else [])
-#         shutil.rmtree(os.path.join(temp_exp_dir, ".git"), ignore_errors=True)
-#         shutil.make_archive(
-#             code_zip_path,
-#             "zip",
-#             temp_exp_dir,
-#         )
-#
-#     with yaspin(text="Completed.", color="green") as spinner:
-#         spinner.ok("✔")
 
 
 def export_data(local, anonymize, database_zip_path, export_path):
@@ -1914,6 +2009,7 @@ def rpdb(ip, port):
 ###########
 @psynet.command()
 @click.argument("path")
+@require_exp_directory
 def load(path):
     "Populates the local database with a provided zip file."
     from .experiment import import_local_experiment
@@ -1949,6 +2045,7 @@ def generate_config(ctx):
 
 
 @psynet.command()
+@require_exp_directory
 def update_scripts():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2116,6 +2213,7 @@ def post_update_psynet_requirement_():
     required=True,
     type=click.Choice(ISO_639_1_CODES, case_sensitive=False),
 )
+@require_exp_directory
 def prepare_translation(iso_code):
     """
     To be run in an experiment directory; initializes scripts and help files to their
@@ -2466,6 +2564,7 @@ dallinger.command_line.utils.verify_id = verify_id
 
 @psynet.group("test")
 @click.pass_context
+@require_exp_directory
 def test(ctx):
     pass
 
@@ -2616,6 +2715,7 @@ def test__docker_ssh(
 
 @psynet.command()
 @click.pass_context
+@require_exp_directory
 def simulate(ctx):
     """
     Generates simulated data for an experiment by running the experiment's regression test
