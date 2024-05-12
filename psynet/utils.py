@@ -26,8 +26,7 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.command_line import verify_package
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -526,7 +525,7 @@ def require_exp_directory(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
-            if not verify_package(kwargs.get("verbose")):
+            if not experiment_available():
                 raise click.UsageError(error_one)
         except ValueError:
             raise click.UsageError(error_two)
