@@ -12,7 +12,9 @@ PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("timeline_with_error")], indirect=True
+    "experiment_directory",
+    [path_to_demo("../tests/experiments/timeline_with_error")],
+    indirect=True,
 )
 class TestExp:
     def test_variables(self, db_session):
@@ -52,9 +54,10 @@ class TestExp:
             assert_text(
                 driver,
                 "error-text-main",
-                # TODO where was this message declared?
-                # "You may be able to abort the experiment using the Abort experiment button below. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at XXX@gmail.com quoting the following information:",
-                "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at XXX@gmail.com quoting the following information:",
+                "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. "
+                "Once aborted, there is no need to contact us to receive the compensation; this should be awarded "
+                "to you automatically via MTurk a few minutes after. If this is not the case, please contact us "
+                "at some@email.com quoting the following information:",
             )
             assert_text(
                 driver,
