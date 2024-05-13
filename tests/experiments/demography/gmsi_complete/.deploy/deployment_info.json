@@ -1,0 +1,12 @@
+{
+    "redeploying_from_archive": false,
+    "mode": "debug",
+    "is_local_deployment": true,
+    "is_ssh_deployment": false,
+    "folder_name": "gmsi",
+    "secret": {
+        "py/object": "uuid.UUID",
+        "hex": "4e82312a2b76484ab54464a01f68d87a"
+    },
+    "deployment_id": "demography-(gmsi)-demo__mode=debug__launch=2024-05-13--23-49-00"
+}
