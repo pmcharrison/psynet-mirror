@@ -495,6 +495,15 @@ def path_to_demo(demo):
     return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()
 
 
+def path_to_experiment(experiment):
+    return (
+        Path(__file__)
+        .parent.parent.joinpath("tests/experiments")
+        .joinpath(experiment)
+        .__str__()
+    )
+
+
 nodes_1 = [
     StaticNode(
         definition={"animal": animal},
