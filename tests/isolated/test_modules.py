@@ -34,7 +34,9 @@ def get_random_id():
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("consents")], indirect=True
+    "experiment_directory",
+    [path_to_demo("../tests/experiments/consents")],
+    indirect=True,
 )
 def test_progress_info(in_experiment_directory, db_session):
     exp = get_experiment()
