@@ -1,0 +1,3 @@
+[Config]
+title = Title
+contact_email_on_error = some@email.com
