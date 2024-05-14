@@ -5,7 +5,7 @@ from psynet.redis import RedisVarStore
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:

@@ -13,7 +13,7 @@ logger = get_logger()
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Timeline with error demo"
+    label = "Timeline with error experiment"
 
     config = {
         "min_accumulated_reward_for_abort": 0.10,

@@ -4,7 +4,7 @@ from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
 def test_get_experiment():

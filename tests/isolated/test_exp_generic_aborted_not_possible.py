@@ -17,7 +17,7 @@ PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
@@ -42,11 +42,23 @@ class TestExp:
             next_page(driver, "consent")
             next_page(driver, "next-button")
             next_page(driver, "next-button")
+
+            driver.switch_to.window(driver.window_handles[0])
+            abort_button = driver.find_element(By.ID, "abort-button")
+            abort_button.click()
+
+            driver.switch_to.window(driver.window_handles[2])
+            assert_text(driver, "header", "Aborting not possible.")
+            close_button = driver.find_element(By.ID, "close-button")
+            close_button.click()
+            driver.switch_to.window(driver.window_handles[1])
+
             next_page(driver, "next-button")
 
             driver.switch_to.window(driver.window_handles[0])
             abort_button = driver.find_element(By.ID, "abort-button")
             abort_button.click()
+
             driver.switch_to.window(driver.window_handles[2])
             assert_text(
                 driver, "header", "Are you sure you want to abort the experiment?"
