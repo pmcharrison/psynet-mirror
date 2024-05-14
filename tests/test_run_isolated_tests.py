@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 
@@ -11,15 +10,14 @@ def find_files():
     These are found by recursively searching in the demos directory
     for all directories containing an experiment.py file.
     """
-    parent = pathlib.Path(__file__).parent.joinpath("isolated")
-    return sorted(
-        [
-            # parent.joinpath(file).__str__()
-            os.path.join(parent, file)
-            for file in os.listdir(parent)
-            if file.endswith(".py")
-        ]
-    )
+    parent = pathlib.Path(__file__).parent / "isolated"
+    parent_demos = parent / "demos"
+
+    python_files = []
+    for directory in [parent, parent_demos]:
+        python_files.extend(directory.glob("*.py"))
+
+    return sorted(map(str, python_files))
 
 
 # We no longer use this logic, and instead run the tests via run-ci-tests.sh
