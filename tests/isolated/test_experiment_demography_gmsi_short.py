@@ -3,13 +3,15 @@ import time
 import pytest
 
 from psynet.participant import get_participant
-from psynet.pytest_psynet import bot_class, next_page, path_to_experiment
+from psynet.pytest_psynet import bot_class, next_page, path_to_test_experiment
 
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_experiment("demography/gmsi_short")], indirect=True
+    "experiment_directory",
+    [path_to_test_experiment("demography/gmsi_short")],
+    indirect=True,
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):

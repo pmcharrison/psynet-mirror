@@ -9,7 +9,7 @@ from psynet.pytest_psynet import (
     assert_text,
     bot_class,
     next_page,
-    path_to_experiment,
+    path_to_test_experiment,
     psynet_loaded,
     wait_until,
 )
@@ -23,7 +23,7 @@ def test_empty():
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_experiment("error_handling")], indirect=True
+    "experiment_directory", [path_to_test_experiment("error_handling")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):

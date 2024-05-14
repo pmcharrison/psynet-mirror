@@ -495,7 +495,7 @@ def path_to_demo(demo):
     return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()
 
 
-def path_to_experiment(experiment):
+def path_to_test_experiment(experiment):
     return (
         Path(__file__)
         .parent.parent.joinpath("tests/experiments")
