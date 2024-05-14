@@ -156,7 +156,8 @@ def test_isolated_tests():
     tests = list_isolated_tests()
 
     assert (
-        psynet_root.joinpath("tests/isolated/test_demo_timeline.py").__str__() in tests
+        psynet_root.joinpath("tests/isolated/demos/test_demo_timeline.py").__str__()
+        in tests
     )
 
 
