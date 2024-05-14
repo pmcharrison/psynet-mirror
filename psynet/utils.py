@@ -1,7 +1,6 @@
 import base64
 import contextlib
 import gettext
-import glob
 import hashlib
 import importlib
 import importlib.util
@@ -1675,8 +1674,12 @@ def with_parallel_ci(paths, ci_node_total, ci_node_index):
 
 
 def list_isolated_tests(ci_node_total=None, ci_node_index=None):
-    isolated_test_root = get_psynet_root() / "tests" / "isolated"
-    tests = glob.glob(str(isolated_test_root / "*.py"))
+    isolated_tests_root = get_psynet_root() / "tests" / "isolated"
+    isolated_tests_demos = isolated_tests_root / "demos"
+
+    tests = []
+    for directory in [isolated_tests_root, isolated_tests_demos]:
+        tests.extend(directory.glob("*.py"))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
