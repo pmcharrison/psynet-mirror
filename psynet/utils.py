@@ -8,6 +8,7 @@ import inspect
 import json
 import logging
 import os
+import pathlib
 import re
 import sys
 import time
@@ -1674,7 +1675,7 @@ def with_parallel_ci(paths, ci_node_total, ci_node_index):
 
 
 def list_isolated_tests(ci_node_total=None, ci_node_index=None):
-    isolated_tests_root = get_psynet_root() / "tests" / "isolated"
+    isolated_tests_root = pathlib.Path(__file__).parent / "tests" / "isolated"
     isolated_tests_demos = isolated_tests_root / "demos"
 
     tests = []
