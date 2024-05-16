@@ -861,9 +861,11 @@ class Page(Elt):
                 js="$('#buttonStart').attr('disabled', true)",
             ),
             "trialPrepare": Event(
-                is_triggered_by="trialConstruct"
-                if self.start_trial_automatically
-                else "trialManualRequest",
+                is_triggered_by=(
+                    "trialConstruct"
+                    if self.start_trial_automatically
+                    else "trialManualRequest"
+                ),
                 once=True,
             ),
             "trialStart": Event(is_triggered_by="trialPrepare", once=True),
@@ -2783,9 +2785,11 @@ def for_loop(
                 PageMaker(content, time_estimate_per_iteration),
                 CodeBlock(increment_counter),
             ),
-            expected_repetitions=expected_repetitions
-            if expected_repetitions
-            else estimate_num_repetitions(iterate_over),
+            expected_repetitions=(
+                expected_repetitions
+                if expected_repetitions
+                else estimate_num_repetitions(iterate_over)
+            ),
             fix_time_credit=False,
         ),
         CodeBlock(wrapup),

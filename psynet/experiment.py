@@ -1774,12 +1774,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     err,
                     participant=participant,
                     trial=participant.current_trial,
-                    node=participant.current_trial.node
-                    if participant.current_trial
-                    else None,
-                    network=participant.current_trial.network
-                    if participant.current_trial
-                    else None,
+                    node=(
+                        participant.current_trial.node
+                        if participant.current_trial
+                        else None
+                    ),
+                    network=(
+                        participant.current_trial.network
+                        if participant.current_trial
+                        else None
+                    ),
                 )
             return error_response(participant=participant)
 
@@ -2717,12 +2721,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 err,
                 participant=participant,
                 trial=participant.current_trial,
-                node=participant.current_trial.node
-                if participant.current_trial
-                else None,
-                network=participant.current_trial.network
-                if participant.current_trial
-                else None,
+                node=(
+                    participant.current_trial.node
+                    if participant.current_trial
+                    else None
+                ),
+                network=(
+                    participant.current_trial.network
+                    if participant.current_trial
+                    else None
+                ),
             )
             return handled_error.error_page()
 

@@ -87,7 +87,6 @@ class BaseCapRecruiter(PsyNetRecruiter):
 
 
 class CapRecruiter(BaseCapRecruiter):
-
     """
     The production cap-recruiter.
 
@@ -98,7 +97,6 @@ class CapRecruiter(BaseCapRecruiter):
 
 
 class StagingCapRecruiter(BaseCapRecruiter):
-
     """
     The staging cap-recruiter.
 
@@ -109,7 +107,6 @@ class StagingCapRecruiter(BaseCapRecruiter):
 
 
 class DevCapRecruiter(BaseCapRecruiter):
-
     """
     The development cap-recruiter.
 
