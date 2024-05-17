@@ -320,13 +320,13 @@
 
         // Overwrites corresponding method in slider-page.html
         slider.updateLog = function() {
-            if (!continuousUpdates) {
-                slider.log.push({
-                    'time': new Date(),
-                    'value': slider.value,
-                    'media': slider.media
-                });
-            }
+            psynet.trial.registerEvent("sliderChange", {
+                info: {
+                    value: parseFloat(slider.value),
+                    outputValue: parseFloat(slider.getAttribute("output-value")),
+                    media: slider.media
+                }
+            });
         }
 
         findClosestMedia = function (slider) {
@@ -713,6 +713,7 @@
 
     <script>
         {% autoescape off %}
+        var logOnDrag = {{ params.log_on_drag | lower }};
         var snapValues = {% if params.js_vars.snap_values is none %}null{% else %}{{ params.js_vars.snap_values }}{% endif %};
         var minimalInteractions = {% if params.js_vars.minimal_interactions is none %}null{% else %}{{ params.js_vars.minimal_interactions }}{% endif %};
         var continuousUpdates = {% if params.js_vars.continuous_updates is not defined or params.js_vars.continuous_updates is none %}null{% else %}{{ params.js_vars.continuous_updates | lower }}{% endif %};
@@ -731,21 +732,13 @@
         // Metadata collection
         var slider = document.getElementById(sliderId);
 
-        if (continuousUpdates) {
-            slider.log = "The slider log is disabled when continuous slider updates are enabled.";
-        } else {
-            slider.log = [];
-        }
-
-        // To do - refactor this into psynet.trial.eventLog
         slider.updateLog = function() {
-            if (!continuousUpdates) {
-                slider.log.push({
-                    'time': new Date(),
-                    'value': slider.value,
-                    'outputValue': slider.getAttribute("output-value")
-                });
-            }
+            psynet.trial.registerEvent("sliderChange", {
+                info: {
+                    value: parseFloat(slider.value),
+                    outputValue: parseFloat(slider.getAttribute("output-value")),
+                }
+            });
         }
 
         slider.interactionCount = 0;
@@ -842,6 +835,8 @@
             formatSliderValue();
             if (continuousUpdates) {
                 onSliderEvent("sliderChanged");
+            }
+            if (logOnDrag) {
                 slider.updateLog();
             }
         };
@@ -851,15 +846,10 @@
             if (!continuousUpdates) {
                 snapSlider();
                 onSliderEvent("sliderChanged");
-                slider.updateLog();
             }
             slider.interactionCount += 1;
             checkMinimalInteractions();
-            psynet.trial.registerEvent("sliderChange", {
-                info: {
-                    outputValue: slider.value
-                }
-            });
+            slider.updateLog();
         }
 
         slider.addEventListener("input", sliderOnInput, false);

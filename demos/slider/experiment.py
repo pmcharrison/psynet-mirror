@@ -52,6 +52,7 @@ example_1 = {
     "snap_values": None,
     "minimal_interactions": 3,
     "random_wrap": False,
+    "log_on_drag": True,
 }
 
 example_2 = {

@@ -1960,6 +1960,10 @@ class SliderControl(Control):
     max_value:
         Maximum value of the slider.
 
+    log_on_drag:
+        If `True`, then the slider will log the position of the slider every time it is dragged to a new position,
+        even if the slider is not released. Default: `False`.
+
     n_steps:
         Determines the number of steps that the slider can be dragged through. Default: `10000`.
 
@@ -2009,9 +2013,11 @@ class SliderControl(Control):
 
     def __init__(
         self,
+        *,
         start_value: float,
         min_value: float,
         max_value: float,
+        log_on_drag: bool = False,
         n_steps: int = 10000,
         reverse_scale: Optional[bool] = False,
         directional: Optional[bool] = True,
@@ -2041,6 +2047,7 @@ class SliderControl(Control):
         self.min_value = min_value
         self.max_value = max_value
         self.n_steps = n_steps
+        self.log_on_drag = log_on_drag
         self.step_size = (max_value - min_value) / (n_steps - 1)
         self.reverse_scale = reverse_scale
         self.directional = directional
