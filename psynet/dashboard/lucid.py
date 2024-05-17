@@ -146,9 +146,11 @@ def report_lucid():
     )
     entry_df["psynet_status"] = entry_df.apply(get_entrant_psynet_status, axis=1)
     entry_df["entry_timestamp"] = entry_df.apply(
-        lambda x: x["lucid_entry_date"]
-        if not pd.isna(x["lucid_entry_date"])
-        else x["registered_at"],
+        lambda x: (
+            x["lucid_entry_date"]
+            if not pd.isna(x["lucid_entry_date"])
+            else x["registered_at"]
+        ),
         axis=1,
     )
     # to unix timestamp
@@ -408,25 +410,35 @@ def report_lucid():
                 data.append(
                     {
                         "rid": row.rid,
-                        "pid": row.participant_id
-                        if not pd.isna(row.participant_id)
-                        else "Not registered",
-                        "reason": row.termination_reason
-                        if not pd.isna(row.termination_reason)
-                        else "n/a",
-                        "lucid_duration": row.lucid_duration
-                        if not pd.isna(row.lucid_duration)
-                        else "n/a",
-                        "psynet_duration": row.psynet_duration
-                        if not pd.isna(row.psynet_duration)
-                        else "n/a",
-                        "code": row.lucid_status
-                        if not pd.isna(row.lucid_status)
-                        else "n/a",
+                        "pid": (
+                            row.participant_id
+                            if not pd.isna(row.participant_id)
+                            else "Not registered"
+                        ),
+                        "reason": (
+                            row.termination_reason
+                            if not pd.isna(row.termination_reason)
+                            else "n/a"
+                        ),
+                        "lucid_duration": (
+                            row.lucid_duration
+                            if not pd.isna(row.lucid_duration)
+                            else "n/a"
+                        ),
+                        "psynet_duration": (
+                            row.psynet_duration
+                            if not pd.isna(row.psynet_duration)
+                            else "n/a"
+                        ),
+                        "code": (
+                            row.lucid_status if not pd.isna(row.lucid_status) else "n/a"
+                        ),
                         "type": "Lucid",
-                        "value": row.psynet_duration
-                        if not pd.isna(row.lucid_status)
-                        else "n/a",
+                        "value": (
+                            row.psynet_duration
+                            if not pd.isna(row.lucid_status)
+                            else "n/a"
+                        ),
                     }
                 )
             if completion_loi < set_completion_loi:
@@ -456,25 +468,37 @@ def report_lucid():
                     data.append(
                         {
                             "rid": row.rid,
-                            "pid": row.participant_id
-                            if not pd.isna(row.participant_id)
-                            else "Not registered",
-                            "reason": row.termination_reason
-                            if not pd.isna(row.termination_reason)
-                            else "n/a",
-                            "lucid_duration": row.lucid_duration
-                            if not pd.isna(row.lucid_duration)
-                            else "n/a",
-                            "psynet_duration": row.psynet_duration
-                            if not pd.isna(row.psynet_duration)
-                            else "n/a",
-                            "code": row.lucid_status
-                            if not pd.isna(row.lucid_status)
-                            else "n/a",
+                            "pid": (
+                                row.participant_id
+                                if not pd.isna(row.participant_id)
+                                else "Not registered"
+                            ),
+                            "reason": (
+                                row.termination_reason
+                                if not pd.isna(row.termination_reason)
+                                else "n/a"
+                            ),
+                            "lucid_duration": (
+                                row.lucid_duration
+                                if not pd.isna(row.lucid_duration)
+                                else "n/a"
+                            ),
+                            "psynet_duration": (
+                                row.psynet_duration
+                                if not pd.isna(row.psynet_duration)
+                                else "n/a"
+                            ),
+                            "code": (
+                                row.lucid_status
+                                if not pd.isna(row.lucid_status)
+                                else "n/a"
+                            ),
                             "type": "Lucid",
-                            "value": row.lucid_duration
-                            if not pd.isna(row.lucid_status)
-                            else "n/a",
+                            "value": (
+                                row.lucid_duration
+                                if not pd.isna(row.lucid_status)
+                                else "n/a"
+                            ),
                         }
                     )
 

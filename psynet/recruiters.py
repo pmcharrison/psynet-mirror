@@ -896,9 +896,9 @@ def get_lucid_settings(
     lucid_recruitment_config["survey"]["CollectsPII"] = collects_pii
     lucid_recruitment_config["inactivity_timeout_in_s"] = inactivity_timeout_in_s
     lucid_recruitment_config["no_focus_timeout_in_s"] = no_focus_timeout_in_s
-    lucid_recruitment_config[
-        "aggressive_no_focus_timeout_in_s"
-    ] = aggressive_no_focus_timeout_in_s
+    lucid_recruitment_config["aggressive_no_focus_timeout_in_s"] = (
+        aggressive_no_focus_timeout_in_s
+    )
     lucid_recruitment_config["initial_response_within_s"] = initial_response_within_s
 
     lucid_recruitment_config = json.dumps(lucid_recruitment_config)
