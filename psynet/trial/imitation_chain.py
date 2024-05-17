@@ -112,9 +112,14 @@ class ImitationChainNode(ChainNode):
             The derived seed. Should be suitable for serialisation to JSON.
         """
 
-        if len(trials) == 1:
-            return trials[0].answer
-        raise NotImplementedError
+        if self.trial_maker.trials_per_node > 1:
+            raise NotImplementedError
+
+        if len(trials) > 1:
+            for i in range(1, len(trials)):
+                trials[i].fail(reason="Too many trials at the same node")
+
+        return trials[0].answer
 
 
 class ImitationChainTrialMaker(ChainTrialMaker):
