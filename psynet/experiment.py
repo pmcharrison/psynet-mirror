@@ -2337,10 +2337,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/dashboard/export", methods=["GET"])
     @with_transaction
     def export():
+        from flask_login import current_user
+
         from .command_line import export__local
 
         config = get_and_load_config()
-        if not authenticate(request.authorization, config):
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
         with tempfile.TemporaryDirectory() as tempdir:
