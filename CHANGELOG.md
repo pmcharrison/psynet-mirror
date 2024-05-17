@@ -1,5 +1,14 @@
 # CHANGELOG
 
+# [11.3.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.3.1) Release 2024-05-17
+
+## Fixed
+- Fixed failing authentication in dashboard export tab (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed `require_exp_directory` decorator which was making Docker deployments fail (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated 'black' code formatter; ran checks (author: Frank Höger)
+
 # [11.3.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.3.0) Release 2024-05-09
 
 ## Added

@@ -1252,9 +1252,11 @@ class TrialMaker(Module):
             self.introduction,
             self._trial_loop(),
             self._wrapup_core,
-            self._check_performance_logic(type="end")
-            if self.check_performance_at_end
-            else None,
+            (
+                self._check_performance_logic(type="end")
+                if self.check_performance_at_end
+                else None
+            ),
         )
 
     def custom(self, *args, assets=None, nodes=None):

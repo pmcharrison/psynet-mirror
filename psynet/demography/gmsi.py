@@ -149,9 +149,11 @@ class GMSI(Module):
                     grouped_scores[subscale] = [score]
         # calculate arithmetic mean for each subscale
         mean_scores_per_scale = {
-            group[0]: round(sum(group[1]) / len(group[1]), 6)
-            if all(isinstance(item, int) for item in group[1])
-            else group[1][0]
+            group[0]: (
+                round(sum(group[1]) / len(group[1]), 6)
+                if all(isinstance(item, int) for item in group[1])
+                else group[1][0]
+            )
             for group in grouped_scores.items()
         }
 

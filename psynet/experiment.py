@@ -1783,12 +1783,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     err,
                     participant=participant,
                     trial=participant.current_trial,
-                    node=participant.current_trial.node
-                    if participant.current_trial
-                    else None,
-                    network=participant.current_trial.network
-                    if participant.current_trial
-                    else None,
+                    node=(
+                        participant.current_trial.node
+                        if participant.current_trial
+                        else None
+                    ),
+                    network=(
+                        participant.current_trial.network
+                        if participant.current_trial
+                        else None
+                    ),
                 )
             return error_response(participant=participant)
 
@@ -2383,10 +2387,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/dashboard/export", methods=["GET"])
     @with_transaction
     def export():
+        from flask_login import current_user
+
         from .command_line import export__local
 
         config = get_and_load_config()
-        if not authenticate(request.authorization, config):
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
         with tempfile.TemporaryDirectory() as tempdir:
@@ -2811,12 +2818,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 err,
                 participant=participant,
                 trial=participant.current_trial,
-                node=participant.current_trial.node
-                if participant.current_trial
-                else None,
-                network=participant.current_trial.network
-                if participant.current_trial
-                else None,
+                node=(
+                    participant.current_trial.node
+                    if participant.current_trial
+                    else None
+                ),
+                network=(
+                    participant.current_trial.network
+                    if participant.current_trial
+                    else None
+                ),
             )
             cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
