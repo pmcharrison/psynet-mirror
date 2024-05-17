@@ -22,6 +22,7 @@ def make_example(args):
         {print_dict(args)}
         <script>
             update_value = function() {{
+                let slider = document.getElementById("sliderpage_slider");
                 document.getElementById("slider-raw-value").innerHTML = parseFloat(slider.getAttribute("raw-value")).toFixed(2);
                 document.getElementById("slider-output-value").innerHTML = parseFloat(slider.getAttribute("output-value")).toFixed(2);
                 document.getElementById("phase").innerHTML = parseFloat(slider.getAttribute("phase")).toFixed(2);
