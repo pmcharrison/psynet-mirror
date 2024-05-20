@@ -293,7 +293,7 @@ class LucidService(object):
                 )
         else:
             self.log(
-                "Termination canceled. Respondent already completed or terminated survey."
+                "Termination canceled. Respondent has already completed or terminated the survey."
             )
 
     def sha1_hash(self, url):

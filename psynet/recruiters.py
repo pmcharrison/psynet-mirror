@@ -713,7 +713,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 ris = 10
         if assignment_id is None:
             assignment_id = assignment_id
-        return {"ris": ris, "rid": assignment_id}
+        return {"rid": assignment_id, "ris": ris}
 
     def error_page_content(self, _, _p, assignment_id, external_submit_url):
         if external_submit_url is None:
@@ -749,9 +749,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def terminate_participant(self, rid, reason, details=None):
         try:
             self.lucidservice.terminate_respondent(rid, reason, details)
-            logger.info(
-                f"Terminating respondent with RID '{rid}' with reason '{reason}'"
-            )
+            logger.info(f"Terminating respondent with RID '{rid}'. Reason: '{reason}'")
         except Exception as e:
             logger.error(f"Error terminating respondent with RID '{rid}': {e}")
 
