@@ -747,7 +747,15 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         return self.lucidservice.complete_respondent(rid)
 
     def terminate_participant(self, rid, reason, details=None):
-        return self.lucidservice.terminate_respondent(rid, reason, details)
+        try:
+            self.lucidservice.terminate_respondent(rid, reason, details)
+            logger.info(
+                f"Terminating respondent with RID '{rid}' with reason '{reason}'"
+            )
+        except Exception as e:
+            logger.error(f"Error terminating respondent with RID '{rid}': {e}")
+
+        return self.external_submit_url(assignment_id=rid)
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
@@ -758,6 +766,51 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         )
 
         return lucid_recruitment_config.get(key)
+
+    def get_assignment_id(self, request):
+        assignment_id = request.values.get("assignmentId")
+        unique_id = request.values.get("unique_id")
+        participant_id = request.values.get("participant_id")
+        rid = request.values.get("RID")
+
+        if assignment_id is None and unique_id is not None:
+            assignment_id = unique_id.split(":")[1]
+
+        if assignment_id is None and rid is not None:
+            assignment_id = rid
+
+        participant = None
+        if assignment_id is None and participant_id is not None:
+            participant_id = int(participant_id)
+            participant = (
+                Participant.query.with_for_update(of=Participant)
+                .populate_existing()
+                .get(participant_id)
+            )
+            assignment_id = participant.assignment_id
+
+        assert assignment_id is not None, "No assignment ID provided"
+
+        if participant is None:
+            try:
+                participant = Participant.query.filter_by(
+                    assignment_id=assignment_id
+                ).one()
+            except NoResultFound:
+                logger.error(
+                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+            except MultipleResultsFound:
+                logger.error(
+                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+
+        if participant is not None:
+            participant.failed = True
+            participant.failed_reason = request.values.get("reason")
+            participant.status = "returned"
+
+        return assignment_id
 
     @property
     def termination_time_in_s(self):

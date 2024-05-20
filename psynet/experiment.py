@@ -42,7 +42,6 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
@@ -2641,65 +2640,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             recruiter, (DevLucidRecruiter, LucidRecruiter)
         ), "The 'terminate_participant' route must only be called in the context of Lucid recruitment"
 
-        reason = request.values.get("reason", "")
-        assignment_id = request.values.get("assignmentId")
-        unique_id = request.values.get("unique_id")
-        participant_id = request.values.get("participant_id")
-        rid = request.values.get("RID")
-        participant = None
-        if assignment_id is None and unique_id is not None:
-            assignment_id = unique_id.split(":")[1]
-
-        if assignment_id is None and rid is not None:
-            assignment_id = rid
-
-        if assignment_id is None and participant_id is not None:
-            participant_id = int(participant_id)
-            participant = (
-                Participant.query.with_for_update(of=Participant)
-                .populate_existing()
-                .get(participant_id)
-            )
-            assignment_id = participant.assignment_id
-
-        assert assignment_id is not None, "No assignment ID provided"
-
-        if participant is None:
-            try:
-                participant = Participant.query.filter_by(
-                    assignment_id=assignment_id
-                ).one()
-            except NoResultFound:
-                logger.error(
-                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
-                )
-            except MultipleResultsFound:
-                logger.error(
-                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
-                )
-
-        if participant is not None:
-            participant.failed = True
-            participant.failed_reason = reason
-            participant.status = "returned"
-
-        external_submit_url = None
-
-        try:
-            if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=assignment_id
-                )
-            if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(assignment_id, reason)
-                logger.info(
-                    f"Terminating participant with RID {assignment_id} with reason '{reason}'"
-                )
-
-        except Exception as e:
-            logger.error(
-                f"Error terminating participant with RID '{assignment_id}': {e}"
-            )
+        external_submit_url = recruiter.terminate_participant(
+            recruiter.get_assignment_id(request), request.values.get("reason")
+        )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
