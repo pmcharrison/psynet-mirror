@@ -2641,7 +2641,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ), "The 'terminate_participant' route must only be called in the context of Lucid recruitment"
 
         external_submit_url = recruiter.terminate_participant(
-            recruiter.get_assignment_id(request), request.values.get("reason")
+            recruiter.get_participant(request), request.values.get("reason")
         )
 
         return render_template_with_translations(

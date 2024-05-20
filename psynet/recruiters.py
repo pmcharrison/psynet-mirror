@@ -746,14 +746,24 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, rid, reason, details=None):
-        try:
-            self.lucidservice.terminate_respondent(rid, reason, details)
-            logger.info(f"Terminating respondent with RID '{rid}'. Reason: '{reason}'")
-        except Exception as e:
-            logger.error(f"Error terminating respondent with RID '{rid}': {e}")
+    def terminate_participant(self, participant, reason, details=None):
+        participant.failed = True
+        participant.failed_reason = reason
+        participant.status = "returned"
+        db.session.commit()
 
-        return self.external_submit_url(assignment_id=rid)
+        assignment_id = participant.assignment_id
+        try:
+            self.lucidservice.terminate_respondent(assignment_id, reason, details)
+            logger.info(
+                f"Terminating respondent with RID '{assignment_id}'. Reason: '{reason}'"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error terminating respondent with RID '{assignment_id}': {e}"
+            )
+
+        return self.external_submit_url(assignment_id=assignment_id)
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
@@ -765,29 +775,27 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         return lucid_recruitment_config.get(key)
 
-    def get_assignment_id(self, request):
+    def get_participant(self, request):
         assignment_id = request.values.get("assignmentId")
         unique_id = request.values.get("unique_id")
         participant_id = request.values.get("participant_id")
         rid = request.values.get("RID")
-
-        if assignment_id is None and unique_id is not None:
-            assignment_id = unique_id.split(":")[1]
-
-        if assignment_id is None and rid is not None:
-            assignment_id = rid
-
         participant = None
-        if assignment_id is None and participant_id is not None:
-            participant_id = int(participant_id)
-            participant = (
-                Participant.query.with_for_update(of=Participant)
-                .populate_existing()
-                .get(participant_id)
-            )
-            assignment_id = participant.assignment_id
 
-        assert assignment_id is not None, "No assignment ID provided"
+        if assignment_id is None:
+            if unique_id is not None:
+                assignment_id = unique_id.split(":")[1]
+            elif rid is not None:
+                assignment_id = rid
+            elif participant_id is not None:
+                participant = (
+                    Participant.query.with_for_update(of=Participant)
+                    .populate_existing()
+                    .get(int(participant_id))
+                )
+                assignment_id = participant.assignment_id
+
+        assert assignment_id is not None, "Could not determine assignment_id."
 
         if participant is None:
             try:
@@ -803,12 +811,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                     f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
                 )
 
-        if participant is not None:
-            participant.failed = True
-            participant.failed_reason = request.values.get("reason")
-            participant.status = "returned"
-
-        return assignment_id
+        return participant
 
     @property
     def termination_time_in_s(self):
