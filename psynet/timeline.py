@@ -676,8 +676,8 @@ class Page(Elt):
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
     show_termination_button:
-        If ``True``, a button is displayed allowing the participant to terminate the experiment, Default ``False``
-        except for Lucid recruiter where it is ``True``.
+        If ``True``, a button is displayed allowing the participant to terminate the experiment, Defaults to ``recruiter.show_termination_button``
+        which can be ``False`` for all recruiters except for the Lucid recruiter where it should be ``True``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
