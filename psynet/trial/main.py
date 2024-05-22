@@ -11,6 +11,7 @@ import dallinger.nodes
 from dallinger import db
 from dallinger.models import Info, Network
 from dominate import tags
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 from sqlalchemy import (
     Boolean,
@@ -919,11 +920,12 @@ class Trial(SQLMixinDallinger, Info):
             )
             actual = trial.time_credit_from_trial
             if actual != original_estimate:
-                logger.info(
-                    f"Warning: Trial {trial.id} received an unexpected amount of time credit "
+                raise ValueError(
+                    f"Trial {trial.id} ({importable_name(cls)}) received an unexpected amount of time credit "
                     f"(expected = {original_estimate} seconds; "
                     f"actual = {actual} seconds). "
-                    f"Consider setting the trial's `time_estimate` parameter to {trial.time_credit_from_trial}."
+                    "This reflects a discrepancy between Trial.time_estimate and the time_estimate returned "
+                    "from show_trial. You should probably adjust these to make them the same number. "
                     "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
                 )
 
