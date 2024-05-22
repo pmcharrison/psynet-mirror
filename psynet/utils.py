@@ -1604,7 +1604,8 @@ def is_method_overridden(obj, ancestor: Type, method: str):
     or ``False`` if that method has been overridden.
 
     """
-    return getattr(obj.__class__, method) != getattr(ancestor, method)
+
+    return getattr(obj, method) != getattr(ancestor, method)
 
 
 @contextlib.contextmanager

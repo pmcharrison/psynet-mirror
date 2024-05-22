@@ -607,7 +607,6 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 bot_response_media=resources.files("psynet")
                 / "resources/repp/markers_test_record.wav",
             ),
-            time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
                 # show_bar=False,
                 stages=[
@@ -723,7 +722,7 @@ class REPPMarkersTest(StaticTrialMaker):
         performance_threshold: int = 0.6,
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
         n_trials: int = 3,
-        time_estimate_per_trial: float = 12.0,
+        time_estimate_per_trial: float = 17.0,
         trial_class=RecordMarkersTrial,
     ):
         self.n_trials = n_trials

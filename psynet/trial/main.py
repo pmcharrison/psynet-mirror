@@ -872,6 +872,8 @@ class Trial(SQLMixinDallinger, Info):
                 ),
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
+                label=f"{trial_maker.id}__show_trial",
+                check_time_credit_received=cls.check_time_credit_received,
             ),
             cls._finalize_trial(trial_maker),
             cls._construct_feedback_logic(trial_maker),
@@ -925,7 +927,8 @@ class Trial(SQLMixinDallinger, Info):
                     f"(expected = {original_estimate} seconds; "
                     f"actual = {actual} seconds). "
                     "This reflects a discrepancy between Trial.time_estimate and the time_estimate returned "
-                    "from show_trial. You should probably adjust these to make them the same number. "
+                    "from show_trial (and show_feedback if this is implemented). "
+                    "You should probably adjust these to make them the same number. "
                     "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
                 )
 
@@ -975,10 +978,13 @@ class Trial(SQLMixinDallinger, Info):
                 PageMaker(
                     lambda experiment, participant: (
                         participant.current_trial.show_feedback(
-                            experiment=experiment, participant=participant
+                            experiment=experiment,
+                            participant=participant,
                         )
                     ),
-                    time_estimate=0,
+                    time_estimate=0.0,
+                    label=f"{trial_maker.id}__show_feedback",
+                    check_time_credit_received=cls.check_time_credit_received,
                 ),
             ),
             fix_time_credit=False,

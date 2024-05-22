@@ -1,6 +1,7 @@
 # pylint: disable=abstract-method
 
 import json
+import os
 import random
 import time
 from collections import Counter
@@ -1243,6 +1244,11 @@ class PageMaker(Elt):
         ``time_estimate`` values, then these ``time_estimate`` values will be imputed by dividing
         the parent :class:`psynet.timeline.PageMaker`'s ``time_estimate``
         by the number of produced elements.
+
+    check_time_credit_received:
+        If ``True`` (default), then the time credit received by the participant
+        will be checked against the time estimate of the page maker.
+        If the two values do not match, then an error will be raised.
     """
 
     returns_time_credit = True
@@ -1253,6 +1259,7 @@ class PageMaker(Elt):
         time_estimate,
         accumulate_answers: bool = False,
         label: str = "page_maker",
+        check_time_credit_received: bool = True,
     ):
         super().__init__()
 
@@ -1261,6 +1268,7 @@ class PageMaker(Elt):
         self.accumulate_answers = accumulate_answers
         self.expected_repetitions = 1
         self.label = label
+        self.check_time_credit_received = check_time_credit_received
 
     def resolve(self, experiment, participant, position):
         """
@@ -1331,11 +1339,51 @@ class PageMaker(Elt):
                 elt.time_estimate = self.time_estimate / n
 
     def check_time_estimates(self, elts):
+        total = 0.0
         for elt in elts:
-            if elt.returns_time_credit and elt.time_estimate is None:
-                raise RuntimeError(
-                    f"One of the elements in the page maker was missing a time estimate ({elt})"
+            if elt.returns_time_credit:
+                if elt.time_estimate is None:
+                    raise RuntimeError(
+                        f"One of the elements in the page maker was missing a time estimate ({elt})"
+                    )
+                total += elt.time_estimate
+        if total != self.time_estimate and not os.getenv(
+            "SKIP_CHECK_TIME_CREDIT_RECEIVED_IN_PAGE_MAKER"
+        ):
+            if self.label == "page_maker":
+                which_page_maker = "the page maker"
+            else:
+                which_page_maker = f"'{self.label}'"
+
+            msg = (
+                f"The sum of the time estimates returned by the function {which_page_maker}"
+                f"did not match the initially provided time estimate "
+                f"(expected {self.time_estimate}, got {total}). \n\n"
+                "If you want a quick fix, you can disable this check globally by running"
+                "`export SKIP_CHECK_TIME_CREDIT_RECEIVED_IN_PAGE_MAKER=1` before running the experiment. "
+                "However, there's a risk that participants might not receive the payments that you expect. "
+                "We therefore recommend reading the following instructions to help the issue: \n\n"
+            )
+
+            is_show_trial = self.label.endswith("show_trial")
+            is_show_feedback = self.label.endswith("show_feedback")
+
+            if is_show_trial or is_show_feedback:
+                msg += (
+                    "If you are working in the context of show_trial or show_feedback, "
+                    "we recommend setting all time estimates to None, "
+                    "so that the time estimate is determined by Trial.time_estimate. "
+                    "If you are sure you want different trials to deliver different amounts of time credit, "
+                    "we recommend disabling this check by setting Trial.check_time_credit_received=False. "
                 )
+            else:
+                msg += (
+                    "If you are working in the context of a page maker and you are sure you want to give the participant "
+                    "different levels of time credit depending on the function evaluated by the trial maker, "
+                    "we recommend setting check_time_credit_received=False when defining the page maker. "
+                )
+
+            raise RuntimeError(msg)
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
