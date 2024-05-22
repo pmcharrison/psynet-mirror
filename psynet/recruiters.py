@@ -57,6 +57,9 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
         """Incremental recruitment isn't implemented for now, so we return an empty list."""
         return []
 
+    def terminate_participant(self, participant, reason, details=None):
+        raise NotImplementedError
+
 
 # CAP Recruiter
 class BaseCapRecruiter(PsyNetRecruiter):

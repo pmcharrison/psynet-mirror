@@ -2636,10 +2636,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def terminate_participant(cls):
         recruiter = get_experiment().recruiter
-        assert isinstance(
-            recruiter, (DevLucidRecruiter, LucidRecruiter)
-        ), "The 'terminate_participant' route must only be called in the context of Lucid recruitment"
-
         external_submit_url = recruiter.terminate_participant(
             recruiter.get_participant(request), request.values.get("reason")
         )
