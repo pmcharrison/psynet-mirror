@@ -37,6 +37,8 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
     The PsyNetRecruiter base class
     """
 
+    show_termination_button = False
+
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
         raise RuntimeError("Compensation is not implemented.")
@@ -316,6 +318,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     """
     The LucidRecruiter base class
     """
+
+    show_termination_button = True
 
     required_consent_page = LucidConsent.LucidConsentPage
     optional_consent_pages = (
