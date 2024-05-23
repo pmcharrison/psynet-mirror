@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import time
+import types
 from collections import OrderedDict
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
@@ -1604,8 +1605,18 @@ def is_method_overridden(obj, ancestor: Type, method: str):
     or ``False`` if that method has been overridden.
 
     """
+    return get_method_as_function(obj, method) != get_method_as_function(
+        ancestor, method
+    )
 
-    return getattr(obj, method) != getattr(ancestor, method)
+
+def get_method_as_function(obj, method):
+    function = getattr(obj, method)
+
+    if isinstance(function, types.MethodType):
+        return function.__func__
+    else:
+        return function
 
 
 @contextlib.contextmanager
