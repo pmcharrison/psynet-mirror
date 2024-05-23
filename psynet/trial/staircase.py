@@ -168,7 +168,10 @@ class GeometricStaircaseChain(ChainNetwork):
         self.mean_reversal_score = self.summarize_scores(scores)
 
     def summarize_scores(self, scores):
-        return mean(scores)
+        if len(scores) == 0:
+            return None
+        else:
+            return mean(scores)
 
 
 class GeometricStaircaseTrialMaker(ChainTrialMaker):
