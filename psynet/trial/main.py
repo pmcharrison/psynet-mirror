@@ -864,6 +864,11 @@ class Trial(SQLMixinDallinger, Info):
     def trial_logic(cls, trial_maker=None):
         time_estimate = cls._get_trial_time_estimate(trial_maker)
 
+        if trial_maker is None:
+            label = "show_trial"
+        else:
+            label = f"{trial_maker.id}__show_trial"
+
         return join(
             CodeBlock(cls._log_time_credit_before_trial),
             PageMaker(
@@ -872,7 +877,7 @@ class Trial(SQLMixinDallinger, Info):
                 ),
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
-                label=f"{trial_maker.id}__show_trial",
+                label=label,
                 variable_time_credit=cls.variable_time_credit,
             ),
             cls._finalize_trial(trial_maker),
