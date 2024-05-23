@@ -1356,7 +1356,7 @@ class PageMaker(Elt):
                 which_page_maker = f"'{self.label}'"
 
             msg = (
-                f"The sum of the time estimates returned by the function {which_page_maker}"
+                f"The sum of the time estimates returned by {which_page_maker}"
                 f"did not match the initially provided time estimate "
                 f"(expected {self.time_estimate}, got {total}). \n\n"
                 "If you want a quick fix, you can disable this check globally by running"
