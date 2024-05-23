@@ -1259,7 +1259,7 @@ class PageMaker(Elt):
         time_estimate,
         accumulate_answers: bool = False,
         label: str = "page_maker",
-        check_time_credit_received: bool = True,
+        variable_time_credit: bool = True,
     ):
         super().__init__()
 
@@ -1268,7 +1268,7 @@ class PageMaker(Elt):
         self.accumulate_answers = accumulate_answers
         self.expected_repetitions = 1
         self.label = label
-        self.check_time_credit_received = check_time_credit_received
+        self.variable_time_credit = variable_time_credit
 
     def resolve(self, experiment, participant, position):
         """
@@ -1347,20 +1347,22 @@ class PageMaker(Elt):
                         f"One of the elements in the page maker was missing a time estimate ({elt})"
                     )
                 total += elt.time_estimate
-        if total != self.time_estimate and not os.getenv(
-            "SKIP_CHECK_TIME_CREDIT_RECEIVED_IN_PAGE_MAKER"
+        if (
+            total != self.time_estimate
+            and not self.variable_time_credit
+            and not os.getenv("SKIP_PAGE_MAKER_TIME_CREDIT_CHECK")
         ):
             if self.label == "page_maker":
                 which_page_maker = "the page maker"
             else:
                 which_page_maker = f"'{self.label}'"
-
             msg = (
-                f"The sum of the time estimates returned by {which_page_maker}"
+                f"The sum of the time estimates returned by {which_page_maker} "
+                f"at timeline location {self.id} "
                 f"did not match the initially provided time estimate "
                 f"(expected {self.time_estimate}, got {total}). \n\n"
                 "If you want a quick fix, you can disable this check globally by running"
-                "`export SKIP_CHECK_TIME_CREDIT_RECEIVED_IN_PAGE_MAKER=1` before running the experiment. "
+                "`export SKIP_PAGE_MAKER_TIME_CREDIT_CHECK=1` before running the experiment. "
                 "However, there's a risk that participants might not receive the payments that you expect. "
                 "We therefore recommend reading the following instructions to help the issue: \n\n"
             )
@@ -1374,13 +1376,13 @@ class PageMaker(Elt):
                     "we recommend setting all time estimates to None, "
                     "so that the time estimate is determined by Trial.time_estimate. "
                     "If you are sure you want different trials to deliver different amounts of time credit, "
-                    "we recommend disabling this check by setting Trial.check_time_credit_received=False. "
+                    "we recommend disabling this check by setting Trial.variable_time_credit=True. "
                 )
             else:
                 msg += (
                     "If you are working in the context of a page maker and you are sure you want to give the participant "
                     "different levels of time credit depending on the function evaluated by the trial maker, "
-                    "we recommend setting check_time_credit_received=False when defining the page maker. "
+                    "we recommend setting variable_time_credit=True when defining the page maker. "
                 )
 
             raise RuntimeError(msg)

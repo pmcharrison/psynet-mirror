@@ -236,11 +236,11 @@ class Trial(SQLMixinDallinger, Info):
         Reports the amount of time credit that was allocated to the participant on the basis of this trial (in seconds).
         This should be equal to ``time_credit_after_trial - time_credit_before_trial``.
 
-    check_time_credit_received : bool
-        If ``True`` (default), PsyNet will check at the end of the trial whether the participant received
-        the expected amount of time credit. If the received amount is inconsistent with the amount
-        specified by ``time_estimate``, then a warning message will be delivered,
-        suggesting a revised value for ``time_estimate``.
+    variable_time_credit : bool
+        By default this is set to ``False``, meaning that the Trial may only deliver the expected amount of time credit.
+        If an unexpected amount is received (e.g. by inconsistent time_estimate values) then an error will be thrown.
+        If the wish is to allow trials to deliver variable amounts of time credit, then variable_time_credit
+        must be set to ``True``.
 
     response_id : int
         ID of the associated :class:`~psynet.timeline.Response` object.
@@ -341,7 +341,7 @@ class Trial(SQLMixinDallinger, Info):
     errors = relationship("ErrorRecord")
 
     time_estimate = None
-    check_time_credit_received = True
+    variable_time_credit = False
 
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
@@ -873,7 +873,7 @@ class Trial(SQLMixinDallinger, Info):
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
                 label=f"{trial_maker.id}__show_trial",
-                check_time_credit_received=cls.check_time_credit_received,
+                variable_time_credit=cls.variable_time_credit,
             ),
             cls._finalize_trial(trial_maker),
             cls._construct_feedback_logic(trial_maker),
@@ -916,7 +916,7 @@ class Trial(SQLMixinDallinger, Info):
         trial.time_credit_from_trial = (
             trial.time_credit_after_trial - trial.time_credit_before_trial
         )
-        if trial.check_time_credit_received:
+        if not trial.variable_time_credit:
             original_estimate = cls._get_trial_time_estimate(
                 trial_maker=trial.trial_maker
             )
@@ -929,7 +929,7 @@ class Trial(SQLMixinDallinger, Info):
                     "This reflects a discrepancy between Trial.time_estimate and the time_estimate returned "
                     "from show_trial (and show_feedback if this is implemented). "
                     "You should probably adjust these to make them the same number. "
-                    "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
+                    "You can disable this warning message by setting `Trial.variable_time_credit = True`."
                 )
 
     @classmethod
@@ -984,7 +984,7 @@ class Trial(SQLMixinDallinger, Info):
                     ),
                     time_estimate=0.0,
                     label=f"{trial_maker.id}__show_feedback",
-                    check_time_credit_received=cls.check_time_credit_received,
+                    variable_time_credit=cls.variable_time_credit,
                 ),
             ),
             fix_time_credit=False,
