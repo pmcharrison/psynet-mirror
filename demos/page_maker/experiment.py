@@ -30,6 +30,9 @@ class Exp(psynet.experiment.Experiment):
                 for i in range(participant.var.n_pages)
             ],
             time_estimate=3,
+            # The amount of time credit the participant receives will depend on how many pages they choose to see.
+            # We therefore have to set variable_time_credit to True.
+            variable_time_credit=True,
         ),
         InfoPage(
             "We'll now test a multi-page maker that contains a code block.",
