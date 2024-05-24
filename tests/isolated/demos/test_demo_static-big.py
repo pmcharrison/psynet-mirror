@@ -7,7 +7,7 @@ from click import Context
 
 from psynet.bot import Bot
 from psynet.command_line import export__local, prepare
-from psynet.pytest_psynet import bot_class, path_to_demo
+from psynet.pytest_psynet import bot_class, path_to_test_experiment
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -22,7 +22,7 @@ def data_root_dir():
 
 @pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static_big")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static_big")], indirect=True
 )
 class TestPrepare:
     def test_prepare(self, deployment_info):
@@ -38,7 +38,7 @@ class TestPrepare:
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static_big")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static_big")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 @pytest.mark.dependency()

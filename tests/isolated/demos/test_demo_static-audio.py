@@ -11,7 +11,7 @@ from psynet.pytest_psynet import path_to_demo_experiment
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("static_audio")], indirect=True
+    "experiment_directory", [path_to_demo_experiment("static_audio_1")], indirect=True
 )
 def test_s3_asset_preparation(in_experiment_directory):
     exp = get_experiment()
