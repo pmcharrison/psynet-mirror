@@ -1763,7 +1763,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             if not response.successful_validation:
                 return self.response_rejected(message=validation.message)
-            participant.time_credit.increment(event.time_estimate)
+
+            participant.inc_time_credit(event.time_estimate)
+            participant.inc_progress(event.time_estimate)
+
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
         except Exception as err:
@@ -2904,7 +2907,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentageStr": f"{progress_percentage}%",
         }
         if get_and_load_config().get("show_reward"):
-            time_reward = participant.time_credit.get_time_reward()
+            time_reward = participant.time_reward
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
             data["reward"] = {

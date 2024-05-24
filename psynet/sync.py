@@ -232,7 +232,7 @@ class GroupBarrier(Barrier):
         and sent to the end of the experiment.
 
     fix_time_credit
-        If set to ``True``, then the amount of time 'credit' that the participant receives will be capped
+        If set to ``True``, then the amount of time 'credit' that the participant receives will be fixed
         according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
     """
 
