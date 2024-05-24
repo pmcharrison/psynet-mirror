@@ -143,12 +143,18 @@ def get_datetime(str):
 def test_demo_dirs():
     psynet_root = get_psynet_root()
     dirs = list_demo_dirs()
-    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
-    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() in dirs
+    assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
+    assert (
+        psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
+        in dirs
+    )
 
     dirs = list_demo_dirs(for_ci_tests=True)
-    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
-    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() not in dirs
+    assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
+    assert (
+        psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
+        not in dirs
+    )
 
 
 def test_isolated_tests():
