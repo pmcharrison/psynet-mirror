@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo_experiment
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode
 
 logger = logging.getLogger(__file__)
@@ -15,7 +15,7 @@ EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("within_gibbs")], indirect=True
+    "experiment_directory", [path_to_demo_experiment("gibbs_within")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:

@@ -1,7 +1,7 @@
 import pytest
 from dallinger import db
 
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.trial.main import TrialNetwork
 
 
@@ -47,7 +47,9 @@ def summarize_trials(trial_class, experiment_object, node, participant, answers)
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("mcmcp")], indirect=True
+)
 def test_trial_to_dict(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
     trial_class = experiment_module.CustomTrial
@@ -78,7 +80,9 @@ def test_trial_to_dict(experiment_module, experiment_object, participant):
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("mcmcp")], indirect=True
+)
 def test_trial_accessors(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
     trial_class = experiment_module.CustomTrial
@@ -104,7 +108,9 @@ def test_trial_accessors(experiment_module, experiment_object, participant):
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("mcmcp")], indirect=True
+)
 def test_summarize(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
 

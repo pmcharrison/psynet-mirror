@@ -6,13 +6,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
 from psynet.experiment import get_and_load_config
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    next_page,
+    path_to_demo_experiment,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("translation")], indirect=True
+    "experiment_directory", [path_to_demo_experiment("translation")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):

@@ -4,14 +4,19 @@ from collections import Counter
 import pytest
 
 from psynet.participant import Participant
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    next_page,
+    path_to_demo_experiment,
+)
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial
 
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static")], indirect=True
+    "experiment_directory", [path_to_demo_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:

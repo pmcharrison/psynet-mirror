@@ -1,10 +1,12 @@
 import pytest
 
 from psynet.bot import Bot
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_demo_feature
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("bot")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo_feature("bot")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self):

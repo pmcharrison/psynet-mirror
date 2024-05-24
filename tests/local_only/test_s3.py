@@ -5,7 +5,7 @@ import uuid
 import pytest
 
 from psynet.asset import ExperimentAsset, S3Storage
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.fixture(scope="class")
@@ -42,7 +42,9 @@ def text_folder():
         yield tempdir
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
+)
 @pytest.mark.usefixtures("s3_storage")
 @pytest.mark.usefixtures("launched_experiment")
 class TestS3:

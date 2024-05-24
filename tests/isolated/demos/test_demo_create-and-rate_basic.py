@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from psynet.experiment import get_experiment
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo_experiment
 from psynet.trial.main import Trial, TrialNode
 
 logger = logging.getLogger(__file__)
@@ -80,7 +80,9 @@ class TestExp:
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("create_and_rate/basic")], indirect=True
+    "experiment_directory",
+    [path_to_demo_experiment("create_and_rate/basic")],
+    indirect=True,
 )
 class TestCreateAndRateBasic(TestExp):
     @staticmethod
@@ -125,7 +127,9 @@ class TestCreateAndRateBasic(TestExp):
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("create_and_rate/basic")], indirect=True
+    "experiment_directory",
+    [path_to_demo_experiment("create_and_rate/basic")],
+    indirect=True,
 )
 class TestCreateAndSelectBasic(TestExp):
     @staticmethod

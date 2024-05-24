@@ -10,7 +10,7 @@ from dallinger import db
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
 from psynet.bot import Bot
 from psynet.command_line import export__local
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 app = "demo-app"
 
@@ -64,7 +64,9 @@ def ctx():
     return Context(export__local)
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestAssetExport:
     def test_exp(

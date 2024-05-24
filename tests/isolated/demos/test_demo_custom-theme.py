@@ -3,13 +3,13 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo_feature
 
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("custom_theme")], indirect=True
+    "experiment_directory", [path_to_demo_feature("custom_theme")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):

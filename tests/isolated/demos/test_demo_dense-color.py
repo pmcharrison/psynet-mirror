@@ -2,13 +2,13 @@ import time
 
 import pytest
 
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo_feature
 
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("dense_color")], indirect=True
+    "experiment_directory", [path_to_demo_feature("dense_color")], indirect=True
 )
 class TestExp:
     def test_exp(self, bot_recruits, db_session):

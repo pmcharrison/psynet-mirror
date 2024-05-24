@@ -491,8 +491,19 @@ def deployment_id():
 #         raise
 
 
-def path_to_demo(demo):
-    return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()
+def path_to_demo_experiment(demo):
+    return (
+        Path(__file__)
+        .parent.parent.joinpath("demos/experiments")
+        .joinpath(demo)
+        .__str__()
+    )
+
+
+def path_to_demo_feature(demo):
+    return (
+        Path(__file__).parent.parent.joinpath("demos/features").joinpath(demo).__str__()
+    )
 
 
 def path_to_test_experiment(experiment):
