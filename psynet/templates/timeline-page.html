@@ -1162,17 +1162,26 @@
                     let fileId = args["fileId"];
 
                     let player = document.getElementById(stimulusId);
-                    if (player != null) {
+
+                    if (player) {
                         psynet.log.debug(
                             "Associating " + mediaType + " '" + stimulusId
                             + "' with the player of the same name.'"
                         );
-                        mimeType = getMimeTypeFromArrayBuffer(data);
-                        data = new Blob([data], { type: mimeType }) // convert to blob
-                        player.src = URL.createObjectURL(data);
-                     }
+                    } else {
+                        player = document.createElement("div");
+                    }
+
+                    if (!data.type) {
+                        let mimeType = getMimeTypeFromArrayBuffer(data);
+                        data = new Blob([data], { type: mimeType })
+                    }
+
+                    player.src = URL.createObjectURL(data);
+
                     let out = psynet.media.data[mediaType][stimulusId];
                     out.player = player;
+
                     let url = player.src;
                     let metadata = await getImageMetadataFromURL(url);
                     out.url = url;
