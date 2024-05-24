@@ -307,6 +307,7 @@ class SuccessfulEndPage(EndPage):
 
     def finalize_participant(self, experiment, participant):
         participant.complete = True
+        participant.progress = 1.0
 
 
 class UnsuccessfulEndPage(EndPage):

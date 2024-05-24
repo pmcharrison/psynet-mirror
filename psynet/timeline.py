@@ -218,28 +218,68 @@ class CodeBlock(Elt):
         )
 
 
-class FixTime(Elt):
-    def __init__(self, time_estimate: float):
+class FixElt(Elt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def __init__(self, time_credit: float):
         super().__init__()
-        self.time_estimate = time_estimate
+        self.time_credit = time_credit
         self.expected_repetitions = 1
 
     def multiply_expected_repetitions(self, factor):
         self.expected_repetitions = self.expected_repetitions * factor
 
 
-class StartFixTime(FixTime):
-    def __init__(self, time_estimate, end_fix_time):
-        super().__init__(time_estimate)
-        self.end_fix_time = end_fix_time
+class StartFixTimeCredit(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def __init__(self, time_credit: float, end_fix: "EndFixTimeCredit"):
+        super().__init__(time_credit)
+        self.end_fix = end_fix
 
     def consume(self, experiment, participant):
-        participant.time_credit.start_fix_time(self.time_estimate)
+        bound = participant.time_credit + self.time_credit
+        participant.time_credit_fixes.append(bound)
 
 
-class EndFixTime(FixTime):
+class EndFixTimeCredit(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
     def consume(self, experiment, participant):
-        participant.time_credit.end_fix_time(self.time_estimate)
+        participant.time_credit = participant.time_credit_fixes.pop()
+
+
+class StartFixProgress(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def consume(self, experiment, participant):
+        bound = (
+            participant.progress
+            + self.time_credit / participant.estimated_max_time_credit
+        )
+        participant.progress_fixes.append(bound)
+
+
+class EndFixProgress(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def consume(self, experiment, participant):
+        participant.progress = participant.progress_fixes.pop()
 
 
 class GoTo(Elt):
@@ -1165,13 +1205,10 @@ class Page(Elt):
             "page": self,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "time_reward": "%.2f" % participant.time_reward,
             "performance_reward": "%.2f" % participant.performance_reward,
             "total_reward": "%.2f"
-            % (
-                participant.performance_reward
-                + participant.time_credit.get_time_reward()
-            ),
+            % (participant.performance_reward + participant.time_reward),
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
@@ -1406,7 +1443,6 @@ class Timeline:
         if not isinstance(self.elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be an EndPage.")
         self.check_for_time_estimate()
-        self.check_start_fix_times()
         self.check_for_consent()
         self.check_modules()
 
@@ -1418,26 +1454,6 @@ class Timeline:
                 raise ValueError(
                     f"Element {i} of the timeline was missing a time_estimate value."
                 )
-
-    def check_start_fix_times(self):
-        try:
-            _fix_time = False
-            for i, elt in enumerate(self.elts):
-                if isinstance(elt, StartFixTime):
-                    assert not _fix_time
-                    _fix_time = True
-                elif isinstance(elt, EndFixTime):
-                    assert _fix_time
-                    _fix_time = False
-        except AssertionError:
-            raise ValueError(
-                "Nested 'fix-time' constructs detected. This typically means you have "
-                "nested conditionals or while loops with fix_time_credit=True. "
-                "Such constructs cannot be nested; instead you should choose one level "
-                "at which to set fix_time_credit=True. An example where this error might "
-                "occur is when you put a TrialMaker within a switch. In this case, "
-                "make sure to set `fix_time_credit=False` within that switch."
-            )
 
     def check_modules(self):
         modules = [x.label for x in self.elts if isinstance(x, StartModule)]
@@ -1650,11 +1666,11 @@ class CreditEstimate:
             if elt.returns_time_credit:
                 time_credit += elt.time_estimate * elt.expected_repetitions
 
-            if isinstance(elt, StartFixTime):
-                pos = elts.index(elt.end_fix_time)
+            if isinstance(elt, StartFixTimeCredit):
+                pos = elts.index(elt.end_fix)
 
-            elif isinstance(elt, EndFixTime):
-                time_credit += elt.time_estimate * elt.expected_repetitions
+            elif isinstance(elt, EndFixTimeCredit):
+                time_credit += elt.time_credit * elt.expected_repetitions
                 pos += 1
 
             elif isinstance(elt, StartSwitch):
@@ -1918,7 +1934,6 @@ def while_loop(
     list
         A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
-
     start_while = StartWhile(label)
     end_while = EndWhile(label)
 
@@ -1977,24 +1992,32 @@ def while_loop(
                 experiment=experiment,
             ),
             after_timeout_logic,
-            fix_time_credit=False,
+            # The while loop includes its own progress bounds, so we don't need to bound progress
+            # within this inner component.
+            bound_progress=False,
             log_chosen_branch=False,
         ),
         conditional(
             label,
             condition_wrapped,
             conditional_logic,
-            fix_time_credit=False,
+            # The while loop includes its own progress bounds, so we don't need to bound progress here.
+            # Moreover, this conditional contains a GoTo, which will cause the progress bound logic
+            # to fail if enabled here.
+            bound_progress=False,
             log_chosen_branch=False,
         ),
         end_while,
     )
 
+    time_estimate = CreditEstimate(logic).get_max("time")
+
+    elts = with_fixed_progress(elts, time_estimate)
+
     if fix_time_credit:
-        time_estimate = CreditEstimate(logic).get_max("time")
-        return fix_time(elts, time_estimate)
-    else:
-        return elts
+        elts = with_fixed_time_credit(elts, time_estimate)
+
+    return elts
 
 
 def check_branches(branches):
@@ -2020,6 +2043,7 @@ def switch(
     function: Callable,
     branches: dict,
     fix_time_credit: bool = False,
+    bound_progress: bool = True,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2046,6 +2070,11 @@ def switch(
         Defaults to ``False``; if set to ``True``,
         all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
+    bound_progress:
+        Whether the progress estimate should be 'bound' such that, whatever happens, when the participant
+        exits the conditional construct, the progress estimate will be the same as if the participant
+        had taken the branch with the maximum time credit. Defaults to ``True``.
+
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
@@ -2055,7 +2084,6 @@ def switch(
     list
         A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
-
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
 
@@ -2078,16 +2106,20 @@ def switch(
     )
     combined_elts = [start_switch] + all_elts + [end_switch]
 
+    time_estimate = max(
+        [
+            CreditEstimate(branch_elts).get_max("time")
+            for branch_elts in branches.values()
+        ]
+    )
+
+    if bound_progress:
+        combined_elts = with_fixed_progress(combined_elts, time_estimate)
+
     if fix_time_credit:
-        time_estimate = max(
-            [
-                CreditEstimate(branch_elts).get_max("time")
-                for branch_elts in branches.values()
-            ]
-        )
-        return fix_time(combined_elts, time_estimate)
-    else:
-        return combined_elts
+        combined_elts = with_fixed_time_credit(combined_elts, time_estimate)
+
+    return combined_elts
 
 
 class StartSwitch(ReactiveGoTo):
@@ -2139,6 +2171,7 @@ def conditional(
     logic_if_true,
     logic_if_false=None,
     fix_time_credit: bool = False,
+    bound_progress: bool = True,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2166,6 +2199,11 @@ def conditional(
         Defaults to ``False``; if set to ``True``,
         all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
+    bound_progress:
+        Whether the progress estimate should be 'bound' such that, whatever happens, when the participant
+        exits the conditional construct, the progress estimate will be the same as if the participant
+        had taken the branch with the maximum time credit. Defaults to ``True``.
+
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
@@ -2183,6 +2221,7 @@ def conditional(
             False: NullElt() if logic_if_false is None else logic_if_false,
         },
         fix_time_credit=fix_time_credit,
+        bound_progress=bound_progress,
         log_chosen_branch=log_chosen_branch,
     )
 
@@ -2201,10 +2240,47 @@ class EndConditional(ConditionalElt):
     pass
 
 
-def fix_time(elts, time_estimate):
-    end_fix_time = EndFixTime(time_estimate)
-    start_fix_time = StartFixTime(time_estimate, end_fix_time)
-    return join(start_fix_time, elts, end_fix_time)
+def with_fixed_progress(elts: List[Elt], time_credit: float):
+    """
+    Ensures that, when the provided list of elts has been consumed,
+    the participant's progress corresponds exactly to the specified
+    time credit, irrespective of whatever happens within those elts.
+
+    Parameters
+    ----------
+
+    elts :
+        A list of timeline Elts.
+
+    time_credit :
+        The progress increment is calculated as if the participant had acquired
+        this amount of time credit (in units of seconds).
+    """
+    return join(
+        StartFixProgress(time_credit),
+        elts,
+        EndFixProgress(time_credit),
+    )
+
+
+def with_fixed_time_credit(elts, time_credit):
+    """
+    Ensures that, when the provided list of elts has been consumed,
+    the participant's resulting time credit corresponds exactly to the specified
+    value, irrespective of whatever happens within those elts.
+
+    Parameters
+    ----------
+
+    elts :
+        A list of timeline Elts.
+
+    time_credit :
+        The amount of time credit to allocate (in units of seconds).
+    """
+    end_fix = EndFixTimeCredit(time_credit)
+    start_fix = StartFixTimeCredit(time_credit, end_fix)
+    return join(start_fix, elts, end_fix)
 
 
 def multiply_expected_repetitions(logic, factor: float):

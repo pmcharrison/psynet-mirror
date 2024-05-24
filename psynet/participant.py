@@ -154,6 +154,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     elt_id = Column(PythonList)
     elt_id_max = Column(PythonList)
+
+    time_credit = Column(Float)
+    estimated_max_time_credit = Column(Float)
+    progress = Column(Float)
+
+    # If time_credit_fixes is non-empty, then the last element of time_credit_fixes
+    # is used as the currently active time credit 'fix'. While this fix is active,
+    # the participant's time credit will not be allowed to increase above this number.
+    # Once the fix expires, the participant's time credit will be set to that number exactly.
+    # See ``psynet.timeline.with_fixed_time_credit`` for an explanation.
+    time_credit_fixes = Column(PythonList)
+    # progress_fixes is analogous to time_credit_fixes, but for progress.
+    progress_fixes = Column(PythonList)
+
     page_uuid = Column(String)
     aborted = Column(Boolean, default=False)
     complete = Column(Boolean, default=False)
@@ -429,12 +443,18 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.vars = {}
+        self.time_credit = 0.0
+        self.estimated_max_time_credit = (
+            experiment.timeline.estimated_time_credit.get_max("time")
+        )
+        self.progress = 0.0
+        self.time_credit_fixes = []
+        self.progress_fixes = []
         self.elt_id = [-1]
         self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []
         self.sequences = []
         self.complete = False
-        self.time_credit.initialize(experiment)
         self.performance_reward = 0.0
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
@@ -451,6 +471,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def initialize(self, experiment):
         pass
 
+    @property
+    def time_reward(self):
+        from .experiment import get_and_load_config
+
+        wage_per_hour = get_and_load_config().get("wage_per_hour")
+        seconds = self.time_credit
+        hours = seconds / 3600
+        return hours * wage_per_hour
+
     def calculate_reward(self):
         """
         Calculates and returns the currently accumulated reward for the given participant.
@@ -459,9 +488,19 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             The reward as a ``float``.
         """
         return round(
-            self.time_credit.get_time_reward() + self.performance_reward,
+            self.time_reward + self.performance_reward,
             ndigits=2,
         )
+
+    def inc_time_credit(self, time_credit: float):
+        new_value = self.time_credit + time_credit
+        new_value = min([new_value, *self.time_credit_fixes])
+        self.time_credit = new_value
+
+    def inc_progress(self, time_credit: float):
+        new_value = self.progress + time_credit / self.estimated_max_time_credit
+        new_value = min([new_value, *self.progress_fixes])
+        self.progress = new_value
 
     def inc_performance_reward(self, value):
         self.performance_reward += value
@@ -524,15 +563,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             .order_by(desc(Response.id))
             .first()
         )
-
-    @property
-    @extra_var(__extra_vars__)
-    def progress(self):
-        return 1.0 if self.complete else self.time_credit.progress
-
-    @property
-    def time_credit(self):
-        return TimeCreditStore(self)
 
     def append_branch_log(self, entry: str):
         # We need to create a new list otherwise the change may not be recognized
@@ -632,83 +662,3 @@ def get_participant(participant_id: int, for_update: bool = False) -> Participan
     if for_update:
         query = query.with_for_update(of=Participant).populate_existing()
     return query.one()
-
-
-class TimeCreditStore:
-    fields = [
-        "confirmed_credit",
-        "is_fixed",
-        "pending_credit",
-        "max_pending_credit",
-        "wage_per_hour",
-        "experiment_max_time_credit",
-        "experiment_max_reward",
-    ]
-
-    def __init__(self, participant):
-        self.participant = participant
-
-    def get_internal_name(self, name):
-        if name not in self.fields:
-            raise ValueError(f"{name} is not a valid field for TimeCreditStore.")
-        return f"__time_credit__{name}"
-
-    def __getattr__(self, name):
-        if name == "participant":
-            return self.__dict__["participant"]
-        else:
-            return self.participant.var.get(self.get_internal_name(name))
-
-    def __setattr__(self, name, value):
-        if name == "participant":
-            self.__dict__["participant"] = value
-        else:
-            self.participant.var.set(self.get_internal_name(name), value)
-
-    def initialize(self, experiment):
-        from .experiment import get_and_load_config
-
-        self.confirmed_credit = 0.0
-        self.is_fixed = False
-        self.pending_credit = 0.0
-        self.max_pending_credit = 0.0
-        self.wage_per_hour = get_and_load_config().get("wage_per_hour")
-
-        experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
-        self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
-            "time"
-        )
-        self.experiment_max_reward = experiment_estimated_time_credit.get_max(
-            "reward", wage_per_hour=self.wage_per_hour
-        )
-
-    def increment(self, value: float):
-        if self.is_fixed:
-            self.pending_credit += value
-            if self.pending_credit > self.max_pending_credit:
-                self.pending_credit = self.max_pending_credit
-        else:
-            self.confirmed_credit += value
-
-    def start_fix_time(self, time_estimate: float):
-        assert not self.is_fixed
-        self.is_fixed = True
-        self.pending_credit = 0.0
-        self.max_pending_credit = time_estimate
-
-    def end_fix_time(self, time_estimate: float):
-        assert self.is_fixed
-        self.is_fixed = False
-        self.pending_credit = 0.0
-        self.max_pending_credit = 0.0
-        self.confirmed_credit += time_estimate
-
-    def get_time_reward(self):
-        return self.wage_per_hour * self.confirmed_credit / (60 * 60)
-
-    def estimate_time_credit(self):
-        return self.confirmed_credit + self.pending_credit
-
-    @property
-    def progress(self):
-        return self.estimate_time_credit() / self.experiment_max_time_credit
