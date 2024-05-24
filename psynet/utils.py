@@ -1641,10 +1641,13 @@ def get_psynet_root():
 
 def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
+    test_experiments_root = get_psynet_root() / "tests/experiments"
+
     dirs = sorted(
         [
             dir_
-            for dir_, sub_dirs, files in os.walk(demo_root)
+            for root in [demo_root, test_experiments_root]
+            for dir_, sub_dirs, files in os.walk(root)
             if (
                 "experiment.py" in files
                 and not dir_.endswith("/develop")
@@ -1655,7 +1658,7 @@ def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
                         "recruiters" in dir_
                         # Skip the video_gibbs demo because it relies on ffmpeg which is not installed
                         # in the CI environment
-                        or dir_.endswith("/video_gibbs")
+                        or dir_.endswith("/gibbs_video")
                     )
                 )
             )
