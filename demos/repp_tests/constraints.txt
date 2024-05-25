@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 5bfdac34d95df1966ae315f5e81642cc
+# Compiled from a requirement.txt file with md5sum: 792a99f32f55dc335285dd6fad28b6b4
 #
 anyio==4.3.0
     # via
@@ -179,7 +179,7 @@ flask-wtf==1.2.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.1.1/dev-requirements.txt
     #   dallinger
-fonttools==4.51.0
+fonttools==4.52.1
     # via matplotlib
 fqdn==1.5.1
     # via
@@ -379,7 +379,7 @@ markupsafe==2.1.5
     #   wtforms
 matplotlib==3.9.0
     # via
-    #   -r /tmp/tmpxucucb90/requirements.txt
+    #   -r /tmp/tmpfkd_sv0_/requirements.txt
     #   repp
 matplotlib-inline==0.1.7
     # via
@@ -509,7 +509,7 @@ psycopg2==2.9.9
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.1.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==11.3.1
+psynet==11.4.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -640,7 +640,7 @@ s3transfer==0.10.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.1.1/dev-requirements.txt
     #   boto3
-scipy==1.13.0
+scipy==1.13.1
     # via repp
 selenium==4.20.0
     # via
