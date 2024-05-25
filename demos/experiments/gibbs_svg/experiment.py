@@ -66,7 +66,7 @@ class CustomNode(HtmlGibbsNode):
 
 
 trial_maker = HtmlGibbsTrialMaker(
-    id_="svg_gibbs_demo",
+    id_="gibbs_svg_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"

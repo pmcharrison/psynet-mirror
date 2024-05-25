@@ -108,7 +108,7 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 
 trial_maker = CustomTrialMaker(
-    id_="audio_gibbs_demo",
+    id_="gibbs_audio_complex_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     start_nodes=lambda: [

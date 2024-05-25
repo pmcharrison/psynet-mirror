@@ -26,5 +26,5 @@ Prompt (e.g. text, audio, video), typically representing some kind of stimulus,
 and a Control (e.g. rating, slider), whereby the participant responds.
 
 
-.. literalinclude:: ../../demos/timeline/experiment.py
+.. literalinclude:: ../../demos/experiments/timeline/experiment.py
    :language: python

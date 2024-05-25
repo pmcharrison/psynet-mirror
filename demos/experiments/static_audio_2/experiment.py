@@ -108,7 +108,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         StaticTrialMaker(
-            id_="static_audio",
+            id_="static_audio_2",
             trial_class=CustomTrial,
             nodes=nodes,
             expected_trials_per_participant=len(nodes),

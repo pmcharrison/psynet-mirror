@@ -107,7 +107,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         StaticTrialMaker(
-            id_="static_audio",
+            id_="static_audio_3",
             trial_class=SoundRatingTrial,
             nodes=nodes,
             target_n_participants=0,

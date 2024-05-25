@@ -81,7 +81,7 @@ class CustomGibbsTrialMaker(ImageGibbsTrialMaker):
 
 
 trial_maker = CustomGibbsTrialMaker(
-    id_="image_gibbs_demo",
+    id_="gibbs_image_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"

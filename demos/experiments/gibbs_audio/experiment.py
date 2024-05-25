@@ -78,7 +78,7 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 
 trial_maker = CustomTrialMaker(
-    id_="audio_gibbs_demo",
+    id_="gibbs_audio_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="within",  # can be "within" or "across"

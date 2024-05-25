@@ -1656,7 +1656,7 @@ def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
                     or not (
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
-                        # Skip the video_gibbs demo because it relies on ffmpeg which is not installed
+                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
                         or dir_.endswith("/gibbs_video")
                     )

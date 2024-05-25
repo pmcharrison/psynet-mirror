@@ -84,7 +84,7 @@ class CustomTrialMaker(VideoGibbsTrialMaker):
 
 
 trial_maker = CustomTrialMaker(
-    id_="video_gibbs_demo",
+    id_="gibbs_video_demo",
     trial_class=CustomTrial,
     node_class=CustomNode,
     chain_type="across",  # can be "within" or "across"
