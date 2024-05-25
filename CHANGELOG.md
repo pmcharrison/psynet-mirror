@@ -1,5 +1,18 @@
 # CHANGELOG
 
+# [11.4.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.4.0) Release 2024-05-25
+
+## Fixed
+- Avoid throwing an `NotImplementedError` if accidentally multiple trials are made; only propagate the answer of the first trial and fail other remaining trials (author: Pol van Rijn, reviewer: Peter Harrison).
+- Fixed bug where progress bar would behave strangely when timeline constructs ended up delivering an unexpected amount of time reward. This bug was most salient in trial makers when `expected_trials_per_participant` was specified inaccurately (author: Peter Harrison, reviewer: Frank Höger).
+- Removed `require_exp_directory` decorator for `psynet check-constraints` and `psynet generate-constraints` which was causing Docker builds to fail (author: Frank Höger, reviewer: Peter Harrison).
+
+## Changed
+- `participant.time_credit` is now represented as a float rather than as an object of class `TimeCreditStore` (author: Peter Harrison, reviewer: Frank Höger).
+- Renamed `fix_time` to `with_fixed_time_credit`. As a reminder, this function ensures that a given portion of
+  the timeline always delivers a specified amount of time credit once completed, irrespective of how many
+  pages/trials the participant consumes in that region (author: Peter Harrison, reviewer: Frank Höger).
+
 # [11.3.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.3.1) Release 2024-05-17
 
 ## Fixed
