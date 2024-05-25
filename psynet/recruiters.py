@@ -500,7 +500,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
             if reason:
                 try:
-                    self.terminate_participant(entrant.rid, reason, details)
+                    self.terminate_participant(participant, reason, details)
                     logger.info(f"RID {entrant.rid} terminated")
                 except Exception as e:
                     logger.error(f"Error terminating participant {entrant.rid}: {e}")
@@ -691,7 +691,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 reason = "consent-rejected"
             else:
                 reason = "participant-did-not-complete"
-            self.terminate_participant(participant.assignment_id, reason)
+            self.terminate_participant(participant, reason)
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.get_survey_storage_key("survey_number"), survey_number)
