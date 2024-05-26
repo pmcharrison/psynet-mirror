@@ -12,10 +12,11 @@ def find_files():
     """
     parent = pathlib.Path(__file__).parent / "isolated"
     parent_demos = parent / "demos"
+    parent_experiments = parent / "experiments"
     parent_features = parent / "features"
 
     python_files = []
-    for directory in [parent, parent_demos, parent_features]:
+    for directory in [parent, parent_demos, parent_experiments, parent_features]:
         python_files.extend(directory.glob("*.py"))
 
     return sorted(map(str, python_files))
