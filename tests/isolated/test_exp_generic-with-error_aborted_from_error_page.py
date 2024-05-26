@@ -62,7 +62,7 @@ class TestExp:
                 "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. "
                 "Once aborted, there is no need to contact us to receive the compensation; this should be awarded "
                 "to you automatically via MTurk a few minutes after. If this is not the case, please contact us "
-                "at some@email.com quoting the following information:",
+                "at XXX@gmail.com quoting the following information:",
             )
             assert_text(
                 driver,
