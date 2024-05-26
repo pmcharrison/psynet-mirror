@@ -1680,9 +1680,16 @@ def with_parallel_ci(paths, ci_node_total, ci_node_index):
 def list_isolated_tests(ci_node_total=None, ci_node_index=None):
     isolated_tests_root = get_psynet_root() / "tests" / "isolated"
     isolated_tests_demos = isolated_tests_root / "demos"
+    isolated_tests_experiments = isolated_tests_root / "experiments"
+    isolated_tests_features = isolated_tests_root / "features"
 
     tests = []
-    for directory in [isolated_tests_root, isolated_tests_demos]:
+    for directory in [
+        isolated_tests_root,
+        isolated_tests_demos,
+        isolated_tests_experiments,
+        isolated_tests_features,
+    ]:
         tests.extend(glob.glob(str(directory / "*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
