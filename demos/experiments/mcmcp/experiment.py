@@ -12,8 +12,6 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-from .test_imports import CustomCls  # noqa -- this is to test custom class import
-
 MAX_AGE = 100
 OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
