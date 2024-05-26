@@ -4,12 +4,12 @@ import pandas.testing as pdt
 import pytest
 
 import psynet.data  # noqa - for the jsonpickle registration
-from psynet.pytest_psynet import path_to_demo_experiment
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import json_to_data_frame
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("static")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 def test_jsonpickle(trial):

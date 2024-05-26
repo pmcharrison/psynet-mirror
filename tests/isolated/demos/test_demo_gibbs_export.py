@@ -13,7 +13,7 @@ from click import Context
 from psynet.bot import Bot
 from psynet.command_line import export__local, populate_db_from_zip_file
 from psynet.participant import Participant
-from psynet.pytest_psynet import path_to_demo_experiment
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Response
 from psynet.trial.main import Trial
 
@@ -40,7 +40,7 @@ def coin_class(experiment_module):
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("gibbs")], indirect=True
+    "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 @pytest.mark.dependency()
@@ -203,7 +203,7 @@ class TestExport:
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("gibbs")], indirect=True
+    "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
 )
 @pytest.mark.usefixtures("db_session")
 def test_populate_db_from_zip_file(database_zip_file, coin_class):
