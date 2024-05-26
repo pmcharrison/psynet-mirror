@@ -15,8 +15,6 @@ from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTr
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-from . import test_imports  # noqa  (this is for PsyNet's regression tests)
-
 nodes = [
     StaticNode(
         definition={"animal": animal},
