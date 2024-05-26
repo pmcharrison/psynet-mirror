@@ -18,7 +18,7 @@ PYTEST_BOT_CLASS = bot_class()
 
 @pytest.mark.parametrize(
     "experiment_directory",
-    [path_to_test_experiment("generic_with_error")],
+    [path_to_test_experiment("timeline_with_error")],
     indirect=True,
 )
 class TestExp:

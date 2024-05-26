@@ -9,7 +9,7 @@ from psynet.utils import get_from_config
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 def test_config(in_experiment_directory):
     global_config_path = os.path.expanduser("~/.dallingerconfig")
@@ -23,7 +23,7 @@ def test_config(in_experiment_directory):
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 def test_secrets(in_experiment_directory):
     get_experiment()

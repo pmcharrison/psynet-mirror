@@ -6,7 +6,7 @@ from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 def test_app_deployment_id(launched_experiment):
     exp = get_experiment()

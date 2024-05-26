@@ -17,13 +17,14 @@ PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("generic")], indirect=True
+    "experiment_directory",
+    [path_to_test_experiment("timeline_with_error")],
+    indirect=True,
 )
-@pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_variables(self, db_session):
         config = get_and_load_config()
-        assert config.get("min_accumulated_reward_for_abort") == 0.15
+        assert config.get("min_accumulated_reward_for_abort") == 0.10
         assert config.get("show_abort_button") is True
 
     def test_abort(self, bot_recruits, db_session):
@@ -42,7 +43,24 @@ class TestExp:
             next_page(driver, "consent")
             next_page(driver, "next-button")
             next_page(driver, "next-button")
-            next_page(driver, "next-button")
+
+            with pytest.raises(RuntimeError):
+                next_page(driver, "next-button")
+
+            assert_text(driver, "header", "Error!")
+            assert_text(
+                driver,
+                "error-text",
+                "There has been an error and so you are unable to continue, sorry!",
+            )
+            assert_text(
+                driver,
+                "error-text-main",
+                "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. "
+                "Once aborted, there is no need to contact us to receive the compensation; this should be awarded "
+                "to you automatically via MTurk a few minutes after. If this is not the case, please contact us "
+                "at XXX@gmail.com quoting the following information:",
+            )
 
             driver.switch_to.window(driver.window_handles[0])
             abort_button = driver.find_element(By.ID, "abort-button")
@@ -51,6 +69,7 @@ class TestExp:
             assert_text(
                 driver, "header", "Are you sure you want to abort the experiment?"
             )
+
             abort_button = driver.find_element(By.ID, "abort-button")
             abort_button.click()
             time.sleep(0.5)
