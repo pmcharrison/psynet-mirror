@@ -1639,7 +1639,7 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
-def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
 

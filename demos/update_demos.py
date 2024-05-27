@@ -20,7 +20,7 @@ from joblib import Parallel, delayed
 
 import psynet.command_line
 from psynet import __version__
-from psynet.utils import list_demo_dirs, working_directory
+from psynet.utils import list_experiment_dirs, working_directory
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
 
@@ -90,5 +90,5 @@ for path in [
 # Update demos
 n_jobs = 8
 Parallel(verbose=10, n_jobs=n_jobs)(
-    delayed(update_demo)(_dir) for _dir in list_demo_dirs()
+    delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
 )

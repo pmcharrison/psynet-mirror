@@ -13,7 +13,7 @@ from psynet.utils import (
     corr,
     get_psynet_root,
     linspace,
-    list_demo_dirs,
+    list_experiment_dirs,
     list_isolated_tests,
     make_parents,
     merge_dicts,
@@ -142,14 +142,14 @@ def get_datetime(str):
 
 def test_demo_dirs():
     psynet_root = get_psynet_root()
-    dirs = list_demo_dirs()
+    dirs = list_experiment_dirs()
     assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
     assert (
         psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
         in dirs
     )
 
-    dirs = list_demo_dirs(for_ci_tests=True)
+    dirs = list_experiment_dirs(for_ci_tests=True)
     assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
     assert (
         psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
