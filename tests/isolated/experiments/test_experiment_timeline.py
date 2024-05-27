@@ -11,14 +11,14 @@ from psynet.pytest_psynet import (
     assert_text,
     bot_class,
     next_page,
-    path_to_demo_experiment,
+    path_to_test_experiment,
 )
 
 PYTEST_BOT_CLASS = bot_class()
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("timeline")], indirect=True
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
