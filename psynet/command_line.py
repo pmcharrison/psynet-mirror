@@ -1372,7 +1372,6 @@ def setup_experiment_variables(experiment_class):
 ########################
 @psynet.command()
 @click.pass_context
-@require_exp_directory
 def generate_constraints(ctx):
     """
     Generate the constraints.txt file from requirements.txt.
@@ -1390,7 +1389,6 @@ def generate_constraints(ctx):
 
 
 @psynet.command()
-@require_exp_directory
 def check_constraints():
     "Check whether the experiment contains an appropriate constraints.txt file."
     if os.environ.get("SKIP_DEPENDENCY_CHECK"):

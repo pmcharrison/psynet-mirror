@@ -898,18 +898,14 @@ class Trial(SQLMixinDallinger, Info):
         )
 
     @classmethod
-    def _get_current_time_credit(cls, participant):
-        return participant.time_credit.confirmed_credit
-
-    @classmethod
     def _log_time_credit_before_trial(cls, participant):
         trial = participant.current_trial
-        trial.time_credit_before_trial = cls._get_current_time_credit(participant)
+        trial.time_credit_before_trial = participant.time_credit
 
     @classmethod
     def _log_time_credit_after_trial(cls, participant):
         trial = participant.current_trial
-        trial.time_credit_after_trial = cls._get_current_time_credit(participant)
+        trial.time_credit_after_trial = participant.time_credit
         trial.time_credit_from_trial = (
             trial.time_credit_after_trial - trial.time_credit_before_trial
         )
