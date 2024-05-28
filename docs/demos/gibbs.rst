@@ -41,11 +41,11 @@ You can define a custom Gibbs sampling experiment through the following steps:
    with a custom
    :meth:`~psynet.trial.gibbs.GibbsTrial.show_trial` method.
    This :meth:`~psynet.trial.gibbs.GibbsTrial.show_trial` method
-   should produce an object of 
+   should produce an object of
    class :class:`~psynet.timeline.Page` [1]_
    that presents the participant with some dynamic stimulus (e.g. a color
    or a looping audio sample) that jointly
-   
+
    a) Embodies the fixed network parameter, e.g. ``"forest"``, found in ``trial.network.definition``;
    b) Embodies the free network parameters, e.g. ``[255, 25, 0]``, found in ``trial.initial_vector``;
    c) Listens to some kind of response interface, e.g. an on-screen slider, which manipulates
@@ -71,5 +71,5 @@ You can define a custom Gibbs sampling experiment through the following steps:
 
 Source: ``demos/gibbs``
 
-.. literalinclude:: ../../demos/gibbs/experiment.py
+.. literalinclude:: ../../demos/experiments/gibbs/experiment.py
    :language: python

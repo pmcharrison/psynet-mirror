@@ -25,5 +25,5 @@ but alternatively this function could include a random component, and it could r
 the state of the participant itself.
 
 
-.. literalinclude:: ../../demos/survey_js/experiment.py
+.. literalinclude:: ../../demos/experiments/survey_js/experiment.py
    :language: python

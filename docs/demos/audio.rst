@@ -8,5 +8,5 @@ These include both ways to produce and to record sound.
 
 Source: ``demos/audio``
 
-.. literalinclude:: ../../demos/audio/experiment.py
+.. literalinclude:: ../../demos/experiments/audio/experiment.py
    :language: python

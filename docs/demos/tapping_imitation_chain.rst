@@ -10,5 +10,5 @@ using a signal-processing pipeline.
 
 Source: ``demos/tapping_iterated``
 
-.. literalinclude:: ../../demos/tapping_iterated/experiment.py
+.. literalinclude:: ../../demos/experiments/tapping_iterated/experiment.py
    :language: python

@@ -1639,12 +1639,15 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
-def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
+    test_experiments_root = get_psynet_root() / "tests/experiments"
+
     dirs = sorted(
         [
             dir_
-            for dir_, sub_dirs, files in os.walk(demo_root)
+            for root in [demo_root, test_experiments_root]
+            for dir_, sub_dirs, files in os.walk(root)
             if (
                 "experiment.py" in files
                 and not dir_.endswith("/develop")
@@ -1653,9 +1656,9 @@ def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
                     or not (
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
-                        # Skip the video_gibbs demo because it relies on ffmpeg which is not installed
+                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
-                        or dir_.endswith("/video_gibbs")
+                        or dir_.endswith("/gibbs_video")
                     )
                 )
             )
@@ -1675,8 +1678,19 @@ def with_parallel_ci(paths, ci_node_total, ci_node_index):
 
 
 def list_isolated_tests(ci_node_total=None, ci_node_index=None):
-    isolated_test_root = get_psynet_root() / "tests" / "isolated"
-    tests = glob.glob(str(isolated_test_root / "*.py"))
+    isolated_tests_root = get_psynet_root() / "tests" / "isolated"
+    isolated_tests_demos = isolated_tests_root / "demos"
+    isolated_tests_experiments = isolated_tests_root / "experiments"
+    isolated_tests_features = isolated_tests_root / "features"
+
+    tests = []
+    for directory in [
+        isolated_tests_root,
+        isolated_tests_demos,
+        isolated_tests_experiments,
+        isolated_tests_features,
+    ]:
+        tests.extend(glob.glob(str(directory / "*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)

@@ -4,11 +4,13 @@ from zipfile import ZipFile
 import pytest
 import requests
 
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.mark.usefixtures("launched_experiment")
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_download_source_missing_credentials(launched_experiment):
     response = requests.get("http://localhost:5000/download_source")
 
@@ -18,7 +20,9 @@ def test_download_source_missing_credentials(launched_experiment):
 
 
 @pytest.mark.usefixtures("launched_experiment")
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_download_source_wrong_credentials(launched_experiment):
     response = requests.get(
         "http://localhost:5000/download_source",
@@ -31,7 +35,9 @@ def test_download_source_wrong_credentials(launched_experiment):
 
 
 @pytest.mark.usefixtures("launched_experiment")
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_download_source_success(launched_experiment):
     response = requests.get(
         "http://localhost:5000/download_source",

@@ -12,5 +12,5 @@ such that it would be impractical to generate all possible stimuli in advance.
 
 Source: ``demos/trial_3/experiment.py``
 
-.. literalinclude:: ../../demos/trial_3/experiment.py
+.. literalinclude:: ../../demos/experiments/trial_3/experiment.py
    :language: python

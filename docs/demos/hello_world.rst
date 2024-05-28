@@ -8,7 +8,7 @@ and simply prints "Hello world" to the user. We'll just show the ``experiment.py
 below, though note that the experiment directory contains various other boilerplate
 files too.
 
-.. literalinclude:: ../../demos/hello_world/experiment.py
+.. literalinclude:: ../../demos/experiments/hello_world/experiment.py
    :language: python
 
 Note the use of the timeline, which determines the order of events within the

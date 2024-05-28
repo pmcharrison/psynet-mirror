@@ -2,10 +2,12 @@ import pytest
 import requests
 
 from psynet.experiment import get_experiment
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_app_deployment_id(launched_experiment):
     exp = get_experiment()
     id_1 = exp.deployment_id

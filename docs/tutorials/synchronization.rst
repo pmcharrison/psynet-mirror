@@ -128,5 +128,5 @@ Demo
 The 'rock, paper, scissors' demo provides an example of the full-scale use of these features.
 The source code is provided below:
 
-.. literalinclude:: ../../demos/rock_paper_scissors/experiment.py
+.. literalinclude:: ../../demos/experiments/rock_paper_scissors/experiment.py
    :language: python

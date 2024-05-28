@@ -5,7 +5,7 @@ from dallinger import db
 
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.sync import SimpleGrouper
 
 
@@ -39,7 +39,7 @@ def test_random_partition():
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("consents")], indirect=True
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
 def test_group_allocator(in_experiment_directory, db_session):
     exp = get_experiment()

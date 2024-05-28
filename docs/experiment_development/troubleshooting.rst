@@ -29,7 +29,7 @@ Suppose you see an error message like this when trying to run an experiment usin
 This normally means you have out-of-date credentials in your Docker client. Try running the following:
 
 .. code:: bash
-    
+
     docker login registry.gitlab.com
 
 
@@ -46,7 +46,7 @@ Suppose you see an error message like this when trying to run an experiment usin
     ERROR: failed to solve: failed to copy: write /var/lib/docker/buildkit/content/ingest/ae8153b11f4d4f00d8b937b5de83ad657bae8a815251f89f9476de4147382577/data: no space left on device
 
 This means too many old Docker images have accumulated on your system. This can be fixed by running the following command:
-    
+
 .. code:: bash
 
     docker system prune
@@ -119,7 +119,7 @@ It has proved possible in the past to fix this problem by running the following:
     brew reinstall postgresql@14
     brew services restart postgresql@14
 
-where ``postgresql@14`` should be replaced with the exact name for the Postgres service that you saw in ``brew services`.
+where ``postgresql@14`` should be replaced with the exact name for the Postgres service that you saw in ``brew services``.
 
 If that doesn't work, try searching Google for help. If you find another solution,
 please share your experience here.

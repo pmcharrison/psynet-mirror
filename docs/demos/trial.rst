@@ -28,5 +28,5 @@ To present a word in the form of a Rate Trial, we call ``RateTrial.cue``.
     will throw an error if the bot hasn't completed exactly 3 trials.
 
 
-.. literalinclude:: ../../demos/trial/experiment.py
+.. literalinclude:: ../../demos/experiments/trial/experiment.py
    :language: python
