@@ -15,5 +15,5 @@ with a number and are told to remember and then reproduce it.
 
 Source: ``demos/imitation_chain``
 
-.. literalinclude:: ../../demos/imitation_chain/experiment.py
+.. literalinclude:: ../../demos/experiments/imitation_chain/experiment.py
    :language: python

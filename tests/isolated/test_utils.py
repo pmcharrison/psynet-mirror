@@ -13,7 +13,7 @@ from psynet.utils import (
     corr,
     get_psynet_root,
     linspace,
-    list_demo_dirs,
+    list_experiment_dirs,
     list_isolated_tests,
     make_parents,
     merge_dicts,
@@ -142,13 +142,19 @@ def get_datetime(str):
 
 def test_demo_dirs():
     psynet_root = get_psynet_root()
-    dirs = list_demo_dirs()
-    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
-    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() in dirs
+    dirs = list_experiment_dirs()
+    assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
+    assert (
+        psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
+        in dirs
+    )
 
-    dirs = list_demo_dirs(for_ci_tests=True)
-    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
-    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() not in dirs
+    dirs = list_experiment_dirs(for_ci_tests=True)
+    assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
+    assert (
+        psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
+        not in dirs
+    )
 
 
 def test_isolated_tests():
@@ -156,7 +162,10 @@ def test_isolated_tests():
     tests = list_isolated_tests()
 
     assert (
-        psynet_root.joinpath("tests/isolated/test_demo_timeline.py").__str__() in tests
+        psynet_root.joinpath(
+            "tests/isolated/experiments/test_experiment_timeline.py"
+        ).__str__()
+        in tests
     )
 
 

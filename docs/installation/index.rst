@@ -11,6 +11,7 @@ Follow the links below for instructions.
 
     virtualenv_installation/index
     docker_installation/index
+    additional_developer_installation
 
 If you are interested in contributing to PsyNet, you should also complete
 the :ref:`additional_developer_installation`.

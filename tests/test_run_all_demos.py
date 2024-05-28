@@ -1,8 +1,8 @@
 import pytest
 
-from psynet.utils import list_demo_dirs, working_directory
+from psynet.utils import list_experiment_dirs, working_directory
 
-demos = list_demo_dirs(for_ci_tests=True)
+demos = list_experiment_dirs(for_ci_tests=True)
 
 
 @pytest.fixture(scope="class")

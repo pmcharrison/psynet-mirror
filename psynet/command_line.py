@@ -45,7 +45,7 @@ from .serialize import serialize, unserialize
 from .utils import (
     ISO_639_1_CODES,
     get_args,
-    list_demo_dirs,
+    list_experiment_dirs,
     list_isolated_tests,
     make_parents,
     pretty_format_seconds,
@@ -2713,15 +2713,16 @@ def simulate(ctx):
     ctx.invoke(export__local)
 
 
-@psynet.command(name="list-demo-dirs")
+@psynet.command(name="list-experiment-dirs")
 @click.option("--for-ci-tests", is_flag=True)
 @click.option("--ci-node-total", default=None, type=int)
 @click.option("--ci-node-index", default=None, type=int)
-def _list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+def _list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     """
-    Lists the directories of all the demo experiments that are available.
+    Lists the directories of all the experiments that are available under the 'demos' directory,
+    plus those inside the 'tests/experiments' directory.
     """
-    for directory in list_demo_dirs(
+    for directory in list_experiment_dirs(
         for_ci_tests=for_ci_tests,
         ci_node_total=ci_node_total,
         ci_node_index=ci_node_index,

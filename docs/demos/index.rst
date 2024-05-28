@@ -14,7 +14,7 @@ Demos
    audio
    static_audio
    gibbs
-   audio_gibbs
+   gibbs_audio
    imitation_chains
    tapping_imitation_chain
    mcmcp

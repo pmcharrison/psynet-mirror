@@ -4,11 +4,13 @@ import pytest
 from dallinger.config import get_config
 
 from psynet.experiment import get_experiment
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import get_from_config
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_config(in_experiment_directory):
     global_config_path = os.path.expanduser("~/.dallingerconfig")
     with open(global_config_path, "r") as file:
@@ -20,7 +22,9 @@ def test_config(in_experiment_directory):
     assert _recruiter == "generic"
 
 
-@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_secrets(in_experiment_directory):
     get_experiment()
     config = get_config()
