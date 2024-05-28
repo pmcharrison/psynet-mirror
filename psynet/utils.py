@@ -534,6 +534,20 @@ def require_exp_directory(f):
     return wrapper
 
 
+def require_requirements_txt(f):
+    """Decorator to verify that a command is run inside a directory which contains a requirements.txt file."""
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not Path("requirements.txt").exists():
+            raise click.UsageError(
+                "The current directory does not contain a requirements.txt file."
+            )
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 def get_language():
     """
     Returns the language selected in config.txt.
