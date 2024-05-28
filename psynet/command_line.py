@@ -50,6 +50,7 @@ from .utils import (
     make_parents,
     pretty_format_seconds,
     require_exp_directory,
+    require_requirements_txt,
     run_subprocess_with_live_output,
     working_directory,
 )
@@ -1372,6 +1373,7 @@ def setup_experiment_variables(experiment_class):
 ########################
 @psynet.command()
 @click.pass_context
+@require_requirements_txt
 def generate_constraints(ctx):
     """
     Generate the constraints.txt file from requirements.txt.
@@ -1389,6 +1391,7 @@ def generate_constraints(ctx):
 
 
 @psynet.command()
+@require_requirements_txt
 def check_constraints():
     "Check whether the experiment contains an appropriate constraints.txt file."
     if os.environ.get("SKIP_DEPENDENCY_CHECK"):
