@@ -14,21 +14,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-msgid "Complete Survey"
-msgstr "Полный опрос"
-
-msgid "Resuming experiment ..."
-msgstr "Возобновление эксперимента ..."
-
-#, python-format
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Вы также увидите одну или несколько страниц согласия и у Вас будет до "
-"<strong>%(TERMINATION_TIME)s</strong>, чтобы прочитать и принять/отклонить "
-"их."
-
 #: psynet/demography/general.py
 msgid "I don’t know"
 msgstr "Я не знаю"
@@ -396,12 +381,6 @@ msgstr "Произошла ошибка, поэтому Вы не можете �
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Перенаправление..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Пожалуйста, укажите также следующую информацию:"
@@ -451,11 +430,6 @@ msgid "You need to select an answer!"
 msgstr "Вам необходимо выбрать ответ!"
 
 #: psynet/prescreen.py
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Запишите число, изображенное на картинке."
-
-#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
@@ -494,17 +468,6 @@ msgid "Redirecting to Lucid Marketplace..."
 msgstr "Перенаправление на Lucid Marketplace..."
 
 #: psynet/templates/abort_not_possible.html
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Вы должны накопить <strong>не менее "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> бонуса, чтобы "
-"получить компенсацию."
-
-#: psynet/templates/abort_not_possible.html
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
@@ -529,20 +492,10 @@ msgstr ""
 "сделать в данный момент!"
 
 #: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Смотрите ниже информацию о Вашей накопленной на данный момент премии."
-
-#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "Смотрите ниже информацию о Вашем текущем накопленном вознаграждении."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-msgid "Accumulated bonus"
-msgstr "Накопленная премия"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -658,31 +611,6 @@ msgstr "Прервать эксперимент"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Нажмите на вышеуказанную кнопку, чтобы получить компенсацию в случае ошибки."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Вы также увидите одну или несколько страниц согласия и у Вас будет до "
-"<strong>%(TERMINATION_TIME)s</strong>, чтобы прочитать и принять/отклонить "
-"их."
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "Если Ваш браузер не совместим, мы вынуждены отклонить опрос."
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Сейчас мы проверим Ваш браузер на совместимость."
-
-#: psynet/templates/consent.html
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Чтобы продолжить, нажмите на кнопку ниже."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1403,25 +1331,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Безопасность"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Пожалуйста, включите Javascript, а затем обновите эту страницу."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Исследование не будет работать, если в Вашем браузере не включен Javascript."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Предупреждение: Javascript не работает в Вашем браузере"
-
 #: psynet/templates/consents/main_consent.html
 msgid "per hour"
 msgstr "в час"
@@ -1997,22 +1906,11 @@ msgstr ""
 "Это исследование является полностью добровольным; Вы не получите никакой "
 "денежной компенсации за участие."
 
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Ошибка!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Представление опроса Lucid"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Чтобы заполнить свой опросник Lucid, нажмите на кнопку ниже."
 
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"
@@ -2035,32 +1933,6 @@ msgstr "Завершить"
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Пожалуйста, нажмите \"Finish\", чтобы завершить HIT."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"В дополнение к Вашей базовой оплате в размере "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, Вы получите бонус в размере "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за время, потраченное на "
-"эксперимент."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"В дополнение к Вашей базовой оплате в размере "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, Вы получите вознаграждение в "
-"размере <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> за время, потраченное "
-"Вами на эксперимент."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format
@@ -2267,12 +2139,6 @@ msgstr "Для участия в эксперименте Вам необход�
 
 #: psynet/templates/macros/browser-detect.html
 msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr ""
-"Для участия в эксперименте Вам необходимо использовать режим инкогнито."
-
-#: psynet/templates/macros/browser-detect.html
-msgctxt "browser_compatibility"
 msgid ""
 "You need to use the latest version of Google Chrome to take part in the "
 "experiment."
@@ -2395,18 +2261,6 @@ msgstr ""
 "другие участники, чтобы оценить их по разным признакам или создать новые "
 "материалы (например, воспроизвести созданный Вами ритм или продолжить "
 "мелодию, которую Вы напевали)."
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
-"additional requirements is also fully voluntary."
-msgstr ""
-"Если в ходе эксперимента собираются данные, которые не могут быть полностью "
-"анонимизированы, мы сообщим Вам об этом, а также попросим дополнительного "
-"согласия. Согласие на эти дополнительные требования также является полностью"
-" добровольным."
 
 #: psynet/templates/macros/consent.html
 msgctxt "consent-confidentiality"
@@ -2541,15 +2395,6 @@ msgid ""
 msgstr ""
 "Нас также интересует, как эти внутренние представления влияют на принятие "
 "решений и поведение человека."
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
-msgstr ""
-"Вы также имеете право подать возражение в контролирующий орган. Для Общества"
-" Макса Планка это:"
 
 #: psynet/templates/macros/consent.html
 msgctxt "consent-security"
@@ -2741,11 +2586,6 @@ msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Бонус"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Помогите!"
 
@@ -2790,6 +2630,12 @@ msgid "Reload the page."
 msgstr "Перезагрузите страницу."
 
 #: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Прервите эксперимент раньше времени"
+
+#: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Проблема, с которой Вы столкнулись."
@@ -2819,20 +2665,6 @@ msgstr "Нажмите на кнопку, когда будете готовы �
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Продолжить"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "К сожалению, такое поведение в настоящее время не поддерживается."
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Ваш идентификатор участника не определен, возможно, потому что Вы "
-"переключали браузеры во время теста."
 
 #: psynet/utils.py
 #, fuzzy

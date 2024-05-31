@@ -1653,7 +1653,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = networks.all()
 
         networks = self.custom_network_filter(
-            candidates=networks, participant=participant
+            candidates=networks,
+            participant=participant,
         )
 
         logger.info("%i remain after applying custom network filters.", len(networks))

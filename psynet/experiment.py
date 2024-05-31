@@ -205,7 +205,10 @@ class ExperimentStatus(SQLBase, SQLMixin):
     extra_info = Column(PythonDict, default={})
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        named_arguments = {
+            key: value for key, value in kwargs.items() if key in self.sql_columns
+        }
+        super().__init__(**named_arguments)
         self.extra_info = {
             key: value for key, value in kwargs.items() if key not in self.sql_columns
         }
@@ -1049,6 +1052,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return
         exp = get_experiment()
         recruiter = exp.recruiter
+        logger.info("Running recruiter checks...")
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
@@ -1498,6 +1502,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.failed = True
         participant.failed_reason = failed_reason
         participant.time_of_death = datetime.now()
+
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
                 "Executing fail routine %i/%i ('%s')...",
@@ -1712,6 +1717,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
 
+    def with_prolific_recruitment(self):
+        return issubclass(self.recruiter.__class__, ProlificRecruiter)
+
     def process_response(
         self,
         participant_id,
@@ -1887,8 +1895,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/d3-visualizations.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/css/bootstrap.min.css",
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.bundle.min.js",
+                    "/static/scripts/bootstrap.bundle.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.js",
+                    "/static/scripts/bootstrap-select.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.css",
+                    "/static/css/bootstrap-select.min.css",
                 ),
                 (
                     resources.files("psynet") / "resources/css/consent.css",
@@ -1944,12 +1968,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/abc-js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/d3",
-                    "/static/scripts/d3",
+                    resources.files("psynet") / "resources/libraries/d3/d3.v4.js",
+                    "/static/scripts/d3.v4.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/jqueryui",
-                    "/static/scripts/jqueryui",
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.min.js",
+                    "/static/scripts/d3-tip.min.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.css",
+                    "/static/css/d3-tip.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.css",
+                    "/static/css/jquery-ui.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.min.js",
+                    "/static/scripts/jquery-ui.min.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2060,6 +2098,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .dashboard.resources import report_resource_use
 
         return report_resource_use()
+
+    @dashboard_tab("Lucid", after_route="monitoring")
+    @classmethod
+    def lucid(cls):
+        from .dashboard.lucid import report_lucid
+
+        return report_lucid()
 
     @dashboard_tab("Participant", after_route="monitoring")
     @classmethod
@@ -2427,7 +2472,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
                 compensate = False
                 recruiter.set_termination_details(
-                    participant.assignment_id, "Terminated calling /error-page route"
+                    participant.assignment_id, "error-page_route"
                 )
 
         return cls.error_page(
@@ -2593,38 +2638,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @with_transaction
     def terminate_participant(cls):
-        participant_id = request.values.get("participant_id")
-        reason = request.values["reason"]
-        external_submit_url = None
-
-        try:
-            participant = (
-                Participant.query.with_for_update(of=Participant)
-                .populate_existing()
-                .get(participant_id)
-            )
-            assignment_id = participant.assignment_id
-            recruiter = get_experiment().recruiter
-            external_submit_url = None
-            if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=assignment_id
-                )
-            if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(assignment_id, reason)
-                logger.info(
-                    f"Terminating participant with RID {assignment_id} with reason '{reason}'"
-                )
-
-        except Exception as e:
-            logger.error(
-                f"Error terminating participant with RID '{assignment_id}': {e}"
-            )
+        recruiter = get_experiment().recruiter
+        external_submit_url = recruiter.terminate_participant(
+            recruiter.get_participant(request), request.values.get("reason")
+        )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
+
+    @experiment_route("/change_lucid_status", methods=["GET"])
+    @classmethod
+    def change_lucid_status(cls):
+        get_experiment().recruiter.change_lucid_status(request.values.get("status", ""))
+        return success_response()
 
     @staticmethod
     def get_client_ip_address():
@@ -2710,6 +2738,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._route_timeline(experiment, participant, mode)
 
     @classmethod
+    def fail_participant_on_error(cls, participant, error):
+        error_type = str(type(error))
+        # convert error type like <class 'Exception'> to 'Exception'
+        error_type = error_type.split("'")[1]
+        participant.failure_tags.append(error_type)
+        participant.fail(error_type)
+
+    @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
             page = cls.get_current_page(experiment, participant)
@@ -2735,6 +2771,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     else None
                 ),
             )
+            cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
 
     @classmethod

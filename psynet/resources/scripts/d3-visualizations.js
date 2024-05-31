@@ -126,7 +126,7 @@ function hideTooltips() {
     d3.selectAll('.d3-tip').style('opacity', 0);
 }
 
-function histogram(containerId, data, margin, nBins, type2color, tooltip = null, height = null) {
+function histogram(containerId, data, margin, nBins, type2color, tooltip = null, height = null, xDict= null, plotGrouped=true) {
     // set the dimensions and margins of the graph
     var container = document.getElementById(containerId);
     var width = container.clientWidth;
@@ -148,6 +148,10 @@ function histogram(containerId, data, margin, nBins, type2color, tooltip = null,
     // get the data
     data = data.map(function (d) {
         d['value'] = parseFloat(d['value']);
+        d['group'] = d['type']
+        if (!plotGrouped){
+            d['type'] = 'none';
+        }
         return d;
     });
     const xMin = d3.min(data, function (d) {
@@ -164,6 +168,17 @@ function histogram(containerId, data, margin, nBins, type2color, tooltip = null,
     svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x));
+
+
+    // format x axis text
+    svg.selectAll("#" + containerId + " .tick text")
+        // change text to date format
+        .text(function (d) {
+            if (xDict !== null) {
+                return xDict[d];
+            }
+            return d;
+        });
     // set the parameters for the histogram
     var histogram = d3.histogram()
         .value(function (d) {

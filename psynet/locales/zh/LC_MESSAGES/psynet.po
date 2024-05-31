@@ -14,19 +14,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Complete Survey"
-msgstr "完整的调查"
-
-msgid "Resuming experiment ..."
-msgstr "恢复实验......"
-
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                        <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"你还会看到一个或多个同意书页面，并有多达<strong>%(TERMINATION_TIME)s</strong>的时间来阅读和接受/拒绝它们。"
-
 #: psynet/demography/general.py
 msgid "I don’t know"
 msgstr "我不知道"
@@ -372,12 +359,6 @@ msgstr "出现了一个错误，导致您无法继续，对不起！"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "重新定向..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "请同时引用以下信息："
@@ -424,12 +405,6 @@ msgstr "您需要选择一个答案！"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "写下图片中的数字。"
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "写下图片中的数字。"
@@ -470,15 +445,6 @@ msgstr "重定向到Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"你必须积累<strong>至少%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>的奖金，才能得到补偿。"
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -498,20 +464,10 @@ msgid ""
 msgstr "终止实验是不可能的，因为实验者在这个时候不允许您这样做!"
 
 #: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "请看下面关于您目前积累的奖金的信息。"
-
-#: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "请参阅以下有关您当前累积奖励的信息。"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-msgid "Accumulated bonus"
-msgstr "积累的奖金"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -617,29 +573,6 @@ msgstr "中止实验"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 msgid "Click the above button to be compensated in case of an error."
 msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"你还会看到一个或多个同意书页面，并有多达<strong>%(TERMINATION_TIME)s</strong>的时间来阅读和接受/拒绝它们。"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "如果您的浏览器不兼容，我们就不得不中断这次调查。"
-
-#: psynet/templates/consent.html
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "我们现在要对您的浏览器进行兼容性测试。"
-
-#: psynet/templates/consent.html
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "要继续，请点击下面的按钮。"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1231,24 +1164,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "安全性"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "请启用Javascript，然后刷新此页面。"
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "除非你的浏览器启用了Javascript，否则这项研究将无法进行。"
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "警告：你的浏览器上的Javascript无法工作"
-
 #: psynet/templates/consents/main_consent.html
 msgid "per hour"
 msgstr "每小时"
@@ -1708,22 +1623,11 @@ msgid ""
 "compensation for participation."
 msgstr "这项研究完全是自愿的；您不会因为参与而得到任何金钱上的补偿。"
 
-#: psynet/templates/error.html
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "错误!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "提交Lucid调查报告"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "要完成您的Lucid调查，请点击下面的按钮。"
 
 #: psynet/templates/final-page-rejected-consent.html
 msgctxt "final_page_rejected_consent"
@@ -1746,28 +1650,6 @@ msgstr "完成"
 #: psynet/templates/final-page-unsuccessful.html
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "请点击 \"完成 \"来完成HIT。"
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"除了 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>（基本报酬）之外，您还将获得 "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>（您在实验中花费的时间）奖金。"
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"除了 <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>（基本报酬）之外，您还将获得 "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong>（时间报酬）</strong>（您在实验中花费的时间）。"
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2000,12 +1882,6 @@ msgstr "你需要使用谷歌浏览器来参加实验。"
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "你需要使用隐身模式来参加实验。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
 msgid ""
 "You need to use the latest version of Google Chrome to take part in the "
 "experiment."
@@ -2101,14 +1977,6 @@ msgid ""
 " materials (for example replicate a rhythm that you created, or continue a "
 "melody that you sang)."
 msgstr "然而，在一些实验中，为了评估不同属性或创建新材料（例如复制您创作的节奏，或继续您唱的旋律），您的录音或录像可能会被其他参与者查看或听到。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent. Consenting to these "
-"additional requirements is also fully voluntary."
-msgstr "如果一个实验收集的数据不能完全匿名，我们会通知您，也会征求您的额外同意。 同意这些额外要求也是完全自愿的。"
 
 #: psynet/templates/macros/consent.html
 msgctxt "consent-confidentiality"
@@ -2216,13 +2084,6 @@ msgid ""
 "We are also interested in the way that these internal representations affect"
 " human decision making and behaviour."
 msgstr "我们还对这些内部表征影响人类决策和行为的方式感兴趣。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
-msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-" For the Max-Planck-Society, this is:"
-msgstr "您也有权向监管机构提出异议。 对于马克斯-普朗克协会来说，这就是："
 
 #: psynet/templates/macros/consent.html
 msgctxt "consent-security"
@@ -2404,11 +2265,6 @@ msgstr "好的"
 
 #: psynet/templates/timeline-page.html
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "奖金"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline"
 msgid "Help!"
 msgstr "帮助!"
 
@@ -2451,6 +2307,12 @@ msgid "Reload the page."
 msgstr "重新加载页面。"
 
 #: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "提前终止实验"
+
+#: psynet/templates/timeline-page.html
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "您所遇到的问题。"
@@ -2480,18 +2342,6 @@ msgstr "当您准备好继续进行实验时，请点击该按钮。"
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "恢复"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "不幸的是，目前不支持这种行为。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr "您的参与者ID未被定义，可能是因为您在测试期间切换了浏览器。"
 
 #: psynet/utils.py
 msgctxt "country_name"

@@ -16,5 +16,6 @@
     "inactivity_timeout_in_s": 60,
     "no_focus_timeout_in_s": 10,
     "aggressive_no_focus_timeout_in_s": 3,
-    "termination_time_in_s": 600
+    "termination_time_in_s": 600,
+    "initial_response_within_s": 180
 }
