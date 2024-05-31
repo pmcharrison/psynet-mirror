@@ -37,7 +37,6 @@ class RandomDigitInputPage(ModularPage):
                     dataType: "json",
                     contentType: "application/json",
                     success: function(data) {
-                    console.log(data);
                         $("#page_uuid").text(data.page_uuid);
                     }
                 });

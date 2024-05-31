@@ -428,12 +428,6 @@ msgstr "Prišlo je do napake, zato ne morete nadaljevati, žal!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Preusmerjanje..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Navedite tudi naslednje podatke:"
@@ -484,12 +478,6 @@ msgstr "Izbrati morate odgovor!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Zapišite številko na sliki."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Zapišite številko na sliki."
@@ -532,17 +520,6 @@ msgstr "Preusmeritev na Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Zbrati morate <strong>vsaj "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> bonusa, da lahko "
-"dobite nadomestilo."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -569,20 +546,8 @@ msgstr ""
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "V nadaljevanju si oglejte informacije o trenutno zbranem bonusu."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "Spodaj si oglejte informacije o trenutno zbrani nagradi."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Akumulirana premija"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -712,33 +677,6 @@ msgstr "Prekinitev poskusa"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Kliknite zgornji gumb za nadomestilo v primeru napake."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Videli boste tudi eno ali več strani s soglasji in jih lahko do "
-"<strong>%(TERMINATION_TIME)s</strong> preberete in sprejmete/odklonite."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "Če vaš brskalnik ni združljiv, moramo anketo zavrniti."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Zdaj bomo preverili združljivost vašega brskalnika."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Če želite nadaljevati, kliknite spodnji gumb."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1539,24 +1477,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Varnost"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Omogočite Javascript in osvežite to stran."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "Študija ne bo delovala, če v vašem brskalniku ni omogočen Javascript."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Opozorilo: Javascript v vašem brskalniku ne deluje"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2169,23 +2089,11 @@ msgstr ""
 "Ta študija je popolnoma prostovoljna; za sodelovanje ne boste prejeli "
 "nobenega denarnega nadomestila."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Napaka!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Predložitev ankete Lucid"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Če želite izpolniti anketo Lucid, kliknite spodnji gumb."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2212,30 +2120,6 @@ msgstr "Zaključek"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Za dokončanje HIT-a kliknite \"Končaj\"."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Poleg osnovnega plačila <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> boste "
-"prejeli bonus <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas, ki ste ga"
-" porabili za eksperiment."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Poleg osnovnega plačila <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> boste "
-"prejeli nagrado <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> za čas, ki ste "
-"ga porabili za eksperiment."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2474,12 +2358,6 @@ msgstr "V poskusu ne morete sodelovati z mobilno napravo."
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "Za sodelovanje v eksperimentu morate uporabljati Google Chrome."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "Za sodelovanje v poskusu morate uporabiti način inkognito."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2980,12 +2858,6 @@ msgstr "V REDU"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Pomoč!"
 
@@ -3037,6 +2909,12 @@ msgstr "Ponovno naložite stran."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Predčasna prekinitev poskusa"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Težava, s katero se soočate."
 
@@ -3069,22 +2947,6 @@ msgstr "Ko ste pripravljeni za nadaljevanje poskusa, kliknite gumb ."
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Nadaljuj"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Žal to vedenje trenutno ni podprto."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"ID vašega udeleženca je nedoločen, morda zato, ker ste med testiranjem "
-"zamenjali brskalnik."
 
 #: psynet/utils.py
 #, fuzzy

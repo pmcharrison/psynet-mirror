@@ -167,6 +167,7 @@ def create_pot(
     if len(pot_entries) > 0:
         pot.extend(pot_entries)
         pot = clean_po(pot, package_name)
+        os.makedirs(os.path.dirname(pot_path), exist_ok=True)
         pot.save(pot_path)
     return len(pot_entries)
 
@@ -287,7 +288,7 @@ def get_all_translations(module, locales_dir):
 
     locales = get_available_locales(locales_dir)
     translations = {}
-    for locale in locales:
+    for locale in sorted(locales):
         po_path = join_path(locales_dir, locale, "LC_MESSAGES", module + ".po")
         translations[locale] = load_po(po_path)
     return translations
@@ -309,9 +310,10 @@ def extract_variable_names_from_entries(pot_entries):
 
 def assert_all_variables_defined(extracted_variables, variable_placeholders):
     for variable_name in extracted_variables:
-        assert (
-            variable_name in variable_placeholders
-        ), f"Variable {variable_name} is not defined in VARIABLE_PLACEHOLDERS"
+        assert variable_name in variable_placeholders, (
+            f"Variable {variable_name} is not defined in VARIABLE_PLACEHOLDERS. "
+            f"Specify all expected variables ({extracted_variables}) in Experiment.variable_placeholders = {{}}."
+        )
     return True
 
 
@@ -446,7 +448,9 @@ def check_translation_capitalization_and_punctuation_match(
     if check_capitalization is None:
         check_capitalization = locale not in LANGUAGES_WITHOUT_CAPITALIZATION
     assert len(original) > 0, f"The original ('{original}') must not be empty."
-    assert len(translation) > 0, f"Translation ('{translation}') must not be empty."
+    assert (
+        len(translation) > 0
+    ), f"Translation ('{translation}') of '{original}' must not be empty for {locale}."
 
     # Inconsistent upper/lower case
     if check_capitalization:

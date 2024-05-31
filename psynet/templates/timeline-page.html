@@ -30,13 +30,6 @@
         </div>
     {% endblock %}
 
-    {% if show_termination_button %}
-        <div class="center_div" style="margin-top: 7px;">
-            <button id="terminate-button" class="btn btn-dark" style="float: left; margin: 0px 0px 30px 7px;">
-                Terminate using this button!
-            </button>
-        </div>
-    {% endif %}
 
     <div id="main-body" class="my-5 container" style="clear: both;">
         {% block main_body %}
@@ -160,6 +153,12 @@
                     {% endif %}
                     <button type="button" class="btn btn-light"
                             id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+
+                    {% if show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
+                        <button id="terminate-button" class="btn btn-danger">
+                            {{ pgettext("timeline_problem", "Terminate the experiment early") }}
+                        </button>
+                    {% endif %}
                 </div>
         </nav>
         <script>
@@ -1783,25 +1782,14 @@
                     NO_FOCUS_TIMEOUT_REASON = "aggressive-" + NO_FOCUS_TIMEOUT_REASON;
                 {% endif %}
                 const OVERALL_TIMEOUT = {{ experiment.recruiter.termination_time_in_s }};
-                const POLLING_FREQUENCY = 1000;
-                let checkFocusIntervalID = setInterval(checkFocus, POLLING_FREQUENCY);
-                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_FREQUENCY);
+                const POLLING_INTERVAL = 1000;
+                let checkTriedToLeaveIntervalID = setInterval(checkTriedToLeave, POLLING_INTERVAL);
+                let clockIntervalID = setInterval(updateClocks, POLLING_INTERVAL);
                 let triedToLeave = false;
                 let noFocusSince = 0;
-                let assignmentId = "{{ worker_id }}";
-
-                // Terminate on overall timeout
+                let noActivitySince = 0;
                 let secondsLeft = {{ experiment.recruiter.time_until_termination_in_s(participant.assignment_id) }};
-                let intervalInSeconds = 1;
-                let overallTimeoutIntervalID = setInterval(function () {
-                    psynet.log.debug("Seconds left before termination: " + secondsLeft);
-                    if (secondsLeft <= 0) {
-                        clearInterval(overallTimeoutIntervalID);
-                        psynet.removeBeforeUnloadEventListener();
-                        terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
-                    }
-                    secondsLeft -= intervalInSeconds;
-                }, toMilliseconds(intervalInSeconds));
+                let assignmentId = "{{ worker_id }}";
 
                 window.addEventListener("beforeunload", beforeunloadFunction);
 
@@ -1825,8 +1813,8 @@
 
                 function terminateParticipant(reason) {
                     psynet.removeBeforeUnloadEventListener();
-                    clearInterval(checkFocusIntervalID);
                     clearInterval(checkTriedToLeaveIntervalID);
+                    clearInterval(clockIntervalID);
                     return window.location.replace("/terminate_participant?participant_id=" + {{ participant.id }} + "&reason=" + reason)
                 }
 
@@ -1836,41 +1824,47 @@
                     }
                 }
 
-                function checkFocus() {
+
+                // Terminate due to inactivity
+                function updateClocks() {
+                    let msg = ''
+
+                    // No focus
                     if (document.hasFocus()) {
                         noFocusSince = 0;
                     } else {
-                        noFocusSince += POLLING_FREQUENCY;
+                        noFocusSince += POLLING_INTERVAL;
                         if (noFocusSince > NO_FOCUS_TIMEOUT) {
                             terminateParticipant(NO_FOCUS_TIMEOUT_REASON + NO_FOCUS_TIMEOUT / 1000 + "s");
                         } else {
-                            psynet.log.debug("Document has no focus since " + noFocusSince / 1000 + " seconds");
+                            msg = "No focus: " + noFocusSince / 1000 + "/" + NO_FOCUS_TIMEOUT / 1000 + "s";
                         }
                     }
+
+                    // No activity
+                    noActivitySince += POLLING_INTERVAL;
+                    noActivityTimeout = {{ experiment.recruiter.inactivity_timeout_in_s }} * 1000
+                    if (noActivitySince > noActivityTimeout) {
+                        terminateParticipant("inactivity-timeout-" + {{ experiment.recruiter.inactivity_timeout_in_s }} + "s");
+                    }
+                    msg += " No activity: " + noActivitySince / 1000 + "/" + noActivityTimeout / 1000 + "s";
+
+                    // Overall timeout
+                    if (secondsLeft <= 0) {
+                        psynet.removeBeforeUnloadEventListener();
+                        terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
+                    }
+                    secondsLeft -= POLLING_INTERVAL / 1000;
+                    msg += " Overall timeout: " + secondsLeft + "/" + OVERALL_TIMEOUT + "s";
                 }
 
-                // Terminate due to inactivity
-                let inactivityTimeoutID;
-                function resetInactivityTimer() {
-                    clearTimeout(inactivityTimeoutID);
-                    let timeoutInSeconds = {{ experiment.recruiter.inactivity_timeout_in_s }};
-                    let reason = "inactivity-timeout-" + timeoutInSeconds + "s"
-                    inactivityTimeoutID = setTimeout(terminateParticipant, timeoutInSeconds * 1000, reason);
-                    psynet.log.debug("Reset inactivity timer (" + timeoutInSeconds + " seconds)");
-                }
-
-                // Events that reset the inactivity timer
+                // Events that reset the inactivity time
                 const events = ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"];
                 for (let i = 0; i < events.length; i++) {
-                    window.addEventListener(events[i], resetInactivityTimer);
+                    window.addEventListener(events[i], function (){
+                        noActivitySince = 0;
+                    });
                 }
-
-                document.addEventListener("DOMContentLoaded", function (event) {
-                    let isValidBrowser = browser.validate();
-                    if (!isValidBrowser) {
-                        terminateParticipant("invalid-browser");
-                    }
-                });
             }
         </script>
     {% endif %}

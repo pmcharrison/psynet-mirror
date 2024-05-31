@@ -1,12 +1,15 @@
 import json
 import os
 import re
+from datetime import datetime, timedelta
 from math import ceil
 
 import dallinger.recruiters
 import dominate
 import flask
+import pandas as pd
 import requests
+import sqlalchemy
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
@@ -15,12 +18,15 @@ from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
-from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.sql import func
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
-from .lucid import LucidService
+from .lucid import get_lucid_service
+from .participant import Participant
+from .timeline import Response
 from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
@@ -30,6 +36,8 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
     """
     The PsyNetRecruiter base class
     """
+
+    show_termination_button = False
 
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
@@ -48,6 +56,9 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
     def recruit(self, n=1):
         """Incremental recruitment isn't implemented for now, so we return an empty list."""
         return []
+
+    def terminate_participant(self, participant, reason, details=None):
+        raise NotImplementedError
 
 
 # CAP Recruiter
@@ -125,11 +136,101 @@ class LucidRID(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+    vars = None
+    creation_time = None
 
     rid = Column(String, ForeignKey("participant.worker_id"), index=True)
+    registered_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
     completed_at = Column(DateTime)
     terminated_at = Column(DateTime)
     termination_reason = Column(String)
+    termination_details = Column(String)
+
+    # Lucid fields
+    lucid_status = Column(String)
+    lucid_status_code = Column(Integer)
+    lucid_fulcrum_status = Column(Integer)
+    lucid_market_place_code = Column(String)
+    lucid_entry_date = Column(DateTime)
+    lucid_last_date = Column(DateTime)
+    lucid_panelist_id = Column(String)
+    lucid_respondent_id = Column(String)
+    lucid_supplier_id = Column(Integer)
+
+    # to dict
+    def to_dict(self):
+        return {
+            "rid": self.rid,
+            "registered_at": self.registered_at,
+            "updated_at": self.updated_at,
+            "completed_at": self.completed_at,
+            "terminated_at": self.terminated_at,
+            "termination_reason": self.termination_reason,
+            "termination_details": self.termination_details,
+            "lucid_status": self.lucid_status,
+            "lucid_status_code": self.lucid_status_code,
+            "lucid_fulcrum_status": self.lucid_fulcrum_status,
+            "lucid_market_place_code": self.lucid_market_place_code,
+            "lucid_entry_date": self.lucid_entry_date,
+            "lucid_last_date": self.lucid_last_date,
+            "lucid_panelist_id": self.lucid_panelist_id,
+            "lucid_respondent_id": self.lucid_respondent_id,
+            "lucid_supplier_id": self.lucid_supplier_id,
+        }
+
+
+@register_table
+class LucidStatus(SQLBase, SQLMixin):
+    __tablename__ = "lucid_status"
+
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+    vars = None
+
+    status = Column(String)
+    cost = Column(Float)
+    currency = Column(String)
+    exchange_rate = Column(Float)
+    cost_per_survey = Column(Float)
+    payment_per_hour = Column(Float)
+    earnings_per_click = Column(Float)
+    system_conversion = Column(Integer)
+    completion_loi = Column(Integer)
+    termination_loi = Column(Integer)
+    last_complete_date = Column(DateTime)
+
+    total_entrants = Column(Integer)
+    total_completes = Column(Integer)
+    total_screens = Column(Integer)
+    drop_off_rate = Column(Float)
+    conversion_rate = Column(Float)
+    incidence_rate = Column(Float)
+
+    def to_dict(self):
+        return {
+            "timestamp": self.creation_time,
+            "status": self.status,
+            "cost": self.cost,
+            "currency": self.currency,
+            "exchange_rate": self.exchange_rate,
+            "cost_per_survey": self.cost_per_survey,
+            "payment_per_hour": self.payment_per_hour,
+            "earnings_per_click": self.earnings_per_click,
+            "system_conversion": self.system_conversion,
+            "completion_loi": self.completion_loi,
+            "termination_loi": self.termination_loi,
+            "last_complete_date": self.last_complete_date,
+            "total_entrants": self.total_entrants,
+            "total_screens": self.total_screens,
+            "total_completes": self.total_completes,
+            "drop_off_rate": self.drop_off_rate,
+            "conversion_rate": self.conversion_rate,
+            "incidence_rate": self.incidence_rate,
+        }
 
 
 class LucidRecruiterException(Exception):
@@ -137,9 +238,91 @@ class LucidRecruiterException(Exception):
 
 
 class BaseLucidRecruiter(PsyNetRecruiter):
+    MARKETPLACE_CODE = "Marketplace codes"
+    IN_SURVEY = "Currently in Client Survey or Drop"
+    COMPLETED = "Returned as Complete"
+    TERMINATED = "Returned as Terminate"
+    SURVEY_CLOSED = "Survey Closed"
+    survey_codes = ["awarded", "pending", "paused", "live", "complete", "archived"]
+    client_codes = {
+        # See https://support.lucidhq.com/s/article/Client-Response-Codes
+        -1: MARKETPLACE_CODE,
+        1: IN_SURVEY,
+        10: COMPLETED,  # Returned as Complete from PsyNet
+        11: COMPLETED,  # Adjusted Complete
+        20: TERMINATED,  # Terminated from PsyNet
+        26: TERMINATED,  # Adjusted Terminate
+        28: TERMINATED,  # Adjusted Terminate
+        30: TERMINATED,  # Quality termination
+        33: TERMINATED,  # Speeder
+        34: TERMINATED,  # Open End Terminate
+        35: TERMINATED,  # Encryption Failure
+        38: TERMINATED,  # Adjusted to Terminate
+        134: TERMINATED,  # Encryption Failure at Client Survey
+        135: TERMINATED,  # Encryption Failure at Marketplace Return
+        136: TERMINATED,  # Survey Closed
+        137: TERMINATED,  # Verify Callback Failure
+        233: TERMINATED,  # Invalid Client Response Status
+        235: TERMINATED,  # Secure Client Callback Failure
+        40: TERMINATED,  # Client Survey Quota Full
+        60: TERMINATED,  # Quality Terminate on Pre-Client Intermediary Page
+        62: TERMINATED,  # Declined Routing on Pre-Client Intermediary Page
+        66: TERMINATED,  # Declined Routing on Pre-Client Intermediary Page
+        91: TERMINATED,  # Incorrectly Formatted Redirect
+        110: TERMINATED,  # Used for specific opt-in studies
+        70: COMPLETED,  # Audience: Returned as Complete
+        80: TERMINATED,  # Audience: Returned as Terminate
+    }
+
+    market_place_codes = {
+        -6: "Sent to Marketplace Intermediate",
+        -5: "Sent to External Intermediate",
+        -1: "Error",
+        1: "In Screener",
+        3: "In Client Survey",
+        21: "Industry Lockout",
+        23: "Standard Qualification",
+        24: "Custom Qualification",
+        120: "Pre-Client Survey Opt Out",
+        122: "Return to Marketplace Opt Out",
+        123: "Max Client Survey Entries",
+        124: "Max Time in Router",
+        125: "Max Time in Router Warning Opt Out",
+        126: "Max Answer Limit",
+        30: "Quality Term: Unique IP",
+        31: "Quality Term: RelevantID Duplicate",
+        32: "Quality Term: Invalid Traffic",
+        35: "Quality Term: Supplier PID Duplicate",
+        36: "Quality Term: Cookie Duplicate",
+        37: "Quality Term: GEO IP Mismatch",
+        38: "Quality Term: RelevantID** Fraud Profile",
+        131: "Quality Term: Supplier Encryption Failure",
+        132: "Quality Term: Blocked PID",
+        133: "Quality Term: Blocked IP",
+        134: "Quality Term: Max Completes per Day Terminate",
+        138: "Quality Term: Survey Group Cookie Duplicate",
+        139: "Quality Term: Survey Group Supplier PID Duplicate",
+        230: "Quality Term: Survey Group Unique IP",
+        234: "OFAC Term: Blocked Country IP",
+        236: "Privacy Term: No Privacy Consent",
+        237: "Privacy Term: Minimum Age",
+        238: "Quality Term: Found on Deny List",
+        240: "Quality Term: Invalid Browser",
+        241: "Quality Term: Respondent Threshold Limit",
+        242: "Quality Term: Respondent Quality Score",
+        243: "Quality Term: Marketplace Signature Check",
+        40: "Overquota: Quota Full",
+        41: "Overquota: Supplier Allocation",
+        42: "Overquota: Survey Closed for Entry",
+        50: "Financial Term: CPI Below Supplier’s Rate Card",
+        98: "Exit: End of Router",
+    }
+
     """
     The LucidRecruiter base class
     """
+
+    show_termination_button = True
 
     required_consent_page = LucidConsent.LucidConsentPage
     optional_consent_pages = (
@@ -156,18 +339,175 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             )
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
-        self.lucidservice = LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            exp_config=self.config,
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        )
+        recruitment_config = json.loads(self.config.get("lucid_recruitment_config"))
+
+        self.lucidservice = get_lucid_service(self.config, recruitment_config)
         self.store = kwargs.get("store", RedisStore())
 
-    @property
-    def survey_number_storage_key(self):
+    def run_checks(self):
+        logger.info("Polling Lucid API to count entry_df")
+        survey_number = self.current_survey_number()
+        respondents = pd.DataFrame(self.lucidservice.get_submissions(survey_number))
+        summary = self.lucidservice.get_summary(survey_number)
+        total_completes = summary["total_completes"]
+        logger.info(
+            f"Found {summary['total_entrants']} entrants, {summary['total_screens']} after_screener, {total_completes} completes"
+        )
+
+        cost = summary["cost"]
+        currency = summary["currency"]
+        completion_loi = summary["completion_loi"]
+        cost_per_survey = (cost / total_completes) if total_completes > 0 else 0
+        payment_per_hour = completion_loi / 60 * cost_per_survey
+        drop_off_rate = 0
+        conversion_rate = 0
+        incidence_rate = 0
+
+        if len(respondents) > 0:
+            respondents["status"] = respondents.client_status.apply(
+                lambda x: self.client_codes.get(x, "Unknown")
+            )
+            respondents["market_place_code"] = respondents.fulcrum_status.apply(
+                lambda x: self.market_place_codes.get(x, "Unknown")
+            )
+
+            all_entrants = LucidRID.query.all()
+            entrants_dict = {entrant.rid: entrant for entrant in all_entrants}
+
+            lucid_entrants = []
+
+            for _, row in respondents.iterrows():
+                if row.respondent_id in entrants_dict:
+                    entrant = entrants_dict[row.respondent_id]
+                    changed = False
+                    fields_to_update = {
+                        "lucid_status": "status",
+                        "lucid_status_code": "client_status",
+                        "lucid_fulcrum_status": "fulcrum_status",
+                        "lucid_market_place_code": "market_place_code",
+                        "lucid_last_date": "last_date",
+                    }
+                    for field, api_field in fields_to_update.items():
+                        if getattr(entrant, field) != row[api_field]:
+                            setattr(entrant, field, row[api_field])
+                            changed = True
+                    if changed:
+                        db.session.add(entrant)
+                else:
+                    entrant = LucidRID(
+                        rid=row.respondent_id,
+                        lucid_status=row.status,
+                        lucid_status_code=row.client_status,
+                        lucid_fulcrum_status=row.fulcrum_status,
+                        lucid_market_place_code=row.market_place_code,
+                        lucid_entry_date=row.entry_date,
+                        lucid_last_date=row.last_date,
+                        lucid_panelist_id=row.panelist_id,
+                        lucid_respondent_id=row.respondent_id,
+                        lucid_supplier_id=row.supplier_id,
+                    )
+                    db.session.add(entrant)
+                lucid_entrants.append(entrant)
+
+            entry_df = pd.DataFrame([entrant.to_dict() for entrant in lucid_entrants])
+            MARKETPLACE_CODE = self.MARKETPLACE_CODE  # noqa: F841
+            COMPLETED_CODE = self.COMPLETED  # noqa: F841
+            IN_SURVEY_CODE = self.IN_SURVEY  # noqa: F841
+            after_screener = entry_df.query("lucid_status != @MARKETPLACE_CODE")
+            completes = entry_df.query("lucid_status == @COMPLETED_CODE")
+            in_survey = entry_df.query("lucid_status == @IN_SURVEY_CODE")
+            drop_off_rate = (
+                len(in_survey) / len(after_screener) if len(after_screener) > 0 else 0
+            )
+            conversion_rate = (
+                len(completes) / len(after_screener) if len(after_screener) > 0 else 0
+            )
+
+            pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
+            returned_because_of_qualifications = (
+                entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
+            )
+
+            potential = len(completes) + returned_because_of_qualifications
+            incidence_rate = len(completes) / potential if potential > 0 else 0
+
+        logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
+        logger.info(f"Drop off rate: {drop_off_rate:.2%}")
+        logger.info(f"Conversion rate: {conversion_rate:.2%}")
+        logger.info(f"Incidence rate: {conversion_rate:.2%}")
+
+        status_entry = LucidStatus(
+            # From the summary
+            status=summary["status"],
+            cost=cost,
+            currency=currency,
+            exchange_rate=summary["exchange_rate"],
+            cost_per_survey=cost_per_survey,
+            payment_per_hour=payment_per_hour,
+            earnings_per_click=summary["epc"],
+            system_conversion=summary["system_conversion"],
+            completion_loi=completion_loi,
+            termination_loi=summary["termination_loi"],
+            last_complete_date=summary["last_complete_date"],
+            # From the metrics
+            total_entrants=summary["total_entrants"],
+            total_completes=summary["total_completes"],
+            total_screens=summary["total_screens"],
+            drop_off_rate=drop_off_rate,
+            conversion_rate=conversion_rate,
+            incidence_rate=incidence_rate,
+        )
+        db.session.add(status_entry)
+        db.session.commit()
+
+        unfailed_entrants = LucidRID.query.filter_by(
+            terminated_at=None, completed_at=None
+        ).all()
+        logger.info(f"Found {len(unfailed_entrants)} of which are not failed")
+        now = datetime.now()
+
+        for entrant in unfailed_entrants:
+            if (
+                entrant.registered_at
+                + timedelta(seconds=self.initial_response_within_s)
+                > now
+            ):
+                # skip entrants that have not been registered long enough
+                continue
+            if entrant.completed_at is not None:
+                # skip completed entrants
+                continue
+            if entrant.terminated_at is not None:
+                # skip terminated entrants
+                continue
+
+            reason = None
+            details = None
+            try:
+                participant = Participant.query.filter_by(worker_id=entrant.rid).one()
+                responses = (
+                    Response.query.filter_by(participant_id=participant.id)
+                    .order_by(Response.creation_time)
+                    .all()
+                )
+                if len(responses) == 0:
+                    reason = "first-response-timeout"
+
+            except sqlalchemy.orm.exc.NoResultFound:
+                # Do not terminate participants who did not pass the qualifications
+                if entrant.lucid_status != self.MARKETPLACE_CODE:
+                    reason = "never-entered-experiment"
+
+            if reason:
+                try:
+                    self.terminate_participant(participant, reason, details)
+                    logger.info(f"RID {entrant.rid} terminated")
+                except Exception as e:
+                    logger.error(f"Error terminating participant {entrant.rid}: {e}")
+
+    def get_survey_storage_key(self, name):
         experiment_id = self.config.get("id")
-        return "{}:{}".format(self.__class__.__name__, experiment_id)
+        return f"{self.__class__.__name__}:{experiment_id}:{name}"
 
     @property
     def in_progress(self):
@@ -193,7 +533,14 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         Return the survey number associated with the active experiment ID
         if any such survey exists.
         """
-        return self.store.get(self.survey_number_storage_key)
+        return self.store.get(self.get_survey_storage_key("survey_number"))
+
+    def current_survey_sid(self):
+        """
+        Return the survey SID associated with the active experiment ID
+        if any such survey exists.
+        """
+        return self.store.get(self.get_survey_storage_key("survey_sid"))
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
@@ -207,10 +554,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         experiment = get_experiment()
         wage_per_hour = get_and_load_config().get("wage_per_hour")
+        estimated_duration = experiment.estimated_completion_time(wage_per_hour)
         create_survey_request_params = {
-            "bid_length_of_interview": ceil(
-                experiment.estimated_completion_time(wage_per_hour) / 60
-            ),
+            "bid_length_of_interview": ceil(estimated_duration / 60),
             "live_url": self.ad_url.replace("http://", "https://"),
             "name": self.config.get("title"),
             "quota": n,
@@ -222,21 +568,25 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_number(survey_info["SurveyNumber"])
+        self._record_survey_sid(survey_info["SurveySID"])
 
         # Lucid Marketplace automatically adds 6 qualifications to US studies
         # when a survey is created (Age, Gender, Zip, Ethnicity, Hispanic, Standard HHI US).
         # We update the qualifications in this case to remove these constraints on the participants.
         # See https://developer.lucidhq.com/#post-create-a-survey
+        survey_number = self.current_survey_number()
         if self.lucidservice.recruitment_config["survey"]["CountryLanguageID"] == 9:
-            self.lucidservice.remove_default_qualifications_from_survey(
-                self.current_survey_number()
-            )
+            self.lucidservice.remove_default_qualifications_from_survey(survey_number)
 
-        self.lucidservice.add_qualifications_to_survey(self.current_survey_number())
+        self.lucidservice.add_qualifications_to_survey(survey_number)
 
         url = survey_info["ClientSurveyLiveURL"]
-        self.lucidservice.log("Done creating Lucid project and survey.")
-        self.lucidservice.log("----------")
+        self.lucidservice.log(
+            f"Done creating Lucid project and survey: {survey_number}."
+        )
+        self.lucidservice.log(
+            f"Lucid reports: https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_number}/reports"
+        )
         self.lucidservice.log("---------> " + url)
         self.lucidservice.log("----------")
 
@@ -245,9 +595,14 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             self.lucidservice.log("No survey in progress: Recruitment aborted.")
             return
 
+        lucid_url = (
+            f"https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_id}/quotas"
+        )
+        message = f"Lucid survey {survey_id} created successfully. " f"URL: {lucid_url}"
+
         return {
             "items": [url],
-            "message": f"Lucid survey {self.current_survey_number()} created successfully.",
+            "message": message,
         }
 
     def close_recruitment(self):
@@ -327,13 +682,22 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         if participant is not None and participant.progress == 1:
             self.complete_participant(participant.assignment_id)
         else:
-            self.terminate_participant(
-                participant.assignment_id,
-                "Termination in 'reward_bonus' as 'participant.progress' was < 1",
+            responses = (
+                Response.query.filter_by(participant_id=participant.id)
+                .order_by(Response.creation_time)
+                .all()
             )
+            if responses[-1].answer == {"lucid_consent": False}:
+                reason = "consent-rejected"
+            else:
+                reason = "participant-did-not-complete"
+            self.terminate_participant(participant, reason)
 
     def _record_current_survey_number(self, survey_number):
-        self.store.set(self.survey_number_storage_key, survey_number)
+        self.store.set(self.get_survey_storage_key("survey_number"), survey_number)
+
+    def _record_survey_sid(self, survey_sid):
+        self.store.set(self.get_survey_storage_key("survey_sid"), survey_sid)
 
     def external_submit_url(self, participant=None, assignment_id=None):
         if participant is None and assignment_id is None:
@@ -356,7 +720,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 ris = 10
         if assignment_id is None:
             assignment_id = assignment_id
-        return {"ris": ris, "rid": assignment_id}
+        return {"rid": assignment_id, "ris": ris}
 
     def error_page_content(self, _, _p, assignment_id, external_submit_url):
         if external_submit_url is None:
@@ -389,43 +753,109 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, rid, reason):
-        return self.lucidservice.terminate_respondent(rid, reason)
+    def terminate_participant(self, participant, reason, details=None):
+        participant.failed = True
+        participant.failed_reason = reason
+        participant.status = "returned"
+        db.session.commit()
+
+        assignment_id = participant.assignment_id
+        try:
+            self.lucidservice.terminate_respondent(assignment_id, reason, details)
+            logger.info(
+                f"Terminating respondent with RID '{assignment_id}'. Reason: '{reason}'"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error terminating respondent with RID '{assignment_id}': {e}"
+            )
+
+        return self.external_submit_url(assignment_id=assignment_id)
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
 
-    @property
-    def termination_time_in_s(self):
+    def get_config_entry(self, key):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
         )
 
-        return lucid_recruitment_config.get("termination_time_in_s")
+        return lucid_recruitment_config.get(key)
+
+    def get_participant(self, request):
+        assignment_id = request.values.get("assignmentId")
+        unique_id = request.values.get("unique_id")
+        participant_id = request.values.get("participant_id")
+        rid = request.values.get("RID")
+        participant = None
+
+        if assignment_id is None:
+            if unique_id is not None:
+                assignment_id = unique_id.split(":")[1]
+            elif rid is not None:
+                assignment_id = rid
+            elif participant_id is not None:
+                participant = (
+                    Participant.query.with_for_update(of=Participant)
+                    .populate_existing()
+                    .get(int(participant_id))
+                )
+                assignment_id = participant.assignment_id
+
+        assert assignment_id is not None, "Could not determine assignment_id."
+
+        if participant is None:
+            try:
+                participant = Participant.query.filter_by(
+                    assignment_id=assignment_id
+                ).one()
+            except NoResultFound:
+                logger.error(
+                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+            except MultipleResultsFound:
+                logger.error(
+                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+
+        return participant
+
+    @property
+    def termination_time_in_s(self):
+        return self.get_config_entry("termination_time_in_s")
 
     @property
     def inactivity_timeout_in_s(self):
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
-
-        return lucid_recruitment_config.get("inactivity_timeout_in_s")
+        return self.get_config_entry("inactivity_timeout_in_s")
 
     @property
     def no_focus_timeout_in_s(self):
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
-
-        return lucid_recruitment_config.get("no_focus_timeout_in_s")
+        return self.get_config_entry("no_focus_timeout_in_s")
 
     @property
     def aggressive_no_focus_timeout_in_s(self):
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
+        return self.get_config_entry("aggressive_no_focus_timeout_in_s")
 
-        return lucid_recruitment_config.get("aggressive_no_focus_timeout_in_s")
+    @property
+    def initial_response_within_s(self):
+        return self.get_config_entry("initial_response_within_s")
+
+    def get_status(self):
+        query = LucidStatus.query.order_by(LucidStatus.id.desc())
+        recruiter_info = super().get_status()
+        if query.count() > 0:
+            recruiter_info = {**recruiter_info, **query.first().to_dict()}
+            recruiter_info["total_working"] = LucidRID.query.filter_by(
+                terminated_at=None, completed_at=None
+            ).count()
+        return recruiter_info
+
+    def change_lucid_status(self, status):
+        survey_number = self.current_survey_number()
+        service = get_lucid_service()
+        service.change_status(survey_number, status)
+        LucidStatus.query.order_by(LucidStatus.id.desc()).first().status = status
+        db.session.commit()
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
@@ -453,6 +883,97 @@ class LucidRecruiter(BaseLucidRecruiter):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
+
+
+def get_lucid_country_language_id(country_tag, language_tag, service=None):
+    assert len(country_tag) == 2, "Country tag must be 2 characters long."
+    assert country_tag.isupper(), "Country tag must be uppercase."
+    assert len(language_tag) == 3, "Language tag must be 3 characters long."
+    assert language_tag.isupper(), "Language tag must be uppercase."
+
+    if service is None:
+        service = get_lucid_service()
+    lookup = service.get_lucid_country_language_lookup()
+    selection = lookup.query(
+        "country_tag == @country_tag and language_tag == @language_tag"
+    )
+    if len(selection) == 0:
+        pd.set_option("display.max_rows", None)
+        raise ValueError(
+            f"Could not find country language ID for {country_tag} and {language_tag}. Pick from these:\n{lookup}"
+        )
+    return selection.iloc[0]["Id"]
+
+
+def get_lucid_settings(
+    lucid_recruitment_config_path,
+    termination_time_in_s: int,
+    bid_incidence=66,
+    collects_pii=False,
+    inactivity_timeout_in_s=120,
+    no_focus_timeout_in_s=60,
+    aggressive_no_focus_timeout_in_s=3,
+    initial_response_within_s=180,
+    debug_recruiter=False,
+):
+    """
+    Parameters
+    ----------
+    lucid_recruitment_config_path: str, path to the Lucid recruitment config.
+
+    termination_time_in_s: int, maximal time a participant can spend on the experiment. If this time is exceeded,
+        the participant is terminated via the front-end.
+
+    bid_incidence: int, default 66, the bid incidence. Bid incidence is the number of completes/(number of completes +
+        participants who did not pass the qualifications). It is a percentage, so if you expect 66% of the participants
+        to pass the qualifications, set it to 66. Set it to a realistic value, but as high as possible.
+
+    collects_pii: bool, default False, whether the survey collects personally identifiable information.
+
+    inactivity_timeout_in_s: int, default 120, the inactivity timeout in seconds. If the participant is inactive for
+        this amount of time, the participant is terminated via the front-end. Inactive means that the participant does
+        not interact with the page (i.e., no ["click", "keypress", "load", "mousedown", "mousemove", "touchstart"]).
+
+    no_focus_timeout_in_s: int, default 60, the no focus timeout in seconds. If the participant moves the mouse outside
+        the window or opens another tab, the participant is terminated via the front-end after this amount of time.
+
+    aggressive_termination_on_no_focus: int, default 3, this the same setting as `no_focus_timeout_in_s`, but it is
+        only used for aggressive in the consent page, since many participants are lost there.
+
+    initial_response_within_s: int, default 180 seconds (3 minutes). If the participant does not proceed to the consent
+        within this time, the participant is terminated via the backend-end.
+
+    debug_recruiter: bool, default False, whether to use the development recruiter. This is useful for local testing.
+
+    """
+
+    with open(lucid_recruitment_config_path, "r") as f:
+        lucid_recruitment_config = json.load(f)
+
+    if termination_time_in_s is not None:
+        lucid_recruitment_config["termination_time_in_s"] = termination_time_in_s
+
+    lucid_recruitment_config["survey"]["BidIncidence"] = bid_incidence
+    lucid_recruitment_config["survey"]["CollectsPII"] = collects_pii
+    lucid_recruitment_config["inactivity_timeout_in_s"] = inactivity_timeout_in_s
+    lucid_recruitment_config["no_focus_timeout_in_s"] = no_focus_timeout_in_s
+    lucid_recruitment_config["aggressive_no_focus_timeout_in_s"] = (
+        aggressive_no_focus_timeout_in_s
+    )
+    lucid_recruitment_config["initial_response_within_s"] = initial_response_within_s
+
+    lucid_recruitment_config = json.dumps(lucid_recruitment_config)
+
+    settings = {
+        "recruiter": "LucidRecruiter",
+        "lucid_recruitment_config": lucid_recruitment_config,
+        "currency": "EUR",
+        "show_reward": False,
+        "show_abort_button": False,
+    }
+    if debug_recruiter:
+        settings["debug_recruiter"] = "DevLucidRecruiter"
+    return settings
 
 
 class GenericRecruiter(PsyNetRecruiter):

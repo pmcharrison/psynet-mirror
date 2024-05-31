@@ -31,7 +31,6 @@ class Exp(psynet.experiment.Experiment):
                 In this experiment you will participate in various tests.
                 """
             ),
-            show_termination_button=True,
             time_estimate=2,
         ),
         AttentionTest(fail_on=None),

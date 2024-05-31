@@ -1,0 +1,109 @@
+{% macro make_accordion(params) %}
+    <script src="/static/scripts/bootstrap.bundle.min.js"></script>
+    <div class="accordion" id="{{ params.id }}">
+        {% for i, item in enumerate(params.items.items()) %}
+            {% set key, value = item %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ params.id }}-{{ i }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ params.id }}-{{ i }}" aria-expanded="false" aria-controls="collapse-{{ params.id }}-{{ i }}">
+                        {{ key }}
+                    </button>
+                </h2>
+                <div id="collapse-{{ params.id }}-{{ i }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ params.id }}-{{ i }}" data-bs-parent="#{{ params.id }}">
+                    <div class="accordion-body">
+                        {{ value }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro make_card(params) %}
+    <div class="col-4">
+        <div class="card mb-2" style="width: 100%;">
+            <div class="card-body">
+                <h5 class="card-title">{{ params.title }}</h5>
+                <p class="card-text">{{ params.body }}</p>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for item in params.item_list %}
+                    <li class="list-group-item">{{ item | safe }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro make_status_card(params) %}
+    {% if params.status == "success" %}
+        {% set bg = "bg-success" %}
+    {% elif params.status == "danger" %}
+        {% set bg = "bg-danger" %}
+    {% elif params.status == "warning" %}
+        {% set bg = "bg-warning" %}
+    {% else %}
+        {% set bg = "" %}
+    {% endif %}
+    {% if bg != "" %}
+        {% set bg = bg + " text-white" %}
+    {% endif %}
+    {% if params.border %}
+        {% set bg = " border-" + params.status + " text-" + params.status %}
+    {% endif %}
+    <div class="{{ params.col }}">
+        <div class="card mb-2 {{ bg }}" style="width: 100%;">
+            <div class="card-body">
+                <h5 class="card-title">{{ params.title }}</h5>
+                <p class="card-text">{{ params.body | safe }}</p>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro make_status_selectpicker(params) %}
+    <select id='status' name='status'>
+        {% for status in params.status_list %}
+            {% if status == "archived" %}
+                {% set background = "rgb(166, 172, 179)" %}
+            {% elif status == "awarded" %}
+                {% set background = "rgb(255, 204, 93)" %}
+            {% elif status == "live" %}
+                {% set background = "rgb(4, 191, 129)" %}
+            {% elif status == "paused" %}
+                {% set background = "blue" %}
+            {% elif status == "pending" %}
+                {% set background = "rgb(250, 62, 100)" %}
+            {% else %}
+                {% set background = "black" %}
+            {% endif %}
+            {% set content = "<span style='background:" + background + "' class='badge rounded-pill'>" + status.capitalize() + "</span>" %}
+            <option value='{{ status }}' {% if status == params.status %} selected {% endif %}
+                    data-content='{{ content }}'>{{ status }} </option>
+        {% endfor %}
+        {% if params.status not in params.status_list %}
+            <option value='{{ params.status }}' selected>{{ params.status }}</option>
+        {% endif %}
+    </select>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function (e) {
+            selectpicker = $('#status').selectpicker();
+            document.getElementById('status').addEventListener('change', function (e) {
+                fetch(window.location.origin + '/change_lucid_status?status=' + e.target.value, {
+                    method: 'GET',
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    agent: null,
+                    headers: {
+                        "Content-Type": "text/plain",
+                        'Authorization': 'Basic ' + btoa('username:password'),
+                    },
+                })
+            })
+        });
+    </script>
+{% endmacro %}
+
+

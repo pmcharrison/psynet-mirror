@@ -424,12 +424,6 @@ msgstr "אירעה שגיאה ולכן אינך יכול להמשיך, מצטע�
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "מפנה מחדש..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "נא לצטט גם את המידע הבא:"
@@ -480,12 +474,6 @@ msgstr "אתה צריך לבחור תשובה!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "רשום את המספר בתמונה."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "רשום את המספר בתמונה."
@@ -526,17 +514,6 @@ msgstr "מפנה מחדש ל-Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"עליך לצבור <strong>לפחות "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> של בונוס כדי שתוכל"
-" לקבל פיצוי."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -561,20 +538,8 @@ msgstr "ביטול הניסוי אינו אפשרי מכיוון שהנסיין 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "ראה מידע למטה על הבונוס שנצבר כעת."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "ראה מידע למטה על התגמול שנצבר כעת."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "בונוס מצטבר"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -702,33 +667,6 @@ msgstr "בטל את הניסוי"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "לחץ על הכפתור שלמעלה כדי לקבל פיצוי במקרה של שגיאה."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"תראה גם עמוד הסכמה אחד או יותר ויש לך עד\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> כדי לקרוא ולקבל/לדחות אותם."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "אם הדפדפן שלך אינו תואם, עלינו לדחות את הסקר."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "כעת אנו הולכים לבדוק את התאימות של הדפדפן שלך."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "כדי להמשיך, לחץ על הכפתור למטה."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1480,24 +1418,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "בִּטָחוֹן"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "אנא הפעל את Javascript ולאחר מכן רענן את הדף הזה."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr "המחקר לא יעבוד אלא אם כן Javascript מופעל בדפדפן שלך."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "אזהרה: Javascript לא עובד בדפדפן שלך"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2083,23 +2003,11 @@ msgid ""
 "compensation for participation."
 msgstr "מחקר זה הוא וולונטרי לחלוטין; לא תקבל שום פיצוי כספי עבור ההשתתפות."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "שְׁגִיאָה!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "הגשת סקר צלול"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "כדי להשלים את סקר Lucid שלך, לחץ על הלחצן למטה."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2126,30 +2034,6 @@ msgstr "סיים"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "אנא לחץ על \"סיום\" כדי להשלים את ה-HIT."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"בנוסף לתשלום הבסיס שלך בסך <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
-"תקבל בונוס של <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> עבור זמן שהשקעת "
-"בניסוי."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"בנוסף לתשלום הבסיס שלך בסך <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, "
-"תקבל פרס של <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> עבור זמן שהשקעת "
-"בניסוי."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2385,12 +2269,6 @@ msgstr "לא ניתן לקחת חלק בניסוי ממכשיר נייד."
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "עליך להשתמש ב-Google Chrome כדי לקחת חלק בניסוי."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "עליך להשתמש במצב גלישה בסתר כדי לקחת חלק בניסוי."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2867,12 +2745,6 @@ msgstr "בסדר"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "מַעֲנָק"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "עֶזרָה!"
 
@@ -2922,6 +2794,12 @@ msgstr "טען מחדש את הדף."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "סיים את הניסוי מוקדם"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "הבעיה שאתה חווה."
 
@@ -2954,20 +2832,6 @@ msgstr "לחץ על הלחצן כשתהיה מוכן להמשיך בניסוי."
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "קורות חיים"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "למרבה הצער, התנהגות זו אינה נתמכת כעת."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr "מזהה המשתתף שלך לא מוגדר, אולי בגלל שהחלפת דפדפן במהלך הבדיקה."
 
 #: psynet/utils.py
 #, fuzzy

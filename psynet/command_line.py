@@ -40,6 +40,9 @@ from psynet.version import check_versions
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
+from .log import bold
+from .lucid import get_lucid_service
+from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -2354,7 +2357,7 @@ def _destroy(
     server=None,
     ask_for_confirmation=True,
 ):
-    delete_app = (
+    confirmed = (
         user_confirms(
             "Would you like to delete the app from the web server?", default=True
         )
@@ -2362,7 +2365,7 @@ def _destroy(
         else True
     )
 
-    if delete_app:
+    if confirmed:
         with yaspin("Destroying app...") as spinner:
             try:
                 kwargs = {"app": app}
@@ -2419,19 +2422,9 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
     from dallinger.command_line.docker_ssh import destroy
 
     example_usage = "`psynet destroy ssh <app> <app> [--server <server>]`"
-    ask_for_confirmation = True
-    if len(apps) > 0:
-        assert app is None, "You cannot provide both --app and a list of apps."
-        click.confirm(
-            "Would you like to delete the app from the web server?", abort=True
-        )
-        ask_for_confirmation = False
     if app:
         assert len(apps) == 0, "You cannot provide both --app and a list of apps."
         click.echo(f"Consider using the batch syntax: {example_usage}")
-        apps = [app]
-
-    for app in apps:
         _destroy(
             ctx,
             destroy,
@@ -2439,8 +2432,23 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
             app=app,
             expire_hit=expire_hit,
             server=server,
-            ask_for_confirmation=ask_for_confirmation,
         )
+    if len(apps) > 0:
+        assert app is None, "You cannot provide both --app and a list of apps."
+        confirmation = f"""
+            Are you sure you want to remove {len(apps)} apps on {server} ({apps})?
+            """
+        if click.confirm(confirmation, abort=True):
+            for app in apps:
+                _destroy(
+                    ctx,
+                    destroy,
+                    expire,
+                    app=app,
+                    expire_hit=expire_hit,
+                    server=server,
+                    ask_for_confirmation=False,
+                )
 
 
 # @local.command("experiment-mode")
@@ -2742,3 +2750,155 @@ def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
         ci_node_index=ci_node_index,
     ):
         print(test_)
+
+
+# Recruiter specific
+@psynet.group("lucid")
+@click.pass_context
+def lucid(ctx):
+    pass
+
+
+@lucid.command("cost")
+@click.argument("survey_number", required=True)
+@click.pass_context
+def lucid__cost(ctx, survey_number):
+    summary = get_lucid_service().get_cost(survey_number)
+    c = summary["currency"]
+    print(bold(f"Cost summary for survey: {survey_number}"))
+    print(f"Sample:\t{summary['sample']} {c}")
+    print(f"Fee:\t{summary['fee']} {c}")
+    print(bold(f"Total:\t{summary['total']} {c}"))
+    print(
+        f"Total completes: {summary['total_completes']}, price per complete: {round(summary['cost_per_complete'], 2)} {c}"
+    )
+
+
+@lucid.command("compensate")
+@click.argument("survey_number", required=True, nargs=1)
+@click.argument("rids", required=True, nargs=-1)
+@click.pass_context
+def lucid__compensate(ctx, survey_number, rids):
+    rids = list(rids)
+    confirmation = f"""
+    Are you sure you want to compensate {len(rids)} participants?
+    Note: This will ONLY mark these participants as completed, all other participants will be marked as TERMINATED.
+    """
+    if click.confirm(confirmation, abort=True):
+        get_lucid_service().reconcile(survey_number, rids)
+        log(
+            f"{len(rids)} participants have been approved for survey number: {survey_number}"
+        )
+
+
+@lucid.command("locale")
+@click.pass_context
+def lucid__locale(ctx):
+    print(
+        get_lucid_service().get_lucid_country_language_lookup().to_markdown(index=False)
+    )
+
+
+@lucid.command("status")
+@click.argument("survey_number", required=True)
+@click.argument("status", required=True)
+@click.pass_context
+def lucid__status(ctx, survey_number, status):
+    available_statuses = ["live", "paused", "completed", "archived", "pending"]
+    assert (
+        status in available_statuses
+    ), f"Invalid status: {status}, pick from: {available_statuses}"
+    if status == "completed":
+        status = "complete"
+    get_lucid_service().change_status(survey_number, status)
+
+
+@lucid.command("qualifications")
+@click.argument("survey_number", required=True)
+@click.option("--path", default=None, help="Path to save the qualifications to")
+@click.pass_context
+def get_qualifications(ctx, survey_number, path):
+    qualifications = get_lucid_service().get_qualifications(survey_number)
+    json_string = json.dumps(qualifications, indent=4)
+    if path:
+        with open(path, "w") as file:
+            file.write(json_string)
+        log(f"Qualifications have been saved to {path}")
+    else:
+        print(json_string)
+
+
+def _get_local_pandas():
+    try:
+        import pandas as pd
+
+        return pd
+    except ImportError:
+        raise ImportError(
+            "This command requires the pandas library. Install it with 'pip install pandas'"
+        )
+
+
+@lucid.command("studies")
+@click.option("--live", is_flag=True, help="List live experiments")
+@click.option("--paused", is_flag=True, help="List paused experiments")
+@click.option("--completed", is_flag=True, help="List complete experiments")
+@click.option("--archived", is_flag=True, help="List archived experiments")
+@click.option("--pending", is_flag=True, help="List pending experiments")
+@click.option("--n", default=10, help="Number of experiments to list")
+@click.option("--order", default="id", help="Sort by column")
+@click.pass_context
+def lucid__list_studies(ctx, live, paused, completed, archived, pending, n, order):
+    pd = _get_local_pandas()
+    assert n > 0 and n < 200
+    allowed_statuses = []
+    if live:
+        allowed_statuses.append("live")
+    if paused:
+        allowed_statuses.append("paused")
+    if completed:
+        allowed_statuses.append("complete")
+    if archived:
+        allowed_statuses.append("archived")
+    if pending:
+        allowed_statuses.append("pending")
+    all_studies = pd.DataFrame(
+        get_lucid_service().list_studies(allowed_statuses, n, order_by=order)
+    )
+    if len(all_studies) == 0:
+        print("No studies found with the given filters.")
+        return
+    all_studies["completes"] = all_studies.apply(
+        lambda x: f"{x['total_completes']} / {x['expected_completes']}", axis=1
+    )
+    all_studies.create_date = all_studies.create_date.apply(
+        lambda x: pd.to_datetime(x).strftime("%Y-%m-%d")
+    )
+    all_studies = all_studies[
+        ["id", "create_date", "status", "locale", "completes", "total_screens", "name"]
+    ]
+    print(all_studies.to_markdown(index=False))
+
+
+@lucid.command("submissions")
+@click.argument("survey_number", required=True)
+@click.option("--order", default="entry_date", help="Sort by column")
+@click.pass_context
+def lucid__list_submissions(ctx, survey_number, order):
+    pd = _get_local_pandas()
+    submissions = pd.DataFrame(get_lucid_service().get_submissions(survey_number))
+    submissions.client_status = submissions.client_status.apply(
+        lambda x: BaseLucidRecruiter.client_codes.get(x, "Unknown")
+    )
+    submissions.fulcrum_status = submissions.fulcrum_status.apply(
+        lambda x: BaseLucidRecruiter.market_place_codes.get(x, "Unknown")
+    )
+    submissions.drop(columns=["panelist_id"], inplace=True)
+    submissions.entry_date = pd.to_datetime(submissions.entry_date)
+    submissions.last_date = pd.to_datetime(submissions.last_date)
+    submissions["duration"] = (
+        submissions.last_date - submissions.entry_date
+    ).dt.total_seconds() / 60
+    submissions.drop(columns=["last_date"], inplace=True)
+    submissions = submissions.sort_values(by=order, ascending=False)
+    print(submissions.to_markdown(index=False))
