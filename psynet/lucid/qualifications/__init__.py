@@ -142,7 +142,7 @@ def create_lucid_recruitment_config(
     if allow_mobile_devices is None:
         allow_mobile_devices = config.get("allow_mobile_devices")
 
-    if allow_mobile_devices:
+    if not allow_mobile_devices:
         qualifications.append(
             {
                 "Name": "MS_is_mobile",
