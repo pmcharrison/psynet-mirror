@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
@@ -110,6 +110,13 @@ class StaticTrialMaker(ChainTrialMaker):
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.static.StaticTrial`).
+
+    nodes
+        The nodes to be administered to the participants. This can be provided as
+        a list of :class:`~psynet.trial.static.StaticNode` objects,
+        or as a function (taking no arguments) that can be called to generate such
+        a list. The latter is useful for generating nodes based on local files
+        (e.g. large media assets) that are not available on the deployed server.
 
     max_trials_per_participant
         Maximum number of trials that each participant may complete;
@@ -237,7 +244,7 @@ class StaticTrialMaker(ChainTrialMaker):
         *,
         id_: str,
         trial_class,
-        nodes: List[ChainNode],
+        nodes: Optional[Union[callable, List["StaticNode"]]],
         expected_trials_per_participant: int,
         max_trials_per_participant: int = NoArgumentProvided,
         recruit_mode: Optional[str] = None,
@@ -264,15 +271,24 @@ class StaticTrialMaker(ChainTrialMaker):
         # if active_balancing_across_participants:
         #     balance_strategy.add("across")
 
-        if expected_trials_per_participant is None:
-            expected_trials_per_participant = len(nodes)
-
-        if expected_trials_per_participant > len(nodes) and not allow_repeated_nodes:
-            raise ValueError(
-                f"expected_trials_per_participant ({expected_trials_per_participant}) "
-                f"may not exceed len(nodes) ({len(nodes)}) "
-                "unless allow_repeated_nodes = True."
-            )
+        if callable(nodes):
+            if expected_trials_per_participant is None:
+                raise ValueError(
+                    "If nodes is a function, expected_trials_per_participant must be explicitly provided."
+                )
+            chains_per_experiment = None
+        else:
+            assert isinstance(nodes, list)
+            if (
+                expected_trials_per_participant > len(nodes)
+                and not allow_repeated_nodes
+            ):
+                raise ValueError(
+                    f"expected_trials_per_participant ({expected_trials_per_participant}) "
+                    f"may not exceed len(nodes) ({len(nodes)}) "
+                    "unless allow_repeated_nodes = True."
+                )
+            chains_per_experiment = len(nodes)
 
         if allow_repeated_nodes:
             assert (
@@ -293,7 +309,7 @@ class StaticTrialMaker(ChainTrialMaker):
             max_trials_per_block=max_trials_per_block,
             chain_type="across",
             chains_per_participant=None,
-            chains_per_experiment=len(nodes),
+            chains_per_experiment=chains_per_experiment,
             max_nodes_per_chain=1,
             trials_per_node=target_trials_per_node if target_trials_per_node else 1e6,
             balance_across_chains=balance_across_nodes,

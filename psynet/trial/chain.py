@@ -1,6 +1,6 @@
 import random
 import warnings
-from typing import Optional, Type
+from typing import List, Optional, Type, Union
 
 from dallinger import db
 from dallinger.models import Vector
@@ -1213,7 +1213,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         n_repeat_trials: int = 0,
         target_n_participants: Optional[int] = None,
         balance_across_chains: bool = False,
-        start_nodes=None,
+        start_nodes: Optional[Union[callable, List[ChainNode]]] = None,
         # balance_strategy: Set[str] = {"within", "across"},
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
