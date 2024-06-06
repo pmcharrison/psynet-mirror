@@ -1374,7 +1374,7 @@
                     }
                 };
 
-                psynet.processingResponse = false;
+                psynet.nextPagePending = false;
 
                 psynet.submitResponse = async function (onRejection) {
                     if (psynet.stageResponse) {
@@ -1400,10 +1400,11 @@
                         )
                         return false;
                     }
-                    if (psynet.processingResponse) {
+                    if (psynet.nextPagePending) {
+                        psynet.log.debug("Skipping nextPage request as nextPage is already pending.");
                         return false;
                     }
-                    psynet.processingResponse = true;
+                    psynet.nextPagePending = true;
                     // rawAnswer, metadata, and blobs default to psynet.response.staged if they
                     // are not provided explicitly.
                     //
@@ -1421,7 +1422,9 @@
                         psynet.removeBeforeUnloadEventListener();
                     {% endif %}
                     let passedValidation = await submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
-                    psynet.processingResponse = false;
+                    if (!passedValidation) {
+                        psynet.nextPagePending = false;
+                    }
                     return passedValidation
                 };
 
@@ -1453,6 +1456,7 @@
                         } else {
                             psynet.page = response.page;
                             psynet.trial.registerEvent("pageUpdated");
+                            psynet.nextPagePending = false;
                         }
                         passedValidation = true;
                     } else if (response.submission === "rejected") {
