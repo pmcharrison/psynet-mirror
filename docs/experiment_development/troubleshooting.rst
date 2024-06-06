@@ -175,3 +175,49 @@ Finally you can reinstall Postgres:
 
    brew install postgresql@14
    brew services start postgresql@14
+
+Heroku Startup Error / CLI not responding
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+If you're experiencing issues with Heroku CLI not responding or encountering errors, you can try uninstalling and reinstalling it first. After that, enable debugging environment variables to get more detailed logs and information about what might be going wrong. This can help you diagnose and resolve the problem more effectively.
+
+
+If the CLI is not responding or you're experiencing issues, you can try uninstalling and reinstalling it.
+
+.. code-block:: bash
+
+    brew uninstall heroku
+    rm -rf ~/.local/share/heroku ~/Library/Caches/heroku
+
+.. code-block:: bash
+
+    brew install heroku/brew/heroku
+
+After uninstalling and reinstalling the CLI, try running the Heroku command again. 
+
+If the issue persists, open your terminal and set the following environment variables to enable debugging:
+
+.. code-block:: bash
+
+    export HEROKU_DEBUG=1
+    export HEROKU_DEBUG_HEADERS=1
+    export DEBUG=*
+
+- **HEROKU_DEBUG=1**: Enables debug logging for the Heroku CLI.
+- **HEROKU_DEBUG_HEADERS=1**: Enables debug logging for HTTP headers, useful for troubleshooting authentication or networking issues.
+- **DEBUG=***: Enables debug logging for all modules used by the Heroku CLI.
+
+
+To verify your CLI installation, use the ``heroku --version`` command:
+
+.. code-block:: bash
+
+    heroku --version
+
+If the CLI is installed correctly, you should see output similar to:
+
+.. code-block:: text
+
+    heroku/7.0.0 (darwin-x64) node-v8.0.0
+
