@@ -2458,8 +2458,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def render_error(cls):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
+
         compensate = True
         participant = None
+        recruiter = None
+        external_submit_url = None
+
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
             recruiter = get_experiment().recruiter
