@@ -1,5 +1,40 @@
 # CHANGELOG
 
+# [11.5.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.5.0) Release 2024-06-07
+
+## Fixed
+- Fixed a couple of image rendering bugs that manifested when using SVG files with `GraphicPrompt`/`GraphicControl` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed various issues and improvements/additions for Lucid recruitment (authors: Pol van Rijn, Frank Höger; reviewer: Peter Harrison):
+  - Added `initial_response_within_s` setting; if a participant does not proceed to the consent within a certain time (default 180 seconds), the participant is terminated via the backend-end.
+  - Added a Lucid tab in the dashboard displaying various data and statistics, e.g.
+    - Lucid respondents activity, incl. a detailed breakdown of their status
+    - Lucid marketplace codes of respondents
+    - Lucid metrics (e.g. conversion rate, dropoff rate, incidence rate, termination LOI, completion LOI)
+    - Various historams, incl. comparisions Lucid vs. PsyNet
+  - Added new `psynet lucid` commands: `compensate`, `cost`, `locale`, `qualifications`, `status`, `studies`, `submissions`
+  - Cleanup integration of external libraries (bootstrap, bootstrap-select, d3)
+- Fixed race condition in `nextPage` which manifested on graphics pages when double-clicking on a response (author: Peter Harrison, reviewer: Frank Höger).
+- The `nodes` argument in `StaticTrialMaker` can now be a callable. This is helpful for referring to local files that are not part of the experiment directory, which we don't want the remote server to try to access (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug in `render_error` (variables sometimes accessed before assignment) (author: Peter Harrison, reviewer: Frank Höger).
+
+## Added
+- Added `require_requirements_txt` decorator for `psynet generate-constraints` and `psynet check-constraints` commands (author: Frank Höger, reviewer: Peter Harrison).
+
+## Changed
+- Restructured demo directories (author: Frank Höger, reviewer: Peter Harrison):
+  - Moved demos into respective new subdirectories `demos/experiments` and `demos/features`.
+    **Note: if you are using a local editable version of PsyNet, we recommend deleting it and creating a fresh clone so that the old directories are purged properly.**
+  - Moved demos that are only used for testing into `tests /experiments`.
+  - Moved a part of the tests into respective new subdirectories `tests/isolated/demos`, `tests/isolated/experiments` and `tests/isolated/features`.
+  - Renamed and updated `list_demo_dirs` to `list_experiment_dirs` functions to reflect the new directory structure.
+
+## Updated
+- Updated bootstrap to v5.3.3 (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Documentation changes
+- Updated SSH server deploy docs (author: Peter Harrison).
+- Added troubleshooting section related to Heroku CLI not responding (author: Shota Shiiku, reviewer: Frank Höger)
+
 # [11.4.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.4.0) Release 2024-05-25
 
 ## Fixed
