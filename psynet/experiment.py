@@ -418,6 +418,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
+    max_allowed_base_payment = 30
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -1477,6 +1478,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
             )
 
+        cls.check_base_payment(config)
+
         parser = configparser.ConfigParser()
         parser.read("config.txt")
         config_txt = {}
@@ -1490,6 +1493,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Config variable {key} was registered both in config.txt and experiment.py. "
                     f"Please choose just one location."
                 )
+
+    @classmethod
+    def check_base_payment(cls, config):
+        if config.get("base_payment") > cls.max_allowed_base_payment:
+            raise ValueError(
+                f"Your experiment's `base_payment` exceeds the maximum allowed value of {cls.max_allowed_base_payment}!\n\n"
+                "Check that you have the units right; for example, if your currency is dollars, then base payment "
+                "should be specified in dollars, not cents. If you're sure you want this large base payment, "
+                "then set `Experiment.max_allowed_base_payment` to a larger value in experiment.py."
+            )
 
     def fail_participant(self, participant):
         failed_reason = ", ".join(participant.failure_tags)
