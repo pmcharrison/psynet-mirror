@@ -736,7 +736,7 @@ def deploy():
 
 
 @deploy.command("heroku")
-@click.option("--app", required=True, help="Experiment id")
+@click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
@@ -785,7 +785,7 @@ def _deploy__docker_heroku(ctx, app, archive):
 
 
 @deploy.command("ssh")
-@click.option("--app", required=True, help="Experiment id")
+@click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
 @click.option(
@@ -1053,7 +1053,9 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
 
 
 @debug.command("heroku")
-@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option(
+    "--app", callback=verify_id, default=None, help="Name of the experiment app."
+)
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.pass_context
@@ -1098,7 +1100,9 @@ def debug__docker_heroku(ctx, app, archive):
 
 
 @debug.command("ssh")
-@click.option("--app", required=True, help="Name of the experiment app.")
+@click.option(
+    "--app", callback=verify_id, required=True, help="Name of the experiment app."
+)
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
 @click.option(
@@ -2547,15 +2551,6 @@ def stats__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import stats
 
     ctx.invoke(stats, server=server)
-
-
-def verify_id(ctx, param, app):
-    return app
-
-
-# The original Dallinger verify_id function forces app names to begin with dlgr-,
-# which is not appropriate for us
-dallinger.command_line.utils.verify_id = verify_id
 
 
 @psynet.group("test")
