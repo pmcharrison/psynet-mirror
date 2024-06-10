@@ -51,6 +51,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "bump-my-version",
     "furo",
     "isort",
     "mock",
