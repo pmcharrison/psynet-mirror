@@ -529,9 +529,18 @@ def require_exp_directory(f):
                 raise click.UsageError(error_one)
         except ValueError:
             raise click.UsageError(error_two)
+
+        ensure_config_txt_exists()
+
         return f(*args, **kwargs)
 
     return wrapper
+
+
+def ensure_config_txt_exists():
+    config_txt_path = Path("config.txt")
+    if not config_txt_path.exists():
+        config_txt_path.touch()
 
 
 def require_requirements_txt(f):
