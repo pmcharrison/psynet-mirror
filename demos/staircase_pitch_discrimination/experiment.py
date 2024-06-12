@@ -51,6 +51,7 @@ chain_definitions = [
 ]
 
 n_chains = len(chain_definitions)
+chain_length = 10
 
 # #############################################################################
 
@@ -92,16 +93,14 @@ class PitchDiscriminationNode(GeometricStaircaseNode):
 
     def decrease_difficulty(self, parameter):
         # Larger pitch differences are easier
-        return parameter / self.step
+        max_value = 12  # semitones
+        return min(max_value, parameter / self.step)
 
 
 # We also need to define a subclass of GeometricStaircaseTrial.
 # This determines how the task is presented to the participant.
 class PitchDiscriminationTrial(GeometricStaircaseTrial):
-    trial_time_estimate = 5
-    feedback_time_estimate = 0.75
-
-    time_estimate = trial_time_estimate + feedback_time_estimate
+    time_estimate = 5
 
     sample_rate = 44100
     tone_duration = 1.0
@@ -195,7 +194,6 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
                 arrange_vertically=False,
                 bot_response=self.get_bot_response,
             ),
-            time_estimate=self.trial_time_estimate,
         )
 
     def show_feedback(self, experiment, participant):
@@ -207,11 +205,10 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
         return ModularPage(
             "pitch_discrimination_feedback",
             content,
-            time_estimate=self.feedback_time_estimate,
             events={
                 "nextPage": Event(
                     is_triggered_by="submitEnable",
-                    delay=self.feedback_time_estimate,
+                    delay=0.5,
                     js="psynet.nextPage()",
                 ),
             },
@@ -272,12 +269,8 @@ class Exp(psynet.experiment.Experiment):
             # max_trials_per_run, max_reversals_per_chain, etc. We are waiting on some other PsyNet changes before
             # we can do this though.
             start_nodes=get_start_nodes,
-            # max_nodes_per_chain determines the maximum number of trials in a chain.
-            max_nodes_per_chain=30,
-            # max_reversals_per_chain determines the maximum number of reversals in a chain.
-            max_reversals_per_chain=6,
-            # In this case we expect that 6 reversals will take fewer than 20 trials to achieve.
-            expected_trials_per_participant=n_chains * 14,
+            max_nodes_per_chain=chain_length,
+            expected_trials_per_participant=n_chains * chain_length,
             # This parameter is used to determine when to stop automatic recruitment (if active).
             target_n_participants=1,
         ),
