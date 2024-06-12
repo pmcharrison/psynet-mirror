@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "11.5.0"
+version = "11.6.0-dev0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -51,6 +51,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "bump-my-version",
     "furo",
     "isort",
     "mock",
