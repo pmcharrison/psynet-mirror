@@ -1010,7 +1010,7 @@ class CustomTrial(Trial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
-        return InfoPage("Hello!", time_estimate=self.time_estimate)
+        return InfoPage("Hello!", time_estimate)
 
 trial_maker = TrialMaker(**params)
 ```
