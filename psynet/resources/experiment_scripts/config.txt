@@ -37,3 +37,8 @@ base_payment = 0.34
 #
 # For local debug CAP-Recruiter set:
 # debug_recruiter = dev-cap-recruiter
+
+[Docker]
+# When using Docker for deployment `docker_image_base_name` must be specified, e.g.:
+# docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images
+# docker_image_base_name = registry.gitlab.com/computational-audition/experiment-images
