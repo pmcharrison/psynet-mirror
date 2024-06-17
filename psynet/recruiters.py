@@ -57,7 +57,9 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
         """Incremental recruitment isn't implemented for now, so we return an empty list."""
         return []
 
-    def terminate_participant(self, participant, reason, details=None):
+    def terminate_participant(
+        self, participant=None, assignment_id=None, reason=None, details=None
+    ):
         raise NotImplementedError
 
 
@@ -481,8 +483,9 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 # skip terminated entrants
                 continue
 
-            reason = None
             details = None
+            participant = None
+            reason = None
             try:
                 participant = Participant.query.filter_by(worker_id=entrant.rid).one()
                 responses = (
@@ -500,10 +503,22 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
             if reason:
                 try:
-                    self.terminate_participant(participant, reason, details)
-                    logger.info(f"RID {entrant.rid} terminated")
+                    participant_info = (
+                        {"participant": participant}
+                        if participant
+                        else {"assignment_id": entrant.rid}
+                    )
+                    self.terminate_participant(
+                        reason=reason, details=details, **participant_info
+                    )
+
+                    logger.info(
+                        f"Successfully terminated participant with RID '{entrant.rid}'."
+                    )
                 except Exception as e:
-                    logger.error(f"Error terminating participant {entrant.rid}: {e}")
+                    logger.error(
+                        f"Error terminating participant with RID '{entrant.rid}': {e}"
+                    )
 
     def get_survey_storage_key(self, name):
         experiment_id = self.config.get("id")
@@ -691,7 +706,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 reason = "consent-rejected"
             else:
                 reason = "participant-did-not-complete"
-            self.terminate_participant(participant, reason)
+            self.terminate_participant(participant=participant, reason=reason)
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.get_survey_storage_key("survey_number"), survey_number)
@@ -753,13 +768,19 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, participant, reason, details=None):
-        participant.failed = True
-        participant.failed_reason = reason
-        participant.status = "returned"
-        db.session.commit()
+    def terminate_participant(
+        self, participant=None, assignment_id=None, reason=None, details=None
+    ):
+        assert participant or assignment_id
+        assert not (participant and assignment_id)
 
-        assignment_id = participant.assignment_id
+        if participant:
+            assignment_id = participant.assignment_id
+
+            participant.failed = True
+            participant.failed_reason = reason
+            participant.status = "returned"
+            db.session.commit()
         try:
             self.lucidservice.terminate_respondent(assignment_id, reason, details)
             logger.info(
