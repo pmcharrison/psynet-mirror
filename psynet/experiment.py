@@ -654,7 +654,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         requests_df = pd.DataFrame([request.to_dict() for request in all_requests])
         summary = {}
         if len(requests_df) > 0:
-            summary["median_response_time"] = requests_df["duration"].median()
+            summary["median_response_time"] = float(requests_df["duration"].median())
             summary["requests_per_minute"] = len(requests_df)
         return summary
 
