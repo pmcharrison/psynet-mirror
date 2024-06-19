@@ -60,8 +60,11 @@ def get_all_version_infos(file_content):
         specified = None
         installed = None
 
+        # Collect requirements omitting commented lines
         requirements = [
-            line for line in file_content.splitlines() if package_name.lower() in line
+            line
+            for line in file_content.splitlines()
+            if package_name.lower() in line and not line.strip().startswith("#")
         ]
 
         if len(requirements) == 0:

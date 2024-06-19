@@ -124,6 +124,21 @@ def test_check_versions_psynet_pip_install_commit_hash(mock_get_pip_freeze_requi
                         check_versions()
 
 
+@patch("psynet.__version__", "10.0.0")
+def test_check_versions_psynet_commented():
+    for extension in ["", ".git"]:
+        with tempfile.TemporaryDirectory() as dir:
+            with working_directory(dir):
+                # In a former PsyNet version, the comments were not respected, so
+                # the following requirements would produce an inconsistent versions error
+                with open("requirements.txt", "w") as file:
+                    file.write("# psynet==9.9.9\n")
+                    file.write("psynet==10.0.0\n")
+                    file.flush()
+
+                    check_versions()
+
+
 # Dallinger tests
 @patch("psynet.__version__", "10.0.0")
 @patch("psynet.version.dallinger_version", "9.0.0")
@@ -160,12 +175,7 @@ def test_check_versions_dallinger_unspecified_requirement():
                 )
                 file.flush()
 
-                try:
-                    check_versions()
-                except AssertionError:
-                    assert (
-                        False
-                    ), "The Dallinger versions installed on your local computer and specified in requirements.txt do not match."
+                check_versions()
 
             # Do NOT raise an error if dallinger requirement is not specified
             with open("requirements.txt", "w") as file:
@@ -174,12 +184,7 @@ def test_check_versions_dallinger_unspecified_requirement():
                 )
                 file.flush()
 
-                try:
-                    check_versions()
-                except AssertionError:
-                    assert (
-                        False
-                    ), "The Dallinger versions installed on your local computer and specified in requirements.txt do not match."
+                check_versions()
 
 
 @patch("psynet.__version__", "10.0.0")
@@ -249,9 +254,4 @@ def test_check_dallinger_versions_pip_install():
                 )
                 file.flush()
 
-                try:
-                    check_versions()
-                except AssertionError:
-                    assert (
-                        False
-                    ), "The Dallinger versions installed on your local computer and specified in requirements.txt do not match."
+                check_versions()
