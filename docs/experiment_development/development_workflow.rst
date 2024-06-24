@@ -209,18 +209,30 @@ To run the experiment's tests, you can enter the following into your bash termin
 
 .. code:: bash
 
-    bash docker/run pytest test.py
+    bash docker/run psynet test local
 
-Or without docker:
+Or without docker:  
 
 .. code:: bash
 
-    pytest test.py
+    psynet test local
 
 The nice thing about running these tests in Docker is that it uses the exact operating system environment
 (including Python version and dependencies) that your actual deployed experiment would use.
 It's a great way of finding problems.
 It's a good habit to run this test as a final check before you deploy your experiment.
+
+.. note::
+
+    You can also run your experiment's tests via PyCharm. 
+    However, at the time of writing (June 2024) there is a bug in PyCharm's test result parser
+    that causes important information to be omitted from test results in some cases. 
+    To fix this problem we recommend editing your PyCharm's pytest run configurations to include
+    the additional argument ``--tb=short``. To do this, click Run > Edit Configurations > 
+    Edit configuration templates > Python tests > pytest, and then insert ``--tb=short``
+    under Additional Arguments. Then press OK, then remove any existing pytest configurations for your
+    current project by pressing the minus symbol in the top left. Future tests should then run 
+    automatically using this option.
 
 
 Local PsyNet and Dallinger installations
