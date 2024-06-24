@@ -226,7 +226,7 @@ It's a good habit to run this test as a final check before you deploy your exper
 
     You can also run your experiment's tests via PyCharm. 
     However, at the time of writing (June 2024) there is a bug in PyCharm's test result parser
-    that causes important information to be omitted from test results in some cases. 
+    that causes full tracebacks to be omitted from test results in some cases. 
     To fix this problem we recommend editing your PyCharm's pytest run configurations to include
     the additional argument ``--tb=short``. To do this, click Run > Edit Configurations > 
     Edit configuration templates > Python tests > pytest, and then insert ``--tb=short``
