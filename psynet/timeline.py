@@ -1540,7 +1540,7 @@ class Timeline:
                         "create a fresh instantiation of each element, e.g. by calling a function twice."
                     )
 
-                elt.id = ["branch_name", i]
+                elt.id = [branch_name, i]
 
     @log_time_taken
     def get_current_elt(self, experiment, participant):
@@ -1564,13 +1564,7 @@ class Timeline:
         # resolving it, and so on.
         #
         num_levels = len(participant.elt_id)
-        selected_elt = None
-
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
+        selected = self.elts
 
         for depth, index in enumerate(participant.elt_id):
             # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
@@ -1585,8 +1579,9 @@ class Timeline:
             except IndexError:
                 index_max = None
 
-            if not isinstance(selected_elt, PageMaker):
-                selected_elt = self.elts[index]
+            if not isinstance(selected, PageMaker):
+                # To do - combine this with its sibling below
+                selected = selected[index]
             else:
                 try:
                     # ``position`` corresponds to the page maker's location within the timeline.
@@ -1597,10 +1592,10 @@ class Timeline:
                     if index_max is not None and index > index_max:
                         raise IndexError
                     position = participant.elt_id[0:depth]
-                    resolved = selected_elt.resolve(experiment, participant, position)
+                    resolved = selected.resolve(experiment, participant, position)
                     if index_max is None:
                         participant.elt_id_max.append(len(resolved) - 1)
-                    selected_elt = resolved[index]
+                    selected = resolved[index]
                 except IndexError:
                     # This occurs if the requested index goes past the number of
                     # elements produced by the current page maker.
@@ -1615,7 +1610,7 @@ class Timeline:
 
                     raise PageMakerFinishedError
 
-        return selected_elt
+        return selected
 
     @log_time_taken
     def advance_page(self, experiment, participant):
