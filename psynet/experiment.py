@@ -1386,18 +1386,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     #     db.session.commit()
 
     def process_timeline(self):
-        for elt in self.timeline.elts:
-            if isinstance(elt, DatabaseCheck):
-                self.register_database_check(elt)
-            if isinstance(elt, ParticipantFailRoutine):
-                self.register_participant_fail_routine(elt)
-            if isinstance(elt, RecruitmentCriterion):
-                self.register_recruitment_criterion(elt)
-            if isinstance(elt, Asset):
-                elt.deposit_on_the_fly = False
-                self.assets.stage(elt)
-            if isinstance(elt, PreDeployRoutine):
-                self.pre_deploy_routines.append(elt)
+        for branch in self.timeline.branches.values():
+            for elt in branch:
+                if isinstance(elt, DatabaseCheck):
+                    self.register_database_check(elt)
+                if isinstance(elt, ParticipantFailRoutine):
+                    self.register_participant_fail_routine(elt)
+                if isinstance(elt, RecruitmentCriterion):
+                    self.register_recruitment_criterion(elt)
+                if isinstance(elt, Asset):
+                    elt.deposit_on_the_fly = False
+                    self.assets.stage(elt)
+                if isinstance(elt, PreDeployRoutine):
+                    self.pre_deploy_routines.append(elt)
 
     def pre_deploy(self):
         self.update_deployment_id()

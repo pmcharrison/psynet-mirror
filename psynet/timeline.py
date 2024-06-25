@@ -1422,40 +1422,44 @@ class EndPage(Page):
 
 class Timeline:
     def __init__(self, *args):
-        self.elts = {
+        self.branches = {
             "experiment": join(*args),
         }
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
-        self.estimated_time_credit = CreditEstimate(self.elts["experiment"])
+        self.estimated_time_credit = CreditEstimate(self.branches["experiment"])
 
     def compile_modules(self):
         modules = {}
         module_list = []
-        for elt in self.elts["experiment"]:
-            if isinstance(elt, StartModule):
-                module = elt.module
-                if module.id in modules:
-                    raise ValueError(f"Duplicated module name detected: {module.id}")
-                modules[module.id] = module
-                module_list.append(module)
+        for branch in self.branches:
+            for elt in branch:
+                if isinstance(elt, StartModule):
+                    module = elt.module
+                    if module.id in modules:
+                        raise ValueError(
+                            f"Duplicated module name detected: {module.id}"
+                        )
+                    modules[module.id] = module
+                    module_list.append(module)
         return modules, module_list
 
     def check_elts(self):
-        assert isinstance(self.elts, dict)
-        assert isinstance(self.elts["experiment"], list)
-        assert len(self.elts["experiment"]) > 0
-        if not isinstance(self.elts["experiment"][-1], EndPage):
-            raise ValueError(
-                "The final element in the experiment timeline must be an EndPage."
-            )
+        assert isinstance(self.branches, dict)
+        for branch_id, branch in self.branches.items():
+            assert isinstance(branch, list)
+            assert len(branch) > 0
+            if not isinstance(branch[-1], EndPage):
+                raise ValueError(
+                    f"The final element in the {branch_id} timeline must be an EndPage."
+                )
         self.check_for_time_estimate()
         self.check_for_consent()
         self.check_modules()
 
     def check_for_time_estimate(self):
-        for i, elt in enumerate(self.elts["experiment"]):
+        for i, elt in enumerate(self.branches["experiment"]):
             if (
                 isinstance(elt, Page) or isinstance(elt, PageMaker)
             ) and elt.time_estimate is None:
@@ -1465,7 +1469,10 @@ class Timeline:
 
     def check_modules(self):
         modules = [
-            x.label for x in self.elts["experiment"] if isinstance(x, StartModule)
+            elt.label
+            for branch in self.branches
+            for elt in branch
+            if isinstance(elt, StartModule)
         ]
         counts = Counter(modules)
         duplicated = [key for key, value in counts.items() if value > 1]
@@ -1483,21 +1490,21 @@ class Timeline:
         from psynet.consent import Consent
         from psynet.page import InfoPage
 
-        first_elt = self.elts["experiment"][0]
+        first_elt = self.branches["experiment"][0]
         # ignore unless the timeline is fully initialized
         if (
             isinstance(first_elt, InfoPage)
             and first_elt.content == "Placeholder timeline"
         ):
             return
-        if all([not isinstance(elt, Consent) for elt in self.elts["experiment"]]):
+        if all([not isinstance(elt, Consent) for elt in self.branches["experiment"]]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
     @property
     def consents(self):
         from .consent import Consent
 
-        return [elt for elt in self.elts["experiment"] if isinstance(elt, Consent)]
+        return [elt for elt in self.branches["experiment"] if isinstance(elt, Consent)]
 
     def verify_consents(self, experiment):
         recruiter = experiment.recruiter
@@ -1506,7 +1513,7 @@ class Timeline:
 
     @cached_property
     def modules(self):
-        return {e.module_id: e.module for e in self.elts["experiment"]}
+        return {e.module_id: e.module for e in self.branches["experiment"]}
 
     def get_module(self, module_id):
         try:
@@ -1518,7 +1525,7 @@ class Timeline:
     def trial_makers(self):
         return {
             e.trial_maker_id: e.trial_maker
-            for e in self.elts["experiment"]
+            for e in self.branches["experiment"]
             if isinstance(e, RegisterTrialMaker)
         }
 
@@ -1529,11 +1536,11 @@ class Timeline:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
 
     def add_elt_ids(self):
-        for branch_name, branch in self.elts.items():
+        for branch_name, branch in self.branches.items():
             for i, elt in enumerate(branch):
                 if elt.id is not None:
                     raise ValueError(
-                        "Failed to set unique IDs for each element in the timeline "
+                        f"Failed to set unique IDs for each element in the {branch_name} timeline "
                         f"(the same element was reused at positions {elt.id} and {i}). "
                         "This usually means that the same Python object instantiation is reused multiple times "
                         "in the same timeline. This kind of reusing is not permitted, instead you should "
@@ -1564,7 +1571,7 @@ class Timeline:
         # resolving it, and so on.
         #
         num_levels = len(participant.elt_id)
-        selected = self.elts
+        selected = self.branches
 
         for depth, index in enumerate(participant.elt_id):
             # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
