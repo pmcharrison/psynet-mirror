@@ -3,37 +3,50 @@
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import MainConsent
-from psynet.page import SuccessfulEndPage, UnsuccessfulEndPage
-from psynet.timeline import CodeBlock, Timeline, switch
+from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
+from psynet.timeline import CodeBlock, ParticipantFailRoutine, Timeline, switch
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-assert False, "Check that the CI is running this test"
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Failing a participant"
 
-    test_n_bots = 2
+    test_n_bots = 3
 
     timeline = Timeline(
         MainConsent(),
+        CodeBlock(
+            lambda participant: participant.var.set("fail_routine_executed", False)
+        ),
         switch(
             "switch",
-            lambda participant: participant.id % 2,
+            lambda participant: participant.id,
             {
-                0: UnsuccessfulEndPage(),
-                1: CodeBlock(lambda participant: participant.fail("CodeBlock")),
+                1: UnsuccessfulEndPage(),
+                2: CodeBlock(lambda participant: participant.fail("CodeBlock")),
+                3: InfoPage("Nothing to see here...", time_estimate=5),
             },
+        ),
+        ParticipantFailRoutine(
+            "var",
+            lambda participant: participant.var.set("fail_routine_executed", True),
         ),
         SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert bot.failed
 
-        if bot.id % 2 == 0:
-            assert bot.failed_reason == "UnsuccessfulEndPage"
+        if bot.id < 2:
+            assert bot.failed
+            assert bot.var.fail_routine_executed
+
+            if bot.id == 0:
+                assert bot.failed_reason == "UnsuccessfulEndPage"
+            else:
+                assert bot.failed_reason == "CodeBlock"
+
         else:
-            assert bot.failed_reason == "CodeBlock"
+            assert not bot.failed
+            assert not bot.var.fail_routine_executed
