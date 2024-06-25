@@ -9,6 +9,8 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
+assert False, "Check that the CI is running this test"
+
 
 class Exp(psynet.experiment.Experiment):
     label = "Failing a participant"
