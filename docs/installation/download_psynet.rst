@@ -1,9 +1,9 @@
 Download the PsyNet repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Downloading the PsyNet repository is not strictly necessary, but it is useful
-to be able to look at the source code,
-as well as to access the collection of demos it provides.
+We recommend downloading the PsyNet repository so that you can access its collection
+of built-in demos and explore the source code. However, you do not need to download it
+for running your own experiments.
 
 We recommend downloading PsyNet to your home directory if possible, there are
 some PsyNet features that run smoother if it is located there.
