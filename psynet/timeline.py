@@ -1579,10 +1579,7 @@ class Timeline:
             except IndexError:
                 index_max = None
 
-            if not isinstance(selected, PageMaker):
-                # To do - combine this with its sibling below
-                selected = selected[index]
-            else:
+            if isinstance(selected, PageMaker):
                 try:
                     # ``position`` corresponds to the page maker's location within the timeline.
                     # For example, suppose we are on the third level of the example above, then:
@@ -1592,10 +1589,9 @@ class Timeline:
                     if index_max is not None and index > index_max:
                         raise IndexError
                     position = participant.elt_id[0:depth]
-                    resolved = selected.resolve(experiment, participant, position)
+                    selected = selected.resolve(experiment, participant, position)
                     if index_max is None:
-                        participant.elt_id_max.append(len(resolved) - 1)
-                    selected = resolved[index]
+                        participant.elt_id_max.append(len(selected) - 1)
                 except IndexError:
                     # This occurs if the requested index goes past the number of
                     # elements produced by the current page maker.
@@ -1609,6 +1605,8 @@ class Timeline:
                     assert depth + 1 == num_levels
 
                     raise PageMakerFinishedError
+
+            selected = selected[index]
 
         return selected
 
