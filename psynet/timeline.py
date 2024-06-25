@@ -1422,17 +1422,18 @@ class EndPage(Page):
 
 class Timeline:
     def __init__(self, *args):
-        elts = join(*args)
-        self.elts = elts
+        self.elts = {
+            "experiment": join(*args),
+        }
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
-        self.estimated_time_credit = CreditEstimate(self.elts)
+        self.estimated_time_credit = CreditEstimate(self.elts["experiment"])
 
     def compile_modules(self):
         modules = {}
         module_list = []
-        for elt in self.elts:
+        for elt in self.elts["experiment"]:
             if isinstance(elt, StartModule):
                 module = elt.module
                 if module.id in modules:
@@ -1442,16 +1443,19 @@ class Timeline:
         return modules, module_list
 
     def check_elts(self):
-        assert isinstance(self.elts, list)
-        assert len(self.elts) > 0
-        if not isinstance(self.elts[-1], EndPage):
-            raise ValueError("The final element in the timeline must be an EndPage.")
+        assert isinstance(self.elts, dict)
+        assert isinstance(self.elts["experiment"], list)
+        assert len(self.elts["experiment"]) > 0
+        if not isinstance(self.elts["experiment"][-1], EndPage):
+            raise ValueError(
+                "The final element in the experiment timeline must be an EndPage."
+            )
         self.check_for_time_estimate()
         self.check_for_consent()
         self.check_modules()
 
     def check_for_time_estimate(self):
-        for i, elt in enumerate(self.elts):
+        for i, elt in enumerate(self.elts["experiment"]):
             if (
                 isinstance(elt, Page) or isinstance(elt, PageMaker)
             ) and elt.time_estimate is None:
@@ -1460,14 +1464,16 @@ class Timeline:
                 )
 
     def check_modules(self):
-        modules = [x.label for x in self.elts if isinstance(x, StartModule)]
+        modules = [
+            x.label for x in self.elts["experiment"] if isinstance(x, StartModule)
+        ]
         counts = Counter(modules)
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
             raise ValueError(
                 "The following module ID(s) were duplicated in your timeline: "
                 + ", ".join(duplicated)
-                + ". PsyNet timelines may not contain duplicated module IDs. "
+                + ". PsyNet experiment timelines may not contain duplicated module IDs. "
                 + "You will need to update your timeline to fix this. "
                 + "This will probably mean updating one or more `id_` arguments in your "
                 + "trial makers and/or pre-screening tasks."
@@ -1477,21 +1483,21 @@ class Timeline:
         from psynet.consent import Consent
         from psynet.page import InfoPage
 
-        first_elt = self.elts[0]
+        first_elt = self.elts["experiment"][0]
         # ignore unless the timeline is fully initialized
         if (
             isinstance(first_elt, InfoPage)
             and first_elt.content == "Placeholder timeline"
         ):
             return
-        if all([not isinstance(elt, Consent) for elt in self.elts]):
+        if all([not isinstance(elt, Consent) for elt in self.elts["experiment"]]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
     @property
     def consents(self):
         from .consent import Consent
 
-        return [elt for elt in self.elts if isinstance(elt, Consent)]
+        return [elt for elt in self.elts["experiment"] if isinstance(elt, Consent)]
 
     def verify_consents(self, experiment):
         recruiter = experiment.recruiter
@@ -1500,7 +1506,7 @@ class Timeline:
 
     @cached_property
     def modules(self):
-        return {e.module_id: e.module for e in self.elts}
+        return {e.module_id: e.module for e in self.elts["experiment"]}
 
     def get_module(self, module_id):
         try:
@@ -1512,7 +1518,7 @@ class Timeline:
     def trial_makers(self):
         return {
             e.trial_maker_id: e.trial_maker
-            for e in self.elts
+            for e in self.elts["experiment"]
             if isinstance(e, RegisterTrialMaker)
         }
 
@@ -1523,23 +1529,18 @@ class Timeline:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
 
     def add_elt_ids(self):
-        for i, elt in enumerate(self.elts):
-            elt.id = [i]
-        for i, elt in enumerate(self.elts):
-            if elt.id[0] != i:
-                raise ValueError(
-                    "Failed to set unique IDs for each element in the timeline "
-                    + f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). "
-                    + "This usually means that the same Python object instantiation is reused multiple times "
-                    + "in the same timeline. This kind of reusing is not permitted, instead you should "
-                    + "create a fresh instantiation of each element."
-                )
+        for branch_name, branch in self.elts.items():
+            for i, elt in enumerate(branch):
+                if elt.id is not None:
+                    raise ValueError(
+                        "Failed to set unique IDs for each element in the timeline "
+                        f"(the same element was reused at positions {elt.id} and {i}). "
+                        "This usually means that the same Python object instantiation is reused multiple times "
+                        "in the same timeline. This kind of reusing is not permitted, instead you should "
+                        "create a fresh instantiation of each element, e.g. by calling a function twice."
+                    )
 
-    def __len__(self):
-        return len(self.elts)
-
-    def __getitem__(self, key):
-        return self.elts[key]
+                elt.id = ["branch_name", i]
 
     @log_time_taken
     def get_current_elt(self, experiment, participant):
@@ -1563,6 +1564,14 @@ class Timeline:
         # resolving it, and so on.
         #
         num_levels = len(participant.elt_id)
+        selected_elt = None
+
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
+
         for depth, index in enumerate(participant.elt_id):
             # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
             # then:
@@ -1575,11 +1584,10 @@ class Timeline:
                 index_max = participant.elt_id_max[depth]
             except IndexError:
                 index_max = None
-            if depth == 0:
-                # We start just by going to the ith element in the timeline.
-                selected_elt = self[index]
+
+            if not isinstance(selected_elt, PageMaker):
+                selected_elt = self.elts[index]
             else:
-                assert isinstance(selected_elt, PageMaker)
                 try:
                     # ``position`` corresponds to the page maker's location within the timeline.
                     # For example, suppose we are on the third level of the example above, then:
