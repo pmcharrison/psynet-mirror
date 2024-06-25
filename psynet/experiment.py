@@ -72,6 +72,7 @@ from .timeline import (
     DatabaseCheck,
     FailedValidation,
     ModuleState,
+    ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
     Response,
@@ -1388,6 +1389,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for elt in self.timeline.elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
+            if isinstance(elt, ParticipantFailRoutine):
+                self.register_participant_fail_routine(elt)
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
