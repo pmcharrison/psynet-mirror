@@ -636,19 +636,23 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def fail(self, reason=None):
         if reason is not None:
             self.append_failure_tags(reason)
-        reasons = ", ".join(self.failure_tags)
+        reason = ", ".join(self.failure_tags)
 
         logger.info(
             "Failing participant %i (reason: %s)",
             self.id,
-            reasons,
+            reason,
         )
 
-        for i, routine in enumerate(self.participant_fail_routines):
+        from psynet.experiment import get_experiment
+
+        exp = get_experiment()
+
+        for i, routine in enumerate(exp.participant_fail_routines):
             logger.info(
                 "Executing fail routine %i/%i ('%s')...",
                 i + 1,
-                len(self.participant_fail_routines),
+                len(exp.participant_fail_routines),
                 routine.label,
             )
             call_function_with_context(
