@@ -1433,7 +1433,7 @@ class Timeline:
     def compile_modules(self):
         modules = {}
         module_list = []
-        for branch in self.branches:
+        for branch in self.branches.values():
             for elt in branch:
                 if isinstance(elt, StartModule):
                     module = elt.module
@@ -1470,7 +1470,7 @@ class Timeline:
     def check_modules(self):
         modules = [
             elt.label
-            for branch in self.branches
+            for branch in self.branches.values()
             for elt in branch
             if isinstance(elt, StartModule)
         ]
@@ -1510,10 +1510,6 @@ class Timeline:
         recruiter = experiment.recruiter
         if hasattr(recruiter, "verify_consents"):
             recruiter.verify_consents(self.consents)
-
-    @cached_property
-    def modules(self):
-        return {e.module_id: e.module for e in self.branches["experiment"]}
 
     def get_module(self, module_id):
         try:
