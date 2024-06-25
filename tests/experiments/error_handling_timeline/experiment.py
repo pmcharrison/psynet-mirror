@@ -1,10 +1,9 @@
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.modular_page import TextControl, ModularPage
+from psynet.modular_page import ModularPage, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
-from psynet.process import LocalAsyncProcess, WorkerAsyncProcess
-from psynet.timeline import CodeBlock, Timeline, switch, join
+from psynet.timeline import Timeline, join, switch
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -44,7 +43,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             InfoPage(
                 "Thank you very much, you can now close the window.",
-            )
+            ),
         )
 
     def need_more_participants(self):
