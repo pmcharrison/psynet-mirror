@@ -633,6 +633,17 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
+    def fail(self, reason=None):
+        if reason is not None:
+            self.append_failure_tags(reason)
+        reasons = ", ".join(self.failure_tags)
+        logger.info(
+            "Failing participant %i (reason: %s)",
+            self.id,
+            reasons,
+        )
+        super().fail(reason=reason)
+
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:
     """
