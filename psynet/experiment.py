@@ -1504,31 +1504,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "then set `Experiment.max_allowed_base_payment` to a larger value in experiment.py."
             )
 
-    def fail_participant(self, participant):
-        failed_reason = ", ".join(participant.failure_tags)
-        logger.info(
-            "Failing participant %i (%i routine(s) found, reason: %s)",
-            participant.id,
-            len(self.participant_fail_routines),
-            failed_reason,
-        )
-        participant.failed = True
-        participant.failed_reason = failed_reason
-        participant.time_of_death = datetime.now()
-
-        for i, routine in enumerate(self.participant_fail_routines):
-            logger.info(
-                "Executing fail routine %i/%i ('%s')...",
-                i + 1,
-                len(self.participant_fail_routines),
-                routine.label,
-            )
-            call_function_with_context(
-                routine.function,
-                participant=participant,
-                experiment=self,
-            )
-
     @property
     def num_working_participants(self):
         return Participant.query.filter_by(status="working", failed=False).count()

@@ -332,7 +332,7 @@ class UnsuccessfulEndPage(EndPage):
         if self.failure_tags:
             assert isinstance(self.failure_tags, list)
             participant.append_failure_tags(*self.failure_tags)
-        experiment.fail_participant(participant)
+        participant.fail()
 
 
 class RejectedConsentPage(UnsuccessfulEndPage):
