@@ -2756,16 +2756,6 @@ class PreDeployRoutine(NullElt):
         self.args = args
 
 
-class ParticipantFailRoutine(NullElt):
-    def __init__(self, label, function):
-        super().__init__()
-        check_function_args(
-            function, args=["participant", "experiment"], need_all=False
-        )
-        self.label = label
-        self.function = function
-
-
 class RecruitmentCriterion(NullElt):
     def __init__(self, label, function):
         super().__init__()
