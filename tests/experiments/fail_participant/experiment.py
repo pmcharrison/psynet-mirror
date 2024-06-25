@@ -24,9 +24,9 @@ class Exp(psynet.experiment.Experiment):
             "switch",
             lambda participant: participant.id,
             {
-                1: UnsuccessfulEndPage(),
-                2: CodeBlock(lambda participant: participant.fail("CodeBlock")),
-                3: InfoPage("Nothing to see here...", time_estimate=5),
+                1: InfoPage("Nothing to see here...", time_estimate=5),
+                2: UnsuccessfulEndPage(),
+                3: CodeBlock(lambda participant: participant.fail("CodeBlock")),
             },
         ),
         ParticipantFailRoutine(
@@ -37,16 +37,18 @@ class Exp(psynet.experiment.Experiment):
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-
-        if bot.id < 2:
+        if bot.id == 1:
+            assert not bot.failed
+            assert not bot.var.fail_routine_executed
+        else:
             assert bot.failed
             assert bot.var.fail_routine_executed
 
-            if bot.id == 0:
+            if bot.id == 2:
                 assert bot.failed_reason == "UnsuccessfulEndPage"
-            else:
+
+            elif bot.id == 3:
                 assert bot.failed_reason == "CodeBlock"
 
-        else:
-            assert not bot.failed
-            assert not bot.var.fail_routine_executed
+            else:
+                raise ValueError(f"Unexpected bot id: {bot.id}")
