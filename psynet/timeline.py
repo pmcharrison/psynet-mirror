@@ -1534,7 +1534,7 @@ class Timeline:
     def add_elt_ids(self):
         for branch_name, branch in self.branches.items():
             for i, elt in enumerate(branch):
-                if elt.id is not None:
+                if elt.id is not None and elt.id != [branch_name, i]:
                     raise ValueError(
                         f"Failed to set unique IDs for each element in the {branch_name} timeline "
                         f"(the same element was reused at positions {elt.id} and {i}). "
