@@ -50,7 +50,6 @@ from ..timeline import (
     Module,
     ModuleState,
     PageMaker,
-    ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
     RegisterTrialMaker,
@@ -1275,9 +1274,6 @@ class TrialMaker(Module):
     def _setup_core(self):
         return join(
             PreDeployRoutine(self.with_namespace(), self.pre_deploy_routine),
-            ParticipantFailRoutine(
-                self.with_namespace(), self.participant_fail_routine
-            ),
             self.check_timeout_task,
             CodeBlock(self.init_participant),
         )
