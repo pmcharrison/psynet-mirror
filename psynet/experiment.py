@@ -2631,8 +2631,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def terminate_participant(cls):
         recruiter = get_experiment().recruiter
+        participant = recruiter.get_participant(request)
         external_submit_url = recruiter.terminate_participant(
-            recruiter.get_participant(request), request.values.get("reason")
+            participant=participant, reason=request.values.get("reason")
         )
 
         return render_template_with_translations(
