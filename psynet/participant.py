@@ -24,7 +24,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .utils import get_logger, organize_by_key
+from .utils import call_function_with_context, get_logger, organize_by_key
 
 logger = get_logger()
 
@@ -632,6 +632,36 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "hit_id": self.hit_id,
             "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
+
+    def fail(self, reason=None):
+        if reason is not None:
+            self.append_failure_tags(reason)
+        reason = ", ".join(self.failure_tags)
+
+        logger.info(
+            "Failing participant %i (reason: %s)",
+            self.id,
+            reason,
+        )
+
+        from psynet.experiment import get_experiment
+
+        exp = get_experiment()
+
+        for i, routine in enumerate(exp.participant_fail_routines):
+            logger.info(
+                "Executing fail routine %i/%i ('%s')...",
+                i + 1,
+                len(exp.participant_fail_routines),
+                routine.label,
+            )
+            call_function_with_context(
+                routine.function,
+                participant=self,
+                experiment=self,
+            )
+
+        super().fail(reason=reason)
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:
