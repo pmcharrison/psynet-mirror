@@ -131,14 +131,23 @@ Copy and paste the two Python lines into the part of your code where you want to
     import pydevd_pycharm
     pydevd_pycharm.settrace('host.docker.internal', port=12345, stdoutToServer=True, stderrToServer=True)
 
-Now run your PsyNet command as usual:
+Now run your PsyNet debug command as usual:
 
 .. code:: bash
-
-    bash docker/psynet debug local
+    
+    psynet debug local  # virtualenv users
+    bash docker/psynet debug local  # Docker users
 
 Once PsyNet hits the breakpoint, your debug console should be activated. You should now be able to access the local
 environment and execute arbitrary code.
+
+.. note::
+
+    You may be aware that PyCharm provides an alternative breakpoint functionality
+    where you simply click on the line number to create a breakpoint.
+    It would be great if this worked with PsyNet, but unfortunately due to a 
+    PyCharm bug it doesn't work for us. 
+    See https://youtrack.jetbrains.com/issue/PY-60474 for more details.
 
 .. note::
 
